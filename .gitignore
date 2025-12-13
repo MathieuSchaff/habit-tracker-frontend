@@ -1,0 +1,20 @@
+# Node / Bun
+node_modules
+bun.lockb
+
+# Env (SECRETS)
+.env
+.env.*
+!.env.example
+
+# Docker
+pgdata
+*.log
+
+# Certbot / SSL
+certbot_data
+certbot_www
+
+# OS / Editor
+.DS_Store
+.vscode
