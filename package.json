@@ -3,10 +3,15 @@
   "module": "src/index.ts",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "bun x tsc -p tsconfig.json",
+    "start": "bun dist/index.js",
+    "test": "bun test"
   },
-  "peerDependencies": {
+  "devDependencies": {
+    "@types/bun": "latest",
     "typescript": "^5"
-  }
+  },
+  "peerDependencies": {}
 }
