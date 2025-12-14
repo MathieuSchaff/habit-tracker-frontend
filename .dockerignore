@@ -1,0 +1,35 @@
+# Dépendances locales (reconstruites dans l'image)
+node_modules
+bun.lockb
+bun.lock
+
+# Build local
+dist
+coverage
+
+# Fichiers d'environnement
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Docker (évite les récursions inutiles)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# IDE / OS
+.vscode
+.idea
+.editorconfig
+.DS_Store
+
+# Docs & divers
+README*
+LICENSE
+Makefile
+
+# Logs
+*.log
