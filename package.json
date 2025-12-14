@@ -13,5 +13,8 @@
     "@types/bun": "latest",
     "typescript": "^5"
   },
-  "peerDependencies": {}
+  "peerDependencies": {},
+  "dependencies": {
+    "hono": "^4.11.0"
+  }
 }
