@@ -7,14 +7,30 @@
     "dev": "bun --watch src/index.ts",
     "build": "bun x tsc -p tsconfig.json",
     "start": "bun dist/index.js",
-    "test": "bun test"
+    "test": "bun test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:migrate2": "bun src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up",
+    "docker:dev:bg": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d",
+    "docker:dev:db": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d db",
+    "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d",
+    "docker:stop": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:logs:api": "docker compose logs -f api",
+    "docker:clean": "docker compose down -v"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.8",
     "typescript": "^5"
   },
   "peerDependencies": {},
   "dependencies": {
-    "hono": "^4.11.0"
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.0",
+    "pg": "^8.16.3"
   }
 }

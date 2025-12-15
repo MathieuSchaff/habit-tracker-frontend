@@ -1,20 +1,43 @@
+# =========================
 # Node / Bun
+# =========================
 node_modules
-bun.lock
+bun.lockb
+dist/
+*.log
 
+# =========================
 # Env (SECRETS)
+# =========================
 .env
 .env.*
 !.env.example
+!.env.dev
 
+# Note: .env.dev est autorisé car pas de secrets en dev
+# Mais si vous préférez plus de sécurité, commentez la ligne ci-dessus
+
+# =========================
 # Docker
+# =========================
 pgdata
-*.log
-
-# Certbot / SSL
 certbot_data
 certbot_www
 
+# =========================
+# Backups de base de données
+# =========================
+backups/
+*.sql
+*.dump
+
+# =========================
 # OS / Editor
+# =========================
 .DS_Store
 .vscode
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
