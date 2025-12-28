@@ -8,10 +8,18 @@
     "build": "bun x tsc -p tsconfig.json",
     "start": "bun dist/index.js",
     "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:db:migrate": "bun src/scripts/migrate-test.ts",
+    "test:db:migrate2": "DATABASE_URL=postgres://app:testpassword@localhost:5433/appdb_test bun run db:migrate2",
+    "test:db:up": "docker compose -f docker-compose.test.yml up -d",
+    "test:db:down": "docker compose -f docker-compose.test.yml down",
+    "test:setup": "bun run test:db:up && bun run test:db:migrate",
+    "test:full": "bun run test:setup && bun test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate2": "bun src/db/migrate.ts",
-    "db:studio": "drizzle-kit studio",
+    "db:studio": "drizzle-kit studio --port 4983",
+    "test:db:studio": "DATABASE_URL=postgres://app:testpassword@localhost:5433/appdb_test drizzle-kit studio --port 4984",
     "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up",
     "docker:dev:bg": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d",
     "docker:dev:db": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d db",
@@ -22,18 +30,19 @@
     "docker:clean": "docker compose down -v"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "^1.3.5",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {},
   "dependencies": {
     "argon2": "^0.44.0",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.1",
-    "hono-rate-limiter": "^0.5.0",
+    "hono-rate-limiter": "^0.5.1",
     "pg": "^8.16.3",
-    "zod": "^4.2.0"
+    "zod": "^4.2.1"
   }
 }
