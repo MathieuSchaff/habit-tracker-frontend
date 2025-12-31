@@ -37,6 +37,7 @@
   },
   "peerDependencies": {},
   "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
     "argon2": "^0.44.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
