@@ -1,1 +1,1 @@
-purged from history
+export { authRoutes } from "./routes";
