@@ -1,43 +1,59 @@
 # =========================
-# Node / Bun
+# Dependencies
 # =========================
-node_modules
-bun.lockb
-dist/
-*.log
+node_modules/
+.bun/
 
 # =========================
-# Env (SECRETS)
+# Build outputs
+# =========================
+dist/
+build/
+*.tsbuildinfo
+
+# =========================
+# Environment
 # =========================
 .env
-.env.*
-!.env.example
-!.env.dev
-
-# Note: .env.dev est autorisé car pas de secrets en dev
-# Mais si vous préférez plus de sécurité, commentez la ligne ci-dessus
+.env.local
+.env.prod
+.env.production
 
 # =========================
-# Docker
-# =========================
-pgdata
-certbot_data
-certbot_www
-
-# =========================
-# Backups de base de données
+# Database
 # =========================
 backups/
 *.sql
-*.dump
 
 # =========================
-# OS / Editor
+# IDE
 # =========================
-.DS_Store
-.vscode
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
+
+# =========================
+# OS
+# =========================
+.DS_Store
 Thumbs.db
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# =========================
+# Test
+# =========================
+coverage/
+
+# =========================
+# Docker (local volumes)
+# =========================
+pgdata/
