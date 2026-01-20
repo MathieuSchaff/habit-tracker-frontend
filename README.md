@@ -1,174 +1,141 @@
-# 🎯 Habit Tracker Backend
+# Infrastructure & DevOps
 
-Stack Bun + PostgreSQL + Nginx + Certbot avec Docker Compose.
+## Structure du projet
 
-## 📚 Documentation
+```
+habit-tracker/
+├── Makefile                 # Commandes principales
+├── docker-compose.yml       # Config de base (commune)
+├── docker-compose.dev.yml   # Surcharges dev
+├── docker-compose.prod.yml  # Surcharges prod
+├── docker-compose.test.yml  # DB isolée pour tests
+├── .env.dev                 # Variables dev
+├── .env.prod                # Variables prod (⚠️ ne pas commit)
+├── nginx/
+│   └── conf.d/
+│       └── default.conf     # Reverse proxy config
+├── backend/
+│   ├── Dockerfile           # Multi-stage (dev/prod)
+│   └── src/
+└── frontend/
+    ├── Dockerfile           # Prod (nginx)
+    ├── Dockerfile.dev       # Dev (vite)
+    └── nginx.conf           # Config SPA
+```
 
-- **[README.dev.md](./README.dev.md)** - Développement local
-- **[README.prod.md](./README.prod.md)** - Déploiement production
-
-## 🏗️ Stack
-
-| Composant       | Technologie             |
-| --------------- | ----------------------- |
-| Runtime         | Bun 1.x                 |
-| Framework       | Hono 4.x                |
-| Base de données | PostgreSQL 16           |
-| ORM             | Drizzle ORM 0.45        |
-| Reverse Proxy   | Nginx 1.27              |
-| SSL/TLS         | Certbot (Let's Encrypt) |
-
-## 🚀 Démarrage rapide
-
-### Mode développement
+## Commandes rapides
 
 ```bash
-# Installation
-bun install
-
-# Copier l'exemple
-cp .env.example .env
-
-# Démarrer la DB
-bun run docker:dev:db
-
-# Lancer l'API (hot reload)
-bun run dev
+make help       # Voir toutes les commandes
+make dev        # Lancer en développement
+make test       # Lancer les tests
+make prod       # Déployer en production
+make stop       # Tout arrêter
 ```
 
-👉 Voir [README.dev.md](./README.dev.md)
+## Environnements
 
-### Mode production
+| Environnement | Commande    | Ports exposés                       |
+| ------------- | ----------- | ----------------------------------- |
+| Dev           | `make dev`  | API: 3000, Frontend: 5173, DB: 5432 |
+| Prod          | `make prod` | HTTP: 80, HTTPS: 443                |
+| Test          | `make test` | DB: 5433                            |
+
+## Architecture Docker
+
+```
+┌─────────────────────────────────────────────────────┐
+│                      nginx                          │
+│                   (reverse proxy)                   │
+│                    :80 / :443                       │
+└──────────────┬─────────────────────┬────────────────┘
+               │                     │
+               ▼                     ▼
+        ┌─────────────┐       ┌─────────────┐
+        │   frontend  │       │     api     │
+        │   (nginx)   │       │ (bun+hono)  │
+        │     :80     │       │    :3000    │
+        └─────────────┘       └──────┬──────┘
+                                     │
+                                     ▼
+                              ┌─────────────┐
+                              │     db      │
+                              │ (postgres)  │
+                              │    :5432    │
+                              └─────────────┘
+```
+
+En **dev**, nginx est désactivé → accès direct aux services.
+
+## Variables d'environnement
+
+Copier `.env.example` vers `.env.dev` et `.env.prod` :
 
 ```bash
-# Créer .env.prod
-echo "POSTGRES_PASSWORD=votre_password_fort" > .env.prod
-
-# Démarrer tout
-bun run docker:prod
-
-# Générer SSL
-docker compose exec certbot certbot certonly --webroot -w /var/www/certbot -d votredomaine.com --email votre@email.com --agree-tos
+cp .env.example .env.dev
+cp .env.example .env.prod
 ```
 
-👉 Voir [README.prod.md](./README.prod.md)
+| Variable            | Description             | Requis |
+| ------------------- | ----------------------- | ------ |
+| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL | ✅     |
 
-## 📦 Structure
-
-```
-.
-├── src/                      # Code source
-├── nginx/conf.d/             # Config Nginx
-├── docker-compose.yml        # Config de base
-├── docker-compose.dev.yml    # Surcharges dev
-├── docker-compose.prod.yml   # Surcharges prod
-├── Dockerfile                # Multi-stage (dev + prod)
-├── .env.dev                  # Variables dev
-├── .env.prod                 # Variables prod (non commité)
-└── .env.example              # Template
-```
-
-## 🔐 Architecture
-
-```
-Internet
-   ↓
-[80/443] Nginx
-   ↓
-[3000] API Bun (réseau Docker interne)
-   ↓
-[5432] PostgreSQL (réseau Docker interne)
-```
-
-Seul Nginx est exposé publiquement.
-
-## 📝 Variables d'environnement
-
-### `.env.dev` (développement)
-
-```env
-POSTGRES_PASSWORD=dev_password_123
-```
-
-### `.env.prod` (production)
-
-```env
-POSTGRES_PASSWORD=VotreMotDePasseTrèsSecurisé!
-```
-
-### `.env` (pour API locale)
-
-```env
-DATABASE_URL=postgres://app:dev_password_123@localhost:5432/appdb
-```
-
-## 🔧 Commandes
+## Premier lancement
 
 ```bash
-# Développement
-bun run dev                 # API locale avec hot reload
-bun run docker:dev:db       # DB uniquement
-bun run docker:dev          # Tout avec Docker
+# 1. Configurer les variables
+cp .env.example .env.dev
 
-# Production
-bun run docker:prod         # Lance en prod
+# 2. Lancer en dev
+make dev
 
-# Gestion
-bun run docker:stop         # Arrête tout
-bun run docker:logs         # Voir les logs
-bun run docker:logs:api     # Logs API
-bun run docker:clean        # Supprime tout
-
-# Base de données
-bun run db:generate         # Génère les migrations
-bun run db:migrate          # Applique les migrations
-
-# Build
-bun run build               # Compile TypeScript
-bun run start               # Lance le build
-bun run test                # Tests
+# 3. Appliquer les migrations (dans un autre terminal)
+make db-migrate
 ```
 
-## 🔍 Healthcheck
+## Base de données
 
 ```bash
-# Dev
-curl http://localhost:3000/health
-
-# Prod
-curl https://votredomaine.com/health
-
-# État des conteneurs
-docker compose ps
+make db-migrate   # Appliquer les migrations
+make db-studio    # Interface Drizzle (localhost:4983)
+make db-backup    # Sauvegarder
+make db-restore FILE=./backups/backup.sql  # Restaurer
+make shell-db     # Accès psql direct
 ```
 
-## 💾 Backup DB
+## Tests
 
 ```bash
-# Backup
-docker compose exec db pg_dump -U app appdb > backup.sql
-
-# Restauration
-docker compose exec -T db psql -U app appdb < backup.sql
+make test         # Lance DB test → tests → cleanup
+make test-watch   # Mode watch (DB reste active)
+make test-db-down # Arrêter la DB de test manuellement
 ```
 
-## 🐛 Problèmes courants
+Les tests utilisent une DB PostgreSQL isolée sur le port 5433.
 
-### DB ne démarre pas
+## Production
 
 ```bash
-docker compose logs db
-bun run docker:clean
-bun run docker:dev:db
+# 1. Configurer les variables prod
+vim .env.prod  # Mettre un vrai mot de passe
+
+# 2. Modifier nginx/conf.d/default.conf
+# - Remplacer votredomaine.com par ton domaine
+# - Décommenter la section HTTPS après obtention du certificat
+
+# 3. Lancer
+make prod
+
+# 4. Générer le certificat SSL
+make ssl-init  # Modifier le domaine dans le Makefile avant
 ```
 
-### Port déjà utilisé
+## Logs & debug
 
 ```bash
-lsof -i :3000  # API
-lsof -i :5432  # DB
+make logs           # Tous les logs
+make logs-api       # Logs API uniquement
+make logs-frontend  # Logs frontend
+make health         # État des conteneurs
+make ps             # Liste des conteneurs
 ```
-
-### Hot reload ne marche pas
-
-Utiliser `bun run docker:dev` et non `docker compose up`
