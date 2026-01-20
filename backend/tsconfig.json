@@ -3,22 +3,19 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "noEmit": false,
-
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": false,
-
-    "types": ["bun-types"]
+    "types": ["bun-types", "node"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "drizzle.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }
