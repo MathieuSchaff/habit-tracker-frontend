@@ -1,30 +1,32 @@
 const port = Number(process.env.PORT ?? 3000);
-
 import { Hono } from "hono";
-// les routes
 import { healthRoute } from "./features/health/routes";
 import { habits } from "./features/habits/routes";
 import { profileRoute } from "./features/profile";
-
 import { db } from "./db/index";
 import { authRoutes } from "./features/auth";
 import type { AppEnv } from "./app-env";
-// initialisation app hono
-const app = new Hono<AppEnv>();
+import { cors } from "hono/cors";
 
-const appEnv: "development" | "production" =
-  Bun.env.NODE_ENV === "production" ? "production" : "development";
+const app = new Hono<AppEnv>()
+  .basePath("/api")
+  .use("*", cors({ credentials: true, origin: "http://localhost:5173" }))
 
-app.use("*", async (c, next) => {
-  c.set("db", db);
-  c.set("env", appEnv);
-  await next();
-});
+  .use("*", async (c, next) => {
+    c.set("db", db);
+    c.set(
+      "env",
+      Bun.env.NODE_ENV === "production" ? "production" : "development",
+    );
+    await next();
+  })
+  .route("/auth", authRoutes)
+  .route("/health", healthRoute)
+  // .route("/habits", habits)
+  .route("/profile", profileRoute);
 
-app.route("/auth", authRoutes);
-app.route("/", healthRoute);
-app.route("/habits", habits);
-app.route("/profile", profileRoute);
+// Export du type pour le frontend
+export type AppType = typeof app;
 
 export default {
   port: port,

@@ -25,18 +25,7 @@ import {
   authErrorMapping,
 } from "./auth.types";
 import { zValidator } from "@hono/zod-validator";
-import { ValidationTarget } from "../../utils/validateDataMiddleware";
-export const authRoutes = new Hono<AppEnv>();
 
-const validate = <T extends z.ZodSchema>(target: ValidationTarget, schema: T) =>
-  zValidator(target, schema, (result, c) => {
-    if (!result.success) {
-      return c.json<ApiError<ValidationErrorCode>>(
-        err("invalid_input", treeifyError(result.error)),
-        HTTP_STATUS.BAD_REQUEST
-      );
-    }
-  });
 // Schema de validation
 const authSchema = z.object({
   email: z.email().trim().toLowerCase(),
@@ -48,97 +37,99 @@ const authSchema = z.object({
     .regex(/[A-Z]/, "Au moins une majuscule")
     .regex(/[0-9]/, "Au moins un chiffre"),
 });
+
 // https://hono.dev/docs/guides/validation
 // Fonction qui permet de pas répéter zValidator etc.
 // Sachant que zValidator renvoie toujours une erreur avec un status 400
 // donc c'est nécessaire de créer une fonction propre.
 
-// ROUTE PING
-authRoutes.get("/ping", (c) => {
-  return c.json<PingResponse>(ok({ ok: true }));
-});
+export const authRoutes = new Hono<AppEnv>()
+  // ROUTE PING
+  .get("/ping", (c) => {
+    return c.json<PingResponse>(ok({ ok: true }));
+  })
 
-// ROUTE LOGIN
-authRoutes.post(
-  "/login",
-  rateLimiterFunc,
-  validate("json", authSchema),
-  async (c) => {
-    const env = c.get("env");
-    const db = c.get("db");
-    const { email, password } = c.req.valid("json");
-    // Appel service
-    const result = await loginUser(db, email, password);
+  // ROUTE LOGIN
+  .post(
+    "/login",
+    rateLimiterFunc,
+    zValidator("json", authSchema),
+    async (c) => {
+      const env = c.get("env");
+      const db = c.get("db");
+      const { email, password } = c.req.valid("json");
+      // Appel service
+      const result = await loginUser(db, email, password);
 
-    // Erreur
-    if (!isApiSuccess(result)) {
+      // Erreur
+      if (!isApiSuccess(result)) {
+        return c.json<LoginResponse>(
+          err(result.error),
+          errorToStatus(result.error, authErrorMapping),
+        );
+      }
+      // Succès : set cookie et retourne user
+      setCookie(c, "sid", result.data.sid, cookieOptions(env));
+
       return c.json<LoginResponse>(
-        err(result.error),
-        errorToStatus(result.error, authErrorMapping)
+        ok({ user: result.data.user }),
+        HTTP_STATUS.OK,
       );
-    }
-    // Succès : set cookie et retourne user
-    setCookie(c, "sid", result.data.sid, cookieOptions(env));
+    },
+  )
 
-    return c.json<LoginResponse>(
-      ok({ user: result.data.user }),
-      HTTP_STATUS.OK
-    );
-  }
-);
+  // ROUTE SIGNUP
+  .post(
+    "/signup",
+    zValidator("json", authSchema),
+    rateLimiterFunc,
+    async (c) => {
+      const db = c.get("db");
+      const env = c.get("env");
+      const { email, password } = c.req.valid("json");
+      // Appel service
+      const result = await signupUser(db, email, password);
 
-// ROUTE SIGNUP
-authRoutes.post(
-  "/signup",
-  validate("json", authSchema),
-  rateLimiterFunc,
-  async (c) => {
-    const db = c.get("db");
-    const env = c.get("env");
-    const { email, password } = c.req.valid("json");
-    // Appel service
-    const result = await signupUser(db, email, password);
+      // Erreur
+      if (!isApiSuccess(result)) {
+        return c.json<SignupResponse>(
+          result,
+          errorToStatus(result.error, authErrorMapping),
+        );
+      }
 
-    // Erreur
-    if (!isApiSuccess(result)) {
+      // Succès : set cookie et retourne user
+      setCookie(c, "sid", result.data.sid, cookieOptions(env));
+
       return c.json<SignupResponse>(
-        result,
-        errorToStatus(result.error, authErrorMapping)
+        ok({ user: result.data.user }),
+        HTTP_STATUS.OK,
+      );
+    },
+  )
+
+  // ROUTE LOGOUT
+  .post("/logout", async (c) => {
+    const db = c.get("db");
+    const sid = getCookie(c, "sid");
+
+    // Pas de session = déjà déconnecté, on retourne succès quand même
+    if (!sid) {
+      return c.json<LogoutResponse>(
+        ok(null, "Already disconnected"),
+        HTTP_STATUS.OK,
       );
     }
 
-    // Succès : set cookie et retourne user
-    setCookie(c, "sid", result.data.sid, cookieOptions(env));
+    const sidHash = hashSid(sid);
 
-    return c.json<SignupResponse>(
-      ok({ user: result.data.user }),
-      HTTP_STATUS.OK
-    );
-  }
-);
+    try {
+      await revokeSession(db, sidHash);
+    } catch (e) {
+      // On log mais on retourne succès (côté client = déconnecté)
+      console.error("Logout - session not found:", e);
+    }
 
-// ROUTE LOGOUT
-authRoutes.post("/logout", async (c) => {
-  const db = c.get("db");
-  const sid = getCookie(c, "sid");
-
-  // Pas de session = déjà déconnecté, on retourne succès quand même
-  if (!sid) {
-    return c.json<LogoutResponse>(
-      ok(null, "Already disconnected"),
-      HTTP_STATUS.OK
-    );
-  }
-
-  const sidHash = hashSid(sid);
-
-  try {
-    await revokeSession(db, sidHash);
-  } catch (e) {
-    // On log mais on retourne succès (côté client = déconnecté)
-    console.error("Logout - session not found:", e);
-  }
-
-  deleteCookie(c, "sid");
-  return c.json<LogoutResponse>(ok(null, "Disconnected"), HTTP_STATUS.OK);
-});
+    deleteCookie(c, "sid");
+    return c.json<LogoutResponse>(ok(null, "Disconnected"), HTTP_STATUS.OK);
+  });
