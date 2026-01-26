@@ -1,33 +1,33 @@
 {
-  "name": "habit-tracker-backend",
-  "module": "src/index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build": "bun x tsc -p tsconfig.json",
-    "start": "bun dist/index.js",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio --port 4983"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.3.5",
-    "@types/node": "^25.0.9",
-    "@types/pg": "^8.16.0",
-    "drizzle-kit": "^0.31.8",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@hono/zod-validator": "^0.7.6",
-    "argon2": "^0.44.0",
-    "date-fns": "^4.1.0",
-    "drizzle-orm": "^0.45.1",
-    "hono": "^4.11.1",
-    "hono-rate-limiter": "^0.5.1",
-    "pg": "^8.16.3",
-    "zod": "^4.2.1"
-  }
+    "name": "habit-tracker-backend",
+    "module": "src/index.ts",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "dev": "bun --watch src/index.ts",
+        "build": "bun x tsc -p tsconfig.json",
+        "start": "bun dist/index.js",
+        "test": "bun test",
+        "test:watch": "bun test --watch",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "drizzle-kit migrate",
+        "db:studio": "npx drizzle-kit studio --port 4983"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.3.5",
+        "@types/node": "^25.0.9",
+        "@types/pg": "^8.16.0",
+        "drizzle-kit": "^0.31.8",
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "@hono/zod-validator": "^0.7.6",
+        "argon2": "^0.44.0",
+        "date-fns": "^4.1.0",
+        "drizzle-orm": "^0.45.1",
+        "hono": "^4.11.4",
+        "hono-rate-limiter": "^0.5.1",
+        "pg": "^8.16.3",
+        "zod": "^4.2.1"
+    }
 }
