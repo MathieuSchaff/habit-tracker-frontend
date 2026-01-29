@@ -93,3 +93,30 @@
     border: 0;
   }
 }
+
+/* ===========================
+   VIEW TRANSITIONS
+   =========================== */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: fadeOut 2s ease;
+}
+
+::view-transition-new(root) {
+  animation: fadeIn 2s ease;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
