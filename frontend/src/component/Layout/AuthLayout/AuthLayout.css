@@ -1,0 +1,104 @@
+.auth-layout {
+  --auth-card-bg: var(--bg-card);
+  --auth-glow: var(--primary-60);
+  display: flex;
+  flex-direction: column;
+  /*justify-content: center;*/
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 2rem;
+  background-color: var(--bg-page);
+}
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  animation: fadeInUp 0.6s ease-out;
+  margin-top: 1rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-card {
+  width: 100%;
+  padding: 2rem;
+  background: var(--auth-card-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  box-shadow:
+    0 4px 24px oklch(0% 0 0 / 0.08),
+    0 1px 2px oklch(0% 0 0 / 0.04);
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.auth-card:focus-within {
+  border-color: var(--color-primary);
+  box-shadow:
+    0 4px 24px oklch(0% 0 0 / 0.08),
+    0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+}
+
+.auth-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.auth-footer-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.auth-footer-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-footer-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .auth-layout {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-card {
+    box-shadow:
+      0 4px 32px oklch(0% 0 0 / 0.3),
+      0 1px 2px oklch(0% 0 0 / 0.2),
+      inset 0 1px 0 oklch(100% 0 0 / 0.05);
+  }
+}
