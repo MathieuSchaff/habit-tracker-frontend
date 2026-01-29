@@ -1,18 +1,15 @@
 // src/routes/__root.tsx
-import { createRootRoute, Outlet, Link } from "@tanstack/react-router";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { Header } from "../component/Layout/Header";
 
 export const Route = createRootRoute({
   component: () => (
     <>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/habits">Habits</Link>
-      </nav>
-      <main>
-        <Outlet />
-      </main>
+      <Header />
+      <Outlet />
       <TanStackRouterDevtools />
     </>
   ),
+  errorComponent: () => <div>404 Not found</div>,
 });
