@@ -7,13 +7,12 @@ import {
   revokeSession,
 } from "./session.service";
 import { generateSid, hashSid } from "./utils";
-import {
-  type SignupServiceResult,
-  type LoginServiceResult,
-  LogoutServiceResult,
-} from "./auth.types";
 // Import des types et helpers
-import { ok, err } from "../../types/api";
+import {    ok, err,
+    type SignupServiceResult,
+    type LoginServiceResult,
+    LogoutServiceResult
+} from "@habit-tracker/shared";
 
 // LOGIN
 /**

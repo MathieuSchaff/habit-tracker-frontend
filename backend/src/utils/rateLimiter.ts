@@ -1,7 +1,6 @@
 import { rateLimiter } from "hono-rate-limiter";
 import type { Context, Next } from "hono";
-import { err, errorToStatus } from "../types/api";
-
+import { err, errorToStatus } from "@habit-tracker/shared";
 // https://honohub.dev/docs/rate-limiter/configuration
 // a regarder s'il faut changer le store
 // pour l'instant le store est :
