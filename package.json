@@ -1,0 +1,9 @@
+{
+  "name": "habit-tracker",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ]
+}
