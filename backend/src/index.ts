@@ -1,7 +1,7 @@
 const port = Number(process.env.PORT ?? 3000);
 import { Hono } from "hono";
 import { healthRoute } from "./features/health/routes";
-import { habits } from "./features/habits/routes";
+// import { habits } from "./features/habits/routes";
 import { profileRoute } from "./features/profile";
 import { db } from "./db/index";
 import { authRoutes } from "./features/auth";

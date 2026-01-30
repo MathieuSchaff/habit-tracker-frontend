@@ -3,7 +3,7 @@ import { hashSid } from "./utils";
 import { findValidSessionBySidHash, updateLastSeen } from "./session.service";
 import type { Context, Next } from "hono";
 import type { AppEnv } from "../../app-env";
-import { err, HTTP_STATUS } from "../../types/api";
+import { err, HTTP_STATUS } from "@habit-tracker/shared"
 export const requireAuth = async (c: Context<AppEnv>, next: Next) => {
   const db = c.get("db");
   const sid = getCookie(c, "sid");

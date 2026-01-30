@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { requireAuth } from "../auth/middleware";
 import { getProfile, updateProfile } from "./service";
-import { profileUpdateSchema } from "./validation";
+import { profileUpdateSchema } from "@habit-tracker/shared";
 import { AppEnv } from "../../app-env";
 import { MeResponse, profileErrorMapping } from "./types";
-import { err, errorToStatus, HTTP_STATUS, ok } from "../../types/api";
 import { zValidator } from "@hono/zod-validator";
+import { err, errorToStatus, HTTP_STATUS, ok } from "@habit-tracker/shared";
 
 // Toutes les routes users nécessitent l'auth
 export const profileRoute = new Hono<AppEnv>()
