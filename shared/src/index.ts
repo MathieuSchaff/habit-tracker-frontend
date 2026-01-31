@@ -40,9 +40,8 @@ export {
 
 // Schemas API
 export { SuccessResponseSchema, ErrorResponseSchema } from "./schemas/api";
-
 // Schemas Auth
-export { authSchema, type AuthInput, UserPublicSchema, ZodFieldErrors } from "./schemas/auth";
+export { authSchema, type AuthInput, UserPublicSchema, type ZodFieldErrors } from "./schemas/auth";
 
 // Schemas Profile
 export { profileUpdateSchema, type ProfileUpdateInput } from "./schemas/profile";
