@@ -8,6 +8,7 @@
         "build": "bun x tsc -p tsconfig.json",
         "start": "bun dist/index.js",
         "test": "bun test",
+        "test2": "docker compose -f docker-compose.test.yml up -d && sleep 1 && DATABASE_URL=postgres://app:testpassword@localhost:5433/appdb_test bun x drizzle-kit push && bun test",
         "test:watch": "bun test --watch",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
