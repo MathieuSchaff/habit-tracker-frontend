@@ -4,8 +4,8 @@ import { getProfile, updateProfile } from "./service";
 import { profileUpdateSchema } from "@habit-tracker/shared";
 import { AppEnv } from "../../app-env";
 import { MeResponse, profileErrorMapping } from "./types";
-import { zValidator } from "@hono/zod-validator";
 import { err, errorToStatus, HTTP_STATUS, ok } from "@habit-tracker/shared";
+import { validateJson } from "../../utils/validateDataMiddleware";
 
 // Toutes les routes users nécessitent l'auth
 export const profileRoute = new Hono<AppEnv>()
@@ -37,7 +37,10 @@ export const profileRoute = new Hono<AppEnv>()
   })
 
   // PATCH /me - Mettre à jour le profil
-  .patch("/", zValidator("json", profileUpdateSchema), async (c) => {
+    .patch("/",
+      validateJson(profileUpdateSchema),
+      // zValidator("json", profileUpdateSchema),
+      async (c) => {
     const db = c.get("db");
     const userId = c.get("userId")!;
 

@@ -5,8 +5,6 @@ import { cookieOptions, hashSid } from "./utils";
 import { rateLimiterFunc } from "../../utils/rateLimiter";
 import { revokeSession } from "./session.service";
 import { loginUser, signupUser } from "./service";
-
-import { zValidator } from "@hono/zod-validator";
 import {
     ok,
     err,
@@ -20,6 +18,7 @@ import {
     authErrorMapping,
     authSchema,
 } from "@habit-tracker/shared";
+import { validateJson } from "../../utils/validateDataMiddleware";
 
 // https://hono.dev/docs/guides/validation
 // Fonction qui permet de pas répéter zValidator etc.
@@ -36,7 +35,8 @@ export const authRoutes = new Hono<AppEnv>()
     .post(
         "/login",
         rateLimiterFunc,
-        zValidator("json", authSchema),
+        // zValidator("json", authSchema),
+        validateJson(authSchema),
         async (c) => {
             const env = c.get("env");
             const db = c.get("db");
@@ -64,7 +64,8 @@ export const authRoutes = new Hono<AppEnv>()
     // ROUTE SIGNUP
     .post(
         "/signup",
-        zValidator("json", authSchema),
+        // zValidator("json", authSchema),
+        validateJson(authSchema),
         rateLimiterFunc,
         async (c) => {
             const db = c.get("db");
