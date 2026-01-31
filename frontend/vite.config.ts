@@ -15,13 +15,22 @@ export default defineConfig({
       quoteStyle: "single",
     }),
     react(),
-  ],
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
+    ],
+    server: {
+      host: '0.0.0.0',  // ← ajoute ça aussi
+      proxy: {
+        "/api": {
+          target: "http://api:3000",  // ← "api" = nom du service dans docker-compose
+          changeOrigin: true,
+        },
       },
     },
-  },
+  // server: {
+  //   proxy: {
+  //     "/api": {
+  //       target: "http://localhost:3000",
+  //       changeOrigin: true,
+  //     },
+  //   },
+  // },
 });
