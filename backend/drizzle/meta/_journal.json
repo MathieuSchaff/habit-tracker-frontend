@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1765689971236,
-      "tag": "0000_warm_plazm",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1765806779066,
-      "tag": "0001_ambitious_turbo",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1766942467925,
-      "tag": "0002_fancy_bloodscream",
+      "when": 1770021152238,
+      "tag": "0000_outgoing_zzzax",
       "breakpoints": true
     }
   ]
