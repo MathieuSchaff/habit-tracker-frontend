@@ -19,6 +19,8 @@ import {
     authSchema,
 } from "@habit-tracker/shared";
 import { validateJson } from "../../utils/validateDataMiddleware";
+import { requireAuth } from "./middleware";
+import { zValidator } from "@hono/zod-validator";
 
 // https://hono.dev/docs/guides/validation
 // Fonction qui permet de pas répéter zValidator etc.
@@ -35,8 +37,8 @@ export const authRoutes = new Hono<AppEnv>()
     .post(
         "/login",
         rateLimiterFunc,
-        // zValidator("json", authSchema),
-        validateJson(authSchema),
+        zValidator("json", authSchema),
+        // validateJson(authSchema),
         async (c) => {
             const env = c.get("env");
             const db = c.get("db");
@@ -64,8 +66,8 @@ export const authRoutes = new Hono<AppEnv>()
     // ROUTE SIGNUP
     .post(
         "/signup",
-        // zValidator("json", authSchema),
-        validateJson(authSchema),
+        zValidator("json", authSchema),
+        // validateJson(authSchema),
         rateLimiterFunc,
         async (c) => {
             const db = c.get("db");
@@ -116,4 +118,8 @@ export const authRoutes = new Hono<AppEnv>()
 
         deleteCookie(c, "sid");
         return c.json<LogoutResponse>(ok(null, "Disconnected"), HTTP_STATUS.OK);
-    });
+    })
+// ROUTE SESSION
+.get("/session", requireAuth, (c) => {
+    return c.json(ok({ authenticated: true }), HTTP_STATUS.OK);
+})
