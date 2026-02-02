@@ -1,16 +1,16 @@
-import { useId } from "react";
-import { AlertCircle } from "lucide-react";
-import "./Input.css";
+import { useId } from 'react'
+import { AlertCircle } from 'lucide-react'
+import './Input.css'
 
-type InputProps = React.ComponentProps<"input"> & {
-  label?: string;
-  error?: string;
-  hint?: string;
-  hideRequired?: boolean;
-};
+type InputProps = React.ComponentProps<'input'> & {
+  label?: string
+  error?: string
+  hint?: string
+  hideRequired?: boolean
+}
 
 export const Input = ({
-  type = "text",
+  type = 'text',
   label,
   error,
   hint,
@@ -21,11 +21,11 @@ export const Input = ({
   ref,
   ...props
 }: InputProps) => {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const errorId = error ? `${inputId}-error` : undefined;
-  const hintId = hint ? `${inputId}-hint` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const generatedId = useId()
+  const inputId = id ?? generatedId
+  const errorId = error ? `${inputId}-error` : undefined
+  const hintId = hint ? `${inputId}-hint` : undefined
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
   return (
     <div className="input-wrapper">
@@ -63,5 +63,5 @@ export const Input = ({
         </span>
       )}
     </div>
-  );
-};
+  )
+}

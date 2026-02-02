@@ -1,22 +1,22 @@
-import type { db } from "./db/index";
+import type { db } from './db/index'
 
 export type Session = {
-  id: string;
-  userId: string;
-  sidHash: string;
-  expiresAt: Date;
-  createdAt: Date;
-  revokedAt: Date | null;
-  lastSeenAt: Date | null;
-  ip: string | null;
-  userAgent: string | null;
-};
+  id: string
+  userId: string
+  sidHash: string
+  expiresAt: Date
+  createdAt: Date
+  revokedAt: Date | null
+  lastSeenAt: Date | null
+  ip: string | null
+  userAgent: string | null
+}
 
 export type AppEnv = {
   Variables: {
-    db: typeof db;
-    env: "development" | "production";
-    userId?: string;
-    session?: Session;
-  };
-};
+    db: typeof db
+    env: 'development' | 'production'
+    userId?: string
+    session?: Session
+  }
+}
