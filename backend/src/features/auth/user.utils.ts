@@ -1,32 +1,24 @@
-import { profiles, users } from "../../db/schema";
-import type { DB } from "../../db/index";
-import { eq } from "drizzle-orm";
+import { profiles, users } from '../../db/schema'
+import type { DB } from '../../db/index'
+import { eq } from 'drizzle-orm'
 
 export async function getUser(db: DB, email: string) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
 
-  return user ?? null;
+  return user ?? null
 }
 
 export async function getUserById(db: DB, userId: string) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
 
-  return user ?? null;
+  return user ?? null
 }
 
 export async function createUser(
   db: DB,
   userData: {
-    email: string;
-    passwordHash: string;
+    email: string
+    passwordHash: string
   }
 ) {
   const [user] = await db
@@ -35,17 +27,17 @@ export async function createUser(
       email: userData.email.trim().toLowerCase(),
       passwordHash: userData.passwordHash,
     })
-    .returning();
+    .returning()
 
-  return user;
+  return user
 }
 
 export async function createProfile(
   db: DB,
   profileData: {
-    userId: string;
-    firstName?: string;
-    lastName?: string;
+    userId: string
+    firstName?: string
+    lastName?: string
   }
 ) {
   const [profile] = await db
@@ -53,7 +45,7 @@ export async function createProfile(
     .values({
       userId: profileData.userId,
     })
-    .returning();
+    .returning()
 
-  return profile;
+  return profile
 }

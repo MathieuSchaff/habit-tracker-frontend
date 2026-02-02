@@ -1,23 +1,18 @@
-import { Link } from "@tanstack/react-router";
-import "./AuthLayout.css";
+import { Link } from '@tanstack/react-router'
+import './AuthLayout.css'
 
 type FooterLink = {
-  text: string;
-  to: string;
-  label: string;
-};
+  text: string
+  to: string
+  label: string
+}
 
 type AuthLayoutProps = {
-  title: string;
-  footerLink: FooterLink;
-} & React.ComponentProps<"main">;
+  title: string
+  footerLink: FooterLink
+} & React.ComponentProps<'main'>
 
-export const AuthLayout = ({
-  title,
-  children,
-  footerLink,
-  ...props
-}: AuthLayoutProps) => {
+export const AuthLayout = ({ title, children, footerLink, ...props }: AuthLayoutProps) => {
   return (
     <main {...props} className="auth-layout">
       <h2>{title}</h2>
@@ -31,5 +26,5 @@ export const AuthLayout = ({
         </footer>
       </div>
     </main>
-  );
-};
+  )
+}
