@@ -7,11 +7,13 @@ import { queryClient } from "./lib/queryClient";
 import { routeTree } from "./routeTree.gen";
 // STYLES
 import "./styles/index.css";
+import type { RouterContext } from "./routerContext";
 const router = createRouter({
   routeTree,
-  context: { queryClient },
+  context: { queryClient } satisfies RouterContext,
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
+  scrollRestoration: true,
   defaultViewTransition: true,
 });
 
@@ -21,11 +23,15 @@ declare module "@tanstack/react-router" {
   }
 }
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <ReactQueryDevtools />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+const rootElement = document.getElementById('root')!
+if (!rootElement.innerHTML) {
+    const root = createRoot(rootElement)
+    root.render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools />
+        </QueryClientProvider>
+      </StrictMode>,
+   )
+}

@@ -1,5 +1,5 @@
 .auth-layout {
-  --auth-card-bg: var(--bg-card);
+  --auth-card-bg: var(--accent-95);
   --auth-glow: var(--primary-60);
   display: flex;
   flex-direction: column;
@@ -34,7 +34,7 @@
 .auth-card {
   width: 100%;
   padding: 2rem;
-  background: var(--auth-card-bg);
+  background: var(--accent-95);
   border: 1px solid var(--border-default);
   border-radius: 20px;
   box-shadow:
@@ -95,6 +95,14 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .auth-card {
+    color: var(--neutral-10);
+  }
+
+  .auth-card :is(label, input::placeholder) {
+    color: var(--neutral-50);
+  }
+
   .auth-card {
     box-shadow:
       0 4px 32px oklch(0% 0 0 / 0.3),

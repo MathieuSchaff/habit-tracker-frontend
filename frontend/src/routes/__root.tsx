@@ -1,9 +1,9 @@
-// src/routes/__root.tsx
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import {  createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Header } from "../component/Layout/Header";
+import type { RouterContext } from "../routerContext";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <Header />
