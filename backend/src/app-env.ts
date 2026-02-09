@@ -11,12 +11,13 @@ export type Session = {
   ip: string | null
   userAgent: string | null
 }
-
 export type AppEnv = {
   Variables: {
     db: typeof db
     env: 'development' | 'production'
-    userId?: string
+    userId: string
     session?: Session
+    jwtSecret: string
+    refreshSecret: string
   }
 }

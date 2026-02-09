@@ -1,4 +1,14 @@
-import { pgTable, uuid, text, timestamp, index, uniqueIndex, varchar } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import {
+  check,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 
 // password_hash nullable > car on peut se connecter avec google  ( à faire)
 // google_sub nullable > identifiant Google
@@ -89,5 +99,38 @@ export const sessions = pgTable(
     uniqueIndex('sessions_sid_hash_ux').on(t.sidHash),
     index('sessions_user_id_idx').on(t.userId),
     index('sessions_expires_at_idx').on(t.expiresAt),
+  ]
+)
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    jtiHash: text('jti_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }), // ← Nouveau
+    ip: varchar('ip', { length: 45 }),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),
+    // index('refresh_tokens_user_id_idx').on(t.userId),
+    // Index partiel : seulement les tokens actifs (non révoqués)
+    index('refresh_tokens_active_user_idx')
+      .on(t.userId, t.expiresAt)
+      .where(sql`${t.revokedAt} IS NULL`),
+    // index('refresh_tokens_expires_at_idx').on(t.expiresAt),
+    // Index composite pour getUserActiveSessions et revokeAllUserRefreshTokens
+    index('refresh_tokens_user_revoked_idx').on(t.userId, t.revokedAt),
+    // Index composite pour cleanup global
+    index('refresh_tokens_expires_revoked_idx').on(t.expiresAt, t.revokedAt),
+    // Contrainte : revokedAt ne peut pas être avant createdAt
+    check('revoked_after_created', sql`${t.revokedAt} IS NULL OR ${t.revokedAt} >= ${t.createdAt}`),
+    // Contrainte : expiresAt doit être dans le futur à la création
+    check('expires_in_future', sql`${t.expiresAt} > ${t.createdAt}`),
   ]
 )
