@@ -1,113 +1,214 @@
-import { Hono } from 'hono'
-import type { AppEnv } from '../../app-env'
-import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
-import { cookieOptions, hashSid } from './utils'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { revokeSession } from './session.service'
-import { loginUser, signupUser } from './service'
 import {
-  ok,
-  err,
-  errorToStatus,
-  isApiSuccess,
-  HTTP_STATUS,
-  type LoginResponse,
-  type SignupResponse,
-  type LogoutResponse,
-  type PingResponse,
   authErrorMapping,
   authSchema,
+  err,
+  errorToStatus,
+  HTTP_STATUS,
+  isApiSuccess,
+  ok,
 } from '@habit-tracker/shared'
-import { validateJson } from '../../utils/validateDataMiddleware'
-import { requireAuth } from './middleware'
+
 import { zValidator } from '@hono/zod-validator'
+import { type Context, Hono } from 'hono'
 
-// https://hono.dev/docs/guides/validation
-// Fonction qui permet de pas répéter zValidator etc.
-// Sachant que zValidator renvoie toujours une erreur avec un status 400
-// donc c'est nécessaire de créer une fonction propre.
+import type { AppEnv } from '../../app-env'
+import { rateLimiterFunc } from '../../utils/rateLimiter'
+import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
+import { requireJwtAuth } from './middleware'
+import { type AuthContext, login, logout, refresh, signup } from './service'
 
-export const authRoutes = new Hono<AppEnv>()
-  // ROUTE PING
-  .get('/ping', (c) => {
-    return c.json<PingResponse>(ok({ ok: true }))
+/** Build AuthContext from Hono context */
+function buildAuthContext(c: Context<AppEnv>): AuthContext {
+  return {
+    db: c.get('db'),
+    jwtSecret: c.get('jwtSecret'),
+    refreshSecret: c.get('refreshSecret'),
+    ip: c.req.header('CF-Connecting-IP') ?? c.req.header('X-Forwarded-For') ?? 'unknown',
+    userAgent: c.req.header('User-Agent') ?? 'unknown',
+  }
+}
+
+//  Routes
+
+export const jwtAuthRoutes = new Hono<AppEnv>()
+
+  //  BROWSER (cookie-based)
+
+  .post('/login', rateLimiterFunc, zValidator('json', authSchema), async (c) => {
+    const env = c.get('env')
+    const ctx = buildAuthContext(c)
+    const { email, password } = c.req.valid('json')
+
+    const result = await login(ctx, email, password)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    setRefreshTokenCookie(c, result.data.refreshToken, env)
+
+    // Le refreshToken n'est PAS renvoyé dans le body → httpOnly cookie uniquement
+    return c.json(
+      ok({
+        user: result.data.user,
+        accessToken: result.data.accessToken,
+      }),
+      HTTP_STATUS.OK
+    )
   })
 
-  // ROUTE LOGIN
-  .post(
-    '/login',
-    rateLimiterFunc,
-    zValidator('json', authSchema),
-    // validateJson(authSchema),
-    async (c) => {
-      const env = c.get('env')
-      const db = c.get('db')
-      const { email, password } = c.req.valid('json')
-      // Appel service
-      const result = await loginUser(db, email, password)
+  .post('/refresh', rateLimiterFunc, async (c) => {
+    const env = c.get('env')
+    const ctx = buildAuthContext(c)
 
-      // Erreur
-      if (!isApiSuccess(result)) {
-        return c.json<LoginResponse>(
-          err(result.error),
-          errorToStatus(result.error, authErrorMapping)
-        )
-      }
-      // Succès : set cookie et retourne user
-      setCookie(c, 'sid', result.data.sid, cookieOptions(env))
+    const refreshToken = await extractRefreshToken(c)
 
-      return c.json<LoginResponse>(ok({ user: result.data.user }), HTTP_STATUS.OK)
-    }
-  )
-
-  // ROUTE SIGNUP
-  .post(
-    '/signup',
-    zValidator('json', authSchema),
-    // validateJson(authSchema),
-    rateLimiterFunc,
-    async (c) => {
-      const db = c.get('db')
-      const env = c.get('env')
-      const { email, password } = c.req.valid('json')
-      // Appel service
-      const result = await signupUser(db, email, password)
-
-      // Erreur
-      if (!isApiSuccess(result)) {
-        return c.json<SignupResponse>(result, errorToStatus(result.error, authErrorMapping))
-      }
-
-      // Succès : set cookie et retourne user
-      setCookie(c, 'sid', result.data.sid, cookieOptions(env))
-
-      return c.json<SignupResponse>(ok({ user: result.data.user }), HTTP_STATUS.OK)
-    }
-  )
-
-  // ROUTE LOGOUT
-  .post('/logout', async (c) => {
-    const db = c.get('db')
-    const sid = getCookie(c, 'sid')
-
-    // Pas de session = déjà déconnecté, on retourne succès quand même
-    if (!sid) {
-      return c.json<LogoutResponse>(ok(null, 'Already disconnected'), HTTP_STATUS.OK)
+    if (!refreshToken) {
+      return c.json(err('missing_refresh_token'), HTTP_STATUS.BAD_REQUEST)
     }
 
-    const sidHash = hashSid(sid)
+    const result = await refresh(ctx, refreshToken)
 
-    try {
-      await revokeSession(db, sidHash)
-    } catch (e) {
-      // On log mais on retourne succès (côté client = déconnecté)
-      console.error('Logout - session not found:', e)
+    if (!isApiSuccess(result)) {
+      clearRefreshTokenCookie(c)
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
-    deleteCookie(c, 'sid')
-    return c.json<LogoutResponse>(ok(null, 'Disconnected'), HTTP_STATUS.OK)
+    // Rotation du cookie
+    setRefreshTokenCookie(c, result.data.refreshToken, env)
+
+    return c.json(
+      ok({
+        accessToken: result.data.accessToken,
+      }),
+      HTTP_STATUS.OK
+    )
   })
-  // ROUTE SESSION
-  .get('/session', requireAuth, (c) => {
-    return c.json(ok({ authenticated: true }), HTTP_STATUS.OK)
+
+  .post('/logout', rateLimiterFunc, requireJwtAuth, async (c) => {
+    const ctx = buildAuthContext(c)
+
+    const refreshToken = await extractRefreshToken(c)
+
+    if (refreshToken) {
+      await logout(ctx, refreshToken)
+    }
+
+    clearRefreshTokenCookie(c)
+
+    return c.json(ok(null, 'Disconnected'), HTTP_STATUS.OK)
+  })
+
+  //  MOBILE (body-based, pas de cookies)
+
+  .post('/mobile/login', rateLimiterFunc, zValidator('json', authSchema), async (c) => {
+    const ctx = buildAuthContext(c)
+    const { email, password } = c.req.valid('json')
+
+    const result = await login(ctx, email, password)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    // Pas de cookie → refreshToken dans le body pour Secure Storage
+    return c.json(
+      ok({
+        user: result.data.user,
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+      }),
+      HTTP_STATUS.OK
+    )
+  })
+
+  .post('/mobile/refresh', rateLimiterFunc, async (c) => {
+    const ctx = buildAuthContext(c)
+
+    // Le mobile envoie le refreshToken dans le body
+    const body = await c.req.json<{ refreshToken?: string }>()
+    const refreshToken = body.refreshToken
+
+    if (!refreshToken) {
+      return c.json(err('missing_refresh_token'), HTTP_STATUS.BAD_REQUEST)
+    }
+
+    const result = await refresh(ctx, refreshToken)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    return c.json(
+      ok({
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+      }),
+      HTTP_STATUS.OK
+    )
+  })
+
+  .post('/mobile/logout', rateLimiterFunc, requireJwtAuth, async (c) => {
+    const ctx = buildAuthContext(c)
+
+    const body = await c.req.json<{ refreshToken?: string }>()
+    const refreshToken = body.refreshToken
+
+    if (refreshToken) {
+      await logout(ctx, refreshToken)
+    }
+
+    return c.json(ok(null, 'Disconnected'), HTTP_STATUS.OK)
+  })
+
+  // SESSION CHECK (commun)
+
+  .get('/session', requireJwtAuth, (c) => {
+    const userId = c.get('userId')
+    return c.json(ok({ authenticated: true, userId }), HTTP_STATUS.OK)
+  })
+  //  BROWSER (cookie-based)
+
+  .post('/signup', rateLimiterFunc, zValidator('json', authSchema), async (c) => {
+    const env = c.get('env')
+    const ctx = buildAuthContext(c)
+    const { email, password } = c.req.valid('json')
+
+    const result = await signup(ctx, email, password)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    setRefreshTokenCookie(c, result.data.refreshToken, env)
+
+    return c.json(
+      ok({
+        user: result.data.user,
+        accessToken: result.data.accessToken,
+      }),
+      HTTP_STATUS.CREATED
+    )
+  })
+
+  // MOBILE (body-based, pas de cookies)
+
+  .post('/mobile/signup', rateLimiterFunc, zValidator('json', authSchema), async (c) => {
+    const ctx = buildAuthContext(c)
+    const { email, password } = c.req.valid('json')
+
+    const result = await signup(ctx, email, password)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    return c.json(
+      ok({
+        user: result.data.user,
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+      }),
+      HTTP_STATUS.CREATED
+    )
   })

@@ -1,1 +1,1 @@
-export { authRoutes } from './routes'
+export { jwtAuthRoutes } from './routes'
