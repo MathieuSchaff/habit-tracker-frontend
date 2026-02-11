@@ -1,8 +1,9 @@
-// import { db } from "../../db/index";
-import { profiles } from '../../db/schema/users'
+import type { ProfileUpdateInput } from '@habit-tracker/shared'
+
 import { eq } from 'drizzle-orm'
-import { DB } from '../../db/types'
-import { ProfileUpdateInput } from './validation'
+
+import { profiles } from '../../db/schema/users'
+import type { DB } from '../../db/types'
 
 export async function getProfile(db: DB, userId: string) {
   const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1)

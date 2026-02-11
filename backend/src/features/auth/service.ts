@@ -1,134 +1,153 @@
+import type { LoginResult, LogoutResult, RefreshResult, SignupResult } from '@habit-tracker/shared'
+import { err, ok } from '@habit-tracker/shared'
+
+import { hash, verify } from 'argon2'
+
 import type { DB } from '../../db/index'
-import { verify, hash } from 'argon2'
-import { getUser, createUser, createProfile } from './user.utils'
-import { cleanupUserSessions, createSession, revokeSession } from './session.service'
-import { generateSid, hashSid } from './utils'
-// Import des types et helpers
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
 import {
-  ok,
-  err,
-  type SignupServiceResult,
-  type LoginServiceResult,
-  LogoutServiceResult,
-} from '@habit-tracker/shared'
+  cleanupUserRefreshTokens,
+  findValidRefreshToken,
+  revokeAllUserRefreshTokens,
+  revokeRefreshToken,
+  storeRefreshToken,
+} from './refresh-token.service'
+import { createProfile, createUser, getUser } from './user.utils'
 
-// LOGIN
-/**
- * Login un utilisateur et crée une session
- * @returns ApiResponse avec user + sid si succès
- */
-export async function loginUser(
-  db: DB,
-  email: string,
-  password: string
-): Promise<LoginServiceResult> {
-  try {
-    const emailTrimmed = email.toLocaleLowerCase().trim()
-
-    const user = await getUser(db, emailTrimmed)
-
-    // Hash dummy pour éviter timing attack
-    const passwordHash =
-      user?.passwordHash ?? '$argon2id$v=19$m=65536,t=3,p=4$dummysaltdummysaltdummysal$dummyhash'
-
-    const isValid = await verify(passwordHash, password)
-
-    if (!user || !isValid) {
-      return err('invalid_credentials')
-    }
-
-    // Générer session
-    const sid = generateSid()
-    const sidHash = hashSid(sid)
-
-    await createSession(db, {
-      userId: user.id,
-      sidHash: sidHash,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-    })
-
-    // Cleanup async (fire and forget)
-    cleanupUserSessions(db, user.id).catch((e) => console.error('Failed to cleanup sessions:', e))
-
-    return ok({
-      user: { id: user.id, email: user.email },
-      sid,
-    })
-  } catch (e) {
-    console.error('Login failed:', e)
-    return err('server_error')
-  }
+export type AuthContext = {
+  db: DB
+  jwtSecret: string
+  refreshSecret: string
+  ip?: string
+  userAgent?: string
 }
 
-// SIGNUP
+const DUMMY_HASH = await hash('timing-safe-dummy')
 
-/**
- * Crée un nouvel utilisateur avec son profil et sa session
- * @returns ApiResponse avec user + sid si succès
- */
-export async function signupUser(
-  db: DB,
+function isUniqueViolation(e: unknown): boolean {
+  return (
+    typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === '23505'
+  )
+}
+
+async function createTokenPair(ctx: AuthContext, userId: string) {
+  const accessToken = await generateAccessToken(userId, ctx.jwtSecret)
+  const {
+    token: refreshToken,
+    jti,
+    expiresAt,
+  } = await generateRefreshToken(userId, ctx.refreshSecret)
+
+  await storeRefreshToken(ctx.db, {
+    userId,
+    jti,
+    expiresAt,
+    ip: ctx.ip,
+    userAgent: ctx.userAgent,
+  })
+
+  return { accessToken, refreshToken }
+}
+
+//  Signup
+
+export async function signup(
+  ctx: AuthContext,
   email: string,
   password: string
-): Promise<SignupServiceResult> {
+): Promise<SignupResult> {
   try {
-    const emailTrimmed = email.toLocaleLowerCase().trim()
-    const existingUser = await getUser(db, emailTrimmed)
-    if (existingUser) {
-      return err('email_exists', 'utilisateur déjà crée')
-    }
+    const existingUser = await getUser(ctx.db, email)
+    if (existingUser) return err('email_exists')
 
-    const passwordHash = await hash(password, {
-      memoryCost: 65536,
-      timeCost: 3,
-      parallelism: 4,
+    const passwordHash = await hash(password)
+
+    const user = await ctx.db.transaction(async (tx) => {
+      const user = await createUser(tx, { email, passwordHash })
+      await createProfile(tx, { userId: user.id })
+      return user
     })
 
-    const user = await createUser(db, {
-      email: email.trim().toLowerCase(),
-      passwordHash,
-    })
-
-    if (!user) {
-      return err('server_error', "Problème lors de la création de l'user")
-    }
-
-    await createProfile(db, { userId: user.id })
-
-    // Générer session
-    const sid = generateSid()
-    const sidHash = hashSid(sid)
-
-    await createSession(db, {
-      userId: user.id,
-      sidHash: sidHash,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-    })
-
-    return ok({
-      user: { id: user.id, email: user.email },
-      sid,
-    })
+    const tokens = await createTokenPair(ctx, user.id)
+    return ok({ user: { id: user.id, email: user.email }, ...tokens })
   } catch (e) {
+    if (isUniqueViolation(e)) return err('email_exists')
+    // biome-ignore lint: on allow le console error ici
     console.error('Signup failed:', e)
     return err('server_error')
   }
 }
 
-// LOGOUT
+// Login
 
-/**
- * Révoque la session d'un utilisateur
- * @returns Toujours success: true
- */
-export async function logoutUser(db: DB, sid: string): Promise<LogoutServiceResult> {
+export async function login(
+  ctx: AuthContext,
+  email: string,
+  password: string
+): Promise<LoginResult> {
   try {
-    const sidHash = hashSid(sid)
-    await revokeSession(db, sidHash)
-    return ok(null)
+    const user = await getUser(ctx.db, email)
+
+    const isValid = await verify(user?.passwordHash ?? DUMMY_HASH, password)
+    if (!user || !isValid) return err('invalid_credentials')
+
+    const tokens = await createTokenPair(ctx, user.id)
+
+    // biome-ignore lint: on allow le console error ici
+    cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => console.error('Cleanup failed:', e))
+
+    return ok({ user: { id: user.id, email: user.email }, ...tokens })
   } catch (e) {
-    console.error('Logout failed:', e)
-    // On retourne succès car côté client = déconnecté
+    // biome-ignore lint: on allow le console error ici
+    console.error('Login failed:', e)
+    return err('server_error')
+  }
+}
+
+//  Refresh
+
+export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promise<RefreshResult> {
+  try {
+    const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
+    if (!payload) return err('invalid_token')
+
+    const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
+    if (!storedToken) {
+      // biome-ignore lint: on allow le console error ici
+      console.warn(`Potential token replay for user ${payload.sub}`)
+      await revokeAllUserRefreshTokens(ctx.db, payload.sub)
+      return err('invalid_token')
+    }
+
+    if (storedToken.userId !== payload.sub) {
+      // biome-ignore lint: on allow le console error ici
+      console.error(`Token userId mismatch: stored=${storedToken.userId}, payload=${payload.sub}`)
+      await revokeAllUserRefreshTokens(ctx.db, payload.sub)
+      await revokeAllUserRefreshTokens(ctx.db, storedToken.userId)
+      return err('invalid_token')
+    }
+
+    const tokens = await createTokenPair(ctx, payload.sub)
+    await revokeRefreshToken(ctx.db, payload.jti)
+
+    return ok(tokens)
+  } catch (e) {
+    // biome-ignore lint: on allow le console error ici
+    console.error('Refresh failed:', e)
+    return err('server_error')
+  }
+}
+
+// Logout
+
+export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise<LogoutResult> {
+  try {
+    const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
+    if (payload) await revokeRefreshToken(ctx.db, payload.jti)
+    return ok(null)
+  } catch {
+    // biome-ignore lint: on allow le console error ici
+    console.error('Logout failed')
     return ok(null)
   }
 }

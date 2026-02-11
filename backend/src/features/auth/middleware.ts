@@ -1,26 +1,31 @@
-import { getCookie } from 'hono/cookie'
-import { hashSid } from './utils'
-import { findValidSessionBySidHash, updateLastSeen } from './session.service'
-import type { Context, Next } from 'hono'
-import type { AppEnv } from '../../app-env'
 import { err, HTTP_STATUS } from '@habit-tracker/shared'
-export const requireAuth = async (c: Context<AppEnv>, next: Next) => {
-  const db = c.get('db')
-  const sid = getCookie(c, 'sid')
-  if (!sid) {
+
+import type { Context, Next } from 'hono'
+
+import type { AppEnv } from '../../app-env'
+import { verifyAccessToken } from './jwt.utils'
+
+/**
+ * Middleware JWT : vérifie l'access token dans le header Authorization.
+ * Si invalide ou expiré → 401 (le client doit appeler /api/auth//refresh).
+ */
+export const requireJwtAuth = async (c: Context<AppEnv>, next: Next) => {
+  const authHeader = c.req.header('Authorization')
+
+  if (!authHeader?.startsWith('Bearer ')) {
     return c.json(err('unauthorized'), HTTP_STATUS.UNAUTHORIZED)
   }
-  const sidHash = hashSid(sid)
-  const session = await findValidSessionBySidHash(db, sidHash)
 
-  if (!session) {
+  const token = authHeader.substring(7)
+  const jwtSecret = c.get('jwtSecret')
+
+  const payload = await verifyAccessToken(token, jwtSecret)
+
+  if (!payload) {
     return c.json(err('unauthorized'), HTTP_STATUS.UNAUTHORIZED)
   }
-  updateLastSeen(db, sidHash).catch((err) => console.error('Failed to update lastSeenAt:', err))
 
-  //  met session dans contexte
-  c.set('session', session)
-  c.set('userId', session.userId)
+  c.set('userId', payload.sub)
 
   await next()
 }

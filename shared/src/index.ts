@@ -3,7 +3,12 @@
 // Schemas API
 export { ErrorResponseSchema, SuccessResponseSchema } from './schemas/api'
 // Schemas Auth
-export { type AuthInput, authSchema, UserPublicSchema, type ZodFieldErrors } from './schemas/auth'
+export {
+  type AuthFieldErrors,
+  type AuthInput,
+  authSchema,
+  userPublicSchema,
+} from './schemas/auth'
 // Schemas Profile
 export { type ProfileUpdateInput, profileUpdateSchema } from './schemas/profile'
 export {
@@ -23,13 +28,15 @@ export {
 export {
   type AccessTokenPayload,
   type AuthErrorCode,
+  type AuthenticatedResult,
+  type AuthTokens,
   authErrorMapping,
   type CreateRefreshTokenArgs,
-  type JwtLoginResult,
-  type JwtLogoutResult,
-  type JwtRefreshResult,
-  type JwtSignupResult,
+  type LoginResult,
+  type LogoutResult,
+  type RefreshResult,
   type RefreshTokenPayload,
+  type SignupResult,
   type UserPublic,
 } from './types/auth'
 // Types Profile

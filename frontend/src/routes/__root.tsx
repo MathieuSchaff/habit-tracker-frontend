@@ -1,6 +1,6 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
-import { Header } from '../component/Layout/Header'
+import { Header } from '../component/Layout/Header/Header'
 import type { RouterContext } from '../routerContext'
 
 export const Route = createRootRouteWithContext<RouterContext>()({

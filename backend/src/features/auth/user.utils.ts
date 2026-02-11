@@ -1,9 +1,11 @@
-import { profiles, users } from '../../db/schema'
-import type { DB } from '../../db/index'
 import { eq } from 'drizzle-orm'
 
+import type { DB } from '../../db/index'
+import { profiles, users } from '../../db/schema'
+
 export async function getUser(db: DB, email: string) {
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  const normalizedEmail = email.trim().toLowerCase()
+  const [user] = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1)
 
   return user ?? null
 }
@@ -13,7 +15,6 @@ export async function getUserById(db: DB, userId: string) {
 
   return user ?? null
 }
-
 export async function createUser(
   db: DB,
   userData: {
@@ -29,9 +30,12 @@ export async function createUser(
     })
     .returning()
 
+  if (!user) {
+    throw new Error('Failed to create user')
+  }
+
   return user
 }
-
 export async function createProfile(
   db: DB,
   profileData: {
@@ -47,5 +51,8 @@ export async function createProfile(
     })
     .returning()
 
+  if (!profile) {
+    throw new Error('Failed to create user')
+  }
   return profile
 }
