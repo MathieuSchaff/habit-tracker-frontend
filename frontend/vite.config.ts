@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 // https://tanstack.com/router/latest/docs/framework/react/installation/with-vite
@@ -17,20 +17,12 @@ export default defineConfig({
     react(),
   ],
   server: {
-    host: '0.0.0.0', // ← ajoute ça aussi
+    host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://api:3000', // ← "api" = nom du service dans docker-compose
+        target: 'http://api:3000', // api c'est le nom du conteneur docker
         changeOrigin: true,
       },
     },
   },
-  // server: {
-  //   proxy: {
-  //     "/api": {
-  //       target: "http://localhost:3000",
-  //       changeOrigin: true,
-  //     },
-  //   },
-  // },
 })

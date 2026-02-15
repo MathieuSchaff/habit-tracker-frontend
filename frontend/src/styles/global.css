@@ -1,112 +1,111 @@
-/* ===========================
-   RESET
-   =========================== */
-@layer reset {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+  max-width: var(--measure, 65ch);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-primary-hover);
   }
 
-  html {
-    font-size: clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
-    line-height: var(--leading-normal);
-    color: var(--text-secondary);
-    background-color: var(--bg-page);
-    min-height: 100vh;
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs, 2px);
   }
 }
 
-/* ===========================
-   BASE ELEMENTS
-   =========================== */
-@layer base {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    color: var(--text-primary);
-    font-weight: var(--font-semibold);
-    line-height: var(--leading-tight);
-  }
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
 
-  a {
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color var(--transition-fast);
-    &:hover {
-      color: var(--color-primary-hover);
-      text-decoration: underline;
-    }
-  }
-
-  button {
-    font-family: inherit;
-    font-size: inherit;
-    cursor: pointer;
-    border: none;
-    background: none;
-  }
-
-  input,
-  textarea,
-  select {
-    font-family: inherit;
-    font-size: inherit;
-  }
-
-  img,
-  svg {
-    display: block;
-    max-width: 100%;
-  }
-
-  ul,
-  ol {
-    list-style: none;
-  }
-}
-/* ===========================
-   UTILITY CLASSES (optionnel)
-   =========================== */
-@layer utilities {
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs, 2px);
   }
 }
 
-/* ===========================
-   VIEW TRANSITIONS
-   =========================== */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  accent-color: var(--color-primary);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+  font-style: italic;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+dialog,
+[popover] {
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--text-primary);
+}
+
 @view-transition {
   navigation: auto;
 }
 
 ::view-transition-old(root) {
-  animation: fadeOut 2s ease;
+  animation: fadeOut 200ms ease;
 }
 
 ::view-transition-new(root) {
-  animation: fadeIn 2s ease;
+  animation: fadeIn 200ms ease;
 }
 
 @keyframes fadeOut {

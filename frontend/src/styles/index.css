@@ -1,7 +1,16 @@
 @layer reset, variables, base, components, utilities;
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap")
+  layer(base);
+
+@import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors.css" layer(variables);
 @import "./tokens/spacing.css" layer(variables);
 @import "./tokens/typography.css" layer(variables);
 @import "./tokens/misc.css" layer(variables);
 @import "./global.css" layer(base);
+@import "./tokens/utilities.css" layer(utilities);
+
+@import "../component/Layout/Header/Header.css" layer(components);
+@import "../component/Button/Button.css" layer(components);
+@import "../component/Layout/AppLayout/AppLayout.css" layer(components);

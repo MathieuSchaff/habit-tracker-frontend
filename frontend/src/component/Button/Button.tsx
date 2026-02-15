@@ -1,6 +1,7 @@
-import { Spinner } from '../Feedback/Spinner/Spinner'
 import clsx from 'clsx'
-import './Button.css'
+
+import { Spinner } from '../Feedback/Spinner/Spinner'
+
 type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
