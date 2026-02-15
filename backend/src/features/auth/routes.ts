@@ -17,7 +17,6 @@ import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } f
 import { requireJwtAuth } from './middleware'
 import { type AuthContext, login, logout, refresh, signup } from './service'
 
-/** Build AuthContext from Hono context */
 function buildAuthContext(c: Context<AppEnv>): AuthContext {
   return {
     db: c.get('db'),
@@ -31,8 +30,6 @@ function buildAuthContext(c: Context<AppEnv>): AuthContext {
 //  Routes
 
 export const jwtAuthRoutes = new Hono<AppEnv>()
-
-  //  BROWSER (cookie-based)
 
   .post('/login', rateLimiterFunc, zValidator('json', authSchema), async (c) => {
     const env = c.get('env')
@@ -79,6 +76,7 @@ export const jwtAuthRoutes = new Hono<AppEnv>()
 
     return c.json(
       ok({
+        user: result.data.user,
         accessToken: result.data.accessToken,
       }),
       HTTP_STATUS.OK

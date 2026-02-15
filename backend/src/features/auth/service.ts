@@ -12,7 +12,7 @@ import {
   revokeRefreshToken,
   storeRefreshToken,
 } from './refresh-token.service'
-import { createProfile, createUser, getUser } from './user.utils'
+import { createProfile, createUser, getUser, getUserById, toPublicUser } from './user.utils'
 
 export type AuthContext = {
   db: DB
@@ -69,7 +69,11 @@ export async function signup(
     })
 
     const tokens = await createTokenPair(ctx, user.id)
-    return ok({ user: { id: user.id, email: user.email }, ...tokens })
+
+    return ok({
+      user: toPublicUser(user),
+      ...tokens,
+    })
   } catch (e) {
     if (isUniqueViolation(e)) return err('email_exists')
     // biome-ignore lint: on allow le console error ici
@@ -96,7 +100,10 @@ export async function login(
     // biome-ignore lint: on allow le console error ici
     cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => console.error('Cleanup failed:', e))
 
-    return ok({ user: { id: user.id, email: user.email }, ...tokens })
+    return ok({
+      user: toPublicUser(user),
+      ...tokens,
+    })
   } catch (e) {
     // biome-ignore lint: on allow le console error ici
     console.error('Login failed:', e)
@@ -126,11 +133,18 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       await revokeAllUserRefreshTokens(ctx.db, storedToken.userId)
       return err('invalid_token')
     }
+    const user = await getUserById(ctx.db, payload.sub)
 
+    if (!user) {
+      return err('invalid_token')
+    }
     const tokens = await createTokenPair(ctx, payload.sub)
     await revokeRefreshToken(ctx.db, payload.jti)
 
-    return ok(tokens)
+    return ok({
+      user,
+      ...tokens,
+    })
   } catch (e) {
     // biome-ignore lint: on allow le console error ici
     console.error('Refresh failed:', e)

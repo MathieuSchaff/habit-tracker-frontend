@@ -1,6 +1,10 @@
-import { rateLimiter } from 'hono-rate-limiter'
-import type { Context, Next } from 'hono'
 import { err, errorToStatus } from '@habit-tracker/shared'
+
+import type { Context, MiddlewareHandler, Next } from 'hono'
+import { rateLimiter } from 'hono-rate-limiter'
+
+import type { AppEnv } from '../app-env'
+
 // https://honohub.dev/docs/rate-limiter/configuration
 // a regarder s'il faut changer le store
 // pour l'instant le store est :
@@ -8,9 +12,9 @@ import { err, errorToStatus } from '@habit-tracker/shared'
 // Il faudrait plus tard changer le store
 const isDev = process.env.NODE_ENV === 'development'
 
-export const rateLimiterFunc = isDev
+export const rateLimiterFunc: MiddlewareHandler<AppEnv> = isDev
   ? async (_c: Context, next: Next) => await next()
-  : rateLimiter({
+  : rateLimiter<AppEnv>({
       windowMs: 15 * 60 * 1000,
       limit: 100,
       standardHeaders: 'draft-7',
