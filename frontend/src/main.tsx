@@ -3,10 +3,12 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
 import { queryClient } from './lib/queryClient'
 import { routeTree } from './routeTree.gen'
 // STYLES
 import './styles/index.css'
+
 import type { RouterContext } from './routerContext'
 
 const router = createRouter({
@@ -24,6 +26,7 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// biome-ignore lint: root will be here
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = createRoot(rootElement)

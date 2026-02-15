@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        // On récupère la préférence thème précédemment sauvegardée par l'utilisateur
+        // ou "system" par défaut
+        const saved = localStorage.getItem("aurore-theme") ?? "system";
+        // On demande au navigateur quelle est la préférence système actuelle de l'utilisateur
+        // .matches renvoie true si le mode sombre est activé dans l'OS
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        // si saved est system => alors on applique le thème système
+        // sinon on applique le thème saved (dark ou light)
+        const resolved =
+          saved === "system" ? (prefersDark ? "dark" : "light") : saved;
+        // console.log(resolved);
+        // On applique le thème directement su rl'attribut data-theme
+        // a la fin on aura : <html data-theme="dark"> ou <html data-theme="light">
+        document.documentElement.dataset.theme = resolved;
+      })();
+    </script>
     <title>frontend</title>
   </head>
   <body>
