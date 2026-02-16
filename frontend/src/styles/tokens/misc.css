@@ -12,7 +12,8 @@
   --shadow-custom: 6px 0px 20px 0px rgba(0, 0, 0, 0.58);
 
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+  --transition-slower: 350ms;
 }

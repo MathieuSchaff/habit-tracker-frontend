@@ -1,29 +1,22 @@
 .auth-layout {
-  --auth-card-bg: var(--accent-95);
-  --auth-glow: var(--primary-60);
   display: flex;
   flex-direction: column;
-  /*justify-content: center;*/
-  align-items: center;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding: 2rem;
+  /*padding: var(--space-6) var(--space-4);*/
   background-color: var(--bg-page);
+  overflow-x: hidden;
 }
+
 .auth-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
-  max-width: 400px;
-  animation: fadeInUp 0.6s ease-out;
-  margin-top: 1rem;
+  animation: auth-fadeIn 0.5s ease-out;
 }
 
-@keyframes fadeInUp {
+@keyframes auth-fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -31,82 +24,99 @@
   }
 }
 
-.auth-card {
-  width: 100%;
-  padding: 2rem;
-  background: var(--accent-95);
-  border: 1px solid var(--border-default);
-  border-radius: 20px;
-  box-shadow:
-    0 4px 24px oklch(0% 0 0 / 0.08),
-    0 1px 2px oklch(0% 0 0 / 0.04);
-  animation: fadeInUp 0.6s ease-out 0.2s both;
-  transition:
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+.auth-brand {
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  text-align: center;
+  .auth-brand__icon {
+    display: inline-flex;
+    margin-right: var(--space-2);
+  }
 }
 
-.auth-card:focus-within {
-  border-color: var(--color-primary);
-  box-shadow:
-    0 4px 24px oklch(0% 0 0 / 0.08),
-    0 0 0 3px oklch(from var(--color-primary) l c h / 0.15);
+.auth-card {
+  width: 100%;
 }
 
 .auth-footer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  animation: fadeInUp 0.6s ease-out 0.3s both;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-6);
+  font-size: var(--text-sm, 0.875rem);
 }
 
-.auth-footer-text {
-  font-size: 0.875rem;
+.auth-footer__text {
   color: var(--text-muted);
 }
 
-.auth-footer-link {
-  font-size: 0.875rem;
-  font-weight: 600;
+.auth-footer__link {
   color: var(--color-primary);
+  font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.auth-footer-link:hover {
-  color: var(--color-primary-hover);
+.auth-footer__link:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-@media (max-width: 480px) {
+
+@media (min-width: 640px) {
   .auth-layout {
-    padding: 1rem;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    background-image: radial-gradient(
+      ellipse 80% 50% at 50% 0%,
+      oklch(from var(--color-primary) l c h / 0.04),
+      transparent 70%
+    );
+  }
+
+  .auth-container {
+    align-items: center;
+    max-width: 24rem;
   }
 
   .auth-card {
-    padding: 1.5rem;
-    border-radius: 16px;
-  }
-
-  .auth-title {
-    font-size: 1.5rem;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .auth-card {
-    color: var(--neutral-10);
-  }
-
-  .auth-card :is(label, input::placeholder) {
-    color: var(--neutral-50);
-  }
-
-  .auth-card {
+    padding: var(--space-8) var(--space-6);
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl, 16px);
     box-shadow:
-      0 4px 32px oklch(0% 0 0 / 0.3),
-      0 1px 2px oklch(0% 0 0 / 0.2),
-      inset 0 1px 0 oklch(100% 0 0 / 0.05);
+      0 1px 3px oklch(0% 0 0 / 0.04),
+      0 4px 16px oklch(0% 0 0 / 0.03);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .auth-card:focus-within {
+    border-color: oklch(from var(--color-primary) l c h / 0.3);
+    box-shadow:
+      0 1px 3px oklch(0% 0 0 / 0.04),
+      0 4px 16px oklch(0% 0 0 / 0.03),
+      0 0 0 3px oklch(from var(--color-primary) l c h / 0.08);
+  }
+
+  [data-theme="dark"] .auth-card {
+    box-shadow:
+      0 1px 3px oklch(0% 0 0 / 0.2),
+      0 4px 24px oklch(0% 0 0 / 0.15),
+      inset 0 1px 0 oklch(100% 0 0 / 0.03);
+  }
+
+  [data-theme="dark"] .auth-layout {
+    background-image: radial-gradient(
+      ellipse 80% 50% at 50% 0%,
+      oklch(from var(--color-primary) l c h / 0.06),
+      transparent 70%
+    );
   }
 }
