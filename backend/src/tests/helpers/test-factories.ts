@@ -1,28 +1,27 @@
-import { hash } from 'argon2'
+import type { Email, RawPassword } from '@habit-tracker/shared'
 
-import { profiles, users } from '../../db/schema'
-import { testDb } from '../db.test.config'
+import { signup } from '../../features/auth/service'
+import { getUser } from '../../features/auth/user.utils'
+import { createCtx } from '../services/auth/auth-test.setup'
 
-export async function createTestUser(email: string, password: string) {
-  const passwordHash = await hash(password ?? 'azerty123', {
-    memoryCost: 65536,
-    timeCost: 3,
-    parallelism: 4,
-  })
+export async function createTestUser(
+  email: string = 'toto@toto.com',
+  password: string = 'Azerty123!'
+) {
+  const ctx = createCtx()
 
-  const [user] = await testDb
-    .insert(users)
-    .values({
-      email: email ?? `test${Date.now()}@exemple.com`,
-      passwordHash,
-    })
-    .returning()
+  const result = await signup(ctx, email as Email, password as RawPassword)
 
-  if (!user) throw new Error("couldn't create user")
+  if (result.success === false) {
+    if (result.error === 'email_exists') {
+      const user = await getUser(ctx.db, email as Email)
+      if (!user) {
+        throw new Error(`User claimed to exist but not found: ${email}`)
+      }
+      return user
+    }
+    throw new Error(`Failed to create test user: ${result.error}`)
+  }
 
-  await testDb.insert(profiles).values({
-    userId: user.id,
-  })
-
-  return user
+  return result.data.user
 }
