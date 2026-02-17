@@ -44,7 +44,7 @@ export const jwtAuthRoutes = new Hono<AppEnv>()
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
 
-    // Le refreshToken n'est PAS renvoyé dans le body → httpOnly cookie uniquement
+    // Le refreshToken n'est PAS renvoyé dans le body  httpOnly cookie uniquement
     return c.json(
       ok({
         user: result.data.user,

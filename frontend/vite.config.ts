@@ -25,4 +25,7 @@ export default defineConfig({
       },
     },
   },
+  esbuild: {
+    pure: ['console.log', 'console.debug'],
+  },
 })

@@ -10,7 +10,6 @@ import { type MeResponse, profileErrorMapping } from './types'
 
 export const profileRoute = new Hono<AppEnv>()
 
-  // Error handler global
   .onError((e, c) => {
     console.error('Profile error:', e)
     return c.json<MeResponse>(
@@ -19,10 +18,8 @@ export const profileRoute = new Hono<AppEnv>()
     )
   })
 
-  // Auth required
   .use('*', requireJwtAuth)
 
-  // GET /
   .get('/', async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
@@ -35,7 +32,6 @@ export const profileRoute = new Hono<AppEnv>()
     return c.json<MeResponse>(ok(profile), HTTP_STATUS.OK)
   })
 
-  // PATCH /
   .patch('/', zValidator('json', profileUpdateSchema), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
