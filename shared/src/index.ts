@@ -2,11 +2,20 @@
 
 // Schemas API
 export { ErrorResponseSchema, SuccessResponseSchema } from './schemas/api'
+
 // Schemas Auth
+
 export {
   type AuthFieldErrors,
   type AuthInput,
   authSchema,
+  type Email,
+  emailSchema,
+  type HashedPassword,
+  loginSchema,
+  passwordSchema,
+  type RawPassword,
+  signupSchema,
   userPublicSchema,
 } from './schemas/auth'
 // Schemas Profile

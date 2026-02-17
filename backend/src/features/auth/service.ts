@@ -1,4 +1,12 @@
-import type { LoginResult, LogoutResult, RefreshResult, SignupResult } from '@habit-tracker/shared'
+import type {
+  Email,
+  HashedPassword,
+  LoginResult,
+  LogoutResult,
+  RawPassword,
+  RefreshResult,
+  SignupResult,
+} from '@habit-tracker/shared'
 import { err, ok } from '@habit-tracker/shared'
 
 import { hash, verify } from 'argon2'
@@ -53,14 +61,14 @@ async function createTokenPair(ctx: AuthContext, userId: string) {
 
 export async function signup(
   ctx: AuthContext,
-  email: string,
-  password: string
+  email: Email,
+  password: RawPassword
 ): Promise<SignupResult> {
   try {
     const existingUser = await getUser(ctx.db, email)
     if (existingUser) return err('email_exists')
 
-    const passwordHash = await hash(password)
+    const passwordHash = (await hash(password)) as HashedPassword
 
     const user = await ctx.db.transaction(async (tx) => {
       const user = await createUser(tx, { email, passwordHash })
@@ -76,18 +84,15 @@ export async function signup(
     })
   } catch (e) {
     if (isUniqueViolation(e)) return err('email_exists')
-    // biome-ignore lint: on allow le console error ici
     console.error('Signup failed:', e)
     return err('server_error')
   }
 }
 
-// Login
-
 export async function login(
   ctx: AuthContext,
-  email: string,
-  password: string
+  email: Email,
+  password: RawPassword
 ): Promise<LoginResult> {
   try {
     const user = await getUser(ctx.db, email)
@@ -97,7 +102,6 @@ export async function login(
 
     const tokens = await createTokenPair(ctx, user.id)
 
-    // biome-ignore lint: on allow le console error ici
     cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => console.error('Cleanup failed:', e))
 
     return ok({
@@ -105,7 +109,6 @@ export async function login(
       ...tokens,
     })
   } catch (e) {
-    // biome-ignore lint: on allow le console error ici
     console.error('Login failed:', e)
     return err('server_error')
   }
@@ -120,14 +123,12 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
 
     const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
     if (!storedToken) {
-      // biome-ignore lint: on allow le console error ici
       console.warn(`Potential token replay for user ${payload.sub}`)
       await revokeAllUserRefreshTokens(ctx.db, payload.sub)
       return err('invalid_token')
     }
 
     if (storedToken.userId !== payload.sub) {
-      // biome-ignore lint: on allow le console error ici
       console.error(`Token userId mismatch: stored=${storedToken.userId}, payload=${payload.sub}`)
       await revokeAllUserRefreshTokens(ctx.db, payload.sub)
       await revokeAllUserRefreshTokens(ctx.db, storedToken.userId)
@@ -146,13 +147,10 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       ...tokens,
     })
   } catch (e) {
-    // biome-ignore lint: on allow le console error ici
     console.error('Refresh failed:', e)
     return err('server_error')
   }
 }
-
-// Logout
 
 export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise<LogoutResult> {
   try {
@@ -160,7 +158,6 @@ export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise
     if (payload) await revokeRefreshToken(ctx.db, payload.jti)
     return ok(null)
   } catch {
-    // biome-ignore lint: on allow le console error ici
     console.error('Logout failed')
     return ok(null)
   }

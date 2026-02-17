@@ -1,3 +1,5 @@
+import type { Email, HashedPassword } from '@habit-tracker/shared'
+
 import { eq } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
@@ -40,8 +42,8 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
 export async function createUser(
   db: DB,
   userData: {
-    email: string
-    passwordHash: string
+    email: Email
+    passwordHash: HashedPassword
   }
 ) {
   const [user] = await db
