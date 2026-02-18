@@ -1,4 +1,23 @@
-import { Hono } from 'hono'
-import { AppEnv } from '../../app-env'
+import { createRoute, OpenAPIHono } from '@hono/zod-openapi'
+import { z } from 'zod'
 
-export const healthRoute = new Hono<AppEnv>().get('/health', (c) => c.json({ ok: true }))
+import type { AppEnv } from '../../app-env'
+
+const pingRoute = createRoute({
+  method: 'get',
+  path: '/health',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ ok: z.literal(true) }),
+        },
+      },
+      description: 'Health check',
+    },
+  },
+})
+
+export const healthRoute = new OpenAPIHono<AppEnv>().openapi(pingRoute, (c) => {
+  return c.json({ ok: true as const })
+})
