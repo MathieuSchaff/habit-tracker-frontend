@@ -5,6 +5,8 @@ export { ErrorResponseSchema, SuccessResponseSchema } from './schemas/api'
 
 // Schemas Auth
 
+// Schemas Auth
+
 export {
   type AuthFieldErrors,
   type AuthInput,
@@ -18,6 +20,45 @@ export {
   signupSchema,
   userPublicSchema,
 } from './schemas/auth'
+// Schemas Habits (types)
+export type {
+  CheckHabitInput,
+  CreateHabitInput,
+  Frequency,
+  GetHabitChecksQuery,
+  GetHabitStatsQuery,
+  GetUserChecksQuery,
+  Period,
+  Reminder,
+  SetPeriodInput,
+  SetRemindersInput,
+  SetTimingsInput,
+  Timing,
+  ToggleCheckInput,
+  UpdateFrequencyInput,
+  UpdateHabitInput,
+} from './schemas/habits'
+// Schemas Habits (values)
+export {
+  checkHabitSchema,
+  createHabitSchema,
+  frequencySchema,
+  getHabitChecksQuerySchema,
+  getHabitStatsQuerySchema,
+  getUserChecksQuerySchema,
+  periodSchema,
+  REMINDER_PRESETS,
+  reminderSchema,
+  setPeriodSchema,
+  setRemindersSchema,
+  setTimingsSchema,
+  timingSchema,
+  toggleCheckSchema,
+  uncheckByDateSchema,
+  uncheckHabitSchema,
+  updateFrequencySchema,
+  updateHabitSchema,
+} from './schemas/habits'
 // Schemas Profile
 export { type ProfileUpdateInput, profileUpdateSchema } from './schemas/profile'
 export {
@@ -50,6 +91,15 @@ export {
   type SignupResult,
   type UserPublic,
 } from './types/auth'
+// Types Habits (types)
+export type {
+  HabitErrorCode,
+  HabitStats,
+  HabitWithRelations,
+  TodayHabit,
+} from './types/habits'
+// Types Habits (values)
+export { habitErrorToStatus } from './types/habits'
 // Types Profile
 export {
   type MeResponse,
