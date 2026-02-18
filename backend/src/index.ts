@@ -15,23 +15,23 @@ import { profileRoute } from './features/profile'
 console.log(`API listening on ${port}`)
 const app = new OpenAPIHono<AppEnv>()
 
-app
-  .use('*', cors({ credentials: true, origin: 'http://localhost:5173' }))
-  .use('*', async (c, next) => {
-    c.set('db', db)
-    c.set('env', Bun.env.NODE_ENV === 'production' ? 'production' : 'development')
-    c.set('jwtSecret', env.JWT_SECRET)
-    c.set('refreshSecret', env.REFRESH_SECRET)
-    await next()
-  })
-app.doc('/doc', { openapi: '3.0.0', info: { title: 'Aurore API', version: '1.0.0' } })
-app
-  .get('/ui', swaggerUI({ url: '/doc' }))
+app.use('*', cors({ credentials: true, origin: 'http://localhost:5173' }))
+app.use('*', async (c, next) => {
+  c.set('db', db)
+  c.set('env', Bun.env.NODE_ENV === 'production' ? 'production' : 'development')
+  c.set('jwtSecret', env.JWT_SECRET)
+  c.set('refreshSecret', env.REFRESH_SECRET)
+  await next()
+})
 
+app.doc('/doc', { openapi: '3.0.0', info: { title: 'Aurore API', version: '1.0.0' } })
+// je fais ça car sinon j'ai un pb de type avec hono rpc
+const routes = app
+  .get('/ui', swaggerUI({ url: '/doc' }))
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
   .route('/api/habits', habits)
   .route('/api/profile', profileRoute)
 
-export type AppType = typeof app
+export type AppType = typeof routes
 export default { port, fetch: app.fetch }
