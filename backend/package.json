@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@habit-tracker/shared": "workspace:*",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.2",
     "@hono/zod-validator": "^0.7.6",
     "argon2": "^0.44.0",
     "date-fns": "^4.1.0",
