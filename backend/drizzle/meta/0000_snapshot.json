@@ -1,92 +1,9 @@
 {
-  "id": "2d0990ef-9bbd-4afe-a675-e8ffd8bfe093",
+  "id": "091dd00c-f194-497c-a5dd-b375558239f7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.daily_logs": {
-      "name": "daily_logs",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "day": {
-          "name": "day",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "daily_logs_user_day_idx": {
-          "name": "daily_logs_user_day_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "day",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "daily_logs_user_id_users_id_fk": {
-          "name": "daily_logs_user_id_users_id_fk",
-          "tableFrom": "daily_logs",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "daily_logs_user_id_day_pk": {
-          "name": "daily_logs_user_id_day_pk",
-          "columns": ["user_id", "day"]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.habit_checks": {
       "name": "habit_checks",
       "schema": "",
@@ -110,8 +27,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "date": {
-          "name": "date",
+        "scheduled_date": {
+          "name": "scheduled_date",
           "type": "date",
           "primaryKey": false,
           "notNull": true
@@ -122,21 +39,62 @@
           "primaryKey": false,
           "notNull": false
         },
+        "status": {
+          "name": "status",
+          "type": "habit_check_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
         "actual_time": {
           "name": "actual_time",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "checked_at": {
-          "name": "checked_at",
-          "type": "timestamp",
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
+        "habit_checks_unique": {
+          "name": "habit_checks_unique",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "scheduled_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "timing_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "habit_checks_user_date_idx": {
           "name": "habit_checks_user_date_idx",
           "columns": [
@@ -147,7 +105,7 @@
               "nulls": "last"
             },
             {
-              "expression": "date",
+              "expression": "scheduled_date",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -179,8 +137,12 @@
           "name": "habit_checks_user_id_users_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -188,8 +150,12 @@
           "name": "habit_checks_habit_id_habits_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -197,76 +163,13 @@
           "name": "habit_checks_timing_id_habit_timings_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "habit_timings",
-          "columnsFrom": ["timing_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "timing_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.habit_frequencies": {
-      "name": "habit_frequencies",
-      "schema": "",
-      "columns": {
-        "habit_id": {
-          "name": "habit_id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "interval_days": {
-          "name": "interval_days",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "days_of_week": {
-          "name": "days_of_week",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "days_of_month": {
-          "name": "days_of_month",
-          "type": "integer[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "habit_frequencies_habit_id_habits_id_fk": {
-          "name": "habit_frequencies_habit_id_habits_id_fk",
-          "tableFrom": "habit_frequencies",
-          "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -280,23 +183,30 @@
       "name": "habit_periods",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "habit_id": {
           "name": "habit_id",
           "type": "uuid",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "start_date": {
           "name": "start_date",
           "type": "date",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "end_date": {
           "name": "end_date",
           "type": "date",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "active_months": {
           "name": "active_months",
@@ -306,27 +216,163 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "habit_periods_habit_idx": {
+          "name": "habit_periods_habit_idx",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "habit_periods_habit_id_habits_id_fk": {
           "name": "habit_periods_habit_id_habits_id_fk",
           "tableFrom": "habit_periods",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.habit_products": {
+      "name": "habit_products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "habit_id": {
+          "name": "habit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dosage": {
+          "name": "dosage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "habit_products_unique": {
+          "name": "habit_products_unique",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "habit_products_habit_idx": {
+          "name": "habit_products_habit_idx",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "habit_products_habit_id_habits_id_fk": {
+          "name": "habit_products_habit_id_habits_id_fk",
+          "tableFrom": "habit_products",
+          "tableTo": "habits",
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "habit_products_product_id_products_id_fk": {
+          "name": "habit_products_product_id_products_id_fk",
+          "tableFrom": "habit_products",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -348,8 +394,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "habit_id": {
-          "name": "habit_id",
+        "timing_id": {
+          "name": "timing_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -362,18 +408,18 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
-        "habit_reminders_habit_idx": {
-          "name": "habit_reminders_habit_idx",
+        "habit_reminders_timing_idx": {
+          "name": "habit_reminders_timing_idx",
           "columns": [
             {
-              "expression": "habit_id",
+              "expression": "timing_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -386,12 +432,111 @@
         }
       },
       "foreignKeys": {
-        "habit_reminders_habit_id_habits_id_fk": {
-          "name": "habit_reminders_habit_id_habits_id_fk",
+        "habit_reminders_timing_id_habit_timings_id_fk": {
+          "name": "habit_reminders_timing_id_habit_timings_id_fk",
           "tableFrom": "habit_reminders",
+          "tableTo": "habit_timings",
+          "columnsFrom": [
+            "timing_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.habit_schedules": {
+      "name": "habit_schedules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "habit_id": {
+          "name": "habit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "habit_frequency",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "days_of_week": {
+          "name": "days_of_week",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "days_of_month": {
+          "name": "days_of_month",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "interval_days": {
+          "name": "interval_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "habit_schedules_habit_unique": {
+          "name": "habit_schedules_habit_unique",
+          "columns": [
+            {
+              "expression": "habit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "habit_schedules_habit_id_habits_id_fk": {
+          "name": "habit_schedules_habit_id_habits_id_fk",
+          "tableFrom": "habit_schedules",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -413,11 +558,17 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "habit_id": {
-          "name": "habit_id",
+        "schedule_id": {
+          "name": "schedule_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "time": {
           "name": "time",
@@ -433,18 +584,18 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {
-        "habit_timings_habit_idx": {
-          "name": "habit_timings_habit_idx",
+        "habit_timings_schedule_idx": {
+          "name": "habit_timings_schedule_idx",
           "columns": [
             {
-              "expression": "habit_id",
+              "expression": "schedule_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -457,12 +608,16 @@
         }
       },
       "foreignKeys": {
-        "habit_timings_habit_id_habits_id_fk": {
-          "name": "habit_timings_habit_id_habits_id_fk",
+        "habit_timings_schedule_id_habit_schedules_id_fk": {
+          "name": "habit_timings_schedule_id_habit_schedules_id_fk",
           "tableFrom": "habit_timings",
-          "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "tableTo": "habit_schedules",
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -502,68 +657,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "archived_at": {
           "name": "archived_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "habits_user_id_users_id_fk": {
-          "name": "habits_user_id_users_id_fk",
-          "tableFrom": "habits",
-          "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.product_pages": {
-      "name": "product_pages",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "''"
         },
         "created_at": {
           "name": "created_at",
@@ -581,11 +686,32 @@
         }
       },
       "indexes": {
-        "product_pages_name_idx": {
-          "name": "product_pages_name_idx",
+        "habits_user_idx": {
+          "name": "habits_user_idx",
           "columns": [
             {
-              "expression": "name",
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "habits_user_category_idx": {
+          "name": "habits_user_category_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "category",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -597,7 +723,147 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "habits_user_id_users_id_fk": {
+          "name": "habits_user_id_users_id_fk",
+          "tableFrom": "habits",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.product_collaborators": {
+      "name": "product_collaborators",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "collaborator_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'editor'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "product_collaborators_unique": {
+          "name": "product_collaborators_unique",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "product_collaborators_product_idx": {
+          "name": "product_collaborators_product_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "product_collaborators_user_idx": {
+          "name": "product_collaborators_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "product_collaborators_product_id_products_id_fk": {
+          "name": "product_collaborators_product_id_products_id_fk",
+          "tableFrom": "product_collaborators",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "product_collaborators_user_id_users_id_fk": {
+          "name": "product_collaborators_user_id_users_id_fk",
+          "tableFrom": "product_collaborators",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -608,10 +874,23 @@
       "name": "product_stock",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "product_id": {
           "name": "product_id",
           "type": "uuid",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "qty": {
@@ -629,14 +908,68 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "product_stock_user_product_unique": {
+          "name": "product_stock_user_product_unique",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "product_stock_user_idx": {
+          "name": "product_stock_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
+        "product_stock_user_id_users_id_fk": {
+          "name": "product_stock_user_id_users_id_fk",
+          "tableFrom": "product_stock",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "product_stock_product_id_products_id_fk": {
           "name": "product_stock_product_id_products_id_fk",
           "tableFrom": "product_stock",
           "tableTo": "products",
-          "columnsFrom": ["product_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -658,8 +991,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "user_id": {
-          "name": "user_id",
+        "created_by": {
+          "name": "created_by",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -688,9 +1021,27 @@
           "primaryKey": false,
           "notNull": true
         },
-        "page_id": {
-          "name": "page_id",
-          "type": "uuid",
+        "total_amount": {
+          "name": "total_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount_unit": {
+          "name": "amount_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -700,9 +1051,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "archived_at": {
-          "name": "archived_at",
-          "type": "timestamp with time zone",
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -722,30 +1073,9 @@
         }
       },
       "indexes": {
-        "products_user_idx": {
-          "name": "products_user_idx",
+        "products_kind_idx": {
+          "name": "products_kind_idx",
           "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "products_user_kind_idx": {
-          "name": "products_user_kind_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
             {
               "expression": "kind",
               "isExpression": false,
@@ -758,17 +1088,11 @@
           "method": "btree",
           "with": {}
         },
-        "products_user_archived_idx": {
-          "name": "products_user_archived_idx",
+        "products_created_by_idx": {
+          "name": "products_created_by_idx",
           "columns": [
             {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "archived_at",
+              "expression": "created_by",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -779,30 +1103,9 @@
           "method": "btree",
           "with": {}
         },
-        "products_page_idx": {
-          "name": "products_page_idx",
+        "products_name_brand_unique": {
+          "name": "products_name_brand_unique",
           "columns": [
-            {
-              "expression": "page_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "products_user_name_brand_unique": {
-          "name": "products_user_name_brand_unique",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
             {
               "expression": "name",
               "isExpression": false,
@@ -823,22 +1126,17 @@
         }
       },
       "foreignKeys": {
-        "products_user_id_users_id_fk": {
-          "name": "products_user_id_users_id_fk",
+        "products_created_by_users_id_fk": {
+          "name": "products_created_by_users_id_fk",
           "tableFrom": "products",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "products_page_id_product_pages_id_fk": {
-          "name": "products_page_id_product_pages_id_fk",
-          "tableFrom": "products",
-          "tableTo": "product_pages",
-          "columnsFrom": ["page_id"],
-          "columnsTo": ["id"],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -928,8 +1226,12 @@
           "name": "profiles_user_id_users_id_fk",
           "tableFrom": "profiles",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -940,8 +1242,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.sessions": {
-      "name": "sessions",
+    "public.refresh_tokens": {
+      "name": "refresh_tokens",
       "schema": "",
       "columns": {
         "id": {
@@ -951,24 +1253,17 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "sid_hash": {
-          "name": "sid_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "user_id": {
           "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
+        "jti_hash": {
+          "name": "jti_hash",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": true
         },
         "expires_at": {
           "name": "expires_at",
@@ -982,15 +1277,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "last_seen_at": {
-          "name": "last_seen_at",
+        "last_used_at": {
+          "name": "last_used_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
         "ip": {
           "name": "ip",
-          "type": "varchar(64)",
+          "type": "varchar(45)",
           "primaryKey": false,
           "notNull": false
         },
@@ -999,14 +1294,21 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {
-        "sessions_sid_hash_ux": {
-          "name": "sessions_sid_hash_ux",
+        "refresh_tokens_jti_hash_ux": {
+          "name": "refresh_tokens_jti_hash_ux",
           "columns": [
             {
-              "expression": "sid_hash",
+              "expression": "jti_hash",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1017,11 +1319,39 @@
           "method": "btree",
           "with": {}
         },
-        "sessions_user_id_idx": {
-          "name": "sessions_user_id_idx",
+        "refresh_tokens_active_user_idx": {
+          "name": "refresh_tokens_active_user_idx",
           "columns": [
             {
               "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"refresh_tokens\".\"revoked_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "refresh_tokens_user_revoked_idx": {
+          "name": "refresh_tokens_user_revoked_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "revoked_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1032,11 +1362,17 @@
           "method": "btree",
           "with": {}
         },
-        "sessions_expires_at_idx": {
-          "name": "sessions_expires_at_idx",
+        "refresh_tokens_expires_revoked_idx": {
+          "name": "refresh_tokens_expires_revoked_idx",
           "columns": [
             {
               "expression": "expires_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "revoked_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1049,12 +1385,16 @@
         }
       },
       "foreignKeys": {
-        "sessions_user_id_users_id_fk": {
-          "name": "sessions_user_id_users_id_fk",
-          "tableFrom": "sessions",
+        "refresh_tokens_user_id_users_id_fk": {
+          "name": "refresh_tokens_user_id_users_id_fk",
+          "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1062,7 +1402,16 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "revoked_after_created": {
+          "name": "revoked_after_created",
+          "value": "\"refresh_tokens\".\"revoked_at\" IS NULL OR \"refresh_tokens\".\"revoked_at\" >= \"refresh_tokens\".\"created_at\""
+        },
+        "expires_in_future": {
+          "name": "expires_in_future",
+          "value": "\"refresh_tokens\".\"expires_at\" > \"refresh_tokens\".\"created_at\""
+        }
+      },
       "isRLSEnabled": false
     },
     "public.users": {
@@ -1107,6 +1456,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
         }
       },
       "indexes": {
@@ -1164,7 +1521,42 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.habit_check_status": {
+      "name": "habit_check_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "done",
+        "skipped"
+      ]
+    },
+    "public.habit_frequency": {
+      "name": "habit_frequency",
+      "schema": "public",
+      "values": [
+        "daily",
+        "weekly",
+        "monthly",
+        "every_n_days"
+      ]
+    },
+    "public.collaborator_role": {
+      "name": "collaborator_role",
+      "schema": "public",
+      "values": [
+        "editor"
+      ]
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "user",
+        "admin"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},
