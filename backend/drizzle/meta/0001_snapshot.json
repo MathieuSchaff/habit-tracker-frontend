@@ -1,6 +1,6 @@
 {
-  "id": "091dd00c-f194-497c-a5dd-b375558239f7",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "c63c1b1d-4259-4de7-9a80-667677dc8363",
+  "prevId": "091dd00c-f194-497c-a5dd-b375558239f7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -964,6 +964,24 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "inci": {
+          "name": "inci",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "key_ingredients": {
+          "name": "key_ingredients",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "total_amount": {
           "name": "total_amount",

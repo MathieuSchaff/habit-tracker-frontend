@@ -8,6 +8,27 @@
       "when": 1771498624512,
       "tag": "0000_aromatic_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771579615039,
+      "tag": "0001_lowly_starjammers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771696231127,
+      "tag": "0002_young_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771699508732,
+      "tag": "0003_stale_warhawk",
+      "breakpoints": true
     }
   ]
 }
