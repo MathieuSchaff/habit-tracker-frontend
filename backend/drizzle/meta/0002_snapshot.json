@@ -1,6 +1,6 @@
 {
-  "id": "091dd00c-f194-497c-a5dd-b375558239f7",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "227795ac-33c1-4e11-9132-7f35adabbb48",
+  "prevId": "c63c1b1d-4259-4de7-9a80-667677dc8363",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -137,8 +137,12 @@
           "name": "habit_checks_user_id_users_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -146,8 +150,12 @@
           "name": "habit_checks_habit_id_habits_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -155,8 +163,12 @@
           "name": "habit_checks_timing_id_habit_timings_id_fk",
           "tableFrom": "habit_checks",
           "tableTo": "habit_timings",
-          "columnsFrom": ["timing_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "timing_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -239,8 +251,12 @@
           "name": "habit_periods_habit_id_habits_id_fk",
           "tableFrom": "habit_periods",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -338,8 +354,12 @@
           "name": "habit_products_habit_id_habits_id_fk",
           "tableFrom": "habit_products",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -347,8 +367,12 @@
           "name": "habit_products_product_id_products_id_fk",
           "tableFrom": "habit_products",
           "tableTo": "products",
-          "columnsFrom": ["product_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -412,8 +436,12 @@
           "name": "habit_reminders_timing_id_habit_timings_id_fk",
           "tableFrom": "habit_reminders",
           "tableTo": "habit_timings",
-          "columnsFrom": ["timing_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "timing_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -503,8 +531,12 @@
           "name": "habit_schedules_habit_id_habits_id_fk",
           "tableFrom": "habit_schedules",
           "tableTo": "habits",
-          "columnsFrom": ["habit_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "habit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -580,8 +612,12 @@
           "name": "habit_timings_schedule_id_habit_schedules_id_fk",
           "tableFrom": "habit_timings",
           "tableTo": "habit_schedules",
-          "columnsFrom": ["schedule_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -692,8 +728,12 @@
           "name": "habits_user_id_users_id_fk",
           "tableFrom": "habits",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -704,8 +744,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_collaborators": {
-      "name": "product_collaborators",
+    "public.product_edits": {
+      "name": "product_edits",
       "schema": "",
       "columns": {
         "id": {
@@ -721,19 +761,23 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
+        "edited_by": {
+          "name": "edited_by",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "role": {
-          "name": "role",
-          "type": "collaborator_role",
-          "typeSchema": "public",
+        "changes": {
+          "name": "changes",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'editor'"
+          "notNull": true
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -744,29 +788,8 @@
         }
       },
       "indexes": {
-        "product_collaborators_unique": {
-          "name": "product_collaborators_unique",
-          "columns": [
-            {
-              "expression": "product_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "product_collaborators_product_idx": {
-          "name": "product_collaborators_product_idx",
+        "product_edits_product_idx": {
+          "name": "product_edits_product_idx",
           "columns": [
             {
               "expression": "product_id",
@@ -780,11 +803,11 @@
           "method": "btree",
           "with": {}
         },
-        "product_collaborators_user_idx": {
-          "name": "product_collaborators_user_idx",
+        "product_edits_user_idx": {
+          "name": "product_edits_user_idx",
           "columns": [
             {
-              "expression": "user_id",
+              "expression": "edited_by",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -797,22 +820,30 @@
         }
       },
       "foreignKeys": {
-        "product_collaborators_product_id_products_id_fk": {
-          "name": "product_collaborators_product_id_products_id_fk",
-          "tableFrom": "product_collaborators",
+        "product_edits_product_id_products_id_fk": {
+          "name": "product_edits_product_id_products_id_fk",
+          "tableFrom": "product_edits",
           "tableTo": "products",
-          "columnsFrom": ["product_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "product_collaborators_user_id_users_id_fk": {
-          "name": "product_collaborators_user_id_users_id_fk",
-          "tableFrom": "product_collaborators",
+        "product_edits_edited_by_users_id_fk": {
+          "name": "product_edits_edited_by_users_id_fk",
+          "tableFrom": "product_edits",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
+          "columnsFrom": [
+            "edited_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -903,8 +934,12 @@
           "name": "product_stock_user_id_users_id_fk",
           "tableFrom": "product_stock",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -912,8 +947,12 @@
           "name": "product_stock_product_id_products_id_fk",
           "tableFrom": "product_stock",
           "tableTo": "products",
-          "columnsFrom": ["product_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -957,13 +996,26 @@
           "name": "kind",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'Pas spécifié'"
         },
         "unit": {
           "name": "unit",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "inci": {
+          "name": "inci",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "total_amount": {
           "name": "total_amount",
@@ -976,6 +1028,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "url": {
           "name": "url",
@@ -1067,6 +1125,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "products_slug_unique": {
+          "name": "products_slug_unique",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1074,8 +1147,12 @@
           "name": "products_created_by_users_id_fk",
           "tableFrom": "products",
           "tableTo": "users",
-          "columnsFrom": ["created_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1166,8 +1243,12 @@
           "name": "profiles_user_id_users_id_fk",
           "tableFrom": "profiles",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1237,6 +1318,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1325,8 +1412,12 @@
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1457,22 +1548,36 @@
     "public.habit_check_status": {
       "name": "habit_check_status",
       "schema": "public",
-      "values": ["pending", "done", "skipped"]
+      "values": [
+        "pending",
+        "done",
+        "skipped"
+      ]
     },
     "public.habit_frequency": {
       "name": "habit_frequency",
       "schema": "public",
-      "values": ["daily", "weekly", "monthly", "every_n_days"]
+      "values": [
+        "daily",
+        "weekly",
+        "monthly",
+        "every_n_days"
+      ]
     },
     "public.collaborator_role": {
       "name": "collaborator_role",
       "schema": "public",
-      "values": ["editor"]
+      "values": [
+        "editor"
+      ]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": ["user", "admin"]
+      "values": [
+        "user",
+        "admin"
+      ]
     }
   },
   "schemas": {},

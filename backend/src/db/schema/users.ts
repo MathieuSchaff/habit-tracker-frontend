@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   check,
   index,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -12,6 +13,8 @@ import {
 
 // password_hash nullable > car on peut se connecter avec google  ( à faire)
 // google_sub nullable > identifiant Google
+// Après les imports, avant la table
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 export const users = pgTable(
   'users',
   {
@@ -34,6 +37,7 @@ export const users = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
+    role: userRoleEnum('role').notNull().default('user'),
   },
   (t) => [
     // Empêche 2 comptes avec le même email
@@ -76,31 +80,6 @@ export const profiles = pgTable(
   ]
 )
 
-export const sessions = pgTable(
-  'sessions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    // Hash du token sid (ex sha256).
-    // Unique => une session = un token
-    sidHash: text('sid_hash').notNull(),
-
-    // Session appartient à un user
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-    revokedAt: timestamp('revoked_at', { withTimezone: true }),
-    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
-    ip: varchar('ip', { length: 64 }),
-    userAgent: text('user_agent'),
-  },
-  (t) => [
-    uniqueIndex('sessions_sid_hash_ux').on(t.sidHash),
-    index('sessions_user_id_idx').on(t.userId),
-    index('sessions_expires_at_idx').on(t.expiresAt),
-  ]
-)
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
@@ -115,6 +94,7 @@ export const refreshTokens = pgTable(
     ip: varchar('ip', { length: 45 }),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),
