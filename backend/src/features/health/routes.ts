@@ -1,4 +1,4 @@
-import { ok } from '@habit-tracker/shared/'
+import { ok } from '@habit-tracker/shared'
 
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
