@@ -13,17 +13,22 @@ export * from './schemas/tags'
 
 // Types (entity types, error codes, composed types)
 
+// Types (entity types, error codes, composed types)
+
+// Types (entity types, error codes, composed types)
+
 export * from './types/api'
 export * from './types/auth'
+export * from './types/common'
 export * from './types/habits'
 export type {
   CreateIngredientInput,
-  UpdateIngredientInput,
   EditableIngredientKeys,
   Ingredient,
   IngredientChanges,
   IngredientEdit,
   IngredientErrorCode,
+  UpdateIngredientInput,
 } from './types/ingredients'
 export * from './types/product-ingredients'
 export type {
@@ -37,7 +42,7 @@ export type {
 } from './types/products'
 export * from './types/profile'
 export * from './types/tags'
-export * from './types/common'
+
 // Helpers (error mappings, constants, utilities)
 
 export * from './helpers/api'
