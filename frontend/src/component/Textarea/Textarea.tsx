@@ -1,16 +1,15 @@
 import { AlertCircle } from 'lucide-react'
 import { useId } from 'react'
-import './Input.css'
+import './Textarea.css'
 
-type InputProps = React.ComponentProps<'input'> & {
+type TextareaProps = React.ComponentProps<'textarea'> & {
   label?: string
   error?: string
   hint?: string
   hideRequired?: boolean
 }
 
-export const Input = ({
-  type = 'text',
+export const Textarea = ({
   label,
   error,
   hint,
@@ -20,20 +19,20 @@ export const Input = ({
   hideRequired = false,
   ref,
   ...props
-}: InputProps) => {
+}: TextareaProps) => {
   const generatedId = useId()
-  const inputId = id ?? generatedId
-  const errorId = error ? `${inputId}-error` : undefined
-  const hintId = hint ? `${inputId}-hint` : undefined
+  const textareaId = id ?? generatedId
+  const errorId = error ? `${textareaId}-error` : undefined
+  const hintId = hint ? `${textareaId}-hint` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
   return (
-    <div className="input-wrapper">
+    <div className="textarea-wrapper">
       {label && (
-        <label htmlFor={inputId} className="input-label">
+        <label htmlFor={textareaId} className="textarea-label">
           {label}
           {required && !hideRequired && (
-            <span aria-hidden="true" className="input-required">
+            <span aria-hidden="true" className="textarea-required">
               *
             </span>
           )}
@@ -41,14 +40,13 @@ export const Input = ({
         </label>
       )}
       {hint && (
-        <span id={hintId} className="input-hint">
+        <span id={hintId} className="textarea-hint">
           {hint}
         </span>
       )}
-      <input
+      <textarea
         ref={ref}
-        id={inputId}
-        type={type}
+        id={textareaId}
         required={required}
         disabled={disabled}
         aria-invalid={!!error}
@@ -57,7 +55,7 @@ export const Input = ({
         {...props}
       />
       {error && (
-        <span id={errorId} className="input-error" role="alert">
+        <span id={errorId} className="textarea-error" role="alert">
           <AlertCircle size={16} />
           {error}
         </span>

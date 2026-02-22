@@ -15,3 +15,8 @@
 @import "../component/Layout/Header/Header.css" layer(components);
 @import "../component/Button/Button.css" layer(components);
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
+@import "../component/pages/habits/HabitsPage.css" layer(components);
+@import "../component/Habits/styles/HabitDetail.css" layer(components);
+@import "../component/Habits/styles/HabitsListView.css" layer(components);
+@import "../component/Habits/styles/HabtiFormDialog.css" layer(components);
+@import "../component/Habits/styles/TodayView.css" layer(components);

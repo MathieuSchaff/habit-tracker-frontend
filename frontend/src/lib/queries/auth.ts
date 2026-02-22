@@ -32,6 +32,17 @@ export const authQueries = {
       },
       retry: false,
     }),
+  health: () =>
+    queryOptions({
+      queryKey: ['health'],
+      queryFn: async () => {
+        const res = await api.health.$get()
+        const json = await res.json()
+        if (!json.success) throw new Error(json.message ?? 'Health check failed')
+        return json.data
+      },
+      retry: false,
+    }),
 }
 
 export function useLogin() {
