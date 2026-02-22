@@ -24,7 +24,7 @@ export const products = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
-    brand: text('brand'),
+    brand: text('brand').notNull(),
     // complémentents alimentaires, skincare etc...
     kind: text('kind').notNull().default('Pas spécifié'),
     // gouttes, gélules, pump ( pour la skincare), etc...

@@ -10,10 +10,10 @@ import slugify from '@sindresorhus/slugify'
 import { eq, type SQL } from 'drizzle-orm'
 
 import { db } from '../../db'
+import type { Database } from '../../db/index'
 import { type Product, productEdits, products } from '../../db/schema/products'
-import { ProductError } from './product-error'
 import { isUniqueViolation } from '../../lib/helpers'
-import { type Database } from '../../db/index'
+import { ProductError } from './product-error'
 
 export async function createProduct(
   userId: string,
@@ -21,7 +21,7 @@ export async function createProduct(
   database: Database = db
 ): Promise<Product> {
   try {
-    const slug = input.slug ?? input.name
+    const slug = input.slug ?? `${input.name}${input.brand ? '-' + input.brand : ''}`
     const [product] = await database
       .insert(products)
       .values({
@@ -73,9 +73,10 @@ export async function updateProduct(
   summary?: string,
   database: Database = db
 ): Promise<Product> {
-  const oldProduct = await getProductById(id)
+  const oldProduct = await getProductById(id, database)
   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
   if (slug) data.slug = slug
+
   const newProductRow = await database
     .update(products)
     .set(data)

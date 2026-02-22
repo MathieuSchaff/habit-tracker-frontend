@@ -29,6 +29,13 @@
       "when": 1771699508732,
       "tag": "0003_stale_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771755437540,
+      "tag": "0004_lively_polaris",
+      "breakpoints": true
     }
   ]
 }
