@@ -5,8 +5,23 @@
 /**
  * Détecte une violation de contrainte UNIQUE PostgreSQL (code 23505).
  */
+// export function isUniqueViolation(e: unknown): boolean {
+//   return e instanceof Error && 'code' in e && (e as { code: string }).code === '23505'
+// }
 export function isUniqueViolation(e: unknown): boolean {
-  return e instanceof Error && 'code' in e && (e as { code: string }).code === '23505'
+  if (!(e instanceof Error)) return false
+
+  // Si c'est une DrizzleQueryError, check la cause
+  if ('cause' in e && e.cause instanceof Error && 'code' in e.cause) {
+    return (e.cause as { code: string }).code === '23505'
+  }
+
+  // Sinon check directement l'erreur
+  if ('code' in e) {
+    return (e as { code: string }).code === '23505'
+  }
+
+  return false
 }
 
 /**

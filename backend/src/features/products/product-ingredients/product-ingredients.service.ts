@@ -1,9 +1,8 @@
 import { and, eq, sql } from 'drizzle-orm'
 
-import { productIngredients, type ProductIngredient } from '../../../db/schema/product-ingredients'
-import { ingredients } from '../../../db/schema/ingredients'
-
 import type { Database } from '../../../db/index'
+import { ingredients } from '../../../db/schema/ingredients'
+import { type ProductIngredient, productIngredients } from '../../../db/schema/product-ingredients'
 
 type CreateProductIngredientInput = Omit<ProductIngredient, 'id' | 'createdAt'>
 
