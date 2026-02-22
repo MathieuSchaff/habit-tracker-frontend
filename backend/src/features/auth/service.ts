@@ -72,7 +72,7 @@ export async function signup(
 
     const user = await ctx.db.transaction(async (tx) => {
       const user = await createUser(tx, { email, passwordHash })
-      await createProfile(tx, { userId: user.id })
+      await createProfile(tx, user.id)
       return user
     })
 

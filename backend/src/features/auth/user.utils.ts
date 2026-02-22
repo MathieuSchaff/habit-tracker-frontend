@@ -60,23 +60,12 @@ export async function createUser(
 
   return user
 }
-export async function createProfile(
-  db: DB,
-  profileData: {
-    userId: string
-    firstName?: string
-    lastName?: string
-  }
-) {
-  const [profile] = await db
-    .insert(profiles)
-    .values({
-      userId: profileData.userId,
-    })
-    .returning()
+// Crée un profil vide pour un nouvel utilisateur
+export async function createProfile(db: DB, userId: string) {
+  const [profile] = await db.insert(profiles).values({ userId }).returning()
 
   if (!profile) {
-    throw new Error('Failed to create user')
+    throw new Error('Failed to create profile')
   }
   return profile
 }
