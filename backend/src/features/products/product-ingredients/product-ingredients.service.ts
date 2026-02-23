@@ -1,8 +1,9 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, getTableColumns } from 'drizzle-orm'
 
 import type { Database } from '../../../db/index'
 import { ingredients } from '../../../db/schema/ingredients'
 import { type ProductIngredient, productIngredients } from '../../../db/schema/product-ingredients'
+import { type Product, products } from '../../../db/schema/products'
 
 type CreateProductIngredientInput = Omit<ProductIngredient, 'id' | 'createdAt'>
 
@@ -52,12 +53,16 @@ export async function listIngredientsByProduct(db: Database, productId: string) 
 /**
  * Liste les produits contenant un ingrédient donné.
  */
-export async function listProductsByIngredient(db: Database, ingredientId: string) {
+export async function listProductsByIngredient(
+  db: Database,
+  ingredientId: string
+): Promise<Product[]> {
   return db
-    .select()
+    .select(getTableColumns(products))
     .from(productIngredients)
+    .innerJoin(products, eq(productIngredients.productId, products.id))
     .where(eq(productIngredients.ingredientId, ingredientId))
-    .orderBy(sql`${productIngredients.createdAt} DESC`)
+    .orderBy(products.name)
 }
 
 export async function updateProductIngredient(

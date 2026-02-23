@@ -7,11 +7,12 @@ import {
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { eq, type SQL } from 'drizzle-orm'
+import { and, count, eq, inArray, type SQL } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
 import { type Product, productEdits, products } from '../../db/schema/products'
+import { productTags, tags } from '../../db/schema/tags'
 import { isUniqueViolation } from '../../lib/helpers'
 import { ProductError } from './product-error'
 
@@ -114,6 +115,72 @@ export async function updateProduct(
 
   return newProduct
 }
+export type ListProductsFilters = {
+  kind?: string
+  brand?: string
+  tag?: string
+  page?: number
+  limit?: number
+}
+
+export type ProductsPage = {
+  items: Product[]
+  total: number
+  page: number
+  limit: number
+}
+
+export async function listProducts(
+  filters: ListProductsFilters = {},
+  database: Database = db
+): Promise<ProductsPage> {
+  const page = filters.page ?? 1
+  const limit = filters.limit ?? 20
+  const offset = (page - 1) * limit
+
+  // Au lieu que d'écrire des if else, on va push dans un tableau et on les combine à la fin
+  const conditions: SQL[] = []
+
+  // filtres simples
+  if (filters.kind) conditions.push(eq(products.kind, filters.kind))
+  if (filters.brand) conditions.push(eq(products.brand, filters.brand))
+  // pb: les tags ne sont pas dans la table products
+  // on doit chercher sur la table productTag
+  // en gros en sql ça donne un truc du genre select productTags.product_id
+  // from productTags
+  // inner join tags on ....
+  // where tags.slut = filters.slug ( la variable)
+  // in array c'est le where in
+  if (filters.tag) {
+    conditions.push(
+      inArray(
+        products.id,
+        database
+          .select({ productId: productTags.productId })
+          .from(productTags)
+          .innerJoin(tags, eq(productTags.tagId, tags.id))
+          .where(eq(tags.slug, filters.tag))
+      )
+    )
+  }
+  // si j'ai au moins une condition, je les combine avec AND
+  // si undefined, drizzle va ignorer le where()
+  const where = conditions.length > 0 ? and(...conditions) : undefined
+
+  const [items, countResult] = await Promise.all([
+    database
+      .select()
+      .from(products)
+      .where(where)
+      .orderBy(products.name)
+      .limit(limit)
+      .offset(offset),
+    database.select({ total: count() }).from(products).where(where),
+  ])
+  const total = countResult[0]?.total ?? 0
+  return { items, total, page, limit }
+}
+
 export async function deleteProduct(id: string, database: Database = db): Promise<void> {
   const rows = await database
     .delete(products)
