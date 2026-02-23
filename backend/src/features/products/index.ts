@@ -1,1 +1,1 @@
-// export { productPageRoutes, productRoutes } from './routes'
+export { productRoutes } from './routes'

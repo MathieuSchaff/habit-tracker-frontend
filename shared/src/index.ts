@@ -35,7 +35,7 @@ export type {
   ProductWithStock,
 } from './types/products'
 export * from './types/profile'
-export * from './types/tags'
+export type { IngredientTag, ProductTag, Tag, TagErrorCode } from './types/tags'
 
 // Helpers (error mappings, constants, utilities)
 
