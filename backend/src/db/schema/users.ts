@@ -18,8 +18,8 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 export const users = pgTable(
   'users',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
-
+    // id: uuid('id').defaultRandom().primaryKey(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
     // Email doit être NOT NULL et unique (sinon doublons)
     email: varchar('email', { length: 320 }).notNull(),
 
@@ -61,8 +61,11 @@ export const profiles = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
 
     // Pseudo affiché.
-    username: varchar('username', { length: 32 }),
-
+    // username: varchar('username', { length: 32 }),
+    username: varchar('username', { length: 64 }).notNull().generatedAlwaysAs(
+      // Référence à la table users via la FK user_id
+      sql`lower(split_part((SELECT email FROM users WHERE users.id = ${users.id}), '@', 1))`
+    ),
     // ptionnel: avatar bio
 
     avatarUrl: text('avatar_url'),
@@ -83,7 +86,8 @@ export const profiles = pgTable(
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    // id: uuid('id').defaultRandom().primaryKey(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
