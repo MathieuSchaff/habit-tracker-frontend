@@ -12,6 +12,7 @@ import { jwtAuthRoutes } from './features/auth'
 import { healthRoute } from './features/health/routes'
 import { productRoutes } from './features/products'
 import { ingredientRoutes } from './features/products/ingredients/routes'
+import { ingredientTagRoutes } from './features/products/ingredient-tags/routes'
 import { productIngredientRoutes } from './features/products/product-ingredients/routes'
 import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
@@ -39,6 +40,7 @@ const routes = app
   .route('/api/products', productRoutes)
   .route('/api/products', productIngredientRoutes)
   .route('/api/ingredients', ingredientRoutes)
+  .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/tags', tagRoutes)
 
 export type AppType = typeof routes

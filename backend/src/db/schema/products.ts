@@ -1,5 +1,6 @@
 import type { ProductChanges } from '@habit-tracker/shared'
 
+import { sql } from 'drizzle-orm'
 import {
   index,
   integer,
@@ -19,7 +20,8 @@ export const collaboratorRoleEnum = pgEnum('collaborator_role', ['editor'])
 export const products = pgTable(
   'products',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    // id: uuid('id').defaultRandom().primaryKey(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
