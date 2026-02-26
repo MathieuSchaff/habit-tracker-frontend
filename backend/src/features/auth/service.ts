@@ -9,7 +9,7 @@ import type {
 } from '@habit-tracker/shared'
 import { err, ok } from '@habit-tracker/shared'
 
-import { hash, verify } from 'argon2'
+// import { hash } from 'argon2'
 
 import type { DB } from '../../db/index'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
@@ -21,6 +21,7 @@ import {
   storeRefreshToken,
 } from './refresh-token.service'
 import { createProfile, createUser, getUser, getUserById, toPublicUser } from './user.utils'
+import { isUniqueViolation } from '../../lib/helpers'
 
 export type AuthContext = {
   db: DB
@@ -30,13 +31,8 @@ export type AuthContext = {
   userAgent?: string
 }
 
-const DUMMY_HASH = await hash('timing-safe-dummy')
 
-function isUniqueViolation(e: unknown): boolean {
-  return (
-    typeof e === 'object' && e !== null && 'code' in e && (e as { code: string }).code === '23505'
-  )
-}
+const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
 async function createTokenPair(ctx: AuthContext, userId: string) {
   const accessToken = await generateAccessToken(userId, ctx.jwtSecret)
@@ -68,7 +64,7 @@ export async function signup(
     const existingUser = await getUser(ctx.db, email)
     if (existingUser) return err('email_exists')
 
-    const passwordHash = (await hash(password)) as HashedPassword
+    const passwordHash = (await Bun.password.hash(password)) as HashedPassword
 
     const user = await ctx.db.transaction(async (tx) => {
       const user = await createUser(tx, { email, passwordHash })
@@ -97,7 +93,9 @@ export async function login(
   try {
     const user = await getUser(ctx.db, email)
 
-    const isValid = await verify(user?.passwordHash ?? DUMMY_HASH, password)
+    // const isValid = await verify(user?.passwordHash ?? DUMMY_HASH, password)
+
+    const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
     if (!user || !isValid) return err('invalid_credentials')
 
     const tokens = await createTokenPair(ctx, user.id)

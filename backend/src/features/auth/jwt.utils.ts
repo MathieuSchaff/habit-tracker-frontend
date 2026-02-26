@@ -1,11 +1,10 @@
 import { CryptoHasher } from 'bun'
-
+import { accessTokenPayloadSchema, refreshTokenPayloadSchema } from '@habit-tracker/shared'
 import type { AccessTokenPayload, RefreshTokenPayload } from '@habit-tracker/shared/'
 
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { sign, verify } from 'hono/jwt'
-import z from 'zod'
 
 import type { AppEnv } from '../../app-env'
 
@@ -20,7 +19,7 @@ export async function generateAccessToken(userId: string, secret: string): Promi
     {
       sub: userId,
       type: 'access',
-      jti: crypto.randomUUID(),
+      jti: Bun.randomUUIDv7(),
       iat: now,
       exp: now + JWT_CONFIG.accessTokenExpiry,
     } satisfies AccessTokenPayload,
@@ -33,7 +32,8 @@ export async function generateRefreshToken(
   secret: string
 ): Promise<{ token: string; jti: string; expiresAt: Date }> {
   const now = Math.floor(Date.now() / 1000)
-  const jti = crypto.randomUUID()
+  // const jti = crypto.randomUUID()
+  const jti = Bun.randomUUIDv7()
 
   const token = await sign(
     {
@@ -59,32 +59,12 @@ export async function verifyAccessToken(
 ): Promise<AccessTokenPayload | null> {
   try {
     const raw = await verify(token, secret, 'HS256')
-    const payload = raw as unknown as AccessTokenPayload
-    if (payload.type !== 'access') return null
-    return payload
+    const parsed = accessTokenPayloadSchema.safeParse(raw)
+    return parsed.success ? parsed.data : null
   } catch {
     return null
   }
 }
-
-// export async function verifyRefreshToken(token: string, secret: string) {
-//   try {
-//     const raw = await verify(token, secret, 'HS256')
-//     // const payload = raw as unknown as RefreshTokenPayload
-//     if (raw.type !== 'refresh') return null
-//     return raw
-//   } catch {
-//     return null
-//   }
-// }
-
-const refreshTokenPayloadSchema = z.object({
-  sub: z.string(),
-  type: z.literal('refresh'),
-  jti: z.string(),
-  iat: z.number(),
-  exp: z.number(),
-})
 
 export async function verifyRefreshToken(
   token: string,
