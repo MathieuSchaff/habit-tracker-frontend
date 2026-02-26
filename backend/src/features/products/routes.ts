@@ -3,6 +3,7 @@ import {
   err,
   errorResponse,
   errorToStatus,
+  filterOptionsSchema,
   HTTP_STATUS,
   ok,
   productErrorMapping,
@@ -20,6 +21,7 @@ import { ProductError } from './product-error'
 import {
   createProduct,
   deleteProduct,
+  getFilterOptions,
   getProductBySlug,
   listProducts,
   updateProduct,
@@ -35,6 +37,16 @@ const listProductsQuery = z.object({
   tag: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
+})
+
+const filterOptionsRoute = createRoute({
+  method: 'get',
+  path: '/filter-options',
+  tags: ['Products'],
+  summary: 'Get available filter options (kinds, brands, tags)',
+  responses: {
+    [HTTP_STATUS.OK]: successResponse(filterOptionsSchema, 'Filter options retrieved'),
+  },
 })
 
 const listProductsRoute = createRoute({
@@ -128,6 +140,12 @@ productsApp.onError((error, c) => {
 })
 
 export const productRoutes = productsApp
+
+  .openapi(filterOptionsRoute, async (c) => {
+    const db = c.get('db')
+    const options = await getFilterOptions(db)
+    return c.json(ok(options), HTTP_STATUS.OK)
+  })
 
   .openapi(listProductsRoute, async (c) => {
     const db = c.get('db')
