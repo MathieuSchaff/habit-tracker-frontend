@@ -61,12 +61,9 @@ export const profiles = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
 
     // Pseudo affiché.
-    // username: varchar('username', { length: 32 }),
-    username: varchar('username', { length: 64 }).notNull().generatedAlwaysAs(
-      // Référence à la table users via la FK user_id
-      sql`lower(split_part((SELECT email FROM users WHERE users.id = ${users.id}), '@', 1))`
-    ),
-    // ptionnel: avatar bio
+    username: varchar('username', { length: 32 }),
+
+    // optionnel: avatar bio
 
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
