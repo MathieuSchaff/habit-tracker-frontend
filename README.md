@@ -45,6 +45,7 @@ make test-db-down     # Arrêter DB de test manuellement
 make prod             # Lancer (nginx + SSL)
 make prod-logs        # Logs production
 make prod-down        # Arrêter
+make prod-migrate
 ```
 
 ### Base de Données
@@ -321,6 +322,9 @@ cp .env.example .env.prod
 
 # 3. Configurer nginx
 # Dans nginx/conf.d/default.conf, remplacer votredomaine.com
+
+# 3.5 Appliquer les migrations
+make prod-migrate
 
 # 4. Lancer
 make prod
