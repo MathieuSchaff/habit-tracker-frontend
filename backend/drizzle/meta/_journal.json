@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1771498624512,
-      "tag": "0000_aromatic_mordo",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1771579615039,
-      "tag": "0001_lowly_starjammers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1771696231127,
-      "tag": "0002_young_warlock",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1771699508732,
-      "tag": "0003_stale_warhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1771755437540,
-      "tag": "0004_lively_polaris",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1771937843840,
-      "tag": "0005_parched_darkhawk",
+      "when": 1771941228756,
+      "tag": "0000_dashing_nebula",
       "breakpoints": true
     }
   ]
