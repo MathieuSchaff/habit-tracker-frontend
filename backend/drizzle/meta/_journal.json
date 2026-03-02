@@ -8,6 +8,20 @@
       "when": 1771941228756,
       "tag": "0000_dashing_nebula",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772488026852,
+      "tag": "0001_cool_rick_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772623682441,
+      "tag": "0002_spicy_havok",
+      "breakpoints": true
     }
   ]
 }
