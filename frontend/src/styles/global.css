@@ -1,3 +1,7 @@
+* {
+  font-family: var(--font-sans);
+}
+
 h1,
 h2,
 h3,
@@ -26,7 +30,7 @@ a {
   }
 
   &:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: var(--radius-xs, 2px);
   }
@@ -41,7 +45,7 @@ button {
   color: inherit;
 
   &:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: var(--radius-xs, 2px);
   }
@@ -56,32 +60,9 @@ select {
   accent-color: var(--color-primary);
 
   &:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
-}
-
-img,
-svg,
-video,
-canvas {
-  display: block;
-  max-width: 100%;
-}
-
-img {
-  height: auto;
-  font-style: italic;
-}
-
-ul,
-ol {
-  list-style: none;
-}
-
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
 }
 
 dialog,
@@ -89,10 +70,16 @@ dialog,
   border: none;
   background: var(--bg-card);
   color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+dialog::backdrop {
+  background: var(--overlay);
 }
 
 ::selection {
-  background-color: var(--color-accent);
+  background-color: var(--bg-selected);
   color: var(--text-primary);
 }
 

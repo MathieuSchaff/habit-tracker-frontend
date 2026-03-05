@@ -1,12 +1,12 @@
 {
   "name": "habit-tracker",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.13"
+  },
   "private": true,
   "workspaces": [
     "backend",
     "frontend",
     "shared"
-  ],
-  "devDependencies": {
-    "@biomejs/biome": "2.3.13"
-  }
+  ]
 }

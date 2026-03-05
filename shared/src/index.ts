@@ -6,6 +6,8 @@ export * from './schemas/habits'
 export * from './schemas/ingredients'
 export * from './schemas/product-ingredients'
 export * from './schemas/products'
+export * from './schemas/stock'
+export * from './schemas/logs'
 export * from './schemas/profile'
 export * from './schemas/tags'
 
@@ -35,6 +37,8 @@ export type {
   ProductWithStock,
 } from './types/products'
 export * from './types/profile'
+export type { StockErrorCode } from './types/stock'
+export type { LogsErrorCode } from './types/logs'
 export type { IngredientTag, ProductTag, Tag, TagErrorCode } from './types/tags'
 
 // Helpers (error mappings, constants, utilities)
@@ -46,6 +50,8 @@ export * from './helpers/habits'
 export * from './helpers/ingredients'
 export * from './helpers/product-ingredients'
 export * from './helpers/products'
+export * from './helpers/stock'
+export * from './helpers/logs'
 export * from './helpers/profile'
 export * from './helpers/tags'
 

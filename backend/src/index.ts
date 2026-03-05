@@ -8,7 +8,7 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { jwtAuthRoutes } from './features/auth'
-// import { habits } from './features/habits/routes'
+import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
 import { productRoutes } from './features/products'
 import { ingredientRoutes } from './features/products/ingredients/routes'
@@ -16,6 +16,8 @@ import { ingredientTagRoutes } from './features/products/ingredient-tags/routes'
 import { productIngredientRoutes } from './features/products/product-ingredients/routes'
 import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
+import { logsRoutes } from './features/logs'
+import { stockRoutes } from './features/stock'
 
 console.log(`API listening on ${port}`)
 const app = new OpenAPIHono<AppEnv>()
@@ -35,13 +37,15 @@ const routes = app
   .get('/ui', swaggerUI({ url: '/doc' }))
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
-  // .route('/api/habits', habits)
+  .route('/api/habits', habits)
   .route('/api/profile', profileRoute)
   .route('/api/products', productRoutes)
   .route('/api/products', productIngredientRoutes)
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/tags', tagRoutes)
+  .route('/api/stock', stockRoutes)
+  .route('/api/logs', logsRoutes)
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }
