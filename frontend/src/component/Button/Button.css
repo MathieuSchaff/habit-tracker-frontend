@@ -13,7 +13,7 @@
 
   &.primary {
     background: var(--color-primary);
-    color: white;
+    color: var(--text-inverse);
 
     &:hover:not(:disabled) {
       background: var(--color-primary-hover);

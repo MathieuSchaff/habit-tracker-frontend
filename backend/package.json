@@ -1,8 +1,20 @@
 {
-  "name": "habit-tracker-backend",
+  "name": "@habit-tracker/backend",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "main": "dist/index.js",
+   "types": "src/index.ts",
+   "exports": {
+       ".": {
+         "types": "./src/index.ts",
+         "default": "./dist/index.js"
+       },
+       "./app": {
+         "types": "./src/app.ts",
+         "default": "./dist/app.js"
+       }
+     },
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun x tsc -p tsconfig.json",

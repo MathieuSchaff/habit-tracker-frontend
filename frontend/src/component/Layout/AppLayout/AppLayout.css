@@ -2,7 +2,7 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-page);
+  background: var(--bg-page);
 }
 
 .content {
