@@ -1,0 +1,54 @@
+:root {
+  /* ===================================
+     HUES
+     =================================== */
+  --hue-primary: 160deg; /* Vert Forêt — l'âme d'Aurore */
+  --hue-neutral: 40deg; /* Argile / Sable */
+  --hue-acid: 85deg; /* Vert Lime */
+  --hue-orange: 30deg; /* Orange Terre Cuite */
+  --hue-clay: 40deg; /* Beige Argile */
+  /* ===================================
+     PALETTE PRIMARY (Vert Forêt)
+     Jamais utilisée directement dans le CSS —
+     uniquement référencée via les semantic tokens
+     =================================== */
+  --primary-20: oklch(25% 0.08 var(--hue-primary));
+  --primary-40: oklch(40% 0.12 var(--hue-primary));
+  --primary-60: oklch(60% 0.16 var(--hue-primary));
+  --primary-75: oklch(75% 0.18 var(--hue-primary));
+  --primary-90: oklch(90% 0.08 var(--hue-primary));
+
+  /* ===================================
+     PALETTE ACCENT (Vert Acide)
+     =================================== */
+  --accent-20: oklch(25% 0.1 var(--hue-acid));
+  --accent-60: oklch(60% 0.18 var(--hue-acid));
+  --accent-80: oklch(85% 0.2 var(--hue-acid));
+
+  /* ===================================
+     PALETTE NEUTRAL (Argile)
+     =================================== */
+  --neutral-10: oklch(12% 0.02 var(--hue-primary));
+  --neutral-20: oklch(22% 0.02 var(--hue-primary));
+  --neutral-50: oklch(50% 0.02 var(--hue-clay));
+  --neutral-70: oklch(70% 0.02 var(--hue-clay));
+  --neutral-95: oklch(94% 0.03 var(--hue-clay));
+  --neutral-99: oklch(98% 0.01 var(--hue-clay));
+
+  /* ===================================
+     PALETTE ERROR
+     =================================== */
+  --error-20: oklch(25% 0.08 25deg);
+  --error-65: oklch(65% 0.18 25deg);
+
+  /* ===================================
+     PALETTE INFO
+     =================================== */
+  --info-20: oklch(25% 0.08 230deg);
+  --info-60: oklch(60% 0.12 230deg);
+
+  /* ===================================
+     DIMENSIONS (jamais overridées)
+     =================================== */
+  --border-width: 3px;
+}

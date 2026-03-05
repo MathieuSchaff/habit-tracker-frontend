@@ -1,22 +1,39 @@
 @layer reset, variables, base, components, utilities;
 
-/*@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap")
-  layer(base);*/
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
   layer(base);
 @import "./tokens/reset.css" layer(reset);
-@import "./tokens/colors.css" layer(variables);
+@import "./tokens/colors-root.css" layer(variables);
+@import "./tokens/colors-light-blue.css" layer(variables);
+@import "./tokens/colors-dark.css" layer(variables);
 @import "./tokens/spacing.css" layer(variables);
 @import "./tokens/typography.css" layer(variables);
 @import "./tokens/misc.css" layer(variables);
-@import "./global.css" layer(base);
 @import "./tokens/utilities.css" layer(utilities);
 
+@import "./global.css" layer(base);
+@import "./scroll-bar.css" layer(base);
+
+/*//Header*/
 @import "../component/Layout/Header/Header.css" layer(components);
+
 @import "../component/Button/Button.css" layer(components);
+
+/*Auth*/
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
+@import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
 @import "../component/pages/habits/HabitsPage.css" layer(components);
+@import "../component/pages/LoginPage/auth-shared.css" layer(components);
+@import "../component/pages/LoginPage/LoginPage.css" layer(components);
+@import "../component/pages/SignupPage/SignupPage.css" layer(components);
+
+/*Ingredient(s)*/
+/*@import '../component/pages/Ingredient/ingredients-shared.css'*/
+/*@import '../component/pages/Ingredient/IngredientPage.css'*/
+/*@import '../component/pages/Ingredients/IngredientsPage.css'*/
+
 @import "../component/Habits/styles/HabitDetail.css" layer(components);
 @import "../component/Habits/styles/HabitsListView.css" layer(components);
 @import "../component/Habits/styles/HabtiFormDialog.css" layer(components);
 @import "../component/Habits/styles/TodayView.css" layer(components);
+@import "../component/Habits/styles/JournalView.css" layer(components);
