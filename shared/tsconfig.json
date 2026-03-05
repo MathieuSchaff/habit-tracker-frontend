@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    /* 1. Configuration du Système de Modules (C'est ici que ça bloquait) */
+    "target": "ESNext",
+    "module": "ESNext",         // Autorise les 'export' (règle ton erreur actuelle)
+    "moduleResolution": "Bundler", // Permet de trouver les fichiers comme le fait Bun/Vite
+    "lib": ["ESNext"],
+    "verbatimModuleSyntax": true, // Garde tes imports/exports tels quels
+
+    /* 2. Configuration Monorepo (Projet Composite) */
+    "composite": true,          // Indique que c'est une sous-partie du projet
+    "declaration": true,        // Génère les fichiers .d.ts pour le frontend/backend
+    "declarationMap": true,     // Permet de cliquer sur un type et d'arriver au code source
+    "emitDeclarationOnly": true, // On ne veut que les types, Bun s'occupe du reste
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    /* 3. Qualité du Code et Rigueur */
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

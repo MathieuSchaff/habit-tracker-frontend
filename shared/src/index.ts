@@ -13,30 +13,30 @@ export * from './schemas/tags'
 
 // Types (entity types, error codes, composed types)
 
-export * from './types/api'
-export * from './types/auth'
-export * from './types/common'
-export * from './types/habits'
+export type * from './types/api'
+export type * from './types/auth'
+export type * from './types/common'
+export type * from './types/habits'
 export type {
-  CreateIngredientInput,
-  EditableIngredientKeys,
-  Ingredient,
-  IngredientChanges,
-  IngredientEdit,
-  IngredientErrorCode,
-  UpdateIngredientInput,
+    CreateIngredientInput,
+    EditableIngredientKeys,
+    Ingredient,
+    IngredientChanges,
+    IngredientEdit,
+    IngredientErrorCode,
+    UpdateIngredientInput,
 } from './types/ingredients'
-export * from './types/product-ingredients'
+export type * from './types/product-ingredients'
 export type {
-  EditableProductKeys,
-  Product,
-  ProductChanges,
-  ProductEdit,
-  ProductErrorCode,
-  ProductStock,
-  ProductWithStock,
+    EditableProductKeys,
+    Product,
+    ProductChanges,
+    ProductEdit,
+    ProductErrorCode,
+    ProductStock,
+    ProductWithStock,
 } from './types/products'
-export * from './types/profile'
+export type * from './types/profile'
 export type { StockErrorCode } from './types/stock'
 export type { LogsErrorCode } from './types/logs'
 export type { IngredientTag, ProductTag, Tag, TagErrorCode } from './types/tags'
