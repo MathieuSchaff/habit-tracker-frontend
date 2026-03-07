@@ -10,6 +10,8 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+*.d.ts
+*.d.ts.map
 
 # =========================
 # Environment
@@ -33,6 +35,7 @@ backups/
 *.swp
 *.swo
 *~
+.zed/
 
 # =========================
 # OS

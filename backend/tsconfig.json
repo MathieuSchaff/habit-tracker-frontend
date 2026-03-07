@@ -1,24 +1,50 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "rootDir": "src",
-    "outDir": "dist",
-    "noEmit": false,
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "types": ["@types/bun", "node"]
+    /* 1. Architecture Monorepo */
+    "composite": true, // OBLIGATOIRE : Permet à ce projet d'être référencé ou d'en référencer d'autres
+    "rootDir": "./src", // Définit où se trouve ton code source
+    "outDir": "./dist", // Où seront générés les fichiers de types (.d.ts)
+
+    /* 2. Génération des Types (Le contrat) */
+    "declaration": true, // Génère les fichiers .d.ts pour que le frontend puisse voir tes types
+    "declarationMap": false, // Pas besoin de mapper les types vers le JS ici (gain de performance)
+    "emitDeclarationOnly": true, // IMPORTANT : TypeScript ne génère QUE les types. Bun s'occupe d'exécuter le code.
+
+    /* 3. Environnement Runtime (Bun / Modern JS) */
+    "target": "ESNext", // Utilise les dernières fonctionnalités JS supportées par Bun
+    "module": "ESNext", // Utilise le système d'import moderne (import/export)
+    "moduleResolution": "Bundler", // Indique à TS de chercher les modules comme le font Bun ou Vite
+    "lib": ["ESNext"], // Charge les définitions globales des dernières versions de JS
+    "types": ["bun"], // Ajoute les types globaux spécifiques à Bun (Bun.file, etc.)
+
+    /* 4. Rigueur et Sécurité */
+    "strict": true, // Active toutes les vérifications de sécurité (recommandé)
+    "skipLibCheck": true, // Ne vérifie pas les types des bibliothèques dans node_modules (plus rapide)
+    "esModuleInterop": true, // Facilite l'import de vieux modules CommonJS si nécessaire
+    "isolatedModules": true, // Obligatoire pour certains bundlers rapides comme Esbuild/Bun
+
+    /* 6. Le lien magique avec le dossier Shared (Doit être dans compilerOptions) */
+    "baseUrl": ".",
+    "paths": {
+      // Option 1 (dist) :
+      "@habit-tracker/shared": ["../shared/dist/index.d.ts"]
+
+      // OU Option 2 (src) :
+      // "@habit-tracker/shared": ["../shared/src/index.ts"]
+    }
   },
-  "include": ["src/**/*.ts", "drizzle.config.ts"],
-  "exclude": ["node_modules", "dist"]
+
+  /* 5. Inclusion / Exclusion */
+  "include": ["src/**/*"], // Compile tout ce qui est dans le dossier src
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts", // Exclut tous les fichiers .test.ts
+    "src/db/seed/**/*" // Ignore TOUT le contenu du dossier seed (fichiers et sous-dossiers)
+  ], // Ignore les dépendances et les fichiers déjà compilés
+
+  /* References doit être à la racine du JSON */
+  "references": [
+    { "path": "../shared" } // Indique explicitement que le backend dépend de shared
+  ]
 }

@@ -1,19 +1,16 @@
 import {
   createProductSchema,
   err,
-  errorResponse,
   errorToStatus,
-  filterOptionsSchema,
   HTTP_STATUS,
   ok,
   productErrorMapping,
-  productResponseSchema,
-  productsPageSchema,
-  successResponse,
   updateProductSchema,
 } from '@habit-tracker/shared'
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { zValidator } from '@hono/zod-validator'
+import { Hono } from 'hono'
+import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
@@ -29,7 +26,6 @@ import {
 
 const slugParam = z.object({ slug: z.string().min(1).max(100) })
 const idParam = z.object({ id: z.uuid() })
-const nullData = z.null()
 
 const listProductsQuery = z.object({
   kind: z.string().optional(),
@@ -39,92 +35,9 @@ const listProductsQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
-const filterOptionsRoute = createRoute({
-  method: 'get',
-  path: '/filter-options',
-  tags: ['Products'],
-  summary: 'Get available filter options (kinds, brands, tags)',
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(filterOptionsSchema, 'Filter options retrieved'),
-  },
-})
-
-const listProductsRoute = createRoute({
-  method: 'get',
-  path: '/',
-  tags: ['Products'],
-  summary: 'List products with optional filters',
-  request: { query: listProductsQuery },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(productsPageSchema, 'Products retrieved'),
-  },
-})
-
-const createProductRoute = createRoute({
-  method: 'post',
-  path: '/',
-  tags: ['Products'],
-  summary: 'Create a new product',
-  security: [{ Bearer: [] }],
-  request: {
-    body: { content: { 'application/json': { schema: createProductSchema } } },
-  },
-  responses: {
-    [HTTP_STATUS.CREATED]: successResponse(productResponseSchema, 'Product created'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.CONFLICT]: errorResponse('Product already exists'),
-  },
-})
-
-const getProductRoute = createRoute({
-  method: 'get',
-  path: '/{slug}',
-  tags: ['Products'],
-  summary: 'Get a product by slug',
-  request: { params: slugParam },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(productResponseSchema, 'Product retrieved'),
-    [HTTP_STATUS.NOT_FOUND]: errorResponse('Product not found'),
-  },
-})
-
-const updateProductRoute = createRoute({
-  method: 'patch',
-  path: '/{id}',
-  tags: ['Products'],
-  summary: 'Update a product',
-  security: [{ Bearer: [] }],
-  request: {
-    params: idParam,
-    body: { content: { 'application/json': { schema: updateProductSchema } } },
-  },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(productResponseSchema, 'Product updated'),
-    [HTTP_STATUS.NOT_FOUND]: errorResponse('Product not found'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.CONFLICT]: errorResponse('Product already exists'),
-  },
-})
-
-const deleteProductRoute = createRoute({
-  method: 'delete',
-  path: '/{id}',
-  tags: ['Products'],
-  summary: 'Delete a product',
-  security: [{ Bearer: [] }],
-  request: { params: idParam },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(nullData, 'Product deleted'),
-    [HTTP_STATUS.NOT_FOUND]: errorResponse('Product not found'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-  },
-})
-
 // App
 
-const productsApp = new OpenAPIHono<AppEnv>()
+const productsApp = new Hono<AppEnv>()
 
 productsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
@@ -141,20 +54,20 @@ productsApp.onError((error, c) => {
 
 export const productRoutes = productsApp
 
-  .openapi(filterOptionsRoute, async (c) => {
+  .get('/filter-options', async (c) => {
     const db = c.get('db')
     const options = await getFilterOptions(db)
     return c.json(ok(options), HTTP_STATUS.OK)
   })
 
-  .openapi(listProductsRoute, async (c) => {
+  .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
     const { kind, brand, tag, page, limit } = c.req.valid('query')
     const result = await listProducts({ kind, brand, tag, page, limit }, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  .openapi(createProductRoute, async (c) => {
+  .post('/', zValidator('json', createProductSchema), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const input = c.req.valid('json')
@@ -162,23 +75,28 @@ export const productRoutes = productsApp
     return c.json(ok(product), HTTP_STATUS.CREATED)
   })
 
-  .openapi(getProductRoute, async (c) => {
+  .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
     const { slug } = c.req.valid('param')
     const product = await getProductBySlug(slug, db)
     return c.json(ok(product), HTTP_STATUS.OK)
   })
 
-  .openapi(updateProductRoute, async (c) => {
-    const db = c.get('db')
-    const { id } = c.req.valid('param')
-    const userId = c.get('userId')
-    const input = c.req.valid('json')
-    const product = await updateProduct(userId, id, input, undefined, db)
-    return c.json(ok(product), HTTP_STATUS.OK)
-  })
+  .patch(
+    '/:id',
+    zValidator('param', idParam),
+    zValidator('json', updateProductSchema),
+    async (c) => {
+      const db = c.get('db')
+      const { id } = c.req.valid('param')
+      const userId = c.get('userId')
+      const input = c.req.valid('json')
+      const product = await updateProduct(userId, id, input, undefined, db)
+      return c.json(ok(product), HTTP_STATUS.OK)
+    }
+  )
 
-  .openapi(deleteProductRoute, async (c) => {
+  .delete('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
     await deleteProduct(id, db)

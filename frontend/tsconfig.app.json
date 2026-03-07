@@ -1,38 +1,36 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    /* 1. Configuration Vite/React */
+    "noEmit": true, // ✅ Pas besoin d'émettre, Vite gère tout
+    // "composite": true,        // ❌ SUPPRIMÉ - pas nécessaire si pas référencé
 
     "target": "ES2022",
-    "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
     "types": ["vite/client"],
-    "skipLibCheck": true,
 
-    // "baseUrl": ".",
+    /* 2. Résolution des modules (consomme les types) */
+    "baseUrl": ".",
     "paths": {
-      // "@habit-tracker/shared": ["../shared/src/index.ts"],
-      //  "@habit-tracker/shared/*": ["../shared/src/*"],
-      //  "@habit-tracker/backend": ["../backend/src/index.ts"],
-      //  "@habit-tracker/backend/*": ["../backend/src/*"],
-       "@/*": ["./src/*"]
+      "@habit-tracker/shared": ["../shared/dist/index.d.ts"],
+      "@habit-tracker/backend": ["../backend/dist/index.d.ts"],
+      "@/*": ["./src/*"]
     },
 
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-
+    /* 3. Rigueur */
     "strict": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  "references": [
+    { "path": "../shared" }, // ✅ Pour que tsc -b build d'abord shared
+    { "path": "../backend" } // ✅ Pour que tsc -b build d'abord backend
+  ],
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

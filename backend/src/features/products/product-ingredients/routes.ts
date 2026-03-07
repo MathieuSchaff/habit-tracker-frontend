@@ -1,16 +1,15 @@
 import {
   createProductIngredientSchema,
   err,
-  errorResponse,
   errorToStatus,
   HTTP_STATUS,
   ok,
   productIngredientErrorMapping,
-  productIngredientResponseSchema,
-  successResponse,
 } from '@habit-tracker/shared'
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
@@ -40,101 +39,9 @@ const replaceIngredientsSchema = z.object({
   ingredients: z.array(createProductIngredientSchema),
 })
 
-const productIngredientWithDetailsSchema = productIngredientResponseSchema.extend({
-  ingredientName: z.string(),
-  ingredientSlug: z.string(),
-  ingredientCategory: z.string().nullable(),
-  ingredientDescription: z.string(),
-})
-
-const listIngredientsRoute = createRoute({
-  method: 'get',
-  path: '/{productId}/ingredients',
-  tags: ['Product Ingredients'],
-  summary: 'List ingredients for a product',
-  request: { params: productParams },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(
-      z.array(productIngredientWithDetailsSchema),
-      'Ingredients retrieved'
-    ),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Invalid product id'),
-  },
-})
-
-const addIngredientRoute = createRoute({
-  method: 'post',
-  path: '/{productId}/ingredients',
-  tags: ['Product Ingredients'],
-  summary: 'Add an ingredient to a product',
-  security: [{ Bearer: [] }],
-  request: {
-    params: productParams,
-    body: { content: { 'application/json': { schema: createProductIngredientSchema } } },
-  },
-  responses: {
-    [HTTP_STATUS.CREATED]: successResponse(productIngredientResponseSchema, 'Ingredient added'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.CONFLICT]: errorResponse('Ingredient already linked to this product'),
-  },
-})
-
-const updateIngredientLinkRoute = createRoute({
-  method: 'patch',
-  path: '/{productId}/ingredients/{ingredientId}',
-  tags: ['Product Ingredients'],
-  summary: 'Update concentration or notes for a product ingredient',
-  security: [{ Bearer: [] }],
-  request: {
-    params: ingredientLinkParams,
-    body: { content: { 'application/json': { schema: updateProductIngredientSchema } } },
-  },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(productIngredientResponseSchema, 'Ingredient link updated'),
-    [HTTP_STATUS.NOT_FOUND]: errorResponse('Ingredient not linked to this product'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-  },
-})
-
-const removeIngredientRoute = createRoute({
-  method: 'delete',
-  path: '/{productId}/ingredients/{ingredientId}',
-  tags: ['Product Ingredients'],
-  summary: 'Remove an ingredient from a product',
-  security: [{ Bearer: [] }],
-  request: { params: ingredientLinkParams },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(z.null(), 'Ingredient removed'),
-    [HTTP_STATUS.NOT_FOUND]: errorResponse('Ingredient not linked to this product'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-  },
-})
-
-const replaceIngredientsRoute = createRoute({
-  method: 'put',
-  path: '/{productId}/ingredients',
-  tags: ['Product Ingredients'],
-  summary: 'Replace all ingredients for a product',
-  security: [{ Bearer: [] }],
-  request: {
-    params: productParams,
-    body: { content: { 'application/json': { schema: replaceIngredientsSchema } } },
-  },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(
-      z.array(productIngredientResponseSchema),
-      'Ingredients replaced'
-    ),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-  },
-})
-
 // App
 
-const productIngredientsApp = new OpenAPIHono<AppEnv>()
+const productIngredientsApp = new Hono<AppEnv>()
 
 productIngredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
@@ -156,14 +63,14 @@ productIngredientsApp.onError((error, c) => {
 
 export const productIngredientRoutes = productIngredientsApp
 
-  .openapi(listIngredientsRoute, async (c) => {
+  .get('/:productId/ingredients', zValidator('param', productParams), async (c) => {
     const db = c.get('db')
     const { productId } = c.req.valid('param')
     const items = await listIngredientsByProduct(db, productId)
     return c.json(ok(items), HTTP_STATUS.OK)
   })
 
-  .openapi(addIngredientRoute, async (c) => {
+  .post('/:productId/ingredients', zValidator('param', productParams), zValidator('json', createProductIngredientSchema), async (c) => {
     const db = c.get('db')
     const { productId } = c.req.valid('param')
     const input = c.req.valid('json')
@@ -188,7 +95,7 @@ export const productIngredientRoutes = productIngredientsApp
     }
   })
 
-  .openapi(updateIngredientLinkRoute, async (c) => {
+  .patch('/:productId/ingredients/:ingredientId', zValidator('param', ingredientLinkParams), zValidator('json', updateProductIngredientSchema), async (c) => {
     const db = c.get('db')
     const { productId, ingredientId } = c.req.valid('param')
     const input = c.req.valid('json')
@@ -207,7 +114,7 @@ export const productIngredientRoutes = productIngredientsApp
     return c.json(ok(updated), HTTP_STATUS.OK)
   })
 
-  .openapi(removeIngredientRoute, async (c) => {
+  .delete('/:productId/ingredients/:ingredientId', zValidator('param', ingredientLinkParams), async (c) => {
     const db = c.get('db')
     const { productId, ingredientId } = c.req.valid('param')
     const removed = await removeIngredientFromProduct(db, productId, ingredientId)
@@ -215,7 +122,7 @@ export const productIngredientRoutes = productIngredientsApp
     return c.json(ok(null), HTTP_STATUS.OK)
   })
 
-  .openapi(replaceIngredientsRoute, async (c) => {
+  .put('/:productId/ingredients', zValidator('param', productParams), zValidator('json', replaceIngredientsSchema), async (c) => {
     const db = c.get('db')
     const { productId } = c.req.valid('param')
     const { ingredients } = c.req.valid('json')

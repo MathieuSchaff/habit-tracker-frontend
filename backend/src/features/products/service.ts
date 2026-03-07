@@ -1,20 +1,14 @@
-import type { ProductErrorCode } from '@habit-tracker/shared'
-import {
-  type CreateProductInput,
-  type FieldChange,
-  type ProductChanges,
-  productChangesSchema,
-  type UpdateProductInput,
-} from '@habit-tracker/shared'
+import type { CreateProductInput, UpdateProductInput } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, count, eq, inArray, type SQL, sql } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
-import { type Product, productEdits, products } from '../../db/schema/products'
+import { type Product, products } from '../../db/schema/products'
 import { productTags, tags } from '../../db/schema/tags'
 import { isUniqueViolation } from '../../lib/helpers'
+import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
 
 export async function createProduct(
@@ -61,62 +55,8 @@ export async function getProductBySlug(slug: string, database: Database = db): P
   if (!row) throw new ProductError('product_not_found')
   return row
 }
+
 const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug'])
-
-function areEqual(a: unknown, b: unknown): boolean {
-  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
-  return a === b
-}
-
-// export async function updateProduct(
-//   userId: string,
-//   id: string,
-//   data: UpdateProductInput,
-//   summary?: string,
-//   database: Database = db
-// ): Promise<Product> {
-//   const oldProduct = await getProductById(id, database)
-//   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
-//   if (slug) data.slug = slug
-
-//   const newProductRow = await database
-//     .update(products)
-//     .set(data)
-//     .where(eq(products.id, id))
-//     .returning()
-
-//   const newProduct = newProductRow[0]
-//   if (!newProduct) throw new ProductError('product_update_failed')
-
-//   const changes: ProductChanges = {}
-
-//   for (const key in data) {
-//     if (EXCLUDED_KEYS.has(key)) continue
-
-//     const k = key as keyof ProductChanges
-//     const oldVal = oldProduct[k]
-//     const newVal = newProduct[k]
-
-//     if (!areEqual(oldVal, newVal)) {
-//       ;(changes as Record<string, FieldChange<unknown>>)[k] = {
-//         old: oldVal ?? null,
-//         new: newVal ?? null,
-//       }
-//     }
-//   }
-
-//   if (Object.keys(changes).length === 0) return newProduct
-//   const parsed = productChangesSchema.parse(changes)
-//   await database.insert(productEdits).values({
-//     productId: oldProduct.id,
-//     editedBy: userId,
-//     summary: summary ?? null,
-//     changes: parsed,
-//   })
-
-//   return newProduct
-// }
-//
 
 const TRACKED_FIELDS = [
   'name',
@@ -156,86 +96,43 @@ export async function updateProduct(
   summary?: string,
   database = db
 ): Promise<Product> {
-  // Gestion du slug : priorité à la valeur fournie, sinon génération à partir du nom
   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
   if (slug !== undefined) data.slug = slug
 
-  // On ne garde que les champs réellement modifiables (exclut id, createdAt, etc.)
   const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k as any))
 
-  // Cas optimisation : rien à updater → on renvoie l'état actuel sans toucher la DB
   if (setEntries.length === 0) {
     const existing = await database.query.products.findFirst({ where: eq(products.id, id) })
-    if (!existing) throw new ProductError('product_not_found' as ProductErrorCode)
+    if (!existing) throw new ProductError('product_not_found')
     return existing
   }
 
-  // Préparation des clauses SET de manière sécurisée (Drizzle protège contre injection)
   const setClauses = setEntries.map(([k, v]) => sql`${sql.identifier(k)} = ${v}`)
 
-  // UPDATE + RETURNING OLD/NEW en une seule requête (feature Postgres 18)
-  // On récupère :
-  // - NEW.* → état final du produit
-  // - OLD.champ AS old_champ → pour calculer le diff sans SELECT préalable
   const result = await database.execute(sql`
     UPDATE ${products}
     SET ${sql.join(setClauses, sql`, `)}
     WHERE ${products.id} = ${id}
     RETURNING
       ${products}.*,
-      ${TRACKED_FIELDS.map((f) => sql`OLD.${sql.identifier(f)} AS old_${f}`).join(', ')}
+      ${sql.join(
+        TRACKED_FIELDS.map((f) => sql`OLD.${sql.identifier(f)} AS ${sql.identifier(`old_${f}`)}`),
+        sql`, `
+      )}
   `)
 
   const row = result.rows[0]
-  if (!row) throw new ProductError('product_update_failed' as ProductErrorCode)
+  if (!row) throw new ProductError('product_update_failed')
 
-  // Typage unsafe mais inévitable avec execute() raw → on sait que ça matche Product
   const newProduct = row as Product
+  const changes = buildChanges(row, TRACKED_FIELDS, newProduct)
 
-  const changes: ProductChanges = {}
-
-  for (const key of TRACKED_FIELDS) {
-    const oldKey = `old_${key}` as keyof typeof row
-    let oldVal = row[oldKey]
-
-    // Nettoyage important : on force null quand la valeur est vide ou {}
-    // → évite que FieldChange reçoive {} alors que le type attend null | primitive | string
-    // Sinon Zod ou le typage strict va râler sur '{} | null' vs 'null'
-    if (
-      oldVal == null ||
-      (typeof oldVal === 'object' && oldVal !== null && Object.keys(oldVal).length === 0)
-    ) {
-      oldVal = null
-    }
-
-    const newVal = newProduct[key as keyof Product]
-
-    // areEqual = deepEqual (renommé pour éviter conflit d'import)
-    // On compare en profondeur car certains champs peuvent être des objets ou dates
-    if (!areEqual(oldVal, newVal)) {
-      // Cast FieldChange<any> car :
-      // - ProductChanges est un mapped type très précis par clé
-      // - Mais ici on construit dynamiquement → TS ne peut pas inférer automatiquement
-      // - Le cast est safe car TRACKED_FIELDS correspond exactement à EditableProductKeys
-      changes[key as keyof ProductChanges] = {
-        old: oldVal,
-        new: newVal ?? null,
-      } as FieldChange<any>
-    }
-  }
-
-  // Seulement si au moins un vrai changement → on log dans l'historique
-  if (Object.keys(changes).length > 0) {
-    // Validation Zod pour s'assurer que le format respecte le schéma attendu
-    const parsed = productChangesSchema.parse(changes)
-
-    await database.insert(productEdits).values({
-      productId: id,
-      editedBy: userId,
-      summary: summary ?? null,
-      changes: parsed,
-    })
-  }
+  await logEdit(database, productEditConfig, {
+    entityId: id,
+    editedBy: userId,
+    summary: summary ?? null,
+    changes,
+  })
 
   return newProduct
 }

@@ -1,9 +1,34 @@
 {
+  // files: [] tells TypeScript to build nothing here
   "files": [],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    // alias paths are relative to this file (no baseUrl needed)
+    "paths": {
+      "@habit-tracker/shared": ["./shared/dist/index.d.ts"],
+      "@habit-tracker/backend": ["./backend/dist/index.d.ts"]
+    }
+  },
+  // Project references: split into three projects (shared, backend, frontend).
+  // Builds only what changed and keeps them separate.
   "references": [
-    { "path": "./frontend" },
-    { "path": "./backend" },
-    { "path": "./shared" }
+    {
+      "path": "./shared"
+    },
+    {
+      "path": "./backend"
+    },
+    {
+      "path": "./frontend"
+    }
   ],
   "exclude": ["node_modules", "dist", ".turbo"]
 }

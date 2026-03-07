@@ -1,30 +1,37 @@
 {
   "compilerOptions": {
-    /* 1. Configuration du Système de Modules (C'est ici que ça bloquait) */
-    "target": "ESNext",
-    "module": "ESNext",         // Autorise les 'export' (règle ton erreur actuelle)
-    "moduleResolution": "Bundler", // Permet de trouver les fichiers comme le fait Bun/Vite
-    "lib": ["ESNext"],
-    "verbatimModuleSyntax": true, // Garde tes imports/exports tels quels
+    /* --- 1. Configuration Monorepo (Le rôle de fournisseur) --- */
+    "composite": true, // OBLIGATOIRE : Permet au Backend et Frontend de "référencer" ce projet
+    "rootDir": "./src", // Emplacement de tes fichiers sources (.ts)
+    "outDir": "./dist", // Emplacement où les types générés (.d.ts) seront stockés
 
-    /* 2. Configuration Monorepo (Projet Composite) */
-    "composite": true,          // Indique que c'est une sous-partie du projet
-    "declaration": true,        // Génère les fichiers .d.ts pour le frontend/backend
-    "declarationMap": true,     // Permet de cliquer sur un type et d'arriver au code source
-    "emitDeclarationOnly": true, // On ne veut que les types, Bun s'occupe du reste
-    "outDir": "./dist",
-    "rootDir": "./src",
+    /* --- 2. Sortie (Output) : Uniquement les types --- */
+    "declaration": true, // Génère les fichiers .d.ts (le contrat de tes types)
+    "declarationMap": false, // Désactivé pour rester léger (pas de lien vers le code source dans dist)
+    "emitDeclarationOnly": true, // IMPORTANT : On ne génère pas de JS. Bun/Vite liront le TS directement.
+    "noEmit": false, // On autorise la sortie (nécessaire pour générer les déclarations ci-dessus)
 
-    /* 3. Qualité du Code et Rigueur */
-    "strict": true,
-    "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "isolatedModules": true,
-    "esModuleInterop": true
+    /* --- 3. Résolution des Modules & Standard Moderne --- */
+    "target": "ESNext", // Utilise les fonctionnalités JS les plus récentes
+    "module": "ESNext", // Utilise le système d'import/export standard (ESM)
+    "moduleResolution": "Bundler", // Indispensable pour Bun/Vite (permet d'omettre les extensions .ts)
+    "lib": ["ESNext"], // Charge les types de base de JavaScript moderne
+    "verbatimModuleSyntax": true, // Force une distinction claire entre import de type et import de code
+
+    /* --- 4. Rigueur & Qualité (Sécurité maximale) --- */
+    "strict": true, // Active toutes les vérifications (ex: interdit le 'any' implicite)
+    "noUncheckedIndexedAccess": true, // Sécurité : vérifie si un élément existe avant d'accéder à un tableau
+    "noUnusedLocals": true, // Erreur si une variable locale n'est pas utilisée
+    "noUnusedParameters": true, // Erreur si un paramètre de fonction n'est pas utilisé
+    "noFallthroughCasesInSwitch": true, // Empêche d'oublier un 'break' dans les switch
+
+    /* --- 5. Compatibilité --- */
+    "isolatedModules": true, // Garantit que chaque fichier peut être transpilé seul (requis par Bun/Vite)
+    "esModuleInterop": true, // Permet d'importer des modules CommonJS proprement
+    "skipLibCheck": true // Accélère la compilation en ignorant les types des librairies tierces
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+
+  /* --- 6. Périmètre --- */
+  "include": ["src/**/*"], // Inclus tout ce qui est dans shared/src
+  "exclude": ["node_modules", "dist"] // Ignore les dépendances et le dossier de sortie
 }
