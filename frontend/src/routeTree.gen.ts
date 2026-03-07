@@ -13,9 +13,15 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsIndexRouteImport } from './routes/products/index'
+import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
+import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
+import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedInventaireRouteImport } from './routes/_authenticated/inventaire'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -36,9 +42,34 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsIndexRoute = IngredientsIndexRouteImport.update({
+  id: '/ingredients/',
+  path: '/ingredients/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
+  id: '/ingredients/$slug',
+  path: '/ingredients/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedInventaireRoute = AuthenticatedInventaireRouteImport.update({
+  id: '/inventaire',
+  path: '/inventaire',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
@@ -51,6 +82,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => IngredientsSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -58,7 +94,13 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
+  '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
+  '/products/$slug': typeof ProductsSlugRoute
+  '/ingredients/': typeof IngredientsIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -66,7 +108,13 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
+  '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
+  '/products/$slug': typeof ProductsSlugRoute
+  '/ingredients': typeof IngredientsIndexRoute
+  '/products': typeof ProductsIndexRoute
+  '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -76,13 +124,43 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
+  '/_authenticated/inventaire': typeof AuthenticatedInventaireRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
+  '/products/$slug': typeof ProductsSlugRoute
+  '/ingredients/': typeof IngredientsIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup' | '/dashboard' | '/habits' | '/profile'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/dashboard'
+    | '/habits'
+    | '/inventaire'
+    | '/profile'
+    | '/ingredients/$slug'
+    | '/products/$slug'
+    | '/ingredients/'
+    | '/products/'
+    | '/ingredients/$slug/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/dashboard' | '/habits' | '/profile'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/dashboard'
+    | '/habits'
+    | '/inventaire'
+    | '/profile'
+    | '/ingredients/$slug'
+    | '/products/$slug'
+    | '/ingredients'
+    | '/products'
+    | '/ingredients/$slug/edit'
   id:
     | '__root__'
     | '/'
@@ -91,7 +169,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/habits'
+    | '/_authenticated/inventaire'
     | '/_authenticated/profile'
+    | '/ingredients/$slug'
+    | '/products/$slug'
+    | '/ingredients/'
+    | '/products/'
+    | '/ingredients/$slug/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -99,6 +183,10 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
+  ProductsSlugRoute: typeof ProductsSlugRoute
+  IngredientsIndexRoute: typeof IngredientsIndexRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,11 +219,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/': {
+      id: '/ingredients/'
+      path: '/ingredients'
+      fullPath: '/ingredients/'
+      preLoaderRoute: typeof IngredientsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/$slug': {
+      id: '/ingredients/$slug'
+      path: '/ingredients/$slug'
+      fullPath: '/ingredients/$slug'
+      preLoaderRoute: typeof IngredientsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inventaire': {
+      id: '/_authenticated/inventaire'
+      path: '/inventaire'
+      fullPath: '/inventaire'
+      preLoaderRoute: typeof AuthenticatedInventaireRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/habits': {
@@ -152,18 +275,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/ingredients/$slug/edit': {
+      id: '/ingredients/$slug/edit'
+      path: '/edit'
+      fullPath: '/ingredients/$slug/edit'
+      preLoaderRoute: typeof IngredientsSlugEditRouteImport
+      parentRoute: typeof IngredientsSlugRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
+  AuthenticatedInventaireRoute: typeof AuthenticatedInventaireRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
+  AuthenticatedInventaireRoute: AuthenticatedInventaireRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 
@@ -171,11 +303,27 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface IngredientsSlugRouteChildren {
+  IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
+}
+
+const IngredientsSlugRouteChildren: IngredientsSlugRouteChildren = {
+  IngredientsSlugEditRoute: IngredientsSlugEditRoute,
+}
+
+const IngredientsSlugRouteWithChildren = IngredientsSlugRoute._addFileChildren(
+  IngredientsSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
+  ProductsSlugRoute: ProductsSlugRoute,
+  IngredientsIndexRoute: IngredientsIndexRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

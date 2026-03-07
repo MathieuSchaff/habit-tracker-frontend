@@ -11,7 +11,10 @@ import { err, ok } from '@habit-tracker/shared'
 
 // import { hash } from 'argon2'
 
+// import { hash } from 'argon2'
+
 import type { DB } from '../../db/index'
+import { isUniqueViolation } from '../../lib/helpers'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
 import {
   cleanupUserRefreshTokens,
@@ -21,7 +24,6 @@ import {
   storeRefreshToken,
 } from './refresh-token.service'
 import { createProfile, createUser, getUser, getUserById, toPublicUser } from './user.utils'
-import { isUniqueViolation } from '../../lib/helpers'
 
 export type AuthContext = {
   db: DB
@@ -30,7 +32,6 @@ export type AuthContext = {
   ip?: string
   userAgent?: string
 }
-
 
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 

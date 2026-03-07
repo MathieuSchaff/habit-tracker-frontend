@@ -1,21 +1,16 @@
 import {
   authSchema as authBodySchema,
   authErrorMapping,
-  browserAuthResultSchema,
   err,
-  errorResponse,
   errorToStatus,
   HTTP_STATUS,
   isApiSuccess,
-  mobileAuthResultSchema,
-  mobileRefreshResultSchema,
   ok,
   refreshTokenBodySchema,
-  sessionResultSchema,
-  successResponse,
 } from '@habit-tracker/shared'
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import type { Context } from 'hono'
 
 import type { AppEnv } from '../../app-env'
@@ -34,157 +29,10 @@ function buildAuthContext(c: Context<AppEnv>): AuthContext {
   }
 }
 
-const authBodyJsonContent = {
-  content: {
-    'application/json': {
-      schema: authBodySchema,
-    },
-  },
-}
-
-const nullDataSchema = z.null()
-
-// BROWSER
-
-const loginRoute = createRoute({
-  method: 'post',
-  path: '/login',
-  tags: ['Auth - Browser'],
-  summary: 'Login (browser, cookie-based refresh)',
-  request: { body: authBodyJsonContent },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(browserAuthResultSchema, 'Login successful'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Invalid credentials'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const signupRoute = createRoute({
-  method: 'post',
-  path: '/signup',
-  tags: ['Auth - Browser'],
-  summary: 'Signup (browser, cookie-based refresh)',
-  request: { body: authBodyJsonContent },
-  responses: {
-    [HTTP_STATUS.CREATED]: successResponse(browserAuthResultSchema, 'Signup successful'),
-    [HTTP_STATUS.CONFLICT]: errorResponse('Email already exists'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const browserRefreshRoute = createRoute({
-  method: 'post',
-  path: '/refresh',
-  tags: ['Auth - Browser'],
-  summary: 'Refresh access token (cookie-based)',
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(browserAuthResultSchema, 'Token refreshed'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Missing refresh token'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Invalid or expired token'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const logoutRoute = createRoute({
-  method: 'post',
-  path: '/logout',
-  tags: ['Auth - Browser'],
-  summary: 'Logout (browser)',
-  security: [{ Bearer: [] }],
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(nullDataSchema, 'Logged out'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-// SESSION
-
-const sessionRoute = createRoute({
-  method: 'get',
-  path: '/session',
-  tags: ['Auth'],
-  summary: 'Check current session',
-  security: [{ Bearer: [] }],
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(sessionResultSchema, 'Authenticated'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-  },
-})
-
-// MOBILE
-
-const mobileLoginRoute = createRoute({
-  method: 'post',
-  path: '/mobile/login',
-  tags: ['Auth - Mobile'],
-  summary: 'Login (mobile, body-based refresh)',
-  request: { body: authBodyJsonContent },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(mobileAuthResultSchema, 'Login successful'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Invalid credentials'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const mobileSignupRoute = createRoute({
-  method: 'post',
-  path: '/mobile/signup',
-  tags: ['Auth - Mobile'],
-  summary: 'Signup (mobile, body-based refresh)',
-  request: { body: authBodyJsonContent },
-  responses: {
-    [HTTP_STATUS.CREATED]: successResponse(mobileAuthResultSchema, 'Signup successful'),
-    [HTTP_STATUS.CONFLICT]: errorResponse('Email already exists'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Validation error'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const mobileRefreshRoute = createRoute({
-  method: 'post',
-  path: '/mobile/refresh',
-  tags: ['Auth - Mobile'],
-  summary: 'Refresh access token (body-based)',
-  request: {
-    body: {
-      content: { 'application/json': { schema: refreshTokenBodySchema } },
-    },
-  },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(mobileRefreshResultSchema, 'Token refreshed'),
-    [HTTP_STATUS.BAD_REQUEST]: errorResponse('Missing refresh token'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Invalid or expired token'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const mobileLogoutRoute = createRoute({
-  method: 'post',
-  path: '/mobile/logout',
-  tags: ['Auth - Mobile'],
-  summary: 'Logout (mobile)',
-  security: [{ Bearer: [] }],
-  request: {
-    body: {
-      content: { 'application/json': { schema: refreshTokenBodySchema } },
-    },
-  },
-  responses: {
-    [HTTP_STATUS.OK]: successResponse(nullDataSchema, 'Logged out'),
-    [HTTP_STATUS.UNAUTHORIZED]: errorResponse('Not authenticated'),
-    [HTTP_STATUS.RATE_LIMIT_EXCEEDED]: errorResponse('Rate limit exceeded'),
-  },
-})
-
-const app = new OpenAPIHono<AppEnv>()
+const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
 
-// app.use(path, middleware) retourne Hono et non OpenAPIHono
 app.use('/logout', requireJwtAuth)
 app.use('/session', requireJwtAuth)
 app.use('/mobile/logout', requireJwtAuth)
@@ -201,7 +49,7 @@ app.onError((e, c) => {
 
 export const jwtAuthRoutes = app
 
-  .openapi(loginRoute, async (c) => {
+  .post('/login', zValidator('json', authBodySchema), async (c) => {
     const env = c.get('env')
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
@@ -209,7 +57,7 @@ export const jwtAuthRoutes = app
     const result = await login(ctx, email, password)
 
     if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
@@ -220,7 +68,7 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(signupRoute, async (c) => {
+  .post('/signup', zValidator('json', authBodySchema), async (c) => {
     const env = c.get('env')
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
@@ -228,7 +76,7 @@ export const jwtAuthRoutes = app
     const result = await signup(ctx, email, password)
 
     if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
@@ -239,7 +87,7 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(browserRefreshRoute, async (c) => {
+  .post('/refresh', async (c) => {
     const env = c.get('env')
     const ctx = buildAuthContext(c)
     const refreshToken = await extractRefreshToken(c)
@@ -252,7 +100,7 @@ export const jwtAuthRoutes = app
 
     if (!isApiSuccess(result)) {
       clearRefreshTokenCookie(c)
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
@@ -263,7 +111,7 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(logoutRoute, async (c) => {
+  .post('/logout', async (c) => {
     const ctx = buildAuthContext(c)
     const refreshToken = await extractRefreshToken(c)
 
@@ -278,21 +126,21 @@ export const jwtAuthRoutes = app
 
   // Session
 
-  .openapi(sessionRoute, (c) => {
+  .get('/session', (c) => {
     const userId = c.get('userId')
     return c.json(ok({ authenticated: true as const, userId }), HTTP_STATUS.OK)
   })
 
   // Mobile Routes
 
-  .openapi(mobileLoginRoute, async (c) => {
+  .post('/mobile/login', zValidator('json', authBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
 
     const result = await login(ctx, email, password)
 
     if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     return c.json(
@@ -305,14 +153,14 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(mobileSignupRoute, async (c) => {
+  .post('/mobile/signup', zValidator('json', authBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
 
     const result = await signup(ctx, email, password)
 
     if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     return c.json(
@@ -325,7 +173,7 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(mobileRefreshRoute, async (c) => {
+  .post('/mobile/refresh', zValidator('json', refreshTokenBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
     const { refreshToken } = c.req.valid('json')
 
@@ -336,7 +184,7 @@ export const jwtAuthRoutes = app
     const result = await refresh(ctx, refreshToken)
 
     if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping)) as never
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
     return c.json(
@@ -348,7 +196,7 @@ export const jwtAuthRoutes = app
     )
   })
 
-  .openapi(mobileLogoutRoute, async (c) => {
+  .post('/mobile/logout', zValidator('json', refreshTokenBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
     const { refreshToken } = c.req.valid('json')
 
