@@ -1,6 +1,7 @@
+import type { AppType } from '@habit-tracker/backend'
+
 import { hc } from 'hono/client'
 
-import type { AppType } from '../../../backend/src'
 import { useAuthStore } from '../store/auth'
 
 // https://hono.dev/docs/guides/rpc

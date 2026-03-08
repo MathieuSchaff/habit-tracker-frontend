@@ -1,0 +1,138 @@
+import {
+  type ApiResponse,
+  type CreateProductInput,
+  isApiError,
+  type Product,
+  type UpdateProductInput,
+} from '@habit-tracker/shared'
+
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { api } from '../api'
+
+export type ListProductsFilters = {
+  kind?: string | string[]
+  brand?: string | string[]
+  skin_type?: string | string[]
+  concern?: string | string[]
+  attribute?: string | string[]
+  routine_step?: string | string[]
+  page?: number
+  limit?: number
+}
+
+export const productKeys = {
+  all: ['products'] as const,
+  lists: () => [...productKeys.all, 'list'] as const,
+  list: (filters: ListProductsFilters = {}) => [...productKeys.lists(), filters] as const,
+  bySlug: (slug: string) => [...productKeys.all, slug] as const,
+}
+
+export const productQueries = {
+  // permet d'alimenter les filtres de l'UI
+  // pas de hardocage
+  filterOptions: () =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'filter-options'] as const,
+      queryFn: async () => {
+        const res = await api.products['filter-options'].$get()
+        if (!res.ok) throw new Error('Failed to fetch filter options')
+        const json = await res.json()
+        return json.data
+      },
+      staleTime: 5 * 60 * 1000,
+    }),
+
+  list: (filters: ListProductsFilters = {}) =>
+    queryOptions({
+      queryKey: productKeys.list(filters),
+      queryFn: async () => {
+        const query: Record<string, string | string[]> = {}
+
+        const addParam = (key: string, value: string | string[] | undefined) => {
+          if (!value) return
+          const arr = Array.isArray(value) ? value : [value]
+          if (arr.length > 0) {
+            query[key] = arr.join(',')
+          }
+        }
+
+        addParam('kind', filters.kind)
+        addParam('brand', filters.brand)
+        addParam('skin_type', filters.skin_type)
+        addParam('concern', filters.concern)
+        addParam('attribute', filters.attribute)
+        addParam('routine_step', filters.routine_step)
+
+        if (filters.page !== undefined) query.page = String(filters.page)
+        if (filters.limit !== undefined) query.limit = String(filters.limit)
+
+        const res = await api.products.$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch products')
+        const json = await res.json()
+        return json.data
+      },
+    }),
+
+  bySlug: (slug: string) =>
+    queryOptions({
+      queryKey: productKeys.bySlug(slug),
+      queryFn: async () => {
+        const res = await api.products[':slug'].$get({ param: { slug } })
+        const json = (await res.json()) as ApiResponse<Product>
+        if (isApiError(json)) throw new Error(json.error)
+        return json.data
+      },
+      enabled: !!slug,
+    }),
+}
+
+export function useCreateProduct() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: CreateProductInput) => {
+      const res = await api.products.$post({ json: data })
+      const json = (await res.json()) as ApiResponse<Product>
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: (product) => {
+      qc.setQueryData(productKeys.bySlug(product.slug), product)
+      qc.invalidateQueries({ queryKey: productKeys.lists() })
+    },
+  })
+}
+
+export function useUpdateProduct() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateProductInput }) => {
+      const res = await api.products[':id'].$patch({ param: { id }, json: data })
+      const json = (await res.json()) as ApiResponse<Product>
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: (product) => {
+      qc.setQueryData(productKeys.bySlug(product.slug), product)
+      qc.invalidateQueries({ queryKey: productKeys.lists() })
+    },
+  })
+}
+
+export function useDeleteProduct() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.products[':id'].$delete({ param: { id } })
+      const json = (await res.json()) as ApiResponse<null>
+      if (!json.success) throw new Error(json.error)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: productKeys.lists() })
+    },
+  })
+}
+
+export function useProducts(filters: ListProductsFilters = {}) {
+  return useQuery(productQueries.list(filters))
+}

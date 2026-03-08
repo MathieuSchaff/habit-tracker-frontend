@@ -1,7 +1,32 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
+import { zodValidator } from '@tanstack/zod-adapter'
+import { z } from 'zod'
 
 import { ProductsPage } from '../../component/pages/Products/ProductsPage'
 
+export const productsSearchSchema = z.object({
+  kind: z.string().array().default([]),
+  brand: z.string().array().default([]),
+  routine_step: z.string().array().default([]),
+  attribute: z.string().array().default([]),
+  skin_type: z.string().array().default([]),
+  concern: z.string().array().default([]),
+})
+
+const defaultValues = {
+  kind: [] as string[],
+  brand: [] as string[],
+  routine_step: [] as string[],
+  attribute: [] as string[],
+  skin_type: [] as string[],
+  concern: [] as string[],
+}
+export type ProductsSearch = z.infer<typeof productsSearchSchema>
+
 export const Route = createFileRoute('/products/')({
+  validateSearch: zodValidator(productsSearchSchema),
+  search: {
+    middlewares: [stripSearchParams(defaultValues)],
+  },
   component: ProductsPage,
 })
