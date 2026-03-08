@@ -5,70 +5,70 @@
   font-family: var(--font-sans);
   font-weight: var(--font-medium);
   transition: background-color var(--transition-fast);
+}
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  &.primary {
-    background: var(--color-primary);
-    color: var(--text-inverse);
+.sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-base);
+}
 
-    &:hover:not(:disabled) {
-      background: var(--color-primary-hover);
-    }
-  }
+.md {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-base);
+}
 
-  &.secondary {
-    background: var(--color-secondary);
-    color: var(--text-primary);
+.lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+}
 
-    &:hover:not(:disabled) {
-      background: var(--color-secondary-hover);
-    }
-  }
+.full-width {
+  width: 100%;
+}
 
-  &.outline {
-    background: transparent;
-    border: 1px solid var(--border-strong);
-    color: var(--text-primary);
+.loading {
+  opacity: 0.7;
+  cursor: wait;
+}
 
-    &:hover:not(:disabled) {
-      background: var(--bg-muted);
-    }
-  }
+.primary {
+  background: var(--color-primary);
+  color: var(--text-inverse);
+}
 
-  &.ghost {
-    background: transparent;
-    color: var(--text-primary);
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
 
-    &:hover:not(:disabled) {
-      background: var(--bg-muted);
-    }
-  }
+.secondary {
+  background: var(--color-secondary);
+  color: var(--text-primary);
+}
 
-  &.sm {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--text-sm);
-  }
+.secondary:hover:not(:disabled) {
+  background: var(--color-secondary-hover);
+}
 
-  &.md {
-    padding: var(--space-2) var(--space-4);
-    font-size: var(--text-base);
-  }
+.outline {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+}
 
-  &.lg {
-    padding: var(--space-3) var(--space-6);
-    font-size: var(--text-lg);
-  }
+.outline:hover:not(:disabled) {
+  background: var(--bg-muted);
+}
 
-  &.full-width {
-    width: 100%;
-  }
+.ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
 
-  &.loading {
-    opacity: 0.7;
-    cursor: wait;
-  }
+.ghost:hover:not(:disabled) {
+  background: var(--bg-muted);
 }

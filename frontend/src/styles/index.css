@@ -1,7 +1,7 @@
 @layer reset, variables, base, components, utilities;
 
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
-  layer(base);
+layer(base);
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
 @import "./tokens/colors-light-blue.css" layer(variables);
@@ -14,10 +14,10 @@
 @import "./global.css" layer(base);
 @import "./scroll-bar.css" layer(base);
 
-/*//Header*/
-@import "../component/Layout/Header/Header.css" layer(components);
-
 @import "../component/Button/Button.css" layer(components);
+
+@import "../component/Layout/Header/Header.css" layer(components);
+@import "../component/Nav//NavItem//NavItem.css" layer(components);
 
 /*Auth*/
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);

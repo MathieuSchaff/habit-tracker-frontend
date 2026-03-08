@@ -30,11 +30,13 @@ const idParam = z.object({ id: z.uuid() })
 const listProductsQuery = z.object({
   kind: z.string().optional(),
   brand: z.string().optional(),
-  tag: z.string().optional(),
+  routine_step: z.string().optional(),
+  attribute: z.string().optional(),
+  skin_type: z.string().optional(),
+  concern: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
-
 // App
 
 const productsApp = new Hono<AppEnv>()
@@ -62,8 +64,12 @@ export const productRoutes = productsApp
 
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
-    const { kind, brand, tag, page, limit } = c.req.valid('query')
-    const result = await listProducts({ kind, brand, tag, page, limit }, db)
+    const { kind, brand, routine_step, attribute, skin_type, concern, page, limit } =
+      c.req.valid('query')
+    const result = await listProducts(
+      { kind, brand, routine_step, attribute, skin_type, concern, page, limit },
+      db
+    )
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 

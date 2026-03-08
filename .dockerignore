@@ -1,0 +1,60 @@
+# ==========================================
+# Node modules (TOUS, y compris workspaces)
+# ==========================================
+**/node_modules
+node_modules
+
+# ==========================================
+# Fichiers de build et caches
+# ==========================================
+**/dist
+**/build
+**/.turbo
+**/.cache
+*.tsbuildinfo
+
+# ==========================================
+# Environnement et secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# ==========================================
+# Git et IDE
+# ==========================================
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Docker lui-même
+# ==========================================
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+.dockerignore
+
+# ==========================================
+# Tests et docs
+# ==========================================
+**/coverage
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+README.md
+*.md
+
+# ==========================================
+# Bases de données locales
+# ==========================================
+*.sqlite
+*.sqlite3
+backups/

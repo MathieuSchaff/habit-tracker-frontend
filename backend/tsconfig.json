@@ -27,8 +27,7 @@
     "baseUrl": ".",
     "paths": {
       // Option 1 (dist) :
-      "@habit-tracker/shared": ["../shared/dist/index.d.ts"]
-
+      // "@habit-tracker/shared": ["../shared/dist/index.d.ts"]
       // OU Option 2 (src) :
       // "@habit-tracker/shared": ["../shared/src/index.ts"]
     }

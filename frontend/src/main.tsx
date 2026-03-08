@@ -12,30 +12,30 @@ import './styles/index.css'
 import type { RouterContext } from './routerContext'
 
 const router = createRouter({
-  routeTree,
-  context: { queryClient } satisfies RouterContext,
-  defaultPreload: 'intent',
-  defaultPreloadStaleTime: 0,
-  scrollRestoration: true,
-  defaultViewTransition: true,
+    routeTree,
+    context: { queryClient } satisfies RouterContext,
+    defaultPreload: 'intent',
+    defaultPreloadStaleTime: 0,
+    scrollRestoration: true,
+    defaultViewTransition: true,
 })
 
 declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
+    interface Register {
+        router: typeof router
+    }
 }
 
 // biome-ignore lint: root will be here
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
-  const root = createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <ReactQueryDevtools />
-      </QueryClientProvider>
-    </StrictMode>
-  )
+    const root = createRoot(rootElement)
+    root.render(
+        <StrictMode>
+            <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+                <ReactQueryDevtools />
+            </QueryClientProvider>
+        </StrictMode>
+    )
 }
