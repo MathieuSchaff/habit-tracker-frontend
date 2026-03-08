@@ -136,14 +136,23 @@ export async function updateProduct(
 
   return newProduct
 }
+// export type ListProductsFilters = {
+//   kind?: string
+//   brand?: string
+//   tag?: string
+//   page?: number
+//   limit?: number
+// }
 export type ListProductsFilters = {
-  kind?: string
-  brand?: string
-  tag?: string
+  kind?: string | string[]
+  brand?: string | string[]
+  routine_step?: string | string[]
+  attribute?: string | string[]
+  skin_type?: string | string[]
+  concern?: string | string[]
   page?: number
   limit?: number
 }
-
 export type ProductsPage = {
   items: Product[]
   total: number
@@ -163,8 +172,19 @@ export async function listProducts(
   const conditions: SQL[] = []
 
   // filtres simples
-  if (filters.kind) conditions.push(eq(products.kind, filters.kind))
-  if (filters.brand) conditions.push(eq(products.brand, filters.brand))
+  if (filters.kind) {
+    const kinds = Array.isArray(filters.kind) ? filters.kind : filters.kind.split(',')
+    conditions.push(
+      kinds.length === 1 ? eq(products.kind, kinds[0]) : inArray(products.kind, kinds)
+    )
+  }
+
+  if (filters.brand) {
+    const brands = Array.isArray(filters.brand) ? filters.brand : filters.brand.split(',')
+    conditions.push(
+      brands.length === 1 ? eq(products.brand, brands[0]) : inArray(products.brand, brands)
+    )
+  }
   // pb: les tags ne sont pas dans la table products
   // on doit chercher sur la table productTag
   // en gros en sql ça donne un truc du genre select productTags.product_id
@@ -172,7 +192,14 @@ export async function listProducts(
   // inner join tags on ....
   // where tags.slut = filters.slug ( la variable)
   // in array c'est le where in
-  if (filters.tag) {
+  const TAG_FILTERS = ['routine_step', 'attribute', 'skin_type', 'concern'] as const
+
+  for (const category of TAG_FILTERS) {
+    const value = filters[category]
+    if (!value) continue
+    const slugs = Array.isArray(value) ? value : value.split(',')
+    if (slugs.length === 0) continue
+
     conditions.push(
       inArray(
         products.id,
@@ -180,7 +207,7 @@ export async function listProducts(
           .select({ productId: productTags.productId })
           .from(productTags)
           .innerJoin(tags, eq(productTags.tagId, tags.id))
-          .where(eq(tags.slug, filters.tag))
+          .where(and(inArray(tags.slug, slugs), eq(tags.category, category)))
       )
     )
   }
@@ -202,12 +229,18 @@ export async function listProducts(
   return { items, total, page, limit }
 }
 
+type TagsByCategory = {
+  routine_step: { name: string; slug: string }[]
+  attribute: { name: string; slug: string }[]
+  skin_type: { name: string; slug: string }[]
+  concern: { name: string; slug: string }[]
+}
+
 export type FilterOptions = {
   kinds: string[]
   brands: string[]
-  tags: { name: string; slug: string; category: string | null }[]
+  tags: TagsByCategory
 }
-
 export async function getFilterOptions(database: Database = db): Promise<FilterOptions> {
   const [kindRows, brandRows, tagRows] = await Promise.all([
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
@@ -218,13 +251,21 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
       .orderBy(tags.category, tags.name),
   ])
 
+  const tagsByCategory = tagRows.reduce(
+    (acc, tag) => {
+      if (!tag.category || !(tag.category in acc)) return acc
+      acc[tag.category as keyof TagsByCategory].push({ name: tag.name, slug: tag.slug })
+      return acc
+    },
+    { routine_step: [], attribute: [], skin_type: [], concern: [] } as TagsByCategory
+  )
+
   return {
     kinds: kindRows.map((r) => r.kind),
     brands: brandRows.map((r) => r.brand),
-    tags: tagRows,
+    tags: tagsByCategory,
   }
 }
-
 export async function deleteProduct(id: string, database: Database = db): Promise<void> {
   const rows = await database
     .delete(products)
