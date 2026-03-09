@@ -1,7 +1,12 @@
-import type { CreateProductInput, UpdateProductInput } from '@habit-tracker/shared'
+import type {
+  CreateProductInput,
+  ProductSearchResult,
+  UpdateProductInput,
+} from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, count, eq, inArray, type SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, type SQL, sql } from 'drizzle-orm'
+import { ingredients, productIngredients } from 'src/db/schema'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
@@ -136,13 +141,6 @@ export async function updateProduct(
 
   return newProduct
 }
-// export type ListProductsFilters = {
-//   kind?: string
-//   brand?: string
-//   tag?: string
-//   page?: number
-//   limit?: number
-// }
 export type ListProductsFilters = {
   kind?: string | string[]
   brand?: string | string[]
@@ -150,6 +148,9 @@ export type ListProductsFilters = {
   attribute?: string | string[]
   skin_type?: string | string[]
   concern?: string | string[]
+  ingredient?: string | string[]
+  product_type?: string | string[]
+  skin_zone?: string | string[]
   page?: number
   limit?: number
 }
@@ -159,7 +160,6 @@ export type ProductsPage = {
   page: number
   limit: number
 }
-
 export async function listProducts(
   filters: ListProductsFilters = {},
   database: Database = db
@@ -171,7 +171,6 @@ export async function listProducts(
   // Au lieu que d'écrire des if else, on va push dans un tableau et on les combine à la fin
   const conditions: SQL[] = []
 
-  // filtres simples
   if (filters.kind) {
     const kinds = Array.isArray(filters.kind) ? filters.kind : filters.kind.split(',')
     conditions.push(
@@ -185,6 +184,23 @@ export async function listProducts(
       brands.length === 1 ? eq(products.brand, brands[0]) : inArray(products.brand, brands)
     )
   }
+  if (filters.ingredient) {
+    const slugs = Array.isArray(filters.ingredient)
+      ? filters.ingredient
+      : filters.ingredient.split(',')
+    if (slugs.length > 0) {
+      conditions.push(
+        inArray(
+          products.id,
+          database
+            .select({ productId: productIngredients.productId })
+            .from(productIngredients)
+            .innerJoin(ingredients, eq(productIngredients.ingredientId, ingredients.id))
+            .where(inArray(ingredients.slug, slugs))
+        )
+      )
+    }
+  }
   // pb: les tags ne sont pas dans la table products
   // on doit chercher sur la table productTag
   // en gros en sql ça donne un truc du genre select productTags.product_id
@@ -192,14 +208,20 @@ export async function listProducts(
   // inner join tags on ....
   // where tags.slut = filters.slug ( la variable)
   // in array c'est le where in
-  const TAG_FILTERS = ['routine_step', 'attribute', 'skin_type', 'concern'] as const
+  const TAG_FILTERS = [
+    'routine_step',
+    'attribute',
+    'skin_type',
+    'concern',
+    'product_type',
+    'skin_zone',
+  ] as const
 
   for (const category of TAG_FILTERS) {
     const value = filters[category]
     if (!value) continue
     const slugs = Array.isArray(value) ? value : value.split(',')
     if (slugs.length === 0) continue
-
     conditions.push(
       inArray(
         products.id,
@@ -211,6 +233,7 @@ export async function listProducts(
       )
     )
   }
+
   // si j'ai au moins une condition, je les combine avec AND
   // si undefined, drizzle va ignorer le where()
   const where = conditions.length > 0 ? and(...conditions) : undefined
@@ -225,17 +248,18 @@ export async function listProducts(
       .offset(offset),
     database.select({ total: count() }).from(products).where(where),
   ])
+
   const total = countResult[0]?.total ?? 0
   return { items, total, page, limit }
 }
-
 type TagsByCategory = {
   routine_step: { name: string; slug: string }[]
   attribute: { name: string; slug: string }[]
   skin_type: { name: string; slug: string }[]
+  skin_zone: { name: string; slug: string }[]
+  product_type: { name: string; slug: string }[]
   concern: { name: string; slug: string }[]
 }
-
 export type FilterOptions = {
   kinds: string[]
   brands: string[]
@@ -257,7 +281,14 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
       acc[tag.category as keyof TagsByCategory].push({ name: tag.name, slug: tag.slug })
       return acc
     },
-    { routine_step: [], attribute: [], skin_type: [], concern: [] } as TagsByCategory
+    {
+      routine_step: [],
+      attribute: [],
+      skin_type: [],
+      skin_zone: [],
+      product_type: [],
+      concern: [],
+    } as TagsByCategory
   )
 
   return {
@@ -272,4 +303,23 @@ export async function deleteProduct(id: string, database: Database = db): Promis
     .where(eq(products.id, id))
     .returning({ id: products.id })
   if (!rows[0]) throw new ProductError('product_delete_failed')
+}
+export async function searchProducts(
+  filters: { q: string; limit?: number },
+  database: Database = db
+): Promise<ProductSearchResult[]> {
+  const limit = filters.limit ?? 8
+
+  return database
+    .select({
+      id: products.id,
+      name: products.name,
+      brand: products.brand,
+      kind: products.kind,
+      slug: products.slug,
+    })
+    .from(products)
+    .where(ilike(products.name, `%${filters.q}%`))
+    .orderBy(products.name)
+    .limit(limit)
 }

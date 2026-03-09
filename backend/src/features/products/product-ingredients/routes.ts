@@ -7,8 +7,8 @@ import {
   productIngredientErrorMapping,
 } from '@habit-tracker/shared'
 
-import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
@@ -70,73 +70,92 @@ export const productIngredientRoutes = productIngredientsApp
     return c.json(ok(items), HTTP_STATUS.OK)
   })
 
-  .post('/:productId/ingredients', zValidator('param', productParams), zValidator('json', createProductIngredientSchema), async (c) => {
-    const db = c.get('db')
-    const { productId } = c.req.valid('param')
-    const input = c.req.valid('json')
+  .post(
+    '/:productId/ingredients',
+    zValidator('param', productParams),
+    zValidator('json', createProductIngredientSchema),
+    async (c) => {
+      const db = c.get('db')
+      const { productId } = c.req.valid('param')
+      const input = c.req.valid('json')
 
-    try {
-      const link = await addIngredientToProduct(db, {
-        productId,
-        ingredientId: input.ingredientId,
-        concentrationValue:
-          input.concentrationValue != null ? String(input.concentrationValue) : null,
-        concentrationUnit: input.concentrationUnit ?? null,
-        concentrationPer: input.concentrationPer ?? null,
-        notes: input.notes ?? null,
-      })
-      if (!link) throw new ProductIngredientError('database_error')
-      return c.json(ok(link), HTTP_STATUS.CREATED)
-    } catch (e) {
-      if (e instanceof ProductIngredientError) throw e
-      if (isUniqueViolation(e))
-        throw new ProductIngredientError('product_ingredient_already_exists')
-      throw e
+      try {
+        const link = await addIngredientToProduct(db, {
+          productId,
+          ingredientId: input.ingredientId,
+          concentrationValue:
+            input.concentrationValue != null ? String(input.concentrationValue) : null,
+          concentrationUnit: input.concentrationUnit ?? null,
+          concentrationPer: input.concentrationPer ?? null,
+          notes: input.notes ?? null,
+        })
+        if (!link) throw new ProductIngredientError('database_error')
+        return c.json(ok(link), HTTP_STATUS.CREATED)
+      } catch (e) {
+        if (e instanceof ProductIngredientError) throw e
+        if (isUniqueViolation(e))
+          throw new ProductIngredientError('product_ingredient_already_exists')
+        throw e
+      }
     }
-  })
+  )
 
-  .patch('/:productId/ingredients/:ingredientId', zValidator('param', ingredientLinkParams), zValidator('json', updateProductIngredientSchema), async (c) => {
-    const db = c.get('db')
-    const { productId, ingredientId } = c.req.valid('param')
-    const input = c.req.valid('json')
+  .patch(
+    '/:productId/ingredients/:ingredientId',
+    zValidator('param', ingredientLinkParams),
+    zValidator('json', updateProductIngredientSchema),
+    async (c) => {
+      const db = c.get('db')
+      const { productId, ingredientId } = c.req.valid('param')
+      const input = c.req.valid('json')
 
-    const updated = await updateProductIngredient(db, productId, ingredientId, {
-      concentrationValue:
-        input.concentrationValue != null
-          ? String(input.concentrationValue)
-          : input.concentrationValue,
-      concentrationUnit: input.concentrationUnit,
-      concentrationPer: input.concentrationPer,
-      notes: input.notes,
-    })
+      const updated = await updateProductIngredient(db, productId, ingredientId, {
+        concentrationValue:
+          input.concentrationValue != null
+            ? String(input.concentrationValue)
+            : input.concentrationValue,
+        concentrationUnit: input.concentrationUnit,
+        concentrationPer: input.concentrationPer,
+        notes: input.notes,
+      })
 
-    if (!updated) throw new ProductIngredientError('product_ingredient_not_found')
-    return c.json(ok(updated), HTTP_STATUS.OK)
-  })
+      if (!updated) throw new ProductIngredientError('product_ingredient_not_found')
+      return c.json(ok(updated), HTTP_STATUS.OK)
+    }
+  )
 
-  .delete('/:productId/ingredients/:ingredientId', zValidator('param', ingredientLinkParams), async (c) => {
-    const db = c.get('db')
-    const { productId, ingredientId } = c.req.valid('param')
-    const removed = await removeIngredientFromProduct(db, productId, ingredientId)
-    if (!removed) throw new ProductIngredientError('product_ingredient_not_found')
-    return c.json(ok(null), HTTP_STATUS.OK)
-  })
+  .delete(
+    '/:productId/ingredients/:ingredientId',
+    zValidator('param', ingredientLinkParams),
+    async (c) => {
+      const db = c.get('db')
+      const { productId, ingredientId } = c.req.valid('param')
+      const removed = await removeIngredientFromProduct(db, productId, ingredientId)
+      if (!removed) throw new ProductIngredientError('product_ingredient_not_found')
+      return c.json(ok(null), HTTP_STATUS.OK)
+    }
+  )
 
-  .put('/:productId/ingredients', zValidator('param', productParams), zValidator('json', replaceIngredientsSchema), async (c) => {
-    const db = c.get('db')
-    const { productId } = c.req.valid('param')
-    const { ingredients } = c.req.valid('json')
+  .put(
+    '/:productId/ingredients',
+    zValidator('param', productParams),
+    zValidator('json', replaceIngredientsSchema),
+    async (c) => {
+      const db = c.get('db')
+      const { productId } = c.req.valid('param')
+      const { ingredients } = c.req.valid('json')
 
-    const links = await replaceProductIngredients(
-      db,
-      productId,
-      ingredients.map((i) => ({
-        ingredientId: i.ingredientId,
-        concentrationValue: i.concentrationValue != null ? String(i.concentrationValue) : null,
-        concentrationUnit: i.concentrationUnit ?? null,
-        concentrationPer: i.concentrationPer ?? null,
-        notes: i.notes ?? null,
-      }))
-    )
-    return c.json(ok(links), HTTP_STATUS.OK)
-  })
+      const links = await replaceProductIngredients(
+        db,
+        productId,
+        ingredients.map((i) => ({
+          ingredientId: i.ingredientId,
+          concentrationValue: i.concentrationValue != null ? String(i.concentrationValue) : null,
+          concentrationUnit: i.concentrationUnit ?? null,
+          concentrationPer: i.concentrationPer ?? null,
+          notes: i.notes ?? null,
+        }))
+      )
+      return c.json(ok(links), HTTP_STATUS.OK)
+    }
+  )

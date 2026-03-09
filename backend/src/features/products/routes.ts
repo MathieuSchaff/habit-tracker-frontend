@@ -5,6 +5,7 @@ import {
   HTTP_STATUS,
   ok,
   productErrorMapping,
+  searchProductsQuery,
   updateProductSchema,
 } from '@habit-tracker/shared'
 
@@ -21,6 +22,7 @@ import {
   getFilterOptions,
   getProductBySlug,
   listProducts,
+  searchProducts,
   updateProduct,
 } from './service'
 
@@ -34,6 +36,9 @@ const listProductsQuery = z.object({
   attribute: z.string().optional(),
   skin_type: z.string().optional(),
   concern: z.string().optional(),
+  product_type: z.string().optional(),
+  ingredient: z.string().optional(),
+  skin_zone: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
@@ -64,10 +69,34 @@ export const productRoutes = productsApp
 
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
-    const { kind, brand, routine_step, attribute, skin_type, concern, page, limit } =
-      c.req.valid('query')
+    const {
+      kind,
+      brand,
+      routine_step,
+      attribute,
+      skin_type,
+      concern,
+      product_type,
+      ingredient,
+      skin_zone,
+      page,
+      limit,
+    } = c.req.valid('query')
+
     const result = await listProducts(
-      { kind, brand, routine_step, attribute, skin_type, concern, page, limit },
+      {
+        kind,
+        brand,
+        routine_step,
+        attribute,
+        skin_type,
+        concern,
+        ingredient,
+        product_type,
+        skin_zone,
+        page,
+        limit,
+      },
       db
     )
     return c.json(ok(result), HTTP_STATUS.OK)
@@ -107,4 +136,11 @@ export const productRoutes = productsApp
     const { id } = c.req.valid('param')
     await deleteProduct(id, db)
     return c.json(ok(null), HTTP_STATUS.OK)
+  })
+
+  .get('/search', zValidator('query', searchProductsQuery), async (c) => {
+    const db = c.get('db')
+    const { q, limit } = c.req.valid('query')
+    const result = await searchProducts({ q, limit }, db)
+    return c.json(ok(result), HTTP_STATUS.OK)
   })

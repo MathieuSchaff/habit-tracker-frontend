@@ -14,13 +14,15 @@ export type ListProductsFilters = {
   kind?: string | string[]
   brand?: string | string[]
   skin_type?: string | string[]
+  skin_zone?: string | string[]
+  product_type?: string | string[]
   concern?: string | string[]
   attribute?: string | string[]
   routine_step?: string | string[]
+  ingredient?: string | string[]
   page?: number
   limit?: number
 }
-
 export const productKeys = {
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
@@ -29,8 +31,6 @@ export const productKeys = {
 }
 
 export const productQueries = {
-  // permet d'alimenter les filtres de l'UI
-  // pas de hardocage
   filterOptions: () =>
     queryOptions({
       queryKey: [...productKeys.all, 'filter-options'] as const,
@@ -60,9 +60,12 @@ export const productQueries = {
         addParam('kind', filters.kind)
         addParam('brand', filters.brand)
         addParam('skin_type', filters.skin_type)
+        addParam('skin_zone', filters.skin_zone)
+        addParam('product_type', filters.product_type)
         addParam('concern', filters.concern)
         addParam('attribute', filters.attribute)
         addParam('routine_step', filters.routine_step)
+        addParam('ingredient', filters.ingredient)
 
         if (filters.page !== undefined) query.page = String(filters.page)
         if (filters.limit !== undefined) query.limit = String(filters.limit)
@@ -84,6 +87,19 @@ export const productQueries = {
         return json.data
       },
       enabled: !!slug,
+    }),
+
+  search: (q: string) =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'search', q] as const,
+      queryFn: async () => {
+        const res = await api.products.search.$get({ query: { q } })
+        if (!res.ok) throw new Error('Failed to search products')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: q.length >= 2,
+      staleTime: 30 * 1000,
     }),
 }
 

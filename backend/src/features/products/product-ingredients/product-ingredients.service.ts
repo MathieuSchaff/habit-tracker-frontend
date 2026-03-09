@@ -5,17 +5,27 @@ import { ingredients } from '../../../db/schema/ingredients'
 import { type ProductIngredient, productIngredients } from '../../../db/schema/product-ingredients'
 import { type Product, products } from '../../../db/schema/products'
 
-type CreateProductIngredientInput = Omit<ProductIngredient, 'id' | 'createdAt'>
+type CreateProductIngredientInput = {
+  productId: string
+  ingredientId: string
+  notes?: string | null
+  concentrationValue?: string | null
+  concentrationUnit?: string | null
+  concentrationPer?: string | null
+}
 
 type UpdateProductIngredientInput = Partial<
   Pick<ProductIngredient, 'concentrationValue' | 'concentrationUnit' | 'concentrationPer' | 'notes'>
 >
 
 export async function addIngredientToProduct(db: Database, data: CreateProductIngredientInput) {
-  const [link] = await db.insert(productIngredients).values(data).returning()
+  // Filtre les valeurs null/undefined pour éviter que Drizzle envoie des chaînes vides
+  const entries = Object.entries(data).filter(([_, v]) => v != null && v !== '')
+  const cleanData = Object.fromEntries(entries) as CreateProductIngredientInput
+
+  const [link] = await db.insert(productIngredients).values(cleanData).returning()
   return link
 }
-
 export async function addManyIngredientsToProduct(
   db: Database,
   data: CreateProductIngredientInput[]
