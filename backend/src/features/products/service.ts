@@ -7,6 +7,7 @@ import type {
 import slugify from '@sindresorhus/slugify'
 import { and, count, eq, ilike, inArray, type SQL, sql } from 'drizzle-orm'
 import { ingredients, productIngredients } from 'src/db/schema'
+import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
@@ -56,9 +57,21 @@ export async function getProductById(id: string, database: Database = db): Promi
 }
 
 export async function getProductBySlug(slug: string, database: Database = db): Promise<Product> {
-  const row = await getProductRow(eq(products.slug, slug), database)
+  // const row = await database.select()
+  const row = getProductRow(eq(products.slug, slug), database)
   if (!row) throw new ProductError('product_not_found')
   return row
+}
+/**
+ * Récupère un produit par son slug avec tous ses ingrédients associés.
+ */
+export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
+  const product = await getProductBySlug(slug, database)
+  const ingredients = await listIngredientsByProduct(database, product.id)
+  return {
+    ...product,
+    ingredients,
+  }
 }
 
 const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug'])
@@ -309,7 +322,7 @@ export async function searchProducts(
   database: Database = db
 ): Promise<ProductSearchResult[]> {
   const limit = filters.limit ?? 8
-
+  console.log(filters.q)
   return database
     .select({
       id: products.id,
