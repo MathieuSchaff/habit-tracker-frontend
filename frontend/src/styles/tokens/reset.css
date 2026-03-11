@@ -12,6 +12,7 @@ html {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   hanging-punctuation: first last;
+  overflow-x: hidden;
 }
 
 ul,
