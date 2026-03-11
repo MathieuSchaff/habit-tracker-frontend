@@ -20,7 +20,7 @@ import {
   createProduct,
   deleteProduct,
   getFilterOptions,
-  getProductBySlug,
+  getProductWithIngredientsBySlug,
   listProducts,
   searchProducts,
   updateProduct,
@@ -66,7 +66,14 @@ export const productRoutes = productsApp
     const options = await getFilterOptions(db)
     return c.json(ok(options), HTTP_STATUS.OK)
   })
-
+  // NE PAS METTRE EN BAS => VA SE FAIRE BOUFFER PAR LE SLUG SINON
+  .get('/search', zValidator('query', searchProductsQuery), async (c) => {
+    const db = c.get('db')
+    const { q, limit } = c.req.valid('query')
+    console.log('in route search', q)
+    const result = await searchProducts({ q, limit }, db)
+    return c.json(ok(result), HTTP_STATUS.OK)
+  })
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
     const {
@@ -113,7 +120,7 @@ export const productRoutes = productsApp
   .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
     const { slug } = c.req.valid('param')
-    const product = await getProductBySlug(slug, db)
+    const product = await getProductWithIngredientsBySlug(slug, db)
     return c.json(ok(product), HTTP_STATUS.OK)
   })
 
@@ -136,11 +143,4 @@ export const productRoutes = productsApp
     const { id } = c.req.valid('param')
     await deleteProduct(id, db)
     return c.json(ok(null), HTTP_STATUS.OK)
-  })
-
-  .get('/search', zValidator('query', searchProductsQuery), async (c) => {
-    const db = c.get('db')
-    const { q, limit } = c.req.valid('query')
-    const result = await searchProducts({ q, limit }, db)
-    return c.json(ok(result), HTTP_STATUS.OK)
   })
