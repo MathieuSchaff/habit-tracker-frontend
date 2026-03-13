@@ -1,0 +1,15 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Icône Aurore</title>
+
+  <!-- Aurora arcs - simplified icon version -->
+  <g stroke="#E16B5A" stroke-width="2" fill="none">
+    <!-- Left arc -->
+    <path d="M 27.5 50 A 11.25 11.25 0 0 1 38.75 38.75 A 11.25 11.25 0 0 1 50 50"/>
+
+    <!-- Center arc -->
+    <path d="M 38.75 50 A 11.25 11.25 0 0 1 50 38.75 A 11.25 11.25 0 0 1 61.25 50"/>
+
+    <!-- Right arc -->
+    <path d="M 50 50 A 11.25 11.25 0 0 1 61.25 38.75 A 11.25 11.25 0 0 1 72.5 50"/>
+  </g>
+</svg>

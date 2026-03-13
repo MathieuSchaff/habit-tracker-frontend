@@ -1,0 +1,25 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Logo Aurore</title>
+
+  <!-- Background circle with gradient -->
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#F5C7C0;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#F5C7C0;stop-opacity:0.3" />
+    </radialGradient>
+  </defs>
+
+  <circle cx="100" cy="100" r="70" fill="url(#bgGradient)"/>
+
+  <!-- Aurora arcs - three semicircles creating the sunrise pattern -->
+  <g stroke="#E16B5A" stroke-width="2.5" fill="none">
+    <!-- Left arc -->
+    <path d="M 55 100 A 22.5 22.5 0 0 1 77.5 77.5 A 22.5 22.5 0 0 1 100 100"/>
+
+    <!-- Center arc -->
+    <path d="M 77.5 100 A 22.5 22.5 0 0 1 100 77.5 A 22.5 22.5 0 0 1 122.5 100"/>
+
+    <!-- Right arc -->
+    <path d="M 100 100 A 22.5 22.5 0 0 1 122.5 77.5 A 22.5 22.5 0 0 1 145 100"/>
+  </g>
+</svg>
