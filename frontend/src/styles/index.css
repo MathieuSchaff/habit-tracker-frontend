@@ -19,21 +19,20 @@ layer(base);
 @import "../component/Layout/Header/Header.css" layer(components);
 @import "../component/Nav//NavItem//NavItem.css" layer(components);
 
-/*Auth*/
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
 @import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
+
+@import "../component/pages/Products/ListPage.css" layer(components);
+@import "./common/kinds.css" layer(components);
+@import "./common/markdown.css" layer(components);
 @import "../component/pages/habits/HabitsPage.css" layer(components);
 @import "../component/pages/LoginPage/auth-shared.css" layer(components);
 @import "../component/pages/LoginPage/LoginPage.css" layer(components);
 @import "../component/pages/SignupPage/SignupPage.css" layer(components);
-
-/*Ingredient(s)*/
-/*@import '../component/pages/Ingredient/ingredients-shared.css'*/
-/*@import '../component/pages/Ingredient/IngredientPage.css'*/
-/*@import '../component/pages/Ingredients/IngredientsPage.css'*/
 
 @import "../component/Habits/styles/HabitDetail.css" layer(components);
 @import "../component/Habits/styles/HabitsListView.css" layer(components);
 @import "../component/Habits/styles/HabtiFormDialog.css" layer(components);
 @import "../component/Habits/styles/TodayView.css" layer(components);
 @import "../component/Habits/styles/JournalView.css" layer(components);
+@import "../component/stock/AddToInventoryModal.css" layer(components);
