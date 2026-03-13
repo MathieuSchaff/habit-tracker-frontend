@@ -14,6 +14,7 @@ export const productsSearchSchema = z.object({
   concern: z.string().array().default([]),
   product_type: z.string().array().default([]),
   skin_zone: z.string().array().default([]),
+  page: z.number().min(1).default(1),
 })
 
 const defaultValues = {
@@ -26,6 +27,7 @@ const defaultValues = {
   product_type: [] as string[],
   skin_zone: [] as string[],
   ingredient: [] as string[],
+  page: 1,
 }
 export type ProductsSearch = z.infer<typeof productsSearchSchema>
 

@@ -9,7 +9,8 @@ export default {
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL || '',
+    // biome-ignore lint: always here or throw
+    url: process.env.DATABASE_URL!,
     // url: databaseUrl,
   },
 } satisfies Config

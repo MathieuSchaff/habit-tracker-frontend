@@ -30,11 +30,12 @@ export const Button = ({
     loading && 'loading',
     className
   )
-
+  console.log(loading)
   return (
     <button type={type} className={classes} disabled={disabled || loading} {...rest}>
       {loading && <Spinner />}
-      <span className={loading ? 'sr-only' : undefined}>{children}</span>
+      <span className={loading ? undefined : 'sr-only'}>Loading...</span>
+      {!loading && children}
     </button>
   )
 }
