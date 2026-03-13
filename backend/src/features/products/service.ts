@@ -46,19 +46,38 @@ export async function createProduct(
   }
 }
 async function getProductRow(condition: SQL, database: Database) {
-  const rows = await database.select().from(products).where(condition)
-  return rows[0] ?? null
+  const row = await database
+    .select({
+      id: products.id,
+      slug: products.slug,
+      name: products.name,
+      brand: products.brand,
+      description: products.description,
+      inci: products.inci,
+      totalAmount: products.totalAmount,
+      amountUnit: products.amountUnit,
+      url: products.url,
+      unit: products.unit,
+      priceCents: products.priceCents,
+      kind: products.kind,
+      notes: products.notes,
+      expiresAt: products.expiresAt,
+    })
+    .from(products)
+    .where(condition)
+    .limit(1)
+  return row[0] ?? null
 }
 
-export async function getProductById(id: string, database: Database = db): Promise<Product> {
+export async function getProductById(id: string, database: Database = db) {
   const row = await getProductRow(eq(products.id, id), database)
   if (!row) throw new ProductError('product_not_found')
   return row
 }
 
-export async function getProductBySlug(slug: string, database: Database = db): Promise<Product> {
+export async function getProductBySlug(slug: string, database: Database = db) {
   // const row = await database.select()
-  const row = getProductRow(eq(products.slug, slug), database)
+  const row = await getProductRow(eq(products.slug, slug), database)
   if (!row) throw new ProductError('product_not_found')
   return row
 }
@@ -68,8 +87,9 @@ export async function getProductBySlug(slug: string, database: Database = db): P
 export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
   const ingredients = await listIngredientsByProduct(database, product.id)
+  const { id: _, ...productWithoutId } = product
   return {
-    ...product,
+    ...productWithoutId,
     ingredients,
   }
 }
@@ -167,8 +187,12 @@ export type ListProductsFilters = {
   page?: number
   limit?: number
 }
+export type ProductSummary = Pick<
+  Product,
+  'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents'
+>
 export type ProductsPage = {
-  items: Product[]
+  items: ProductSummary[]
   total: number
   page: number
   limit: number
@@ -253,7 +277,15 @@ export async function listProducts(
 
   const [items, countResult] = await Promise.all([
     database
-      .select()
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        brand: products.brand,
+        kind: products.kind,
+        unit: products.unit,
+        priceCents: products.priceCents,
+      })
       .from(products)
       .where(where)
       .orderBy(products.name)

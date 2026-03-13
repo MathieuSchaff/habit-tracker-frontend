@@ -22,6 +22,20 @@
       "when": 1772623682441,
       "tag": "0002_spicy_havok",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773410420670,
+      "tag": "0003_powerful_krista_starr",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773410600991,
+      "tag": "0004_secret_shotgun",
+      "breakpoints": true
     }
   ]
 }
