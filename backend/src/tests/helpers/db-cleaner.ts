@@ -7,6 +7,7 @@ export async function cleanDatabase() {
     await testDb.execute(sql`SET session_replication_role = replica`)
 
     const tables = [
+      'habit_check_products',
       'habit_checks',
       'habit_periods',
       'habit_products',
@@ -14,17 +15,20 @@ export async function cleanDatabase() {
       'habit_schedules',
       'habit_timings',
       'habits',
-      'product_stock',
-      'product_edits',
-      'product_tags',
-      'product_ingredients',
-      'products',
       'ingredient_edits',
+      'ingredient_tags',
       'ingredients',
-      'tags',
+      'product_edits',
+      'product_ingredients',
+      'product_stock',
+      'product_tags',
+      'products',
       'profiles',
       'refresh_tokens',
+      'tags',
+      'user_bans',
       'users',
+      'wellbeing_logs',
     ]
 
     for (const table of tables) {

@@ -132,7 +132,7 @@ export const productIngredientRoutes = productIngredientsApp
       const { productId, ingredientId } = c.req.valid('param')
       const removed = await removeIngredientFromProduct(db, productId, ingredientId)
       if (!removed) throw new ProductIngredientError('product_ingredient_not_found')
-      return c.json(ok(null), HTTP_STATUS.OK)
+      return c.body(null, 204)
     }
   )
 

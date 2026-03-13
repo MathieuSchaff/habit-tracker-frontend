@@ -5,7 +5,7 @@ import type {
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, count, eq, ilike, inArray, type SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
 import { ingredients, productIngredients } from 'src/db/schema'
 import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
@@ -87,9 +87,9 @@ export async function getProductBySlug(slug: string, database: Database = db) {
 export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
   const ingredients = await listIngredientsByProduct(database, product.id)
-  const { id: _, ...productWithoutId } = product
+  // const { id: _, ...productWithoutId } = product
   return {
-    ...productWithoutId,
+    ...product,
     ingredients,
   }
 }
@@ -354,17 +354,30 @@ export async function searchProducts(
   database: Database = db
 ): Promise<ProductSearchResult[]> {
   const limit = filters.limit ?? 8
-  console.log(filters.q)
-  return database
-    .select({
-      id: products.id,
-      name: products.name,
-      brand: products.brand,
-      kind: products.kind,
-      slug: products.slug,
-    })
-    .from(products)
-    .where(ilike(products.name, `%${filters.q}%`))
-    .orderBy(products.name)
-    .limit(limit)
+  const conditions: SQL[] = [
+    ilike(products.name, `%${filters.q}%`),
+    ilike(products.brand, `%${filters.q}%`),
+  ]
+  return (
+    database
+      .select({
+        id: products.id,
+        name: products.name,
+        brand: products.brand,
+        kind: products.kind,
+        slug: products.slug,
+      })
+      .from(products)
+      // .where(ilike(products.name, `%${filters.q}%`))
+      .where(or(...conditions))
+      .limit(limit)
+      .orderBy(
+        sql`CASE
+              WHEN lower(${products.name}) = lower(${filters.q}) THEN 0
+              WHEN lower(${products.name}) LIKE lower(${filters.q + '%'}) THEN 1
+              ELSE 2
+            END`,
+        products.name
+      )
+  )
 }
