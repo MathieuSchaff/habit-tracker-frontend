@@ -1,9 +1,8 @@
-import {
-  type ApiResponse,
-  type CreateProductInput,
-  isApiError,
-  type Product,
-  type UpdateProductInput,
+import type {
+  ApiResponse,
+  CreateProductInput,
+  Product,
+  UpdateProductInput,
 } from '@habit-tracker/shared'
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -75,6 +74,8 @@ export const productQueries = {
         const json = await res.json()
         return json.data
       },
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
     }),
 
   bySlug: (slug: string) =>
@@ -82,8 +83,8 @@ export const productQueries = {
       queryKey: productKeys.bySlug(slug),
       queryFn: async () => {
         const res = await api.products[':slug'].$get({ param: { slug } })
-        const json = (await res.json()) as ApiResponse<Product>
-        if (isApiError(json)) throw new Error(json.error)
+        const json = await res.json()
+        if (!res.ok) throw new Error('product_not_found')
         return json.data
       },
       enabled: !!slug,

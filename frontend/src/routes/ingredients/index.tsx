@@ -1,20 +1,26 @@
-import { ingredientsSearchSchema } from '@habit-tracker/shared'
+// import { ingredientsSearchSchema } from '@habit-tracker/shared'
 
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 import { IngredientsPage } from '../../component/pages/Ingredients/IngredientsPage'
+
+const ingredientsSearchSchema = z.object({
+  category: z.string().array().default([]),
+  concern: z.string().array().default([]),
+  skinType: z.string().array().default([]),
+  attribute: z.string().array().default([]),
+  page: z.number().min(1).default(1),
+})
 
 const defaultValues = {
   skinType: [] as string[],
   concern: [] as string[],
   attribute: [] as string[],
-  routineStep: [] as string[],
   category: [] as string[],
+  page: 1,
 }
-export type IngredientsSearch = z.infer<typeof ingredientsSearchSchema>
-
 export const Route = createFileRoute('/ingredients/')({
   // https://tanstack.com/router/latest/docs/guide/search-params
   // validate search transforme url en objet json
