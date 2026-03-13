@@ -36,6 +36,13 @@
       "when": 1773410600991,
       "tag": "0004_secret_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773436183947,
+      "tag": "0005_wakeful_metal_master",
+      "breakpoints": true
     }
   ]
 }
