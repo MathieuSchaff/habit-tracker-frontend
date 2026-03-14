@@ -12,11 +12,13 @@ import { healthRoute } from './features/health/routes'
 import { logsRoutes } from './features/logs'
 import { productRoutes } from './features/products'
 import { ingredientTagRoutes } from './features/products/ingredient-tags/routes'
+import { productTagRoutes } from './features/products/product-tags/routes'
 import { ingredientRoutes } from './features/products/ingredients/routes'
 import { productIngredientRoutes } from './features/products/product-ingredients/routes'
 import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
 import { stockRoutes } from './features/stock'
+import { taskRoutes } from './features/tasks/routes'
 
 console.log(`API listening on ${port}`)
 const app = new Hono<AppEnv>()
@@ -47,11 +49,13 @@ const routes = app
   .route('/api/profile', profileRoute)
   .route('/api/products', productRoutes)
   .route('/api/products', productIngredientRoutes)
+  .route('/api/products', productTagRoutes)
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/tags', tagRoutes)
   .route('/api/stock', stockRoutes)
   .route('/api/logs', logsRoutes)
+  .route('/api/tasks', taskRoutes)
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }

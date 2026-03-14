@@ -34,7 +34,7 @@
   },
 
   /* 5. Inclusion / Exclusion */
-  "include": ["src/**/*", "src/drizzle.config.ts"], // Compile tout ce qui est dans le dossier src
+  "include": ["src/**/*", "drizzle.config.ts"], // Compile tout ce qui est dans le dossier src
   "exclude": [
     "node_modules",
     "dist",

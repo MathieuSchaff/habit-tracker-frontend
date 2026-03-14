@@ -40,7 +40,8 @@ export async function addManyIngredientsToProduct(
 export async function listIngredientsByProduct(db: Database, productId: string) {
   return db
     .select({
-      // ingredientId: productIngredients.ingredientId,
+      productId: productIngredients.productId,
+      ingredientId: productIngredients.ingredientId,
       concentrationValue: productIngredients.concentrationValue,
       concentrationUnit: productIngredients.concentrationUnit,
       concentrationPer: productIngredients.concentrationPer,
