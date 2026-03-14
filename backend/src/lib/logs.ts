@@ -80,7 +80,7 @@ export async function logEdit(
 
 export const productEditConfig: EditTableConfig<ProductChanges> = {
   table: productEdits,
-  entityIdColumn: 'ingredientId', // le nom du champ Drizzle, pas la colonne SQL
+  entityIdColumn: 'productId',
   schema: productChangesSchema,
 }
 

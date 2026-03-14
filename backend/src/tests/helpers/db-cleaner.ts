@@ -29,6 +29,8 @@ export async function cleanDatabase() {
       'user_bans',
       'users',
       'wellbeing_logs',
+      'subtasks',
+      'tasks',
     ]
 
     for (const table of tables) {

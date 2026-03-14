@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
-import { ProductPage } from '../../component/pages/Product/ProductPage'
 import { productQueries } from '../../lib/queries/products'
 
 export const Route = createFileRoute('/products/$slug')({
@@ -11,5 +10,5 @@ export const Route = createFileRoute('/products/$slug')({
 
   pendingComponent: () => <div>Chargement...</div>,
 
-  component: ProductPage,
+  component: () => <Outlet />,
 })

@@ -1,6 +1,6 @@
 import type { CreateRefreshTokenArgs } from '@habit-tracker/shared'
 
-import { and, eq, gt, isNotNull, isNull, lt, or } from 'drizzle-orm'
+import { and, eq, gt, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { refreshTokens } from '../../db/schema'
@@ -50,7 +50,7 @@ export async function revokeRefreshToken(db: DB, jti: string) {
   const jtiHash = hashJti(jti)
   await db
     .update(refreshTokens)
-    .set({ revokedAt: new Date() })
+    .set({ revokedAt: sql`now()` })
     .where(eq(refreshTokens.jtiHash, jtiHash))
 }
 
@@ -59,7 +59,7 @@ export async function revokeRefreshToken(db: DB, jti: string) {
 export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
   await db
     .update(refreshTokens)
-    .set({ revokedAt: new Date() })
+    .set({ revokedAt: sql`now()` })
     .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)))
 }
 
