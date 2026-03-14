@@ -13,7 +13,7 @@ import { db } from '../../db'
 import type { Database } from '../../db/index'
 import { type Product, products } from '../../db/schema/products'
 import { productTags, tags } from '../../db/schema/tags'
-import { isUniqueViolation } from '../../lib/helpers'
+import { areEqual, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
 
@@ -132,38 +132,34 @@ export async function updateProduct(
   id: string,
   data: UpdateProductInput,
   summary?: string,
-  database = db
+  database: Database = db
 ): Promise<Product> {
+  const oldProduct = await getProductById(id, database)
+
   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
   if (slug !== undefined) data.slug = slug
 
   const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k as any))
 
-  if (setEntries.length === 0) {
-    const existing = await database.query.products.findFirst({ where: eq(products.id, id) })
-    if (!existing) throw new ProductError('product_not_found')
-    return existing
+  if (setEntries.length === 0) return oldProduct
+
+  const [newProduct] = await database
+    .update(products)
+    .set(data)
+    .where(eq(products.id, id))
+    .returning()
+
+  if (!newProduct) throw new ProductError('product_update_failed')
+
+  const changes: Record<string, FieldChange<unknown>> = {}
+  for (const key of TRACKED_FIELDS) {
+    const oldVal = (oldProduct as any)[key] ?? null
+    const newVal = (newProduct as any)[key] ?? null
+
+    if (!areEqual(oldVal, newVal)) {
+      changes[key] = { old: oldVal, new: newVal }
+    }
   }
-
-  const setClauses = setEntries.map(([k, v]) => sql`${sql.identifier(k)} = ${v}`)
-
-  const result = await database.execute(sql`
-    UPDATE ${products}
-    SET ${sql.join(setClauses, sql`, `)}
-    WHERE ${products.id} = ${id}
-    RETURNING
-      ${products}.*,
-      ${sql.join(
-        TRACKED_FIELDS.map((f) => sql`OLD.${sql.identifier(f)} AS ${sql.identifier(`old_${f}`)}`),
-        sql`, `
-      )}
-  `)
-
-  const row = result.rows[0]
-  if (!row) throw new ProductError('product_update_failed')
-
-  const newProduct = row as Product
-  const changes = buildChanges(row, TRACKED_FIELDS, newProduct)
 
   await logEdit(database, productEditConfig, {
     entityId: id,
