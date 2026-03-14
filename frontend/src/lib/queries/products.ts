@@ -27,6 +27,8 @@ export const productKeys = {
   lists: () => [...productKeys.all, 'list'] as const,
   list: (filters: ListProductsFilters = {}) => [...productKeys.lists(), filters] as const,
   bySlug: (slug: string) => [...productKeys.all, slug] as const,
+  tags: (id: string) => [...productKeys.all, id, 'tags'] as const,
+  ingredients: (id: string) => [...productKeys.all, id, 'ingredients'] as const,
 }
 
 export const productQueries = {
@@ -102,6 +104,32 @@ export const productQueries = {
       enabled: q.length >= 2,
       staleTime: 30 * 1000,
     }),
+
+  tags: (id: string) =>
+    queryOptions({
+      queryKey: productKeys.tags(id),
+      queryFn: async () => {
+        const res = await api.products[':productId'].tags.$get({ param: { productId: id } })
+        if (!res.ok) throw new Error('Failed to fetch product tags')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!id,
+    }),
+
+  ingredients: (id: string) =>
+    queryOptions({
+      queryKey: productKeys.ingredients(id),
+      queryFn: async () => {
+        const res = await api.products[':productId'].ingredients.$get({
+          param: { productId: id },
+        })
+        if (!res.ok) throw new Error('Failed to fetch product ingredients')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!id,
+    }),
 }
 
 export function useCreateProduct() {
@@ -146,6 +174,74 @@ export function useDeleteProduct() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: productKeys.lists() })
+    },
+  })
+}
+
+export function useUpdateProductTags() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      tags,
+    }: {
+      productId: string
+      tags: { tagId: string; relevance: 'primary' | 'secondary' | 'avoid' }[]
+    }) => {
+      const res = await api.products[':productId'].tags.$put({
+        param: { productId },
+        json: { tags },
+      })
+      const json = (await res.json()) as ApiResponse<any>
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: (_, { productId }) => {
+      qc.invalidateQueries({ queryKey: productKeys.tags(productId) })
+    },
+  })
+}
+
+export function useAddProductIngredient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ productId, ingredientId }: { productId: string; ingredientId: string }) => {
+      const res = await api.products[':productId'].ingredients.$post({
+        param: { productId },
+        json: { ingredientId },
+      })
+      const json = (await res.json()) as ApiResponse<any>
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: (_, { productId }) => {
+      qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug })
+    },
+  })
+}
+
+export function useRemoveProductIngredient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      ingredientId,
+    }: {
+      productId: string
+      ingredientId: string
+    }) => {
+      const res = await api.products[':productId'].ingredients[':ingredientId'].$delete({
+        param: { productId, ingredientId },
+      })
+      if (!res.ok) {
+        const json = (await res.json()) as ApiResponse<any>
+        throw new Error(json.success ? '' : json.error)
+      }
+    },
+    onSuccess: (_, { productId }) => {
+      qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug })
     },
   })
 }

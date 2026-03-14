@@ -1,6 +1,7 @@
 import type {
   CreateIngredientInput,
   Ingredient,
+  ReplaceIngredientTagsInput,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
 
@@ -23,12 +24,14 @@ export type ListIngredientsFilters = {
 export const ingredientKeys = {
   all: ['ingredients'] as const,
   lists: () => [...ingredientKeys.all, 'list'] as const,
-  list: (filters: ListIngredientsFilters = {}) => [...ingredientKeys.lists(), filters] as const,
+  list: (filters: ListIngredientsFilters = {}) => [...ingredientKeys.all, 'list', filters] as const,
   bySlug: (slug: string) => [...ingredientKeys.all, slug] as const,
   products: (slug: string) => [...ingredientKeys.all, slug, 'products'] as const,
+  tags: (id: string) => [...ingredientKeys.all, id, 'tags'] as const,
 }
 
 export const ingredientQueries = {
+  // ... existing queries
   all: () =>
     queryOptions({
       queryKey: [...ingredientKeys.all, 'all'] as const,
@@ -82,6 +85,20 @@ export const ingredientQueries = {
         return json.data
       },
       enabled: !!slug,
+    }),
+
+  tags: (id: string) =>
+    queryOptions({
+      queryKey: ingredientKeys.tags(id),
+      queryFn: async () => {
+        const res = await api.ingredients[':ingredientId'].tags.$get({
+          param: { ingredientId: id },
+        })
+        if (!res.ok) throw new Error('Failed to fetch ingredient tags')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!id,
     }),
 
   search: (query: string) =>
@@ -141,6 +158,30 @@ export function useDeleteIngredient() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
+    },
+  })
+}
+
+export function useUpdateIngredientTags() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      ingredientId,
+      tags,
+    }: {
+      ingredientId: string
+      tags: ReplaceIngredientTagsInput['tags']
+    }) => {
+      const res = await api.ingredients[':ingredientId'].tags.$put({
+        param: { ingredientId },
+        json: { tags },
+      })
+      const json = (await res.json()) as ApiResponse<any>
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: (_, { ingredientId }) => {
+      qc.invalidateQueries({ queryKey: ingredientKeys.tags(ingredientId) })
     },
   })
 }

@@ -22,7 +22,7 @@ layer(base);
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
 @import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
 
-@import "../component/pages/Products/ListPage.css" layer(components);
+/*@import "../component/pages/Products/ListPage.css" layer(components);*/
 @import "./common/kinds.css" layer(components);
 @import "./common/markdown.css" layer(components);
 @import "../component/pages/habits/HabitsPage.css" layer(components);
