@@ -1,5 +1,5 @@
 @layer reset, variables, base, components, utilities;
-
+@import "katex/dist/katex.min.css";
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
 layer(base);
 @import "./tokens/reset.css" layer(reset);
@@ -22,7 +22,6 @@ layer(base);
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
 @import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
 
-/*@import "../component/pages/Products/ListPage.css" layer(components);*/
 @import "./common/kinds.css" layer(components);
 @import "./common/markdown.css" layer(components);
 @import "../component/pages/habits/HabitsPage.css" layer(components);
@@ -36,3 +35,5 @@ layer(base);
 @import "../component/Habits/styles/TodayView.css" layer(components);
 @import "../component/Habits/styles/JournalView.css" layer(components);
 @import "../component/stock/AddToInventoryModal.css" layer(components);
+@import "../component/pages/tasks/TasksPage.css" layer(components);
+@import "../component/tasks/TaskItem.css" layer(components);
