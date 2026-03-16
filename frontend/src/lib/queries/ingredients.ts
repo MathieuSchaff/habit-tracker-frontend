@@ -1,6 +1,5 @@
 import type {
   CreateIngredientInput,
-  Ingredient,
   ReplaceIngredientTagsInput,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
@@ -8,10 +7,6 @@ import type {
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
-
-type ApiResponse<T> =
-  | { success: true; data: T; message?: string }
-  | { success: false; error: string; details?: Record<string, string[]> }
 
 export type ListIngredientsFilters = {
   category?: string[]
@@ -21,6 +16,7 @@ export type ListIngredientsFilters = {
   page?: number
   limit?: number
 }
+
 export const ingredientKeys = {
   all: ['ingredients'] as const,
   lists: () => [...ingredientKeys.all, 'list'] as const,
@@ -28,10 +24,10 @@ export const ingredientKeys = {
   bySlug: (slug: string) => [...ingredientKeys.all, slug] as const,
   products: (slug: string) => [...ingredientKeys.all, slug, 'products'] as const,
   tags: (id: string) => [...ingredientKeys.all, id, 'tags'] as const,
+  options: () => [...ingredientKeys.all, 'options'] as const,
 }
 
 export const ingredientQueries = {
-  // ... existing queries
   all: () =>
     queryOptions({
       queryKey: [...ingredientKeys.all, 'all'] as const,
@@ -63,13 +59,14 @@ export const ingredientQueries = {
         return json.data
       },
     }),
+
   bySlug: (slug: string) =>
     queryOptions({
       queryKey: ingredientKeys.bySlug(slug),
       queryFn: async () => {
         const res = await api.ingredients[':slug'].$get({ param: { slug } })
-        const json = await res.json()
         if (!res.ok) throw new Error('Failed to fetch ingredient')
+        const json = await res.json()
         return json.data
       },
       enabled: !!slug,
@@ -112,6 +109,17 @@ export const ingredientQueries = {
       },
       enabled: query.length >= 2,
     }),
+  options: () =>
+    queryOptions({
+      queryKey: [...ingredientKeys.all, 'options'] as const,
+      queryFn: async () => {
+        const res = await api.ingredients.options.$get()
+        if (!res.ok) throw new Error('Failed to fetch ingredient options')
+        const json = await res.json()
+        return json.data
+      },
+      staleTime: 10 * 60 * 1000,
+    }),
 }
 
 // Mutations
@@ -121,8 +129,9 @@ export function useCreateIngredient() {
   return useMutation({
     mutationFn: async (data: CreateIngredientInput) => {
       const res = await api.ingredients.$post({ json: data })
-      const json = await res.json()
       if (!res.ok) throw new Error('Failed to create ingredient')
+      const json = await res.json()
+      if (!json.success) throw new Error('Failed to create ingredient')
       return json.data
     },
     onSuccess: (ingredient) => {
@@ -137,8 +146,9 @@ export function useUpdateIngredient() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateIngredientInput }) => {
       const res = await api.ingredients[':id'].$patch({ param: { id }, json: data })
-      const json = (await res.json()) as ApiResponse<Ingredient>
-      if (!json.success) throw new Error(json.error)
+      if (!res.ok) throw new Error('Failed to update ingredient')
+      const json = await res.json()
+      if (!json.success) throw new Error('Failed to update ingredient')
       return json.data
     },
     onSuccess: (ingredient) => {
@@ -153,8 +163,7 @@ export function useDeleteIngredient() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await api.ingredients[':id'].$delete({ param: { id } })
-      const json = (await res.json()) as ApiResponse<null>
-      if (!json.success) throw new Error(json.error)
+      if (!res.ok) throw new Error('Failed to delete ingredient')
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
@@ -176,8 +185,9 @@ export function useUpdateIngredientTags() {
         param: { ingredientId },
         json: { tags },
       })
-      const json = (await res.json()) as ApiResponse<any>
-      if (!json.success) throw new Error(json.error)
+      if (!res.ok) throw new Error('Failed to update ingredient tags')
+      const json = await res.json()
+      if (!json.success) throw new Error('Failed to update ingredient tags')
       return json.data
     },
     onSuccess: (_, { ingredientId }) => {
