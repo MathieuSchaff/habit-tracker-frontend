@@ -107,3 +107,26 @@ dialog::backdrop {
     opacity: 0;
   }
 }
+/* Ce bloc empêche physiquement le texte de se couper dans une formule */
+.markdown-container .katex-display {
+  display: block !important;
+  white-space: nowrap !important; /* Force la ligne unique */
+  overflow-x: auto; /* Permet de scroller si la formule est trop longue sur mobile */
+  overflow-y: hidden;
+}
+
+.markdown-container .katex-html {
+  display: flex !important; /* Force l'alignement horizontal des blocs */
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Annule les sauts de ligne que KaTeX pourrait générer par erreur */
+.markdown-container .mspace.newline {
+  display: none !important;
+}
+/* Neutralise les sauts de ligne automatiques indésirables dans les formules */
+.katex .katex-html > .newline {
+  display: none !important;
+}
