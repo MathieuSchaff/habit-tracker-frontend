@@ -60,3 +60,7 @@ coverage/
 # Docker (local volumes)
 # =========================
 pgdata/
+
+# =========================
+docs/
+frontend/.tanstack/tmp/
