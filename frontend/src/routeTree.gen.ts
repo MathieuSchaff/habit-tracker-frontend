@@ -17,10 +17,12 @@ import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedInventaireRouteImport } from './routes/_authenticated/inventaire'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug.index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug.index'
 import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug.edit'
@@ -65,6 +67,11 @@ const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
   path: '/ingredients/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -83,6 +90,11 @@ const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
+  id: '/collection',
+  path: '/collection',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const ProductsSlugIndexRoute = ProductsSlugIndexRouteImport.update({
@@ -110,10 +122,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/collection': typeof AuthenticatedCollectionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/ingredients/': typeof IngredientsIndexRoute
@@ -127,10 +141,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/collection': typeof AuthenticatedCollectionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
@@ -144,10 +160,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/inventaire': typeof AuthenticatedInventaireRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/ingredients/': typeof IngredientsIndexRoute
@@ -163,10 +181,12 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/collection'
     | '/dashboard'
     | '/habits'
     | '/inventaire'
     | '/profile'
+    | '/tasks'
     | '/ingredients/$slug'
     | '/products/$slug'
     | '/ingredients/'
@@ -180,10 +200,12 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/collection'
     | '/dashboard'
     | '/habits'
     | '/inventaire'
     | '/profile'
+    | '/tasks'
     | '/ingredients'
     | '/products'
     | '/ingredients/$slug/edit'
@@ -196,10 +218,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/_authenticated/collection'
     | '/_authenticated/dashboard'
     | '/_authenticated/habits'
     | '/_authenticated/inventaire'
     | '/_authenticated/profile'
+    | '/_authenticated/tasks'
     | '/ingredients/$slug'
     | '/products/$slug'
     | '/ingredients/'
@@ -279,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IngredientsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -305,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/collection': {
+      id: '/_authenticated/collection'
+      path: '/collection'
+      fullPath: '/collection'
+      preLoaderRoute: typeof AuthenticatedCollectionRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/products/$slug/': {
@@ -339,17 +377,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedInventaireRoute: typeof AuthenticatedInventaireRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedInventaireRoute: AuthenticatedInventaireRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
