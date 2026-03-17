@@ -19,6 +19,7 @@ import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
 import { stockRoutes } from './features/stock'
 import { taskRoutes } from './features/tasks/routes'
+import { userProductRoutes } from './features/user-products'
 
 console.log(`API listening on ${port}`)
 const app = new Hono<AppEnv>()
@@ -56,6 +57,7 @@ const routes = app
   .route('/api/stock', stockRoutes)
   .route('/api/logs', logsRoutes)
   .route('/api/tasks', taskRoutes)
+  .route('/api/user-products', userProductRoutes)
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }

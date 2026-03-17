@@ -11,6 +11,8 @@ export * from './schemas/profile'
 export * from './schemas/stock'
 export * from './schemas/tags'
 export * from './schemas/tasks'
+export * from './schemas/user-preferences'
+export * from './schemas/user-products'
 
 // Types (entity types, error codes, composed types)
 
