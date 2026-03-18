@@ -5,9 +5,6 @@
 /**
  * Détecte une violation de contrainte UNIQUE PostgreSQL (code 23505).
  */
-// export function isUniqueViolation(e: unknown): boolean {
-//   return e instanceof Error && 'code' in e && (e as { code: string }).code === '23505'
-// }
 export function isUniqueViolation(e: unknown): boolean {
   if (!(e instanceof Error)) return false
 

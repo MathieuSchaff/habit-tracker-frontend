@@ -3,6 +3,7 @@ import {
   HTTP_STATUS,
   ok,
   profileUpdateSchema,
+  updateUserPreferencesSchema,
 } from '@habit-tracker/shared'
 
 import { Hono } from 'hono'
@@ -10,7 +11,7 @@ import { zValidator } from '@hono/zod-validator'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
-import { getProfile, updateProfile } from './service'
+import { getProfile, getUserPreferences, updateProfile, updateUserPreferences } from './service'
 
 const app = new Hono<AppEnv>()
 
@@ -29,7 +30,6 @@ export const profileRoute = app
   .get('/', async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
-    console.log(userId)
     const profile = await getProfile(db, userId)
 
     if (!profile) {
@@ -50,5 +50,20 @@ export const profileRoute = app
       return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
     }
 
+    return c.json(ok(updated), HTTP_STATUS.OK)
+  })
+
+  .get('/preferences', async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const prefs = await getUserPreferences(db, userId)
+    return c.json(ok(prefs), HTTP_STATUS.OK)
+  })
+
+  .patch('/preferences', zValidator('json', updateUserPreferencesSchema), async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const data = c.req.valid('json')
+    const updated = await updateUserPreferences(db, userId, data)
     return c.json(ok(updated), HTTP_STATUS.OK)
   })
