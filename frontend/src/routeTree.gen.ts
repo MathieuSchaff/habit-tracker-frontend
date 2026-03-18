@@ -19,7 +19,6 @@ import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedInventaireRouteImport } from './routes/_authenticated/inventaire'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
@@ -77,11 +76,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedInventaireRoute = AuthenticatedInventaireRouteImport.update({
-  id: '/inventaire',
-  path: '/inventaire',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
   id: '/habits',
   path: '/habits',
@@ -125,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/collection': typeof AuthenticatedCollectionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
-  '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
@@ -144,7 +137,6 @@ export interface FileRoutesByTo {
   '/collection': typeof AuthenticatedCollectionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
-  '/inventaire': typeof AuthenticatedInventaireRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/ingredients': typeof IngredientsIndexRoute
@@ -163,7 +155,6 @@ export interface FileRoutesById {
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
-  '/_authenticated/inventaire': typeof AuthenticatedInventaireRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
@@ -184,7 +175,6 @@ export interface FileRouteTypes {
     | '/collection'
     | '/dashboard'
     | '/habits'
-    | '/inventaire'
     | '/profile'
     | '/tasks'
     | '/ingredients/$slug'
@@ -203,7 +193,6 @@ export interface FileRouteTypes {
     | '/collection'
     | '/dashboard'
     | '/habits'
-    | '/inventaire'
     | '/profile'
     | '/tasks'
     | '/ingredients'
@@ -221,7 +210,6 @@ export interface FileRouteTypes {
     | '/_authenticated/collection'
     | '/_authenticated/dashboard'
     | '/_authenticated/habits'
-    | '/_authenticated/inventaire'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
     | '/ingredients/$slug'
@@ -317,13 +305,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/inventaire': {
-      id: '/_authenticated/inventaire'
-      path: '/inventaire'
-      fullPath: '/inventaire'
-      preLoaderRoute: typeof AuthenticatedInventaireRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/habits': {
       id: '/_authenticated/habits'
       path: '/habits'
@@ -380,7 +361,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
-  AuthenticatedInventaireRoute: typeof AuthenticatedInventaireRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
 }
@@ -389,7 +369,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
-  AuthenticatedInventaireRoute: AuthenticatedInventaireRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
 }
