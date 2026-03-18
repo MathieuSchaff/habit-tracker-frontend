@@ -101,6 +101,18 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
+  brands: () =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'brands'] as const,
+      queryFn: async () => {
+        const res = await api.products.brands.$get()
+        if (!res.ok) throw new Error('Failed to fetch brands')
+        const json = await res.json()
+        return json.data as string[]
+      },
+      staleTime: 5 * 60 * 1000,
+    }),
+
   tags: (id: string) =>
     queryOptions({
       queryKey: productKeys.tags(id),
@@ -141,6 +153,7 @@ export function useCreateProduct() {
     onSuccess: (product) => {
       qc.setQueryData(productKeys.bySlug(product.slug), product)
       qc.invalidateQueries({ queryKey: productKeys.lists() })
+      qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
   })
 }

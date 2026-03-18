@@ -5,7 +5,7 @@ import type {
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
+import { and, asc, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
 import { ingredients, productIngredients } from 'src/db/schema'
 import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
@@ -342,6 +342,14 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
     tags: tagsByCategory,
   }
 }
+export async function getDistinctBrands(database: Database = db): Promise<string[]> {
+  const rows = await database
+    .selectDistinct({ brand: products.brand })
+    .from(products)
+    .orderBy(asc(products.brand))
+  return rows.map((r) => r.brand)
+}
+
 export async function deleteProduct(id: string, database: Database = db): Promise<void> {
   const rows = await database
     .delete(products)
