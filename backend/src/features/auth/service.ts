@@ -9,9 +9,6 @@ import type {
 } from '@habit-tracker/shared'
 import { err, ok } from '@habit-tracker/shared'
 
-// import { hash } from 'argon2'
-
-// import { hash } from 'argon2'
 
 import type { DB } from '../../db/index'
 import { isUniqueViolation } from '../../lib/helpers'

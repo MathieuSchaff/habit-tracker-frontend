@@ -1,11 +1,8 @@
 import {
-  addStockEntrySchema,
   createUserProductSchema,
   err,
-  errorToStatus,
   HTTP_STATUS,
   ok,
-  stockErrorMapping,
   updateUserProductReviewSchema,
   updateUserProductSchema,
 } from '@habit-tracker/shared'
@@ -16,10 +13,8 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
 import {
-  addStockEntry,
   createUserProduct,
   deleteUserProduct,
-  getStockEntries,
   getUserProductById,
   getUserProductByProductId,
   getUserProducts,
@@ -37,10 +32,7 @@ userProductApp.onError((error, c) => {
     if (error.code === 'not_found') {
       return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
     }
-    return c.json(
-      err(error.code, error.details),
-      errorToStatus(error.code, stockErrorMapping)
-    )
+    return c.json(err(error.code, error.details), HTTP_STATUS.BAD_REQUEST)
   }
   console.error('Unexpected error in userProductRoutes:', error)
   return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
@@ -54,13 +46,6 @@ export const userProductRoutes = userProductApp
     const db = c.get('db')
     const userId = c.get('userId')
     const result = await getUserProducts(userId, db)
-    return c.json(ok(result), HTTP_STATUS.OK)
-  })
-
-  .get('/stock-entries', async (c) => {
-    const db = c.get('db')
-    const userId = c.get('userId')
-    const result = await getStockEntries(userId, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
@@ -93,20 +78,6 @@ export const userProductRoutes = userProductApp
     const result = await createUserProduct(userId, input, db)
     return c.json(ok(result), HTTP_STATUS.CREATED)
   })
-
-  .post(
-    '/:productId/stock-entries',
-    zValidator('param', productIdParam),
-    zValidator('json', addStockEntrySchema),
-    async (c) => {
-      const db = c.get('db')
-      const userId = c.get('userId')
-      const { productId } = c.req.valid('param')
-      const input = c.req.valid('json')
-      const result = await addStockEntry(userId, productId, input, db)
-      return c.json(ok(result), HTTP_STATUS.CREATED)
-    }
-  )
 
   .patch('/:id', zValidator('param', userProductIdParam), zValidator('json', updateUserProductSchema), async (c) => {
     const db = c.get('db')

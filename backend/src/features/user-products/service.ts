@@ -1,14 +1,11 @@
 import type {
-  AddStockEntryInput,
   CreateUserProductInput,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
 } from '@habit-tracker/shared'
 
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
-import { products } from '../../db/schema/products'
-import { stockEntries } from '../../db/schema/stock-entries'
 import { userProductReviews, userProducts } from '../../db/schema/user-products'
 import type { DB } from '../../db/types'
 import { UserProductError } from './user-product-error'
@@ -64,73 +61,6 @@ export async function getUserProductByProductId(userId: string, productId: strin
         },
       },
     },
-  })
-}
-
-export async function getStockEntries(userId: string, db: DB) {
-  return db
-    .select({
-      id: stockEntries.id,
-      productId: stockEntries.productId,
-      qty: stockEntries.qty,
-      pricePaidCents: stockEntries.pricePaidCents,
-      purchasedAt: stockEntries.purchasedAt,
-      createdAt: stockEntries.createdAt,
-      product: {
-        name: products.name,
-        brand: products.brand,
-      },
-    })
-    .from(stockEntries)
-    .innerJoin(products, eq(stockEntries.productId, products.id))
-    .where(eq(stockEntries.userId, userId))
-    .orderBy(desc(stockEntries.purchasedAt), desc(stockEntries.createdAt))
-}
-
-export async function addStockEntry(
-  userId: string,
-  productId: string,
-  input: AddStockEntryInput,
-  db: DB
-) {
-  return db.transaction(async (tx) => {
-    const [productExists] = await tx
-      .select({ id: products.id })
-      .from(products)
-      .where(eq(products.id, productId))
-      .limit(1)
-
-    if (!productExists) throw new UserProductError('product_not_found')
-
-    const [entry] = await tx
-      .insert(stockEntries)
-      .values({
-        userId,
-        productId,
-        qty: input.qty,
-        pricePaidCents: input.pricePaidCents ?? null,
-        purchasedAt: input.purchasedAt,
-      })
-      .returning()
-
-    if (!entry) throw new UserProductError('stock_entry_failed')
-
-    const [stock] = await tx
-      .insert(userProducts)
-      .values({ userId, productId, qty: input.qty, status: 'in_stock' })
-      .onConflictDoUpdate({
-        target: [userProducts.userId, userProducts.productId],
-        set: {
-          qty: sql`${userProducts.qty} + ${input.qty}`,
-          status: 'in_stock',
-          updatedAt: new Date(),
-        },
-      })
-      .returning()
-
-    if (!stock) throw new UserProductError('stock_entry_failed')
-
-    return { entry, stock }
   })
 }
 
