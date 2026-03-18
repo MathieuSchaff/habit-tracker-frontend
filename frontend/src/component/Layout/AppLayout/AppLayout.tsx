@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
 
+import { BottomNav } from '../../BottomNav/BottomNav'
 import { Header } from '../Header/Header'
 export const AppLayout = () => {
   return (
@@ -9,7 +10,8 @@ export const AppLayout = () => {
       <div className="content">
         <Outlet />
       </div>
-      <Toaster position="bottom-center" richColors />
+      <BottomNav />
+      <Toaster position="top-center" richColors />
     </div>
   )
 }
