@@ -10,11 +10,8 @@ import type { ZodType } from 'zod'
 
 import type { db } from '../db'
 import { ingredientEdits, productEdits } from '../db/schema'
+import { areEqual } from './helpers'
 
-function areEqual(a: unknown, b: unknown): boolean {
-  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
-  return a === b
-}
 // types
 
 interface EditTableConfig<TChanges> {
