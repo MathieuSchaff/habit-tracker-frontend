@@ -168,7 +168,7 @@ const UNIT_TO_ICON: Record<string, React.ElementType> = {
 
 const KIND_FALLBACK: Record<string, React.ElementType> = {
   skincare: FlaskConical,
-  'complément': Pill,
+  complément: Pill,
   complement: Pill,
   huile: Droplets,
   vitamine: Sun,
@@ -181,10 +181,7 @@ const KIND_FALLBACK: Record<string, React.ElementType> = {
  * @param unit  Raw `unit` value from DB (e.g. "pump", "30ml", null)
  * @param kind  Raw `kind` value from DB (e.g. "complément", "skincare")
  */
-export function getProductIcon(
-  unit: string | null | undefined,
-  kind: string
-): React.ElementType {
+export function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
   const normalizedUnit = unit?.toLowerCase().trim()
   if (normalizedUnit && UNIT_TO_ICON[normalizedUnit]) {
     return UNIT_TO_ICON[normalizedUnit]
