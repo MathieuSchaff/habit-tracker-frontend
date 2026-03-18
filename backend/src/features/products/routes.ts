@@ -19,6 +19,7 @@ import { ProductError } from './product-error'
 import {
   createProduct,
   deleteProduct,
+  getDistinctBrands,
   getFilterOptions,
   getProductWithIngredientsBySlug,
   listProducts,
@@ -67,6 +68,11 @@ export const productRoutes = productsApp
     return c.json(ok(options), HTTP_STATUS.OK)
   })
   // NE PAS METTRE EN BAS => VA SE FAIRE BOUFFER PAR LE SLUG SINON
+  .get('/brands', async (c) => {
+    const db = c.get('db')
+    const brands = await getDistinctBrands(db)
+    return c.json(ok(brands), HTTP_STATUS.OK)
+  })
   .get('/search', zValidator('query', searchProductsQuery), async (c) => {
     const db = c.get('db')
     const { q, limit } = c.req.valid('query')
