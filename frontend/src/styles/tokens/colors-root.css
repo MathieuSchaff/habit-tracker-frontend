@@ -51,4 +51,9 @@
      DIMENSIONS (jamais overridées)
      =================================== */
   --border-width: 3px;
+
+  /* ===================================
+     SHADOWS
+     =================================== */
+  --shadow-hard: 3px 3px 0px var(--primary-60);
 }
