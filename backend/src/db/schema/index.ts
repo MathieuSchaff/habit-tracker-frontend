@@ -1,3 +1,4 @@
+export * from './email-verifications'
 export * from './habits'
 export * from './ingredients'
 export * from './logs'

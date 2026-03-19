@@ -37,6 +37,7 @@ export const users = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull().default('user'),
   },
   (t) => [

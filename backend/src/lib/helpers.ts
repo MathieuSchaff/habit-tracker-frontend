@@ -8,17 +8,19 @@
 export function isUniqueViolation(e: unknown): boolean {
   if (!(e instanceof Error)) return false
 
+  // Helper pour extraire le code ou errno
+  const getErrorCode = (err: any) => {
+    if (typeof err !== 'object' || err === null) return undefined
+    return err.errno || err.code
+  }
+
   // Si c'est une DrizzleQueryError, check la cause
-  if ('cause' in e && e.cause instanceof Error && 'code' in e.cause) {
-    return (e.cause as { code: string }).code === '23505'
+  if ('cause' in e && e.cause instanceof Error) {
+    return getErrorCode(e.cause) === '23505'
   }
 
   // Sinon check directement l'erreur
-  if ('code' in e) {
-    return (e as { code: string }).code === '23505'
-  }
-
-  return false
+  return getErrorCode(e) === '23505'
 }
 
 /**
