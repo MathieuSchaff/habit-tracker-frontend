@@ -8,8 +8,7 @@ import { useAuthStore } from '../store/auth'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ context }) => {
-    // si pas de token, on tente un refresh silencieux pour le header (Connexion/Déconnexion)
-    // Si ça échoue, pas grave, on est peut-être sur une page publique
+    // Attempt silent refresh on initial load to recover session from httpOnly cookie
     if (!useAuthStore.getState().accessToken) {
       await silentRefresh(context.queryClient)
     }

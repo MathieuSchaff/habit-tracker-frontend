@@ -17,6 +17,7 @@ import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
 import { Route as ProductsNewRouteImport } from './routes/products/new'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
+import { Route as IngredientsNewRouteImport } from './routes/ingredients/new'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -65,6 +66,11 @@ const ProductsNewRoute = ProductsNewRouteImport.update({
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/products/$slug',
   path: '/products/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsNewRoute = IngredientsNewRouteImport.update({
+  id: '/ingredients/new',
+  path: '/ingredients/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
+  '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/products/new': typeof ProductsNewRoute
   '/ingredients/': typeof IngredientsIndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/ingredients/new': typeof IngredientsNewRoute
   '/products/new': typeof ProductsNewRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
+  '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/products/new': typeof ProductsNewRoute
   '/ingredients/': typeof IngredientsIndexRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/ingredients/$slug'
+    | '/ingredients/new'
     | '/products/$slug'
     | '/products/new'
     | '/ingredients/'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/habits'
     | '/profile'
     | '/tasks'
+    | '/ingredients/new'
     | '/products/new'
     | '/ingredients'
     | '/products'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
     | '/ingredients/$slug'
+    | '/ingredients/new'
     | '/products/$slug'
     | '/products/new'
     | '/ingredients/'
@@ -240,6 +252,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
+  IngredientsNewRoute: typeof IngredientsNewRoute
   ProductsSlugRoute: typeof ProductsSlugRouteWithChildren
   ProductsNewRoute: typeof ProductsNewRoute
   IngredientsIndexRoute: typeof IngredientsIndexRoute
@@ -302,6 +315,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$slug'
       fullPath: '/products/$slug'
       preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/new': {
+      id: '/ingredients/new'
+      path: '/ingredients/new'
+      fullPath: '/ingredients/new'
+      preLoaderRoute: typeof IngredientsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ingredients/$slug': {
@@ -431,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
+  IngredientsNewRoute: IngredientsNewRoute,
   ProductsSlugRoute: ProductsSlugRouteWithChildren,
   ProductsNewRoute: ProductsNewRoute,
   IngredientsIndexRoute: IngredientsIndexRoute,

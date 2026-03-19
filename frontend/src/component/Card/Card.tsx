@@ -1,6 +1,4 @@
-type CardType = {
-    // separatedHeader: boolean;
-} & React.ComponentProps<'div'>
+type CardType = {} & React.ComponentProps<'div'>
 export const Card = ({ children }: CardType) => {
-    return <div>{children}</div>
+  return <div>{children}</div>
 }

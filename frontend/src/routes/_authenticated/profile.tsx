@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Spinner } from '../../component/Feedback/Spinner/Spinner'
-import { ProfileDashboard } from '../../component/Profile/ProfileDashboard/ProfileDashboard'
+import { ProfileDashboard } from '../../features/profile/components/ProfileDashboard/ProfileDashboard'
 import { profileQueries } from '../../lib/queries/profile'
 
 export const Route = createFileRoute('/_authenticated/profile')({

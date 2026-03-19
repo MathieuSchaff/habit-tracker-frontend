@@ -8,6 +8,7 @@ type ProfileAvatarProps = {
 }
 
 const getInitials = (username?: string | null): string | null => {
+  // Simple fallback: first letter of username
   if (username) return username[0].toUpperCase()
   return null
 }

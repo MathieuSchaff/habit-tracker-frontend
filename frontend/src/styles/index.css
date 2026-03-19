@@ -24,16 +24,16 @@ layer(base);
 
 @import "./common/kinds.css" layer(components);
 @import "./common/markdown.css" layer(components);
-@import "../component/pages/habits/HabitsPage.css" layer(components);
-@import "../component/pages/LoginPage/auth-shared.css" layer(components);
-@import "../component/pages/LoginPage/LoginPage.css" layer(components);
-@import "../component/pages/SignupPage/SignupPage.css" layer(components);
+@import "../features/habits/components/HabitsPage/HabitsPage.css" layer(components);
+@import "../features/auth/components/LoginPage/auth-shared.css" layer(components);
+@import "../features/auth/components/LoginPage/LoginPage.css" layer(components);
+@import "../features/auth/components/SignupPage/SignupPage.css" layer(components);
 
-@import "../component/Habits/styles/HabitDetail.css" layer(components);
-@import "../component/Habits/styles/HabitsListView.css" layer(components);
-@import "../component/Habits/styles/HabtiFormDialog.css" layer(components);
-@import "../component/Habits/styles/TodayView.css" layer(components);
-@import "../component/Habits/styles/JournalView.css" layer(components);
-@import "../component/stock/AddToInventoryModal.css" layer(components);
-@import "../component/pages/tasks/TasksPage.css" layer(components);
-@import "../component/tasks/TaskItem.css" layer(components);
+@import "../features/habits/components/styles/HabitDetail.css" layer(components);
+@import "../features/habits/components/styles/HabitsListView.css" layer(components);
+@import "../features/habits/components/styles/HabtiFormDialog.css" layer(components);
+@import "../features/habits/components/styles/TodayView.css" layer(components);
+@import "../features/habits/components/styles/JournalView.css" layer(components);
+@import "../features/products/components/AddToInventoryModal.css" layer(components);
+@import "../features/tasks/components/TasksPage/TasksPage.css" layer(components);
+@import "../features/tasks/components/TaskItem.css" layer(components);

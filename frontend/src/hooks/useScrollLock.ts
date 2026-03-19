@@ -7,6 +7,8 @@ export function useScrollLock(locked: boolean) {
     const scrollY = window.scrollY
     const body = document.body
 
+    // HACK: On iOS, simple overflow:hidden doesn't always work.
+    // Using position:fixed with top offset to prevent the background from jumping.
     body.style.position = 'fixed'
     body.style.top = `-${scrollY}px`
     body.style.left = '0'
