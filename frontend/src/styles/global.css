@@ -84,6 +84,7 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
+/* Native View Transition API experiment - smooth fade between routes */
 @view-transition {
   navigation: auto;
 }

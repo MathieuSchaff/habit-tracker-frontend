@@ -2,7 +2,7 @@ import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 
-import { ProductsPage } from '../../component/pages/Products/ProductsPage'
+import { ProductsPage } from '../../features/products/components/ProductsPage'
 
 export const productsSearchSchema = z.object({
   kind: z.string().array().default([]),
@@ -32,6 +32,7 @@ const defaultValues = {
 export type ProductsSearch = z.infer<typeof productsSearchSchema>
 
 export const Route = createFileRoute('/products/')({
+  // Search state sync with URL params
   validateSearch: zodValidator(productsSearchSchema),
   search: {
     middlewares: [stripSearchParams(defaultValues)],

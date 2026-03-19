@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../../test/utils'
-import { QuickAddModal } from '../../../component/pages/Collection/QuickAddModal'
+import { QuickAddModal } from '../components/QuickAddModal/QuickAddModal'
 
 vi.mock('../../../lib/queries/products', () => ({
   productQueries: {

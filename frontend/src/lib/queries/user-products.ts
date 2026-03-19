@@ -4,7 +4,7 @@ import type {
   UpdateUserProductReviewInput,
 } from '@habit-tracker/shared'
 
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
 
@@ -14,7 +14,6 @@ export const userProductKeys = {
   list: () => [...userProductKeys.lists()] as const,
   detail: (id: string) => [...userProductKeys.all, 'detail', id] as const,
   byProduct: (productId: string) => [...userProductKeys.all, 'by-product', productId] as const,
-  stockEntries: () => [...userProductKeys.all, 'stock-entries'] as const,
 }
 
 export const userProductQueries = {
@@ -44,18 +43,8 @@ export const userProductQueries = {
       const data = await res.json()
       return data.data
     },
-    retry: false, // Often used to check if a product is in collection
+    retry: false,
   }),
-  stockEntries: () =>
-    queryOptions({
-      queryKey: userProductKeys.stockEntries(),
-      queryFn: async () => {
-        const res = await api['user-products']['stock-entries'].$get()
-        if (!res.ok) throw new Error('Failed to fetch stock entries')
-        const data = await res.json()
-        return data.data
-      },
-    }),
 }
 
 export const useCreateUserProduct = () => {
@@ -68,36 +57,6 @@ export const useCreateUserProduct = () => {
       return data.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
-  })
-}
-
-export const useAddStockEntry = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({
-      productId,
-      qty,
-      pricePaidCents,
-      purchasedAt,
-    }: {
-      productId: string
-      qty: number
-      pricePaidCents?: number
-      purchasedAt: string
-    }) => {
-      const res = await api['user-products'][':productId']['stock-entries'].$post({
-        param: { productId },
-        json: { qty, pricePaidCents, purchasedAt },
-      })
-      if (!res.ok) throw new Error('Failed to add stock entry')
-      const data = await res.json()
-      return data.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userProductKeys.stockEntries() })
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
   })

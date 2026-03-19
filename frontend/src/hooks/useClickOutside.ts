@@ -4,6 +4,8 @@ export const useClickOutside = (
   ref: RefObject<HTMLElement | null>,
   handleOnClickOutside: (event: MouseEvent | TouchEvent | KeyboardEvent) => void
 ) => {
+  // Using a ref for the callback to avoid re-attaching listeners 
+  // every time the parent component re-renders.
   const callbackRef = useRef(handleOnClickOutside)
   callbackRef.current = handleOnClickOutside
 

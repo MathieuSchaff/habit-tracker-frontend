@@ -27,10 +27,7 @@ export const DEFAULT_WEIGHTS: CriteriaWeights = {
   valueForMoney: 1,
 }
 
-/**
- * Calculates a weighted score based on provided criteria, weights and scale.
- * Only rated criteria are included in the calculation.
- */
+// Weighted score calculation for reviews
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
   weights: CriteriaWeights = DEFAULT_WEIGHTS,

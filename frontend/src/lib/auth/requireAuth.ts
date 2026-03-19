@@ -10,21 +10,12 @@ type RequireAuthOptions = {
   pathname: string
 }
 
-/**
- * Auth guard réutilisable pour les `beforeLoad` de TanStack Router.
- *
- * Vérifie le token, tente un silent refresh si nécessaire,
- * et redirige vers /login en cas d'échec.
- *
- * @example
- * beforeLoad: async ({ context, location }) => {
- *   await requireAuth({ queryClient: context.queryClient, pathname: location.pathname })
- * }
- */
+// Auth guard for TanStack Router 'beforeLoad'
 export async function requireAuth({ queryClient, pathname }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
 
   if (!store.accessToken || store.isTokenExpired()) {
+    // Try to recover session before redirecting
     const refreshed = await silentRefresh(queryClient)
     if (!refreshed) {
       clearAndRedirect(store, queryClient, pathname)
@@ -33,6 +24,7 @@ export async function requireAuth({ queryClient, pathname }: RequireAuthOptions)
   }
 
   try {
+    // Ensure we actually have a valid session on the server
     await queryClient.ensureQueryData(authQueries.session())
   } catch {
     const refreshed = await silentRefresh(queryClient)

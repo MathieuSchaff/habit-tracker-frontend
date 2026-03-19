@@ -14,7 +14,7 @@ export const AuroreLogo: React.FC<AuroreLogoProps> = ({
   return (
     <svg
       width={size}
-      height={size * 0.67} // Maintient le ratio hauteur/largeur
+      height={size * 0.67}
       viewBox="0 0 120 80"
       xmlns="http://www.w3.org/2000/svg"
       role="img"

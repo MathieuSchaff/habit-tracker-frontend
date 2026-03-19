@@ -1,38 +1,7 @@
 :root {
-  /* Font families */
-  /*--font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Space Grotesk", system-ui, sans-serif;*/
+  /* Main Font Pair */
   --font-sans: "DM Sans", system-ui, sans-serif;
   --font-display: "Young Serif", serif;
-  /*--font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Playfair Display", serif;*/
-
-  /*--font-sans: "Poppins", system-ui, sans-serif;
-  --font-display: "Merriweather", serif;*/
-
-  /*--font-sans: "Montserrat", system-ui, sans-serif;
-  --font-display: "Lora", serif;*/
-
-  /*--font-sans: "Manrope", system-ui, sans-serif;
-  --font-display: "Cormorant Garamond", serif;*/
-
-  /*--font-sans: "Outfit", system-ui, sans-serif;
-  --font-display: "Libre Baskerville", serif;*/
-
-  /*--font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-display: "Spectral", serif;*/
-
-  /*--font-sans: "Roboto", system-ui, sans-serif;
-  --font-display: "Roboto Serif", serif;*/
-
-  /*--font-sans: "Instrument Sans", system-ui, sans-serif;
-  --font-display: "Instrument Serif", serif;*/
-
-  /*--font-sans: "Satoshi", system-ui, sans-serif;
-  --font-display: "Newsreader", serif;*/
-  /**/
-  /*--font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Inter", system-ui, sans-serif;*/
 
   /* Font sizes */
   --text-xs: 0.75rem; /* 12px */
