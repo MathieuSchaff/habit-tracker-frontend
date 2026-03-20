@@ -1,11 +1,12 @@
-import type { db } from './db/index'
+import type { Database } from './db/index'
 
 export type AppEnv = {
   Variables: {
-    db: typeof db
+    db: Database
     env: 'development' | 'production'
     userId: string
     jwtSecret: string
     refreshSecret: string
+    frontendUrl: string
   }
 }

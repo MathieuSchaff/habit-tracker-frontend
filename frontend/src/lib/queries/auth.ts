@@ -48,9 +48,9 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await api.auth.login.$post({ json: data })
-      if (!res.ok) throw new Error('Login failed')
+      if (!res.ok) throw new Error('server_error')
       const json = await res.json()
-      if (!json.success) throw new Error(json.error ?? 'Login failed')
+      if (!json.success) throw new Error(json.error ?? 'server_error')
       return json.data
     },
     onSuccess: (data) => {
@@ -91,6 +91,35 @@ export function useLogout() {
       useAuthStore.getState().clearAuth()
       qc.removeQueries({ queryKey: ['session'] })
       qc.removeQueries({ queryKey: ['auth'] })
+    },
+  })
+}
+
+export function useVerifyEmail() {
+  return useMutation({
+    mutationFn: async (token: string) => {
+      const res = await api.auth['verify-email'].$post({ json: { token } })
+      if (!res.ok) throw new Error('server_error')
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error)
+      return json.data
+    },
+    onSuccess: () => {
+      const { accessToken, user } = useAuthStore.getState()
+      if (accessToken && user) {
+        useAuthStore.getState().setAuth(accessToken, { ...user, emailVerified: true })
+      }
+    },
+  })
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await api.auth['resend-verification'].$post()
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error ?? "Erreur lors de l'envoi")
+      return json.data
     },
   })
 }
