@@ -8,6 +8,9 @@ const envSchema = z.object({
   POSTGRES_PASSWORD: z.string().optional(),
   RESEND_API_KEY: z.string(),
   FRONTEND_URL: z.string().url(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_REDIRECT_URI: z.string().url(),
 })
 
 export type Env = z.infer<typeof envSchema>

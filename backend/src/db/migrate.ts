@@ -1,21 +1,15 @@
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { Pool } from 'pg'
+import { SQL } from 'bun'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+import { drizzle } from 'drizzle-orm/bun-sql'
+import { migrate } from 'drizzle-orm/bun-sql/migrator'
 
-const db = drizzle(pool)
+const client = new SQL(process.env.DATABASE_URL!)
+const db = drizzle(client)
 
 async function main() {
-  console.log('Running migrations...')
-
+  console.log('🚀 Running migrations with Bun.sql...')
   await migrate(db, { migrationsFolder: './drizzle' })
-
   console.log('✅ Migrations completed!')
-
-  await pool.end()
 }
 
 main().catch((err) => {

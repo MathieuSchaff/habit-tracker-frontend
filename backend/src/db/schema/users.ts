@@ -61,10 +61,10 @@ export const profiles = pgTable(
       .primaryKey()
       .references(() => users.id, { onDelete: 'cascade' }),
 
-    // Pseudo affiché.
+    // Pseudo affiché
     username: varchar('username', { length: 32 }),
 
-    // optionnel: avatar bio
+    //  avatar bio
 
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
@@ -92,7 +92,7 @@ export const refreshTokens = pgTable(
     jtiHash: text('jti_hash').notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
-    lastUsedAt: timestamp('last_used_at', { withTimezone: true }), // ← Nouveau
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
     ip: varchar('ip', { length: 45 }),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

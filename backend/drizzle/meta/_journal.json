@@ -71,6 +71,27 @@
       "when": 1773983867283,
       "tag": "0009_boring_lyja",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774082250361,
+      "tag": "0010_wet_tigra",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774083993477,
+      "tag": "0011_curvy_viper",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1774285200000,
+      "tag": "0012_enable_pg_trgm",
+      "breakpoints": true
     }
   ]
 }
