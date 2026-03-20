@@ -42,12 +42,14 @@
     "@hono/zod-openapi": "^0.18.0",
     "@hono/zod-validator": "^0.7.6",
     "@sindresorhus/slugify": "^3.0.0",
+    "arctic": "^3.7.0",
     "argon2": "^0.44.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.4",
     "hono-rate-limiter": "^0.5.1",
     "pg": "^8.16.3",
+    "resend": "^6.9.4",
     "zod": "^4.3.5"
   }
 }
