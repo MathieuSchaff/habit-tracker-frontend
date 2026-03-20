@@ -6,6 +6,7 @@ interface AuthStore {
   accessToken: string | null
   tokenExpiresAt: number | null
   user: UserPublic | null
+  emailVerified: boolean
 
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
@@ -25,12 +26,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   accessToken: null,
   tokenExpiresAt: null,
   user: null,
+  emailVerified: false,
 
   setAuth: (token, user) =>
     set({
       accessToken: token,
       tokenExpiresAt: decodeTokenExp(token),
       user,
+      emailVerified: user.emailVerified,
     }),
 
   clearAuth: () =>
@@ -38,6 +41,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       accessToken: null,
       tokenExpiresAt: null,
       user: null,
+      emailVerified: false,
     }),
 
   // Marge de 30s pour éviter les race conditions

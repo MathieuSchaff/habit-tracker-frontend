@@ -12,9 +12,9 @@ import { healthRoute } from './features/health/routes'
 import { logsRoutes } from './features/logs'
 import { productRoutes } from './features/products'
 import { ingredientTagRoutes } from './features/products/ingredient-tags/routes'
-import { productTagRoutes } from './features/products/product-tags/routes'
 import { ingredientRoutes } from './features/products/ingredients/routes'
 import { productIngredientRoutes } from './features/products/product-ingredients/routes'
+import { productTagRoutes } from './features/products/product-tags/routes'
 import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
 import { stockRoutes } from './features/stock'
@@ -40,6 +40,7 @@ app.use('*', async (c, next) => {
   c.set('env', Bun.env.NODE_ENV === 'production' ? 'production' : 'development')
   c.set('jwtSecret', env.JWT_SECRET)
   c.set('refreshSecret', env.REFRESH_SECRET)
+  c.set('frontendUrl', env.FRONTEND_URL)
   await next()
 })
 
