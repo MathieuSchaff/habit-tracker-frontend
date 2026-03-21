@@ -1,3 +1,5 @@
+import type { ChangePasswordInput } from '@habit-tracker/shared'
+
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store/auth'
@@ -101,7 +103,6 @@ export function useVerifyEmail() {
       const res = await api.auth['verify-email'].$post({ json: { token } })
       if (!res.ok) throw new Error('server_error')
       const json = await res.json()
-      if (!json.success) throw new Error(json.error)
       return json.data
     },
     onSuccess: () => {
@@ -119,6 +120,17 @@ export function useResendVerification() {
       const res = await api.auth['resend-verification'].$post()
       const json = await res.json()
       if (!json.success) throw new Error(json.error ?? "Erreur lors de l'envoi")
+      return json.data
+    },
+  })
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (data: ChangePasswordInput) => {
+      const res = await api.auth['change-password'].$post({ json: data })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error ?? 'Erreur lors du changement de mot de passe')
       return json.data
     },
   })

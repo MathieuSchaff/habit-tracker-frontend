@@ -1,11 +1,13 @@
 import {
   authSchema as authBodySchema,
   authErrorMapping,
+  changePasswordSchema,
   err,
   errorToStatus,
   HTTP_STATUS,
   isApiSuccess,
   ok,
+  type RawPassword,
   refreshTokenBodySchema,
   verifyEmailBodySchema,
 } from '@habit-tracker/shared'
@@ -14,15 +16,17 @@ import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { getGoogleAuthUrl, handleGoogleCallback } from 'src/features/auth/google.service'
 
 import type { AppEnv } from '../../app-env'
 import { users } from '../../db/schema'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { sendVerificationEmail } from './email.service'
+import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
 import { requireJwtAuth } from './middleware'
-import { type AuthContext, login, logout, refresh, signup } from './service'
+import { type AuthContext, changePassword, login, logout, refresh, signup } from './service'
 
 function buildAuthContext(c: Context<AppEnv>): AuthContext {
   return {
@@ -62,13 +66,8 @@ app.use('/resend-verification', requireJwtAuth)
 
 app.onError((e, c) => {
   console.error('Auth error:', e)
-  return c.json(
-    err('server_error'),
-    HTTP_STATUS.INTERNAL_SERVER_ERROR
-  )
+  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
-
-// Browser
 
 export const jwtAuthRoutes = app
 
@@ -147,14 +146,28 @@ export const jwtAuthRoutes = app
     return c.json(ok(null, 'Disconnected'), HTTP_STATUS.OK)
   })
 
-  // Session
+  .post('/change-password', requireJwtAuth, zValidator('json', changePasswordSchema), async (c) => {
+    const ctx = buildAuthContext(c)
+    const userId = c.get('userId')
+    const { currentPassword, newPassword } = c.req.valid('json')
+
+    const result = await changePassword(
+      ctx,
+      userId,
+      currentPassword as RawPassword,
+      newPassword as RawPassword
+    )
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    return c.json(ok(null), HTTP_STATUS.OK)
+  })
 
   .get('/session', (c) => {
     const userId = c.get('userId')
     return c.json(ok({ authenticated: true as const, userId }), HTTP_STATUS.OK)
   })
-
-  // Email Verification
 
   .post('/verify-email', zValidator('json', verifyEmailBodySchema), async (c) => {
     const { db } = buildAuthContext(c)
@@ -193,8 +206,6 @@ export const jwtAuthRoutes = app
 
     return c.json(ok(null), HTTP_STATUS.OK)
   })
-
-  // Mobile Routes
 
   .post('/mobile/login', zValidator('json', authBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
@@ -268,4 +279,54 @@ export const jwtAuthRoutes = app
     }
 
     return c.json(ok(null, 'Disconnected'), HTTP_STATUS.OK)
+  })
+  .get('/google', (c) => {
+    const env = c.get('env')
+    const { url, state, codeVerifier } = getGoogleAuthUrl()
+
+    setCookie(c, 'google_oauth_state', state, {
+      httpOnly: true,
+      secure: env === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    })
+
+    setCookie(c, 'google_code_verifier', codeVerifier, {
+      httpOnly: true,
+      secure: env === 'production',
+      sameSite: 'Lax',
+      maxAge: 60 * 10,
+      path: '/',
+    })
+
+    return c.redirect(url)
+  })
+
+  .get('/google/callback', async (c) => {
+    const env = c.get('env')
+    const ctx = buildAuthContext(c)
+
+    const storedState = getCookie(c, 'google_oauth_state')
+    const storedVerifier = getCookie(c, 'google_code_verifier')
+    const { code, state } = c.req.query()
+
+    deleteCookie(c, 'google_oauth_state')
+    deleteCookie(c, 'google_code_verifier')
+
+    if (!storedState || !storedVerifier || !code || state !== storedState) {
+      return c.json(err('invalid_token'), HTTP_STATUS.BAD_REQUEST)
+    }
+
+    const result = await handleGoogleCallback(ctx, code, storedVerifier)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), HTTP_STATUS.INTERNAL_SERVER_ERROR)
+    }
+
+    setRefreshTokenCookie(c, result.data.refreshToken, env)
+
+    // Redirige vers le frontend avec l'access token en query param
+    const frontendUrl = c.get('frontendUrl')
+    return c.redirect(`${frontendUrl}/auth/google/callback?token=${result.data.accessToken}`)
   })

@@ -6,13 +6,13 @@ export async function sendVerificationEmail(to: string, verificationUrl: string)
     await resend.emails.send({
       from: 'Aurore <noreply@votre-domaine.com>',
       to,
-      subject: 'Confirme ton adresse email — Aurore',
+      subject: 'Confirmez votre adresse email — Aurore',
       html: `
         <p>Bonjour,</p>
-        <p>Clique sur le lien ci-dessous pour confirmer ton adresse email :</p>
+        <p>Cliquez sur le lien ci-dessous pour confirmer votre adresse email :</p>
         <p><a href="${verificationUrl}">Vérifier mon email</a></p>
         <p>Ce lien expire dans 1 heure.</p>
-        <p>Si tu n'as pas créé de compte sur Aurore, ignore cet email.</p>
+        <p>Si vous n'avez pas créé de compte sur Aurore, ignorez cet email.</p>
       `,
     })
   } catch (e) {
