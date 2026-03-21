@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       emailVerified: false,
     }),
 
-  // Marge de 30s pour éviter les race conditions
+  // 30s margin
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt
     if (!exp) return true

@@ -40,11 +40,29 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
     emailVerified: user.emailVerifiedAt !== null,
   }
 }
+
+export async function getFullUserById(db: DB, userId: string) {
+  const [user] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      passwordHash: users.passwordHash,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      emailVerifiedAt: users.emailVerifiedAt,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+  return user ?? null
+}
 export async function createUser(
   db: DB,
   userData: {
     email: Email
-    passwordHash: HashedPassword
+    passwordHash: HashedPassword | null
+    emailVerifiedAt?: Date | null
   }
 ) {
   const [user] = await db
@@ -52,6 +70,7 @@ export async function createUser(
     .values({
       email: userData.email.trim().toLowerCase(),
       passwordHash: userData.passwordHash,
+      emailVerifiedAt: userData.emailVerifiedAt,
     })
     .returning()
 
@@ -61,12 +80,11 @@ export async function createUser(
 
   return user
 }
-// Crée un profil vide pour un nouvel utilisateur
-export async function createProfile(db: DB, userId: string) {
-  const [profile] = await db.insert(profiles).values({ userId }).returning()
-
-  if (!profile) {
-    throw new Error('Failed to create profile')
-  }
+export async function createProfile(db: DB, userId: string, data?: { avatarUrl?: string | null }) {
+  const [profile] = await db
+    .insert(profiles)
+    .values({ userId, avatarUrl: data?.avatarUrl ?? null })
+    .returning()
+  if (!profile) throw new Error('Failed to create profile')
   return profile
 }

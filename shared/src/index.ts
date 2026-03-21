@@ -1,66 +1,327 @@
 // Schemas (runtime validators + inferred types)
 
-export * from './schemas/api'
-export * from './schemas/auth'
-export * from './schemas/habits'
-export * from './schemas/ingredients'
-export * from './schemas/logs'
-export * from './schemas/product-ingredients'
-export * from './schemas/products'
-export * from './schemas/profile'
-export * from './schemas/stock'
-export * from './schemas/tags'
-export * from './schemas/tasks'
-export * from './schemas/user-preferences'
-export * from './schemas/user-products'
+export { ErrorResponseSchema, SuccessResponseSchema } from './schemas/api'
+export {
+  type AuthFieldErrors,
+  type AuthInput,
+  accessTokenPayloadSchema,
+  authSchema,
+  browserAuthResultSchema,
+  type ChangePasswordInput,
+  changePasswordSchema,
+  type Email,
+  emailSchema,
+  type HashedPassword,
+  loginSchema,
+  mobileAuthResultSchema,
+  mobileRefreshResultSchema,
+  passwordSchema,
+  type RawPassword,
+  refreshTokenBodySchema,
+  refreshTokenPayloadSchema,
+  sessionResultSchema,
+  signupSchema,
+  userPublicSchema,
+  verifyEmailBodySchema,
+} from './schemas/auth'
+export {
+  type CheckHabitInput,
+  type CreateHabitInput,
+  checkHabitSchema,
+  checkProductHistoryResponseSchema,
+  createHabitSchema,
+  type DateRangeQuery,
+  dateRangeQuerySchema,
+  type Frequency,
+  frequencySchema,
+  type GetUserChecksQuery,
+  getUserChecksQuerySchema,
+  type HabitProductInput,
+  habitCheckResponseSchema,
+  habitFrequencyResponseSchema,
+  habitPeriodResponseSchema,
+  habitProductResponseSchema,
+  habitProductSchema,
+  habitReminderResponseSchema,
+  habitResponseSchema,
+  habitStatsResponseSchema,
+  habitTimingResponseSchema,
+  habitWithRelationsResponseSchema,
+  type Period,
+  periodSchema,
+  REMINDER_PRESETS,
+  type Reminder,
+  type ReorderHabitsInput,
+  reminderSchema,
+  reminderWithTimingSchema,
+  reorderHabitsSchema,
+  type SetPeriodInput,
+  type SetProductsInput,
+  type SetRemindersInput,
+  type SetRemindersWithTimingInput,
+  type SetTimingsInput,
+  setPeriodSchema,
+  setProductsSchema,
+  setRemindersSchema,
+  setTimingsSchema,
+  type Timing,
+  type ToggleCheckInput,
+  timingSchema,
+  todayHabitResponseSchema,
+  todayUserProductSchema,
+  toggleCheckResultResponseSchema,
+  toggleCheckSchema,
+  type UpdateFrequencyInput,
+  type UpdateHabitInput,
+  uncheckByDateSchema,
+  uncheckHabitSchema,
+  updateFrequencySchema,
+  updateHabitSchema,
+} from './schemas/habits'
+export {
+  type CreateIngredientInput,
+  createIngredientSchema,
+  type IngredientChanges,
+  type IngredientEditResponse,
+  type IngredientResponse,
+  type IngredientSearchFilters,
+  type IngredientSearchResult,
+  ingredientChangesSchema,
+  ingredientEditResponseSchema,
+  ingredientResponseSchema,
+  ingredientSearchResultSchema,
+  ingredientsSearchSchema,
+  type UpdateIngredientInput,
+  updateIngredientSchema,
+} from './schemas/ingredients'
+export {
+  type HabitCheckProductResponse,
+  type HabitCheckWithProductsResponse,
+  habitCheckProductInputSchema,
+  habitCheckProductResponseSchema,
+  habitCheckWithProductsResponseSchema,
+  type LogHabitCheckInput,
+  type LogWellbeingInput,
+  logHabitCheckSchema,
+  logWellbeingSchema,
+  type TodayLogsResponse,
+  todayLogsQuerySchema,
+  todayLogsResponseSchema,
+  type WellbeingLogResponse,
+  wellbeingLogResponseSchema,
+  wellbeingMetricSchema,
+  wellbeingMetrics,
+} from './schemas/logs'
+export {
+  type CreateProductIngredientInput,
+  createProductIngredientSchema,
+  productIngredientResponseSchema,
+} from './schemas/product-ingredients'
+export {
+  type CreateProductInput,
+  createProductSchema,
+  filterOptionsSchema,
+  type ProductChanges,
+  type ProductEditResponseSchema,
+  type ProductsPage,
+  productChangesSchema,
+  productEditResponseSchema,
+  productResponseSchema,
+  productsPageSchema,
+  searchProductsQuery,
+  type UpdateProductInput,
+  updateProductSchema,
+} from './schemas/products'
+export {
+  BIO_MAX_LENGTH,
+  type ProfileStats,
+  type ProfileUpdateInput,
+  profilePublicSchema,
+  profileStatsSchema,
+  profileUpdateSchema,
+  USERNAME_MAX_LENGTH,
+} from './schemas/profile'
+export {
+  type AddStockEntryInput,
+  addStockEntrySchema,
+  type StockEntryResponse,
+  stockEntryResponseSchema,
+} from './schemas/stock'
+export {
+  type AddIngredientTagInput,
+  type AddProductTagInput,
+  addIngredientTagSchema,
+  addProductTagSchema,
+  type CreateTagInput,
+  createTagSchema,
+  type IngredientTagResponse,
+  ingredientTagResponseSchema,
+  type Relevance,
+  type ReplaceIngredientTagsInput,
+  type ReplaceProductTagsInput,
+  relevanceEnum,
+  replaceIngredientTagsSchema,
+  replaceProductTagsSchema,
+  tagResponseSchema,
+  type UpdateTagInput,
+} from './schemas/tags'
+export {
+  type CreateSubtaskInput,
+  type CreateTaskInput,
+  createSubtaskSchema,
+  createTaskSchema,
+  type UpdateSubtaskInput,
+  type UpdateTaskInput,
+  updateSubtaskSchema,
+  updateTaskSchema,
+} from './schemas/tasks'
+export {
+  type CriteriaWeights,
+  criteriaWeightsSchema,
+  type DisplayScale,
+  displayScale,
+  displayScaleSchema,
+  type UpdateUserPreferencesInput,
+  type UserPreferences,
+  updateUserPreferencesSchema,
+  userPreferencesSchema,
+} from './schemas/user-preferences'
+export {
+  type CreateUserProductInput,
+  createUserProductSchema,
+  type RepurchaseFlag,
+  repurchaseFlag,
+  repurchaseFlagSchema,
+  type UpdateUserProductInput,
+  type UpdateUserProductReviewInput,
+  type UserProduct,
+  type UserProductReview,
+  type UserProductStatus,
+  updateUserProductReviewSchema,
+  updateUserProductSchema,
+  userProductReviewSchema,
+  userProductSchema,
+  userProductStatus,
+  userProductStatusSchema,
+} from './schemas/user-products'
 
 // Types (entity types, error codes, composed types)
 
-export type * from './types/api'
-export type * from './types/auth'
-export type * from './types/common'
-export type * from './types/habits'
 export type {
-  CreateIngredientInput,
+  ApiError,
+  ApiResponse,
+  ApiSuccess,
+  CommonErrorCode,
+} from './types/api'
+export type {
+  AccessTokenPayload,
+  AuthErrorCode,
+  AuthenticatedResult,
+  AuthTokens,
+  BrowserAuthResult,
+  ChangePasswordResult,
+  CreateRefreshTokenArgs,
+  GoogleCallbackResult,
+  LoginResult,
+  LogoutResult,
+  MobileAuthResult,
+  RefreshResult,
+  RefreshTokenPayload,
+  SignupResult,
+  UserPublic,
+} from './types/auth'
+export type { FieldChange } from './types/common'
+export type {
+  Habit,
+  HabitCheck,
+  HabitCheckProduct,
+  HabitCheckStatus,
+  HabitErrorCode,
+  HabitFrequency,
+  HabitPeriod,
+  HabitProduct,
+  HabitReminder,
+  HabitStats,
+  HabitTiming,
+  HabitTimingWithReminders,
+  HabitWithRelations,
+  TodayHabit,
+  TodayUserProduct,
+  ToggleCheckResult,
+} from './types/habits'
+export type {
   EditableIngredientKeys,
   Ingredient,
-  IngredientChanges,
   IngredientEdit,
   IngredientErrorCode,
-  UpdateIngredientInput,
 } from './types/ingredients'
 export type { LogsErrorCode } from './types/logs'
-export type * from './types/product-ingredients'
+export type {
+  ProductIngredient,
+  ProductIngredientErrorCode,
+} from './types/product-ingredients'
 export type {
   EditableProductKeys,
   Product,
-  ProductChanges,
   ProductEdit,
   ProductErrorCode,
   ProductSearchResult,
-  ProductStock,
   ProductWithStock,
 } from './types/products'
-export type * from './types/profile'
+export type {
+  MeResponse,
+  ProfileErrorCode,
+  ProfilePublic,
+  ProfileStatsResponse,
+  ProfileUpdateResponse,
+} from './types/profile'
 export type { StockErrorCode } from './types/stock'
-export type { IngredientTag, ProductTag, Tag, TagErrorCode } from './types/tags'
-export type { Task, Subtask, TaskEnergy, TaskStatus, TaskErrorCode } from './types/tasks'
+export type {
+  IngredientTag,
+  ProductTag,
+  Tag,
+  TagErrorCode,
+} from './types/tags'
+export type {
+  Subtask,
+  Task,
+  TaskEnergy,
+  TaskErrorCode,
+  TaskStatus,
+} from './types/tasks'
+export type { UserProductErrorCode } from './types/user-products'
 
 // Helpers (error mappings, constants, utilities)
 
-export * from './helpers/api'
-export * from './helpers/auth'
-export * from './helpers/constants'
-export * from './helpers/habits'
-export * from './helpers/ingredients'
-export * from './helpers/logs'
-export * from './helpers/product-ingredients'
-export * from './helpers/products'
-export * from './helpers/profile'
-export * from './helpers/stock'
-export * from './helpers/tags'
-export * from './helpers/tasks'
+export {
+  err,
+  errorToStatus,
+  isApiError,
+  isApiSuccess,
+  ok,
+} from './helpers/api'
+export { authErrorMapping } from './helpers/auth'
+export {
+  baseErrorMapping,
+  type ContentfulHttpStatus,
+  HTTP_STATUS,
+  type HttpStatus,
+} from './helpers/constants'
+export { habitErrorMapping } from './helpers/habits'
+export { ingredientErrorMapping } from './helpers/ingredients'
+export { logsErrorMapping } from './helpers/logs'
+export { productIngredientErrorMapping } from './helpers/product-ingredients'
+export { productErrorMapping } from './helpers/products'
+export { profileErrorMapping } from './helpers/profile'
+export { stockErrorMapping } from './helpers/stock'
+export { tagErrorMapping } from './helpers/tags'
+export { taskErrorMapping } from './helpers/tasks'
+export { userProductErrorMapping } from './helpers/user-products'
 
 // OpenAPI
 
-export * from './openapi/responses'
+export {
+  errorResponse,
+  errorResponseWithOptionnalErrorCode,
+  successResponse,
+} from './openapi/responses'

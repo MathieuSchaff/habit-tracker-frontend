@@ -1,4 +1,5 @@
 import type {
+  ChangePasswordResult,
   Email,
   HashedPassword,
   LoginResult,
@@ -9,9 +10,13 @@ import type {
 } from '@habit-tracker/shared'
 import { err, ok } from '@habit-tracker/shared'
 
+import { eq } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
+import { users } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
+import { sendVerificationEmail } from './email.service'
+import { createVerificationToken } from './email-verification.service'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
 import {
   cleanupUserRefreshTokens,
@@ -20,9 +25,14 @@ import {
   revokeRefreshToken,
   storeRefreshToken,
 } from './refresh-token.service'
-import { createVerificationToken } from './email-verification.service'
-import { sendVerificationEmail } from './email.service'
-import { createProfile, createUser, getUser, getUserById, toPublicUser } from './user.utils'
+import {
+  createProfile,
+  createUser,
+  getFullUserById,
+  getUser,
+  getUserById,
+  toPublicUser,
+} from './user.utils'
 
 export type AuthContext = {
   db: DB
@@ -35,7 +45,8 @@ export type AuthContext = {
 
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
-async function createTokenPair(ctx: AuthContext, userId: string) {
+// auth token pair
+export async function createTokenPair(ctx: AuthContext, userId: string) {
   const accessToken = await generateAccessToken(userId, ctx.jwtSecret)
   const {
     token: refreshToken,
@@ -54,8 +65,7 @@ async function createTokenPair(ctx: AuthContext, userId: string) {
   return { accessToken, refreshToken }
 }
 
-//  Signup
-
+// signup
 export async function signup(
   ctx: AuthContext,
   email: Email,
@@ -67,8 +77,14 @@ export async function signup(
 
     const passwordHash = (await Bun.password.hash(password)) as HashedPassword
 
+    const isDev = Bun.env.NODE_ENV === 'development'
+
     const user = await ctx.db.transaction(async (tx) => {
-      const user = await createUser(tx, { email, passwordHash })
+      const user = await createUser(tx, {
+        email,
+        passwordHash,
+        emailVerifiedAt: isDev ? new Date() : null,
+      })
       await createProfile(tx, user.id)
       return user
     })
@@ -102,6 +118,7 @@ export async function signup(
   }
 }
 
+// login
 export async function login(
   ctx: AuthContext,
   email: Email,
@@ -109,8 +126,6 @@ export async function login(
 ): Promise<LoginResult> {
   try {
     const user = await getUser(ctx.db, email)
-
-    // const isValid = await verify(user?.passwordHash ?? DUMMY_HASH, password)
 
     const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
     if (!user || !isValid) return err('invalid_credentials')
@@ -134,8 +149,7 @@ export async function login(
   }
 }
 
-//  Refresh
-
+// refresh
 export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promise<RefreshResult> {
   try {
     const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
@@ -161,9 +175,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     }
 
     if (!user.emailVerified) {
-      const createdAt = user.createdAt instanceof Date
-        ? user.createdAt
-        : new Date(user.createdAt)
+      const createdAt = user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt)
       const graceExpired = createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)
       if (graceExpired) return err('email_not_verified')
     }
@@ -189,5 +201,39 @@ export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise
   } catch {
     console.error('Logout failed')
     return ok(null)
+  }
+}
+
+export async function changePassword(
+  ctx: AuthContext,
+  userId: string,
+  currentPassword: RawPassword,
+  newPassword: RawPassword
+): Promise<ChangePasswordResult> {
+  try {
+    const user = await getFullUserById(ctx.db, userId)
+    if (!user || !user.passwordHash) {
+      return err('invalid_credentials')
+    }
+
+    const isValid = await Bun.password.verify(currentPassword, user.passwordHash)
+    if (!isValid) {
+      return err('invalid_credentials')
+    }
+
+    const newPasswordHash = (await Bun.password.hash(newPassword)) as HashedPassword
+
+    await ctx.db
+      .update(users)
+      .set({ passwordHash: newPasswordHash, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+
+    // Revoke other sessions (optional but recommended)
+    // await revokeAllUserRefreshTokens(ctx.db, userId)
+
+    return ok(null)
+  } catch (e) {
+    console.error('Change password failed:', e)
+    return err('server_error')
   }
 }
