@@ -154,7 +154,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
   try {
     const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
     if (!payload) return err('invalid_token')
-
+    // look if refresh token exist and is not revoked
     const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
     if (!storedToken) {
       console.warn(`Potential token replay for user ${payload.sub}`)
@@ -179,6 +179,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       const graceExpired = createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)
       if (graceExpired) return err('email_not_verified')
     }
+    await cleanupUserRefreshTokens(ctx.db, payload.sub)
 
     const tokens = await createTokenPair(ctx, payload.sub)
     await revokeRefreshToken(ctx.db, payload.jti)

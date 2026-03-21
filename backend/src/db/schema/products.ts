@@ -45,7 +45,6 @@ export const products = pgTable(
     url: text('url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),
-    expiresAt: text('expires_at'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -56,30 +55,8 @@ export const products = pgTable(
   (t) => [
     index('products_kind_idx').on(t.kind),
     index('products_created_by_idx').on(t.createdBy),
-    uniqueIndex('products_name_brand_unique').on(t.name, t.brand),
+    uniqueIndex('products_name_brand_unique').on(sql`lower(${t.name})`, sql`lower(${t.brand})`),
     uniqueIndex('products_slug_unique').on(t.slug),
-  ]
-)
-
-export const productStock = pgTable(
-  'product_stock',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    productId: uuid('product_id')
-      .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
-    qty: integer('qty').notNull().default(0),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
-  },
-  (t) => [
-    uniqueIndex('product_stock_user_product_unique').on(t.userId, t.productId),
-    index('product_stock_user_idx').on(t.userId),
   ]
 )
 
@@ -106,5 +83,4 @@ export const productEdits = pgTable(
 export type ProductEdit = typeof productEdits.$inferSelect
 export type Product = typeof products.$inferSelect
 export type CreateProductInputDrizzle = typeof products.$inferInsert
-export type ProductStock = typeof productStock.$inferSelect
 export type ProductEditInsert = typeof productEdits.$inferInsert

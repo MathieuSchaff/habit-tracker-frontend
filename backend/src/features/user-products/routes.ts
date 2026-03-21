@@ -1,11 +1,14 @@
 import {
   createUserProductSchema,
   err,
+  errorToStatus,
   HTTP_STATUS,
   ok,
   updateUserProductReviewSchema,
   updateUserProductSchema,
+  userProductErrorMapping,
 } from '@habit-tracker/shared'
+
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
@@ -23,51 +26,23 @@ import {
 } from './service'
 import { UserProductError } from './user-product-error'
 
-const userProductApp = new Hono<AppEnv>()
+const app = new Hono<AppEnv>()
 
-userProductApp.use('*', requireJwtAuth)
+app.use('*', requireJwtAuth)
 
-userProductApp.onError((error, c) => {
+app.onError((error, c) => {
   if (error instanceof UserProductError) {
-    if (error.code === 'not_found') {
-      return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
-    }
-    return c.json(err(error.code, error.details), HTTP_STATUS.BAD_REQUEST)
+    return c.json(err(error.code), errorToStatus(error.code, userProductErrorMapping))
   }
-  console.error('Unexpected error in userProductRoutes:', error)
+  console.error('Unexpected error in user products routes:', error)
   return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
 
-const userProductIdParam = z.object({ id: z.string().uuid() })
-const productIdParam = z.object({ productId: z.string().uuid() })
-
-export const userProductRoutes = userProductApp
+export const userProductRoutes = app
   .get('/', async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const result = await getUserProducts(userId, db)
-    return c.json(ok(result), HTTP_STATUS.OK)
-  })
-
-  .get('/:id', zValidator('param', userProductIdParam), async (c) => {
-    const db = c.get('db')
-    const userId = c.get('userId')
-    const { id } = c.req.valid('param')
-    const result = await getUserProductById(userId, id, db)
-    if (!result) {
-      return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
-    }
-    return c.json(ok(result), HTTP_STATUS.OK)
-  })
-
-  .get('/product/:productId', zValidator('param', productIdParam), async (c) => {
-    const db = c.get('db')
-    const userId = c.get('userId')
-    const { productId } = c.req.valid('param')
-    const result = await getUserProductByProductId(userId, productId, db)
-    if (!result) {
-      return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
-    }
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
@@ -79,19 +54,39 @@ export const userProductRoutes = userProductApp
     return c.json(ok(result), HTTP_STATUS.CREATED)
   })
 
-  .patch('/:id', zValidator('param', userProductIdParam), zValidator('json', updateUserProductSchema), async (c) => {
+  .get('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const { id } = c.req.valid('param')
-    const input = c.req.valid('json')
-    const result = await updateUserProduct(userId, id, input, db)
-    if (!result) {
-      return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
-    }
+    const result = await getUserProductById(userId, id, db)
+    if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  .delete('/:id', zValidator('param', userProductIdParam), async (c) => {
+  .get('/product/:productId', zValidator('param', z.object({ productId: z.uuid() })), async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const { productId } = c.req.valid('param')
+    const result = await getUserProductByProductId(userId, productId, db)
+    if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
+    return c.json(ok(result), HTTP_STATUS.OK)
+  })
+
+  .patch(
+    '/:id',
+    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('json', updateUserProductSchema),
+    async (c) => {
+      const db = c.get('db')
+      const userId = c.get('userId')
+      const { id } = c.req.valid('param')
+      const input = c.req.valid('json')
+      const result = await updateUserProduct(userId, id, input, db)
+      return c.json(ok(result), HTTP_STATUS.OK)
+    }
+  )
+
+  .delete('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const { id } = c.req.valid('param')
@@ -99,12 +94,16 @@ export const userProductRoutes = userProductApp
     return c.json(ok(null), HTTP_STATUS.OK)
   })
 
-  // Review (structured evaluation)
-  .put('/:id/review', zValidator('param', userProductIdParam), zValidator('json', updateUserProductReviewSchema), async (c) => {
-    const db = c.get('db')
-    const userId = c.get('userId')
-    const { id } = c.req.valid('param')
-    const input = c.req.valid('json')
-    const result = await upsertUserProductReview(userId, id, input, db)
-    return c.json(ok(result), HTTP_STATUS.OK)
-  })
+  .put(
+    '/:id/review',
+    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('json', updateUserProductReviewSchema),
+    async (c) => {
+      const db = c.get('db')
+      const userId = c.get('userId')
+      const { id } = c.req.valid('param')
+      const input = c.req.valid('json')
+      const result = await upsertUserProductReview(userId, id, input, db)
+      return c.json(ok(result), HTTP_STATUS.OK)
+    }
+  )

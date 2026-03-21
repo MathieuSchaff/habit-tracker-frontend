@@ -6,8 +6,8 @@ import type {
 
 import { and, eq } from 'drizzle-orm'
 
+import type { DB } from '../../db'
 import { userProductReviews, userProducts } from '../../db/schema/user-products'
-import type { DB } from '../../db/types'
 import { UserProductError } from './user-product-error'
 
 export async function getUserProducts(userId: string, db: DB) {
@@ -105,13 +105,22 @@ export async function updateUserProduct(
     })
     .where(and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)))
     .returning()
+
+  if (!result) {
+    throw new UserProductError('user_product_not_found')
+  }
   return result
 }
 
 export async function deleteUserProduct(userId: string, userProductId: string, db: DB) {
-  await db
+  const [result] = await db
     .delete(userProducts)
     .where(and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)))
+    .returning()
+
+  if (!result) {
+    throw new UserProductError('user_product_not_found')
+  }
 }
 
 export async function upsertUserProductReview(
@@ -126,7 +135,7 @@ export async function upsertUserProductReview(
   })
 
   if (!userProduct) {
-    throw new UserProductError('not_found')
+    throw new UserProductError('user_product_not_found')
   }
 
   const [result] = await db
