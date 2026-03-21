@@ -39,6 +39,7 @@ export const userProducts = pgTable(
     sentiment: integer('sentiment'), // 1-5
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
+    expiresAt: text('expires_at'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()

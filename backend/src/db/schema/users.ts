@@ -42,13 +42,15 @@ export const users = pgTable(
   },
   (t) => [
     // Empêche 2 comptes avec le même email
-    uniqueIndex('users_email_unique').on(t.email),
-
+    uniqueIndex('users_email_active_unique_idx')
+      .on(sql`lower(${t.email})`) //  Ignore la casse
+      .where(sql`deleted_at IS NULL`), //  Seulement pour les comptes vivants
     // Empêche 2 users liés au même compte Google
-    uniqueIndex('users_google_sub_ux').on(t.googleSub),
-
-    // Utile pour "liste des derniers inscrits" / tri / pagination par date
-    index('users_created_at_idx').on(t.createdAt),
+    // .where .... => pour que l'index ne prenne pas de la place pour tous les utilisateurs( meem ceu xqui n'ont pas de compte google)
+    // index partiel donc l'index est petit et ne conteint que les users "Google"
+    uniqueIndex('users_google_sub_ux')
+      .on(t.googleSub)
+      .where(sql`google_sub IS NOT NULL`),
   ]
 )
 

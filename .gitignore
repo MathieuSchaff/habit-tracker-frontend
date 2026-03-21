@@ -19,6 +19,7 @@ build/
 .env
 .env.local
 .env.prod
+.env.dev
 .env.production
 !.env.example
 

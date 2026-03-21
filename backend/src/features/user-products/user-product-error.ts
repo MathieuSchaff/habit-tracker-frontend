@@ -1,6 +1,4 @@
-import type { StockErrorCode } from '@habit-tracker/shared'
-
-export type UserProductErrorCode = StockErrorCode | 'not_found'
+import type { UserProductErrorCode } from '@habit-tracker/shared'
 
 export class UserProductError extends Error {
   constructor(

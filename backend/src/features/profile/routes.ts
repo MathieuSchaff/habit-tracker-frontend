@@ -6,12 +6,18 @@ import {
   updateUserPreferencesSchema,
 } from '@habit-tracker/shared'
 
-import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
-import { getProfile, getUserPreferences, updateProfile, updateUserPreferences } from './service'
+import {
+  getProfile,
+  getProfileStats,
+  getUserPreferences,
+  updateProfile,
+  updateUserPreferences,
+} from './service'
 
 const app = new Hono<AppEnv>()
 
@@ -37,6 +43,13 @@ export const profileRoute = app
     }
 
     return c.json(ok(profile), HTTP_STATUS.OK)
+  })
+
+  .get('/stats', async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const stats = await getProfileStats(db, userId)
+    return c.json(ok(stats), HTTP_STATUS.OK)
   })
 
   .patch('/', zValidator('json', profileUpdateSchema), async (c) => {

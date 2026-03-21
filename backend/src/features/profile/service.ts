@@ -2,15 +2,19 @@ import type {
   CriteriaWeights,
   DisplayScale,
   ProfilePublic,
+  ProfileStats,
   ProfileUpdateInput,
   UpdateUserPreferencesInput,
 } from '@habit-tracker/shared'
 
-import { eq } from 'drizzle-orm'
+import { and, count, eq, isNull } from 'drizzle-orm'
 
+import type { Database, DB } from '../../db'
+import { habitChecks, habits } from '../../db/schema/habits'
 import { userPreferences } from '../../db/schema/user-preferences'
+import { userProducts } from '../../db/schema/user-products'
 import { profiles } from '../../db/schema/users'
-import type { DB } from '../../db/types'
+import { getHabitStreak } from '../habits/service'
 import type { Profile } from './types'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
@@ -127,5 +131,46 @@ export async function updateUserPreferences(
     displayScale: row.displayScale,
     criteriaWeights: row.criteriaWeights,
     updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+/**
+ * Récupère les statistiques d'utilisation d'un utilisateur.
+ */
+export async function getProfileStats(db: Database, userId: string): Promise<ProfileStats> {
+  const [habitCount] = await db
+    .select({ count: count() })
+    .from(habits)
+    .where(and(eq(habits.userId, userId), isNull(habits.archivedAt)))
+
+  const [checkCount] = await db
+    .select({ count: count() })
+    .from(habitChecks)
+    .innerJoin(habits, eq(habitChecks.habitId, habits.id))
+    .where(and(eq(habits.userId, userId), eq(habitChecks.status, 'done')))
+
+  const [productCount] = await db
+    .select({ count: count() })
+    .from(userProducts)
+    .where(eq(userProducts.userId, userId))
+
+  const userHabits = await db
+    .select({ id: habits.id })
+    .from(habits)
+    .where(and(eq(habits.userId, userId), isNull(habits.archivedAt)))
+
+  let bestStreak = 0
+  for (const habit of userHabits) {
+    const streak = await getHabitStreak(habit.id, db)
+    if (streak > bestStreak) {
+      bestStreak = streak
+    }
+  }
+
+  return {
+    totalHabits: habitCount?.count ?? 0,
+    totalChecks: checkCount?.count ?? 0,
+    bestStreak,
+    totalProducts: productCount?.count ?? 0,
   }
 }
