@@ -15,6 +15,7 @@ export async function getUserProducts(userId: string, db: DB) {
     where: eq(userProducts.userId, userId),
     with: {
       review: true,
+      purchases: true,
       product: {
         with: {
           productIngredients: {
@@ -33,6 +34,7 @@ export async function getUserProductById(userId: string, userProductId: string, 
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
     with: {
       review: true,
+      purchases: true,
       product: {
         with: {
           productIngredients: {
@@ -51,6 +53,7 @@ export async function getUserProductByProductId(userId: string, productId: strin
     where: and(eq(userProducts.productId, productId), eq(userProducts.userId, userId)),
     with: {
       review: true,
+      purchases: true,
       product: {
         with: {
           productIngredients: {
@@ -71,7 +74,6 @@ export async function createUserProduct(userId: string, input: CreateUserProduct
       userId,
       productId: input.productId,
       status: input.status,
-      qty: input.qty,
       sentiment: input.sentiment,
       wouldRepurchase: input.wouldRepurchase,
       comment: input.comment,
@@ -80,7 +82,6 @@ export async function createUserProduct(userId: string, input: CreateUserProduct
       target: [userProducts.userId, userProducts.productId],
       set: {
         status: input.status,
-        qty: input.qty,
         sentiment: input.sentiment,
         wouldRepurchase: input.wouldRepurchase,
         comment: input.comment,
