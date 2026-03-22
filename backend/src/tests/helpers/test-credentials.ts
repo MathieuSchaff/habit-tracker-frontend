@@ -24,6 +24,7 @@ export const TEST_CREDENTIALS = {
     motDePasseFaible: unsafePassword('toto123'),
     sansMajuscule: unsafePassword('toto123!'),
     sansChiffre: unsafePassword('TotoToto!!!'),
+    sansCaractereSpecial: unsafePassword('TotoToto123'),
     videEmail: unsafeEmail(''),
     videMotDePasse: unsafePassword(''),
   },

@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@habit-tracker/shared": "workspace:*",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.91.2",
+    "@tanstack/router-cli": "^1.166.17",
     "@tanstack/router-devtools": "^1.153.2",
     "@tanstack/router-plugin": "^1.157.14",
     "@testing-library/jest-dom": "^6.9.1",

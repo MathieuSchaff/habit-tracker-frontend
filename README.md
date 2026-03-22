@@ -1,588 +1,149 @@
-# Habit Tracker — Infrastructure & Développement
+# Habit Tracker - Monorepo Fullstack
 
-# Guide de survie - Habit Tracker Monorepo
+Une application complète de suivi d'habitudes et de gestion de produits (skincare/dermo) avec analyse d'ingrédients. Développée avec Bun, Hono, React et Drizzle ORM.
 
-## 🚀 Démarrage du projet (première fois)
+## 🚀 Fonctionnalités principales
+
+- **Suivi d'habitudes** : Système complet de tracking quotidien.
+- **Gestion de produits** : Inventaire de produits personnels (stock, péremption).
+- **Analyse d'ingrédients** : Analyse dermatologique des compositions (ingrédients, profils dermo).
+- **Gestion de tâches** : Système de listes de tâches intégré.
+- **Logs & Sentiment** : Suivi de l'état d'esprit et notes quotidiennes.
+- **Authentification complète** : Login/Signup, vérification d'email, tokens de rafraîchissement.
+- **Multi-plateforme** : Web-first avec architecture prête pour mobile.
+
+## 🛠️ Stack Technique
+
+- **Runtime** : [Bun](https://bun.sh/)
+- **Backend** : [Hono](https://hono.dev/) (API REST + Hono RPC pour les types)
+- **Frontend** : [React](https://react.dev/) + [Vite](https://vitejs.dev/) + [TanStack Router](https://tanstack.com/router) & [Query](https://tanstack.com/query)
+- **Base de données** : [PostgreSQL 18](https://www.postgresql.org/) + [Drizzle ORM](https://orm.drizzle.team/)
+- **Styling** : Vanilla CSS + [Lucide Icons](https://lucide.dev/)
+- **Qualité** : [Biome](https://biomejs.dev/) (Lint & Format) + [Vitest](https://vitest.dev/) (Tests)
+- **Infrastructure** : [Docker Compose](https://docs.docker.com/compose/) + [Nginx](https://www.nginx.com/) + [Certbot](https://certbot.eff.org/)
+
+---
+
+## 🚀 Démarrage rapide (Première fois)
+
+> [!IMPORTANT]
+> **Étape CRITIQUE pour le premier lancement** : Le monorepo utilise TypeScript au niveau de la racine (`/`) pour gérer les dépendances entre les packages (`shared`, `backend`, `frontend`). 
+> Comme Docker ne possède pas toujours le cache de build TypeScript au démarrage, vous **DEVEZ** build les types localement avant de lancer Docker.
 
 ```bash
-# 1. Cloner le repo et entrer dans le dossier
-cd habit-tracker
-
-# 2. Installer les dépendances
+# 1. Installer les dépendances (nécessite Bun)
 make install-deps
 
-# 3. Build initial des types (OBLIGATOIRE avant Docker)
-make ts-build
+# 2. Copier et remplir les variables d'environnement
+cp .env.example .env.dev
 
-# 4. Synchroniser le schéma avec la DB (OBLIGATOIRE la 1ère fois)
-# Cela crée les tables comme 'refresh_tokens' qui manquent sinon
-#
-make db-push
-
-# 5. Vérifier que les types sont générés
-make diagnose
-
-# 6. Lancer l'environnement de développement
-make dev
-```
-
-**Ou en une commande :**
-
-```bash
+# 3. Lancer l'environnement complet (build les types automatiquement)
 make dev-fresh
 ```
 
----
-
-## 🔄 Workflow de développement quotidien
-
-### Terminal 1 - Types (toujours actif)
-
-```bash
-make ts-check
-```
-
-**Gardez ce terminal ouvert !** Il rebuild les types automatiquement quand vous modifiez du code.
-
-### Terminal 2 - Docker
-
-```bash
-make dev
-```
-
-### Terminal 3 - Commandes diverses (optionnel)
+**Workflow quotidien** :
+1. Terminal 1 : `make ts-check` (Watch mode local pour synchroniser les types pendant que vous codez)
+2. Terminal 2 : `make dev` (Build les types + Docker compose)
 
 ---
 
-## 🐛 J'ai un problème de types
+## 📋 Commandes Essentielles (Makefile)
 
-### Symptôme : Erreur rouge dans l'éditeur ou `Cannot find module`
+### Développement & Types
+| Commande | Description |
+| :--- | :--- |
+| `make dev` | Build les types + Lance l'environnement (Docker) |
+| `make dev-fresh` | Nettoyage complet + Installation + Lancement |
+| `make ts-check` | **Indispensable** : Watch mode pour TypeScript (Hôte) |
+| `make ts-build` | Génère les types et les routes TanStack (Hôte) |
+| `make diagnose` | Vérifie l'état des types et des conteneurs |
 
-```bash
-# 1. Vérifier l'état
-make diagnose
+### Qualité & Tests
+| Commande | Description |
+| :--- | :--- |
+| `make lint-fix` | Corrige les erreurs de style avec Biome |
+| `make format` | Formate le code proprement |
+| `make test` | Lance les tests backend (avec DB isolée) |
+| `make test-frontend` | Lance les tests Vitest du frontend |
+| `make test-all` | Lance l'intégralité de la suite de tests |
 
-# 2. Si les types sont manquants, les regénérer
-make ts-build
-
-# 3. Si ça ne suffit pas, nettoyer et rebuild
-make ts-clean && make ts-build
-
-# 4. Redémarrer Docker si nécessaire
-make dev-down && make dev
-```
-
-### Symptôme : Les types ne se mettent pas à jour
-
-```bash
-# Vérifier que make ts-check tourne bien dans un terminal
-# Puis forcer le rebuild complet
-make ts-clean && make ts-build && make dev-down && make dev
-```
+### Base de Données
+| Commande | Description |
+| :--- | :--- |
+| `make db-generate` | Génère une nouvelle migration SQL |
+| `make db-migrate` | Applique les migrations en local |
+| `make db-push` | Synchronise le schéma sans migration (dev rapide) |
+| `make db-studio` | Interface visuelle Drizzle (http://localhost:4983) |
+| `make db-seed` | Injecte les données de test |
+| `make db-reset` | **NUKE DB** : Clean + Push + Seed |
 
 ---
 
-## 📦 J'ajoute une dépendance
+## 📂 Structure du Monorepo
 
-### Dans `shared/` (schéma Zod, types)
-
-```bash
-# 1. Modifier shared/package.json
-# 2. Réinstaller
-make clean-install
-
-# 3. Rebuild les types
-make ts-build
-
-# 4. Rebuild Docker sans cache
-make dev-rebuild
 ```
-
-### Dans `backend/` (API Hono)
-
-```bash
-# 1. Modifier backend/package.json
-# 2. Réinstaller et rebuild
-make reinstall-backend
-```
-
-### Dans `frontend/` (React)
-
-```bash
-# 1. Modifier frontend/package.json
-# 2. Réinstaller et rebuild
-make reinstall-frontend
-```
-
-### Dans la racine (workspace)
-
-```bash
-# 1. Modifier package.json racine
-# 2. Réinstallation complète
-make clean-install && make ts-build && make dev-rebuild
+/
+├── backend/            # API Hono (Types exportés via Hono RPC)
+├── frontend/           # SPA React (Vite + TanStack)
+├── shared/             # Schémas Zod et Types partagés (Source de vérité)
+├── nginx/              # Configuration reverse proxy (Prod)
+├── backups/            # Sauvegardes de la base de données
+├── Makefile            # Point d'entrée unique des commandes
+├── docker-compose.yml  # Config Docker de base (Postgres 18)
+└── biome.json          # Config Linting & Formatting
 ```
 
 ---
 
-## 🔥 Problèmes courants et solutions
+## ⚙️ Configuration
 
-### "Cannot find module '@habit-tracker/shared'"
+### Variables d'environnement
+- `.env.dev` : Configuration de développement (⚠️ **NE JAMAIS COMMITER**).
+- `.env.prod` : Configuration de production (⚠️ **NE JAMAIS COMMITER**).
+- `.env.example` : Modèle pour créer vos fichiers `.env.dev` et `.env.prod`.
 
-```bash
-# Les types ne sont pas générés
-make ts-build
-make diagnose  # Vérifier que shared/dist/index.d.ts existe
-```
-
-### "Hono RPC types not found" ou erreurs de type côté frontend
-
-```bash
-# Le backend n'a pas buildé ses types
-make ts-clean && make ts-build && make dev-down && make dev
-```
-
-### Docker ne démarre pas / conteneurs en erreur
-
-```bash
-# Nettoyage doux
-make clean-soft && make dev
-
-# Ou nettoyage total si vraiment bloqué
-make clean && make dev-fresh
-```
-
-### Hot reload ne fonctionne plus
-
-```bash
-# Rebuild sans cache
-make dev-rebuild
-```
-
-### Problèmes de permissions (Windows/WSL)
-
-```bash
-# Nettoyage via Docker (évite les problèmes de permissions)
-make clean-install
-```
-
-### Base de données corrompue / migrations en erreur
-
-```bash
-# Reset complet de la DB
-make db-reset
-
-# Ou nettoyage total + recréation
-make clean-soft && make dev
-```
+### Ports utilisés
+| Service | Port Dev | Notes |
+| :--- | :--- | :--- |
+| Frontend | `5173` | Accès via http://localhost:5173 |
+| API | `3000` | Accès direct via http://localhost:3000/api |
+| DB | `5432` | PostgreSQL 18 |
+| DB Test | `5433` | Pour les tests isolés |
+| Studio | `4983` | Drizzle Studio |
 
 ---
 
-## 📋 Commandes essentielles par situation
+## 🐛 Guide de survie : "Ca ne marche pas"
 
-| Situation                               | Commande                                |
-| --------------------------------------- | --------------------------------------- |
-| **Premier démarrage**                   | `make dev-fresh`                        |
-| **Démarrage rapide** (si déjà installé) | `make dev`                              |
-| **Redémarrage après bug**               | `make dev-down && make dev`             |
-| **Rebuild complet**                     | `make dev-rebuild`                      |
-| **Voir les logs**                       | `make logs-api` ou `make logs-frontend` |
-| **Entrer dans un conteneur**            | `make shell-api`                        |
-| **Vérifier l'état**                     | `make diagnose`                         |
+### Problèmes de types (L'éditeur est rouge ou Docker crash)
+**Symptôme** : `Cannot find module '@habit-tracker/shared'` ou erreurs de types au démarrage de l'API.
+1. Vérifiez que `make ts-check` tourne dans un terminal séparé sur votre machine hôte.
+2. Forcez un rebuild global : `make ts-clean && make ts-build`.
+3. Relancez Docker après le build réussi des types.
 
----
-
-## 🎯 Makefile - Référence rapide
-
-### Développement
-
-| Commande                    | Description                                    |
-| --------------------------- | ---------------------------------------------- |
-| `make dev`                  | Lance Docker (nécessite `make ts-build` avant) |
-| `make dev-d`                | Lance Docker en arrière-plan                   |
-| `make dev-down`             | Arrête Docker                                  |
-| `make dev-fresh`            | **Nuke + rebuild complet** (premier démarrage) |
-| `make dev-rebuild`          | Rebuild sans cache                             |
-| `make dev-rebuild-api`      | Rebuild uniquement l'API                       |
-| `make dev-rebuild-frontend` | Rebuild uniquement le frontend                 |
-
-### Types TypeScript (⚠️ **À LANCER DANS UN TERMINAL SÉPARÉ**)
-
-| Commande        | Description                         |
-| --------------- | ----------------------------------- |
-| `make ts-check` | **Watch mode** - Gardez-le ouvert ! |
-| `make ts-build` | Build unique des types              |
-| `make ts-clean` | Supprime tous les dist/             |
-
-### Installation / Dépendances
-
-| Commande                  | Description                         |
-| ------------------------- | ----------------------------------- |
-| `make install-deps`       | Installe les dépendances            |
-| `make reinstall-backend`  | Rebuild backend après ajout de dép  |
-| `make reinstall-frontend` | Rebuild frontend après ajout de dép |
-| `make clean-install`      | **Nuke node_modules + réinstall**   |
-
-### Diagnostic / Debug
-
-| Commande        | Description                        |
-| --------------- | ---------------------------------- |
-| `make diagnose` | Vérifie les types et l'état Docker |
-| `make health`   | État des conteneurs                |
-| `make ps`       | Liste des conteneurs               |
-
-### Base de données
-
-| Commande          | Description                                    |
-| ----------------- | ---------------------------------------------- |
-| `make db-studio`  | Interface Drizzle Studio                       |
-| `make db-reset`   | **Reset complet** (vidage + migrations + seed) |
-| `make db-clean`   | Vide la DB sans supprimer le container         |
-| `make db-migrate` | Applique les migrations                        |
-| `make db-backup`  | Backup la DB                                   |
-
-### Tests
-
-| Commande            | Description          |
-| ------------------- | -------------------- |
-| `make test`         | Lance les tests      |
-| `make test-watch`   | Tests en mode watch  |
-| `make test-db-up`   | Lance la DB de test  |
-| `make test-db-down` | Arrête la DB de test |
-
-### Nettoyage
-
-| Commande            | Description                                    |
-| ------------------- | ---------------------------------------------- |
-| `make clean-soft`   | Arrête les conteneurs + nettoie les types      |
-| `make clean`        | **NUKE TOTAL** (conteneurs + volumes + images) |
-| `make clean-images` | Supprime les images pour forcer le rebuild     |
+### Problèmes Docker
+- **Erreur de port déjà utilisé** : `make stop` puis relancez.
+- **Changement de dépendances** : `make dev-rebuild` pour forcer le build des images.
+- **Nuke total** : `make clean && make dev-fresh`.
 
 ---
 
-## 🏗️ Architecture des commandes
+## 🚢 Mise en production (Checklist)
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  make ts-check  │────►│  make ts-build  │────►│    make dev     │
-│   (terminal 1)  │     │  (si besoin)    │     │   (terminal 2)  │
-│   Watch forever │     │  Build unique   │     │  Lance Docker   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                                               │
-         │                    ┌──────────────────────────┘
-         │                    ▼
-         │              ┌─────────────────┐
-         └─────────────►│  Code modifié   │
-                        │  Hot reload     │
-                        └─────────────────┘
-```
+1. Créer le fichier `.env.prod` à partir de `.env.example`.
+2. Modifier le domaine et l'email dans le `Makefile` (`ssl-init`).
+3. Appliquer les migrations sur la prod : `make prod-migrate`.
+4. Lancer les services : `make prod`.
+5. Générer le certificat SSL : `make ssl-init`.
 
 ---
 
-## ⚠️ Checklist avant de demander de l'aide
+## 📖 Maintenance
 
-- [ ] `make ts-check` tourne dans un terminal ?
-- [ ] `make diagnose` montre les types générés ?
-- [ ] `make dev` est lancé ?
-- [ ] Si nouvelle dépendance : `make clean-install` fait ?
-- [ ] Si vraiment bloqué : `make clean && make dev-fresh` ?
+- **Backup DB** : `make db-backup` (crée un .sql dans `./backups/`).
+- **Restore DB** : `make db-restore FILE=backups/mon_fichier.sql`.
+- **Update deps** : Modifier les `package.json` respectifs puis `make clean-install`.
 
 ---
 
-## 💡 Astuce : Alias shell
-
-Ajoutez dans votre `~/.bashrc` ou `~/.zshrc` :
-
-```bash
-alias ht='cd /chemin/vers/habit-tracker'
-alias ht-dev='ht && make ts-check'  # Terminal 1
-alias ht-docker='ht && make dev'     # Terminal 2
-alias ht-fresh='ht && make dev-fresh' # Premier démarrage
-alias ht-nuke='ht && make clean && make dev-fresh' # Nuke total
-```
-
----
-
-**Règle d'or** : Gardez toujours `make ts-check` ouvert dans un terminal !
-
-## 🐳 Architecture Docker
-
-```
-┌─────────────────────────────────────────┐
-│            nginx (reverse proxy)        │  (prod only)
-│              :80 / :443                 │
-└────────┬─────────────────────┬──────────┘
-         │                     │
-         ▼                     ▼
-    ┌─────────┐           ┌────────┐
-    │frontend │           │  api   │
-    │(nginx)  │           │(bun+ho)│
-    │:5173/80 │           │:3000   │
-    └─────────┘           └───┬────┘
-                              │
-                              ▼
-                         ┌─────────┐
-                         │   db    │
-                         │postgres │
-                         │:5432    │
-                         └─────────┘
-```
-
-**En dev** : nginx OFF → accès direct `localhost:3000` et `localhost:5173`
-**En prod** : nginx ON → proxy vers services, HTTPS activé
-
----
-
-## 📂 Structure du Projet
-
-```
-habit-tracker/
-├── Makefile                      # Point d'entrée (make dev, make test, etc.)
-├── .env.dev                      # Env dev (commité)
-├── .env.prod                     # Env prod (⚠️ ne pas commiter)
-│
-├── docker-compose.yml            # Config de base
-├── docker-compose.dev.yml        # Surcharge dev (ports exposés, volumes)
-├── docker-compose.prod.yml       # Surcharge prod (nginx, SSL)
-├── docker-compose.test.yml       # DB isolée test (port 5433)
-│
-├── nginx/
-│   └── conf.d/default.conf       # Reverse proxy + SPA config
-│
-├── backend/
-│   ├── Dockerfile                # Multi-stage (base → deps → dev/prod)
-│   ├── drizzle.config.ts         # Config Drizzle ORM
-│   ├── drizzle/                  # Migrations SQL générées
-│   └── src/
-│       ├── index.ts              # Point d'entrée Hono
-│       ├── db/
-│       │   ├── index.ts          # Connexion Drizzle
-│       │   └── schema/           # Schémas des tables
-│       └── routes/               # Routes API
-│
-├── frontend/
-│   ├── Dockerfile                # Prod (build Vite → nginx)
-│   ├── Dockerfile.dev            # Dev (serveur Vite + HMR)
-│   ├── nginx.conf                # Config SPA
-│   └── src/
-│
-└── shared/
-    └── types/                    # Types partagés frontend/backend
-```
-
----
-
-## 🔌 Ports
-
-| Service        | Dev  | Prod    | Notes              |
-| -------------- | ---- | ------- | ------------------ |
-| Frontend       | 5173 | 80/443  | Via nginx en prod  |
-| API            | 3000 | Interne | Via nginx en prod  |
-| DB             | 5432 | Interne | Exposée en dev     |
-| DB Test        | 5433 | —       | Isolée pour tests  |
-| Drizzle Studio | 4983 | —       | Interface visuelle |
-
----
-
-## 🔐 Réseau Docker vs Local
-
-### Dans les Containers
-
-URL de connexion DB pour API :
-
-```
-DATABASE_URL=postgres://app:password@db:5432/appdb
-```
-
-`db` = hostname du service Docker (défini dans docker-compose)
-
-### Hors Containers (outils locaux)
-
-URL de connexion DB pour `drizzle-kit`, tests :
-
-```
-DATABASE_URL=postgres://app:password@localhost:5432/appdb
-```
-
-`localhost` = port exposé sur l'hôte (défini dans docker-compose)
-
-### Où c'est défini ?
-
-| Contexte                    | Fichier                            | URL               |
-| --------------------------- | ---------------------------------- | ----------------- |
-| Containers (API, frontend)  | `docker-compose.yml`               | `@db:5432`        |
-| Outils locaux (drizzle-kit) | `Makefile` variable `DB_LOCAL`     | `@localhost:5432` |
-| Tests                       | `Makefile` variable `DATABASE_URL` | `@localhost:5433` |
-
----
-
-## 📦 Variables d'Environnement
-
-### `.env.dev`
-
-```bash
-POSTGRES_PASSWORD=devpassword
-```
-
-✅ Safe à commiter (dev uniquement)
-
-### `.env.prod`
-
-```bash
-POSTGRES_PASSWORD=un_mot_de_passe_securise_long_et_aleatoire
-```
-
-⚠️ **Ne jamais commiter** → mets dans `.gitignore`
-
-**DATABASE_URL** : géré automatiquement par Docker Compose
-
----
-
-## 🗄️ Drizzle ORM
-
-### Configuration
-
-`backend/drizzle.config.ts` utilise `process.env.DATABASE_URL` (**pas `Bun.env`**)
-
-Pourquoi ? `drizzle-kit` tourne en Node.js même lancé avec Bun. Node ≠ Bun.
-
-### Workflow
-
-```bash
-# 1. Modifier backend/src/db/schema/
-# 2. Générer migration
-make db-generate
-
-# 3. Vérifier le SQL dans backend/drizzle/
-# 4. Appliquer
-make db-migrate
-```
-
-### Drizzle Studio
-
-Interface visuelle pour explorer + modifier la DB en dev :
-
-```bash
-make db-studio
-# → ouvre http://localhost:4983
-```
-
----
-
-## 💾 Backup & Restore
-
-### Sauvegarder
-
-```bash
-make db-backup
-# → ./backups/backup_20250125_143052.sql
-```
-
-Utilise `pg_dump` pour exporter (structure + données)
-
-### Restaurer
-
-```bash
-make db-restore FILE=./backups/backup_20250125_143052.sql
-```
-
-Utilise `psql` pour importer
-
----
-
-## 🧪 Tests
-
-Tests unitaires + intégration du backend avec DB isolée.
-
-```bash
-# Une seule commande (setup + run + cleanup)
-make test
-
-# Ou mode watch (DB reste active)
-make test-watch
-make test-db-down  # Arrêter manuellement
-```
-
-DB test sur port 5433 (ne confond pas avec port 5432 dev)
-
----
-
-## 🚨 Pièges Courants
-
-| Problème                  | Cause                             | Solution                                      |
-| ------------------------- | --------------------------------- | --------------------------------------------- |
-| "Bun is not defined"      | `drizzle-kit` = Node, pas Bun     | Utiliser `process.env`, pas `Bun.env`         |
-| "EAI_AGAIN db"            | URL avec `@db:5432` hors Docker   | Utiliser `@localhost:5432` pour outils locaux |
-| DB non accessible         | Container pas démarré             | Faire `make dev` d'abord                      |
-| Migrations pas appliquées | Oubli après `db-generate`         | Lancer `make db-migrate`                      |
-| Frontend ne charge pas    | Nginx en dev (désactivé)          | Pas grave, aller sur `localhost:5173`         |
-| Certificats SSL erreur    | Domaine pas modifié dans ssl-init | Modifier Makefile avant `make ssl-init`       |
-
----
-
-## 📋 Production : Checklist
-
-```bash
-# 1. Configurer domaine et email
-# Dans Makefile, modifier ssl-init pour votredomaine.com
-
-# 2. Configurer variables prod
-cp .env.example .env.prod
-# → Éditer avec vrai password PostgreSQL
-
-# 3. Configurer nginx
-# Dans nginx/conf.d/default.conf, remplacer votredomaine.com
-
-# 3.5 Appliquer les migrations
-make prod-migrate
-
-# 4. Lancer
-make prod
-
-# 5. Générer certificat SSL
-make ssl-init
-
-# 6. Vérifier
-make health
-```
-
----
-
-## 🔍 Architecture Multi-Compose
-
-Pourquoi 3 fichiers docker-compose ?
-
-```bash
-# Dev = base + overrides dev
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-# Prod = base + overrides prod
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up
-
-# Test = fichier isolé
-docker compose -f docker-compose.test.yml up
-```
-
-Permet de :
-
-- Garder config commune (`docker-compose.yml`)
-- Surcharger par environnement (ports, volumes, SSL)
-- DB test isolée (pas de conflit)
-
----
-
-## 📖 Ressources
-
-- [Docker Compose docs](https://docs.docker.com/compose/)
-- [Drizzle ORM docs](https://orm.drizzle.team/)
-- [Hono docs](https://hono.dev/)
-- [Vite docs](https://vitejs.dev/)
-
----
-
-## 💬 Besoin d'aide ?
-
-```bash
-make help             # Affiche toutes les commandes
-make logs             # Voir ce qui se passe
-make health           # État services
-```
+Développé avec ❤️ pour un suivi d'habitudes rigoureux.

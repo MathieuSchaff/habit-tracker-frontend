@@ -22,7 +22,7 @@ export async function cleanDatabase() {
     'products',
     'profiles',
     'refresh_tokens',
-    'stock_entries',
+    'purchases',
     'subtasks',
     'tags',
     'tasks',

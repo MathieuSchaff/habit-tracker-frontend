@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+# Annule les jobs en cours si on repousse sur la même branche (gain de temps)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Étape 1 : Qualité du code et Types
+  quality:
+    name: Lint & Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install Dependencies
+        run: make install-deps
+
+      - name: Lint Check (Biome)
+        run: make lint
+
+      - name: TypeScript Build & Global Check
+        run: make ts-build
+
+  # Étape 2 : Tests Backend (en parallèle avec le Frontend)
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    needs: quality # On ne lance les tests que si le build de base passe
+    services:
+      # Utilisation du service Postgres directement dans l'Action
+      postgres:
+        image: postgres:16-alpine # On utilise 16 par sécurité
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: appdb_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install Dependencies
+        run: make install-deps
+
+      - name: Prepare Backend DB & Run Tests
+        env:
+          DATABASE_URL: postgres://app:testpassword@localhost:5433/appdb_test
+        run: |
+          # 1. On synchronise le schéma sur la DB de test
+          cd backend && bun x drizzle-kit push --force
+          # 2. On lance les tests (on n'utilise pas 'make test' car il essaierait de lancer docker-compose)
+          cd backend && bun test
+
+  # Étape 3 : Tests Frontend (en parallèle avec le Backend)
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install Dependencies
+        run: make install-deps
+
+      - name: Run Frontend Tests
+        run: make test-frontend
