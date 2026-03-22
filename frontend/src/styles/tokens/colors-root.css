@@ -2,15 +2,18 @@
   /* ===================================
      HUES
      =================================== */
-  --hue-primary: 160deg; /* Vert Forêt — l'âme d'Aurore */
-  --hue-neutral: 40deg; /* Argile / Sable */
-  --hue-acid: 85deg; /* Vert Lime */
-  --hue-orange: 30deg; /* Orange Terre Cuite */
-  --hue-clay: 40deg; /* Beige Argile */
+  --hue-primary: 160deg; /* Forest */
+  --hue-neutral: 40deg; /* Clay/Sand */
+  --hue-acid: 85deg; /* Lime */
+  --hue-orange: 30deg; /* Terracotta */
+  --hue-clay: 40deg; /* Beige Clay */
+  --hue-purple: 280deg;
+  --hue-error: 25deg;
+  --hue-success: 145deg;
+  --hue-info: 230deg;
+
   /* ===================================
-     PALETTE PRIMARY (Vert Forêt)
-     Jamais utilisée directement dans le CSS —
-     uniquement référencée via les semantic tokens
+     PALETTE PRIMARY
      =================================== */
   --primary-20: oklch(25% 0.08 var(--hue-primary));
   --primary-40: oklch(40% 0.12 var(--hue-primary));
@@ -19,14 +22,14 @@
   --primary-90: oklch(90% 0.08 var(--hue-primary));
 
   /* ===================================
-     PALETTE ACCENT (Vert Acide)
+     PALETTE ACCENT
      =================================== */
   --accent-20: oklch(25% 0.1 var(--hue-acid));
   --accent-60: oklch(60% 0.18 var(--hue-acid));
   --accent-80: oklch(85% 0.2 var(--hue-acid));
 
   /* ===================================
-     PALETTE NEUTRAL (Argile)
+     PALETTE NEUTRAL
      =================================== */
   --neutral-10: oklch(12% 0.02 var(--hue-primary));
   --neutral-20: oklch(22% 0.02 var(--hue-primary));
@@ -36,24 +39,7 @@
   --neutral-99: oklch(98% 0.01 var(--hue-clay));
 
   /* ===================================
-     PALETTE ERROR
-     =================================== */
-  --error-20: oklch(25% 0.08 25deg);
-  --error-65: oklch(65% 0.18 25deg);
-
-  /* ===================================
-     PALETTE INFO
-     =================================== */
-  --info-20: oklch(25% 0.08 230deg);
-  --info-60: oklch(60% 0.12 230deg);
-
-  /* ===================================
-     DIMENSIONS (jamais overridées)
+     DIMENSIONS
      =================================== */
   --border-width: 3px;
-
-  /* ===================================
-     SHADOWS
-     =================================== */
-  --shadow-hard: 3px 3px 0px var(--primary-60);
 }

@@ -20,7 +20,17 @@
   --font-bold: 700;
 
   /* Line heights */
-  --leading-tight: 1.25;
+  --leading-tight: 1.15; /* Plus serré pour le luxe */
   --leading-normal: 1.5;
   --leading-relaxed: 1.75;
+
+  /* Tracking (Letter spacing) */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+  --tracking-widest: 0.2em; /* Pour les labels de luxe */
+
+  /* Advanced Typography */
+  --font-features-display: "kern" 1, "liga" 1, "onum" 1, "pnum" 1;
+  --font-features-sans: "kern" 1, "liga" 1, "cv01" 1, "cv11" 1;
 }

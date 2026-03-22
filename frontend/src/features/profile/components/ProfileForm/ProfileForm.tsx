@@ -23,7 +23,7 @@ export const ProfileForm = ({
   isPending,
   error,
 }: ProfileFormProps) => {
-  // Using simple local state here instead of a form library like RHF 
+  // Using simple local state here instead of a form library like RHF
   // since we only have a few fields and basic validation.
   const [username, setUsername] = useState(profile.username ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
@@ -72,14 +72,26 @@ export const ProfileForm = ({
           disabled={isPending}
         />
 
-        <Input
-          label="URL de l'avatar"
-          type="url"
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-          placeholder="https://exemple.com/avatar.jpg"
-          disabled={isPending}
-        />
+        <div className="profile-form__avatar-group">
+          <Input
+            label="URL de l'avatar"
+            type="url"
+            value={avatarUrl}
+            onChange={(e) => setAvatarUrl(e.target.value)}
+            placeholder="https://exemple.com/avatar.jpg"
+            disabled={isPending}
+            className="profile-form__avatar-input"
+          />
+          {avatarUrl && (
+            <div className="profile-form__avatar-preview">
+              <img
+                src={avatarUrl}
+                alt="Aperçu"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+            </div>
+          )}
+        </div>
 
         {error && (
           <p className="profile-form__error" role="alert">
