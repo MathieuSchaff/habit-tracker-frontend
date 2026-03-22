@@ -142,11 +142,13 @@ export {
   USERNAME_MAX_LENGTH,
 } from './schemas/profile'
 export {
-  type AddStockEntryInput,
-  addStockEntrySchema,
-  type StockEntryResponse,
-  stockEntryResponseSchema,
-} from './schemas/stock'
+  type AddPurchaseInput,
+  addPurchaseSchema,
+  type FinishPurchaseInput,
+  finishPurchaseSchema,
+  type OpenPurchaseInput,
+  openPurchaseSchema,
+} from './schemas/purchases'
 export {
   type AddIngredientTagInput,
   type AddProductTagInput,
@@ -275,7 +277,7 @@ export type {
   ProfileStatsResponse,
   ProfileUpdateResponse,
 } from './types/profile'
-export type { StockErrorCode } from './types/stock'
+export type { PurchaseErrorCode } from './types/purchases'
 export type {
   IngredientTag,
   ProductTag,
@@ -313,7 +315,7 @@ export { logsErrorMapping } from './helpers/logs'
 export { productIngredientErrorMapping } from './helpers/product-ingredients'
 export { productErrorMapping } from './helpers/products'
 export { profileErrorMapping } from './helpers/profile'
-export { stockErrorMapping } from './helpers/stock'
+export { purchaseErrorMapping } from './helpers/purchases'
 export { tagErrorMapping } from './helpers/tags'
 export { taskErrorMapping } from './helpers/tasks'
 export { userProductErrorMapping } from './helpers/user-products'

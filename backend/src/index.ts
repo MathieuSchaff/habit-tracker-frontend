@@ -17,7 +17,6 @@ import { productIngredientRoutes } from './features/products/product-ingredients
 import { productTagRoutes } from './features/products/product-tags/routes'
 import { tagRoutes } from './features/products/tags/routes'
 import { profileRoute } from './features/profile'
-import { stockRoutes } from './features/stock'
 import { taskRoutes } from './features/tasks/routes'
 import { userProductRoutes } from './features/user-products'
 
@@ -55,7 +54,6 @@ const routes = app
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/tags', tagRoutes)
-  .route('/api/stock', stockRoutes)
   .route('/api/logs', logsRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
