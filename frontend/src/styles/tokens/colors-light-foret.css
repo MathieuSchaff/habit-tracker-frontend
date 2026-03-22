@@ -1,0 +1,35 @@
+[data-theme="light"][data-light-variant="foret"] {
+  /* Primary (Forêt — deep forest green) */
+  --color-primary: oklch(40% 0.16 140);
+  --color-primary-hover: oklch(50% 0.16 140);
+  --color-primary-contrast: oklch(99% 0.005 140);
+
+  /* Accent (citron-lime) */
+  --color-accent: oklch(74% 0.2 88);
+  --color-accent-light: oklch(92% 0.1 88);
+
+  /* Surfaces */
+  --bg-page: oklch(96% 0.01 140);
+  --bg-card: oklch(99.5% 0.005 140);
+  --bg-muted: oklch(91% 0.04 140);
+  --bg-elevated: oklch(98% 0.005 140);
+
+  /* Borders */
+  --border-default: oklch(82% 0.07 140);
+  --border-strong: oklch(40% 0.16 140);
+
+  /* Shadows */
+  --shadow-hard: 3px 3px 0px oklch(40% 0.16 140);
+  --shadow-card: 0 2px 0px oklch(40% 0.16 140);
+
+  /* Text */
+  --text-primary: oklch(18% 0.06 140);
+  --text-secondary: oklch(44% 0.06 140);
+  --text-muted: oklch(58% 0.04 140);
+
+  /* Tags */
+  --tag-active-bg: oklch(40% 0.16 140);
+  --tag-active-text: oklch(99% 0.005 140);
+  --tag-default-bg: oklch(88% 0.07 140);
+  --tag-default-text: oklch(38% 0.06 140);
+}
