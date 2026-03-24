@@ -11,7 +11,7 @@ import {
   useDeleteTask,
   useUpdateSubtask,
   useUpdateTask,
-} from '../../lib/queries/tasks'
+} from '../../../lib/queries/tasks'
 import './TaskItem.css'
 
 interface TaskItemProps {

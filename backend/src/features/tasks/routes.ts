@@ -29,8 +29,8 @@ import {
 } from './service'
 import { TaskError } from './task-error'
 
-const idParam = z.object({ id: z.string().uuid() })
-const subIdParam = z.object({ id: z.string().uuid(), subId: z.string().uuid() })
+const idParam = z.object({ id: z.uuid() })
+const subIdParam = z.object({ id: z.uuid(), subId: z.uuid() })
 
 const app = new Hono<AppEnv>()
 

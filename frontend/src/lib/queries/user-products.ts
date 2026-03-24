@@ -5,8 +5,14 @@ import type {
 } from '@habit-tracker/shared'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { InferResponseType } from 'hono/client'
 
 import { api } from '../api'
+
+export type UserProduct = Extract<
+  InferResponseType<typeof api['user-products']['$get']>,
+  { data: any }
+>['data'][number]
 
 export const userProductKeys = {
   all: ['user-products'] as const,
@@ -107,6 +113,7 @@ export const useUpsertUserProductReview = () => {
       return data.data
     },
     onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
     },
   })

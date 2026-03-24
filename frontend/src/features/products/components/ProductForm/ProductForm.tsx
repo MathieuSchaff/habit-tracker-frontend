@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Save, Trash2, X } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ingredientQueries } from '../../../../lib/queries/ingredients'
 import {
+  productQueries,
   useAddProductIngredient,
   useCreateProduct,
   useRemoveProductIngredient,
@@ -13,6 +14,7 @@ import {
 } from '../../../../lib/queries/products'
 import { tagQueries } from '../../../../lib/queries/tags'
 import '../../../../styles/common/ingredients-shared.css'
+
 import { BrandCombobox } from '../BrandCombobox/BrandCombobox'
 import './ProductForm.css'
 
@@ -26,7 +28,6 @@ type ProductWithIngredients = {
   priceCents: number | null
   totalAmount: number | null
   amountUnit: string | null
-  expiresAt: string | null
   inci: string | null
   description: string | null
   notes: string | null
@@ -34,7 +35,7 @@ type ProductWithIngredients = {
   ingredients: Array<{
     ingredientId: string
     ingredientName: string
-    concentrationValue: number | null
+    concentrationValue: string | null
   }>
 }
 
@@ -67,7 +68,6 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     priceEuros: product?.priceCents != null ? (product.priceCents / 100).toFixed(2) : '',
     totalAmount: product?.totalAmount != null ? String(product.totalAmount) : '',
     amountUnit: product?.amountUnit ?? '',
-    expiresAt: product?.expiresAt ?? '',
     inci: product?.inci ?? '',
     description: product?.description ?? '',
     notes: product?.notes ?? '',
@@ -80,6 +80,23 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     Array<{ ingredientId: string; ingredientName: string }>
   >([])
   const [error, setError] = useState<string | null>(null)
+
+  // Duplicate detection (debounced)
+  const [debouncedName, setDebouncedName] = useState('')
+  const [debouncedBrand, setDebouncedBrand] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedName(form.name.trim())
+      setDebouncedBrand(form.brand.trim())
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [form.name, form.brand])
+
+  const { data: similarProducts } = useQuery({
+    ...productQueries.checkDuplicate(debouncedName, debouncedBrand),
+    enabled: mode === 'create' && debouncedName.length >= 2 && debouncedBrand.length >= 1,
+  })
 
   const handleChange = useCallback(
     (field: keyof typeof form) =>
@@ -129,7 +146,6 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     form.priceEuros !== originalPriceEuros ||
     form.totalAmount !== originalAmount ||
     form.amountUnit !== (product?.amountUnit ?? '') ||
-    form.expiresAt !== (product?.expiresAt ?? '') ||
     form.inci !== (product?.inci ?? '') ||
     form.description !== (product?.description ?? '') ||
     form.notes !== (product?.notes ?? '') ||
@@ -180,8 +196,8 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
       // Backend expects cents
       const parsedPrice = form.priceEuros.trim()
         ? Math.round(parseFloat(form.priceEuros) * 100)
-        : null
-      const parsedAmount = form.totalAmount.trim() ? parseInt(form.totalAmount, 10) : null
+        : undefined
+      const parsedAmount = form.totalAmount.trim() ? parseInt(form.totalAmount, 10) : undefined
       const productData = {
         name: form.name.trim(),
         brand: form.brand.trim(),
@@ -189,12 +205,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         unit: form.unit.trim(),
         priceCents: parsedPrice,
         totalAmount: parsedAmount,
-        amountUnit: form.amountUnit.trim() || null,
-        expiresAt: form.expiresAt.trim() || null,
-        inci: form.inci.trim() || null,
-        description: form.description.trim() || null,
-        notes: form.notes.trim() || null,
-        url: form.url.trim() || null,
+        amountUnit: form.amountUnit.trim() || undefined,
+        inci: form.inci.trim() || undefined,
+        description: form.description.trim() || undefined,
+        notes: form.notes.trim() || undefined,
+        url: form.url.trim() || undefined,
       }
 
       try {
@@ -249,7 +264,30 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
 
   return (
     <form className="product-edit-form" onSubmit={handleSubmit}>
-      {error && <div className="product-edit-form__error">{error}</div>}
+      {error && (
+        <div className="product-edit-form__error" role="alert">
+          {error}
+        </div>
+      )}
+
+      {mode === 'create' && similarProducts && similarProducts.length > 0 && (
+        <div className="product-edit-form__duplicate-warning" role="alert">
+          <p>
+            {similarProducts.length === 1
+              ? 'Un produit similaire existe déjà :'
+              : 'Des produits similaires existent déjà :'}
+          </p>
+          <ul>
+            {similarProducts.map((p) => (
+              <li key={p.id}>
+                <Link to="/products/$slug" params={{ slug: p.slug }}>
+                  {p.name} — {p.brand}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="product-edit-form__row">
         <div className="product-edit-form__field">
@@ -360,20 +398,6 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
 
       <div className="product-edit-form__row">
         <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-expires-at">
-            Date d'expiration
-          </label>
-          <input
-            id="edit-expires-at"
-            className="product-edit-form__input"
-            type="text"
-            value={form.expiresAt}
-            onChange={handleChange('expiresAt')}
-            placeholder="Ex : 2026-06, 12/2026…"
-          />
-        </div>
-
-        <div className="product-edit-form__field">
           <label className="product-edit-form__label" htmlFor="edit-url">
             Lien produit
           </label>
@@ -442,6 +466,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               <select
                 value={tag.relevance}
                 className="product-edit-tag__relevance"
+                aria-label={`Pertinence du tag ${tag.tagName}`}
                 onChange={(e) =>
                   handleUpdateTagRelevance(
                     tag.tagId,
@@ -456,9 +481,10 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               <button
                 type="button"
                 className="product-edit-tag__remove"
+                aria-label={`Retirer le tag ${tag.tagName}`}
                 onClick={() => handleRemoveTag(tag.tagId)}
               >
-                <Trash2 size={14} />
+                <Trash2 size={14} aria-hidden="true" />
               </button>
             </div>
           ))}
@@ -466,6 +492,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         <div className="product-edit-add-tag">
           <select
             className="product-edit-form__input"
+            aria-label="Ajouter un tag"
             onChange={(e) => {
               if (e.target.value) {
                 handleAddTag(e.target.value)
@@ -510,6 +537,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                   <button
                     type="button"
                     className="product-edit-ingredient__remove"
+                    aria-label={`Retirer ${ing.ingredientName}`}
                     onClick={() =>
                       removeIngredient.mutate({
                         productId: product!.id,
@@ -518,7 +546,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                     }
                     disabled={removeIngredient.isPending}
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                   </button>
                 </div>
               ))}
@@ -534,13 +562,14 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                   <button
                     type="button"
                     className="product-edit-ingredient__remove"
+                    aria-label={`Retirer ${ing.ingredientName}`}
                     onClick={() =>
                       setPendingIngredients((prev) =>
                         prev.filter((i) => i.ingredientId !== ing.ingredientId)
                       )
                     }
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                   </button>
                 </div>
               ))}
@@ -575,7 +604,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             Annuler
           </Link>
         ) : (
-          <Link to="/products/" className="product-edit-form__btn product-edit-form__btn--cancel">
+          <Link to="/products" className="product-edit-form__btn product-edit-form__btn--cancel">
             <X size={16} />
             Annuler
           </Link>
@@ -601,39 +630,86 @@ function IngredientSearch({
   onAdd: (ingredientId: string, ingredientName: string) => void
 }) {
   const [query, setQuery] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const { data: results } = useQuery(ingredientQueries.search(query))
+  const listboxId = 'ingredient-search-listbox'
 
   const available = results?.filter((r) => !existingIds.includes(r.id)) ?? []
+
+  function handleSelect(ing: { id: string; name: string }) {
+    onAdd(ing.id, ing.name)
+    setQuery('')
+    setHighlightedIndex(-1)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (available.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => (prev < available.length - 1 ? prev + 1 : 0))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : available.length - 1))
+    } else if (e.key === 'Enter') {
+      if (highlightedIndex >= 0 && highlightedIndex < available.length) {
+        e.preventDefault()
+        handleSelect(available[highlightedIndex])
+      } else if (available.length > 0) {
+        e.preventDefault()
+        handleSelect(available[0])
+      }
+    } else if (e.key === 'Escape') {
+      setHighlightedIndex(-1)
+      setQuery('')
+    }
+  }
+
+  const isOpen = query.length > 0 && available.length > 0
+  const activeDescendant =
+    highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
 
   return (
     <div className="product-edit-ingredient-search">
       <input
         type="text"
+        role="combobox"
         className="product-edit-form__input"
         placeholder="Rechercher un ingrédient à ajouter…"
+        aria-label="Rechercher un ingrédient"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setHighlightedIndex(-1)
+        }}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        aria-activedescendant={activeDescendant}
+        aria-autocomplete="list"
       />
-      {available.length > 0 && (
-        <ul className="product-edit-ingredient-results">
-          {available.map((ing) => (
-            <li key={ing.id}>
-              <button
-                type="button"
-                className="product-edit-ingredient-result"
-                onClick={() => {
-                  onAdd(ing.id, ing.name)
-                  setQuery('')
-                }}
-              >
-                <span className="product-edit-ingredient-result__name">{ing.name}</span>
-                {ing.category && (
-                  <span className="product-edit-ingredient-result__category">{ing.category}</span>
-                )}
-              </button>
-            </li>
+      {isOpen && (
+        <div id={listboxId} role="listbox" className="product-edit-ingredient-results">
+          {available.map((ing, index) => (
+            // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on the input per WAI-ARIA combobox pattern
+            <div
+              key={ing.id}
+              id={`${listboxId}-option-${index}`}
+              role="option"
+              tabIndex={-1}
+              aria-selected={index === highlightedIndex}
+              className={`product-edit-ingredient-result${index === highlightedIndex ? ' product-edit-ingredient-result--highlighted' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleSelect(ing)}
+            >
+              <span className="product-edit-ingredient-result__name">{ing.name}</span>
+              {ing.category && (
+                <span className="product-edit-ingredient-result__category">{ing.category}</span>
+              )}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
