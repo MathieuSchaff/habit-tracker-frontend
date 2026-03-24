@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { products } from './products'
+import { purchases } from './purchases'
 import { users } from './users'
 
 export const userProductStatusEnum = pgEnum('user_product_status', [
@@ -35,11 +36,9 @@ export const userProducts = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     status: userProductStatusEnum('status').notNull().default('in_stock'),
-    qty: integer('qty').notNull().default(0),
     sentiment: integer('sentiment'), // 1-5
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
-    expiresAt: text('expires_at'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
@@ -53,7 +52,7 @@ export const userProducts = pgTable(
   ]
 )
 
-export const userProductsRelations = relations(userProducts, ({ one }) => ({
+export const userProductsRelations = relations(userProducts, ({ one, many }) => ({
   user: one(users, {
     fields: [userProducts.userId],
     references: [users.id],
@@ -66,6 +65,7 @@ export const userProductsRelations = relations(userProducts, ({ one }) => ({
     fields: [userProducts.id],
     references: [userProductReviews.userProductId],
   }),
+  purchases: many(purchases),
 }))
 
 export const userProductReviews = pgTable(

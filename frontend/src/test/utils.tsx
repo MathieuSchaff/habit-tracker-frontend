@@ -1,8 +1,10 @@
+import type { RepurchaseFlag, UserProductStatus } from '@habit-tracker/shared'
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, type RenderOptions } from '@testing-library/react'
+import { type RenderOptions, render } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import type { UserProductStatus, RepurchaseFlag } from '@habit-tracker/shared'
-import type { ReviewCriteria, CriteriaWeights } from '../lib/helpers/reviews'
+
+import type { CriteriaWeights, ReviewCriteria } from '../lib/helpers/reviews'
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -50,17 +52,19 @@ export function makeWeights(overrides: Partial<CriteriaWeights> = {}): CriteriaW
   }
 }
 
-export function makeUserProduct(overrides: Partial<{
-  id: string
-  status: UserProductStatus
-  qty: number
-  sentiment: number | null
-  wouldRepurchase: RepurchaseFlag | null
-  comment: string | null
-  updatedAt: string
-  product: { name: string; brand: string; kind: string; priceCents: number | null; unit: string }
-  review: ReviewCriteria | null
-}> = {}) {
+export function makeUserProduct(
+  overrides: Partial<{
+    id: string
+    status: UserProductStatus
+    qty: number
+    sentiment: number | null
+    wouldRepurchase: RepurchaseFlag | null
+    comment: string | null
+    updatedAt: string
+    product: { name: string; brand: string; kind: string; priceCents: number | null; unit: string }
+    review: ReviewCriteria | null
+  }> = {}
+) {
   return {
     id: 'test-id-1',
     status: 'in_stock' as UserProductStatus,
