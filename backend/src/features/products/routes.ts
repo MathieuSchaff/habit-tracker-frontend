@@ -19,6 +19,7 @@ import { ProductError } from './product-error'
 import {
   createProduct,
   deleteProduct,
+  findSimilarProducts,
   getDistinctBrands,
   getFilterOptions,
   getProductWithIngredientsBySlug,
@@ -29,6 +30,11 @@ import {
 
 const slugParam = z.object({ slug: z.string().min(1).max(100) })
 const idParam = z.object({ id: z.uuid() })
+
+const checkDuplicateQuery = z.object({
+  name: z.string().trim().min(2).max(200),
+  brand: z.string().trim().min(1).max(200),
+})
 
 const listProductsQuery = z.object({
   kind: z.string().optional(),
@@ -72,6 +78,12 @@ export const productRoutes = productsApp
     const db = c.get('db')
     const brands = await getDistinctBrands(db)
     return c.json(ok(brands), HTTP_STATUS.OK)
+  })
+  .get('/check-duplicate', zValidator('query', checkDuplicateQuery), async (c) => {
+    const db = c.get('db')
+    const { name, brand } = c.req.valid('query')
+    const similar = await findSimilarProducts(name, brand, db)
+    return c.json(ok(similar), HTTP_STATUS.OK)
   })
   .get('/search', zValidator('query', searchProductsQuery), async (c) => {
     const db = c.get('db')

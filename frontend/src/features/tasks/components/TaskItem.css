@@ -90,11 +90,11 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   font-weight: var(--font-bold);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 1px 6px;
+  letter-spacing: var(--tracking-widest);
+  padding: 1px 8px;
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
@@ -107,6 +107,8 @@
   color: var(--text-muted);
   border: 1px dashed var(--border-default);
   opacity: 0;
+  letter-spacing: var(--tracking-normal); /* Plus lisible pour le placeholder */
+  text-transform: none;
 }
 
 .task-item:hover .task-item__energy-placeholder {
@@ -119,17 +121,17 @@
 }
 
 .task-item__energy--low {
-  background: oklch(from var(--color-success) l c h / 0.15);
+  background: var(--color-success-light);
   color: var(--color-success);
 }
 
 .task-item__energy--medium {
-  background: oklch(from var(--color-accent) l c h / 0.15);
-  color: var(--color-accent);
+  background: var(--color-warning-light);
+  color: var(--color-warning);
 }
 
 .task-item__energy--high {
-  background: oklch(from var(--color-error) l c h / 0.15);
+  background: var(--color-error-light);
   color: var(--color-error);
 }
 

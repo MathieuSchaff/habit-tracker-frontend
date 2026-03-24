@@ -19,6 +19,30 @@
   font-weight: var(--font-medium);
 }
 
+.product-edit-form__duplicate-warning {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.product-edit-form__duplicate-warning p {
+  margin: 0 0 var(--space-2);
+  font-weight: var(--font-medium);
+}
+
+.product-edit-form__duplicate-warning ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.product-edit-form__duplicate-warning a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 /* Row (2-col grid) */
 
 .product-edit-form__row {
@@ -323,7 +347,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px oklch(0 0 0 / 0.08);
+  box-shadow: var(--shadow-md);
   max-height: 14rem;
   overflow-y: auto;
   display: flex;
@@ -345,7 +369,8 @@
   transition: background var(--transition-fast) ease;
 }
 
-.product-edit-ingredient-result:hover {
+.product-edit-ingredient-result:hover,
+.product-edit-ingredient-result--highlighted {
   background: var(--bg-hover);
 }
 

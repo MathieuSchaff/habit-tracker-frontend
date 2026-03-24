@@ -1,10 +1,15 @@
-import type { CreateSubtaskInput, CreateTaskInput, UpdateSubtaskInput, UpdateTaskInput } from '@habit-tracker/shared'
+import type {
+  CreateSubtaskInput,
+  CreateTaskInput,
+  UpdateSubtaskInput,
+  UpdateTaskInput,
+} from '@habit-tracker/shared'
 
 import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
-import { subtasks, tasks, type Subtask, type Task } from '../../db/schema/tasks'
+import { type Subtask, subtasks, type Task, tasks } from '../../db/schema/tasks'
 import { TaskError } from './task-error'
 
 // Tasks
@@ -30,10 +35,7 @@ export async function getTodayTasks(userId: string, database: Database = db): Pr
     .select()
     .from(tasks)
     .where(
-      and(
-        eq(tasks.userId, userId),
-        sql`DATE(${tasks.doneAt} AT TIME ZONE 'UTC') = ${today}::date`
-      )
+      and(eq(tasks.userId, userId), sql`DATE(${tasks.doneAt} AT TIME ZONE 'UTC') = ${today}::date`)
     )
     .orderBy(asc(tasks.doneAt))
 }
@@ -78,7 +80,11 @@ export async function updateTask(
   if (input.focusDurationMinutes !== undefined)
     updateValues.focusDurationMinutes = input.focusDurationMinutes
 
-  const [updated] = await database.update(tasks).set(updateValues).where(eq(tasks.id, taskId)).returning()
+  const [updated] = await database
+    .update(tasks)
+    .set(updateValues)
+    .where(eq(tasks.id, taskId))
+    .returning()
 
   if (!updated) throw new TaskError('task_update_failed')
   return updated
@@ -92,8 +98,11 @@ export async function deleteTask(
   const result = await database
     .delete(tasks)
     .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
+    .returning({ id: tasks.id })
 
-  if ((result.rowCount ?? 0) === 0) throw new TaskError('task_not_found')
+  if (result.length === 0) {
+    throw new TaskError('task_not_found')
+  }
 }
 
 // Subtasks
@@ -147,6 +156,9 @@ export async function updateSubtask(
 }
 
 export async function deleteSubtask(subtaskId: string, database: Database = db): Promise<void> {
-  const result = await database.delete(subtasks).where(eq(subtasks.id, subtaskId))
-  if ((result.rowCount ?? 0) === 0) throw new TaskError('subtask_not_found')
+  const result = await database
+    .delete(subtasks)
+    .where(eq(subtasks.id, subtaskId))
+    .returning({ id: subtasks.id })
+  if ((result.length ?? 0) === 0) throw new TaskError('subtask_not_found')
 }

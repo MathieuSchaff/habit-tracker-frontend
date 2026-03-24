@@ -23,15 +23,20 @@ export async function createProduct(
   database: Database = db
 ): Promise<Product> {
   try {
-    const slug = input.slug ?? `${input.name}${input.brand ? '-' + input.brand : ''}`
+    const normalize = (s: string) => s.trim().replace(/\s+/g, ' ')
+    const name = normalize(input.name)
+    const brand = normalize(input.brand)
+    const slug = input.slug ?? `${name}${brand ? '-' + brand : ''}`
     const [product] = await database
       .insert(products)
       .values({
         ...input,
         createdBy: userId,
-        name: input.name,
-        kind: input.kind,
-        unit: input.unit,
+        name,
+        brand,
+        kind: normalize(input.kind),
+        unit: normalize(input.unit),
+        amountUnit: input.amountUnit ? normalize(input.amountUnit) : input.amountUnit,
         slug: slugify(slug),
       })
       .returning()
@@ -61,7 +66,6 @@ async function getProductRow(condition: SQL, database: Database) {
       priceCents: products.priceCents,
       kind: products.kind,
       notes: products.notes,
-      expiresAt: products.expiresAt,
     })
     .from(products)
     .where(condition)
@@ -76,25 +80,22 @@ export async function getProductById(id: string, database: Database = db) {
 }
 
 export async function getProductBySlug(slug: string, database: Database = db) {
-  // const row = await database.select()
   const row = await getProductRow(eq(products.slug, slug), database)
   if (!row) throw new ProductError('product_not_found')
   return row
 }
-/**
- * Récupère un produit par son slug avec tous ses ingrédients associés.
- */
+
+// product with ingredients
 export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
   const ingredients = await listIngredientsByProduct(database, product.id)
-  // const { id: _, ...productWithoutId } = product
   return {
     ...product,
     ingredients,
   }
 }
 
-const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug'])
+const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt'])
 
 const TRACKED_FIELDS = [
   'name',
@@ -109,24 +110,9 @@ const TRACKED_FIELDS = [
   'url',
   'notes',
   'priceCents',
-  'expiresAt',
 ] as const
 
-/**
- * Met à jour un produit existant et enregistre les modifications dans l'historique (product_edits).
- *
- * Utilise PostgreSQL 18+ pour récupérer simultanément l'état ancien (OLD) et nouveau (NEW)
- * dans une seule requête UPDATE + RETURNING, ce qui évite un SELECT préalable et rend
- * l'opération atomique et plus performante.
- *
- * @param userId - ID de l'utilisateur qui effectue la modification
- * @param id - ID du produit à modifier
- * @param data - Champs à mettre à jour (partial UpdateProductInput)
- * @param summary - (optionnel) Résumé humain des changements
- * @param database - Instance Drizzle (par défaut la globale `db`)
- * @returns Le produit mis à jour (état final après UPDATE)
- * @throws ProductError si le produit n'existe pas, mise à jour échoue, ou aucun champ modifiable
- */
+// update product + log edit
 export async function updateProduct(
   userId: string,
   id: string,
@@ -145,8 +131,12 @@ export async function updateProduct(
     return existing
   }
 
-  const setClauses = setEntries.map(([k, v]) => sql`${sql.identifier(k)} = ${v}`)
+  const setClauses = setEntries.map(([k, v]) => {
+    const col = products[k as keyof typeof products]
+    return sql`${sql.identifier((col as any).name)} = ${v}`
+  })
 
+  // atomic update with old state recovery
   const result = await database.execute(sql`
     UPDATE ${products}
     SET ${sql.join(setClauses, sql`, `)}
@@ -154,15 +144,25 @@ export async function updateProduct(
     RETURNING
       ${products}.*,
       ${sql.join(
-        TRACKED_FIELDS.map((f) => sql`OLD.${sql.identifier(f)} AS ${sql.identifier(`old_${f}`)}`),
+        TRACKED_FIELDS.map((f) => {
+          const col = products[f as keyof typeof products]
+          return sql`OLD.${sql.identifier((col as any).name)} AS ${sql.identifier(`old_${f}`)}`
+        }),
         sql`, `
       )}
   `)
 
-  const row = result.rows[0]
-  if (!row) throw new ProductError('product_update_failed')
+  const row = result[0] as Record<string, any> | undefined
+  if (!row) throw new ProductError('product_not_found')
 
-  const newProduct = row as Product
+  // map DB cols back to camelCase
+  const newProduct = {} as any
+  for (const [key, col] of Object.entries(products)) {
+    if (typeof col === 'object' && col !== null && 'name' in col) {
+      newProduct[key] = row[col.name as string]
+    }
+  }
+
   const changes = buildChanges(row, TRACKED_FIELDS, newProduct)
 
   await logEdit(database, productEditConfig, {
@@ -174,6 +174,7 @@ export async function updateProduct(
 
   return newProduct
 }
+
 export type ListProductsFilters = {
   kind?: string | string[]
   brand?: string | string[]
@@ -197,6 +198,8 @@ export type ProductsPage = {
   page: number
   limit: number
 }
+
+// search/filter products
 export async function listProducts(
   filters: ListProductsFilters = {},
   database: Database = db
@@ -205,7 +208,6 @@ export async function listProducts(
   const limit = filters.limit ?? 20
   const offset = (page - 1) * limit
 
-  // Au lieu que d'écrire des if else, on va push dans un tableau et on les combine à la fin
   const conditions: SQL[] = []
 
   if (filters.kind) {
@@ -221,6 +223,7 @@ export async function listProducts(
       brands.length === 1 ? eq(products.brand, brands[0]) : inArray(products.brand, brands)
     )
   }
+
   if (filters.ingredient) {
     const slugs = Array.isArray(filters.ingredient)
       ? filters.ingredient
@@ -238,13 +241,7 @@ export async function listProducts(
       )
     }
   }
-  // pb: les tags ne sont pas dans la table products
-  // on doit chercher sur la table productTag
-  // en gros en sql ça donne un truc du genre select productTags.product_id
-  // from productTags
-  // inner join tags on ....
-  // where tags.slut = filters.slug ( la variable)
-  // in array c'est le where in
+
   const TAG_FILTERS = [
     'routine_step',
     'attribute',
@@ -271,8 +268,6 @@ export async function listProducts(
     )
   }
 
-  // si j'ai au moins une condition, je les combine avec AND
-  // si undefined, drizzle va ignorer le where()
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const [items, countResult] = await Promise.all([
@@ -310,6 +305,8 @@ export type FilterOptions = {
   brands: string[]
   tags: TagsByCategory
 }
+
+// all available filter options
 export async function getFilterOptions(database: Database = db): Promise<FilterOptions> {
   const [kindRows, brandRows, tagRows] = await Promise.all([
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
@@ -357,35 +354,72 @@ export async function deleteProduct(id: string, database: Database = db): Promis
     .returning({ id: products.id })
   if (!rows[0]) throw new ProductError('product_delete_failed')
 }
+
+// fuzzy search for duplicates
+export async function findSimilarProducts(
+  name: string,
+  brand: string,
+  database: Database = db
+): Promise<ProductSearchResult[]> {
+  const trimmedName = name.trim()
+  const trimmedBrand = brand.trim()
+  if (!trimmedName || !trimmedBrand) return []
+
+  return database
+    .select({
+      id: products.id,
+      name: products.name,
+      brand: products.brand,
+      kind: products.kind,
+      slug: products.slug,
+    })
+    .from(products)
+    .where(
+      and(
+        or(
+          sql`lower(${products.brand}) = lower(${trimmedBrand})`,
+          sql`similarity(lower(${products.brand}), lower(${trimmedBrand})) > 0.5`
+        ),
+        or(
+          sql`similarity(lower(${products.name}), lower(${trimmedName})) > 0.3`,
+          ilike(products.name, `%${trimmedName}%`)
+        )
+      )
+    )
+    .limit(5)
+    .orderBy(sql`similarity(lower(${products.name}), lower(${trimmedName})) DESC`, products.name)
+}
+
+// basic search
 export async function searchProducts(
   filters: { q: string; limit?: number },
   database: Database = db
 ): Promise<ProductSearchResult[]> {
   const limit = filters.limit ?? 8
-  const conditions: SQL[] = [
-    ilike(products.name, `%${filters.q}%`),
-    ilike(products.brand, `%${filters.q}%`),
-  ]
-  return (
-    database
-      .select({
-        id: products.id,
-        name: products.name,
-        brand: products.brand,
-        kind: products.kind,
-        slug: products.slug,
-      })
-      .from(products)
-      // .where(ilike(products.name, `%${filters.q}%`))
-      .where(or(...conditions))
-      .limit(limit)
-      .orderBy(
-        sql`CASE
-              WHEN lower(${products.name}) = lower(${filters.q}) THEN 0
-              WHEN lower(${products.name}) LIKE lower(${filters.q + '%'}) THEN 1
-              ELSE 2
-            END`,
-        products.name
+  const q = filters.q.trim()
+  return database
+    .select({
+      id: products.id,
+      name: products.name,
+      brand: products.brand,
+      kind: products.kind,
+      slug: products.slug,
+    })
+    .from(products)
+    .where(
+      or(
+        ilike(products.name, `%${q}%`),
+        ilike(products.brand, `%${q}%`),
+        sql`similarity(lower(${products.name}), lower(${q})) > 0.3`,
+        sql`similarity(lower(${products.brand}), lower(${q})) > 0.3`
       )
-  )
+    )
+    .limit(limit)
+    .orderBy(
+      sql`GREATEST(
+              similarity(lower(${products.name}), lower(${q})),
+              similarity(lower(${products.brand}), lower(${q}))
+            ) DESC`,
+      products.name
+    )
 }

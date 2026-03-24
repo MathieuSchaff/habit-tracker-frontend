@@ -102,6 +102,21 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
+  checkDuplicate: (name: string, brand: string) =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'check-duplicate', name, brand] as const,
+      queryFn: async () => {
+        const res = await api.products['check-duplicate'].$get({
+          query: { name, brand },
+        })
+        if (!res.ok) throw new Error('Failed to check duplicate')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: name.trim().length >= 2 && brand.trim().length >= 1,
+      staleTime: 30 * 1000,
+    }),
+
   brands: () =>
     queryOptions({
       queryKey: [...productKeys.all, 'brands'] as const,
