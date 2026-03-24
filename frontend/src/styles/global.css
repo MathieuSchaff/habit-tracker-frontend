@@ -1,5 +1,8 @@
 * {
   font-family: var(--font-sans);
+  font-feature-settings: var(--font-features-sans);
+  -webkit-font-smoothing: antialiased; /* Rendu plus net */
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
@@ -9,16 +12,51 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
+  font-feature-settings: var(--font-features-display); /* Kern, Liga, Onum */
   color: var(--text-primary);
   font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
   text-wrap: balance;
   overflow-wrap: break-word;
+  letter-spacing: var(--tracking-tight); /* Un peu plus serré pour les gros titres serif */
+}
+
+/* Règle pour les labels uppercase : On n'impose pas l'uppercase, 
+   on ajoute seulement le tracking (espacement) si l'uppercase est déjà là. */
+[style*="text-transform: uppercase"],
+.uppercase,
+.all-caps,
+label.uppercase,
+span.uppercase,
+.caption {
+  letter-spacing: var(--tracking-widest);
+  /* On ne force plus le font-weight ici pour laisser le composant décider */
+}
+
+/* On cherche spécifiquement tous les éléments qui utilisent déjà uppercase via CSS */
+/* C'est ici que la magie du "luxe" opère sans rien casser */
+*:where([class], [style]) {
+  &:is([style*="text-transform: uppercase"]),
+  &:is(.uppercase),
+  &:is(.all-caps) {
+    letter-spacing: var(--tracking-widest) !important;
+  }
+}
+
+/* Prix : On force les "Old Style Figures" pour un look luxe/éditorial */
+.price,
+[class*="price"],
+.amount {
+  font-feature-settings:
+    "onum" 1,
+    "tnum" 1; /* Chiffres elzéviriens + tabulaires */
+  font-family: var(--font-display);
 }
 
 p {
   text-wrap: pretty;
   max-width: var(--measure, 65ch);
+  line-height: var(--leading-normal);
 }
 
 a {
@@ -84,7 +122,7 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
-/* Native View Transition API experiment - smooth fade between routes */
+/* route transition experiment */
 @view-transition {
   navigation: auto;
 }
@@ -108,26 +146,27 @@ dialog::backdrop {
     opacity: 0;
   }
 }
-/* Ce bloc empêche physiquement le texte de se couper dans une formule */
+
+/* fix katex clipping/wrapping */
 .markdown-container .katex-display {
   display: block !important;
-  white-space: nowrap !important; /* Force la ligne unique */
-  overflow-x: auto; /* Permet de scroller si la formule est trop longue sur mobile */
+  white-space: nowrap !important;
+  overflow-x: auto;
   overflow-y: hidden;
 }
 
 .markdown-container .katex-html {
-  display: flex !important; /* Force l'alignement horizontal des blocs */
+  display: flex !important;
   flex-wrap: nowrap !important;
   align-items: center;
   justify-content: center;
 }
 
-/* Annule les sauts de ligne que KaTeX pourrait générer par erreur */
+/* prevent unexpected katex newlines */
 .markdown-container .mspace.newline {
   display: none !important;
 }
-/* Neutralise les sauts de ligne automatiques indésirables dans les formules */
+
 .katex .katex-html > .newline {
   display: none !important;
 }

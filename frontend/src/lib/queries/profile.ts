@@ -11,7 +11,17 @@ export const profileQueries = {
       queryFn: async () => {
         const res = await api.profile.$get()
         const json = await res.json()
-        if (!json.success) throw new Error(json.error)
+        if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60 * 5,
+    }),
+  stats: () =>
+    queryOptions({
+      queryKey: ['profile', 'stats'],
+      queryFn: async () => {
+        const res = await api.profile.stats.$get()
+        const json = await res.json()
         return json.data
       },
       staleTime: 1000 * 60 * 5,
@@ -25,7 +35,7 @@ export const useUpdateProfile = () => {
     mutationFn: async (data: ProfileUpdateInput) => {
       const res = await api.profile.$patch({ json: data })
       const json = await res.json()
-      if (!json.success) throw new Error(json.error)
+      if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
       return json.data
     },
     onSuccess: (data) => {

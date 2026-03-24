@@ -1,8 +1,14 @@
 import type { UpdateUserPreferencesInput } from '@habit-tracker/shared'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { InferResponseType } from 'hono/client'
 
 import { api } from '../api'
+
+export type UserPreferences = Extract<
+  InferResponseType<typeof api.profile.preferences.$get>,
+  { data: any }
+>['data']
 
 export const userPreferenceKeys = {
   all: ['user-preferences'] as const,

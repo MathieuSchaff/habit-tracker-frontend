@@ -119,9 +119,9 @@ export function IngredientForm({
         if (mode === 'create') {
           const created = await createIngredient.mutateAsync({
             name: form.name.trim(),
-            category: form.category.trim() || null,
-            description: form.description.trim() || null,
-            content: form.content.trim() || null,
+            category: form.category.trim() || undefined,
+            description: form.description.trim() || undefined,
+            content: form.content.trim() || undefined,
           })
           if (tags.length > 0) {
             await updateTags.mutateAsync({
@@ -136,9 +136,9 @@ export function IngredientForm({
               id: ingredient!.id,
               data: {
                 name: form.name.trim(),
-                category: form.category.trim() || null,
-                description: form.description.trim(),
-                content: form.content.trim(),
+                category: form.category.trim() || undefined,
+                description: form.description.trim() || undefined,
+                content: form.content.trim() || undefined,
               },
             }),
             updateTags.mutateAsync({
@@ -288,7 +288,7 @@ export function IngredientForm({
           </Link>
         ) : (
           <Link
-            to="/ingredients/"
+            to="/ingredients"
             className="ingredient-edit-form__btn ingredient-edit-form__btn--cancel"
           >
             <X size={16} />

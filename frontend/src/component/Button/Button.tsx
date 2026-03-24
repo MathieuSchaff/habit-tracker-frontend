@@ -30,7 +30,6 @@ export const Button = ({
     loading && 'loading',
     className
   )
-  console.log(loading)
   return (
     <button type={type} className={classes} disabled={disabled || loading} {...rest}>
       {loading && <Spinner />}

@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+/** @vitest-environment jsdom */
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { renderWithProviders } from '../../../test/utils'
 import { QuickAddModal } from '../components/QuickAddModal/QuickAddModal'
 
@@ -10,10 +12,16 @@ vi.mock('../../../lib/queries/products', () => ({
       queryKey: ['products', 'search', q],
       queryFn: async () =>
         q.length >= 2
-          ? [
-              { id: 'prod-1', name: 'CeraVe Cleanser', brand: 'CeraVe', slug: 'cerave-cleanser' },
-            ]
+          ? [{ id: 'prod-1', name: 'CeraVe Cleanser', brand: 'CeraVe', slug: 'cerave-cleanser' }]
           : [],
+    }),
+    checkDuplicate: (name: string, brand: string) => ({
+      queryKey: ['products', 'check-duplicate', name, brand],
+      queryFn: async () => [],
+    }),
+    brands: () => ({
+      queryKey: ['products', 'brands'],
+      queryFn: async () => ['CeraVe', 'La Roche-Posay'],
     }),
   },
   useCreateProduct: vi.fn(),
@@ -23,15 +31,21 @@ vi.mock('../../../lib/queries/user-products', () => ({
   useCreateUserProduct: vi.fn(),
 }))
 
+vi.mock('../../../lib/queries/purchases', () => ({
+  useAddPurchase: vi.fn(),
+}))
+
 vi.mock('../../../hooks/useScrollLock', () => ({
   useScrollLock: vi.fn(),
 }))
 
 import { useCreateProduct } from '../../../lib/queries/products'
+import { useAddPurchase } from '../../../lib/queries/purchases'
 import { useCreateUserProduct } from '../../../lib/queries/user-products'
 
 describe('Flow : ajout rapide dans Ma Collection', () => {
   const mockAddUserProduct = vi.fn().mockResolvedValue({})
+  const mockAddStockEntry = vi.fn().mockResolvedValue({})
   const mockCreateProduct = vi.fn().mockResolvedValue({
     id: 'new-prod',
     name: 'Mon Sérum',
@@ -40,9 +54,20 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
   })
 
   beforeEach(() => {
-    vi.mocked(useCreateUserProduct).mockReturnValue({ mutateAsync: mockAddUserProduct, isPending: false } as any)
-    vi.mocked(useCreateProduct).mockReturnValue({ mutateAsync: mockCreateProduct, isPending: false } as any)
+    vi.mocked(useCreateUserProduct).mockReturnValue({
+      mutateAsync: mockAddUserProduct,
+      isPending: false,
+    } as any)
+    vi.mocked(useAddPurchase).mockReturnValue({
+      mutateAsync: mockAddStockEntry,
+      isPending: false,
+    } as any)
+    vi.mocked(useCreateProduct).mockReturnValue({
+      mutateAsync: mockCreateProduct,
+      isPending: false,
+    } as any)
     mockAddUserProduct.mockClear()
+    mockAddStockEntry.mockClear()
     mockCreateProduct.mockClear()
   })
 
@@ -71,6 +96,13 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
     await userEvent.click(screen.getByText('Nouveau produit'))
     await userEvent.type(screen.getByPlaceholderText('ex: CeraVe Hydrating Cleanser'), 'Mon Sérum')
     await userEvent.type(screen.getByPlaceholderText('ex: CeraVe'), 'Ma Marque')
+    // Lose focus to trigger the "Confirm brand" UI
+    await userEvent.tab()
+
+    // Click "Oui" to confirm the new brand
+    const confirmButton = await screen.findByRole('button', { name: /Oui/ })
+    await userEvent.click(confirmButton)
+
     await userEvent.click(screen.getByRole('button', { name: /Créer et ajouter/ }))
 
     await waitFor(() => {
@@ -79,7 +111,7 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
       )
     })
     await waitFor(() => {
-      expect(mockAddUserProduct).toHaveBeenCalled()
+      expect(mockAddStockEntry).toHaveBeenCalled()
     })
   })
 

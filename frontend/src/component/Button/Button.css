@@ -1,4 +1,8 @@
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -38,7 +42,7 @@
 
 .primary {
   background: var(--color-primary);
-  color: var(--text-inverse);
+  color: var(--color-primary-text, var(--text-inverse));
 }
 
 .primary:hover:not(:disabled) {

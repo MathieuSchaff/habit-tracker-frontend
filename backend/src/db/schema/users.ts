@@ -39,6 +39,7 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull().default('user'),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
     // Empêche 2 comptes avec le même email
