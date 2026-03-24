@@ -65,7 +65,7 @@ export const ProfileForm = ({
           label="Bio"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
-          placeholder="Quelques mots sur toi…"
+          placeholder="Quelques mots sur vous…"
           maxLength={500}
           hint={`${bio.length}/500`}
           rows={4}
