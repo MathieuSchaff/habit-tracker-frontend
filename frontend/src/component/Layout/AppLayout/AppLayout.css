@@ -7,6 +7,8 @@
 
 .content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 768px) {
@@ -17,7 +19,7 @@
 }
 
 @media (max-width: 767px) {
-  .content {
+  .content:not(.content--auth) {
     padding-bottom: var(--bottom-nav-height, 4.5rem);
   }
 }
