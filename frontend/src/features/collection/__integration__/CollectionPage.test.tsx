@@ -194,7 +194,7 @@ describe('CollectionPage', () => {
     renderWithProviders(<CollectionPage />)
 
     // Click on ShelfProductCard to expand the product
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.shelf-card')!
+    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')!
     await userEvent.click(shelfCard)
 
     // Change sentiment to "😍" — find within the expanded card details
@@ -223,7 +223,7 @@ describe('CollectionPage', () => {
     renderWithProviders(<CollectionPage />)
 
     // Click on ShelfProductCard to expand
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.shelf-card')!
+    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')!
     await userEvent.click(shelfCard)
 
     const deleteBtn = screen.getByRole('button', { name: /Retirer/i })
