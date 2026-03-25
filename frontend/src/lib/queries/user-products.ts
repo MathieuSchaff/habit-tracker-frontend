@@ -1,3 +1,14 @@
+/**
+ * Queries et mutations pour les produits de la collection utilisateur.
+ *
+ * - userProductKeys : clés de cache TanStack Query
+ * - userProductQueries : query factories (list, detail, byProduct)
+ * - useCreateUserProduct : ajouter un produit à sa collection
+ * - useUpdateUserProduct : modifier (statut, sentiment, etc.) avec optimistic UI
+ * - useDeleteUserProduct : retirer de la collection
+ * - useUpsertUserProductReview : créer/modifier une évaluation
+ */
+
 import type {
   CreateUserProductInput,
   UpdateUserProductInput,
@@ -9,11 +20,13 @@ import type { InferResponseType } from 'hono/client'
 
 import { api } from '../api'
 
+/** Type inféré depuis l'API Hono RPC — un élément de la liste user-products */
 export type UserProduct = Extract<
   InferResponseType<(typeof api)['user-products']['$get']>,
   { data: any }
 >['data'][number]
 
+/** Clés de cache hiérarchiques pour TanStack Query */
 export const userProductKeys = {
   all: ['user-products'] as const,
   lists: () => [...userProductKeys.all, 'list'] as const,
@@ -68,6 +81,10 @@ export const useCreateUserProduct = () => {
   })
 }
 
+/**
+ * Mutation de mise à jour avec optimistic UI.
+ * Le cache est mis à jour immédiatement, puis rollback en cas d'erreur serveur.
+ */
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()
   return useMutation({
@@ -80,9 +97,25 @@ export const useUpdateUserProduct = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { id }) => {
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: userProductKeys.list() })
+      const previousData = queryClient.getQueryData(userProductKeys.list())
+      queryClient.setQueryData(userProductKeys.list(), (oldProducts: UserProduct[] | undefined) => {
+        if (!oldProducts) return oldProducts
+        return oldProducts.map((product: UserProduct) => {
+          if (product.id === variables.id) {
+            return { ...product, ...variables.input }
+          }
+          return product
+        })
+      })
+      return previousData
+    },
+    onError: (_error, _variables, previousData) => {
+      queryClient.setQueryData(userProductKeys.list(), previousData)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
     },
   })
 }

@@ -1,5 +1,9 @@
 import type { DisplayScale } from '@habit-tracker/shared'
 
+/**
+ * Critères d'évaluation d'un produit (notes de 1 à 5).
+ * Chaque critère est optionnel car l'utilisateur peut noter progressivement.
+ */
 export interface ReviewCriteria {
   tolerance?: number | null
   efficacy?: number | null
@@ -9,6 +13,10 @@ export interface ReviewCriteria {
   valueForMoney?: number | null
 }
 
+/**
+ * Poids de chaque critère pour le calcul du score pondéré.
+ * Un poids de 0 = critère ignoré, poids de 10 = très important.
+ */
 export interface CriteriaWeights {
   tolerance: number
   efficacy: number
@@ -18,6 +26,7 @@ export interface CriteriaWeights {
   valueForMoney: number
 }
 
+/** Poids par défaut : tous les critères ont la même importance */
 export const DEFAULT_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
   efficacy: 1,
@@ -27,7 +36,24 @@ export const DEFAULT_WEIGHTS: CriteriaWeights = {
   valueForMoney: 1,
 }
 
-// Weighted score calculation for reviews
+/** Clés des critères — utilisé pour itérer sans duplication */
+const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
+  'tolerance',
+  'efficacy',
+  'sensoriality',
+  'stability',
+  'mixability',
+  'valueForMoney',
+]
+
+/**
+ * Calcule le score pondéré d'une review.
+ *
+ * Formule : S = Σ(note_i × poids_i) / Σ(poids_i)
+ * Le résultat brut est sur 5, puis converti selon l'échelle choisie.
+ *
+ * @returns Le score formaté en string, ou null si aucun critère noté.
+ */
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
   weights: CriteriaWeights = DEFAULT_WEIGHTS,
@@ -38,19 +64,10 @@ export function calculateWeightedScore(
   let totalPoints = 0
   let totalWeight = 0
 
-  const criteriaKeys: (keyof ReviewCriteria)[] = [
-    'tolerance',
-    'efficacy',
-    'sensoriality',
-    'stability',
-    'mixability',
-    'valueForMoney',
-  ]
-
-  for (const key of criteriaKeys) {
+  for (const key of CRITERIA_KEYS) {
     const value = review[key]
     if (value != null && value > 0) {
-      const weight = (weights as any)[key] ?? 1
+      const weight = weights[key] ?? 1
       totalPoints += value * weight
       totalWeight += weight
     }
@@ -58,6 +75,7 @@ export function calculateWeightedScore(
 
   if (totalWeight === 0) return null
 
+  // Score brut sur 5 (chaque critère va de 1 à 5)
   const scoreOutOf5 = totalPoints / totalWeight
 
   switch (scale) {

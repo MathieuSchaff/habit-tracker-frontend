@@ -1,15 +1,22 @@
+/**
+ * useClickOutside — Détecte les clics en dehors d'un élément ET la touche Escape.
+ *
+ * Utilisé par les dialogs et menus pour se fermer proprement.
+ * Le callback est stocké dans une ref pour éviter de réattacher
+ * les listeners à chaque re-render du parent.
+ */
+
 import { type RefObject, useEffect, useRef } from 'react'
 
 export const useClickOutside = (
   ref: RefObject<HTMLElement | null>,
   handleOnClickOutside: (event: MouseEvent | TouchEvent | KeyboardEvent) => void
 ) => {
-  // Using a ref for the callback to avoid re-attaching listeners
-  // every time the parent component re-renders.
   const callbackRef = useRef(handleOnClickOutside)
   callbackRef.current = handleOnClickOutside
 
   useEffect(() => {
+    // Clic souris ou touch en dehors de l'élément
     const listener = (event: MouseEvent | TouchEvent) => {
       if (!ref.current || ref.current.contains(event.target as Node)) {
         return
@@ -17,6 +24,7 @@ export const useClickOutside = (
       callbackRef.current(event)
     }
 
+    // Touche Escape → fermeture
     const keyListener = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         callbackRef.current(event)

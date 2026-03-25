@@ -1,3 +1,11 @@
+/**
+ * useScrollLock — Verrouille le scroll de la page quand un overlay est ouvert.
+ *
+ * Technique : position:fixed sur le body avec un offset top négatif
+ * pour éviter le saut de scroll (nécessaire sur iOS où overflow:hidden ne suffit pas).
+ * La position de scroll est sauvegardée dans body.dataset.scrollY et restaurée au unlock.
+ */
+
 import { useEffect } from 'react'
 
 export function useScrollLock(locked: boolean) {
@@ -7,8 +15,6 @@ export function useScrollLock(locked: boolean) {
     const scrollY = window.scrollY
     const body = document.body
 
-    // HACK: On iOS, simple overflow:hidden doesn't always work.
-    // Using position:fixed with top offset to prevent the background from jumping.
     body.style.position = 'fixed'
     body.style.top = `-${scrollY}px`
     body.style.left = '0'

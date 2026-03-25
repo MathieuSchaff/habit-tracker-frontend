@@ -10,6 +10,22 @@ import { useUpdateUserProduct } from '../../../lib/queries/user-products'
 import { renderWithProviders } from '../../../test/utils'
 import { CollectionPage } from '../page/CollectionPage'
 
+vi.mock('@tanstack/react-router', () => ({
+  getRouteApi: () => ({
+    useNavigate: () => vi.fn(),
+    useSearch: () => ({
+      q: '',
+      sort: 'name',
+      brand: 'all',
+      kind: 'all',
+      sentiment: 'all',
+      repurchase: 'all',
+      minNote: 0,
+      maxPrice: '',
+    }),
+  }),
+}))
+
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<any>()
   return {
@@ -104,7 +120,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     await userEvent.click(addPurchaseBtn)
 
     // Check if purchase form appears
-    expect(screen.getByText("ENREGISTRER L'ACHAT")).toBeInTheDocument()
+    expect(screen.getByText('ENREGISTRER UN ACHAT')).toBeInTheDocument()
     expect(screen.getByLabelText(/Date d'achat/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Prix payé/i)).toBeInTheDocument()
   })
@@ -118,14 +134,15 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     const priceInput = screen.getByLabelText(/Prix payé/i)
     await userEvent.type(priceInput, '22.50')
 
-    const saveBtn = screen.getByRole('button', { name: 'Enregistrer' })
+    const saveBtn = screen.getByRole('button', { name: 'Valider' })
     await userEvent.click(saveBtn)
 
     expect(mockAddStock).toHaveBeenCalledWith(
       expect.objectContaining({
-        productId: 'p-1',
-        qty: 1,
-        pricePaidCents: 2250,
+        userProductId: 'up-1',
+        input: expect.objectContaining({
+          pricePaidCents: 2250,
+        }),
       }),
       expect.any(Object)
     )
