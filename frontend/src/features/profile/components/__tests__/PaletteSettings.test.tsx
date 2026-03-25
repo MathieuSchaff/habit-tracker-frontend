@@ -13,8 +13,12 @@ vi.mock('../../../../lib/queries/user-preferences', () => ({
       queryFn: async () => ({
         displayScale: 'out_of_20',
         criteriaWeights: {
-          tolerance: 1, efficacy: 1, sensoriality: 1,
-          stability: 1, mixability: 1, valueForMoney: 1,
+          tolerance: 1,
+          efficacy: 1,
+          sensoriality: 1,
+          stability: 1,
+          mixability: 1,
+          valueForMoney: 1,
         },
       }),
     }),
@@ -45,7 +49,7 @@ describe('PreferenceSettings — palette section', () => {
   it('hides palette section when theme is dark', async () => {
     useThemeStore.setState({ theme: 'dark' })
     renderWithProviders(<PreferenceSettings />)
-    await screen.findByText('Échelle d\'affichage')
+    await screen.findByText("Échelle d'affichage")
     expect(screen.queryByText('Palette (mode clair)')).not.toBeInTheDocument()
   })
 
