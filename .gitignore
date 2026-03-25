@@ -28,6 +28,7 @@ build/
 # =========================
 backups/
 *.sql
+backend/src/db/seed/products/otherData.csv
 
 # =========================
 # IDE

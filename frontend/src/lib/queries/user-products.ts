@@ -10,7 +10,7 @@ import type { InferResponseType } from 'hono/client'
 import { api } from '../api'
 
 export type UserProduct = Extract<
-  InferResponseType<typeof api['user-products']['$get']>,
+  InferResponseType<(typeof api)['user-products']['$get']>,
   { data: any }
 >['data'][number]
 

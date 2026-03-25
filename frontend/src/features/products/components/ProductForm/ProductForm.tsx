@@ -13,7 +13,7 @@ import {
   useUpdateProductTags,
 } from '../../../../lib/queries/products'
 import { tagQueries } from '../../../../lib/queries/tags'
-import '../../../../styles/common/ingredients-shared.css'
+import '../../../../styles/common/shared-components.css'
 
 import { BrandCombobox } from '../BrandCombobox/BrandCombobox'
 import './ProductForm.css'

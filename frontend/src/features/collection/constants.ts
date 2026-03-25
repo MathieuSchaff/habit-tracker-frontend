@@ -1,11 +1,15 @@
 import type { UserProductStatus } from '@habit-tracker/shared'
 
-import { Archive, Ban, Eye, Heart, Package, ShoppingBag, type LucideIcon } from 'lucide-react'
+import { Archive, Ban, Eye, Heart, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
+
 import type { ReviewCriteria } from '../../lib/helpers/reviews'
 
 export type SortOption = 'name' | 'note' | 'sentiment' | 'date' | 'price_asc' | 'price_desc'
 
-export const statusLabels: Record<UserProductStatus, { label: string; icon: LucideIcon; color: string }> = {
+export const statusLabels: Record<
+  UserProductStatus,
+  { label: string; icon: LucideIcon; color: string }
+> = {
   in_stock: { label: 'En stock', icon: Package, color: '#10b981' },
   wishlist: { label: 'Wishlist', icon: ShoppingBag, color: '#3b82f6' },
   watched: { label: 'Surveille', icon: Eye, color: '#f59e0b' },
@@ -14,7 +18,13 @@ export const statusLabels: Record<UserProductStatus, { label: string; icon: Luci
   avoided: { label: 'À éviter', icon: Ban, color: '#000000' },
 }
 
-export const sentimentEmojis: Record<number, string> = { 1: '🤢', 2: '👎', 3: '😐', 4: '👍', 5: '😍' }
+export const sentimentEmojis: Record<number, string> = {
+  1: '🤢',
+  2: '👎',
+  3: '😐',
+  4: '👍',
+  5: '😍',
+}
 
 export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   tolerance: 'Tolérance',
@@ -37,7 +47,14 @@ export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   valueForMoney: 'Le prix est-il justifié par les résultats et la durée de vie du flacon ?',
 }
 
-export const sortOptions: SortOption[] = ['name', 'note', 'sentiment', 'date', 'price_asc', 'price_desc']
+export const sortOptions: SortOption[] = [
+  'name',
+  'note',
+  'sentiment',
+  'date',
+  'price_asc',
+  'price_desc',
+]
 export const sortLabels: Record<SortOption, string> = {
   name: 'Nom',
   note: 'Note',

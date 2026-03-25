@@ -43,6 +43,7 @@ export const products = pgTable(
     amountUnit: text('amount_unit'),
     slug: text('slug').notNull(),
     url: text('url'),
+    imageUrl: text('image_url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),
 
