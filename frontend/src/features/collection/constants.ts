@@ -1,10 +1,19 @@
+/**
+ * Constantes de la feature Collection.
+ *
+ * Source de vérité unique pour les labels, icônes et couleurs
+ * liés aux statuts, sentiments et critères d'évaluation.
+ */
+
 import type { UserProductStatus } from '@habit-tracker/shared'
 
 import { Archive, Ban, Eye, Heart, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
 
 import type { ReviewCriteria } from '../../lib/helpers/reviews'
 
-export type SortOption = 'name' | 'note' | 'sentiment' | 'date' | 'price_asc' | 'price_desc'
+/* ────────────────────────────────────────────
+   Statuts produit — label, icône et couleur
+   ──────────────────────────────────────────── */
 
 export const statusLabels: Record<
   UserProductStatus,
@@ -18,14 +27,39 @@ export const statusLabels: Record<
   avoided: { label: 'À éviter', icon: Ban, color: '#000000' },
 }
 
-export const sentimentEmojis: Record<number, string> = {
-  1: '🤢',
-  2: '👎',
-  3: '😐',
-  4: '👍',
-  5: '😍',
+/** Ordre d'affichage des étagères dans la ShelfView */
+export const SHELF_ORDER: UserProductStatus[] = [
+  'holy_grail',
+  'in_stock',
+  'wishlist',
+  'watched',
+  'archived',
+  'avoided',
+]
+
+/** Maps product kind to its CSS custom property for the shelf card color */
+export const kindColorTokens: Record<string, string> = {
+  skincare: 'var(--shelf-color-skincare)',
+  complément: 'var(--shelf-color-complement)',
+  complement: 'var(--shelf-color-complement)',
+  huile: 'var(--shelf-color-huile)',
+  vitamine: 'var(--shelf-color-vitamine)',
 }
 
+export const DEFAULT_KIND_COLOR_TOKEN = 'var(--shelf-color-default)'
+
+/* ────────────────────────────────────────────
+   Sentiments — mapping note (1-5) → emoji
+   Réexporté depuis le module utilitaire partagé.
+   ──────────────────────────────────────────── */
+
+export { sentimentEmojis } from '../../utils/sentimentMap'
+
+/* ────────────────────────────────────────────
+   Critères d'évaluation — labels et définitions
+   ──────────────────────────────────────────── */
+
+/** Libellés courts affichés à côté des étoiles */
 export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   tolerance: 'Tolérance',
   efficacy: 'Efficacité',
@@ -35,6 +69,7 @@ export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   valueForMoney: 'Rapport Q/P',
 }
 
+/** Définitions détaillées affichées dans les infobulles */
 export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   tolerance:
     'Réaction de la peau (rougeurs, picotements, boutons). Le produit respecte-t-il votre barrière cutanée ?',
@@ -47,6 +82,12 @@ export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   valueForMoney: 'Le prix est-il justifié par les résultats et la durée de vie du flacon ?',
 }
 
+/* ────────────────────────────────────────────
+   Options de tri
+   ──────────────────────────────────────────── */
+
+export type SortOption = 'name' | 'note' | 'sentiment' | 'date' | 'price_asc' | 'price_desc'
+
 export const sortOptions: SortOption[] = [
   'name',
   'note',
@@ -55,6 +96,7 @@ export const sortOptions: SortOption[] = [
   'price_asc',
   'price_desc',
 ]
+
 export const sortLabels: Record<SortOption, string> = {
   name: 'Nom',
   note: 'Note',

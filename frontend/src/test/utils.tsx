@@ -55,32 +55,96 @@ export function makeWeights(overrides: Partial<CriteriaWeights> = {}): CriteriaW
 export function makeUserProduct(
   overrides: Partial<{
     id: string
+    userId: string
+    productId: string
     status: UserProductStatus
     qty: number
     sentiment: number | null
     wouldRepurchase: RepurchaseFlag | null
     comment: string | null
+    createdAt: string
     updatedAt: string
-    product: { name: string; brand: string; kind: string; priceCents: number | null; unit: string }
-    review: ReviewCriteria | null
+    product: {
+      id: string
+      brand: string
+      name: string
+      createdAt: string
+      updatedAt: string
+      createdBy: string
+      kind: string
+      unit: string
+      inci: string | null
+      description: string | null
+      totalAmount: number | null
+      priceCents: number | null
+      amountUnit: string
+      slug: string
+      url: string | null
+      imageUrl: string | null
+      notes: string | null
+      productIngredients: any[]
+    }
+    review: {
+      id: string
+      userProductId: string
+      tolerance: number | null
+      efficacy: number | null
+      sensoriality: number | null
+      stability: number | null
+      mixability: number | null
+      valueForMoney: number | null
+      comment: string | null
+      createdAt: string
+      updatedAt: string
+    }
+    purchases: any[]
   }> = {}
 ) {
   return {
     id: 'test-id-1',
+    userId: 'test-user-1',
+    productId: 'test-product-1',
     status: 'in_stock' as UserProductStatus,
     qty: 1,
     sentiment: null,
     wouldRepurchase: null,
     comment: null,
+    createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     product: {
-      name: 'CeraVe Hydrating Cleanser',
+      id: 'test-product-1',
       brand: 'CeraVe',
+      name: 'CeraVe Hydrating Cleanser',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: 'test-user-1',
       kind: 'skincare',
-      priceCents: 1299,
       unit: 'flacon pompe',
+      inci: null,
+      description: null,
+      totalAmount: null,
+      priceCents: 1299,
+      productIngredients: [],
+      amountUnit: 'ml',
+      slug: 'cerave-hydrating-cleanser',
+      url: null,
+      imageUrl: null,
+      notes: null,
     },
-    review: null,
+    review: {
+      id: 'test-review-1',
+      userProductId: 'test-id-1',
+      tolerance: null,
+      efficacy: null,
+      sensoriality: null,
+      stability: null,
+      mixability: null,
+      valueForMoney: null,
+      comment: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    purchases: [],
     ...overrides,
   }
 }

@@ -2,7 +2,7 @@ import { Droplets, FlaskConical, Package, Pill, Sun } from 'lucide-react'
 
 // Individual icon components
 
-function PumpIcon({ size = 24 }: { size?: number }) {
+export function ProdPumpIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -28,7 +28,7 @@ function PumpIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-function DropperIcon({ size = 24 }: { size?: number }) {
+export function ProdDropperIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -50,7 +50,7 @@ function DropperIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-function CreamJarIcon({ size = 24 }: { size?: number }) {
+export function ProdCreamJarIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -72,7 +72,7 @@ function CreamJarIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-function TubeIcon({ size = 24 }: { size?: number }) {
+export function ProdTubeIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -94,7 +94,7 @@ function TubeIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-function SprayIcon({ size = 24 }: { size?: number }) {
+export function ProdSprayIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -118,7 +118,7 @@ function SprayIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-function SpfIcon({ size = 24 }: { size?: number }) {
+export function ProdSpfIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -147,23 +147,23 @@ function SpfIcon({ size = 24 }: { size?: number }) {
 // Resolver
 
 const UNIT_TO_ICON: Record<string, React.ElementType> = {
-  pump: PumpIcon,
-  pompe: PumpIcon,
-  dropper: DropperIcon,
-  pipette: DropperIcon,
-  'compte-gouttes': DropperIcon,
-  jar: CreamJarIcon,
-  pot: CreamJarIcon,
-  crème: CreamJarIcon,
-  creme: CreamJarIcon,
-  cream: CreamJarIcon,
-  tube: TubeIcon,
-  spray: SprayIcon,
-  brume: SprayIcon,
-  brumisateur: SprayIcon,
-  spf: SpfIcon,
-  sunscreen: SpfIcon,
-  solaire: SpfIcon,
+  pump: ProdPumpIcon,
+  pompe: ProdPumpIcon,
+  dropper: ProdDropperIcon,
+  pipette: ProdDropperIcon,
+  'compte-gouttes': ProdDropperIcon,
+  jar: ProdCreamJarIcon,
+  pot: ProdCreamJarIcon,
+  crème: ProdCreamJarIcon,
+  creme: ProdCreamJarIcon,
+  cream: ProdCreamJarIcon,
+  tube: ProdTubeIcon,
+  spray: ProdSprayIcon,
+  brume: ProdSprayIcon,
+  brumisateur: ProdSprayIcon,
+  spf: ProdSpfIcon,
+  sunscreen: ProdSpfIcon,
+  solaire: ProdSpfIcon,
 }
 
 const KIND_FALLBACK: Record<string, React.ElementType> = {

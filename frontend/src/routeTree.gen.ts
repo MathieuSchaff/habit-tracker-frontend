@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyPendingRouteImport } from './routes/verify-pending'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as TestSvgRouteImport } from './routes/test-svg'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -39,6 +40,11 @@ const VerifyPendingRoute = VerifyPendingRouteImport.update({
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestSvgRoute = TestSvgRouteImport.update({
+  id: '/test-svg',
+  path: '/test-svg',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/test-svg': typeof TestSvgRoute
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/test-svg': typeof TestSvgRoute
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/test-svg': typeof TestSvgRoute
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/test-svg'
     | '/verify-email'
     | '/verify-pending'
     | '/collection'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/test-svg'
     | '/verify-email'
     | '/verify-pending'
     | '/collection'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/test-svg'
     | '/verify-email'
     | '/verify-pending'
     | '/_authenticated/collection'
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  TestSvgRoute: typeof TestSvgRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   VerifyPendingRoute: typeof VerifyPendingRoute
   IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-svg': {
+      id: '/test-svg'
+      path: '/test-svg'
+      fullPath: '/test-svg'
+      preLoaderRoute: typeof TestSvgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  TestSvgRoute: TestSvgRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   VerifyPendingRoute: VerifyPendingRoute,
   IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
