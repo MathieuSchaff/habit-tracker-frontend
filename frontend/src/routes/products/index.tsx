@@ -32,7 +32,7 @@ const defaultValues = {
 export type ProductsSearch = z.infer<typeof productsSearchSchema>
 
 export const Route = createFileRoute('/products/')({
-  // Search state sync with URL params
+  // We synchronize the search with the URL to stay correct.
   validateSearch: zodValidator(productsSearchSchema),
   search: {
     middlewares: [stripSearchParams(defaultValues)],

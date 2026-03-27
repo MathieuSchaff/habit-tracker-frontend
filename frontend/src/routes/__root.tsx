@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/auth'
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ context }) => {
-    // Attempt silent refresh on initial load to recover session from httpOnly cookie
+    // We try to refresh the session at start for recover it from the cookie httpOnly.
     if (!useAuthStore.getState().accessToken) {
       await silentRefresh(context.queryClient)
     }

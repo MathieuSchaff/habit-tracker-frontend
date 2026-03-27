@@ -85,7 +85,7 @@ export async function getProductBySlug(slug: string, database: Database = db) {
   return row
 }
 
-// product with ingredients
+// I need the product but also the ingredients list in one time
 export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
   const ingredients = await listIngredientsByProduct(database, product.id)
@@ -112,7 +112,7 @@ const TRACKED_FIELDS = [
   'priceCents',
 ] as const
 
-// update product + log edit
+// We update the product and we must save what changed in the logs
 export async function updateProduct(
   userId: string,
   id: string,
@@ -136,7 +136,7 @@ export async function updateProduct(
     return sql`${sql.identifier((col as any).name)} = ${v}`
   })
 
-  // atomic update with old state recovery
+  // This is a special SQL to update and get the old values at the same time for the logs
   const result = await database.execute(sql`
     UPDATE ${products}
     SET ${sql.join(setClauses, sql`, `)}
@@ -155,7 +155,7 @@ export async function updateProduct(
   const row = result[0] as Record<string, any> | undefined
   if (!row) throw new ProductError('product_not_found')
 
-  // map DB cols back to camelCase
+  // I convert the database columns names back to the object format
   const newProduct = {} as any
   for (const [key, col] of Object.entries(products)) {
     if (typeof col === 'object' && col !== null && 'name' in col) {
@@ -199,7 +199,7 @@ export type ProductsPage = {
   limit: number
 }
 
-// search/filter products
+// This is the search with many filters
 export async function listProducts(
   filters: ListProductsFilters = {},
   database: Database = db
@@ -306,7 +306,7 @@ export type FilterOptions = {
   tags: TagsByCategory
 }
 
-// all available filter options
+// We get everything the user can use to filter the list
 export async function getFilterOptions(database: Database = db): Promise<FilterOptions> {
   const [kindRows, brandRows, tagRows] = await Promise.all([
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
@@ -355,7 +355,7 @@ export async function deleteProduct(id: string, database: Database = db): Promis
   if (!rows[0]) throw new ProductError('product_delete_failed')
 }
 
-// fuzzy search for duplicates
+// We look for products that look the same to avoid duplicates
 export async function findSimilarProducts(
   name: string,
   brand: string,
@@ -390,7 +390,7 @@ export async function findSimilarProducts(
     .orderBy(sql`similarity(lower(${products.name}), lower(${trimmedName})) DESC`, products.name)
 }
 
-// basic search
+// Simple search by name or brand
 export async function searchProducts(
   filters: { q: string; limit?: number },
   database: Database = db

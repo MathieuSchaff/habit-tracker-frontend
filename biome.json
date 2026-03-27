@@ -49,8 +49,20 @@
       },
       "suspicious": {
         "noExplicitAny": "warn",
-        "noConsole": "off"
+        "noConsole": "off",
+        "noUnknownAtRules": "off"
       }
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 100
+    },
+    "linter": {
+      "enabled": true
     }
   },
   "assist": {

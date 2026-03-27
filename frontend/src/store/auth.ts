@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       emailVerified: false,
     }),
 
-  // 30s margin
+  // we take 30 seconds of safety margin
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt
     if (!exp) return true

@@ -19,7 +19,7 @@ type UpdateProductIngredientInput = Partial<
 >
 
 export async function addIngredientToProduct(db: Database, data: CreateProductIngredientInput) {
-  // Filtre les valeurs null/undefined pour éviter que Drizzle envoie des chaînes vides
+  // I remove null and empty strings so Drizzle does not send bad data to the database
   const entries = Object.entries(data).filter(([_, v]) => v != null && v !== '')
   const cleanData = Object.fromEntries(entries) as CreateProductIngredientInput
 
@@ -34,9 +34,6 @@ export async function addManyIngredientsToProduct(
   return db.insert(productIngredients).values(data).returning()
 }
 
-/**
- * Liste les ingrédients d'un produit avec les infos de l'ingrédient jointé.
- */
 export async function listIngredientsByProduct(db: Database, productId: string) {
   return db
     .select({
@@ -57,9 +54,6 @@ export async function listIngredientsByProduct(db: Database, productId: string) 
     .orderBy(ingredients.name)
 }
 
-/**
- * Liste les produits contenant un ingrédient donné.
- */
 export async function listProductsByIngredient(
   db: Database,
   ingredientId: string
@@ -108,14 +102,12 @@ export async function removeIngredientFromProduct(
   return result.length > 0
 }
 
-/**
- * Remplace tous les ingrédients d'un produit (transaction).
- */
 export async function replaceProductIngredients(
   db: Database,
   productId: string,
   data: Omit<CreateProductIngredientInput, 'productId'>[]
 ): Promise<ProductIngredient[]> {
+  // We use a transaction because we must delete everything before we insert the new list
   return db.transaction(async (tx) => {
     await tx.delete(productIngredients).where(eq(productIngredients.productId, productId))
 

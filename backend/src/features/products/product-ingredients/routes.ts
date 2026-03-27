@@ -39,8 +39,6 @@ const replaceIngredientsSchema = z.object({
   ingredients: z.array(createProductIngredientSchema),
 })
 
-// App
-
 const productIngredientsApp = new Hono<AppEnv>()
 
 productIngredientsApp.use('*', async (c, next) => {
@@ -58,8 +56,6 @@ productIngredientsApp.onError((error, c) => {
   console.error('Unexpected error:', error)
   return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
-
-// Handlers
 
 export const productIngredientRoutes = productIngredientsApp
 

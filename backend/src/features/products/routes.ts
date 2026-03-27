@@ -49,7 +49,6 @@ const listProductsQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
-// App
 
 const productsApp = new Hono<AppEnv>()
 
@@ -73,7 +72,7 @@ export const productRoutes = productsApp
     const options = await getFilterOptions(db)
     return c.json(ok(options), HTTP_STATUS.OK)
   })
-  // NE PAS METTRE EN BAS => VA SE FAIRE BOUFFER PAR LE SLUG SINON
+// I put this route here because if I put it below, the slug route will take the request
   .get('/brands', async (c) => {
     const db = c.get('db')
     const brands = await getDistinctBrands(db)
