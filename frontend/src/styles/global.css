@@ -1,7 +1,7 @@
 * {
   font-family: var(--font-sans);
   font-feature-settings: var(--font-features-sans);
-  -webkit-font-smoothing: antialiased; /* Rendu plus net */
+  -webkit-font-smoothing: antialiased; /* To make the text more clean */
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -12,17 +12,17 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  font-feature-settings: var(--font-features-display); /* Kern, Liga, Onum */
+  font-feature-settings: var(--font-features-display);
   color: var(--text-primary);
   font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
   text-wrap: balance;
   overflow-wrap: break-word;
-  letter-spacing: var(--tracking-tight); /* Un peu plus serré pour les gros titres serif */
+  letter-spacing: var(
+    --tracking-tight
+  ); /* I squeeze a bit the letters for the  titles */
 }
 
-/* Règle pour les labels uppercase : On n'impose pas l'uppercase, 
-   on ajoute seulement le tracking (espacement) si l'uppercase est déjà là. */
 [style*="text-transform: uppercase"],
 .uppercase,
 .all-caps,
@@ -30,11 +30,9 @@ label.uppercase,
 span.uppercase,
 .caption {
   letter-spacing: var(--tracking-widest);
-  /* On ne force plus le font-weight ici pour laisser le composant décider */
 }
 
-/* On cherche spécifiquement tous les éléments qui utilisent déjà uppercase via CSS */
-/* C'est ici que la magie du "luxe" opère sans rien casser */
+/* If we use uppercase, I put more space between letters, it looks more "luxurious"*/
 *:where([class], [style]) {
   &:is([style*="text-transform: uppercase"]),
   &:is(.uppercase),
@@ -43,13 +41,13 @@ span.uppercase,
   }
 }
 
-/* Prix : On force les "Old Style Figures" pour un look luxe/éditorial */
+/* For the prices, I use special numbers that are beautifuler for a design magazine */
 .price,
 [class*="price"],
 .amount {
   font-feature-settings:
     "onum" 1,
-    "tnum" 1; /* Chiffres elzéviriens + tabulaires */
+    "tnum" 1;
   font-family: var(--font-display);
 }
 
@@ -122,7 +120,7 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
-/* route transition experiment */
+/* I try to make a transition when we change the page */
 @view-transition {
   navigation: auto;
 }
@@ -147,7 +145,7 @@ dialog::backdrop {
   }
 }
 
-/* fix katex clipping/wrapping */
+/* The math formulas are sometimes broken or go out of the box, so I fix them here */
 .markdown-container .katex-display {
   display: block !important;
   white-space: nowrap !important;
@@ -162,7 +160,7 @@ dialog::backdrop {
   justify-content: center;
 }
 
-/* prevent unexpected katex newlines */
+/* Katex adds new lines when we don't want, I hide them */
 .markdown-container .mspace.newline {
   display: none !important;
 }

@@ -39,26 +39,12 @@ export function toProfilePublic(profile: Profile): ProfilePublic {
   }
 }
 
-/**
- * Récupère le profil d'un utilisateur par son ID.
- *
- * @returns Le profil trouvé, ou `null` si inexistant.
- */
 export async function getProfile(db: DB, userId: string): Promise<ProfilePublic | null> {
   const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1)
 
   return profile ? toProfilePublic(profile) : null
 }
 
-/**
- * Met à jour le profil d'un utilisateur (delta update).
- *
- * @remarks
- * Seuls les champs présents dans `data` sont modifiés.
- * Le champ `updatedAt` est automatiquement mis à jour.
- *
- * @returns Le profil mis à jour, ou `null` si le profil n'existe pas.
- */
 export async function updateProfile(
   db: DB,
   userId: string,
@@ -105,6 +91,7 @@ export async function updateUserPreferences(
     .where(eq(userPreferences.userId, userId))
     .limit(1)
 
+  // We merge the old weights with the new ones so we don't lose the ones that are not in the input
   const currentWeights = existing?.criteriaWeights ?? DEFAULT_CRITERIA_WEIGHTS
   const mergedWeights = data.criteriaWeights
     ? { ...currentWeights, ...data.criteriaWeights }
@@ -134,9 +121,6 @@ export async function updateUserPreferences(
   }
 }
 
-/**
- * Récupère les statistiques d'utilisation d'un utilisateur.
- */
 export async function getProfileStats(db: Database, userId: string): Promise<ProfileStats> {
   const [habitCount] = await db
     .select({ count: count() })
@@ -159,6 +143,7 @@ export async function getProfileStats(db: Database, userId: string): Promise<Pro
     .from(habits)
     .where(and(eq(habits.userId, userId), isNull(habits.archivedAt)))
 
+  // I loop on every habit to find which one has the biggest streak
   let bestStreak = 0
   for (const habit of userHabits) {
     const streak = await getHabitStreak(habit.id, db)

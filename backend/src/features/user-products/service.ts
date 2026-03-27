@@ -130,7 +130,7 @@ export async function upsertUserProductReview(
   input: UpdateUserProductReviewInput,
   db: DB
 ) {
-  // Verify user owns the userProduct
+  // We must be sure the user is the owner of this product before we save the review
   const userProduct = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
   })

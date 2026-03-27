@@ -1,5 +1,3 @@
-// import { ingredientsSearchSchema } from '@habit-tracker/shared'
-
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
@@ -22,7 +20,7 @@ const defaultValues = {
   page: 1,
 }
 export const Route = createFileRoute('/ingredients/')({
-  // Search schema validation and URL hygiene (stripping defaults)
+  // We check the search params and clean the URL if we have defaults.
   validateSearch: zodValidator(ingredientsSearchSchema),
   search: {
     middlewares: [stripSearchParams(defaultValues)],

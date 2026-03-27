@@ -56,7 +56,7 @@ export async function openPurchase(
   input: OpenPurchaseInput,
   db: DB
 ) {
-  // Find the purchase and verify ownership
+  // We need to find the purchase and be sure the user is the real owner
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -66,8 +66,7 @@ export async function openPurchase(
     throw new PurchaseError('purchase_not_found')
   }
 
-  // Check no other active purchase for this user_product
-  // Active = openedAt IS NOT NULL AND finishedAt IS NULL
+  // It is not possible to have two products open at the same time for one user product
   const active = await db.query.purchases.findFirst({
     where: and(
       eq(purchases.userProductId, purchase.userProductId),
@@ -97,7 +96,7 @@ export async function finishPurchase(
 ) {
   await verifyOwnership(userId, userProductId, db)
 
-  // Find the active purchase (opened but not finished)
+  // We look for the purchase that is currently open to close it
   const [result] = await db
     .update(purchases)
     .set({ finishedAt: input.finishedAt })
@@ -121,7 +120,7 @@ export async function updatePurchase(
   input: UpdatePurchaseInput,
   db: DB
 ) {
-  // Vérifier ownership via jointure
+  // I use a join with userProduct to verify the ownership in one time
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -144,7 +143,7 @@ export async function updatePurchase(
 }
 
 export async function deletePurchase(userId: string, purchaseId: string, db: DB) {
-  // Vérifier ownership via jointure
+  // Same here, we check the owner with a join before we delete
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },

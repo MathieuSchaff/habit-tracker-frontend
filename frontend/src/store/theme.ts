@@ -84,7 +84,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 }))
 
-// Listen for system theme changes (only when user has not made an explicit choice)
+// we listen for system theme change, but only if the user didn't choose himself
 if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!useThemeStore.getState().isUserChoice) {
