@@ -2,6 +2,7 @@ import type {
   AddPurchaseInput,
   FinishPurchaseInput,
   OpenPurchaseInput,
+  UpdatePurchaseInput,
 } from '@habit-tracker/shared'
 
 import { and, desc, eq, isNull, not } from 'drizzle-orm'
@@ -112,4 +113,46 @@ export async function finishPurchase(
   if (!result) throw new PurchaseError('no_active_purchase')
 
   return result
+}
+
+export async function updatePurchase(
+  userId: string,
+  purchaseId: string,
+  input: UpdatePurchaseInput,
+  db: DB
+) {
+  // Vérifier ownership via jointure
+  const purchase = await db.query.purchases.findFirst({
+    where: eq(purchases.id, purchaseId),
+    with: { userProduct: true },
+  })
+
+  if (!purchase || purchase.userProduct.userId !== userId) {
+    throw new PurchaseError('purchase_not_found')
+  }
+
+  const [result] = await db
+    .update(purchases)
+    .set({
+      ...(input.purchasedAt !== undefined && { purchasedAt: input.purchasedAt }),
+      ...(input.pricePaidCents !== undefined && { pricePaidCents: input.pricePaidCents }),
+    })
+    .where(eq(purchases.id, purchaseId))
+    .returning()
+
+  return result!
+}
+
+export async function deletePurchase(userId: string, purchaseId: string, db: DB) {
+  // Vérifier ownership via jointure
+  const purchase = await db.query.purchases.findFirst({
+    where: eq(purchases.id, purchaseId),
+    with: { userProduct: true },
+  })
+
+  if (!purchase || purchase.userProduct.userId !== userId) {
+    throw new PurchaseError('purchase_not_found')
+  }
+
+  await db.delete(purchases).where(eq(purchases.id, purchaseId))
 }

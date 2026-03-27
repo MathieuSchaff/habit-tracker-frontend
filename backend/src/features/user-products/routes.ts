@@ -8,6 +8,7 @@ import {
   ok,
   openPurchaseSchema,
   purchaseErrorMapping,
+  updatePurchaseSchema,
   updateUserProductReviewSchema,
   updateUserProductSchema,
   userProductErrorMapping,
@@ -19,7 +20,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
-import { addPurchase, finishPurchase, getPurchases, openPurchase } from './purchase.service'
+import { addPurchase, deletePurchase, finishPurchase, getPurchases, openPurchase, updatePurchase } from './purchase.service'
 import { PurchaseError } from './purchase-error'
 import {
   createUserProduct,
@@ -164,5 +165,31 @@ export const userProductRoutes = app
       const input = c.req.valid('json')
       const result = await openPurchase(userId, purchaseId, input, db)
       return c.json(ok(result), HTTP_STATUS.OK)
+    }
+  )
+
+  .patch(
+    '/:id/purchases/:purchaseId',
+    zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
+    zValidator('json', updatePurchaseSchema),
+    async (c) => {
+      const db = c.get('db')
+      const userId = c.get('userId')
+      const { purchaseId } = c.req.valid('param')
+      const input = c.req.valid('json')
+      const result = await updatePurchase(userId, purchaseId, input, db)
+      return c.json(ok(result), HTTP_STATUS.OK)
+    }
+  )
+
+  .delete(
+    '/:id/purchases/:purchaseId',
+    zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
+    async (c) => {
+      const db = c.get('db')
+      const userId = c.get('userId')
+      const { purchaseId } = c.req.valid('param')
+      await deletePurchase(userId, purchaseId, db)
+      return c.json(ok(null), HTTP_STATUS.OK)
     }
   )

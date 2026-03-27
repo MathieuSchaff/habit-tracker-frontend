@@ -2,6 +2,7 @@ import type {
   AddPurchaseInput,
   FinishPurchaseInput,
   OpenPurchaseInput,
+  UpdatePurchaseInput,
 } from '@habit-tracker/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -98,6 +99,55 @@ export const useFinishPurchase = () => {
       if (!res.ok) throw new Error('Failed to finish purchase')
       const data = await res.json()
       return data.data
+    },
+    onSuccess: (_, { userProductId }) => {
+      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
+      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
+    },
+  })
+}
+
+export const useUpdatePurchase = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      userProductId,
+      purchaseId,
+      input,
+    }: {
+      userProductId: string
+      purchaseId: string
+      input: UpdatePurchaseInput
+    }) => {
+      const res = await api['user-products'][':id'].purchases[':purchaseId'].$patch({
+        param: { id: userProductId, purchaseId },
+        json: input,
+      })
+      if (!res.ok) throw new Error('Failed to update purchase')
+      const data = await res.json()
+      return data.data
+    },
+    onSuccess: (_, { userProductId }) => {
+      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
+      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
+    },
+  })
+}
+
+export const useDeletePurchase = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      userProductId,
+      purchaseId,
+    }: {
+      userProductId: string
+      purchaseId: string
+    }) => {
+      const res = await api['user-products'][':id'].purchases[':purchaseId'].$delete({
+        param: { id: userProductId, purchaseId },
+      })
+      if (!res.ok) throw new Error('Failed to delete purchase')
     },
     onSuccess: (_, { userProductId }) => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
