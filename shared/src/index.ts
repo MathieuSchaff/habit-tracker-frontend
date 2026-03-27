@@ -148,6 +148,8 @@ export {
   finishPurchaseSchema,
   type OpenPurchaseInput,
   openPurchaseSchema,
+  type UpdatePurchaseInput,
+  updatePurchaseSchema,
 } from './schemas/purchases'
 export {
   type AddIngredientTagInput,
