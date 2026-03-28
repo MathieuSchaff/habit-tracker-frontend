@@ -1,8 +1,8 @@
 import type { Email, RawPassword } from '@habit-tracker/shared'
 
 import { signup } from '../../features/auth/service'
+import { createCtx } from '../../features/auth/tests/auth-test.setup'
 import { getUser } from '../../features/auth/user.utils'
-import { createCtx } from '../services/auth/auth-test.setup'
 
 export async function createTestUser(
   email: string = 'toto@toto.com',

@@ -13,8 +13,8 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { requireJwtAuth } from '../../auth/middleware'
-import { listTagsByProduct, replaceProductTags } from '../tags/tags.service'
-import { TagError } from '../tags/tags-error'
+import { listTagsByProduct, replaceProductTags } from '../../tags/tags.service'
+import { TagError } from '../../tags/tags-error'
 
 const productParams = z.object({ productId: z.uuid() })
 

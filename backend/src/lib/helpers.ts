@@ -5,9 +5,10 @@
 export function isUniqueViolation(e: unknown): boolean {
   if (!(e instanceof Error)) return false
 
-  const getErrorCode = (err: any) => {
+  const getErrorCode = (err: unknown) => {
     if (typeof err !== 'object' || err === null) return undefined
-    return err.errno || err.code
+    const e = err as Record<string, unknown>
+    return e.errno || e.code
   }
 
   // Drizzle often hides the real error inside the "cause" property, so I check there first.

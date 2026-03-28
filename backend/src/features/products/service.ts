@@ -21,12 +21,12 @@ export async function createProduct(
   userId: string,
   input: CreateProductInput,
   database: Database = db
-): Promise<Product> {
+) {
   try {
     const normalize = (s: string) => s.trim().replace(/\s+/g, ' ')
     const name = normalize(input.name)
     const brand = normalize(input.brand)
-    const slug = input.slug ?? `${name}${brand ? '-' + brand : ''}`
+    const slug = input.slug ?? `${name}${brand ? `-${brand}` : ''}`
     const [product] = await database
       .insert(products)
       .values({
@@ -112,6 +112,15 @@ const TRACKED_FIELDS = [
   'priceCents',
 ] as const
 
+function isColumnLike(obj: unknown): obj is { name: string } {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'name' in obj &&
+    typeof (obj as Record<string, unknown>).name === 'string'
+  )
+}
+
 // We update the product and we must save what changed in the logs
 export async function updateProduct(
   userId: string,
@@ -123,7 +132,7 @@ export async function updateProduct(
   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
   if (slug !== undefined) data.slug = slug
 
-  const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k as any))
+  const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k))
 
   if (setEntries.length === 0) {
     const existing = await database.query.products.findFirst({ where: eq(products.id, id) })
@@ -133,7 +142,8 @@ export async function updateProduct(
 
   const setClauses = setEntries.map(([k, v]) => {
     const col = products[k as keyof typeof products]
-    return sql`${sql.identifier((col as any).name)} = ${v}`
+    if (!isColumnLike(col)) throw new ProductError('product_update_failed')
+    return sql`${sql.identifier(col.name)} = ${v}`
   })
 
   // This is a special SQL to update and get the old values at the same time for the logs
@@ -146,20 +156,21 @@ export async function updateProduct(
       ${sql.join(
         TRACKED_FIELDS.map((f) => {
           const col = products[f as keyof typeof products]
-          return sql`OLD.${sql.identifier((col as any).name)} AS ${sql.identifier(`old_${f}`)}`
+          if (!isColumnLike(col)) throw new ProductError('product_update_failed')
+          return sql`OLD.${sql.identifier(col.name)} AS ${sql.identifier(`old_${f}`)}`
         }),
         sql`, `
       )}
   `)
 
-  const row = result[0] as Record<string, any> | undefined
+  const row = result[0] as Record<string, unknown> | undefined
   if (!row) throw new ProductError('product_not_found')
 
   // I convert the database columns names back to the object format
-  const newProduct = {} as any
+  const newProduct: Record<string, unknown> = {}
   for (const [key, col] of Object.entries(products)) {
-    if (typeof col === 'object' && col !== null && 'name' in col) {
-      newProduct[key] = row[col.name as string]
+    if (isColumnLike(col)) {
+      newProduct[key] = row[col.name]
     }
   }
 
@@ -172,7 +183,7 @@ export async function updateProduct(
     changes,
   })
 
-  return newProduct
+  return newProduct as Product
 }
 
 export type ListProductsFilters = {

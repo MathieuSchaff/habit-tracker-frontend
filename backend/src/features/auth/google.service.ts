@@ -1,17 +1,18 @@
 import type { GoogleCallbackResult } from '@habit-tracker/shared'
-import { err, ok } from '@habit-tracker/shared'
+import { emailSchema, err, ok } from '@habit-tracker/shared'
 
 import { decodeIdToken, generateCodeVerifier, generateState, type OAuth2Tokens } from 'arctic'
 import { eq } from 'drizzle-orm'
 
 import { users } from '../../db/schema'
-import { google } from '../../lib/artic'
+import { getGoogleInstance } from '../../lib/artic'
 import { type AuthContext, createTokenPair } from './service'
 import { createProfile, createUser, getUser, toPublicUser } from './user.utils'
 
 export function getGoogleAuthUrl(): { url: string; state: string; codeVerifier: string } {
   const state = generateState()
   const codeVerifier = generateCodeVerifier()
+  const google = getGoogleInstance()
   const url = google.createAuthorizationURL(state, codeVerifier, ['openid', 'profile', 'email'])
   return { url: url.toString(), state, codeVerifier }
 }
@@ -22,6 +23,7 @@ export async function handleGoogleCallback(
   codeVerifier: string
 ): Promise<GoogleCallbackResult> {
   try {
+    const google = getGoogleInstance()
     const tokens: OAuth2Tokens = await google.validateAuthorizationCode(code, codeVerifier)
     const claims = decodeIdToken(tokens.idToken()) as {
       sub: string
@@ -31,7 +33,7 @@ export async function handleGoogleCallback(
 
     const { sub: googleSub, email, picture } = claims
 
-    // 1. User existant via googleSub
+    // Check if user already exists via Google account
     const [existingByGoogle] = await ctx.db
       .select()
       .from(users)
@@ -43,7 +45,7 @@ export async function handleGoogleCallback(
       return ok({ user: toPublicUser(existingByGoogle), ...tokenPair })
     }
 
-    // 2. Account linking — compte local avec même email
+    // Link to existing local account with same email
     const existingByEmail = await getUser(ctx.db, email)
 
     if (existingByEmail) {
@@ -52,10 +54,10 @@ export async function handleGoogleCallback(
       return ok({ user: toPublicUser(existingByEmail), ...tokenPair })
     }
 
-    // 3. Nouveau user
+    // Create new user from Google sign-up
     const user = await ctx.db.transaction(async (tx) => {
       const newUser = await createUser(tx, {
-        email: email as any,
+        email: emailSchema.parse(email),
         passwordHash: null,
         emailVerifiedAt: new Date(),
       })

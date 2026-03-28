@@ -66,7 +66,8 @@ export async function logEdit(
     editedBy: params.editedBy,
     summary: params.summary,
     changes: parsed,
-  } as any) // I use "as any" because Drizzle is lost with the dynamic column name.
+    // biome-ignore lint/suspicious/noExplicitAny: Drizzle loses types with dynamic column names
+  } as any)
 }
 
 export const productEditConfig: EditTableConfig<ProductChanges> = {

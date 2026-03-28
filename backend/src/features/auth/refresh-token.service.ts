@@ -18,13 +18,12 @@ export async function storeRefreshToken(db: DB, args: CreateRefreshTokenArgs) {
       userAgent: args.userAgent ?? null,
     })
   } catch (error) {
-    // Si le JTI existe déjà (race condition ou bug)
+    // Should not happen — unique constraint on jtiHash ensures no duplicates
     console.error('Failed to store refresh token:', error)
     throw new Error('duplicate_refresh_token')
   }
 }
 
-//  Cherche un refresh token valide (non révoqué, non expiré) par son jti.
 export async function findValidRefreshToken(db: DB, jti: string) {
   const jtiHash = hashJti(jti)
   const now = new Date()
@@ -44,8 +43,7 @@ export async function findValidRefreshToken(db: DB, jti: string) {
   return row ?? null
 }
 
-// Révoque un refresh token spécifique (par jti).
-// Utilisé lors de la rotation ou du logout.
+// Mark token as revoked when it's rotated (new token issued) or user logs out
 export async function revokeRefreshToken(db: DB, jti: string) {
   const jtiHash = hashJti(jti)
   await db
@@ -54,8 +52,7 @@ export async function revokeRefreshToken(db: DB, jti: string) {
     .where(eq(refreshTokens.jtiHash, jtiHash))
 }
 
-// Révoque TOUS les refresh tokens d'un user.
-// Utilisé en cas de compromission détectée (token replay).
+// Revoke all tokens for user if we detect token replay (security incident)
 export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
   await db
     .update(refreshTokens)
@@ -63,8 +60,7 @@ export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
     .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)))
 }
 
-// Nettoie les refresh tokens expirés ou révoqués d'un user.
-// Fire-and-forget après un login.
+// Delete expired or revoked tokens from database (fire-and-forget cleanup after login)
 export async function cleanupUserRefreshTokens(db: DB, userId: string) {
   const now = new Date()
   await db

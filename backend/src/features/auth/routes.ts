@@ -164,9 +164,23 @@ export const jwtAuthRoutes = app
     return c.json(ok(null), HTTP_STATUS.OK)
   })
 
-  .get('/session', (c) => {
+  .get('/session', async (c) => {
     const userId = c.get('userId')
-    return c.json(ok({ authenticated: true as const, userId }), HTTP_STATUS.OK)
+    const db = c.get('db')
+    const [user] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    return c.json(
+      ok({
+        authenticated: true as const,
+        userId,
+        role: user?.role ?? 'user',
+      }),
+      HTTP_STATUS.OK
+    )
   })
 
   .post('/verify-email', zValidator('json', verifyEmailBodySchema), async (c) => {
@@ -326,7 +340,7 @@ export const jwtAuthRoutes = app
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
 
-    // Redirige vers le frontend avec l'access token en query param
+    // Use query param for access token: browser handles redirect and stores token before navigating
     const frontendUrl = c.get('frontendUrl')
     return c.redirect(`${frontendUrl}/auth/google/callback?token=${result.data.accessToken}`)
   })

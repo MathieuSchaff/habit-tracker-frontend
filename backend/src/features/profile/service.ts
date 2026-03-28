@@ -13,9 +13,8 @@ import type { Database, DB } from '../../db'
 import { habitChecks, habits } from '../../db/schema/habits'
 import { userPreferences } from '../../db/schema/user-preferences'
 import { userProducts } from '../../db/schema/user-products'
-import { profiles } from '../../db/schema/users'
+import { type Profile, profiles } from '../../db/schema/users'
 import { getHabitStreak } from '../habits/service'
-import type { Profile } from './types'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
   tolerance: 1,

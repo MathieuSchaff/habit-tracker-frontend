@@ -92,6 +92,8 @@ export {
   ingredientSearchResultSchema,
   ingredientsSearchSchema,
   type UpdateIngredientInput,
+  type UpdateIngredientRouteInput,
+  updateIngredientRouteSchema,
   updateIngredientSchema,
 } from './schemas/ingredients'
 export {
@@ -148,6 +150,8 @@ export {
   finishPurchaseSchema,
   type OpenPurchaseInput,
   openPurchaseSchema,
+  type Purchase,
+  purchaseSchema,
   type UpdatePurchaseInput,
   updatePurchaseSchema,
 } from './schemas/purchases'

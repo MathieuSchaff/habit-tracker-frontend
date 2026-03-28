@@ -1,22 +1,29 @@
-import type { Email, HashedPassword, UserPublic } from '@habit-tracker/shared'
+import {
+  type Email,
+  emailSchema,
+  type HashedPassword,
+  type UserPublic,
+} from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
+import type { User } from '../../db/schema'
 import { profiles, users } from '../../db/schema'
 
-// ATTENTION CA RENVOIE LE PASSWORD HASH
+// Returns the full user with password hash included (for login verification only)
 export async function getUser(db: DB, email: string) {
   const normalizedEmail = email.trim().toLowerCase()
   const [user] = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1)
   return user ?? null
 }
-export function toPublicUser(user: typeof users.$inferSelect): UserPublic {
+export function toPublicUser(user: User): UserPublic {
   return {
     id: user.id,
     email: user.email,
     createdAt: user.createdAt,
     emailVerified: user.emailVerifiedAt !== null,
+    role: user.role,
   }
 }
 export async function getUserById(db: DB, userId: string): Promise<UserPublic | null> {
@@ -26,6 +33,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
       email: users.email,
       createdAt: users.createdAt,
       emailVerifiedAt: users.emailVerifiedAt,
+      role: users.role,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -38,6 +46,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
     email: user.email,
     createdAt: user.createdAt,
     emailVerified: user.emailVerifiedAt !== null,
+    role: user.role,
   }
 }
 
@@ -65,6 +74,9 @@ export async function createUser(
     emailVerifiedAt?: Date | null
   }
 ) {
+  // Validate email format before insertion
+  emailSchema.parse(userData.email)
+
   const [user] = await db
     .insert(users)
     .values({
