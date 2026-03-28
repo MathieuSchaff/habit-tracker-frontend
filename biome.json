@@ -9,7 +9,9 @@
       "!**/drizzle/migrations",
       "!**/*.min.js",
       "!**/coverage",
-      "!**/*.gen.ts"
+      "!**/*.gen.ts",
+      "!backend/src/db/seed/**/*",
+      "!**/drizzle.backup",
     ]
   },
   "formatter": {
@@ -40,7 +42,8 @@
       "correctness": {
         "useExhaustiveDependencies": "warn",
         "useHookAtTopLevel": "error",
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "noUnknownMediaFeatureName": "off"
       },
       "style": {
         "noNonNullAssertion": "warn",
@@ -65,6 +68,23 @@
       "enabled": true
     }
   },
+  "overrides": [
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/__tests__/**/*.ts",
+        "**/__tests__/**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "enabled": true,
     "actions": {

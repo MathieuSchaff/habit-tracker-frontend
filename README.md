@@ -49,6 +49,35 @@ make dev-fresh
 
 ## 📋 Commandes Essentielles (Makefile)
 
+### Tests & Développement (Backend) 🧪
+
+Le projet utilise **Bun** pour les tests, avec une base de données PostgreSQL dédiée. Pour une productivité maximale, nous recommandons de garder la base de tests active pendant votre session de code.
+
+1.  **Lancer la DB de test (une fois par session) :**
+    ```bash
+    make test-db-up
+    ```
+    *Ceci lance Docker (port 5433) et applique les migrations automatiquement.*
+
+2.  **Lancer les tests en mode "rapide" :**
+    Utilisez les filtres de Bun pour ne tester que ce qui vous intéresse.
+    ```bash
+    # Tester une feature spécifique (ex: habits)
+    make test-dev ARGS="habits"
+
+    # Tester un fichier précis
+    make test-dev ARGS="features/habits/tests/habits.routes.test.ts"
+    ```
+
+3.  **Mode Watch (TDD) :**
+    Laissez Bun surveiller vos changements et relancer les tests impactés instantanément.
+    ```bash
+    make test-dev-watch ARGS="habits"
+    ```
+
+> [!TIP]
+> Chaque test (`beforeEach`) nettoie les tables de la base de données via le helper `cleanDatabase`. Vous n'avez pas besoin de redémarrer Docker entre deux tests.
+
 ### Développement & Types
 | Commande | Description |
 | :--- | :--- |
@@ -66,13 +95,14 @@ make dev-fresh
 | `make test` | Lance les tests backend (avec DB isolée) |
 | `make test-frontend` | Lance les tests Vitest du frontend |
 | `make test-all` | Lance l'intégralité de la suite de tests |
+| `make test-db-reset` | Repart de zéro : vide et recrée la DB de test |
 
 ### Base de Données
 | Commande | Description |
 | :--- | :--- |
-| `make db-generate` | Génère une nouvelle migration SQL |
+| `make db-generate` | Génère un fichier de migration SQL (à commiter) |
 | `make db-migrate` | Applique les migrations en local |
-| `make db-push` | Synchronise le schéma sans migration (dev rapide) |
+| `make db-push` | Synchronise le schéma sans migration (proto rapide) |
 | `make db-studio` | Interface visuelle Drizzle (http://localhost:4983) |
 | `make db-seed` | Injecte les données de test |
 | `make db-reset` | **NUKE DB** : Clean + Push + Seed |

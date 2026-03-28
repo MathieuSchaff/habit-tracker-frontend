@@ -12,15 +12,11 @@ import type { db } from '../db'
 import { ingredientEdits, productEdits } from '../db/schema'
 import { areEqual } from './helpers'
 
-// types
-
 interface EditTableConfig<TChanges> {
-  table: typeof productEdits | typeof ingredientEdits // ajoute tes futures tables ici
-  entityIdColumn: string // 'product_id' | 'ingredient_id'
+  table: typeof productEdits | typeof ingredientEdits // I can add more tables here later if needed
+  entityIdColumn: string
   schema: ZodType<TChanges>
 }
-
-// buildChanges (inchangé)
 
 export function buildChanges(
   row: Record<string, unknown>,
@@ -30,8 +26,10 @@ export function buildChanges(
   const changes: Record<string, FieldChange<unknown>> = {}
 
   for (const key of trackedFields) {
+    // I use the old_ prefix because the SQL result gives columns with this name.
     let oldVal = row[`old_${key}`]
 
+    // If it's an empty object, I prefer to say it is null to be simple.
     if (
       oldVal == null ||
       (typeof oldVal === 'object' && oldVal !== null && Object.keys(oldVal).length === 0)
@@ -48,8 +46,6 @@ export function buildChanges(
 
   return changes
 }
-
-// logEdit (générique)
 
 export async function logEdit(
   database: typeof db,
@@ -70,10 +66,8 @@ export async function logEdit(
     editedBy: params.editedBy,
     summary: params.summary,
     changes: parsed,
-  } as any) // as any car Drizzle ne peut pas inférer le type dynamiquement
+  } as any) // I use "as any" because Drizzle is lost with the dynamic column name.
 }
-
-// configs par entité
 
 export const productEditConfig: EditTableConfig<ProductChanges> = {
   table: productEdits,

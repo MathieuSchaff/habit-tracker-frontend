@@ -1,12 +1,13 @@
 @layer reset, variables, base, components, utilities;
 @import "katex/dist/katex.min.css";
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
-layer(base);
+  layer(base);
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
-@import "./tokens/colors-light.css" layer(variables);
-@import "./tokens/colors-light-foret.css" layer(variables);
-@import "./tokens/colors-light-ardoise.css" layer(variables);
+/*@import "./tokens/colors-light.css" layer(variables);*/
+@import "./tokens/colors-root-test.css" layer(variables);
+/*@import "./tokens/colors-light-foret.css" layer(variables);*/
+/*@import "./tokens/colors-light-ardoise.css" layer(variables);*/
 @import "./tokens/colors-dark.css" layer(variables);
 @import "./tokens/spacing.css" layer(variables);
 @import "./tokens/typography.css" layer(variables);
@@ -18,30 +19,23 @@ layer(base);
 
 @import "../component/Button/Button.css" layer(components);
 
-@import "../component/Layout/Header/Header.css" layer(components);
-@import "../component/Nav//NavItem//NavItem.css" layer(components);
+@import "../component/Header/Header.css" layer(components);
+@import "../component/Header/NavItem//NavItem.css" layer(components);
 
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
 @import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
 
-@import "./common/kinds.css" layer(components);
-@import "./common/markdown.css" layer(components);
-@import "../features/habits/components/HabitsPage/HabitsPage.css"
-  layer(components);
-@import "../features/auth/components/LoginPage/auth-shared.css"
-  layer(components);
+@import "../features/products/styles/kinds.css" layer(components);
+@import "../features/habits/components/HabitsPage/HabitsPage.css" layer(components);
+@import "../features/auth/components/LoginPage/auth-shared.css" layer(components);
 @import "../features/auth/components/LoginPage/LoginPage.css" layer(components);
-@import "../features/auth/components/SignupPage/SignupPage.css"
-  layer(components);
+@import "../features/auth/components/SignupPage/SignupPage.css" layer(components);
 
 @import "../features/habits/components/styles/HabitDetail.css" layer(components);
-@import "../features/habits/components/styles/HabitsListView.css"
-  layer(components);
-@import "../features/habits/components/styles/HabtiFormDialog.css"
-  layer(components);
+@import "../features/habits/components/styles/HabitsListView.css" layer(components);
+@import "../features/habits/components/styles/HabtiFormDialog.css" layer(components);
 @import "../features/habits/components/styles/TodayView.css" layer(components);
 @import "../features/habits/components/styles/JournalView.css" layer(components);
-@import "../features/products/components/AddToInventoryModal.css"
-  layer(components);
+@import "../features/products/components/AddToInventoryModal.css" layer(components);
 @import "../features/tasks/components/TasksPage/TasksPage.css" layer(components);
 @import "../features/tasks/components/TaskItem.css" layer(components);

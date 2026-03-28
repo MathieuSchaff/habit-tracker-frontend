@@ -1,36 +1,31 @@
 :root {
-  /* Main Font Pair */
   --font-sans: "DM Sans", system-ui, sans-serif;
   --font-display: "Young Serif", serif;
 
-  /* Font sizes */
-  --text-xs: 0.75rem; /* 12px */
-  --text-sm: 0.875rem; /* 14px */
-  --text-base: 1rem; /* 16px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-xl: 1.25rem; /* 20px */
-  --text-2xl: 1.5rem; /* 24px */
-  --text-3xl: 1.875rem; /* 30px */
-  --text-4xl: 2.25rem; /* 36px */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 
-  /* Font weights */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
 
-  /* Line heights */
-  --leading-tight: 1.15; /* Plus serré pour le luxe */
+  /*  lines closer for titles so it looks more professional and "chic" */
+  --leading-tight: 1.15;
   --leading-normal: 1.5;
   --leading-relaxed: 1.75;
 
-  /* Tracking (Letter spacing) */
   --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
-  --tracking-widest: 0.2em; /* Pour les labels de luxe */
+  --tracking-widest: 0.2em; /* For labels that needs a lot of space to look expensive */
 
-  /* Advanced Typography */
   --font-features-display: "kern" 1, "liga" 1, "onum" 1, "pnum" 1;
   --font-features-sans: "kern" 1, "liga" 1, "cv01" 1, "cv11" 1;
 }

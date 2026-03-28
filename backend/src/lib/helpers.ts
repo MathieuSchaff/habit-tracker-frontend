@@ -1,31 +1,26 @@
 /**
- * Helpers partagés entre les services (products, ingredients, etc.)
- */
-
-/**
- * Détecte une violation de contrainte UNIQUE PostgreSQL (code 23505).
+ * I use this to see if the error is because a value already exists in the database.
+ * PostgreSQL uses the code 23505 for unique problems.
  */
 export function isUniqueViolation(e: unknown): boolean {
   if (!(e instanceof Error)) return false
 
-  // Helper pour extraire le code ou errno
   const getErrorCode = (err: any) => {
     if (typeof err !== 'object' || err === null) return undefined
     return err.errno || err.code
   }
 
-  // Si c'est une DrizzleQueryError, check la cause
+  // Drizzle often hides the real error inside the "cause" property, so I check there first.
   if ('cause' in e && e.cause instanceof Error) {
     return getErrorCode(e.cause) === '23505'
   }
 
-  // Sinon check directement l'erreur
   return getErrorCode(e) === '23505'
 }
 
 /**
- * Comparaison profonde simple pour le diff des changes.
- * Gère les Date et les valeurs primitives.
+ * Normal comparison doesn't work well for Dates because they are objects.
+ * I use this to check if two things are really the same.
  */
 export function areEqual(a: unknown, b: unknown): boolean {
   if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()

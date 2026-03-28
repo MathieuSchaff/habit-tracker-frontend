@@ -39,6 +39,16 @@
   --neutral-99: oklch(98% 0.01 var(--hue-clay));
 
   /* ===================================
+     STATUS COLORS — feature collection
+     =================================== */
+  --status-color-in-stock: oklch(65% 0.18 145deg);
+  --status-color-wishlist: oklch(58% 0.18 250deg);
+  --status-color-watched: oklch(72% 0.15 60deg);
+  --status-color-holy-grail: oklch(75% 0.18 85deg);
+  --status-color-archived: oklch(52% 0.03 220deg);
+  --status-color-avoided: oklch(52% 0.14 25deg);
+
+  /* ===================================
      DIMENSIONS
      =================================== */
   --border-width: 3px;

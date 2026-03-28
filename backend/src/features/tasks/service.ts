@@ -12,8 +12,6 @@ import type { Database } from '../../db/index'
 import { type Subtask, subtasks, type Task, tasks } from '../../db/schema/tasks'
 import { TaskError } from './task-error'
 
-// Tasks
-
 export async function getActiveTasks(userId: string, database: Database = db): Promise<Task[]> {
   const today = new Date().toISOString().split('T')[0]
   return database
@@ -23,6 +21,7 @@ export async function getActiveTasks(userId: string, database: Database = db): P
       and(
         eq(tasks.userId, userId),
         sql`${tasks.status} != 'done'`,
+        // I only want tasks that are not snoozed or where the snooze is finished today.
         or(isNull(tasks.snoozedUntil), lte(tasks.snoozedUntil, today))
       )
     )
@@ -35,7 +34,11 @@ export async function getTodayTasks(userId: string, database: Database = db): Pr
     .select()
     .from(tasks)
     .where(
-      and(eq(tasks.userId, userId), sql`DATE(${tasks.doneAt} AT TIME ZONE 'UTC') = ${today}::date`)
+      and(
+        eq(tasks.userId, userId),
+        // I use UTC to be sure the date is the same as the client.
+        sql`DATE(${tasks.doneAt} AT TIME ZONE 'UTC') = ${today}::date`
+      )
     )
     .orderBy(asc(tasks.doneAt))
 }
@@ -74,6 +77,7 @@ export async function updateTask(
   if (input.energy !== undefined) updateValues.energy = input.energy
   if (input.status !== undefined) {
     updateValues.status = input.status
+    // If the user says it is done, I put the date of today.
     if (input.status === 'done') updateValues.doneAt = new Date()
   }
   if (input.snoozedUntil !== undefined) updateValues.snoozedUntil = input.snoozedUntil
@@ -105,8 +109,6 @@ export async function deleteTask(
   }
 }
 
-// Subtasks
-
 export async function getSubtasks(taskId: string, database: Database = db): Promise<Subtask[]> {
   return database
     .select()
@@ -125,6 +127,7 @@ export async function createSubtask(
     .from(subtasks)
     .where(eq(subtasks.taskId, taskId))
 
+  // I use the count to put the new subtask at the end of the list.
   const order = Number(existing[0]?.count ?? 0)
 
   const [subtask] = await database
