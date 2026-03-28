@@ -18,9 +18,7 @@ h6 {
   line-height: var(--leading-tight);
   text-wrap: balance;
   overflow-wrap: break-word;
-  letter-spacing: var(
-    --tracking-tight
-  ); /* I squeeze a bit the letters for the  titles */
+  letter-spacing: var(--tracking-tight); /* I squeeze a bit the letters for the  titles */
 }
 
 [style*="text-transform: uppercase"],
@@ -37,7 +35,7 @@ span.uppercase,
   &:is([style*="text-transform: uppercase"]),
   &:is(.uppercase),
   &:is(.all-caps) {
-    letter-spacing: var(--tracking-widest) !important;
+    letter-spacing: var(--tracking-widest);
   }
 }
 
@@ -147,24 +145,24 @@ dialog::backdrop {
 
 /* The math formulas are sometimes broken or go out of the box, so I fix them here */
 .markdown-container .katex-display {
-  display: block !important;
-  white-space: nowrap !important;
+  display: block;
+  white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 .markdown-container .katex-html {
-  display: flex !important;
-  flex-wrap: nowrap !important;
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
 }
 
 /* Katex adds new lines when we don't want, I hide them */
 .markdown-container .mspace.newline {
-  display: none !important;
+  display: none;
 }
 
 .katex .katex-html > .newline {
-  display: none !important;
+  display: none;
 }

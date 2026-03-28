@@ -27,10 +27,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "references": [
-    { "path": "../shared" }, // ✅ Pour que tsc -b build d'abord shared
-    { "path": "../backend" } // ✅ Pour que tsc -b build d'abord backend
-  ],
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "references": []
 }

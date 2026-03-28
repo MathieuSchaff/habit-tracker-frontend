@@ -37,9 +37,11 @@ const app = new Hono<AppEnv>()
 app.use('*', requireJwtAuth)
 
 app.onError((error, c) => {
+  // If it is a TaskError I know how to show it to the user.
   if (error instanceof TaskError) {
     return c.json(err(error.code, error.details), errorToStatus(error.code, taskErrorMapping))
   }
+  // For other errors I just log it and say sorry.
   console.error('Unexpected error:', error)
   return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
