@@ -72,7 +72,7 @@ export const productRoutes = productsApp
     const options = await getFilterOptions(db)
     return c.json(ok(options), HTTP_STATUS.OK)
   })
-// I put this route here because if I put it below, the slug route will take the request
+  // I put this route here because if I put it below, the slug route will take the request
   .get('/brands', async (c) => {
     const db = c.get('db')
     const brands = await getDistinctBrands(db)

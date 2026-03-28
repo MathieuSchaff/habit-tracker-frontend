@@ -7,7 +7,6 @@ import { and, eq, isNull, sql } from 'drizzle-orm'
 import type { DB } from '../../db/index'
 import { emailVerifications, users } from '../../db/schema'
 
-// 1 hour
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000
 
 function generateRawToken(): string {
@@ -24,13 +23,12 @@ function hashToken(rawToken: string): string {
   return hasher.digest('hex')
 }
 
-// create verification token
 export async function createVerificationToken(db: DB, userId: string): Promise<string> {
   const rawToken = generateRawToken()
   const tokenHash = hashToken(rawToken)
   const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS)
 
-  // invalidate old ones
+  // Mark all previous tokens as used so only one token is valid at a time
   await db
     .update(emailVerifications)
     .set({ usedAt: sql`now()` })
@@ -45,7 +43,6 @@ export async function createVerificationToken(db: DB, userId: string): Promise<s
   return rawToken
 }
 
-// verify token
 export async function verifyEmailToken(db: DB, rawToken: string) {
   const tokenHash = hashToken(rawToken)
   const now = new Date()
@@ -64,7 +61,7 @@ export async function verifyEmailToken(db: DB, rawToken: string) {
     return err('token_expired' as const)
   }
 
-  // user already verified?
+  // Check if user already verified their email from another request
   const [userRow] = await db
     .select({ emailVerifiedAt: users.emailVerifiedAt })
     .from(users)

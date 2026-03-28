@@ -9,7 +9,14 @@ import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
-import { type Subtask, subtasks, type Task, tasks } from '../../db/schema/tasks'
+import {
+  type Subtask,
+  type SubtaskInsert,
+  subtasks,
+  type Task,
+  type TaskInsert,
+  tasks,
+} from '../../db/schema/tasks'
 import { TaskError } from './task-error'
 
 export async function getActiveTasks(userId: string, database: Database = db): Promise<Task[]> {
@@ -72,7 +79,7 @@ export async function updateTask(
   })
   if (!existing) throw new TaskError('task_not_found')
 
-  const updateValues: Partial<typeof tasks.$inferInsert> = {}
+  const updateValues: Partial<TaskInsert> = {}
   if (input.title !== undefined) updateValues.title = input.title
   if (input.energy !== undefined) updateValues.energy = input.energy
   if (input.status !== undefined) {
@@ -144,7 +151,7 @@ export async function updateSubtask(
   input: UpdateSubtaskInput,
   database: Database = db
 ): Promise<Subtask> {
-  const updateValues: Partial<typeof subtasks.$inferInsert> = {}
+  const updateValues: Partial<SubtaskInsert> = {}
   if (input.title !== undefined) updateValues.title = input.title
   if (input.completed !== undefined) updateValues.completed = input.completed
 

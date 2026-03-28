@@ -9,14 +9,12 @@ import { db } from './db/index'
 import { jwtAuthRoutes } from './features/auth'
 import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
+import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
+import { ingredientRoutes } from './features/ingredients/routes'
 import { logsRoutes } from './features/logs'
-import { productRoutes } from './features/products'
-import { ingredientTagRoutes } from './features/products/ingredient-tags/routes'
-import { ingredientRoutes } from './features/products/ingredients/routes'
-import { productIngredientRoutes } from './features/products/product-ingredients/routes'
-import { productTagRoutes } from './features/products/product-tags/routes'
-import { tagRoutes } from './features/products/tags/routes'
+import { productsFeature } from './features/products'
 import { profileRoute } from './features/profile'
+import { tagRoutes } from './features/tags/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { userProductRoutes } from './features/user-products'
 
@@ -26,7 +24,7 @@ const app = new Hono<AppEnv>()
 app.use(
   '*',
   cors({
-    origin: 'http://localhost:5173', // ← à adapter en prod (ou utiliser une liste / regex)
+    origin: env.FRONTEND_URL,
     credentials: true,
     allowHeaders: ['Content-Type', 'Authorization'],
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -48,9 +46,7 @@ const routes = app
   .route('/api/health', healthRoute)
   .route('/api/habits', habits)
   .route('/api/profile', profileRoute)
-  .route('/api/products', productRoutes)
-  .route('/api/products', productIngredientRoutes)
-  .route('/api/products', productTagRoutes)
+  .route('/api', productsFeature)
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/tags', tagRoutes)

@@ -18,6 +18,11 @@ export async function getUserProducts(userId: string, db: DB) {
       purchases: true,
       product: {
         with: {
+          productTags: {
+            with: {
+              tag: true,
+            },
+          },
           productIngredients: {
             with: {
               ingredient: true,
@@ -37,6 +42,11 @@ export async function getUserProductById(userId: string, userProductId: string, 
       purchases: true,
       product: {
         with: {
+          productTags: {
+            with: {
+              tag: true,
+            },
+          },
           productIngredients: {
             with: {
               ingredient: true,
@@ -56,6 +66,11 @@ export async function getUserProductByProductId(userId: string, productId: strin
       purchases: true,
       product: {
         with: {
+          productTags: {
+            with: {
+              tag: true,
+            },
+          },
           productIngredients: {
             with: {
               ingredient: true,
@@ -130,7 +145,7 @@ export async function upsertUserProductReview(
   input: UpdateUserProductReviewInput,
   db: DB
 ) {
-  // We must be sure the user is the owner of this product before we save the review
+  // need to check if the user own the product before saving the review
   const userProduct = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
   })

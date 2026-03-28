@@ -43,9 +43,9 @@ export type AuthContext = {
   userAgent?: string
 }
 
+// Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
-// auth token pair
 export async function createTokenPair(ctx: AuthContext, userId: string) {
   const accessToken = await generateAccessToken(userId, ctx.jwtSecret)
   const {
@@ -65,7 +65,6 @@ export async function createTokenPair(ctx: AuthContext, userId: string) {
   return { accessToken, refreshToken }
 }
 
-// signup
 export async function signup(
   ctx: AuthContext,
   email: Email,
@@ -77,13 +76,11 @@ export async function signup(
 
     const passwordHash = (await Bun.password.hash(password)) as HashedPassword
 
-    const isDev = Bun.env.NODE_ENV === 'development'
-
     const user = await ctx.db.transaction(async (tx) => {
       const user = await createUser(tx, {
         email,
         passwordHash,
-        emailVerifiedAt: isDev ? new Date() : null,
+        emailVerifiedAt: null,
       })
       await createProfile(tx, user.id)
       return user
@@ -118,7 +115,6 @@ export async function signup(
   }
 }
 
-// login
 export async function login(
   ctx: AuthContext,
   email: Email,
@@ -127,6 +123,7 @@ export async function login(
   try {
     const user = await getUser(ctx.db, email)
 
+    // Always verify against DUMMY_HASH if user doesn't exist (prevents timing attacks)
     const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
     if (!user || !isValid) return err('invalid_credentials')
 
@@ -149,12 +146,12 @@ export async function login(
   }
 }
 
-// refresh
 export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promise<RefreshResult> {
   try {
     const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
     if (!payload) return err('invalid_token')
-    // look if refresh token exist and is not revoked
+
+    // Verify token exists and hasn't been revoked (double-check after JWT validation)
     const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
     if (!storedToken) {
       console.warn(`Potential token replay for user ${payload.sub}`)
@@ -228,9 +225,6 @@ export async function changePassword(
       .update(users)
       .set({ passwordHash: newPasswordHash, updatedAt: new Date() })
       .where(eq(users.id, userId))
-
-    // Revoke other sessions (optional but recommended)
-    // await revokeAllUserRefreshTokens(ctx.db, userId)
 
     return ok(null)
   } catch (e) {

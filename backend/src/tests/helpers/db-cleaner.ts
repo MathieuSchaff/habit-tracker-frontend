@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm'
 import { testDb } from '../db.test.config'
 
 export async function cleanDatabase() {
+  console.log('🧹 Cleaning database...')
   const tables = [
     'email_verifications',
     'habit_check_products',
@@ -16,6 +17,7 @@ export async function cleanDatabase() {
     'ingredient_edits',
     'ingredient_tags',
     'ingredients',
+    'ingredient_dermo_profiles',
     'product_edits',
     'product_ingredients',
     'product_tags',
@@ -27,6 +29,7 @@ export async function cleanDatabase() {
     'tags',
     'tasks',
     'user_bans',
+    'user_ingredient_analysis_score',
     'user_preferences',
     'user_product_reviews',
     'user_products',

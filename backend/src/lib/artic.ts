@@ -1,7 +1,20 @@
 import { Google } from 'arctic'
 
-export const google = new Google(
-  process.env.GOOGLE_CLIENT_ID!,
-  process.env.GOOGLE_CLIENT_SECRET!,
-  process.env.GOOGLE_REDIRECT_URI!
-)
+function getEnvVar(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Missing required environment variable: ${name}`)
+  return value
+}
+
+let googleInstance: Google | null = null
+
+export function getGoogleInstance(): Google {
+  if (!googleInstance) {
+    googleInstance = new Google(
+      getEnvVar('GOOGLE_CLIENT_ID'),
+      getEnvVar('GOOGLE_CLIENT_SECRET'),
+      getEnvVar('GOOGLE_REDIRECT_URI')
+    )
+  }
+  return googleInstance
+}

@@ -38,7 +38,10 @@ export async function addPurchase(
     })
     .returning()
 
-  return result!
+  if (!result) {
+    throw new PurchaseError('purchase_creation_failed')
+  }
+  return result
 }
 
 export async function getPurchases(userId: string, userProductId: string, db: DB) {
@@ -56,7 +59,7 @@ export async function openPurchase(
   input: OpenPurchaseInput,
   db: DB
 ) {
-  // We need to find the purchase and be sure the user is the real owner
+  // find the purchase and check the user is the owner
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -66,7 +69,7 @@ export async function openPurchase(
     throw new PurchaseError('purchase_not_found')
   }
 
-  // It is not possible to have two products open at the same time for one user product
+  // can't have two purchases open at the same time for one user product
   const active = await db.query.purchases.findFirst({
     where: and(
       eq(purchases.userProductId, purchase.userProductId),
@@ -85,7 +88,10 @@ export async function openPurchase(
     .where(eq(purchases.id, purchaseId))
     .returning()
 
-  return result!
+  if (!result) {
+    throw new PurchaseError('purchase_creation_failed')
+  }
+  return result
 }
 
 export async function finishPurchase(
@@ -96,7 +102,7 @@ export async function finishPurchase(
 ) {
   await verifyOwnership(userId, userProductId, db)
 
-  // We look for the purchase that is currently open to close it
+  // find the open purchase and close it
   const [result] = await db
     .update(purchases)
     .set({ finishedAt: input.finishedAt })
@@ -120,7 +126,7 @@ export async function updatePurchase(
   input: UpdatePurchaseInput,
   db: DB
 ) {
-  // I use a join with userProduct to verify the ownership in one time
+  // use a join with userProduct to check ownership at same time
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -139,11 +145,14 @@ export async function updatePurchase(
     .where(eq(purchases.id, purchaseId))
     .returning()
 
-  return result!
+  if (!result) {
+    throw new PurchaseError('purchase_creation_failed')
+  }
+  return result
 }
 
 export async function deletePurchase(userId: string, purchaseId: string, db: DB) {
-  // Same here, we check the owner with a join before we delete
+  // same thing, check the owner with a join before delete
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },

@@ -10,8 +10,8 @@ import { sign, verify } from 'hono/jwt'
 import type { AppEnv } from '../../app-env'
 
 export const JWT_CONFIG = {
-  accessTokenExpiry: 15 * 60, // 15 minutes
-  refreshTokenExpiry: 7 * 24 * 60 * 60, // 7 jours
+  accessTokenExpiry: 15 * 60,
+  refreshTokenExpiry: 7 * 24 * 60 * 60,
 } as const
 
 export async function generateAccessToken(userId: string, secret: string): Promise<string> {
@@ -33,7 +33,6 @@ export async function generateRefreshToken(
   secret: string
 ): Promise<{ token: string; jti: string; expiresAt: Date }> {
   const now = Math.floor(Date.now() / 1000)
-  // const jti = crypto.randomUUID()
   const jti = Bun.randomUUIDv7()
 
   const token = await sign(
@@ -81,11 +80,11 @@ export async function verifyRefreshToken(
 }
 
 export async function extractRefreshToken(c: Context<AppEnv>): Promise<string | null> {
-  //  Cookie (priorité pour web)
+  // Check cookie first (browsers always have HttpOnly cookie access)
   const fromCookie = getCookie(c, 'refresh_token')
   if (fromCookie) return fromCookie
 
-  //  Body JSON (mobile) - vérifier Content-Type
+  // For mobile apps, accept from request body if Content-Type is JSON
   const contentType = c.req.header('Content-Type')
   if (contentType?.includes('application/json')) {
     try {

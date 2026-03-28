@@ -11,24 +11,17 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 
-// password_hash nullable > car on peut se connecter avec google  ( à faire)
-// google_sub nullable > identifiant Google
-// Après les imports, avant la table
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 export const users = pgTable(
   'users',
   {
-    // id: uuid('id').defaultRandom().primaryKey(),
     id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
-    // Email doit être NOT NULL et unique (sinon doublons)
     email: varchar('email', { length: 320 }).notNull(),
 
-    // Hash Argon2 du mot de passe.
-    // Nullable => si user créé via Google (sans mot de passe au départ)
+    // Nullable: user can sign up via Google without a password
     passwordHash: text('password_hash'),
 
-    // "sub" Google (subject) = identifiant stable côté Google.
-    // Nullable => seulement rempli si login Google utilisé.
+    // Stable Google identifier (subject). Null if user never logged in with Google
     googleSub: text('google_sub'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -42,44 +35,32 @@ export const users = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
-    // Empêche 2 comptes avec le même email
+    // Case-insensitive unique email, only for active accounts
     uniqueIndex('users_email_active_unique_idx')
-      .on(sql`lower(${t.email})`) //  Ignore la casse
-      .where(sql`deleted_at IS NULL`), //  Seulement pour les comptes vivants
-    // Empêche 2 users liés au même compte Google
-    // .where .... => pour que l'index ne prenne pas de la place pour tous les utilisateurs( meem ceu xqui n'ont pas de compte google)
-    // index partiel donc l'index est petit et ne conteint que les users "Google"
+      .on(sql`lower(${t.email})`)
+      .where(sql`deleted_at IS NULL`),
+    // Partial index: only indexes Google users, keeps it small
     uniqueIndex('users_google_sub_ux')
       .on(t.googleSub)
       .where(sql`google_sub IS NOT NULL`),
   ]
 )
 
-// profiles c'est pour l'afichage surtout
 export const profiles = pgTable(
   'profiles',
   {
-    // 1 profile par user (PK = user_id)
     userId: uuid('user_id')
       .primaryKey()
       .references(() => users.id, { onDelete: 'cascade' }),
-
-    // Pseudo affiché
     username: varchar('username', { length: 32 }),
-
-    //  avatar bio
-
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
-
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    // pseudo unique
     uniqueIndex('profiles_username_ux').on(t.username),
-
-    // Utile si on cherches par username (page publique /u/:username)
+    // Needed for public profile lookup by username (/u/:username)
     index('profiles_username_idx').on(t.username),
   ]
 )
@@ -103,19 +84,20 @@ export const refreshTokens = pgTable(
   },
   (t) => [
     uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),
-    // index('refresh_tokens_user_id_idx').on(t.userId),
-    // Index partiel : seulement les tokens actifs (non révoqués)
+    // Partial index: only active (non-revoked) tokens, used by getUserActiveSessions
     index('refresh_tokens_active_user_idx')
       .on(t.userId, t.expiresAt)
       .where(sql`${t.revokedAt} IS NULL`),
-    // index('refresh_tokens_expires_at_idx').on(t.expiresAt),
-    // Index composite pour getUserActiveSessions et revokeAllUserRefreshTokens
+    // Used by getUserActiveSessions and revokeAllUserRefreshTokens
     index('refresh_tokens_user_revoked_idx').on(t.userId, t.revokedAt),
-    // Index composite pour cleanup global
+    // Used by the cleanup job (expired + revoked tokens)
     index('refresh_tokens_expires_revoked_idx').on(t.expiresAt, t.revokedAt),
-    // Contrainte : revokedAt ne peut pas être avant createdAt
     check('revoked_after_created', sql`${t.revokedAt} IS NULL OR ${t.revokedAt} >= ${t.createdAt}`),
-    // Contrainte : expiresAt doit être dans le futur à la création
     check('expires_in_future', sql`${t.expiresAt} > ${t.createdAt}`),
   ]
 )
+
+export type User = typeof users.$inferSelect
+export type UserInsert = typeof users.$inferInsert
+
+export type Profile = typeof profiles.$inferSelect
