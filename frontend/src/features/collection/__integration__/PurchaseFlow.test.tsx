@@ -10,21 +10,26 @@ import { useUpdateUserProduct } from '../../../lib/queries/user-products'
 import { renderWithProviders } from '../../../test/utils'
 import { CollectionPage } from '../page/CollectionPage'
 
-vi.mock('@tanstack/react-router', () => ({
-  getRouteApi: () => ({
-    useNavigate: () => vi.fn(),
-    useSearch: () => ({
-      q: '',
-      sort: 'name',
-      brand: 'all',
-      kind: 'all',
-      sentiment: 'all',
-      repurchase: 'all',
-      minNote: 0,
-      maxPrice: '',
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    Link: vi.fn(({ children }) => <a href="/">{children}</a>),
+    getRouteApi: () => ({
+      useNavigate: () => vi.fn(),
+      useSearch: () => ({
+        q: '',
+        sort: 'name',
+        brand: 'all',
+        kind: 'all',
+        sentiment: 'all',
+        repurchase: 'all',
+        minNote: 0,
+        maxPrice: '',
+      }),
     }),
-  }),
-}))
+  }
+})
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<any>()
@@ -53,27 +58,30 @@ const mockPrefs = {
   criteriaWeights: { tolerance: 1, efficacy: 1 },
 }
 
-vi.mock('../../../lib/queries/user-products', () => ({
-  userProductQueries: {
-    list: () => ({ queryKey: ['user-products'] }),
-  },
-  useUpdateUserProduct: vi.fn(),
-  useDeleteUserProduct: () => ({ mutate: vi.fn() }),
-  useUpsertUserProductReview: () => ({ mutate: vi.fn() }),
-}))
+vi.mock('../../../lib/queries/user-products', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+    useUpdateUserProduct: vi.fn(),
+    useDeleteUserProduct: () => ({ mutate: vi.fn() }),
+    useUpsertUserProductReview: () => ({ mutate: vi.fn() }),
+  }
+})
 
-vi.mock('../../../lib/queries/user-preferences', () => ({
-  userPreferenceQueries: {
-    get: () => ({ queryKey: ['user-preferences'] }),
-  },
-}))
+vi.mock('../../../lib/queries/user-preferences', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+  }
+})
 
-vi.mock('../../../lib/queries/purchases', () => ({
-  purchaseQueries: {
-    byUserProduct: (id: string) => ({ queryKey: ['purchases', id] }),
-  },
-  useAddPurchase: vi.fn(),
-}))
+vi.mock('../../../lib/queries/purchases', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+    useAddPurchase: vi.fn(),
+  }
+})
 
 vi.mock('../../../hooks/useScrollLock', () => ({
   useScrollLock: vi.fn(),
@@ -115,8 +123,8 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     const productBtn = await screen.findByRole('button', { name: /Dream Cream/i })
     await userEvent.click(productBtn)
 
-    // Click "Nouvel achat" in footer
-    const addPurchaseBtn = screen.getByRole('button', { name: /Nouvel achat/i })
+    // Click "Enregistrer un achat" in sheet
+    const addPurchaseBtn = screen.getByRole('button', { name: /Enregistrer un achat/i })
     await userEvent.click(addPurchaseBtn)
 
     // Check if purchase form appears
@@ -129,7 +137,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     renderWithProviders(<CollectionPage />)
 
     await userEvent.click(await screen.findByRole('button', { name: /Dream Cream/i }))
-    await userEvent.click(screen.getByRole('button', { name: /Nouvel achat/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Enregistrer un achat/i }))
 
     const priceInput = screen.getByLabelText(/Prix payé/i)
     await userEvent.type(priceInput, '22.50')
@@ -144,7 +152,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
           pricePaidCents: 2250,
         }),
       }),
-      expect.any(Object)
+      expect.anything()
     )
   })
 
@@ -154,7 +162,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     await userEvent.click(await screen.findByRole('button', { name: /Dream Cream/i }))
 
     const statusButtons = screen.getAllByRole('button', { name: /En stock/i })
-    const inStockBtn = statusButtons.find((btn) => btn.className.includes('coll-status-option'))
+    const inStockBtn = statusButtons.find((btn) => btn.className.includes('pds-status-chip'))
     if (!inStockBtn) throw new Error('In Stock status button not found')
     await userEvent.click(inStockBtn)
 

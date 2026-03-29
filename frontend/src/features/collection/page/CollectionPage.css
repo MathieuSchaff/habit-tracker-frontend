@@ -1,0 +1,129 @@
+.coll-page-wrapper {
+  flex: 1;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.coll-topbar {
+  background: var(--bg-card);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.coll-topbar-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.coll-topbar-add {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.2);
+}
+
+.coll-topbar-add:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: var(--color-primary-hover);
+}
+
+/* Tabs for switching views (Segmented Control) */
+
+.coll-tabs-wrapper {
+  padding: 0 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.coll-icon-tabs {
+  display: flex;
+  background: var(--bg-muted);
+  padding: 4px;
+  border-radius: 14px;
+  gap: 0;
+  border: 1px solid var(--border-default);
+  position: relative; /* Essential for indicator */
+}
+
+/* The sliding white box */
+.coll-tabs-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3); /* 3 tabs minus padding */
+  background: var(--bg-card);
+  border-radius: 10px;
+  box-shadow:
+    0 2px 8px oklch(0% 0 0 / 0.05),
+    0 1px 2px oklch(0% 0 0 / 0.02);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(calc(var(--active-index) * 100%));
+  z-index: 1;
+}
+
+.coll-icon-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  border-radius: 10px;
+  position: relative;
+  z-index: 2; /* Sit above the indicator */
+}
+
+.coll-icon-tab span {
+  display: inline;
+}
+
+.coll-icon-tab-active {
+  color: var(--color-primary);
+  /* No background here, the indicator provides it */
+}
+
+.coll-tab-badge {
+  background: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 100px;
+  font-weight: 800;
+}
+
+.coll-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem 0.75rem 2rem;
+}

@@ -1,0 +1,124 @@
+.dcd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dcd-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 1rem;
+  animation: dcdFadeIn 0.2s ease-out;
+}
+
+@keyframes dcdFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dcd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bg-muted);
+}
+
+.dcd-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dcd-warning-icon {
+  color: var(--color-error);
+}
+
+.dcd-dialog-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--color-error);
+  letter-spacing: 0.05em;
+}
+
+.dcd-close-btn {
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.dcd-close-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.dcd-body p {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+}
+
+.dcd-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.dcd-cancel,
+.dcd-confirm {
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.dcd-cancel {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.dcd-cancel:hover:not(:disabled) {
+  background: var(--border-default);
+}
+
+.dcd-confirm {
+  background: var(--color-error);
+  color: white;
+}
+
+.dcd-confirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.dcd-cancel:disabled,
+.dcd-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

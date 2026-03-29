@@ -76,3 +76,17 @@
 .ghost:hover:not(:disabled) {
   background: var(--bg-muted);
 }
+
+.pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  gap: var(--space-1);
+}
+
+.pill:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--bg-hover);
+  border-color: var(--color-primary);
+}

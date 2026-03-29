@@ -1,33 +1,21 @@
-/**
- * Constantes de la feature Collection.
- *
- * Source de vérité unique pour les labels, icônes et couleurs
- * liés aux statuts, sentiments et critères d'évaluation.
- */
-
 import type { UserProductStatus } from '@habit-tracker/shared'
 
 import { Archive, Ban, Eye, Heart, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
 
-import type { ReviewCriteria } from '../../lib/helpers/reviews'
-
-/* ────────────────────────────────────────────
-   Statuts produit — label, icône et couleur
-   ──────────────────────────────────────────── */
+import type { ReviewCriteria } from '@/lib/helpers/reviews'
 
 export const statusLabels: Record<
   UserProductStatus,
   { label: string; icon: LucideIcon; color: string }
 > = {
-  in_stock: { label: 'En stock', icon: Package, color: '#10b981' },
-  wishlist: { label: 'Wishlist', icon: ShoppingBag, color: '#3b82f6' },
-  watched: { label: 'Surveille', icon: Eye, color: '#f59e0b' },
-  holy_grail: { label: 'Saint Graal', icon: Heart, color: '#ef4444' },
-  archived: { label: 'Archivé', icon: Archive, color: '#6b7280' },
-  avoided: { label: 'À éviter', icon: Ban, color: '#000000' },
+  in_stock: { label: 'En stock', icon: Package, color: 'var(--status-color-in-stock)' },
+  wishlist: { label: 'Wishlist', icon: ShoppingBag, color: 'var(--status-color-wishlist)' },
+  watched: { label: 'Surveille', icon: Eye, color: 'var(--status-color-watched)' },
+  holy_grail: { label: 'Saint Graal', icon: Heart, color: 'var(--status-color-holy-grail)' },
+  archived: { label: 'Archivé', icon: Archive, color: 'var(--status-color-archived)' },
+  avoided: { label: 'À éviter', icon: Ban, color: 'var(--status-color-avoided)' },
 }
 
-/** Ordre d'affichage des étagères dans la ShelfView */
 export const SHELF_ORDER: UserProductStatus[] = [
   'holy_grail',
   'in_stock',
@@ -37,7 +25,6 @@ export const SHELF_ORDER: UserProductStatus[] = [
   'avoided',
 ]
 
-/** Maps product kind to its CSS custom property for the shelf card color */
 export const kindColorTokens: Record<string, string> = {
   skincare: 'var(--shelf-color-skincare)',
   complément: 'var(--shelf-color-complement)',
@@ -48,18 +35,8 @@ export const kindColorTokens: Record<string, string> = {
 
 export const DEFAULT_KIND_COLOR_TOKEN = 'var(--shelf-color-default)'
 
-/* ────────────────────────────────────────────
-   Sentiments — mapping note (1-5) → emoji
-   Réexporté depuis le module utilitaire partagé.
-   ──────────────────────────────────────────── */
+export { sentimentEmojis } from '@/utils/sentimentMap'
 
-export { sentimentEmojis } from '../../utils/sentimentMap'
-
-/* ────────────────────────────────────────────
-   Critères d'évaluation — labels et définitions
-   ──────────────────────────────────────────── */
-
-/** Libellés courts affichés à côté des étoiles */
 export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   tolerance: 'Tolérance',
   efficacy: 'Efficacité',
@@ -69,7 +46,6 @@ export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   valueForMoney: 'Rapport Q/P',
 }
 
-/** Définitions détaillées affichées dans les infobulles */
 export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   tolerance:
     'Réaction de la peau (rougeurs, picotements, boutons). Le produit respecte-t-il votre barrière cutanée ?',
@@ -81,10 +57,6 @@ export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   mixability: 'Se superpose-t-il bien avec d\'autres soins (sans pelucher/faire de "pilling") ?',
   valueForMoney: 'Le prix est-il justifié par les résultats et la durée de vie du flacon ?',
 }
-
-/* ────────────────────────────────────────────
-   Options de tri
-   ──────────────────────────────────────────── */
 
 export type SortOption = 'name' | 'note' | 'sentiment' | 'date' | 'price_asc' | 'price_desc'
 

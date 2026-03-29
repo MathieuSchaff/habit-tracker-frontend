@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { useQuery } from '@tanstack/react-query'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -24,19 +24,23 @@ let mockSearch = {
   maxPrice: '',
 }
 
-vi.mock('@tanstack/react-router', () => ({
-  getRouteApi: () => ({
-    useNavigate: () => (updates: any) => {
-      if (typeof updates.search === 'function') {
-        mockSearch = updates.search(mockSearch)
-      } else {
-        mockSearch = { ...mockSearch, ...updates.search }
-      }
-      // console.log('Mock search updated:', mockSearch)
-    },
-    useSearch: () => mockSearch,
-  }),
-}))
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    Link: vi.fn(({ children }) => <a href="/">{children}</a>),
+    getRouteApi: () => ({
+      useNavigate: () => (updates: any) => {
+        if (typeof updates.search === 'function') {
+          mockSearch = updates.search(mockSearch)
+        } else {
+          mockSearch = { ...mockSearch, ...updates.search }
+        }
+      },
+      useSearch: () => mockSearch,
+    }),
+  }
+})
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<any>()
@@ -74,27 +78,30 @@ const mockPrefs = {
   criteriaWeights: { tolerance: 1, efficacy: 1 },
 }
 
-vi.mock('../../../lib/queries/user-products', () => ({
-  userProductQueries: {
-    list: () => ({ queryKey: ['user-products'] }),
-  },
-  useUpdateUserProduct: vi.fn(),
-  useDeleteUserProduct: vi.fn(),
-  useUpsertUserProductReview: vi.fn(),
-}))
+vi.mock('../../../lib/queries/user-products', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+    useUpdateUserProduct: vi.fn(),
+    useDeleteUserProduct: vi.fn(),
+    useUpsertUserProductReview: vi.fn(),
+  }
+})
 
-vi.mock('../../../lib/queries/user-preferences', () => ({
-  userPreferenceQueries: {
-    get: () => ({ queryKey: ['user-preferences'] }),
-  },
-}))
+vi.mock('../../../lib/queries/user-preferences', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+  }
+})
 
-vi.mock('../../../lib/queries/stock', () => ({
-  stockQueries: {
-    entries: () => ({ queryKey: ['stock-entries'] }),
-  },
-  useAddStockEntry: () => ({ mutate: vi.fn() }),
-}))
+vi.mock('../../../lib/queries/stock', async (importOriginal) => {
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+    useAddStockEntry: () => ({ mutate: vi.fn() }),
+  }
+})
 
 vi.mock('../../../hooks/useScrollLock', () => ({
   useScrollLock: vi.fn(),
@@ -183,47 +190,52 @@ describe('CollectionPage', () => {
     const { rerender } = renderWithProviders(<CollectionPage />)
 
     const searchInput = await screen.findByPlaceholderText(/Rechercher/i)
-    await userEvent.type(searchInput, 'Super')
+    // fireEvent.change is sometimes more reliable with mocked router search params
+    fireEvent.change(searchInput, { target: { value: 'Super' } })
+
     rerender(<CollectionPage />)
 
-    expect(screen.getByText('Super Serum')).toBeInTheDocument()
-    expect(screen.queryByText('Cool Cream')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Super Serum')).toBeInTheDocument()
+      expect(screen.queryByText('Cool Cream')).not.toBeInTheDocument()
+    })
   })
 
   it("met à jour le ressenti et les critères d'évaluation", async () => {
     renderWithProviders(<CollectionPage />)
 
     // Click on ShelfProductCard to expand the product
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')!
+    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')
+    if (!shelfCard) throw new Error('Product card not found')
     await userEvent.click(shelfCard)
 
     // Change sentiment to "😍" — find within the expanded card details
     const sentimentBtns = screen.getAllByText('😍')
-    // The one inside the sentiment selector (not the shelf card)
-    const sentimentBtn = sentimentBtns.find((el) => el.closest('.coll-sentiment-option'))!
+    // The one inside the sentiment selector
+    const sentimentBtn = sentimentBtns.find((el) => el.closest('.pds-sentiment-btn'))
+    if (!sentimentBtn) throw new Error('Sentiment button not found')
     await userEvent.click(sentimentBtn)
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'up-1',
         input: { sentiment: 5 },
-      }),
-      expect.any(Object)
+      })
     )
 
     // Rate a criterion (Stars)
-    const starButtons = screen
-      .getAllByRole('button')
-      .filter((b) => b.querySelector('.coll-star-icon'))
+    // In ProductDetailSheet, criteria use star buttons
+    const starButtons = screen.getAllByLabelText(/Noter \d sur 5/)
     // Click any star
     await userEvent.click(starButtons[0])
-    expect(mockReview).toHaveBeenCalledWith(expect.any(Object), expect.any(Object))
+    expect(mockReview).toHaveBeenCalledWith(expect.any(Object))
   })
 
   it('permet de retirer un produit après confirmation', async () => {
     renderWithProviders(<CollectionPage />)
 
     // Click on ShelfProductCard to expand
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')!
+    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')
+    if (!shelfCard) throw new Error('Product card not found')
     await userEvent.click(shelfCard)
 
     const deleteBtn = screen.getByRole('button', { name: /Retirer/i })
@@ -231,12 +243,11 @@ describe('CollectionPage', () => {
 
     // Click "Retirer" in the confirm dialog
     const confirmBtns = screen.getAllByRole('button', { name: /Retirer/i })
-    const dialogConfirm = confirmBtns.find((btn) =>
-      btn.className.includes('coll-delete-dialog-confirm')
-    )!
+    const dialogConfirm = confirmBtns.find((btn) => btn.className.includes('dcd-confirm'))
+    if (!dialogConfirm) throw new Error('Delete confirmation button not found')
     await userEvent.click(dialogConfirm)
 
-    expect(mockDelete).toHaveBeenCalledWith('up-1')
+    expect(mockDelete).toHaveBeenCalledWith('up-1', expect.anything())
   })
 
   it('ouvre le panneau de filtres avancés et filtre par marque', async () => {
