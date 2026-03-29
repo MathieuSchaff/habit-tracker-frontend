@@ -1,35 +1,31 @@
-/**
- * ShelfView — Vue "étagère" de la collection avec drag-and-drop.
- */
-
-import type { DisplayScale, UserProductStatus } from '@habit-tracker/shared'
+import type { DisplayScale } from '@habit-tracker/shared'
 
 import {
   DndContext,
   type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { useCallback, useMemo, useState } from 'react'
+import { restrictToWindowEdges } from '@dnd-kit/modifiers'
+import { useMemo } from 'react'
 
 import { SHELF_ORDER } from '@/features/collection/constants'
 import type { CriteriaWeights } from '@/lib/helpers/reviews'
-import { calculateWeightedScore } from '@/lib/helpers/reviews'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { ProductCardCondensed } from '../ProductCard/Condensed/ProductCardCondensed'
+import { ShelfGrid } from './ShelfGrid'
 import { ShelfSection } from './ShelfSection'
 
 import './ShelfView.css'
 
 interface ShelfViewProps {
   products: UserProduct[]
-  onStatusChange: (productId: string, newStatus: UserProductStatus) => void
-  onToggleExpand?: (productId: string) => void
-  criteriaWeights?: CriteriaWeights
-  displayScale?: DisplayScale
+  onStatusChange: (productId: string, newStatus: UserProduct['status']) => void
+  onToggleExpand: (id: string) => void
+  criteriaWeights: CriteriaWeights | undefined
+  displayScale: DisplayScale | undefined
 }
 
 export function ShelfView({
@@ -39,99 +35,64 @@ export function ShelfView({
   criteriaWeights,
   displayScale,
 }: ShelfViewProps) {
-  const [collapsedSections, setCollapsedSections] = useState<Set<UserProductStatus>>(new Set())
-  const [activeProduct, setActiveProduct] = useState<UserProduct | null>(null)
-  const [lastDroppedId, setLastDroppedId] = useState<string | null>(null)
-
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: 10 },
+    }),
+    useSensor(TouchSensor, {
+      // If the user moves the finger more than 5px very fast, we think they
+      // want to scroll the page, not drag the card.
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
     })
   )
 
-  const grouped = useMemo(() => {
-    const groups: Record<string, UserProduct[]> = {}
-    for (const product of products) {
-      if (!groups[product.status]) groups[product.status] = []
-      groups[product.status].push(product)
+  const productsByStatus = useMemo(() => {
+    const map: Partial<Record<UserProduct['status'], UserProduct[]>> = {}
+    for (const p of products) {
+      if (!map[p.status]) map[p.status] = []
+      map[p.status]?.push(p)
     }
-    return groups
+    return map
   }, [products])
 
-  const toggleCollapse = useCallback((status: UserProductStatus) => {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev)
-      if (next.has(status)) next.delete(status)
-      else next.add(status)
-      return next
-    })
-  }, [])
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const product = products.find((p) => p.id === event.active.id)
-      setActiveProduct(product ?? null)
-    },
-    [products]
-  )
+    const productId = active.id as string
+    const newStatus = over.id as UserProduct['status']
+    const product = products.find((p) => p.id === productId)
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      setActiveProduct(null)
-      const { active, over } = event
-      if (!over) return
-
-      const productId = active.id as string
-      const targetStatus = over.data.current?.status as UserProductStatus | undefined
-      if (!targetStatus) return
-
-      const product = products.find((p) => p.id === productId)
-      if (!product || product.status === targetStatus) return
-
-      onStatusChange(productId, targetStatus)
-
-      setLastDroppedId(productId)
-      setTimeout(() => setLastDroppedId(null), 1000)
-    },
-    [products, onStatusChange]
-  )
+    if (product && product.status !== newStatus) {
+      onStatusChange(productId, newStatus)
+    }
+  }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <div className="shelf-view">
         {SHELF_ORDER.map((status) => {
-          const sectionProducts = grouped[status] ?? []
-          if (sectionProducts.length === 0) return null
-
+          const list = productsByStatus[status] || []
           return (
-            <ShelfSection
-              key={status}
-              status={status}
-              products={sectionProducts}
-              isCollapsed={collapsedSections.has(status)}
-              onToggleCollapse={() => toggleCollapse(status)}
-              onProductClick={(id) => onToggleExpand?.(id)}
-              lastDroppedId={lastDroppedId}
-              criteriaWeights={criteriaWeights}
-              displayScale={displayScale}
-            />
+            <ShelfSection key={status} status={status} count={list.length}>
+              <ShelfGrid>
+                {list.map((p) => (
+                  <ProductCardCondensed
+                    key={p.id}
+                    p={p}
+                    onToggleExpand={() => onToggleExpand(p.id)}
+                    criteriaWeights={criteriaWeights}
+                    displayScale={displayScale}
+                  />
+                ))}
+              </ShelfGrid>
+            </ShelfSection>
           )
         })}
       </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activeProduct && (
-          <ProductCardCondensed
-            product={activeProduct}
-            score={calculateWeightedScore(
-              activeProduct.review,
-              criteriaWeights,
-              displayScale ?? 'out_of_20'
-            )}
-            displayScale={displayScale}
-          />
-        )}
-      </DragOverlay>
     </DndContext>
   )
 }

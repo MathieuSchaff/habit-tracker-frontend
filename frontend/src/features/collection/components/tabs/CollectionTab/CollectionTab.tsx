@@ -23,7 +23,6 @@ interface CollectionTabProps {
 export function CollectionTab({ userProducts }: CollectionTabProps) {
   const { data: prefs } = useQuery(userPreferenceQueries.get())
 
-  /* Loading : spinner le temps que les produits arrivent */
   if (!userProducts) {
     return (
       <div className="coll-page-container coll-loading">
@@ -40,10 +39,6 @@ export function CollectionTab({ userProducts }: CollectionTabProps) {
   )
 }
 
-/**
- * Composant interne pour utiliser le hook useCollectionFilter
- * sans polluer le point d'entrée.
- */
 function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined }) {
   const { filteredProducts, q, sort, setFilter, hasActiveFilters } = useCollectionFilter()
 
@@ -54,7 +49,7 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
   const [showFiltersSheet, setShowFiltersSheet] = useState(false)
 
   const selectedProduct = expandedId
-    ? filteredProducts.find((p) => p.id === expandedId) ?? null
+    ? (filteredProducts.find((p) => p.id === expandedId) ?? null)
     : null
 
   const cycleSortBy = () => {
@@ -64,7 +59,6 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
 
   return (
     <>
-      {/* Barre de contrôle : recherche, tri, filtres */}
       <div className="coll-controls">
         <div className="coll-search-wrapper">
           <Search className="coll-search-icon" size={16} />
@@ -96,7 +90,6 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
         </button>
       </div>
 
-      {/* Contenu : étagères */}
       <ShelfView
         products={filteredProducts}
         onStatusChange={(productId, newStatus) => {
@@ -107,17 +100,18 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
         displayScale={prefs?.displayScale}
       />
 
-      {/* Panneau de filtres avancés (bottom sheet) */}
       {showFiltersSheet && <CollectionFiltersSheet onClose={() => setShowFiltersSheet(false)} />}
 
-      {/* Panneau de détail produit (bottom sheet) */}
       {selectedProduct && (
         <ProductDetailSheet
           p={selectedProduct}
           prefs={prefs}
           activeTooltip={activeTooltip}
           setActiveTooltip={setActiveTooltip}
-          onClose={() => { setExpandedId(null); setActiveTooltip(null) }}
+          onClose={() => {
+            setExpandedId(null)
+            setActiveTooltip(null)
+          }}
         />
       )}
     </>

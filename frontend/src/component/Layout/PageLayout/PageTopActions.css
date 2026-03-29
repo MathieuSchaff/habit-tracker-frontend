@@ -1,0 +1,25 @@
+.page-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+
+.page-top-actions__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .page-top-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-top-actions__right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

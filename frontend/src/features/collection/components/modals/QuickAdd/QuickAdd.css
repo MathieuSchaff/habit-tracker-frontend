@@ -1,0 +1,260 @@
+.qa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.qa-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
+.qa-modal {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 500px;
+  max-height: calc(100dvh - 2rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 1;
+  animation: modalScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.qa-modal-header {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--bg-muted);
+}
+
+.qa-modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.qa-close-btn {
+  background: var(--bg-muted);
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qa-close-btn:hover {
+  background: var(--bg-hover);
+  transform: rotate(90deg);
+}
+
+.qa-modal-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.qa-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-muted);
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.qa-tab {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.qa-tab.active {
+  background: var(--bg-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* If we choose an existing product */
+.qa-search-section {
+  min-height: 200px;
+}
+
+.qa-selected-product {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-primary);
+}
+
+.qa-prod-info h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.qa-prod-info p {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.qa-change-prod {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--bg-card);
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.qa-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.qa-status-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-muted);
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.qa-status-opt:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+}
+
+.qa-status-opt.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+/* If we want to create a brand new product */
+.qa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.qa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.qa-field label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.qa-field input,
+.qa-field select {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 2px solid var(--bg-muted);
+  background: var(--bg-card);
+  font-weight: 600;
+}
+
+.qa-field input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.qa-submit-btn {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qa-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.qa-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qa-duplicate-warning {
+  padding: 0.75rem 1rem;
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.qa-duplicate-warning p {
+  margin: 0 0 0.25rem;
+}
+
+.qa-duplicate-warning ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.qa-duplicate-hint {
+  font-style: italic;
+  opacity: 0.8;
+}

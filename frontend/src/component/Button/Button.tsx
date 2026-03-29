@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { Spinner } from '../Feedback/Spinner/Spinner'
 
 type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'pill'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   fullWidth?: boolean

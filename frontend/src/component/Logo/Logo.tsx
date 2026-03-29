@@ -1,16 +1,10 @@
-import type React from 'react'
-
 interface AuroreLogoProps {
   size?: number
   className?: string
   showBackground?: boolean
 }
 
-export const AuroreLogo: React.FC<AuroreLogoProps> = ({
-  size = 120,
-  className = '',
-  showBackground = true,
-}) => {
+export function AuroreLogo({ size = 120, className = '', showBackground = true }: AuroreLogoProps) {
   return (
     <svg
       width={size}

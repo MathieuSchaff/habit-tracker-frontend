@@ -1,0 +1,15 @@
+.nav-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition:
+    transform var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+/* On prévoit que l'élément parent au survol puisse modifier la flèche */
+.list-card:hover .nav-arrow,
+.link-card:hover .nav-arrow,
+a:hover .nav-arrow {
+  color: var(--color-primary);
+  transform: translateX(2px);
+}

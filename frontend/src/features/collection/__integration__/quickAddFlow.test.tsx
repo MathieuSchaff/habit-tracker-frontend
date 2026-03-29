@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithProviders } from '../../../test/utils'
-import { QuickAddModal } from '../components/QuickAddModal/QuickAddModal'
+import { QuickAdd } from '../components/modals/QuickAdd/QuickAdd'
 
 vi.mock('../../../lib/queries/products', () => ({
   productQueries: {
@@ -44,7 +44,7 @@ import { useAddPurchase } from '../../../lib/queries/purchases'
 import { useCreateUserProduct } from '../../../lib/queries/user-products'
 
 describe('Flow : ajout rapide dans Ma Collection', () => {
-  const mockAddUserProduct = vi.fn().mockResolvedValue({})
+  const mockAddUserProduct = vi.fn().mockResolvedValue({ id: 'new-up-id' })
   const mockAddStockEntry = vi.fn().mockResolvedValue({})
   const mockCreateProduct = vi.fn().mockResolvedValue({
     id: 'new-prod',
@@ -72,18 +72,18 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
   })
 
   it('le modal affiche les deux onglets', () => {
-    renderWithProviders(<QuickAddModal onClose={() => {}} />)
+    renderWithProviders(<QuickAdd onClose={() => {}} />)
     expect(screen.getByText('Produit existant')).toBeInTheDocument()
     expect(screen.getByText('Nouveau produit')).toBeInTheDocument()
   })
 
   it('onglet "Produit existant" actif par défaut — affiche le SearchCombobox', () => {
-    renderWithProviders(<QuickAddModal onClose={() => {}} />)
+    renderWithProviders(<QuickAdd onClose={() => {}} />)
     expect(screen.getByPlaceholderText('Rechercher dans le catalogue...')).toBeInTheDocument()
   })
 
   it('onglet "Nouveau produit" → affiche le formulaire de création', async () => {
-    renderWithProviders(<QuickAddModal onClose={() => {}} />)
+    renderWithProviders(<QuickAdd onClose={() => {}} />)
     await userEvent.click(screen.getByText('Nouveau produit'))
     expect(screen.getByPlaceholderText('ex: CeraVe Hydrating Cleanser')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('ex: CeraVe')).toBeInTheDocument()
@@ -91,7 +91,7 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
 
   it("création d'un nouveau produit appelle createProduct puis addUserProduct", async () => {
     const onClose = vi.fn()
-    renderWithProviders(<QuickAddModal onClose={onClose} />)
+    renderWithProviders(<QuickAdd onClose={onClose} />)
 
     await userEvent.click(screen.getByText('Nouveau produit'))
     await userEvent.type(screen.getByPlaceholderText('ex: CeraVe Hydrating Cleanser'), 'Mon Sérum')
@@ -117,7 +117,7 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
 
   it('le bouton fermer appelle onClose', async () => {
     const onClose = vi.fn()
-    renderWithProviders(<QuickAddModal onClose={onClose} />)
+    renderWithProviders(<QuickAdd onClose={onClose} />)
     await userEvent.click(screen.getByLabelText('Fermer'))
     expect(onClose).toHaveBeenCalled()
   })

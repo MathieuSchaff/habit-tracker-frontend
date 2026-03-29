@@ -1,0 +1,106 @@
+.main-nav__list {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-5);
+  opacity: 0;
+  height: 0;
+  /* Hiding from screen readers and layout when closed */
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition:
+    opacity var(--transition-base) ease,
+    visibility var(--transition-base) ease,
+    transform var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-nav__link {
+  display: flex;
+  justify-content: center;
+  margin: 0 var(--space-1);
+  color: var(--color-sidebar-icon);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  letter-spacing: 0.3px;
+  border-radius: var(--radius-sm, 0.375rem);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+  padding: 0.3rem 0.2rem;
+
+  &:hover {
+    background: var(--color-sidebar-item-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+  }
+}
+
+.main-nav__link[aria-current="page"] {
+  color: var(--color-sidebar-icon-active);
+  background: var(--color-sidebar-item-active, var(--bg-active));
+  font-weight: var(--font-medium);
+
+  &:hover {
+    background: var(--color-sidebar-item-hover);
+    color: var(--color-sidebar-icon);
+  }
+
+  &:focus-visible {
+    background: var(--color-sidebar-item-hover);
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+  }
+}
+
+.main-nav__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.main-nav__label {
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition:
+    max-width 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.main-nav--open {
+  .main-nav__label {
+    max-width: 12ch;
+    opacity: 1;
+    padding-left: 0.4rem;
+  }
+
+  .main-nav__link {
+    justify-content: flex-start;
+  }
+
+  .main-nav__list {
+    position: static;
+    height: auto;
+    width: 100%;
+    padding-right: var(--space-2);
+    padding-left: var(--space-2);
+    background: var(--color-sidebar-bg);
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .main-nav__list {
+    position: static;
+    height: auto;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+}

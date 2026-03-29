@@ -1,8 +1,8 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
 
-import { BottomNav } from '../../BottomNav/BottomNav'
-import { Header } from '../Header/Header'
+import { BottomNav } from '../../Header/BottomNav/BottomNav'
+import { Header } from '../../Header/Header'
 
 export const AppLayout = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
