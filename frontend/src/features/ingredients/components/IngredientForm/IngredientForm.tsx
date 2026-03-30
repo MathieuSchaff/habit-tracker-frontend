@@ -1,9 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Save, Trash2, X } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { AlertTriangle, ClipboardCopy, Save, X as XIcon } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
+import { FormField } from '@/component/Input/FormField/FormField'
+import { TagManager } from '@/component/Input/TagManager/TagManager'
+import { type TagState, useFormTags } from '@/hooks/useFormTags'
+import { isHttpError } from '@/lib/helpers/isHttpError'
+import { useAuthStore } from '@/store/auth'
 import {
+  ingredientQueries,
   useCreateIngredient,
   useUpdateIngredient,
   useUpdateIngredientTags,
@@ -11,25 +17,54 @@ import {
 import { tagQueries } from '../../../../lib/queries/tags'
 import '../Edit/IngredientPageEditable.css'
 
-type TagState = {
-  tagId: string
-  tagName: string
-  relevance: 'primary' | 'secondary' | 'avoid'
+interface BaseIngredient {
+  id: string
+  slug: string
+  name: string | null
+  category: string | null
+  description: string | null
+  content: string | null
+  updatedAt: string
 }
 
-interface IngredientFormProps {
-  mode: 'create' | 'edit'
-  ingredient?: {
-    id: string
-    slug: string
-    name: string | null
-    category: string | null
-    description: string | null
-    content: string | null
-  }
-  initialTags?: TagState[]
-  onSuccess: (slug: string) => void
+type FormData = {
+  name: string
+  slug: string
+  category: string
+  description: string
+  content: string
 }
+
+const FORM_FIELDS = ['name', 'slug', 'category', 'description', 'content'] as const
+type FormFieldKey = (typeof FORM_FIELDS)[number]
+
+const FIELD_LABELS: Record<FormFieldKey, string> = {
+  name: 'Nom',
+  slug: 'Slug',
+  category: 'Catégorie',
+  description: 'Description',
+  content: 'Contenu',
+}
+
+// when a 409 happens, we store the user's draft so they can recover their work
+type ConflictState = {
+  draft: FormData
+  freshUpdatedAt: string
+}
+
+type IngredientFormProps =
+  | {
+      mode: 'create'
+      ingredient?: never
+      initialTags?: TagState[]
+      onSuccess: (slug: string) => void
+    }
+  | {
+      mode: 'edit'
+      ingredient: BaseIngredient
+      initialTags?: TagState[]
+      onSuccess: (slug: string) => void
+    }
 
 export function IngredientForm({
   mode,
@@ -37,60 +72,48 @@ export function IngredientForm({
   initialTags = [],
   onSuccess,
 }: IngredientFormProps) {
+  const qc = useQueryClient()
   const { data: allTags } = useQuery(tagQueries.list())
   const createIngredient = useCreateIngredient()
   const updateIngredient = useUpdateIngredient()
   const updateTags = useUpdateIngredientTags()
 
-  const [form, setForm] = useState({
+  const { isAdmin } = useAuthStore()
+  const [form, setForm] = useState<FormData>({
     name: ingredient?.name ?? '',
+    slug: ingredient?.slug ?? '',
     category: ingredient?.category ?? '',
     description: ingredient?.description ?? '',
     content: ingredient?.content ?? '',
   })
 
-  const [tags, setTags] = useState<TagState[]>(initialTags)
+  const { tags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } = useFormTags({
+    initialTags,
+    allTags,
+  })
+
   const [error, setError] = useState<string | null>(null)
+  const [conflict, setConflict] = useState<ConflictState | null>(null)
+
+  // after a conflict, we use the fresh updatedAt for the next save attempt
+  // so the optimistic lock doesn't fail again on the same stale value
+  const [updatedAtOverride, setUpdatedAtOverride] = useState<string | null>(null)
 
   const handleChange = useCallback(
-    (field: keyof typeof form) =>
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setForm((prev) => ({ ...prev, [field]: e.target.value }))
-        setError(null)
-      },
+    (field: FormFieldKey) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }))
+      setError(null)
+    },
     []
   )
 
-  const handleAddTag = (tagId: string) => {
-    const tag = allTags?.find((t) => t.id === tagId)
-    if (tag && !tags.find((t) => t.tagId === tagId)) {
-      setTags((prev) => [...prev, { tagId, tagName: tag.name, relevance: 'secondary' }])
-    }
-  }
-
-  const handleRemoveTag = (tagId: string) => {
-    setTags((prev) => prev.filter((t) => t.tagId !== tagId))
-  }
-
-  const handleUpdateRelevance = (tagId: string, relevance: 'primary' | 'secondary' | 'avoid') => {
-    setTags((prev) => prev.map((t) => (t.tagId === tagId ? { ...t, relevance } : t)))
-  }
-
-  const availableTags = useMemo(
-    () => allTags?.filter((at) => !tags.find((t) => t.tagId === at.id)) ?? [],
-    [allTags, tags]
-  )
-
-  const sortedTagsKey = (arr: { id: string; r: string }[]) =>
-    JSON.stringify([...arr].sort((a, b) => a.id.localeCompare(b.id)))
-
   const isDirty =
     form.name !== (ingredient?.name ?? '') ||
+    form.slug !== (ingredient?.slug ?? '') ||
     form.category !== (ingredient?.category ?? '') ||
     form.description !== (ingredient?.description ?? '') ||
     form.content !== (ingredient?.content ?? '') ||
-    sortedTagsKey(tags.map((t) => ({ id: t.tagId, r: t.relevance }))) !==
-      sortedTagsKey(initialTags.map((t) => ({ id: t.tagId, r: t.relevance })))
+    isTagsDirty
 
   const isPending = createIngredient.isPending || updateIngredient.isPending || updateTags.isPending
 
@@ -107,7 +130,7 @@ export function IngredientForm({
         : 'Enregistrer'
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault()
 
       if (!form.name.trim()) {
@@ -119,6 +142,7 @@ export function IngredientForm({
         if (mode === 'create') {
           const created = await createIngredient.mutateAsync({
             name: form.name.trim(),
+            slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
             category: form.category.trim() || undefined,
             description: form.description.trim() || undefined,
             content: form.content.trim() || undefined,
@@ -133,38 +157,116 @@ export function IngredientForm({
         } else {
           const [updated] = await Promise.all([
             updateIngredient.mutateAsync({
-              id: ingredient!.id,
+              id: ingredient.id,
               data: {
                 name: form.name.trim(),
+                slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
                 category: form.category.trim() || undefined,
                 description: form.description.trim() || undefined,
                 content: form.content.trim() || undefined,
+                expectedUpdatedAt: new Date(updatedAtOverride ?? ingredient.updatedAt),
               },
             }),
             updateTags.mutateAsync({
-              ingredientId: ingredient!.id,
+              ingredientId: ingredient.id,
               tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
             }),
           ])
+          setConflict(null)
+          setUpdatedAtOverride(null)
           onSuccess(updated.slug)
         }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-        )
+      } catch (err: unknown) {
+        if (isHttpError(err, 409) && mode === 'edit') {
+          // someone else saved while we were editing
+          // 1. save the user's current work as a draft
+          const draft = { ...form }
+
+          // 2. fetch the fresh version from the server
+          const fresh = (await qc.fetchQuery({
+            ...ingredientQueries.bySlug(ingredient.slug),
+            staleTime: 0,
+          })) as BaseIngredient
+          // 3. replace the form with the server version
+          setForm({
+            name: fresh.name ?? '',
+            slug: fresh.slug ?? '',
+            category: fresh.category ?? '',
+            description: fresh.description ?? '',
+            content: fresh.content ?? '',
+          })
+
+          // 4. store the draft + fresh updatedAt so user can recover their work
+          setConflict({ draft, freshUpdatedAt: fresh.updatedAt })
+          setUpdatedAtOverride(fresh.updatedAt)
+          setError(null)
+        } else {
+          setError(
+            err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
+          )
+        }
       }
     },
-    [form, mode, ingredient, tags, createIngredient, updateIngredient, updateTags, onSuccess]
+    [
+      form,
+      isAdmin,
+      mode,
+      ingredient,
+      tags,
+      updatedAtOverride,
+      createIngredient,
+      updateIngredient,
+      updateTags,
+      onSuccess,
+      qc,
+    ]
   )
+
+  // restore a single field from the draft back into the form
+  const restoreField = useCallback((field: FormFieldKey) => {
+    setConflict((prev) => {
+      if (!prev) return null
+      setForm((f) => ({ ...f, [field]: prev.draft[field] }))
+      return prev
+    })
+  }, [])
+
+  const dismissConflict = useCallback(() => {
+    setConflict(null)
+  }, [])
+
+  // check if a field differs between the draft and the current form (server version)
+  const hasFieldConflict = (field: FormFieldKey): boolean => {
+    if (!conflict) return false
+    return conflict.draft[field] !== form[field]
+  }
 
   return (
     <form className="ingredient-edit-form" onSubmit={handleSubmit}>
       {error && <div className="ingredient-edit-form__error">{error}</div>}
 
-      <div className="ingredient-edit-form__field">
-        <label className="ingredient-edit-form__label" htmlFor="ingredient-name">
-          Nom <span className="ingredient-edit-form__required">*</span>
-        </label>
+      {conflict && (
+        <div className="ingredient-edit-form__conflict-banner">
+          <div className="ingredient-edit-form__conflict-banner-header">
+            <AlertTriangle size={16} />
+            <span>
+              <strong>Conflit détecté</strong> — quelqu'un a modifié cet ingrédient pendant ton
+              édition. Le formulaire affiche maintenant la version à jour. Ton brouillon est affiché
+              sous chaque champ modifié.
+            </span>
+          </div>
+          <button
+            type="button"
+            className="ingredient-edit-form__conflict-dismiss"
+            onClick={dismissConflict}
+          >
+            <XIcon size={14} />
+            Fermer les brouillons
+          </button>
+        </div>
+      )}
+
+      <FormField label="Nom" htmlFor="ingredient-name" required>
         <input
           id="ingredient-name"
           className="ingredient-edit-form__input"
@@ -175,12 +277,28 @@ export function IngredientForm({
           // biome-ignore lint: autofocus ok
           autoFocus
         />
-      </div>
+        {hasFieldConflict('name') && (
+          <DraftHint field="name" value={conflict?.draft.name ?? ''} onRestore={restoreField} />
+        )}
+      </FormField>
 
-      <div className="ingredient-edit-form__field">
-        <label className="ingredient-edit-form__label" htmlFor="ingredient-category">
-          Catégorie
-        </label>
+      {isAdmin && (
+        <FormField label="Slug" htmlFor="ingredient-slug" hint="Lien URL unique (admin uniquement)">
+          <input
+            id="ingredient-slug"
+            className="ingredient-edit-form__input"
+            type="text"
+            value={form.slug}
+            onChange={handleChange('slug')}
+            placeholder="Ex: mon-ingredient-slug"
+          />
+          {hasFieldConflict('slug') && (
+            <DraftHint field="slug" value={conflict?.draft.slug ?? ''} onRestore={restoreField} />
+          )}
+        </FormField>
+      )}
+
+      <FormField label="Catégorie" htmlFor="ingredient-category">
         <input
           id="ingredient-category"
           className="ingredient-edit-form__input"
@@ -189,67 +307,26 @@ export function IngredientForm({
           onChange={handleChange('category')}
           placeholder="Ex : Actif, Émollient, Conservateur…"
         />
-      </div>
+        {hasFieldConflict('category') && (
+          <DraftHint
+            field="category"
+            value={conflict?.draft.category ?? ''}
+            onRestore={restoreField}
+          />
+        )}
+      </FormField>
 
-      <div className="ingredient-edit-form__field">
-        <label className="ingredient-edit-form__label" htmlFor="ingredient-tags">
-          Tags
-        </label>
-        <div className="ingredient-edit-tags">
-          {tags.map((tag) => (
-            <div key={tag.tagId} className={`edit-tag edit-tag--${tag.relevance}`}>
-              <span className="edit-tag__name">{tag.tagName}</span>
-              <select
-                value={tag.relevance}
-                className="edit-tag__relevance"
-                onChange={(e) =>
-                  handleUpdateRelevance(
-                    tag.tagId,
-                    e.target.value as 'primary' | 'secondary' | 'avoid'
-                  )
-                }
-              >
-                <option value="primary">Principal</option>
-                <option value="secondary">Secondaire</option>
-                <option value="avoid">À éviter</option>
-              </select>
-              <button
-                type="button"
-                className="edit-tag__remove"
-                onClick={() => handleRemoveTag(tag.tagId)}
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="ingredient-edit-add-tag">
-          <select
-            className="ingredient-edit-form__input"
-            onChange={(e) => {
-              if (e.target.value) {
-                handleAddTag(e.target.value)
-                e.target.value = ''
-              }
-            }}
-            value=""
-          >
-            <option value="" disabled>
-              Ajouter un tag...
-            </option>
-            {availableTags.map((tag: any) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.name} ({tag.category ?? 'Sans catégorie'})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FormField label="Tags" htmlFor="tags">
+        <TagManager
+          tags={tags}
+          availableTags={availableTags}
+          onAddTag={addTag}
+          onRemoveTag={removeTag}
+          onUpdateRelevance={updateRelevance}
+        />
+      </FormField>
 
-      <div className="ingredient-edit-form__field">
-        <label className="ingredient-edit-form__label" htmlFor="ingredient-description">
-          Description
-        </label>
+      <FormField label="Description" htmlFor="ingredient-description" hint="Markdown supporté">
         <textarea
           id="ingredient-description"
           className="ingredient-edit-form__textarea"
@@ -258,13 +335,16 @@ export function IngredientForm({
           placeholder="Description de l'ingrédient (Markdown supporté)"
           rows={5}
         />
-        <span className="ingredient-edit-form__hint">Markdown supporté</span>
-      </div>
+        {hasFieldConflict('description') && (
+          <DraftHint
+            field="description"
+            value={conflict?.draft.description ?? ''}
+            onRestore={restoreField}
+          />
+        )}
+      </FormField>
 
-      <div className="ingredient-edit-form__field">
-        <label className="ingredient-edit-form__label" htmlFor="ingredient-content">
-          Contenu
-        </label>
+      <FormField label="Contenu" htmlFor="ingredient-content" hint="Markdown supporté">
         <textarea
           id="ingredient-content"
           className="ingredient-edit-form__textarea"
@@ -273,17 +353,23 @@ export function IngredientForm({
           placeholder="Contenu détaillé (Markdown supporté)"
           rows={8}
         />
-        <span className="ingredient-edit-form__hint">Markdown supporté</span>
-      </div>
+        {hasFieldConflict('content') && (
+          <DraftHint
+            field="content"
+            value={conflict?.draft.content ?? ''}
+            onRestore={restoreField}
+          />
+        )}
+      </FormField>
 
       <div className="ingredient-edit-form__actions">
         {mode === 'edit' ? (
           <Link
             to="/ingredients/$slug"
-            params={{ slug: ingredient!.slug }}
+            params={{ slug: ingredient?.slug }}
             className="ingredient-edit-form__btn ingredient-edit-form__btn--cancel"
           >
-            <X size={16} />
+            <XIcon size={16} />
             Annuler
           </Link>
         ) : (
@@ -291,7 +377,7 @@ export function IngredientForm({
             to="/ingredients"
             className="ingredient-edit-form__btn ingredient-edit-form__btn--cancel"
           >
-            <X size={16} />
+            <XIcon size={16} />
             Annuler
           </Link>
         )}
@@ -305,5 +391,30 @@ export function IngredientForm({
         </button>
       </div>
     </form>
+  )
+}
+
+// small read-only block that shows the user's draft value for one field
+// with a button to restore it into the form
+function DraftHint({
+  field,
+  value,
+  onRestore,
+}: {
+  field: FormFieldKey
+  value: string
+  onRestore: (field: FormFieldKey) => void
+}) {
+  return (
+    <div className="draft-hint">
+      <div className="draft-hint__header">
+        <span className="draft-hint__label">Ton brouillon ({FIELD_LABELS[field]})</span>
+        <button type="button" className="draft-hint__restore" onClick={() => onRestore(field)}>
+          <ClipboardCopy size={12} />
+          Restaurer
+        </button>
+      </div>
+      <pre className="draft-hint__value">{value || '(vide)'}</pre>
+    </div>
   )
 }

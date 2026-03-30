@@ -1,4 +1,4 @@
-import type { RepurchaseFlag, UserProductStatus } from '@habit-tracker/shared'
+import type { Purchase, RepurchaseFlag, UserProductStatus } from '@habit-tracker/shared'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { type RenderOptions, render } from '@testing-library/react'
@@ -82,7 +82,41 @@ export function makeUserProduct(
       url: string | null
       imageUrl: string | null
       notes: string | null
-      productIngredients: any[]
+      productIngredients: {
+        id: string
+        createdAt: string
+        notes: string | null
+        productId: string
+        ingredientId: string
+        concentrationValue: string | null
+        concentrationUnit: string | null
+        concentrationPer: string | null
+        ingredient: {
+          id: string
+          name: string
+          slug: string
+          category: string | null
+          description: string
+          content: string
+          createdBy: string
+          createdAt: string
+          updatedAt: string
+        }
+      }[]
+      productTags: {
+        id: string
+        createdAt: string
+        productId: string
+        relevance: 'primary' | 'secondary' | 'avoid'
+        tagId: string
+        tag: {
+          id: string
+          name: string
+          createdAt: string
+          slug: string
+          category: string | null
+        }
+      }[]
     }
     review: {
       id: string
@@ -97,7 +131,7 @@ export function makeUserProduct(
       createdAt: string
       updatedAt: string
     }
-    purchases: any[]
+    purchases: Purchase[]
   }> = {}
 ) {
   return {
@@ -125,6 +159,7 @@ export function makeUserProduct(
       totalAmount: null,
       priceCents: 1299,
       productIngredients: [],
+      productTags: [],
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,

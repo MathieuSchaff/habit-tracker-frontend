@@ -27,7 +27,7 @@
   font-size: var(--text-xl, 1.25rem);
 }
 
-/* xl gets the hard editorial shadow from the design system */
+/* This size gets a specific shadow from our design system. */
 .profile-avatar--xl {
   width: 6rem;
   height: 6rem;

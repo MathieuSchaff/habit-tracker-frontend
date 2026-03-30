@@ -23,13 +23,12 @@ export const ProfileForm = ({
   isPending,
   error,
 }: ProfileFormProps) => {
-  // Using simple local state here instead of a form library like RHF
-  // since we only have a few fields and basic validation.
+  // We use local state because the form is simple and we don't need a library.
   const [username, setUsername] = useState(profile.username ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
 
     const data: ProfileUpdateInput = {}
@@ -87,7 +86,9 @@ export const ProfileForm = ({
               <img
                 src={avatarUrl}
                 alt="Aperçu"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
               />
             </div>
           )}

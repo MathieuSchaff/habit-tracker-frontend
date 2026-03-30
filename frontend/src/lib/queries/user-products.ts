@@ -11,7 +11,7 @@ import { api } from '../api'
 
 export type UserProduct = Extract<
   InferResponseType<(typeof api)['user-products']['$get']>,
-  { data: any }
+  { data: unknown }
 >['data'][number]
 
 export const userProductKeys = {
@@ -69,8 +69,8 @@ export const useCreateUserProduct = () => {
 }
 
 /**
- * We update the local data before the server answers. 
- * This makes the app feel faster for the user.
+ * Optimistic update: change UI immediately, then sync with server.
+ * If server fails, we revert to the previous state.
  */
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()

@@ -1,7 +1,7 @@
 import type {
   CreateIngredientInput,
   ReplaceIngredientTagsInput,
-  UpdateIngredientInput,
+  UpdateIngredientRouteInput,
 } from '@habit-tracker/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -122,7 +122,6 @@ export const ingredientQueries = {
     }),
 }
 
-// Mutations
 export function useCreateIngredient() {
   const qc = useQueryClient()
   return useMutation({
@@ -143,9 +142,17 @@ export function useCreateIngredient() {
 export function useUpdateIngredient() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateIngredientInput }) => {
+    mutationFn: async ({ id, data }: { id: string; data: UpdateIngredientRouteInput }) => {
       const res = await api.ingredients[':id'].$patch({ param: { id }, json: data })
-      if (!res.ok) throw new Error('Failed to update ingredient')
+
+      if (!res.ok) {
+        // attach the HTTP status so callers can distinguish 409 from other errors
+        const body = await res.json().catch(() => null)
+        const error = new Error(body?.message ?? 'Failed to update ingredient')
+        ;(error as Error & { status: number }).status = res.status
+        throw error
+      }
+
       const json = await res.json()
       if (!json.success) throw new Error('Failed to update ingredient')
       return json.data

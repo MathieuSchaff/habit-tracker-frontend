@@ -53,12 +53,17 @@ describe('PreferenceSettings — palette section', () => {
     expect(screen.queryByText('Palette (mode clair)')).not.toBeInTheDocument()
   })
 
-  it('shows no swatch as active when lightVariant is null', async () => {
+  it('marks Terracota as active when lightVariant is null', async () => {
     useThemeStore.setState({ theme: 'light', lightVariant: null })
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
-    const swatches = screen.getAllByRole('radio')
-    swatches.forEach((s) => expect(s).not.toBeChecked())
+    expect(screen.getByRole('radio', { name: /terracota/i })).toBeChecked()
+
+    // Others should not be checked
+    const others = screen.getAllByRole('radio', { name: /^(?!terracota)/i })
+    others.forEach((s) => {
+      expect(s).not.toBeChecked()
+    })
   })
 
   it('marks the active swatch as checked', async () => {

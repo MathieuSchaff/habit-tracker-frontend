@@ -46,7 +46,7 @@ export const productQueries = {
       queryFn: async () => {
         const query: Record<string, string | string[]> = {}
 
-        // Helper to join array filters into comma-separated strings for the backend
+        // Backend expects filters as comma-separated strings, not arrays
         const addParam = (key: string, value: string | string[] | undefined) => {
           if (!value) return
           const arr = Array.isArray(value) ? value : [value]

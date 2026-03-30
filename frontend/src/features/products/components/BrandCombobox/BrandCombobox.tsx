@@ -13,8 +13,7 @@ interface BrandComboboxProps {
 }
 
 /**
- * Combobox spécifique pour les marques, utilisant la primitive commune
- * pour garantir la cohérence visuelle et l'accessibilité.
+ * Brand combobox using the shared primitive for consistency and accessibility.
  */
 export function BrandCombobox({
   id,
@@ -55,18 +54,16 @@ export function BrandCombobox({
     onChange(brand, true)
   }
 
-  // Gestion spécifique de la touche Tab pour l'autocomplétion
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Tab key autocompletes: select highlighted item or first match, then let focus move next
     if (e.key === 'Tab' && showDropdown && filtered.length > 0) {
-      // Si on a un élément surligné ou une liste filtrée, on sélectionne
       const indexToSelect = highlightedIndex >= 0 ? highlightedIndex : 0
       handleSelect(filtered[indexToSelect])
-      // On ne fait PAS e.preventDefault() pour laisser le focus aller au champ suivant
     }
   }
 
   function handleBlur() {
-    // Petit délai pour laisser le temps au clic sur une option de passer
+    // Small delay to let click on dropdown option complete before hiding it
     setTimeout(() => {
       setShowDropdown(false)
       const trimmed = inputValue.trim()
@@ -100,6 +97,7 @@ export function BrandCombobox({
         onKeyDown={handleKeyDown}
         isLoading={isLoading}
         renderItem={(brand) => brand}
+        keyExtractor={(brand) => brand}
       >
         <input
           id={id}
@@ -111,7 +109,6 @@ export function BrandCombobox({
           onBlur={handleBlur}
           placeholder={placeholder}
           autoComplete="off"
-          // Les rôles combobox/aria sont gérés par la primitive mais on peut en ajouter ici
         />
       </ComboboxPrimitive>
 

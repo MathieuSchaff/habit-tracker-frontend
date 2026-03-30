@@ -1,0 +1,33 @@
+.kind--complement,
+.kind--default,
+.kind--skincare,
+.kind--huile,
+.kind--vitamine,
+.unit--pump,
+.unit--dropper,
+.unit--jar,
+.unit--tube,
+.unit--spray,
+.unit--spf {
+  --_kind-bg: var(--bg-selected, oklch(from var(--color-primary) l c h / 0.1));
+  --_kind-color: var(--color-primary);
+  --_kind-border: var(--border-default);
+}
+
+.kind-badge {
+  background: var(--_kind-bg);
+  color: var(--_kind-color);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.kind-icon {
+  background: var(--_kind-bg);
+  color: var(--_kind-color);
+}
+
+.kind-border {
+  border-left: 4px solid var(--_kind-border);
+}
