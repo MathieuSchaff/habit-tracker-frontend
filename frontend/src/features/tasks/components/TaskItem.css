@@ -1,13 +1,17 @@
 .task-item {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
+  border-left: 3px solid oklch(from var(--color-primary) l c h / 0.25);
   border-radius: var(--radius-md);
   overflow: hidden;
-  transition: border-color var(--transition-fast) ease;
+  transition:
+    border-color var(--transition-fast) ease,
+    border-left-color var(--transition-fast) ease;
 }
 
 .task-item:hover {
   border-color: var(--color-primary);
+  border-left-color: var(--color-primary);
 }
 
 .task-item--done {
@@ -107,7 +111,8 @@
   color: var(--text-muted);
   border: 1px dashed var(--border-default);
   opacity: 0;
-  letter-spacing: var(--tracking-normal); /* Plus lisible pour le placeholder */
+  /* We use normal tracking here so the text is easier to read. */
+  letter-spacing: var(--tracking-normal);
   text-transform: none;
 }
 
@@ -164,11 +169,9 @@
   color: var(--color-error);
 }
 
-/* Details & Subtasks */
-
 .task-item__details {
   padding: 0 var(--space-3) var(--space-2) var(--space-3);
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid oklch(from var(--color-primary) l c h / 0.15);
   background: var(--bg-muted);
 }
 

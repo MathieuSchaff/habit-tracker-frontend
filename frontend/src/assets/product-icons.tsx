@@ -14,6 +14,7 @@ export function ProdPumpIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de flacon pompe</title>
       {/* bottle body */}
       <rect x="7" y="10" width="10" height="12" rx="2" />
       {/* neck */}
@@ -40,6 +41,7 @@ export function ProdDropperIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de pipette</title>
       {/* rubber bulb */}
       <ellipse cx="12" cy="7" rx="3" ry="2.5" />
       {/* body */}
@@ -62,6 +64,7 @@ export function ProdCreamJarIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de pot de crème</title>
       {/* jar body */}
       <path d="M4 14 L4 19 Q4 21 12 21 Q20 21 20 19 L20 14" />
       {/* lid rim */}
@@ -84,6 +87,7 @@ export function ProdTubeIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de tube</title>
       {/* tube body */}
       <rect x="5.5" y="7.5" width="13" height="9" rx="3.5" />
       {/* cap */}
@@ -106,6 +110,7 @@ export function ProdSprayIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de spray</title>
       {/* bottle body */}
       <path d="M7 10.5 L7 20 Q7 21.5 11 21.5 L15 21.5 Q17 21.5 17 20 L17 10.5 Z" />
       {/* trigger housing */}
@@ -130,6 +135,7 @@ export function ProdSpfIcon({ size = 24 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      <title>Icône de protection solaire</title>
       {/* small tube */}
       <rect x="3" y="9" width="10" height="12" rx="2" />
       <rect x="5.5" y="6" width="5" height="3.5" rx="1.5" />

@@ -7,7 +7,7 @@ import { api } from '../api'
 
 export type UserPreferences = Extract<
   InferResponseType<typeof api.profile.preferences.$get>,
-  { data: any }
+  { data: unknown }
 >['data']
 
 export const userPreferenceKeys = {

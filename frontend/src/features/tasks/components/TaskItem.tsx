@@ -32,6 +32,7 @@ export function TaskItem({ task }: TaskItemProps) {
   const deleteSubtask = useDeleteSubtask()
 
   const handleToggleDone = (e: React.MouseEvent) => {
+    // We stop the click here so it does not open the task when we check the box.
     e.stopPropagation()
     updateTask.mutate({
       id: task.id,
@@ -53,7 +54,7 @@ export function TaskItem({ task }: TaskItemProps) {
     })
   }
 
-  const handleUpdateTitle = (e: React.FormEvent) => {
+  const handleUpdateTitle = (e: React.SubmitEvent) => {
     e.preventDefault()
     if (!editedTitle.trim()) return
     updateTask.mutate(
@@ -67,7 +68,7 @@ export function TaskItem({ task }: TaskItemProps) {
     )
   }
 
-  const handleAddSubtask = (e: React.FormEvent) => {
+  const handleAddSubtask = (e: React.SubmitEvent) => {
     e.preventDefault()
     if (!newSubtaskTitle.trim()) return
     createSubtask.mutate(
@@ -80,7 +81,19 @@ export function TaskItem({ task }: TaskItemProps) {
 
   return (
     <div className={`task-item ${task.status === 'done' ? 'task-item--done' : ''}`}>
-      <div className="task-item__main" onClick={() => setIsExpanded(!isExpanded)}>
+      {/* biome-ignore lint/a11y/useSemanticElements: cannot be a button because it contains other buttons */}
+      <div
+        className="task-item__main"
+        onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setIsExpanded(!isExpanded)
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
         <button
           type="button"
           className={`task-item__checkbox ${task.status === 'done' ? 'task-item__checkbox--checked' : ''}`}
@@ -91,23 +104,35 @@ export function TaskItem({ task }: TaskItemProps) {
 
         <div className="task-item__content">
           {isEditingTitle ? (
-            <form onSubmit={handleUpdateTitle} onClick={(e) => e.stopPropagation()}>
+            <form
+              onSubmit={handleUpdateTitle}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
               <input
                 type="text"
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
                 onBlur={() => setIsEditingTitle(false)}
                 className="task-item__title-input"
-                autoFocus
               />
             </form>
           ) : (
+            /* biome-ignore lint/a11y/useSemanticElements: double click shortcut */
             <span
               className="task-item__title"
               onDoubleClick={(e) => {
                 e.stopPropagation()
                 setIsEditingTitle(true)
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.stopPropagation()
+                  setIsEditingTitle(true)
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
               {task.title}
             </span>
@@ -120,6 +145,7 @@ export function TaskItem({ task }: TaskItemProps) {
                 className={`task-item__energy task-item__energy--${task.energy}`}
                 onClick={(e) => {
                   e.stopPropagation()
+                  // We cycle the energy levels: low, medium, high and then back to none.
                   const energies: (TaskEnergy | null)[] = ['low', 'medium', 'high', null]
                   const next = energies[(energies.indexOf(task.energy) + 1) % energies.length]
                   handleUpdateEnergy(next)

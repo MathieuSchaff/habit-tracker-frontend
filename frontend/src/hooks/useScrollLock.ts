@@ -1,9 +1,7 @@
 /**
- * useScrollLock — Verrouille le scroll de la page quand un overlay est ouvert.
- *
- * Technique : position:fixed sur le body avec un offset top négatif
- * pour éviter le saut de scroll (nécessaire sur iOS où overflow:hidden ne suffit pas).
- * La position de scroll est sauvegardée dans body.dataset.scrollY et restaurée au unlock.
+ * We stop the page scroll when a modal is open.
+ * We use fixed position on the body because "overflow: hidden" does not work
+ * well on iPhone. We also save the scroll position to restore it later.
  */
 
 import { useEffect } from 'react'

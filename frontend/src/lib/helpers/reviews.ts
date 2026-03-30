@@ -1,8 +1,7 @@
 import type { DisplayScale } from '@habit-tracker/shared'
 
 /**
- * Critères d'évaluation d'un produit (notes de 1 à 5).
- * Chaque critère est optionnel car l'utilisateur peut noter progressivement.
+ * Each rating is optional so users can review only the criteria they care about.
  */
 export interface ReviewCriteria {
   tolerance?: number | null
@@ -14,8 +13,8 @@ export interface ReviewCriteria {
 }
 
 /**
- * Poids de chaque critère pour le calcul du score pondéré.
- * Un poids de 0 = critère ignoré, poids de 10 = très important.
+ * Weights define how much each criterion matters in the final score.
+ * Higher value = more important. 0 means we ignore it.
  */
 export interface CriteriaWeights {
   tolerance: number
@@ -26,7 +25,6 @@ export interface CriteriaWeights {
   valueForMoney: number
 }
 
-/** Poids par défaut : tous les critères ont la même importance */
 export const DEFAULT_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
   efficacy: 1,
@@ -36,7 +34,6 @@ export const DEFAULT_WEIGHTS: CriteriaWeights = {
   valueForMoney: 1,
 }
 
-/** Clés des critères — utilisé pour itérer sans duplication */
 const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
   'tolerance',
   'efficacy',
@@ -47,12 +44,8 @@ const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
 ]
 
 /**
- * Calcule le score pondéré d'une review.
- *
- * Formule : S = Σ(note_i × poids_i) / Σ(poids_i)
- * Le résultat brut est sur 5, puis converti selon l'échelle choisie.
- *
- * @returns Le score formaté en string, ou null si aucun critère noté.
+ * Compute weighted average score from criteria ratings, then convert to requested scale.
+ * Only considers criteria with non-zero ratings to avoid pulling the score down.
  */
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
@@ -75,9 +68,9 @@ export function calculateWeightedScore(
 
   if (totalWeight === 0) return null
 
-  // Score brut sur 5 (chaque critère va de 1 à 5)
   const scoreOutOf5 = totalPoints / totalWeight
 
+  // Convert the base score (out of 5) to the requested UI scale
   switch (scale) {
     case 'out_of_5':
       return scoreOutOf5.toFixed(1)

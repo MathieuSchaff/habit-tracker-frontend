@@ -10,12 +10,14 @@ type RequireAuthOptions = {
   pathname: string
 }
 
-// Auth guard for TanStack Router 'beforeLoad'
+/**
+ * Check that the user is logged in and the session is still valid before showing the page.
+ * Try to refresh the token if it is expired before sending to login.
+ */
 export async function requireAuth({ queryClient, pathname }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
 
   if (!store.accessToken || store.isTokenExpired()) {
-    // Try to recover session before redirecting
     const refreshed = await silentRefresh(queryClient)
     if (!refreshed) {
       clearAndRedirect(store, queryClient, pathname)
@@ -24,7 +26,7 @@ export async function requireAuth({ queryClient, pathname }: RequireAuthOptions)
   }
 
   try {
-    // Ensure we actually have a valid session on the server
+    // Verify with server that session is still valid, even if local token looks good
     await queryClient.ensureQueryData(authQueries.session())
   } catch {
     const refreshed = await silentRefresh(queryClient)

@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Save, Trash2, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-import { ingredientQueries } from '../../../../lib/queries/ingredients'
+import { FormField } from '@/component/Input/FormField/FormField'
+import { TagManager } from '@/component/Input/TagManager/TagManager'
+import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import {
   productQueries,
   useAddProductIngredient,
@@ -13,9 +15,8 @@ import {
   useUpdateProductTags,
 } from '../../../../lib/queries/products'
 import { tagQueries } from '../../../../lib/queries/tags'
-import '../../../../styles/common/shared-components.css'
-
 import { BrandCombobox } from '../BrandCombobox/BrandCombobox'
+import { IngredientSearch } from '../IngredientSearch/IngredientSearch'
 import './ProductForm.css'
 
 type ProductWithIngredients = {
@@ -39,19 +40,20 @@ type ProductWithIngredients = {
   }>
 }
 
-type TagState = {
-  tagId: string
-  tagName: string
-  relevance: 'primary' | 'secondary' | 'avoid'
-}
-
-interface ProductFormProps {
-  mode: 'create' | 'edit'
-  product?: ProductWithIngredients
-  initialTags?: TagState[]
-  onSuccess: (slug: string) => void
-}
-
+type ProductFormProps =
+  | {
+      mode: 'create'
+      // product and initialTags should not be passed in create mode
+      product?: never
+      initialTags?: never
+      onSuccess: (slug: string) => void
+    }
+  | {
+      mode: 'edit'
+      product: ProductWithIngredients
+      initialTags?: TagState[]
+      onSuccess: (slug: string) => void
+    }
 export function ProductForm({ mode, product, initialTags = [], onSuccess }: ProductFormProps) {
   const { data: allTags } = useQuery(tagQueries.list())
   const createProduct = useCreateProduct()
@@ -74,14 +76,17 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     url: product?.url ?? '',
   })
 
+  const { tags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } = useFormTags({
+    initialTags,
+    allTags,
+  })
+
   const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit')
-  const [tags, setTags] = useState<TagState[]>(initialTags)
   const [pendingIngredients, setPendingIngredients] = useState<
     Array<{ ingredientId: string; ingredientName: string }>
   >([])
   const [error, setError] = useState<string | null>(null)
 
-  // Duplicate detection (debounced)
   const [debouncedName, setDebouncedName] = useState('')
   const [debouncedBrand, setDebouncedBrand] = useState('')
 
@@ -107,33 +112,6 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     []
   )
 
-  const handleAddTag = (tagId: string) => {
-    const tag = allTags?.find((t) => t.id === tagId)
-    if (tag && !tags.find((t) => t.tagId === tagId)) {
-      setTags((prev) => [...prev, { tagId, tagName: tag.name, relevance: 'secondary' }])
-    }
-  }
-
-  const handleRemoveTag = (tagId: string) => {
-    setTags((prev) => prev.filter((t) => t.tagId !== tagId))
-  }
-
-  const handleUpdateTagRelevance = (
-    tagId: string,
-    relevance: 'primary' | 'secondary' | 'avoid'
-  ) => {
-    setTags((prev) => prev.map((t) => (t.tagId === tagId ? { ...t, relevance } : t)))
-  }
-
-  const availableTags = useMemo(
-    () => allTags?.filter((at) => !tags.find((t) => t.tagId === at.id)) ?? [],
-    [allTags, tags]
-  )
-
-  // isDirty (edit mode)
-  const sortedTagsKey = (arr: { id: string; r: string }[]) =>
-    JSON.stringify([...arr].sort((a, b) => a.id.localeCompare(b.id)))
-
   const originalPriceEuros =
     product?.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
   const originalAmount = product?.totalAmount != null ? String(product.totalAmount) : ''
@@ -150,8 +128,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     form.description !== (product?.description ?? '') ||
     form.notes !== (product?.notes ?? '') ||
     form.url !== (product?.url ?? '') ||
-    sortedTagsKey(tags.map((t) => ({ id: t.tagId, r: t.relevance }))) !==
-      sortedTagsKey(initialTags.map((t) => ({ id: t.tagId, r: t.relevance })))
+    isTagsDirty
 
   const isSubmitDisabled =
     mode === 'create'
@@ -173,7 +150,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         : 'Enregistrer'
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault()
 
       if (!form.name.trim()) {
@@ -234,9 +211,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           onSuccess(newProduct.slug)
         } else {
           const [updated] = await Promise.all([
-            updateProduct.mutateAsync({ id: product!.id, data: productData }),
+            updateProduct.mutateAsync({ id: product?.id, data: productData }),
             updateTags.mutateAsync({
-              productId: product!.id,
+              productId: product?.id,
               tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
             }),
           ])
@@ -290,10 +267,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
       )}
 
       <div className="product-edit-form__row">
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-name">
-            Nom <span className="product-edit-form__required">*</span>
-          </label>
+        <FormField label="Nom" htmlFor="edit-name" required>
           <input
             id="edit-name"
             className="product-edit-form__input"
@@ -304,12 +278,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             // biome-ignore lint: autofocus ok
             autoFocus
           />
-        </div>
+        </FormField>
 
-        <div className="product-edit-form__field">
-          <label htmlFor="product-form-brand" className="product-edit-form__label">
-            Marque <span className="product-edit-form__required">*</span>
-          </label>
+        <FormField label="Marque" htmlFor="product-form-brand" required>
           <BrandCombobox
             id="product-form-brand"
             value={form.brand ?? ''}
@@ -319,14 +290,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             }}
             inputClassName="product-edit-form__input"
           />
-        </div>
+        </FormField>
       </div>
 
       <div className="product-edit-form__row">
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-kind">
-            Catégorie <span className="product-edit-form__required">*</span>
-          </label>
+        <FormField label="Catégorie" htmlFor="edit-kind" required>
           <input
             id="edit-kind"
             className="product-edit-form__input"
@@ -335,12 +303,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             onChange={handleChange('kind')}
             placeholder="Ex : skincare, complément, huile…"
           />
-        </div>
+        </FormField>
 
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-unit">
-            Unité <span className="product-edit-form__required">*</span>
-          </label>
+        <FormField label="Unité" htmlFor="edit-unit" required>
           <input
             id="edit-unit"
             className="product-edit-form__input"
@@ -349,14 +314,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             onChange={handleChange('unit')}
             placeholder="Ex : ml, gélule, goutte…"
           />
-        </div>
+        </FormField>
       </div>
 
       <div className="product-edit-form__row">
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-total-amount">
-            Contenance
-          </label>
+        <FormField label="Contenance" htmlFor="edit-total-amount">
           <div className="product-edit-form__inline">
             <input
               id="edit-total-amount"
@@ -377,12 +339,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               aria-label="Unité de contenance"
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-price">
-            Prix (€)
-          </label>
+        <FormField label="Prix (€)" htmlFor="edit-price">
           <input
             id="edit-price"
             className="product-edit-form__input"
@@ -393,14 +352,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             onChange={handleChange('priceEuros')}
             placeholder="Ex : 12.90"
           />
-        </div>
+        </FormField>
       </div>
 
       <div className="product-edit-form__row">
-        <div className="product-edit-form__field">
-          <label className="product-edit-form__label" htmlFor="edit-url">
-            Lien produit
-          </label>
+        <FormField label="Lien produit" htmlFor="edit-url">
           <input
             id="edit-url"
             className="product-edit-form__input"
@@ -409,13 +365,10 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             onChange={handleChange('url')}
             placeholder="https://…"
           />
-        </div>
+        </FormField>
       </div>
 
-      <div className="product-edit-form__field">
-        <label className="product-edit-form__label" htmlFor="edit-inci">
-          INCI
-        </label>
+      <FormField label="INCI" htmlFor="edit-inci">
         <textarea
           id="edit-inci"
           className="product-edit-form__textarea"
@@ -424,12 +377,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           placeholder="Liste INCI des ingrédients…"
           rows={4}
         />
-      </div>
+      </FormField>
 
-      <div className="product-edit-form__field">
-        <label className="product-edit-form__label" htmlFor="edit-description">
-          Description
-        </label>
+      <FormField label="Description" htmlFor="edit-description" hint="Markdown supporté">
         <textarea
           id="edit-description"
           className="product-edit-form__textarea"
@@ -438,13 +388,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           placeholder="Description du produit (Markdown supporté)"
           rows={5}
         />
-        <span className="product-edit-form__hint">Markdown supporté</span>
-      </div>
+      </FormField>
 
-      <div className="product-edit-form__field">
-        <label className="product-edit-form__label" htmlFor="edit-notes">
-          Notes
-        </label>
+      <FormField label="Notes" htmlFor="edit-notes">
         <textarea
           id="edit-notes"
           className="product-edit-form__textarea"
@@ -453,85 +399,26 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           placeholder="Notes personnelles sur ce produit…"
           rows={4}
         />
-      </div>
+      </FormField>
 
-      {/* ── Tags ── */}
-      <div className="product-edit-form__field">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: group label for dynamic tag list */}
-        <label className="product-edit-form__label">Tags</label>
-        <div className="product-edit-tags">
-          {tags.map((tag) => (
-            <div key={tag.tagId} className={`product-edit-tag product-edit-tag--${tag.relevance}`}>
-              <span className="product-edit-tag__name">{tag.tagName}</span>
-              <select
-                value={tag.relevance}
-                className="product-edit-tag__relevance"
-                aria-label={`Pertinence du tag ${tag.tagName}`}
-                onChange={(e) =>
-                  handleUpdateTagRelevance(
-                    tag.tagId,
-                    e.target.value as 'primary' | 'secondary' | 'avoid'
-                  )
-                }
-              >
-                <option value="primary">Principal</option>
-                <option value="secondary">Secondaire</option>
-                <option value="avoid">À éviter</option>
-              </select>
-              <button
-                type="button"
-                className="product-edit-tag__remove"
-                aria-label={`Retirer le tag ${tag.tagName}`}
-                onClick={() => handleRemoveTag(tag.tagId)}
-              >
-                <Trash2 size={14} aria-hidden="true" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="product-edit-add-tag">
-          <select
-            className="product-edit-form__input"
-            aria-label="Ajouter un tag"
-            onChange={(e) => {
-              if (e.target.value) {
-                handleAddTag(e.target.value)
-                e.target.value = ''
-              }
-            }}
-            value=""
-          >
-            <option value="" disabled>
-              Ajouter un tag...
-            </option>
-            {availableTags.map((tag: any) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.name} ({tag.category ?? 'Sans catégorie'})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FormField label="Tags" htmlFor="tags">
+        <TagManager
+          tags={tags}
+          availableTags={availableTags}
+          onAddTag={addTag}
+          onRemoveTag={removeTag}
+          onUpdateRelevance={updateRelevance}
+        />
+      </FormField>
 
-      {/* ── Ingredients ── */}
-      <div className="product-edit-form__field">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: group label for dynamic ingredient list */}
-        <label className="product-edit-form__label">
-          Ingrédients
-          {(mode === 'edit' ? product!.ingredients.length : pendingIngredients.length) > 0 && (
-            <span className="product-edit-form__count">
-              {mode === 'edit' ? product!.ingredients.length : pendingIngredients.length}
-            </span>
-          )}
-        </label>
-
+      <FormField label="Ingrédients" htmlFor="ingredients">
         <div className="product-edit-ingredients">
           {mode === 'edit' ? (
             <>
-              {product!.ingredients.length === 0 && (
+              {product?.ingredients.length === 0 && (
                 <p className="product-edit-ingredients__empty">Aucun ingrédient associé.</p>
               )}
-              {product!.ingredients.map((ing) => (
+              {product?.ingredients.map((ing) => (
                 <div key={ing.ingredientId} className="product-edit-ingredient">
                   <span className="product-edit-ingredient__name">{ing.ingredientName}</span>
                   <button
@@ -540,7 +427,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                     aria-label={`Retirer ${ing.ingredientName}`}
                     onClick={() =>
                       removeIngredient.mutate({
-                        productId: product!.id,
+                        productId: product?.id,
                         ingredientId: ing.ingredientId,
                       })
                     }
@@ -580,24 +467,24 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         <IngredientSearch
           existingIds={
             mode === 'edit'
-              ? product!.ingredients.map((i) => i.ingredientId)
+              ? product?.ingredients.map((i) => i.ingredientId)
               : pendingIngredients.map((i) => i.ingredientId)
           }
           onAdd={(ingredientId, ingredientName) => {
             if (mode === 'edit') {
-              addIngredient.mutate({ productId: product!.id, ingredientId })
+              addIngredient.mutate({ productId: product?.id, ingredientId })
             } else {
               setPendingIngredients((prev) => [...prev, { ingredientId, ingredientName }])
             }
           }}
         />
-      </div>
+      </FormField>
 
       <div className="product-edit-form__actions">
         {mode === 'edit' ? (
           <Link
             to="/products/$slug"
-            params={{ slug: product!.slug }}
+            params={{ slug: product?.slug }}
             className="product-edit-form__btn product-edit-form__btn--cancel"
           >
             <X size={16} />
@@ -619,98 +506,5 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         </button>
       </div>
     </form>
-  )
-}
-
-function IngredientSearch({
-  existingIds,
-  onAdd,
-}: {
-  existingIds: string[]
-  onAdd: (ingredientId: string, ingredientName: string) => void
-}) {
-  const [query, setQuery] = useState('')
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const { data: results } = useQuery(ingredientQueries.search(query))
-  const listboxId = 'ingredient-search-listbox'
-
-  const available = results?.filter((r) => !existingIds.includes(r.id)) ?? []
-
-  function handleSelect(ing: { id: string; name: string }) {
-    onAdd(ing.id, ing.name)
-    setQuery('')
-    setHighlightedIndex(-1)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (available.length === 0) return
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlightedIndex((prev) => (prev < available.length - 1 ? prev + 1 : 0))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : available.length - 1))
-    } else if (e.key === 'Enter') {
-      if (highlightedIndex >= 0 && highlightedIndex < available.length) {
-        e.preventDefault()
-        handleSelect(available[highlightedIndex])
-      } else if (available.length > 0) {
-        e.preventDefault()
-        handleSelect(available[0])
-      }
-    } else if (e.key === 'Escape') {
-      setHighlightedIndex(-1)
-      setQuery('')
-    }
-  }
-
-  const isOpen = query.length > 0 && available.length > 0
-  const activeDescendant =
-    highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
-
-  return (
-    <div className="product-edit-ingredient-search">
-      <input
-        type="text"
-        role="combobox"
-        className="product-edit-form__input"
-        placeholder="Rechercher un ingrédient à ajouter…"
-        aria-label="Rechercher un ingrédient"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value)
-          setHighlightedIndex(-1)
-        }}
-        onKeyDown={handleKeyDown}
-        autoComplete="off"
-        aria-expanded={isOpen}
-        aria-controls={listboxId}
-        aria-activedescendant={activeDescendant}
-        aria-autocomplete="list"
-      />
-      {isOpen && (
-        <div id={listboxId} role="listbox" className="product-edit-ingredient-results">
-          {available.map((ing, index) => (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on the input per WAI-ARIA combobox pattern
-            <div
-              key={ing.id}
-              id={`${listboxId}-option-${index}`}
-              role="option"
-              tabIndex={-1}
-              aria-selected={index === highlightedIndex}
-              className={`product-edit-ingredient-result${index === highlightedIndex ? ' product-edit-ingredient-result--highlighted' : ''}`}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleSelect(ing)}
-            >
-              <span className="product-edit-ingredient-result__name">{ing.name}</span>
-              {ing.category && (
-                <span className="product-edit-ingredient-result__category">{ing.category}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   )
 }

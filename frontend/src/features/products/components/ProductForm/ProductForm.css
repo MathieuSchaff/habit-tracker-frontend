@@ -1,5 +1,3 @@
-/* Form */
-
 .product-edit-form {
   display: flex;
   flex-direction: column;
@@ -7,6 +5,7 @@
   padding: var(--space-6);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
+  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
 }
 
@@ -43,31 +42,10 @@
   text-decoration: underline;
 }
 
-/* Row (2-col grid) */
-
 .product-edit-form__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
-}
-
-/* Field */
-
-.product-edit-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.product-edit-form__label {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-}
-
-.product-edit-form__required {
-  color: var(--color-error);
 }
 
 .product-edit-form__input,
@@ -109,8 +87,6 @@
   color: var(--text-muted);
 }
 
-/* Inline (totalAmount + amountUnit) */
-
 .product-edit-form__inline {
   display: flex;
   gap: var(--space-2);
@@ -121,14 +97,12 @@
   flex-shrink: 0;
 }
 
-/* Actions */
-
 .product-edit-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid oklch(from var(--color-primary) l c h / 0.2);
 }
 
 .product-edit-form__btn {
@@ -174,8 +148,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* Tags */
 
 .product-edit-tags {
   display: flex;
@@ -251,8 +223,6 @@
   max-width: 20rem;
 }
 
-/* Label count badge */
-
 .product-edit-form__count {
   display: inline-flex;
   align-items: center;
@@ -268,8 +238,6 @@
   color: var(--text-inverse);
   line-height: 1;
 }
-
-/* Ingredients */
 
 .product-edit-ingredients {
   display: flex;
@@ -327,66 +295,6 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
-
-/* Ingredient search autocomplete */
-
-.product-edit-ingredient-search {
-  position: relative;
-  max-width: 24rem;
-}
-
-.product-edit-ingredient-results {
-  position: absolute;
-  top: calc(100% + var(--space-1));
-  left: 0;
-  right: 0;
-  z-index: 10;
-  list-style: none;
-  margin: 0;
-  padding: var(--space-2);
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  max-height: 14rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.product-edit-ingredient-result {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--transition-fast) ease;
-}
-
-.product-edit-ingredient-result:hover,
-.product-edit-ingredient-result--highlighted {
-  background: var(--bg-hover);
-}
-
-.product-edit-ingredient-result__name {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--text-primary);
-}
-
-.product-edit-ingredient-result__category {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* Responsive */
 
 @media (max-width: 640px) {
   .product-edit-form {
