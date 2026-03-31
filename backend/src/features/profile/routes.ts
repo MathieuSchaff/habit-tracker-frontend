@@ -23,14 +23,6 @@ const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
 
-app.onError((e, c) => {
-  console.error('Profile error:', e)
-  return c.json(
-    err('server_error', e instanceof Error ? e.message : undefined),
-    HTTP_STATUS.INTERNAL_SERVER_ERROR
-  )
-})
-
 export const profileRoute = app
 
   .get('/', async (c) => {

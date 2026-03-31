@@ -2,16 +2,13 @@ import {
   addPurchaseSchema,
   createUserProductSchema,
   err,
-  errorToStatus,
   finishPurchaseSchema,
   HTTP_STATUS,
   ok,
   openPurchaseSchema,
-  purchaseErrorMapping,
   updatePurchaseSchema,
   updateUserProductReviewSchema,
   updateUserProductSchema,
-  userProductErrorMapping,
 } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
@@ -28,7 +25,6 @@ import {
   openPurchase,
   updatePurchase,
 } from './purchase.service'
-import { PurchaseError } from './purchase-error'
 import {
   createUserProduct,
   deleteUserProduct,
@@ -38,22 +34,10 @@ import {
   updateUserProduct,
   upsertUserProductReview,
 } from './service'
-import { UserProductError } from './user-product-error'
 
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
-
-app.onError((error, c) => {
-  if (error instanceof UserProductError) {
-    return c.json(err(error.code), errorToStatus(error.code, userProductErrorMapping))
-  }
-  if (error instanceof PurchaseError) {
-    return c.json(err(error.code), errorToStatus(error.code, purchaseErrorMapping))
-  }
-  console.error('Unexpected error in user products routes:', error)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
-})
 
 export const userProductRoutes = app
   .get('/', async (c) => {

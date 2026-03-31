@@ -1,4 +1,5 @@
 export * from './email-verifications'
+export * from './errors'
 export * from './habits'
 export * from './ingredient_dermo_profiles'
 export * from './ingredients'

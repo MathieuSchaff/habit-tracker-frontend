@@ -7,6 +7,7 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { jwtAuthRoutes } from './features/auth'
+import { errorsRoute } from './features/errors'
 import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
@@ -17,9 +18,13 @@ import { profileRoute } from './features/profile'
 import { tagRoutes } from './features/tags/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { userProductRoutes } from './features/user-products'
+import { logger } from './lib/logger'
+import { globalErrorHandler } from './utils/errors/error-handler'
 
-console.log(`API listening on ${port}`)
+logger.info(`API listening on ${port}`)
 const app = new Hono<AppEnv>()
+
+app.onError(globalErrorHandler)
 
 app.use(
   '*',
@@ -41,6 +46,17 @@ app.use('*', async (c, next) => {
   await next()
 })
 
+app.use('*', async (c, next) => {
+  const start = Date.now()
+  await next()
+  logger.info({
+    method: c.req.method,
+    path: c.req.path,
+    status: c.res.status,
+    ms: Date.now() - start,
+  })
+})
+
 const routes = app
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
@@ -53,6 +69,7 @@ const routes = app
   .route('/api/logs', logsRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
+  .route('/api/errors', errorsRoute)
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }
