@@ -1,0 +1,19 @@
+import { createFileRoute } from '@tanstack/react-router'
+
+import { AuthLayout } from '../../../component/Layout/AuthLayout/AuthLayout'
+import { GoogleCallbackPage } from '../../../features/auth/components/GoogleCallbackPage/GoogleCallbackPage'
+
+export const Route = createFileRoute('/auth/google/callback')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: typeof search.token === 'string' ? search.token : undefined,
+  }),
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return (
+    <AuthLayout>
+      <GoogleCallbackPage />
+    </AuthLayout>
+  )
+}

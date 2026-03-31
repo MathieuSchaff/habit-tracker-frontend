@@ -24,6 +24,7 @@ export function toPublicUser(user: User): UserPublic {
     createdAt: user.createdAt,
     emailVerified: user.emailVerifiedAt !== null,
     role: user.role,
+    isDemo: user.isDemo,
   }
 }
 export async function getUserById(db: DB, userId: string): Promise<UserPublic | null> {
@@ -34,6 +35,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
       createdAt: users.createdAt,
       emailVerifiedAt: users.emailVerifiedAt,
       role: users.role,
+      isDemo: users.isDemo,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -47,6 +49,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
     createdAt: user.createdAt,
     emailVerified: user.emailVerifiedAt !== null,
     role: user.role,
+    isDemo: user.isDemo,
   }
 }
 
@@ -72,6 +75,7 @@ export async function createUser(
     email: Email
     passwordHash: HashedPassword | null
     emailVerifiedAt?: Date | null
+    isDemo?: boolean
   }
 ) {
   // Validate email format before insertion
@@ -83,6 +87,7 @@ export async function createUser(
       email: userData.email.trim().toLowerCase(),
       passwordHash: userData.passwordHash,
       emailVerifiedAt: userData.emailVerifiedAt,
+      isDemo: userData.isDemo ?? false,
     })
     .returning()
 

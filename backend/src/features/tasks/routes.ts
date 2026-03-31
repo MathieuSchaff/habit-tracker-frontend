@@ -1,11 +1,8 @@
 import {
   createSubtaskSchema,
   createTaskSchema,
-  err,
-  errorToStatus,
   HTTP_STATUS,
   ok,
-  taskErrorMapping,
   updateSubtaskSchema,
   updateTaskSchema,
 } from '@habit-tracker/shared'
@@ -27,7 +24,6 @@ import {
   updateSubtask,
   updateTask,
 } from './service'
-import { TaskError } from './task-error'
 
 const idParam = z.object({ id: z.uuid() })
 const subIdParam = z.object({ id: z.uuid(), subId: z.uuid() })
@@ -35,16 +31,6 @@ const subIdParam = z.object({ id: z.uuid(), subId: z.uuid() })
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
-
-app.onError((error, c) => {
-  // If it is a TaskError I know how to show it to the user.
-  if (error instanceof TaskError) {
-    return c.json(err(error.code, error.details), errorToStatus(error.code, taskErrorMapping))
-  }
-  // For other errors I just log it and say sorry.
-  console.error('Unexpected error:', error)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
-})
 
 export const taskRoutes = app
   .get('/', async (c) => {
