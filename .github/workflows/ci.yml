@@ -47,7 +47,7 @@ jobs:
     services:
       # Utilisation du service Postgres directement dans l'Action
       postgres:
-        image: postgres:16-alpine # On utilise 16 par sécurité
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: testpassword
@@ -62,6 +62,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install Dependencies
         run: make install-deps
@@ -70,9 +80,9 @@ jobs:
         env:
           DATABASE_URL: postgres://app:testpassword@localhost:5433/appdb_test
         run: |
-          # 1. On synchronise le schéma sur la DB de test
-          cd backend && bun x drizzle-kit push --force
-          # 2. On lance les tests (on n'utilise pas 'make test' car il essaierait de lancer docker-compose)
+          # Rejoue les migrations versionnées (reproduit exactement ce qui sera déployé en prod)
+          cd backend && bun x drizzle-kit migrate
+          # Lance les tests
           cd backend && bun test
 
   # Étape 3 : Tests Frontend (en parallèle avec le Backend)
@@ -83,6 +93,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install Dependencies
         run: make install-deps

@@ -23,14 +23,8 @@
     "esModuleInterop": true, // Facilite l'import de vieux modules CommonJS si nécessaire
     "isolatedModules": true, // Obligatoire pour certains bundlers rapides comme Esbuild/Bun
 
-    /* 6. Le lien magique avec le dossier Shared (Doit être dans compilerOptions) */
-    "baseUrl": ".",
-    "paths": {
-      // Option 1 (dist) :
-      // "@habit-tracker/shared": ["../shared/dist/index.d.ts"]
-      // OU Option 2 (src) :
-      // "@habit-tracker/shared": ["../shared/src/index.ts"]
-    }
+    /* 6. Résolution des imports bare (ex: 'src/features/...') */
+    "baseUrl": "."
   },
 
   /* 5. Inclusion / Exclusion */

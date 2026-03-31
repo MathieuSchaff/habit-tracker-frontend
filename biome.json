@@ -11,6 +11,7 @@
       "!**/coverage",
       "!**/*.gen.ts",
       "!backend/src/db/seed/**/*",
+      "!backend/src/**/*.js",
       "!**/drizzle.backup",
     ]
   },

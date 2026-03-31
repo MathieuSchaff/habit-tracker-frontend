@@ -12,6 +12,8 @@ build/
 *.tsbuildinfo
 *.d.ts
 *.d.ts.map
+# Bun runs TS directly — compiled JS in src/ = accidental tsc run
+backend/src/**/*.js
 
 # =========================
 # Environment

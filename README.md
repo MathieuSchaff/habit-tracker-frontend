@@ -1,179 +1,194 @@
-# Habit Tracker - Monorepo Fullstack
+# Aurore — Skincare & Routine Tracker
 
-Une application complète de suivi d'habitudes et de gestion de produits (skincare/dermo) avec analyse d'ingrédients. Développée avec Bun, Hono, React et Drizzle ORM.
+I built this because I kept forgetting what products I'd already tested, what was in them, and why I'd stopped using them. I was tracking everything in Markdown files — but it was slow, inflexible, and not enjoyable to use.
 
-## 🚀 Fonctionnalités principales
-
-- **Suivi d'habitudes** : Système complet de tracking quotidien.
-- **Gestion de produits** : Inventaire de produits personnels (stock, péremption).
-- **Analyse d'ingrédients** : Analyse dermatologique des compositions (ingrédients, profils dermo).
-- **Gestion de tâches** : Système de listes de tâches intégré.
-- **Logs & Sentiment** : Suivi de l'état d'esprit et notes quotidiennes.
-- **Authentification complète** : Login/Signup, vérification d'email, tokens de rafraîchissement.
-- **Multi-plateforme** : Web-first avec architecture prête pour mobile.
-
-## 🛠️ Stack Technique
-
-- **Runtime** : [Bun](https://bun.sh/)
-- **Backend** : [Hono](https://hono.dev/) (API REST + Hono RPC pour les types)
-- **Frontend** : [React](https://react.dev/) + [Vite](https://vitejs.dev/) + [TanStack Router](https://tanstack.com/router) & [Query](https://tanstack.com/query)
-- **Base de données** : [PostgreSQL 18](https://www.postgresql.org/) + [Drizzle ORM](https://orm.drizzle.team/)
-- **Styling** : Vanilla CSS + [Lucide Icons](https://lucide.dev/)
-- **Qualité** : [Biome](https://biomejs.dev/) (Lint & Format) + [Vitest](https://vitest.dev/) (Tests)
-- **Infrastructure** : [Docker Compose](https://docs.docker.com/compose/) + [Nginx](https://www.nginx.com/) + [Certbot](https://certbot.eff.org/)
+Aurore replaces that with a real interface. It's designed around low cognitive load: one action at a time, no streaks, no punishment mechanics — built with ADHD in mind.
 
 ---
 
-## 🚀 Démarrage rapide (Première fois)
+## Features
 
-> [!IMPORTANT]
-> **Étape CRITIQUE pour le premier lancement** : Le monorepo utilise TypeScript au niveau de la racine (`/`) pour gérer les dépendances entre les packages (`shared`, `backend`, `frontend`). 
-> Comme Docker ne possède pas toujours le cache de build TypeScript au démarrage, vous **DEVEZ** build les types localement avant de lancer Docker.
+**Products & ingredients**
+- Personal database of cosmetic products and supplements
+- Ingredients linked to each product: role, origin, notes
+- Tags for quick filtering
+- Inventory tracking: what you have, what you're testing, what you're using
+
+**Tasks**
+- Simple tasks, no streaks, no pressure
+
+**Habits** *(in progress)*
+- Recurring routines without guilt mechanics
+
+---
+
+## Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Runtime | Bun |
+| Backend | Hono (REST API + typesafe RPC) |
+| Frontend | React 19, TanStack Router & Query |
+| Database | PostgreSQL 18 + Drizzle ORM |
+| Validation | Zod (shared between front and back) |
+| Styling | Vanilla CSS + Lucide Icons |
+| Quality | Biome (lint & format) + Vitest |
+| Infrastructure | Docker Compose + Nginx |
+
+---
+
+## What I learned building this
+
+- **Monorepo with a shared package**: sharing Zod schemas between backend and frontend eliminates type drift. I'd never set this up before.
+- **Hono RPC**: the pattern of exporting `AppType` from the backend and consuming it with `hc()` on the frontend took time to understand, but once it clicked, API contract mismatches started appearing directly in the editor — no OpenAPI spec, no codegen step.
+- **Drizzle ORM**: the SQL-first approach forced me to actually understand my queries instead of relying on an opaque abstraction.
+- **TanStack Router**: the file-based routing convention and `createFileRoute` are not obvious at first, especially when wiring up typesafe search params. Once it's set up, navigating to a route that doesn't exist is a compile error instead of a runtime blank screen.
+- **Error handling**: building a global handler that correctly distinguishes expected HTTP errors (validation failures, 404s) from unexpected runtime errors took several rewrites. The tricky part was deciding what to expose in production vs. development.
+
+---
+
+## Quick start
+
+> **Important**: the monorepo has a `shared` TypeScript package. Docker doesn't always have the build cache at startup, so build the types locally first.
 
 ```bash
-# 1. Installer les dépendances (nécessite Bun)
+# 1. Install dependencies (requires Bun)
 make install-deps
 
-# 2. Copier et remplir les variables d'environnement
+# 2. Copy and fill in environment variables
 cp .env.example .env.dev
 
-# 3. Lancer l'environnement complet (build les types automatiquement)
+# 3. Start the full environment
 make dev-fresh
 ```
 
-**Workflow quotidien** :
-1. Terminal 1 : `make ts-check` (Watch mode local pour synchroniser les types pendant que vous codez)
-2. Terminal 2 : `make dev` (Build les types + Docker compose)
+**Daily workflow:**
+- Terminal 1: `make ts-check` — TypeScript watch mode on the host
+- Terminal 2: `make dev` — Docker
 
 ---
 
-## 📋 Commandes Essentielles (Makefile)
+## Commands
 
-### Tests & Développement (Backend) 🧪
+### Development & types
 
-Le projet utilise **Bun** pour les tests, avec une base de données PostgreSQL dédiée. Pour une productivité maximale, nous recommandons de garder la base de tests active pendant votre session de code.
-
-1.  **Lancer la DB de test (une fois par session) :**
-    ```bash
-    make test-db-up
-    ```
-    *Ceci lance Docker (port 5433) et applique les migrations automatiquement.*
-
-2.  **Lancer les tests en mode "rapide" :**
-    Utilisez les filtres de Bun pour ne tester que ce qui vous intéresse.
-    ```bash
-    # Tester une feature spécifique (ex: habits)
-    make test-dev ARGS="habits"
-
-    # Tester un fichier précis
-    make test-dev ARGS="features/habits/tests/habits.routes.test.ts"
-    ```
-
-3.  **Mode Watch (TDD) :**
-    Laissez Bun surveiller vos changements et relancer les tests impactés instantanément.
-    ```bash
-    make test-dev-watch ARGS="habits"
-    ```
-
-> [!TIP]
-> Chaque test (`beforeEach`) nettoie les tables de la base de données via le helper `cleanDatabase`. Vous n'avez pas besoin de redémarrer Docker entre deux tests.
-
-### Développement & Types
-| Commande | Description |
+| Command | Description |
 | :--- | :--- |
-| `make dev` | Build les types + Lance l'environnement (Docker) |
-| `make dev-fresh` | Nettoyage complet + Installation + Lancement |
-| `make ts-check` | **Indispensable** : Watch mode pour TypeScript (Hôte) |
-| `make ts-build` | Génère les types et les routes TanStack (Hôte) |
-| `make diagnose` | Vérifie l'état des types et des conteneurs |
+| `make dev` | Build types + start Docker |
+| `make dev-fresh` | Full cleanup + install + start |
+| `make ts-check` | TypeScript watch mode (host) |
+| `make ts-build` | Generate types and TanStack routes |
+| `make diagnose` | Check types and container state |
 
-### Qualité & Tests
-| Commande | Description |
+### Quality & tests
+
+| Command | Description |
 | :--- | :--- |
-| `make lint-fix` | Corrige les erreurs de style avec Biome |
-| `make format` | Formate le code proprement |
-| `make test` | Lance les tests backend (avec DB isolée) |
-| `make test-frontend` | Lance les tests Vitest du frontend |
-| `make test-all` | Lance l'intégralité de la suite de tests |
-| `make test-db-reset` | Repart de zéro : vide et recrée la DB de test |
+| `make lint-fix` | Fix style with Biome |
+| `make format` | Format code |
+| `make test` | Backend tests (isolated DB) |
+| `make test-frontend` | Vitest frontend tests |
+| `make test-all` | Full test suite |
+| `make test-db-reset` | Reset the test DB from scratch |
 
-### Base de Données
-| Commande | Description |
-| :--- | :--- |
-| `make db-generate` | Génère un fichier de migration SQL (à commiter) |
-| `make db-migrate` | Applique les migrations en local |
-| `make db-push` | Synchronise le schéma sans migration (proto rapide) |
-| `make db-studio` | Interface visuelle Drizzle (http://localhost:4983) |
-| `make db-seed` | Injecte les données de test |
-| `make db-reset` | **NUKE DB** : Clean + Push + Seed |
+### Backend tests (recommended workflow)
 
----
+Keep the test DB running during your session:
 
-## 📂 Structure du Monorepo
-
+```bash
+make test-db-up  # once per session, starts Docker on port 5433
 ```
-/
-├── backend/            # API Hono (Types exportés via Hono RPC)
-├── frontend/           # SPA React (Vite + TanStack)
-├── shared/             # Schémas Zod et Types partagés (Source de vérité)
-├── nginx/              # Configuration reverse proxy (Prod)
-├── backups/            # Sauvegardes de la base de données
-├── Makefile            # Point d'entrée unique des commandes
-├── docker-compose.yml  # Config Docker de base (Postgres 18)
-└── biome.json          # Config Linting & Formatting
+
+Run targeted tests:
+
+```bash
+make test-dev ARGS="habits"
+make test-dev ARGS="features/habits/tests/habits.routes.test.ts"
+```
+
+Watch mode (TDD):
+
+```bash
+make test-dev-watch ARGS="habits"
+```
+
+> Each test (`beforeEach`) cleans tables via `cleanDatabase` — no need to restart Docker between tests.
+
+### Database
+
+| Command | Description |
+| :--- | :--- |
+| `make db-generate` | Generate a SQL migration file |
+| `make db-migrate` | Apply migrations locally |
+| `make db-push` | Sync schema without migration |
+| `make db-studio` | Drizzle UI (http://localhost:4983) |
+| `make db-seed` | Inject test data |
+| `make db-reset` | Wipe + push + seed |
+| `make db-backup` | Backup to `./backups/` |
+| `make db-restore FILE=...` | Restore from a `.sql` file |
+
+---
+
+## Structure
+
+```text
+habit-tracker/
+├── backend/            # Hono API
+├── frontend/           # React SPA (Vite + TanStack)
+├── shared/             # Shared Zod schemas (source of truth)
+├── nginx/              # Reverse proxy (production)
+├── backups/            # DB backups
+├── Makefile            # Command entry point
+└── docker-compose.yml  # PostgreSQL 18
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-### Variables d'environnement
-- `.env.dev` : Configuration de développement (⚠️ **NE JAMAIS COMMITER**).
-- `.env.prod` : Configuration de production (⚠️ **NE JAMAIS COMMITER**).
-- `.env.example` : Modèle pour créer vos fichiers `.env.dev` et `.env.prod`.
+- `.env.dev` — development (do not commit)
+- `.env.prod` — production (do not commit)
+- `.env.example` — template to copy
 
-### Ports utilisés
-| Service | Port Dev | Notes |
-| :--- | :--- | :--- |
-| Frontend | `5173` | Accès via http://localhost:5173 |
-| API | `3000` | Accès direct via http://localhost:3000/api |
-| DB | `5432` | PostgreSQL 18 |
-| DB Test | `5433` | Pour les tests isolés |
-| Studio | `4983` | Drizzle Studio |
+**Ports:**
 
----
-
-## 🐛 Guide de survie : "Ca ne marche pas"
-
-### Problèmes de types (L'éditeur est rouge ou Docker crash)
-**Symptôme** : `Cannot find module '@habit-tracker/shared'` ou erreurs de types au démarrage de l'API.
-1. Vérifiez que `make ts-check` tourne dans un terminal séparé sur votre machine hôte.
-2. Forcez un rebuild global : `make ts-clean && make ts-build`.
-3. Relancez Docker après le build réussi des types.
-
-### Problèmes Docker
-- **Erreur de port déjà utilisé** : `make stop` puis relancez.
-- **Changement de dépendances** : `make dev-rebuild` pour forcer le build des images.
-- **Nuke total** : `make clean && make dev-fresh`.
+| Service | Port |
+| :--- | :--- |
+| Frontend | 5173 |
+| API | 3000 |
+| DB | 5432 |
+| Test DB | 5433 |
+| Drizzle Studio | 4983 |
 
 ---
 
-## 🚢 Mise en production (Checklist)
+## Troubleshooting
 
-1. Créer le fichier `.env.prod` à partir de `.env.example`.
-2. Modifier le domaine et l'email dans le `Makefile` (`ssl-init`).
-3. Appliquer les migrations sur la prod : `make prod-migrate`.
-4. Lancer les services : `make prod`.
-5. Générer le certificat SSL : `make ssl-init`.
+**Editor shows errors / Docker crashes at startup**
+
+Symptom: `Cannot find module '@habit-tracker/shared'`
+
+```bash
+make ts-clean && make ts-build  # rebuild types
+# then restart Docker
+```
+
+Make sure `make ts-check` is running in a separate terminal on the host.
+
+**Docker issues**
+
+```bash
+make stop          # port already in use
+make dev-rebuild   # after a dependency change
+make clean && make dev-fresh  # nuclear reset
+```
 
 ---
 
-## 📖 Maintenance
+## Production
 
-- **Backup DB** : `make db-backup` (crée un .sql dans `./backups/`).
-- **Restore DB** : `make db-restore FILE=backups/mon_fichier.sql`.
-- **Update deps** : Modifier les `package.json` respectifs puis `make clean-install`.
-
----
-
-Développé avec ❤️ pour un suivi d'habitudes rigoureux.
+1. Create `.env.prod` from `.env.example`
+2. Update the domain and email in the `Makefile` (`ssl-init`)
+3. `make prod-migrate` — apply migrations
+4. `make prod` — start services
+5. `make ssl-init` — generate SSL certificate
