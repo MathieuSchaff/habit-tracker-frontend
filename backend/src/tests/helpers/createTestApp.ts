@@ -1,11 +1,14 @@
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+import { globalErrorHandler } from '../../utils/errors/error-handler'
 import { testDb } from '../db.test.config'
 import { JWT_SECRET, REFRESH_SECRET } from '../helpers/secrets'
 
 export async function createTestApp() {
   const app = new Hono<AppEnv>()
+
+  app.onError(globalErrorHandler)
 
   // Dynamically import routes to avoid circular dependencies during test initialization
   const { jwtAuthRoutes } = await import('../../features/auth/routes')
@@ -22,6 +25,7 @@ export async function createTestApp() {
   const { profileRoute } = await import('../../features/profile/routes')
   const { taskRoutes } = await import('../../features/tasks/routes')
   const { userProductRoutes } = await import('../../features/user-products/routes')
+  const { errorsRoute } = await import('../../features/errors/routes')
 
   app.use('*', async (c, next) => {
     c.set('db', testDb)
@@ -48,6 +52,7 @@ export async function createTestApp() {
     .route('/logs', logsRoutes)
     .route('/tasks', taskRoutes)
     .route('/user-products', userProductRoutes)
+    .route('/errors', errorsRoute)
 
   return app
 }

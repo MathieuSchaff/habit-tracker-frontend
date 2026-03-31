@@ -6,6 +6,8 @@ export async function cleanDatabase() {
   console.log('🧹 Cleaning database...')
   const tables = [
     'email_verifications',
+    'error_occurrences',
+    'error_groups',
     'habit_check_products',
     'habit_checks',
     'habit_periods',
