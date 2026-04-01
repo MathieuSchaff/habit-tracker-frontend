@@ -9,6 +9,7 @@ interface AuthStore {
   emailVerified: boolean
   role: 'user' | 'admin'
   isAdmin: boolean
+  isDemo: boolean
 
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   emailVerified: false,
   role: 'user',
   isAdmin: false,
+  isDemo: false,
 
   setAuth: (token, user) =>
     set({
@@ -40,6 +42,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       emailVerified: user.emailVerified,
       role: user.role,
       isAdmin: user.role === 'admin',
+      isDemo: user.isDemo ?? false,
     }),
 
   clearAuth: () =>
@@ -50,9 +53,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       emailVerified: false,
       role: 'user',
       isAdmin: false,
+      isDemo: false,
     }),
 
-  // we take 30 seconds of safety margin
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt
     if (!exp) return true

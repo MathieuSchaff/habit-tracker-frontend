@@ -1,5 +1,4 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 type AuthLayoutProps = {
@@ -15,19 +14,7 @@ export const AuthLayout = ({ children, footer }: AuthLayoutProps) => {
   return (
     <main className="auth-layout">
       <div className="auth-container">
-        <section className="auth-card">
-          <div className="back-topbar">
-            <Link
-              to="/"
-              className="back-link"
-              aria-label="Retour"
-              title="Retour à la page précédente"
-            >
-              <ArrowLeft size={18} />
-            </Link>
-          </div>
-          {children}
-        </section>
+        <section className="auth-card">{children}</section>
 
         {footer && (
           <footer className="auth-footer">

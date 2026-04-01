@@ -1,4 +1,6 @@
 import type {
+  ApiResponse,
+  AuthenticatedResult,
   ChangePasswordResult,
   Email,
   HashedPassword,
@@ -12,9 +14,10 @@ import { err, ok } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
-import type { DB } from '../../db/index'
+import type { Database, DB } from '../../db/index'
 import { users } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
+import { seedDemoData } from './demo-seed'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken } from './email-verification.service'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
@@ -229,6 +232,37 @@ export async function changePassword(
     return ok(null)
   } catch (e) {
     console.error('Change password failed:', e)
+    return err('server_error')
+  }
+}
+
+export async function createDemo(
+  ctx: AuthContext
+): Promise<ApiResponse<AuthenticatedResult, 'server_error'>> {
+  try {
+    const email = `demo-${crypto.randomUUID()}@demo.local` as Email
+
+    const user = await ctx.db.transaction(async (tx) => {
+      const created = await createUser(tx, {
+        email,
+        passwordHash: null,
+        emailVerifiedAt: new Date(),
+        isDemo: true,
+      })
+      await createProfile(tx, created.id)
+      return created
+    })
+
+    await seedDemoData(user.id, ctx.db as Database)
+
+    const tokens = await createTokenPair(ctx, user.id)
+
+    return ok({
+      user: toPublicUser(user),
+      ...tokens,
+    })
+  } catch (e) {
+    console.error('Demo creation failed:', e)
     return err('server_error')
   }
 }
