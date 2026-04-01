@@ -11,8 +11,8 @@ type RequireAuthOptions = {
 }
 
 /**
- * Check that the user is logged in and the session is still valid before showing the page.
- * Try to refresh the token if it is expired before sending to login.
+ * Guards the route by checking local token validity first, then verifying with the server.
+ * Falls back to a silent refresh before giving up and redirecting to login.
  */
 export async function requireAuth({ queryClient, pathname }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
@@ -26,7 +26,7 @@ export async function requireAuth({ queryClient, pathname }: RequireAuthOptions)
   }
 
   try {
-    // Verify with server that session is still valid, even if local token looks good
+    // Local token can look valid but already be revoked server-side, so we double-check
     await queryClient.ensureQueryData(authQueries.session())
   } catch {
     const refreshed = await silentRefresh(queryClient)

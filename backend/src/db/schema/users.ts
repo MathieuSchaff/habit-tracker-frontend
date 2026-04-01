@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
+  boolean,
   check,
   index,
   pgEnum,
@@ -32,7 +33,10 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull().default('user'),
+    isDemo: boolean('is_demo').notNull().default(false),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    isDemo: boolean('is_demo').notNull().default(false),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
   },
   (t) => [
     // Case-insensitive unique email, only for active accounts
@@ -68,7 +72,6 @@ export const profiles = pgTable(
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
-    // id: uuid('id').defaultRandom().primaryKey(),
     id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
     userId: uuid('user_id')
       .notNull()

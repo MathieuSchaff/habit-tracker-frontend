@@ -26,7 +26,15 @@ import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
 import { requireJwtAuth } from './middleware'
-import { type AuthContext, changePassword, login, logout, refresh, signup } from './service'
+import {
+  type AuthContext,
+  changePassword,
+  createDemo,
+  login,
+  logout,
+  refresh,
+  signup,
+} from './service'
 
 function buildAuthContext(c: Context<AppEnv>): AuthContext {
   return {
@@ -64,11 +72,6 @@ app.use('/session', requireJwtAuth)
 app.use('/mobile/logout', requireJwtAuth)
 app.use('/resend-verification', requireJwtAuth)
 
-app.onError((e, c) => {
-  console.error('Auth error:', e)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
-})
-
 export const jwtAuthRoutes = app
 
   .post('/login', zValidator('json', authBodySchema), async (c) => {
@@ -99,6 +102,24 @@ export const jwtAuthRoutes = app
 
     if (!isApiSuccess(result)) {
       return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    setRefreshTokenCookie(c, result.data.refreshToken, env)
+
+    return c.json(
+      ok({ user: result.data.user, accessToken: result.data.accessToken }),
+      HTTP_STATUS.CREATED
+    )
+  })
+
+  .post('/demo', async (c) => {
+    const env = c.get('env')
+    const ctx = buildAuthContext(c)
+
+    const result = await createDemo(ctx)
+
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), HTTP_STATUS.INTERNAL_SERVER_ERROR)
     }
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)

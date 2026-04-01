@@ -27,7 +27,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://api:3000', // api c'est le nom du conteneur docker
+        target: process.env.VITE_API_URL ?? 'http://api:3000',
         changeOrigin: true,
       },
     },

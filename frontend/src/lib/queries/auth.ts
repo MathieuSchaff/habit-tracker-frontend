@@ -135,3 +135,19 @@ export function useChangePassword() {
     },
   })
 }
+
+export function useDemo() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const res = await api.auth.demo.$post()
+      if (!res.ok) throw new Error('server_error')
+      const json = await res.json()
+      return json.data
+    },
+    onSuccess: (data) => {
+      useAuthStore.getState().setAuth(data.accessToken, data.user)
+      qc.setQueryData(['session'], { authenticated: true, userId: data.user.id })
+    },
+  })
+}
