@@ -7,6 +7,7 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { jwtAuthRoutes } from './features/auth'
+import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
 import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
@@ -65,6 +66,7 @@ const routes = app
   .route('/api', productsFeature)
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
+  .route('/api/ingredients', ingredientDiscussionRoutes)
   .route('/api/tags', tagRoutes)
   .route('/api/logs', logsRoutes)
   .route('/api/tasks', taskRoutes)

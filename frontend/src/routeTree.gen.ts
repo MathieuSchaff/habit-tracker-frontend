@@ -29,8 +29,14 @@ import { Route as AuthenticatedCollectionRouteImport } from './routes/_authentic
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug.index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug.index'
 import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug.edit'
+import { Route as ProductsSlugDiscussionsRouteImport } from './routes/products/$slug.discussions'
 import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug.edit'
+import { Route as IngredientsSlugDiscussionsRouteImport } from './routes/ingredients/$slug.discussions'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
+import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug.discussions.index'
+import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug.discussions.index'
+import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug.discussions.$threadId'
+import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug.discussions.$threadId'
 
 const VerifyPendingRoute = VerifyPendingRouteImport.update({
   id: '/verify-pending',
@@ -131,16 +137,51 @@ const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => ProductsSlugRoute,
 } as any)
+const ProductsSlugDiscussionsRoute = ProductsSlugDiscussionsRouteImport.update({
+  id: '/discussions',
+  path: '/discussions',
+  getParentRoute: () => ProductsSlugRoute,
+} as any)
 const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => IngredientsSlugRoute,
 } as any)
+const IngredientsSlugDiscussionsRoute =
+  IngredientsSlugDiscussionsRouteImport.update({
+    id: '/discussions',
+    path: '/discussions',
+    getParentRoute: () => IngredientsSlugRoute,
+  } as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsSlugDiscussionsIndexRoute =
+  ProductsSlugDiscussionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProductsSlugDiscussionsRoute,
+  } as any)
+const IngredientsSlugDiscussionsIndexRoute =
+  IngredientsSlugDiscussionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => IngredientsSlugDiscussionsRoute,
+  } as any)
+const ProductsSlugDiscussionsThreadIdRoute =
+  ProductsSlugDiscussionsThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => ProductsSlugDiscussionsRoute,
+  } as any)
+const IngredientsSlugDiscussionsThreadIdRoute =
+  IngredientsSlugDiscussionsThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => IngredientsSlugDiscussionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,10 +201,16 @@ export interface FileRoutesByFullPath {
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsRouteWithChildren
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
+  '/products/$slug/discussions': typeof ProductsSlugDiscussionsRouteWithChildren
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
+  '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
+  '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/ingredients/$slug/discussions/': typeof IngredientsSlugDiscussionsIndexRoute
+  '/products/$slug/discussions/': typeof ProductsSlugDiscussionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -185,6 +232,10 @@ export interface FileRoutesByTo {
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug': typeof IngredientsSlugIndexRoute
   '/products/$slug': typeof ProductsSlugIndexRoute
+  '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
+  '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsIndexRoute
+  '/products/$slug/discussions': typeof ProductsSlugDiscussionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -206,10 +257,16 @@ export interface FileRoutesById {
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsRouteWithChildren
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
+  '/products/$slug/discussions': typeof ProductsSlugDiscussionsRouteWithChildren
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
+  '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
+  '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/ingredients/$slug/discussions/': typeof IngredientsSlugDiscussionsIndexRoute
+  '/products/$slug/discussions/': typeof ProductsSlugDiscussionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -231,10 +288,16 @@ export interface FileRouteTypes {
     | '/ingredients/'
     | '/products/'
     | '/auth/google/callback'
+    | '/ingredients/$slug/discussions'
     | '/ingredients/$slug/edit'
+    | '/products/$slug/discussions'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
     | '/products/$slug/'
+    | '/ingredients/$slug/discussions/$threadId'
+    | '/products/$slug/discussions/$threadId'
+    | '/ingredients/$slug/discussions/'
+    | '/products/$slug/discussions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -256,6 +319,10 @@ export interface FileRouteTypes {
     | '/products/$slug/edit'
     | '/ingredients/$slug'
     | '/products/$slug'
+    | '/ingredients/$slug/discussions/$threadId'
+    | '/products/$slug/discussions/$threadId'
+    | '/ingredients/$slug/discussions'
+    | '/products/$slug/discussions'
   id:
     | '__root__'
     | '/'
@@ -276,10 +343,16 @@ export interface FileRouteTypes {
     | '/ingredients/'
     | '/products/'
     | '/auth/google/callback'
+    | '/ingredients/$slug/discussions'
     | '/ingredients/$slug/edit'
+    | '/products/$slug/discussions'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
     | '/products/$slug/'
+    | '/ingredients/$slug/discussions/$threadId'
+    | '/products/$slug/discussions/$threadId'
+    | '/ingredients/$slug/discussions/'
+    | '/products/$slug/discussions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -441,11 +514,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugEditRouteImport
       parentRoute: typeof ProductsSlugRoute
     }
+    '/products/$slug/discussions': {
+      id: '/products/$slug/discussions'
+      path: '/discussions'
+      fullPath: '/products/$slug/discussions'
+      preLoaderRoute: typeof ProductsSlugDiscussionsRouteImport
+      parentRoute: typeof ProductsSlugRoute
+    }
     '/ingredients/$slug/edit': {
       id: '/ingredients/$slug/edit'
       path: '/edit'
       fullPath: '/ingredients/$slug/edit'
       preLoaderRoute: typeof IngredientsSlugEditRouteImport
+      parentRoute: typeof IngredientsSlugRoute
+    }
+    '/ingredients/$slug/discussions': {
+      id: '/ingredients/$slug/discussions'
+      path: '/discussions'
+      fullPath: '/ingredients/$slug/discussions'
+      preLoaderRoute: typeof IngredientsSlugDiscussionsRouteImport
       parentRoute: typeof IngredientsSlugRoute
     }
     '/auth/google/callback': {
@@ -454,6 +541,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/google/callback'
       preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug/discussions/': {
+      id: '/products/$slug/discussions/'
+      path: '/'
+      fullPath: '/products/$slug/discussions/'
+      preLoaderRoute: typeof ProductsSlugDiscussionsIndexRouteImport
+      parentRoute: typeof ProductsSlugDiscussionsRoute
+    }
+    '/ingredients/$slug/discussions/': {
+      id: '/ingredients/$slug/discussions/'
+      path: '/'
+      fullPath: '/ingredients/$slug/discussions/'
+      preLoaderRoute: typeof IngredientsSlugDiscussionsIndexRouteImport
+      parentRoute: typeof IngredientsSlugDiscussionsRoute
+    }
+    '/products/$slug/discussions/$threadId': {
+      id: '/products/$slug/discussions/$threadId'
+      path: '/$threadId'
+      fullPath: '/products/$slug/discussions/$threadId'
+      preLoaderRoute: typeof ProductsSlugDiscussionsThreadIdRouteImport
+      parentRoute: typeof ProductsSlugDiscussionsRoute
+    }
+    '/ingredients/$slug/discussions/$threadId': {
+      id: '/ingredients/$slug/discussions/$threadId'
+      path: '/$threadId'
+      fullPath: '/ingredients/$slug/discussions/$threadId'
+      preLoaderRoute: typeof IngredientsSlugDiscussionsThreadIdRouteImport
+      parentRoute: typeof IngredientsSlugDiscussionsRoute
     }
   }
 }
@@ -476,12 +591,31 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface IngredientsSlugDiscussionsRouteChildren {
+  IngredientsSlugDiscussionsThreadIdRoute: typeof IngredientsSlugDiscussionsThreadIdRoute
+  IngredientsSlugDiscussionsIndexRoute: typeof IngredientsSlugDiscussionsIndexRoute
+}
+
+const IngredientsSlugDiscussionsRouteChildren: IngredientsSlugDiscussionsRouteChildren =
+  {
+    IngredientsSlugDiscussionsThreadIdRoute:
+      IngredientsSlugDiscussionsThreadIdRoute,
+    IngredientsSlugDiscussionsIndexRoute: IngredientsSlugDiscussionsIndexRoute,
+  }
+
+const IngredientsSlugDiscussionsRouteWithChildren =
+  IngredientsSlugDiscussionsRoute._addFileChildren(
+    IngredientsSlugDiscussionsRouteChildren,
+  )
+
 interface IngredientsSlugRouteChildren {
+  IngredientsSlugDiscussionsRoute: typeof IngredientsSlugDiscussionsRouteWithChildren
   IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
   IngredientsSlugIndexRoute: typeof IngredientsSlugIndexRoute
 }
 
 const IngredientsSlugRouteChildren: IngredientsSlugRouteChildren = {
+  IngredientsSlugDiscussionsRoute: IngredientsSlugDiscussionsRouteWithChildren,
   IngredientsSlugEditRoute: IngredientsSlugEditRoute,
   IngredientsSlugIndexRoute: IngredientsSlugIndexRoute,
 }
@@ -490,12 +624,30 @@ const IngredientsSlugRouteWithChildren = IngredientsSlugRoute._addFileChildren(
   IngredientsSlugRouteChildren,
 )
 
+interface ProductsSlugDiscussionsRouteChildren {
+  ProductsSlugDiscussionsThreadIdRoute: typeof ProductsSlugDiscussionsThreadIdRoute
+  ProductsSlugDiscussionsIndexRoute: typeof ProductsSlugDiscussionsIndexRoute
+}
+
+const ProductsSlugDiscussionsRouteChildren: ProductsSlugDiscussionsRouteChildren =
+  {
+    ProductsSlugDiscussionsThreadIdRoute: ProductsSlugDiscussionsThreadIdRoute,
+    ProductsSlugDiscussionsIndexRoute: ProductsSlugDiscussionsIndexRoute,
+  }
+
+const ProductsSlugDiscussionsRouteWithChildren =
+  ProductsSlugDiscussionsRoute._addFileChildren(
+    ProductsSlugDiscussionsRouteChildren,
+  )
+
 interface ProductsSlugRouteChildren {
+  ProductsSlugDiscussionsRoute: typeof ProductsSlugDiscussionsRouteWithChildren
   ProductsSlugEditRoute: typeof ProductsSlugEditRoute
   ProductsSlugIndexRoute: typeof ProductsSlugIndexRoute
 }
 
 const ProductsSlugRouteChildren: ProductsSlugRouteChildren = {
+  ProductsSlugDiscussionsRoute: ProductsSlugDiscussionsRouteWithChildren,
   ProductsSlugEditRoute: ProductsSlugEditRoute,
   ProductsSlugIndexRoute: ProductsSlugIndexRoute,
 }

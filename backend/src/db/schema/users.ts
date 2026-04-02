@@ -1,8 +1,12 @@
+import type { ProfileLink } from '@habit-tracker/shared'
+
 import { sql } from 'drizzle-orm'
 import {
   boolean,
   check,
   index,
+  integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -59,6 +63,7 @@ export const profiles = pgTable(
     username: varchar('username', { length: 32 }),
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
+    links: jsonb('links').$type<ProfileLink[]>().notNull().default(sql`'[]'::jsonb`),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -68,6 +73,23 @@ export const profiles = pgTable(
     index('profiles_username_idx').on(t.username),
   ]
 )
+
+export const userDermoProfiles = pgTable('user_dermo_profiles', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  skinTypes: text('skin_types').array(),
+  fitzpatrickType: integer('fitzpatrick_type'),
+  skinConcerns: text('skin_concerns').array().notNull().default([]),
+  privateNotes: text('private_notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+})
+
+export type UserDermoProfileRow = typeof userDermoProfiles.$inferSelect
 
 export const refreshTokens = pgTable(
   'refresh_tokens',

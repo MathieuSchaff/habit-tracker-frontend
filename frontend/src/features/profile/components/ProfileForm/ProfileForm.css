@@ -87,3 +87,15 @@
   transform: translate(0, 0);
   box-shadow: 0px 0px 0px var(--color-primary);
 }
+
+.profile-form__links-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.profile-form__links-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
