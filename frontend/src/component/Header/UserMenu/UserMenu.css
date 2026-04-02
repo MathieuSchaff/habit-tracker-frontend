@@ -1,0 +1,114 @@
+.user-menu {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.user-menu__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-sidebar-text);
+  transition: background var(--transition-fast) ease;
+  gap: var(--space-2);
+}
+
+.user-menu--sidebar-open {
+  justify-content: flex-start;
+}
+
+.user-menu--sidebar-open .user-menu__trigger {
+  justify-content: flex-start;
+  padding-left: var(--space-3);
+}
+
+.user-menu__trigger:hover {
+  background: var(--color-sidebar-item-hover);
+}
+
+.user-menu__trigger--active {
+  background: var(--color-sidebar-item-active);
+}
+
+.user-menu__username {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 8rem;
+}
+
+.user-menu__dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--color-sidebar-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  min-width: 10rem;
+  overflow: hidden;
+  animation: slide-up 0.2s ease-out;
+}
+
+.user-menu__dropdown--sidebar-open {
+  left: 0.5rem;
+  right: 0.5rem;
+  width: auto;
+}
+
+.user-menu__list {
+  list-style: none;
+  padding: 0.25rem;
+  margin: 0;
+}
+
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.6rem 0.75rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-sidebar-text);
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast) ease;
+  text-align: left;
+}
+
+.user-menu__item:hover {
+  background: var(--color-sidebar-item-hover);
+}
+
+.user-menu__item--danger {
+  color: oklch(50% 0.15 20deg);
+}
+
+.user-menu__item--danger:hover {
+  background: oklch(95% 0.05 20deg);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

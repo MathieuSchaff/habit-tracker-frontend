@@ -1,21 +1,13 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import {
-  CheckSquare,
-  ChevronUp,
-  Home,
-  ListChecks,
-  LogOut,
-  Package,
-  TestTube,
-  User,
-} from 'lucide-react'
+import { CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, Repeat, User } from 'lucide-react'
 import { useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { ThemeToggle } from '../../Themetoggle/Themetoggle'
-import { ShelvingUnit } from '../NavItem/NavItem'
 import './BottomNav.css'
+
+import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
 
 export function BottomNav() {
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -47,15 +39,15 @@ export function BottomNav() {
         aria-hidden={!sheetOpen}
       >
         <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <Home size={18} aria-hidden="true" />
+          <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
           Accueil
         </Link>
         <Link to="/products" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <Package size={18} aria-hidden="true" />
+          <ProductNavIcon size={20} strokeWidth={1.5} aria-hidden="true" />
           Produits
         </Link>
         <Link to="/ingredients" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <TestTube size={18} aria-hidden="true" />
+          <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
           Ingrédients
         </Link>
 
@@ -64,7 +56,7 @@ export function BottomNav() {
         {isAuthenticated ? (
           <>
             <Link to="/profile" className="bottom-nav__sheet-link" onClick={closeSheet}>
-              <User size={18} aria-hidden="true" />
+              <User size={20} strokeWidth={1.5} aria-hidden="true" />
               Profil
             </Link>
 
@@ -81,7 +73,7 @@ export function BottomNav() {
               onClick={handleLogout}
               disabled={logout.isPending}
             >
-              <LogOut size={18} aria-hidden="true" />
+              <LogOut size={20} strokeWidth={1.5} aria-hidden="true" />
               {logout.isPending ? 'Déconnexion...' : 'Déconnexion'}
             </button>
           </>
@@ -111,7 +103,7 @@ export function BottomNav() {
           aria-label="Collection"
           aria-current={isActive('/collection') ? 'page' : undefined}
         >
-          <ShelvingUnit size={20} aria-hidden="true" />
+          <ChestIcon size={22} strokeWidth={1.5} aria-hidden="true" />
           Collection
         </Link>
 
@@ -121,7 +113,7 @@ export function BottomNav() {
           aria-label="Habitudes"
           aria-current={isActive('/habits') ? 'page' : undefined}
         >
-          <ListChecks size={20} aria-hidden="true" />
+          <Repeat size={22} strokeWidth={1.5} aria-hidden="true" />
           Habitudes
         </Link>
 
@@ -131,7 +123,7 @@ export function BottomNav() {
           aria-label="Tâches"
           aria-current={isActive('/tasks') ? 'page' : undefined}
         >
-          <CheckSquare size={20} aria-hidden="true" />
+          <CircleCheckBig size={22} strokeWidth={1.5} aria-hidden="true" />
           Tâches
         </Link>
 
@@ -142,10 +134,11 @@ export function BottomNav() {
           aria-label={sheetOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={sheetOpen}
         >
-          <ChevronUp
-            size={20}
+          <MoreHorizontal
+            size={22}
+            strokeWidth={1.5}
             aria-hidden="true"
-            className={`bottom-nav__chevron${sheetOpen ? ' bottom-nav__chevron--open' : ''}`}
+            className={`bottom-nav__icon${sheetOpen ? ' bottom-nav__icon--open' : ''}`}
           />
           Plus
         </button>

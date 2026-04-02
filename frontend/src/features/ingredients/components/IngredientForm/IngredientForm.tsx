@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import { AlertTriangle, ClipboardCopy, Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
@@ -179,15 +179,15 @@ export function IngredientForm({
       } catch (err: unknown) {
         if (isHttpError(err, 409) && mode === 'edit') {
           // someone else saved while we were editing
-          // 1. save the user's current work as a draft
+          // so save the user's current work as a draft
           const draft = { ...form }
 
-          // 2. fetch the fresh version from the server
+          //  fetch the fresh version from the server
           const fresh = (await qc.fetchQuery({
             ...ingredientQueries.bySlug(ingredient.slug),
             staleTime: 0,
           })) as BaseIngredient
-          // 3. replace the form with the server version
+          // replace the form with the server version
           setForm({
             name: fresh.name ?? '',
             slug: fresh.slug ?? '',
@@ -196,7 +196,7 @@ export function IngredientForm({
             content: fresh.content ?? '',
           })
 
-          // 4. store the draft + fresh updatedAt so user can recover their work
+          //  store the draft + fresh updatedAt so user can recover their work
           setConflict({ draft, freshUpdatedAt: fresh.updatedAt })
           setUpdatedAtOverride(fresh.updatedAt)
           setError(null)
@@ -364,31 +364,20 @@ export function IngredientForm({
 
       <div className="ingredient-edit-form__actions">
         {mode === 'edit' ? (
-          <Link
-            to="/ingredients/$slug"
-            params={{ slug: ingredient?.slug }}
-            className="ingredient-edit-form__btn ingredient-edit-form__btn--cancel"
-          >
+          <Button to="/ingredients/$slug" params={{ slug: ingredient?.slug }} variant="outline">
             <XIcon size={16} />
             Annuler
-          </Link>
+          </Button>
         ) : (
-          <Link
-            to="/ingredients"
-            className="ingredient-edit-form__btn ingredient-edit-form__btn--cancel"
-          >
+          <Button to="/ingredients" variant="outline">
             <XIcon size={16} />
             Annuler
-          </Link>
+          </Button>
         )}
-        <button
-          type="submit"
-          className="ingredient-edit-form__btn ingredient-edit-form__btn--save"
-          disabled={isSubmitDisabled}
-        >
-          <Save size={16} />
+        <Button type="submit" variant="primary" disabled={isSubmitDisabled} loading={isPending}>
+          {!isPending && <Save size={16} />}
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   )

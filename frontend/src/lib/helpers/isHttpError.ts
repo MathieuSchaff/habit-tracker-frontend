@@ -1,6 +1,5 @@
 /**
- * Type guard to check if an unknown error has a specific HTTP status.
- * Used in catch blocks so we don't need `any` to read the status.
+ * Lets us safely read the HTTP status from an unknown catch error without casting to `any`.
  */
 export function isHttpError(err: unknown, status: number): err is Error & { status: number } {
   return (

@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-page);
-  scrollbar-gutter: stable; /* Empêche le saut horizontal lors de l'apparition du scrollbar */
+  /*important: do not delete. This is to stop the body from changing size when a scroll bar appear*/
+  scrollbar-gutter: stable;
 }
 
 .content {
@@ -20,7 +21,7 @@
 }
 
 @media (max-width: 767px) {
-  .content:not(.content--auth) {
+  .content {
     padding-bottom: var(--bottom-nav-height, 4.5rem);
   }
 }

@@ -1,11 +1,4 @@
-import {
-  createProductIngredientSchema,
-  err,
-  errorToStatus,
-  HTTP_STATUS,
-  ok,
-  productIngredientErrorMapping,
-} from '@habit-tracker/shared'
+import { createProductIngredientSchema, HTTP_STATUS, ok } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
@@ -44,17 +37,6 @@ const productIngredientsApp = new Hono<AppEnv>()
 productIngredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
-})
-
-productIngredientsApp.onError((error, c) => {
-  if (error instanceof ProductIngredientError) {
-    return c.json(
-      err(error.code, error.details),
-      errorToStatus(error.code, productIngredientErrorMapping)
-    )
-  }
-  console.error('Unexpected error:', error)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
 
 export const productIngredientRoutes = productIngredientsApp

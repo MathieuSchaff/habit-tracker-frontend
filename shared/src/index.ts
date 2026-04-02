@@ -123,6 +123,8 @@ export {
   type CreateProductInput,
   createProductSchema,
   filterOptionsSchema,
+  type ListProductsFilters,
+  listProductsQuery,
   type ProductChanges,
   type ProductEditResponseSchema,
   type ProductsPage,

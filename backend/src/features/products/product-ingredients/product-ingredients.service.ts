@@ -1,6 +1,6 @@
 import { and, eq, getTableColumns } from 'drizzle-orm'
 
-import type { Database } from '../../../db/index'
+import type { Database, DB } from '../../../db/index'
 import { ingredients } from '../../../db/schema/ingredients'
 import { type ProductIngredient, productIngredients } from '../../../db/schema/product-ingredients'
 import { type Product, products } from '../../../db/schema/products'
@@ -18,7 +18,7 @@ type UpdateProductIngredientInput = Partial<
   Pick<ProductIngredient, 'concentrationValue' | 'concentrationUnit' | 'concentrationPer' | 'notes'>
 >
 
-export async function addIngredientToProduct(db: Database, data: CreateProductIngredientInput) {
+export async function addIngredientToProduct(db: DB, data: CreateProductIngredientInput) {
   // I remove null and empty strings so Drizzle does not send bad data to the database
   const entries = Object.entries(data).filter(([_, v]) => v != null && v !== '')
   const cleanData = Object.fromEntries(entries) as CreateProductIngredientInput

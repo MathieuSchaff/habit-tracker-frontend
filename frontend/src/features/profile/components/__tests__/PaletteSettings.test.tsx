@@ -5,7 +5,6 @@ import { useThemeStore } from '../../../../store/theme'
 import { renderWithProviders } from '../../../../test/utils'
 import { PreferenceSettings } from '../PreferenceSettings'
 
-// Mock the TanStack Query response for existing preferences
 vi.mock('../../../../lib/queries/user-preferences', () => ({
   userPreferenceQueries: {
     get: () => ({
@@ -29,65 +28,50 @@ vi.mock('../../../../lib/queries/user-preferences', () => ({
 describe('PreferenceSettings — palette section', () => {
   beforeEach(() => {
     localStorage.clear()
-    document.documentElement.removeAttribute('data-light-variant')
-    useThemeStore.setState({ theme: 'light', lightVariant: null })
+    document.documentElement.removeAttribute('data-variant')
+    useThemeStore.setState({ theme: 'light', variant: 'bleu' })
   })
 
   afterEach(() => {
     cleanup()
     localStorage.clear()
-    document.documentElement.removeAttribute('data-light-variant')
-    useThemeStore.setState({ theme: 'light', lightVariant: null })
+    document.documentElement.removeAttribute('data-variant')
+    useThemeStore.setState({ theme: 'light', variant: 'bleu' })
   })
 
-  it('shows palette section when theme is light', async () => {
-    useThemeStore.setState({ theme: 'light' })
+  it('shows palette section in light mode', async () => {
     renderWithProviders(<PreferenceSettings />)
     expect(await screen.findByText('Palette (mode clair)')).toBeInTheDocument()
   })
 
-  it('hides palette section when theme is dark', async () => {
-    useThemeStore.setState({ theme: 'dark' })
+  it('shows palette section in dark mode too', async () => {
+    useThemeStore.setState({ theme: 'dark', variant: 'bleu' })
     renderWithProviders(<PreferenceSettings />)
-    await screen.findByText("Échelle d'affichage")
-    expect(screen.queryByText('Palette (mode clair)')).not.toBeInTheDocument()
+    expect(await screen.findByText('Palette (mode clair)')).toBeInTheDocument()
   })
 
-  it('marks Terracota as active when lightVariant is null', async () => {
-    useThemeStore.setState({ theme: 'light', lightVariant: null })
+  it('marks Bleu as active when variant is bleu', async () => {
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
-    expect(screen.getByRole('radio', { name: /terracota/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /bleu/i })).toBeChecked()
 
-    // Others should not be checked
-    const others = screen.getAllByRole('radio', { name: /^(?!terracota)/i })
-    others.forEach((s) => {
-      expect(s).not.toBeChecked()
-    })
+    const others = screen.getAllByRole('radio', { name: /^(?!bleu)/i })
+    for (const s of others) expect(s).not.toBeChecked()
   })
 
   it('marks the active swatch as checked', async () => {
-    useThemeStore.setState({ theme: 'light', lightVariant: 'ardoise' })
+    useThemeStore.setState({ theme: 'light', variant: 'ardoise' })
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
     expect(screen.getByRole('radio', { name: /ardoise/i })).toBeChecked()
   })
 
-  it('calls setLightVariant when a swatch is clicked', async () => {
-    const setLightVariant = vi.fn()
-    useThemeStore.setState({ theme: 'light', lightVariant: null, setLightVariant })
+  it('calls setVariant when a swatch is clicked', async () => {
+    const setVariant = vi.fn()
+    useThemeStore.setState({ theme: 'light', variant: 'bleu', setVariant })
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
     fireEvent.click(screen.getByRole('radio', { name: /forêt/i }))
-    expect(setLightVariant).toHaveBeenCalledWith('foret')
-  })
-
-  it('calls setLightVariant(null) when clicking the already-active swatch', async () => {
-    const setLightVariant = vi.fn()
-    useThemeStore.setState({ theme: 'light', lightVariant: 'foret', setLightVariant })
-    renderWithProviders(<PreferenceSettings />)
-    await screen.findByText('Palette (mode clair)')
-    fireEvent.click(screen.getByRole('radio', { name: /forêt/i }))
-    expect(setLightVariant).toHaveBeenCalledWith(null)
+    expect(setVariant).toHaveBeenCalledWith('foret')
   })
 })

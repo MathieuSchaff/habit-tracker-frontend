@@ -1,7 +1,6 @@
 /**
- * This hook helps to close a menu when we click outside or press the Escape key.
- * We use a ref for the callback so we don't need to refresh the event listeners
- * every time the component renders.
+ * We store the callback in a ref so the event listeners don't need to be
+ * re-attached on every render when the callback identity changes.
  */
 
 import { type RefObject, useEffect, useRef } from 'react'

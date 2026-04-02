@@ -1,1 +1,29 @@
-purged from history
+.spinner {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
+  border: 0.15em solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* uneven steps on purpose — makes the rotation feel a bit more natural instead of robotic */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(60deg);
+  }
+  50% {
+    transform: rotate(120deg);
+  }
+  75% {
+    transform: rotate(200deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

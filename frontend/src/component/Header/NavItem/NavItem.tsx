@@ -1,38 +1,10 @@
 import type { LinkProps } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import type { LucideProps } from 'lucide-react'
-import { Atom, Barcode, CheckSquare, Home, ListChecks } from 'lucide-react'
-import { forwardRef } from 'react'
+import { CircleCheckBig, CircleDot, FlaskConical } from 'lucide-react'
 
-export const ShelvingUnit = forwardRef<SVGSVGElement, LucideProps>(
-  ({ color = 'currentColor', size = 24, strokeWidth = 2, ...props }, ref) => (
-    <svg
-      ref={ref}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <title>Shelving unit icon</title>
-      <path d="M12 12V9a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3" />
-      <path d="M16 20v-3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3" />
-      <path d="M20 22V2" />
-      <path d="M4 12h16" />
-      <path d="M4 20h16" />
-      <path d="M4 2v20" />
-      <path d="M4 4h16" />
-    </svg>
-  )
-)
-ShelvingUnit.displayName = 'ShelvingUnit'
+import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
 
-// Sidebar link definition
 interface NavItem {
   to: LinkProps['to']
   icon: React.ComponentType<LucideProps>
@@ -40,12 +12,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', icon: Home, label: 'Accueil' },
-  { to: '/habits', icon: ListChecks, label: 'Habitudes' },
-  { to: '/products', icon: Barcode, label: 'Produits' },
-  { to: '/ingredients', icon: Atom, label: 'Ingredients' },
-  { to: '/collection', icon: ShelvingUnit, label: 'Collection' },
-  { to: '/tasks', icon: CheckSquare, label: 'Tâches' },
+  { to: '/', icon: HomeIcon, label: 'Accueil' },
+  { to: '/habits', icon: CircleDot, label: 'Habitudes' },
+  { to: '/products', icon: ProductNavIcon, label: 'Produits' },
+  { to: '/ingredients', icon: FlaskConical, label: 'Ingredients' },
+  { to: '/collection', icon: ChestIcon, label: 'Collection' },
+  { to: '/tasks', icon: CircleCheckBig, label: 'Tâches' },
 ]
 
 interface NavSideListProps {

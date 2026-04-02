@@ -34,13 +34,12 @@ export function useFormTags({ initialTags, allTags }: UseFormTagsProps) {
     setTags((prev) => prev.map((t) => (t.tagId === tagId ? { ...t, relevance } : t)))
   }, [])
 
-  // Only show tags that are not already selected
   const availableTags = useMemo(
     () => allTags?.filter((at) => !tags.find((t) => t.tagId === at.id)) ?? [],
     [allTags, tags]
   )
 
-  // Create a key to compare tags by order, not by insertion order
+  // Sort before serializing so tag order doesn't affect the dirty check
   const getSortedTagsKey = useCallback((arr: TagState[]) => {
     return JSON.stringify(
       [...arr]

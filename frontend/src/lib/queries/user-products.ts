@@ -69,8 +69,8 @@ export const useCreateUserProduct = () => {
 }
 
 /**
- * Optimistic update: change UI immediately, then sync with server.
- * If server fails, we revert to the previous state.
+ * Updates the list in the cache right away so the UI feels instant,
+ * then rolls back to the previous state if the server returns an error.
  */
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()

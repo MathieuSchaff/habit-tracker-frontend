@@ -224,6 +224,8 @@ export function TaskItem({ task }: TaskItemProps) {
 
           <form className="subtask-add-form" onSubmit={handleAddSubtask}>
             <input
+              id={`new-subtask-${task.id}`}
+              name="subtask-title"
               type="text"
               value={newSubtaskTitle}
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
