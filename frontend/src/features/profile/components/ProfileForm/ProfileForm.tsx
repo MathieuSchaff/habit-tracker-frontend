@@ -1,4 +1,4 @@
-import type { ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
+import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
 
 import { Check, X } from 'lucide-react'
 import { useState } from 'react'
@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
 import { Textarea } from '@/component/Textarea/Textarea'
+import { ProfileLinksEditor } from '../ProfileLinksEditor/ProfileLinksEditor'
 import './ProfileForm.css'
 
 type ProfileFormProps = {
@@ -26,8 +27,9 @@ export const ProfileForm = ({
   const [username, setUsername] = useState(profile.username ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')
+  const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     const data: ProfileUpdateInput = {}
@@ -35,6 +37,7 @@ export const ProfileForm = ({
     if (username !== (profile.username ?? '')) data.username = username
     if (bio !== (profile.bio ?? '')) data.bio = bio
     if (avatarUrl !== (profile.avatarUrl ?? '')) data.avatarUrl = avatarUrl
+    if (JSON.stringify(links) !== JSON.stringify(profile.links ?? [])) data.links = links
 
     if (Object.keys(data).length === 0) {
       onCancel()
@@ -91,6 +94,11 @@ export const ProfileForm = ({
               />
             </div>
           )}
+        </div>
+
+        <div className="profile-form__links-group">
+          <span className="profile-form__links-label">Liens (max 5)</span>
+          <ProfileLinksEditor links={links} onChange={setLinks} disabled={isPending} />
         </div>
 
         {error && (

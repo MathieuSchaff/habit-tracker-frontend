@@ -1,3 +1,4 @@
+export * from './discussions'
 export * from './email-verifications'
 export * from './errors'
 export * from './habits'

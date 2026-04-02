@@ -1,4 +1,4 @@
-import type { ProfileUpdateInput } from '@habit-tracker/shared'
+import type { ProfileUpdateInput, UserDermoProfileUpdateInput } from '@habit-tracker/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -26,6 +26,17 @@ export const profileQueries = {
       },
       staleTime: 1000 * 60 * 5,
     }),
+  dermo: () =>
+    queryOptions({
+      queryKey: ['profile', 'dermo'],
+      queryFn: async () => {
+        const res = await api.profile.dermo.$get()
+        const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60 * 5,
+    }),
 }
 
 export const useUpdateProfile = () => {
@@ -40,6 +51,22 @@ export const useUpdateProfile = () => {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', 'me'], data)
+    },
+  })
+}
+
+export const useUpdateDermoProfile = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: UserDermoProfileUpdateInput) => {
+      const res = await api.profile.dermo.$patch({ json: data })
+      const json = await res.json()
+      if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
+      return json.data
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', 'dermo'], data)
     },
   })
 }

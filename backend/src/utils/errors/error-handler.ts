@@ -1,6 +1,7 @@
 import {
   authErrorMapping,
   type ContentfulHttpStatus,
+  discussionErrorMapping,
   err,
   errorToStatus,
   HTTP_STATUS,
@@ -76,6 +77,9 @@ export async function globalErrorHandler(error: Error, c: Context) {
         break
       case 'UserProductError':
         mapping = userProductErrorMapping as Record<string, HttpStatus>
+        break
+      case 'DiscussionError':
+        mapping = discussionErrorMapping as Record<string, HttpStatus>
         break
       default:
         mapping = {}

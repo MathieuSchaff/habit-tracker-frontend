@@ -5,6 +5,8 @@ import type {
   ProfileStats,
   ProfileUpdateInput,
   UpdateUserPreferencesInput,
+  UserDermoProfile,
+  UserDermoProfileUpdateInput,
 } from '@habit-tracker/shared'
 
 import { and, count, eq, isNull } from 'drizzle-orm'
@@ -13,7 +15,12 @@ import type { Database, DB } from '../../db'
 import { habitChecks, habits } from '../../db/schema/habits'
 import { userPreferences } from '../../db/schema/user-preferences'
 import { userProducts } from '../../db/schema/user-products'
-import { type Profile, profiles } from '../../db/schema/users'
+import {
+  type Profile,
+  profiles,
+  type UserDermoProfileRow,
+  userDermoProfiles,
+} from '../../db/schema/users'
 import { getHabitStreak } from '../habits/service'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
@@ -33,6 +40,7 @@ export function toProfilePublic(profile: Profile): ProfilePublic {
     username: profile.username,
     bio: profile.bio,
     avatarUrl: profile.avatarUrl,
+    links: profile.links,
     createdAt: profile.createdAt.toISOString(),
     updatedAt: profile.updatedAt.toISOString(),
   }
@@ -55,6 +63,57 @@ export async function updateProfile(
     .where(eq(profiles.userId, userId))
     .returning()
   return profile ? toProfilePublic(profile) : null
+}
+
+function toDermoProfile(row: UserDermoProfileRow): UserDermoProfile {
+  return {
+    userId: row.userId,
+    skinTypes: row.skinTypes as UserDermoProfile['skinTypes'],
+    fitzpatrickType: row.fitzpatrickType,
+    skinConcerns: (row.skinConcerns ?? []) as UserDermoProfile['skinConcerns'],
+    privateNotes: row.privateNotes,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+export async function getDermoProfile(db: DB, userId: string): Promise<UserDermoProfile | null> {
+  const [row] = await db
+    .select()
+    .from(userDermoProfiles)
+    .where(eq(userDermoProfiles.userId, userId))
+    .limit(1)
+
+  return row ? toDermoProfile(row) : null
+}
+
+export async function upsertDermoProfile(
+  db: DB,
+  userId: string,
+  data: UserDermoProfileUpdateInput
+): Promise<UserDermoProfile> {
+  const [row] = await db
+    .insert(userDermoProfiles)
+    .values({
+      userId,
+      skinTypes: data.skinTypes ?? null,
+      fitzpatrickType: data.fitzpatrickType ?? null,
+      skinConcerns: data.skinConcerns ?? [],
+      privateNotes: data.privateNotes ?? null,
+    })
+    .onConflictDoUpdate({
+      target: userDermoProfiles.userId,
+      set: {
+        ...(data.skinTypes !== undefined ? { skinTypes: data.skinTypes } : {}),
+        ...(data.fitzpatrickType !== undefined ? { fitzpatrickType: data.fitzpatrickType } : {}),
+        ...(data.skinConcerns !== undefined ? { skinConcerns: data.skinConcerns } : {}),
+        ...(data.privateNotes !== undefined ? { privateNotes: data.privateNotes } : {}),
+        updatedAt: new Date(),
+      },
+    })
+    .returning()
+
+  return toDermoProfile(row)
 }
 
 export async function getUserPreferences(db: DB, userId: string) {

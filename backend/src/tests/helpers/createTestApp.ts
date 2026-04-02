@@ -26,6 +26,12 @@ export async function createTestApp() {
   const { taskRoutes } = await import('../../features/tasks/routes')
   const { userProductRoutes } = await import('../../features/user-products/routes')
   const { errorsRoute } = await import('../../features/errors/routes')
+  const { productDiscussionRoutes } = await import(
+    '../../features/discussions/product-discussion-routes'
+  )
+  const { ingredientDiscussionRoutes } = await import(
+    '../../features/discussions/ingredient-discussion-routes'
+  )
 
   app.use('*', async (c, next) => {
     c.set('db', testDb)
@@ -46,8 +52,10 @@ export async function createTestApp() {
     .route('/profile', profileRoute)
     .route('/products', productRoutes)
     .route('/products', productIngredientRoutes)
+    .route('/products', productDiscussionRoutes)
     .route('/ingredients', ingredientRoutes)
     .route('/ingredients', ingredientTagRoutes)
+    .route('/ingredients', ingredientDiscussionRoutes)
     .route('/tags', tagRoutes)
     .route('/logs', logsRoutes)
     .route('/tasks', taskRoutes)
