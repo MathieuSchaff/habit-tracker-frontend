@@ -14,7 +14,6 @@
   border-radius: var(--radius-full);
 }
 
-/* Variantes basées sur les couleurs du domaine (issues de kinds.css) */
 .badge--skincare,
 .badge--huile,
 .badge--vitamine,

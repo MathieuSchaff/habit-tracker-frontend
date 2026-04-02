@@ -2,7 +2,7 @@ import type { LinkProps } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { PillButton } from './PillButton'
+import { Button } from './Button'
 
 type BackButtonProps = {
   children?: ReactNode
@@ -21,9 +21,9 @@ export function BackButton(props: BackButtonProps) {
       : { onClick: props.onClick }
 
   return (
-    <PillButton {...pillProps} className={className}>
+    <Button {...pillProps} className={className}>
       <ArrowLeft size={16} />
       {children}
-    </PillButton>
+    </Button>
   )
 }

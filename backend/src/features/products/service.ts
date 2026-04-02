@@ -1,5 +1,6 @@
 import type {
   CreateProductInput,
+  ListProductsFilters,
   ProductSearchResult,
   UpdateProductInput,
 } from '@habit-tracker/shared'
@@ -10,18 +11,14 @@ import { ingredients, productIngredients } from 'src/db/schema'
 import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
 import { db } from '../../db'
-import type { Database } from '../../db/index'
+import type { Database, DB } from '../../db/index'
 import { type Product, products } from '../../db/schema/products'
 import { productTags, tags } from '../../db/schema/tags'
 import { isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
 
-export async function createProduct(
-  userId: string,
-  input: CreateProductInput,
-  database: Database = db
-) {
+export async function createProduct(userId: string, input: CreateProductInput, database: DB = db) {
   try {
     const normalize = (s: string) => s.trim().replace(/\s+/g, ' ')
     const name = normalize(input.name)
@@ -186,19 +183,6 @@ export async function updateProduct(
   return newProduct as Product
 }
 
-export type ListProductsFilters = {
-  kind?: string | string[]
-  brand?: string | string[]
-  routine_step?: string | string[]
-  attribute?: string | string[]
-  skin_type?: string | string[]
-  concern?: string | string[]
-  ingredient?: string | string[]
-  product_type?: string | string[]
-  skin_zone?: string | string[]
-  page?: number
-  limit?: number
-}
 export type ProductSummary = Pick<
   Product,
   'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents'
@@ -212,7 +196,7 @@ export type ProductsPage = {
 
 // This is the search with many filters
 export async function listProducts(
-  filters: ListProductsFilters = {},
+  filters: ListProductsFilters = { page: 1, limit: 20 },
   database: Database = db
 ): Promise<ProductsPage> {
   const page = filters.page ?? 1
@@ -281,6 +265,8 @@ export async function listProducts(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
+  const orderBy = filters.sort === 'random' ? sql`random()` : products.name
+
   const [items, countResult] = await Promise.all([
     database
       .select({
@@ -294,7 +280,7 @@ export async function listProducts(
       })
       .from(products)
       .where(where)
-      .orderBy(products.name)
+      .orderBy(orderBy)
       .limit(limit)
       .offset(offset),
     database.select({ total: count() }).from(products).where(where),

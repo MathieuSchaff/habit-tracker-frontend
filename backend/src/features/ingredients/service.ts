@@ -2,6 +2,7 @@ import type {
   CreateIngredientInput,
   FieldChange,
   IngredientChanges,
+  IngredientSearchFilters,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
 import {
@@ -28,17 +29,7 @@ const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 // they change automatically, like the slug.
 const AUDIT_EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug', 'updatedAt'])
 
-export async function listIngredients(
-  database: DB,
-  filters: {
-    category?: string
-    concern?: string
-    skinType?: string
-    attribute?: string
-    page?: number
-    limit?: number
-  }
-) {
+export async function listIngredients(database: DB, filters: IngredientSearchFilters) {
   const conditions: SQL[] = []
   const page = filters.page ?? 1
   const limit = filters.limit ?? 20
@@ -76,6 +67,8 @@ export async function listIngredients(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
+  const orderBy = filters.sort === 'random' ? sql`random()` : ingredients.name
+
   // I run both requests at the same time with Promise.all to go faster.
   // One for the data, and one to count how many ingredients we have in total.
   const [items, [{ total }]] = await Promise.all([
@@ -90,7 +83,7 @@ export async function listIngredients(
       })
       .from(ingredients)
       .where(where)
-      .orderBy(ingredients.name)
+      .orderBy(orderBy)
       .limit(limit)
       .offset(offset),
     database

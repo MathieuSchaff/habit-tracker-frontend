@@ -1,10 +1,8 @@
 import {
   createProductSchema,
-  err,
-  errorToStatus,
   HTTP_STATUS,
+  listProductsQuery,
   ok,
-  productErrorMapping,
   searchProductsQuery,
   updateProductSchema,
 } from '@habit-tracker/shared'
@@ -15,7 +13,6 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
-import { ProductError } from './product-error'
 import {
   createProduct,
   deleteProduct,
@@ -36,33 +33,11 @@ const checkDuplicateQuery = z.object({
   brand: z.string().trim().min(1).max(200),
 })
 
-const listProductsQuery = z.object({
-  kind: z.string().optional(),
-  brand: z.string().optional(),
-  routine_step: z.string().optional(),
-  attribute: z.string().optional(),
-  skin_type: z.string().optional(),
-  concern: z.string().optional(),
-  product_type: z.string().optional(),
-  ingredient: z.string().optional(),
-  skin_zone: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-})
-
 const productsApp = new Hono<AppEnv>()
 
 productsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
-})
-
-productsApp.onError((error, c) => {
-  if (error instanceof ProductError) {
-    return c.json(err(error.code, error.details), errorToStatus(error.code, productErrorMapping))
-  }
-  console.error('Unexpected error:', error)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
 
 export const productRoutes = productsApp

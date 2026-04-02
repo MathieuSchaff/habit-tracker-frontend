@@ -1,6 +1,9 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
-import { Toaster } from 'sonner'
+import { Toaster, toast } from 'sonner'
 
+import { useResendVerification } from '../../../lib/queries/auth'
+import { useAuthStore } from '../../../store/auth'
+import { Button } from '../../Button/Button'
 import { BottomNav } from '../../Header/BottomNav/BottomNav'
 import { Header } from '../../Header/Header'
 
@@ -8,13 +11,38 @@ export const AppLayout = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isAuthRoute = ['/login', '/signup', '/verify-email', '/verify-pending'].includes(pathname)
 
+  const user = useAuthStore((s) => s.user)
+  const emailVerified = useAuthStore((s) => s.emailVerified)
+  const resend = useResendVerification()
+
+  const handleResend = () => {
+    resend.mutate(undefined, {
+      onSuccess: () => toast.success('Email envoyé !'),
+      onError: () => toast.error('Erreur, réessaie plus tard.'),
+    })
+  }
+
   return (
     <div className="app-layout">
-      {!isAuthRoute && <Header />}
-      <div className={`content ${isAuthRoute ? 'content--auth' : ''}`}>
+      {!isAuthRoute && user && !emailVerified && (
+        <div className="email-verification-banner">
+          <span>Vérifiez votre adresse email pour continuer à utiliser Aurore.</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleResend}
+            disabled={resend.isPending}
+          >
+            {resend.isPending ? '...' : 'Renvoyer'}
+          </Button>
+        </div>
+      )}
+      <Header />
+      <div className="content">
         <Outlet />
       </div>
-      {!isAuthRoute && <BottomNav />}
+      <BottomNav />
       <Toaster position="top-center" richColors />
     </div>
   )

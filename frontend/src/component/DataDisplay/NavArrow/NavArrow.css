@@ -6,7 +6,6 @@
     color var(--transition-fast) ease;
 }
 
-/* On prévoit que l'élément parent au survol puisse modifier la flèche */
 .list-card:hover .nav-arrow,
 .link-card:hover .nav-arrow,
 a:hover .nav-arrow {

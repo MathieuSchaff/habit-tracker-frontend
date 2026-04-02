@@ -13,6 +13,7 @@ export type ListIngredientsFilters = {
   concern?: string[]
   skinType?: string[]
   attribute?: string[]
+  sort?: 'name' | 'random'
   page?: number
   limit?: number
 }
@@ -50,6 +51,7 @@ export const ingredientQueries = {
         if (filters.concern?.length) query.concern = filters.concern.join(',')
         if (filters.skinType?.length) query.skinType = filters.skinType.join(',')
         if (filters.attribute?.length) query.attribute = filters.attribute.join(',')
+        if (filters.sort !== undefined) query.sort = filters.sort
         if (filters.page) query.page = String(filters.page)
         if (filters.limit) query.limit = String(filters.limit)
 
@@ -146,7 +148,7 @@ export function useUpdateIngredient() {
       const res = await api.ingredients[':id'].$patch({ param: { id }, json: data })
 
       if (!res.ok) {
-        // attach the HTTP status so callers can distinguish 409 from other errors
+        // We attach the HTTP status to the error so the caller can check for 409 (conflict) specifically
         const body = await res.json().catch(() => null)
         const error = new Error(body?.message ?? 'Failed to update ingredient')
         ;(error as Error & { status: number }).status = res.status

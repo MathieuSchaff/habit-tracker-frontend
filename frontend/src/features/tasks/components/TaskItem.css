@@ -111,7 +111,6 @@
   color: var(--text-muted);
   border: 1px dashed var(--border-default);
   opacity: 0;
-  /* We use normal tracking here so the text is easier to read. */
   letter-spacing: var(--tracking-normal);
   text-transform: none;
 }

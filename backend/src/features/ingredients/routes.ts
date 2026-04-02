@@ -1,9 +1,6 @@
 import {
   createIngredientSchema,
-  err,
-  errorToStatus,
   HTTP_STATUS,
-  ingredientErrorMapping,
   ingredientsSearchSchema,
   ok,
   updateIngredientRouteSchema,
@@ -16,7 +13,6 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
 import { listProductsByIngredient } from '../products/product-ingredients/product-ingredients.service'
-import { IngredientError } from './ingredients-error'
 import {
   createIngredient,
   deleteIngredient,
@@ -47,18 +43,6 @@ const ingredientsApp = new Hono<AppEnv>()
 ingredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
-})
-
-// I catch my IngredientError here to transform it into a nice JSON response.
-// If it is another type of error, I log it and send a "server error" message.
-ingredientsApp.onError((error, c) => {
-  if (error instanceof IngredientError) {
-    return c.json(err(error.code, error.details), errorToStatus(error.code, ingredientErrorMapping))
-  }
-
-  console.error('Unexpected error:', error)
-
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
 
 export const ingredientRoutes = ingredientsApp

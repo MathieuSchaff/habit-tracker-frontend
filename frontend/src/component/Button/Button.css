@@ -3,90 +3,138 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  border-radius: var(--radius-full);
   font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  transition: background-color var(--transition-fast);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  line-height: 1;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  background: none;
+  color: var(--text-primary);
+  align-self: flex-start;
+  min-height: 2rem;
 }
 
-:disabled {
+.button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.sm {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-base);
+/* Sizing */
+.button.sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
 }
 
-.md {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-base);
+.button.md {
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
 }
 
-.lg {
+.button.lg {
   padding: var(--space-3) var(--space-6);
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
 }
 
-.full-width {
+.button.full-width {
   width: 100%;
 }
 
-.loading {
+.button.loading {
   opacity: 0.7;
   cursor: wait;
 }
 
-.primary {
+.button.primary {
   background: var(--color-primary);
   color: var(--color-primary-text, var(--text-inverse));
+  border: none;
 }
 
-.primary:hover:not(:disabled) {
+.button.primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
 }
 
-.secondary {
-  background: var(--color-secondary);
-  color: var(--text-primary);
+.button.secondary,
+.button.default {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
 }
 
-.secondary:hover:not(:disabled) {
-  background: var(--color-secondary-hover);
+.button.secondary:hover:not(:disabled),
+.button.default:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--bg-hover);
+  border-color: var(--color-primary);
 }
 
-.outline {
+.button.outline {
   background: transparent;
   border: 1px solid var(--border-strong);
   color: var(--text-primary);
 }
 
-.outline:hover:not(:disabled) {
-  background: var(--bg-muted);
-}
-
-.ghost {
-  background: transparent;
-  color: var(--text-primary);
-}
-
-.ghost:hover:not(:disabled) {
-  background: var(--bg-muted);
-}
-
-.pill {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-full);
-  color: var(--text-secondary);
-  gap: var(--space-1);
-}
-
-.pill:hover:not(:disabled) {
-  color: var(--color-primary);
+.button.outline:hover:not(:disabled) {
   background: var(--bg-hover);
   border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  font-size: var(--text-xs);
+}
+
+.button.ghost:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--color-primary-hover);
+}
+
+.button.danger-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-accent);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  font-size: var(--text-xs);
+}
+
+.button.danger-ghost:hover:not(:disabled) {
+  background: oklch(from var(--color-accent) l c h / 0.1);
+  color: var(--color-accent-hover);
+}
+
+.button.nav-item {
+  padding: 0.5rem 1rem;
+  font-size: var(--text-xs);
+}
+
+.button.accent {
+  background: var(--color-accent);
+  color: var(--color-primary-text);
+  border: none;
+  font-weight: var(--font-bold);
+  box-shadow: var(--shadow-sm);
+}
+
+.button.accent:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.button svg {
+  flex-shrink: 0;
 }

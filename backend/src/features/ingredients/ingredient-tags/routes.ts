@@ -1,11 +1,8 @@
 import {
   addIngredientTagSchema,
-  err,
-  errorToStatus,
   HTTP_STATUS,
   ok,
   replaceIngredientTagsSchema,
-  tagErrorMapping,
 } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
@@ -32,15 +29,6 @@ const ingredientTagsApp = new Hono<AppEnv>()
 ingredientTagsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
-})
-
-// If something goes wrong with the tags, I catch the error here to send a clear message to the front-end.
-ingredientTagsApp.onError((error, c) => {
-  if (error instanceof TagError) {
-    return c.json(err(error.code, error.details), errorToStatus(error.code, tagErrorMapping))
-  }
-  console.error('Unexpected error:', error)
-  return c.json(err('server_error'), HTTP_STATUS.INTERNAL_SERVER_ERROR)
 })
 
 export const ingredientTagRoutes = ingredientTagsApp

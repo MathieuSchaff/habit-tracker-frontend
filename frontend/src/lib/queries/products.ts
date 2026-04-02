@@ -14,6 +14,7 @@ export type ListProductsFilters = {
   attribute?: string | string[]
   routine_step?: string | string[]
   ingredient?: string | string[]
+  sort?: 'name' | 'random'
   page?: number
   limit?: number
 }
@@ -46,7 +47,7 @@ export const productQueries = {
       queryFn: async () => {
         const query: Record<string, string | string[]> = {}
 
-        // Backend expects filters as comma-separated strings, not arrays
+        // The API only accepts comma-separated strings, not real arrays, so we join before sending
         const addParam = (key: string, value: string | string[] | undefined) => {
           if (!value) return
           const arr = Array.isArray(value) ? value : [value]
@@ -64,6 +65,8 @@ export const productQueries = {
         addParam('attribute', filters.attribute)
         addParam('routine_step', filters.routine_step)
         addParam('ingredient', filters.ingredient)
+
+        if (filters.sort !== undefined) query.sort = filters.sort
 
         if (filters.page !== undefined) query.page = String(filters.page)
         if (filters.limit !== undefined) query.limit = String(filters.limit)

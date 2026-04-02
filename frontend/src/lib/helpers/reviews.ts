@@ -1,8 +1,5 @@
 import type { DisplayScale } from '@habit-tracker/shared'
 
-/**
- * Each rating is optional so users can review only the criteria they care about.
- */
 export interface ReviewCriteria {
   tolerance?: number | null
   efficacy?: number | null
@@ -13,8 +10,7 @@ export interface ReviewCriteria {
 }
 
 /**
- * Weights define how much each criterion matters in the final score.
- * Higher value = more important. 0 means we ignore it.
+ * Each key maps to a weight for the final score. A weight of 0 means that criterion is skipped.
  */
 export interface CriteriaWeights {
   tolerance: number
@@ -44,8 +40,8 @@ const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
 ]
 
 /**
- * Compute weighted average score from criteria ratings, then convert to requested scale.
- * Only considers criteria with non-zero ratings to avoid pulling the score down.
+ * Returns the weighted average of all rated criteria, scaled to the requested display format.
+ * Criteria with a null or zero rating are excluded so they don't drag the score down.
  */
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
@@ -70,7 +66,6 @@ export function calculateWeightedScore(
 
   const scoreOutOf5 = totalPoints / totalWeight
 
-  // Convert the base score (out of 5) to the requested UI scale
   switch (scale) {
     case 'out_of_5':
       return scoreOutOf5.toFixed(1)

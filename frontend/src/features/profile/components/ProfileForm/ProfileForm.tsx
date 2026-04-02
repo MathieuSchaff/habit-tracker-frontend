@@ -23,7 +23,6 @@ export const ProfileForm = ({
   isPending,
   error,
 }: ProfileFormProps) => {
-  // We use local state because the form is simple and we don't need a library.
   const [username, setUsername] = useState(profile.username ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')

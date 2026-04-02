@@ -1,7 +1,6 @@
 /**
- * We stop the page scroll when a modal is open.
- * We use fixed position on the body because "overflow: hidden" does not work
- * well on iPhone. We also save the scroll position to restore it later.
+ * Uses fixed positioning instead of overflow: hidden because iOS Safari ignores
+ * overflow: hidden on the body. The scroll position is saved and restored on unlock.
  */
 
 import { useEffect } from 'react'

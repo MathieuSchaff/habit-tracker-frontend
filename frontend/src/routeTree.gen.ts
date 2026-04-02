@@ -25,12 +25,12 @@ import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug.index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug.index'
 import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug.edit'
 import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug.edit'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const VerifyPendingRoute = VerifyPendingRouteImport.update({
   id: '/verify-pending',
@@ -111,11 +111,6 @@ const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
   path: '/habits',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
@@ -141,6 +136,11 @@ const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => IngredientsSlugRoute,
 } as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,7 +150,6 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -160,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof ProductsNewRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
@@ -173,7 +173,6 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -181,6 +180,7 @@ export interface FileRoutesByTo {
   '/products/new': typeof ProductsNewRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug': typeof IngredientsSlugIndexRoute
@@ -196,7 +196,6 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/verify-pending': typeof VerifyPendingRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -206,6 +205,7 @@ export interface FileRoutesById {
   '/products/new': typeof ProductsNewRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
@@ -221,7 +221,6 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/verify-pending'
     | '/collection'
-    | '/dashboard'
     | '/habits'
     | '/profile'
     | '/tasks'
@@ -231,6 +230,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/ingredients/'
     | '/products/'
+    | '/auth/google/callback'
     | '/ingredients/$slug/edit'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
@@ -244,7 +244,6 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/verify-pending'
     | '/collection'
-    | '/dashboard'
     | '/habits'
     | '/profile'
     | '/tasks'
@@ -252,6 +251,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/ingredients'
     | '/products'
+    | '/auth/google/callback'
     | '/ingredients/$slug/edit'
     | '/products/$slug/edit'
     | '/ingredients/$slug'
@@ -266,7 +266,6 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/verify-pending'
     | '/_authenticated/collection'
-    | '/_authenticated/dashboard'
     | '/_authenticated/habits'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
@@ -276,6 +275,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/ingredients/'
     | '/products/'
+    | '/auth/google/callback'
     | '/ingredients/$slug/edit'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
@@ -296,6 +296,7 @@ export interface RootRouteChildren {
   ProductsNewRoute: typeof ProductsNewRoute
   IngredientsIndexRoute: typeof IngredientsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -412,13 +413,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHabitsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/collection': {
       id: '/_authenticated/collection'
       path: '/collection'
@@ -454,12 +448,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IngredientsSlugEditRouteImport
       parentRoute: typeof IngredientsSlugRoute
     }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -467,7 +467,6 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
@@ -519,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsNewRoute: ProductsNewRoute,
   IngredientsIndexRoute: IngredientsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

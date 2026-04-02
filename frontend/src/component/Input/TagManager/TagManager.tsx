@@ -9,7 +9,6 @@ type TagManagerProps = {
   onAddTag: (tagId: string) => void
   onRemoveTag: (tagId: string) => void
   onUpdateRelevance: (tagId: string, relevance: 'primary' | 'secondary' | 'avoid') => void
-  // Optional custom class for the root element
   className?: string
 }
 
@@ -23,7 +22,6 @@ export function TagManager({
 }: TagManagerProps) {
   return (
     <div className={`tag-manager ${className}`}>
-      {/* List of active tags */}
       <div className="tag-manager__list">
         {tags.map((tag) => (
           <div key={tag.tagId} className={`tag-item tag-item--${tag.relevance}`}>
@@ -52,7 +50,6 @@ export function TagManager({
         ))}
       </div>
 
-      {/* Add tag dropdown */}
       <div className="tag-manager__add">
         <select
           className="tag-manager__select"
@@ -61,7 +58,7 @@ export function TagManager({
           onChange={(e) => {
             if (e.target.value) {
               onAddTag(e.target.value)
-              e.target.value = '' // Reset dropdown after selection
+              e.target.value = ''
             }
           }}
         >

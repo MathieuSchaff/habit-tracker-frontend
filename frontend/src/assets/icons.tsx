@@ -1,3 +1,5 @@
+import type { LucideProps } from 'lucide-react'
+
 /**
  * product-icon-alternatives.tsx
  *
@@ -6,13 +8,7 @@
 
 // TUBE ICONS
 
-export function TubeIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function TubeIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -23,6 +19,7 @@ export function TubeIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de tube</title>
       <rect x="5.5" y="7.5" width="13" height="9" rx="3.5" />
@@ -33,9 +30,16 @@ export function TubeIconA({
 }
 export const TubeIcon = TubeIconA
 
-export function TubeIconB({ size = 24 }: { size?: number }) {
+export function TubeIconB({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de tube</title>
       <path d="M121.829,0l1.535,76.78l33.727,302.372V512h197.818V379.151L388.546,77.57l0.088-0.79L390.171,0H121.829z M320,477.091h-29.583C287.645,460.581,273.296,448,256,448c-17.295,0-31.645,12.582-34.417,29.091H192v-81.455h128V477.091z M321.839,360.727H190.161l-28.553-256h188.784L321.839,360.727z M353.857,69.818H158.142l-0.699-34.909h197.114L353.857,69.818z" />
       <rect x="209.455" y="186.182" width="93.091" height="34.909" />
@@ -44,18 +48,32 @@ export function TubeIconB({ size = 24 }: { size?: number }) {
   )
 }
 
-export function TubeIconC({ size = 24 }: { size?: number }) {
+export function TubeIconC({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de tube</title>
       <path d="M380.919,8.209C376.352,2.992,369.754,0,362.82,0H149.179c-6.934,0-13.532,2.992-18.099,8.209 c-4.568,5.217-6.664,12.151-5.749,19.026l51.925,390.038c1.188,8.909,7.229,16.177,15.227,19.272v66.833 c0,4.763,3.86,8.622,8.622,8.622h113.755c4.762,0,8.622-3.859,8.622-8.622V434.57c5.98-3.691,10.284-9.93,11.265-17.298 l51.923-390.038C387.585,20.36,385.488,13.426,380.919,8.209z M236.941,494.756c3.636-6.682,11.333-11.316,20.248-11.316c8.914,0,16.61,4.634,20.246,11.316H236.941z M306.235,494.756h-0.001h-10.404c-4.167-16.356-19.906-28.56-38.643-28.56c-18.737,0-34.476,12.204-38.644,28.56h-8.818v-56.6 h96.511V494.756z M369.576,24.96l-1.7,12.77h-184.3c-4.762,0-8.622,3.859-8.622,8.622c0,4.763,3.86,8.622,8.622,8.622H365.58 l-47.929,360.024c-0.449,3.373-3.353,5.916-6.755,5.916H201.104c-3.402,0-6.307-2.544-6.755-5.916L142.423,24.96 c-0.355-2.666,0.868-4.522,1.629-5.39c0.76-0.868,2.437-2.324,5.126-2.324H362.82c2.689,0,4.366,1.458,5.126,2.324 C368.708,20.437,369.93,22.294,369.576,24.96z" />
     </svg>
   )
 }
 
-export function TubeIconD({ size = 24 }: { size?: number }) {
+export function TubeIconD({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de tube</title>
       <path
         fill="#414042"
@@ -77,9 +95,16 @@ export function TubeIconD({ size = 24 }: { size?: number }) {
   )
 }
 
-export function TubeIconE({ size = 24 }: { size?: number }) {
+export function TubeIconE({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de tube</title>
       <path fill="#FFE9BF" d="M141.743,371.807h228.515v64.999H141.743z" />
       <path fill="#FFE9BF" d="M106.511,0h298.978v50.311H106.511z" />
@@ -94,13 +119,7 @@ export function TubeIconE({ size = 24 }: { size?: number }) {
 
 // CREAM JAR ICONS
 
-export function CreamJarIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function CreamJarIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -111,6 +130,7 @@ export function CreamJarIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de pot de crème</title>
       <path d="M4 14 L4 19 Q4 21 12 21 Q20 21 20 19 L20 14" />
@@ -121,9 +141,16 @@ export function CreamJarIconA({
 }
 export const CreamJarIcon = CreamJarIconA
 
-export function CreamJarIconB({ size = 24 }: { size?: number }) {
+export function CreamJarIconB({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512.001 512.001" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512.001 512.001"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pot de crème</title>
       <path d="M495.137,245.057h-16.684v-27.807c0-27.599-22.453-50.052-50.052-50.052h-0.611 c28.879-51.678,22.021-116.479-20.588-161.915C396.898-5.708,378.35,1.589,378.35,16.696c0,34.628-25.946,50.4-50.052,50.4 H217.071c-58.733,0-107.47,43.582-115.591,100.104H83.6c-27.599,0-50.052,22.453-50.052,50.052v27.807H16.864 c-9.214,0-16.684,7.47-16.684,16.684v166.839c0,45.998,37.422,83.42,83.42,83.42h344.801c45.998,0,83.42-37.422,83.42-83.42 V261.742C511.821,252.527,504.351,245.057,495.137,245.057z M217.071,100.463h111.226c31.126,0,59.805-15.638,74.056-43.437 c16.408,35.852,11.46,78.312-14.85,110.173H135.328C143.079,129.171,176.786,100.463,217.071,100.463z M66.916,217.251c0-9.2,7.484-16.684,16.684-16.684c10.106,0,336.397,0,344.801,0c9.2,0,16.684,7.484,16.684,16.684v27.807 H66.916V217.251z M478.453,428.581c0,27.599-22.453,50.052-50.052,50.052H83.6c-27.599,0-50.052-22.453-50.052-50.052V278.425 c11.456,0,433.356,0,444.905,0V428.581z" />
       <path d="M378.35,311.793H133.652c-27.599,0-50.052,22.453-50.052,50.052v33.368c0,27.599,22.453,50.052,50.052,50.052H378.35 c27.599,0,50.052-22.453,50.052-50.052v-33.368C428.401,334.246,405.948,311.793,378.35,311.793z M395.033,395.213c0,9.2-7.484,16.684-16.684,16.684H133.652c-9.2,0-16.684-7.484-16.684-16.684v-33.368 c0-9.2,7.484-16.684,16.684-16.684H378.35c9.2,0,16.684,7.484,16.684,16.684V395.213z" />
@@ -131,9 +158,16 @@ export function CreamJarIconB({ size = 24 }: { size?: number }) {
   )
 }
 
-export function CreamJarIconC({ size = 24 }: { size?: number }) {
+export function CreamJarIconC({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pot de crème</title>
       <circle fill="#9AE1D3" cx="169.858" cy="269.624" r="169.858" />
       <circle fill="#C6F2EA" cx="169.858" cy="269.624" r="145.592" />
@@ -150,9 +184,16 @@ export function CreamJarIconC({ size = 24 }: { size?: number }) {
   )
 }
 
-export function CreamJarIconD({ size = 24 }: { size?: number }) {
+export function CreamJarIconD({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512.001 512.001" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512.001 512.001"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pot de crème</title>
       <path
         fill="#EDA21D"
@@ -172,13 +213,7 @@ export function CreamJarIconD({ size = 24 }: { size?: number }) {
 
 // BOTTLE / PUMP ICONS
 
-export function PumpIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function PumpIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -189,6 +224,7 @@ export function PumpIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de flacon pompe</title>
       <rect x="7" y="10" width="10" height="12" rx="2" />
@@ -201,18 +237,25 @@ export function PumpIconA({
 }
 export const PumpIcon = PumpIconA
 
-export function PumpIconB({ size = 24 }: { size?: number }) {
+export function PumpIconB({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de flacon pompe</title>
       <path d="M339.478,133.565h-33.391V116.87c0-21.766-13.959-40.323-33.391-47.215V33.391h50.087 c9.206,0,16.696,7.49,16.696,16.696v33.391c0,9.22,7.475,16.696,16.696,16.696c9.22,0,16.696-7.475,16.696-16.696V50.087 C372.87,22.469,350.401,0,322.783,0H155.826c-9.22,0-16.696,7.475-16.696,16.696s7.475,16.696,16.696,16.696h83.478v36.263 c-19.433,6.892-33.391,25.45-33.391,47.215v16.696h-33.391c-46.03,0-83.478,37.448-83.478,83.478v244.87 c0,27.618,22.469,50.087,50.087,50.087H372.87c27.618,0,50.087-22.469,50.087-50.087v-244.87 C422.957,171.014,385.508,133.565,339.478,133.565z M239.304,116.87c0-9.206,7.49-16.696,16.696-16.696s16.696,7.49,16.696,16.696v16.696h-33.391V116.87z M389.565,461.913c0,9.206-7.49,16.696-16.696,16.696H139.13c-9.206,0-16.696-7.49-16.696-16.696v-244.87 c0-27.618,22.469-50.087,50.087-50.087c16.643,0,150.591,0,166.957,0c27.618,0,50.087,22.469,50.087,50.087V461.913z" />
     </svg>
   )
 }
 
-export function PumpIconC({ size = 24 }: { size?: number }) {
+export function PumpIconC({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 512 512" fill="none" stroke="none">
+    <svg width={size} height={size} viewBox="0 0 512 512" fill="none" stroke="none" {...props}>
       <title>Icône de flacon pompe</title>
       <path
         fill="#736056"
@@ -238,9 +281,16 @@ export function PumpIconC({ size = 24 }: { size?: number }) {
   )
 }
 
-export function PumpIconD({ size = 24 }: { size?: number }) {
+export function PumpIconD({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="-64 0 512 512" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="-64 0 512 512"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de flacon pompe</title>
       <path d="M235.63,160H84.37a64,64,0,0,0-63.74,58.21L.27,442.21A64,64,0,0,0,64,512H256a64,64,0,0,0,63.74-69.79 l-20.36-224A64,64,0,0,0,235.63,160ZM160,416c-33.12,0-60-26.33-60-58.75,0-25,35.7-75.47,52-97.27 A10,10,0,0,1,168,260c16.33,21.8,52,72.27,52,97.27C220,389.67,193.12,416,160,416Z M379.31,94.06,336,50.74A64,64,0,0,0,290.75,32H224A32,32,0,0,0,192,0H128A32,32,0,0,0,96,32v96H224V96h66.75 l43.31,43.31a16,16,0,0,0,22.63,0l22.62-22.62A16,16,0,0,0,379.31,94.06Z" />
     </svg>
@@ -249,13 +299,7 @@ export function PumpIconD({ size = 24 }: { size?: number }) {
 
 // DROPPER ICONS
 
-export function DropperIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function DropperIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -266,6 +310,7 @@ export function DropperIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de pipette</title>
       <ellipse cx="12" cy="7" rx="3" ry="2.5" />
@@ -276,9 +321,16 @@ export function DropperIconA({
 }
 export const DropperIcon = DropperIconA
 
-export function DropperIconB({ size = 24 }: { size?: number }) {
+export function DropperIconB({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 484.013 484.013" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 484.013 484.013"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pipette</title>
       <path d="M22.93,440.277c0,24.117,19.621,43.736,43.737,43.736s43.737-19.619,43.737-43.736 c0-23.574-26.261-66.084-43.833-91.135C49.029,373.752,22.93,415.67,22.93,440.277z" />
       <path d="M355.409,202.805L251.376,85.273l45.206-40.014l104.033,117.532L355.409,202.805z" />
@@ -288,9 +340,16 @@ export function DropperIconB({ size = 24 }: { size?: number }) {
   )
 }
 
-export function DropperIconC({ size = 24 }: { size?: number }) {
+export function DropperIconC({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 488.393 488.393" fill="currentColor" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 488.393 488.393"
+      fill="currentColor"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pipette</title>
       <path d="M232.562,292.835c3.281,3.273,7.402,5.527,11.973,6.508l67.488,14.477c1.66,0.359,3.363,0.547,5.055,0.547 c6.438,0,12.473-2.504,17.008-7.051c5.813-5.801,8.223-14.047,6.52-22.051l-14.484-67.516 c-0.996-4.547-3.25-8.684-6.516-11.957l-127.902-127.9l11.668-11.666c9.656-9.648,9.656-25.305,0-34.953 c-9.656-9.648,9.656-25.305,0-34.953 c-9.656-9.654-25.297-9.654-34.953,0l-0.465,0.459l-9.063-9.068c-30.219-30.213-79.219-30.221-109.441,0 C34.933,37.178,26.777,56.858,26.777,77.383c0,20.527,8.156,40.215,22.672,54.721l9.059,9.063l-0.465,0.473 c-9.656,9.648-9.656,25.305,0,34.953c4.828,4.828,11.152,7.242,17.477,7.242c6.324,0,12.648-2.414,17.477-7.242 l11.664-11.66L232.562,292.835z M280.148,201.159l-93.418,10.895l-64.594-64.598l52.109-52.104L280.148,201.159z" />
       <path d="M445.14,455.436H225.417c-9.109,0-16.48,7.379-16.48,16.48c0,9.098,7.371,16.477,16.48,16.477H445.14 c9.09,0,16.477-7.379,16.477-16.477C461.616,462.815,454.23,455.436,445.14,455.436z" />
@@ -299,9 +358,16 @@ export function DropperIconC({ size = 24 }: { size?: number }) {
   )
 }
 
-export function DropperIconD({ size = 24 }: { size?: number }) {
+export function DropperIconD({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 489.994 489.994" fill="none" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 489.994 489.994"
+      fill="none"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de pipette</title>
       <rect fill="#89CC86" x="152.954" y="107.384" width="184.087" height="53.692" />
       <path
@@ -325,13 +391,7 @@ export function DropperIconD({ size = 24 }: { size?: number }) {
 
 // SPF / SUN ICONS
 
-export function SpfIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function SpfIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -342,6 +402,7 @@ export function SpfIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de protection solaire</title>
       <rect x="3" y="9" width="10" height="12" rx="2" />
@@ -357,9 +418,16 @@ export function SpfIconA({
 }
 export const SpfIcon = SpfIconA
 
-export function SpfIconB({ size = 24 }: { size?: number }) {
+export function SpfIconB({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 390.271 390.271" fill="none" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 390.271 390.271"
+      fill="none"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de protection solaire</title>
       <path
         fill="#FFC10D"
@@ -382,9 +450,16 @@ export function SpfIconB({ size = 24 }: { size?: number }) {
   )
 }
 
-export function SpfIconC({ size = 24 }: { size?: number }) {
+export function SpfIconC({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 480.008 480.008" fill="none" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 480.008 480.008"
+      fill="none"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de protection solaire</title>
       <path
         fill="#FCB641"
@@ -407,9 +482,9 @@ export function SpfIconC({ size = 24 }: { size?: number }) {
   )
 }
 
-export function SpfIconD({ size = 24 }: { size?: number }) {
+export function SpfIconD({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 297 297" fill="none" stroke="none">
+    <svg width={size} height={size} viewBox="0 0 297 297" fill="none" stroke="none" {...props}>
       <title>Icône de protection solaire</title>
       <path
         fill="#000000"
@@ -424,9 +499,16 @@ export function SpfIconD({ size = 24 }: { size?: number }) {
   )
 }
 
-export function SpfIconE({ size = 24 }: { size?: number }) {
+export function SpfIconE({ size = 24, ...props }: LucideProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 394.475 394.475" fill="none" stroke="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 394.475 394.475"
+      fill="none"
+      stroke="none"
+      {...props}
+    >
       <title>Icône de protection solaire</title>
       <path
         fill="#57C3FF"
@@ -445,13 +527,7 @@ export function SpfIconE({ size = 24 }: { size?: number }) {
 
 // SPRAY ICONS
 
-export function SprayIconA({
-  size = 24,
-  strokeWidth = 1.75,
-}: {
-  size?: number
-  strokeWidth?: number
-}) {
+export function SprayIconA({ size = 24, strokeWidth = 1.75, ...props }: LucideProps) {
   return (
     <svg
       width={size}
@@ -462,6 +538,7 @@ export function SprayIconA({
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <title>Icône de spray</title>
       <path d="M7 10.5 L7 20 Q7 21.5 11 21.5 L15 21.5 Q17 21.5 17 20 L17 10.5 Z" />
@@ -472,4 +549,37 @@ export function SprayIconA({
     </svg>
   )
 }
+
+// CHEST ICON
+
+export function ChestIcon({ size = 24, ...props }: LucideProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor" {...props}>
+      <title>Icône de coffre</title>
+      <path d="M184,40H72A56.06,56.06,0,0,0,16,96v96a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V96A56.06,56.06,0,0,0,184,40Zm40,56v8H192V56.8A40.07,40.07,0,0,1,224,96Zm-88,40H120V104h16Zm-24,16h32a8,8,0,0,0,8-8V120h24v72H80V120h24v24A8,8,0,0,0,112,152Zm40-48V96a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v8H80V56h96v48ZM64,56.8V104H32V96A40.07,40.07,0,0,1,64,56.8ZM32,120H64v72H32Zm192,72H192V120h32v72Z" />
+    </svg>
+  )
+}
 export const SprayIcon = SprayIconA
+
+// HOME ICON
+
+export function HomeIcon({ size = 24, ...props }: LucideProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor" {...props}>
+      <title>Icône d'accueil</title>
+      <path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z" />
+    </svg>
+  )
+}
+
+// PRODUCT NAV ICON
+
+export function ProductNavIcon({ size = 24, ...props }: LucideProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor" {...props}>
+      <title>Icône de produits</title>
+      <path d="M184,96.8V88a32,32,0,0,0-32-32H136V32h32a8,8,0,0,1,8,8,8,8,0,0,0,16,0,24,24,0,0,0-24-24H104a8,8,0,0,0,0,16h16V56H104A32,32,0,0,0,72,88v8.8A40.07,40.07,0,0,0,40,136v80a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V136A40.07,40.07,0,0,0,184,96.8ZM104,72h48a16,16,0,0,1,16,16v8H88V88A16,16,0,0,1,104,72Zm96,144H56V136a24,24,0,0,1,24-24h96a24,24,0,0,1,24,24v80Z" />
+    </svg>
+  )
+}

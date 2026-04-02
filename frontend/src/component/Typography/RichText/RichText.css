@@ -6,7 +6,7 @@
   word-break: break-word;
   white-space: normal;
 
-  /* I remove margins for the first and last element so it is more tight in the box */
+  /* strip margins on the edges so the content doesn't double up spacing with the container */
   & > :first-child {
     margin-top: 0;
   }

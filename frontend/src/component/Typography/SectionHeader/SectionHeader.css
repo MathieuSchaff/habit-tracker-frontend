@@ -14,7 +14,6 @@
   gap: var(--space-3);
 }
 
-/* Ligne décorative */
 .section-header__title::after {
   content: "";
   flex: 1;
@@ -33,7 +32,6 @@
   letter-spacing: normal;
 }
 
-/* Variantes */
 .section-header--error .section-header__title {
   color: var(--color-error);
 }
@@ -47,7 +45,7 @@
   color: var(--color-error);
 }
 
-/* Version par défaut plus sobre */
+/* default variant uses lighter styles to stay visually quiet */
 .section-header--default .section-header__title {
   font-family: var(--font-sans);
   font-size: var(--text-xs);
