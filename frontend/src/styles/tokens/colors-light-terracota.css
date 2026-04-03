@@ -26,7 +26,7 @@
   --iron-lighter: oklch(36% 0.14 var(--h-iron));
   --forest-green: oklch(75.42% 0.1726 var(--h-forest));
   --mango-bright: oklch(82% 0.18 var(--h-mango));
-  --text-inverse-warm: oklch(97% 0.015 80);
+  --text-inverse-warm: oklch(100% 0 0);
 
   --color-primary: oklch(50% 0.2 var(--h-forest));
   --color-primary-hover: oklch(44% 0.2 var(--h-forest));
@@ -37,16 +37,18 @@
   --color-sidebar-bg: var(--oxydized-iron);
   --color-sidebar-item-hover: oklch(54% 0.16 var(--h-iron));
   --color-sidebar-item-active: oklch(from var(--text-inverse-warm) l c h / 0.2);
-  --color-sidebar-icon: var(--text-inverse-warm);
-  --color-sidebar-icon-active: var(--text-inverse-warm);
+  --color-sidebar-icon: oklch(100% 0 0);
+  --color-sidebar-icon-active: oklch(100% 0 0);
+  --color-sidebar-text: oklch(100% 0 0);
+  --color-sidebar-text-active: oklch(100% 0 0);
 
   --color-secondary: var(--mango-bright);
   --color-tertiary: var(--forest-green);
 
   --color-header-bg: var(--color-secondary);
   --color-header-border: oklch(72% 0.16 var(--h-papaya));
-  --color-header-action: var(--iron-darker);
-  --color-header-action-border: var(--color-primary-dark);
+  --color-header-action: oklch(100% 0 0);
+  --color-header-action-border: oklch(100% 0 0);
   --color-header-action-bg-hover: oklch(from var(--color-primary-dark) l c h / 0.12);
 
   --text-inverse: var(--text-inverse-warm);
