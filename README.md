@@ -1,8 +1,8 @@
-# Aurore — Skincare & Routine Tracker
+# Aurore — Skincare Inventory & Routine Tracker
 
-I built this because I kept forgetting what products I'd already tested, what was in them, and why I'd stopped using them. I was tracking everything in Markdown files — but it was slow, inflexible, and not enjoyable to use.
+I was tired of switching between brand websites, copying INCI lists into a spreadsheet, then pasting them into an AI to get an opinion — and losing everything between sessions. I had a folder full of dead Markdown files that I never opened anymore.
 
-Aurore replaces that with a real interface. It's designed around low cognitive load: one action at a time, no streaks, no punishment mechanics — built with ADHD in mind.
+Aurore centralizes all of that: a personal database of products and ingredients, with inventory tracking and routine management in one place. It's designed around low cognitive load — one action at a time, no streaks, no punishment mechanics.
 
 ---
 
