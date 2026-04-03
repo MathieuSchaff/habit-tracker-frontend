@@ -118,31 +118,6 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
-/* I try to make a transition when we change the page */
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root) {
-  animation: fadeOut 200ms ease;
-}
-
-::view-transition-new(root) {
-  animation: fadeIn 200ms ease;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-}
-
 /* The math formulas are sometimes broken or go out of the box, so I fix them here */
 .markdown-container .katex-display {
   display: block;

@@ -25,7 +25,48 @@ const router = createRouter({
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
-  defaultViewTransition: true,
+  defaultPendingMs: 200,
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation }) => {
+      if (!fromLocation) return false
+
+      const from = fromLocation.pathname
+      const to = toLocation.pathname
+
+      const isListPath = (p: string) => p === '/products/' || p === '/ingredients/'
+      const isDetailPath = (p: string) =>
+        /^\/(products|ingredients)\/[^/]+\/?$/.test(p)
+      const isSubPage = (p: string) =>
+        /^\/(products|ingredients)\/[^/]+\/(edit|discussions)/.test(p)
+      const isAuth = (p: string) => p.startsWith('/auth/')
+
+      // List <-> Detail: crossfade with shared element morph
+      if (
+        (isListPath(from) && isDetailPath(to)) ||
+        (isDetailPath(from) && isListPath(to))
+      ) {
+        return ['crossfade', 'shared-element']
+      }
+
+      // Detail -> Sub-page: slide forward
+      if (isDetailPath(from) && isSubPage(to)) {
+        return ['slide-forward']
+      }
+
+      // Sub-page -> Detail: slide back
+      if (isSubPage(from) && isDetailPath(to)) {
+        return ['slide-back']
+      }
+
+      // Auth pages: fast fade
+      if (isAuth(from) || isAuth(to)) {
+        return ['fade-fast']
+      }
+
+      // Everything else (main nav, authenticated space): fade + scale
+      return ['fade-scale']
+    },
+  },
 })
 
 declare module '@tanstack/react-router' {

@@ -1,0 +1,150 @@
+/*
+ * Per-route view transitions using the View Transition API.
+ * Types are set dynamically by the router (main.tsx) and matched here
+ * with :active-view-transition-type().
+ */
+
+/* CROSSFADE (list <-> detail, 200ms) */
+
+:root:active-view-transition-type(crossfade) {
+  &::view-transition-old(root) {
+    animation: vt-fade-out 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-fade-in 200ms ease;
+  }
+}
+
+/* SHARED ELEMENTS (350ms, browser interpolates position/size) */
+
+:root:active-view-transition-type(shared-element) {
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    /* Let shared elements animate independently from the page crossfade */
+    mix-blend-mode: normal;
+  }
+
+  /* view-transition-name values are slug-suffixed (e.g. product-name-cerave-cream)
+     so we use a wildcard via @supports — or target them by the containing rule.
+     The browser matches any view-transition-group that is NOT root. */
+  &::view-transition-group(*) {
+    animation-duration: 350ms;
+    animation-timing-function: ease-out;
+  }
+
+  /* Keep root at crossfade speed */
+  &::view-transition-group(root) {
+    animation-duration: 200ms;
+    animation-timing-function: ease;
+  }
+}
+
+/* SLIDE FORWARD (detail -> sub-page, 200ms) */
+
+:root:active-view-transition-type(slide-forward) {
+  &::view-transition-old(root) {
+    animation: vt-slide-out-left 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-slide-in-right 200ms ease;
+  }
+}
+
+/* SLIDE BACK (sub-page -> detail, 200ms) */
+
+:root:active-view-transition-type(slide-back) {
+  &::view-transition-old(root) {
+    animation: vt-slide-out-right 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-slide-in-left 200ms ease;
+  }
+}
+
+/* FADE FAST (auth pages, 150ms) */
+
+:root:active-view-transition-type(fade-fast) {
+  &::view-transition-old(root) {
+    animation: vt-fade-out 150ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-fade-in 150ms ease;
+  }
+}
+
+/* FADE SCALE (main nav + authenticated space, 200ms) */
+
+:root:active-view-transition-type(fade-scale) {
+  &::view-transition-old(root) {
+    animation: vt-fade-scale-out 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-fade-scale-in 200ms ease;
+  }
+}
+
+/* KEYFRAMES */
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-slide-out-left {
+  to {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-slide-in-right {
+  from {
+    transform: translateX(30%);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-slide-out-right {
+  to {
+    transform: translateX(30%);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-slide-in-left {
+  from {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-scale-out {
+  to {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-scale-in {
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: disable all view transition animations */
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation: none !important;
+  }
+}
