@@ -18,6 +18,7 @@
 @import "./tokens/utilities.css" layer(utilities);
 
 @import "./global.css" layer(base);
+@import "./view-transitions.css" layer(base);
 @import "./scroll-bar.css" layer(base);
 
 @import "../component/Button/Button.css" layer(components);
