@@ -13,6 +13,7 @@ import { Hono } from 'hono'
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
 import {
+  deleteUser,
   getDermoProfile,
   getProfile,
   getProfileStats,
@@ -89,4 +90,10 @@ export const profileRoute = app
     const data = c.req.valid('json')
     const updated = await upsertDermoProfile(db, userId, data)
     return c.json(ok(updated), HTTP_STATUS.OK)
+  })
+  .delete('/deleteUser', async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    deleteUser(db, userId)
+    return c.body(null, 204)
   })

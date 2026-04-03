@@ -71,12 +71,12 @@
   cursor: pointer;
   padding: 0.6rem;
   border-radius: var(--radius-md);
-  color: oklch(from var(--color-sidebar-bg) 65% 0.02 h);
+  color: var(--color-sidebar-icon);
   transition: all 0.3s ease;
 
   &:hover {
-    background: oklch(from var(--color-sidebar-bg) 35% 0.05 h);
-    color: oklch(100% 0 0);
+    background: var(--color-sidebar-item-hover);
+    color: var(--color-sidebar-icon-active, oklch(100% 0 0));
   }
 
   &:focus-visible {

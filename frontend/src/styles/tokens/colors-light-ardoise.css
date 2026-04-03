@@ -17,17 +17,19 @@
   --color-tertiary: oklch(66% 0.12 65);
 
   /* Sidebar */
-  --color-sidebar-bg: oklch(26% 0.1 240);
+  --color-sidebar-bg: oklch(25% 0.08 240);
   --color-sidebar-item-hover: oklch(32% 0.1 240);
-  --color-sidebar-item-active: oklch(from oklch(99% 0.003 240) l c h / 0.2);
-  --color-sidebar-icon: oklch(86% 0.04 240);
-  --color-sidebar-icon-active: oklch(76% 0.16 65);
+  --color-sidebar-item-active: oklch(from oklch(100% 0 0) l c h / 0.2);
+  --color-sidebar-icon: oklch(100% 0 0);
+  --color-sidebar-icon-active: oklch(100% 0 0);
+  --color-sidebar-text: oklch(100% 0 0);
+  --color-sidebar-text-active: oklch(100% 0 0);
 
   /* Header */
   --color-header-bg: oklch(99.5% 0.003 240);
   --color-header-border: oklch(88% 0.04 240);
-  --color-header-action: oklch(35% 0.12 240);
-  --color-header-action-border: oklch(25% 0.1 240);
+  --color-header-action: oklch(25% 0.08 240);
+  --color-header-action-border: oklch(25% 0.08 240);
   --color-header-action-bg-hover: oklch(from oklch(35% 0.12 240) l c h / 0.08);
 
   /* Text */

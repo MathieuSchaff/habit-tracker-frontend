@@ -20,6 +20,7 @@ import {
   profiles,
   type UserDermoProfileRow,
   userDermoProfiles,
+  users,
 } from '../../db/schema/users'
 import { getHabitStreak } from '../habits/service'
 
@@ -216,4 +217,9 @@ export async function getProfileStats(db: Database, userId: string): Promise<Pro
     bestStreak,
     totalProducts: productCount?.count ?? 0,
   }
+}
+
+export async function deleteUser(db: Database, userId: string) {
+  const deletedUser = await db.delete(users).where(eq(users.id, userId)).returning()
+  return deletedUser
 }

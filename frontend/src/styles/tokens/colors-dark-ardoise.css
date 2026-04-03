@@ -39,41 +39,42 @@
   --color-header-action: var(--primary-60);
   --color-header-action-bg-hover: oklch(from var(--primary-60) l c h / 0.15);
 
-  --color-sidebar-bg: oklch(20% 0.09 245deg);
+  --color-sidebar-bg: oklch(20% 0.08 245deg);
   --color-sidebar-item-hover: oklch(26% 0.1 245deg);
-  --color-sidebar-item-active: oklch(28% 0.11 245deg);
-  --color-sidebar-icon: oklch(68% 0.08 330deg);
-  --color-sidebar-icon-active: oklch(76% 0.16 65deg);
-  --color-sidebar-text: oklch(70% 0.06 330deg);
-  --color-sidebar-text-active: oklch(80% 0.16 65deg);
+  --color-sidebar-item-active: oklch(30% 0.12 245deg);
+  --color-sidebar-icon: oklch(100% 0 0);
+  --color-sidebar-icon-active: oklch(100% 0 0);
+  --color-sidebar-text: oklch(100% 0 0);
+  --color-sidebar-text-active: oklch(100% 0 0);
 
-  --bg-page: oklch(13% 0.05 240deg);
-  --bg-card: oklch(17% 0.07 240deg);
-  --bg-muted: oklch(11% 0.04 240deg);
-  --bg-elevated: oklch(21% 0.08 240deg);
-  --bg-sunken: oklch(9% 0.04 240deg);
-  --bg-hover: oklch(24% 0.08 240deg);
-  --bg-active: oklch(28% 0.1 240deg);
+  --bg-page: oklch(18% 0.04 240deg);
+  --bg-card: oklch(22% 0.05 240deg);
+  --bg-muted: oklch(15% 0.03 240deg);
+  --bg-elevated: oklch(28% 0.06 240deg);
+  --bg-sunken: oklch(12% 0.03 240deg);
+  --bg-hover: oklch(30% 0.06 240deg);
+  --bg-active: oklch(34% 0.08 240deg);
   --bg-selected: oklch(28% 0.12 var(--hue-primary) / 0.3);
 
-  --text-primary: oklch(93% 0.02 240deg);
-  --text-secondary: oklch(76% 0.04 240deg);
-  --text-muted: oklch(50% 0.04 240deg);
-  --text-inverse: oklch(11% 0.04 240deg);
+  --text-primary: oklch(98% 0.01 240deg);
+  --text-secondary: oklch(85% 0.02 240deg);
+  --text-muted: oklch(60% 0.03 240deg);
+  --text-inverse: oklch(15% 0.02 240deg);
 
   --card-accent-border: var(--color-primary);
-  --card-icon-bg: oklch(24% 0.09 240deg);
+  --card-icon-bg: oklch(28% 0.08 240deg);
   --card-icon-color: var(--primary-75);
 
-  --tag-default-bg: oklch(24% 0.09 var(--hue-primary));
-  --tag-default-text: oklch(68% 0.14 var(--hue-primary));
+  --tag-default-bg: oklch(30% 0.08 var(--hue-primary));
+  --tag-default-text: oklch(80% 0.12 var(--hue-primary));
   --tag-active-bg: oklch(from var(--primary-40) l c h / 0.5);
   --tag-active-text: var(--primary-75);
 
-  --border-default: oklch(36% 0.13 var(--hue-primary));
+  --border-default: oklch(45% 0.08 var(--hue-primary));
   --border-strong: var(--primary-60);
   --shadow-color: oklch(0% 0 0 / 0.5);
   --shadow-hard: 0 8px 24px var(--shadow-color);
   --shadow-card: 0 4px 16px var(--shadow-color);
-  --overlay: oklch(4% 0.06 240deg / 0.75);
+  --overlay: oklch(5% 0.05 240deg / 0.7);
+  --hero-glow: oklch(25% 0.06 240deg);
 }

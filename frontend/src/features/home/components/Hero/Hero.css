@@ -6,7 +6,11 @@
   justify-content: center;
   padding: 2rem;
   overflow: hidden;
-  background: radial-gradient(circle at 70% 30%, oklch(98% 0.01 190deg) var(--bg-page));
+  background: radial-gradient(
+    circle at 70% 30%,
+    var(--hero-glow, oklch(98% 0.01 190deg)) 0%,
+    var(--bg-page) 70%
+  );
 }
 
 .hero-content {
@@ -94,7 +98,7 @@
 }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--bg-card);
   color: var(--text-primary);
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -102,10 +106,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .btn-secondary:hover {
-  background: var(--bg-muted);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
 .hero-visuals {

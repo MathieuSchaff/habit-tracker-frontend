@@ -95,11 +95,11 @@
 }
 
 .user-menu__item--danger {
-  color: oklch(50% 0.15 20deg);
+  color: var(--color-error);
 }
 
 .user-menu__item--danger:hover {
-  background: oklch(95% 0.05 20deg);
+  background: var(--color-error-light, oklch(from var(--color-error) l c h / 0.1));
 }
 
 @keyframes slide-up {

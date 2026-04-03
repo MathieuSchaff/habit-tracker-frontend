@@ -37,7 +37,6 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull().default('user'),
-    isDemo: boolean('is_demo').notNull().default(false),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     isDemo: boolean('is_demo').notNull().default(false),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
