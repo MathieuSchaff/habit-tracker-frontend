@@ -11,6 +11,7 @@ const TanStackRouterDevtools = import.meta.env.DEV
   : () => null
 
 import { GlobalError } from '../component/Feedback/GlobalError/GlobalError'
+import { NavigationProgress } from '../component/Feedback/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
 import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'
@@ -25,6 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   },
   component: () => (
     <>
+      <NavigationProgress />
       <AppLayout />
       <Suspense>
         <TanStackRouterDevtools />

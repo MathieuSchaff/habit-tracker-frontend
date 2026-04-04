@@ -45,7 +45,7 @@ function clearAndRedirect(
   queryClient.removeQueries({ queryKey: ['session'] })
   queryClient.removeQueries({ queryKey: ['auth'] })
   throw redirect({
-    to: '/login',
+    to: '/auth/login',
     search: { redirect: pathname },
   })
 }

@@ -1,27 +1,14 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
-import { z } from 'zod'
 
+import { filterSearchSchema } from '@/component/Filter/helpers'
 import { IngredientsPage } from '../../features/ingredients/components/IngredientsPage'
+import { FILTER_KEYS } from '../../features/ingredients/filters'
 
-const ingredientsSearchSchema = z.object({
-  category: z.string().array().default([]),
-  concern: z.string().array().default([]),
-  skinType: z.string().array().default([]),
-  attribute: z.string().array().default([]),
-  page: z.number().min(1).default(1),
-})
+const { schema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
-const defaultValues = {
-  skinType: [] as string[],
-  concern: [] as string[],
-  attribute: [] as string[],
-  category: [] as string[],
-  page: 1,
-}
 export const Route = createFileRoute('/ingredients/')({
-  // We check the search params and clean the URL if we have defaults.
-  validateSearch: zodValidator(ingredientsSearchSchema),
+  validateSearch: zodValidator(schema),
   search: {
     middlewares: [stripSearchParams(defaultValues)],
   },

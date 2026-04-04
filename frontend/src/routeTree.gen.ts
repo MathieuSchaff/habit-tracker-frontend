@@ -9,11 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerifyPendingRouteImport } from './routes/verify-pending'
-import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as TestSvgRouteImport } from './routes/test-svg'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
@@ -22,45 +18,27 @@ import { Route as ProductsNewRouteImport } from './routes/products/new'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as IngredientsNewRouteImport } from './routes/ingredients/new'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
+import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
+import { Route as AuthSignupRouteImport } from './routes/auth/signup'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
-import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug.index'
-import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug.index'
-import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug.edit'
-import { Route as ProductsSlugDiscussionsRouteImport } from './routes/products/$slug.discussions'
-import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug.edit'
-import { Route as IngredientsSlugDiscussionsRouteImport } from './routes/ingredients/$slug.discussions'
+import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
+import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
+import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug/edit'
+import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug/edit'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
-import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug.discussions.index'
-import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug.discussions.index'
-import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug.discussions.$threadId'
-import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug.discussions.$threadId'
+import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
+import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
+import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
+import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug/discussions/$threadId'
 
-const VerifyPendingRoute = VerifyPendingRouteImport.update({
-  id: '/verify-pending',
-  path: '/verify-pending',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VerifyEmailRoute = VerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TestSvgRoute = TestSvgRouteImport.update({
   id: '/test-svg',
   path: '/test-svg',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -102,6 +80,26 @@ const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
   path: '/ingredients/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthVerifyPendingRoute = AuthVerifyPendingRouteImport.update({
+  id: '/auth/verify-pending',
+  path: '/auth/verify-pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/auth/verify-email',
+  path: '/auth/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -137,22 +135,11 @@ const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => ProductsSlugRoute,
 } as any)
-const ProductsSlugDiscussionsRoute = ProductsSlugDiscussionsRouteImport.update({
-  id: '/discussions',
-  path: '/discussions',
-  getParentRoute: () => ProductsSlugRoute,
-} as any)
 const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => IngredientsSlugRoute,
 } as any)
-const IngredientsSlugDiscussionsRoute =
-  IngredientsSlugDiscussionsRouteImport.update({
-    id: '/discussions',
-    path: '/discussions',
-    getParentRoute: () => IngredientsSlugRoute,
-  } as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
@@ -160,40 +147,40 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
 } as any)
 const ProductsSlugDiscussionsIndexRoute =
   ProductsSlugDiscussionsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProductsSlugDiscussionsRoute,
+    id: '/discussions/',
+    path: '/discussions/',
+    getParentRoute: () => ProductsSlugRoute,
   } as any)
 const IngredientsSlugDiscussionsIndexRoute =
   IngredientsSlugDiscussionsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => IngredientsSlugDiscussionsRoute,
+    id: '/discussions/',
+    path: '/discussions/',
+    getParentRoute: () => IngredientsSlugRoute,
   } as any)
 const ProductsSlugDiscussionsThreadIdRoute =
   ProductsSlugDiscussionsThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => ProductsSlugDiscussionsRoute,
+    id: '/discussions/$threadId',
+    path: '/discussions/$threadId',
+    getParentRoute: () => ProductsSlugRoute,
   } as any)
 const IngredientsSlugDiscussionsThreadIdRoute =
   IngredientsSlugDiscussionsThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => IngredientsSlugDiscussionsRoute,
+    id: '/discussions/$threadId',
+    path: '/discussions/$threadId',
+    getParentRoute: () => IngredientsSlugRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/test-svg': typeof TestSvgRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
@@ -201,9 +188,7 @@ export interface FileRoutesByFullPath {
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
-  '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsRouteWithChildren
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
-  '/products/$slug/discussions': typeof ProductsSlugDiscussionsRouteWithChildren
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
@@ -214,15 +199,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/test-svg': typeof TestSvgRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/verify-pending': typeof VerifyPendingRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/new': typeof IngredientsNewRoute
   '/products/new': typeof ProductsNewRoute
   '/ingredients': typeof IngredientsIndexRoute
@@ -241,15 +226,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/test-svg': typeof TestSvgRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/verify-pending': typeof VerifyPendingRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
@@ -257,9 +242,7 @@ export interface FileRoutesById {
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
-  '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsRouteWithChildren
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
-  '/products/$slug/discussions': typeof ProductsSlugDiscussionsRouteWithChildren
   '/products/$slug/edit': typeof ProductsSlugEditRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
@@ -272,15 +255,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/signup'
     | '/test-svg'
-    | '/verify-email'
-    | '/verify-pending'
     | '/collection'
     | '/habits'
     | '/profile'
     | '/tasks'
+    | '/auth/login'
+    | '/auth/signup'
+    | '/auth/verify-email'
+    | '/auth/verify-pending'
     | '/ingredients/$slug'
     | '/ingredients/new'
     | '/products/$slug'
@@ -288,9 +271,7 @@ export interface FileRouteTypes {
     | '/ingredients/'
     | '/products/'
     | '/auth/google/callback'
-    | '/ingredients/$slug/discussions'
     | '/ingredients/$slug/edit'
-    | '/products/$slug/discussions'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
     | '/products/$slug/'
@@ -301,15 +282,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/login'
-    | '/signup'
     | '/test-svg'
-    | '/verify-email'
-    | '/verify-pending'
     | '/collection'
     | '/habits'
     | '/profile'
     | '/tasks'
+    | '/auth/login'
+    | '/auth/signup'
+    | '/auth/verify-email'
+    | '/auth/verify-pending'
     | '/ingredients/new'
     | '/products/new'
     | '/ingredients'
@@ -327,15 +308,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/login'
-    | '/signup'
     | '/test-svg'
-    | '/verify-email'
-    | '/verify-pending'
     | '/_authenticated/collection'
     | '/_authenticated/habits'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
+    | '/auth/login'
+    | '/auth/signup'
+    | '/auth/verify-email'
+    | '/auth/verify-pending'
     | '/ingredients/$slug'
     | '/ingredients/new'
     | '/products/$slug'
@@ -343,9 +324,7 @@ export interface FileRouteTypes {
     | '/ingredients/'
     | '/products/'
     | '/auth/google/callback'
-    | '/ingredients/$slug/discussions'
     | '/ingredients/$slug/edit'
-    | '/products/$slug/discussions'
     | '/products/$slug/edit'
     | '/ingredients/$slug/'
     | '/products/$slug/'
@@ -358,11 +337,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  SignupRoute: typeof SignupRoute
   TestSvgRoute: typeof TestSvgRoute
-  VerifyEmailRoute: typeof VerifyEmailRoute
-  VerifyPendingRoute: typeof VerifyPendingRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthSignupRoute: typeof AuthSignupRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  AuthVerifyPendingRoute: typeof AuthVerifyPendingRoute
   IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
   IngredientsNewRoute: typeof IngredientsNewRoute
   ProductsSlugRoute: typeof ProductsSlugRouteWithChildren
@@ -374,39 +353,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verify-pending': {
-      id: '/verify-pending'
-      path: '/verify-pending'
-      fullPath: '/verify-pending'
-      preLoaderRoute: typeof VerifyPendingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/verify-email': {
-      id: '/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof VerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/test-svg': {
       id: '/test-svg'
       path: '/test-svg'
       fullPath: '/test-svg'
       preLoaderRoute: typeof TestSvgRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -465,6 +416,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IngredientsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/verify-pending': {
+      id: '/auth/verify-pending'
+      path: '/auth/verify-pending'
+      fullPath: '/auth/verify-pending'
+      preLoaderRoute: typeof AuthVerifyPendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/verify-email': {
+      id: '/auth/verify-email'
+      path: '/auth/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -514,25 +493,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugEditRouteImport
       parentRoute: typeof ProductsSlugRoute
     }
-    '/products/$slug/discussions': {
-      id: '/products/$slug/discussions'
-      path: '/discussions'
-      fullPath: '/products/$slug/discussions'
-      preLoaderRoute: typeof ProductsSlugDiscussionsRouteImport
-      parentRoute: typeof ProductsSlugRoute
-    }
     '/ingredients/$slug/edit': {
       id: '/ingredients/$slug/edit'
       path: '/edit'
       fullPath: '/ingredients/$slug/edit'
       preLoaderRoute: typeof IngredientsSlugEditRouteImport
-      parentRoute: typeof IngredientsSlugRoute
-    }
-    '/ingredients/$slug/discussions': {
-      id: '/ingredients/$slug/discussions'
-      path: '/discussions'
-      fullPath: '/ingredients/$slug/discussions'
-      preLoaderRoute: typeof IngredientsSlugDiscussionsRouteImport
       parentRoute: typeof IngredientsSlugRoute
     }
     '/auth/google/callback': {
@@ -544,31 +509,31 @@ declare module '@tanstack/react-router' {
     }
     '/products/$slug/discussions/': {
       id: '/products/$slug/discussions/'
-      path: '/'
+      path: '/discussions'
       fullPath: '/products/$slug/discussions/'
       preLoaderRoute: typeof ProductsSlugDiscussionsIndexRouteImport
-      parentRoute: typeof ProductsSlugDiscussionsRoute
+      parentRoute: typeof ProductsSlugRoute
     }
     '/ingredients/$slug/discussions/': {
       id: '/ingredients/$slug/discussions/'
-      path: '/'
+      path: '/discussions'
       fullPath: '/ingredients/$slug/discussions/'
       preLoaderRoute: typeof IngredientsSlugDiscussionsIndexRouteImport
-      parentRoute: typeof IngredientsSlugDiscussionsRoute
+      parentRoute: typeof IngredientsSlugRoute
     }
     '/products/$slug/discussions/$threadId': {
       id: '/products/$slug/discussions/$threadId'
-      path: '/$threadId'
+      path: '/discussions/$threadId'
       fullPath: '/products/$slug/discussions/$threadId'
       preLoaderRoute: typeof ProductsSlugDiscussionsThreadIdRouteImport
-      parentRoute: typeof ProductsSlugDiscussionsRoute
+      parentRoute: typeof ProductsSlugRoute
     }
     '/ingredients/$slug/discussions/$threadId': {
       id: '/ingredients/$slug/discussions/$threadId'
-      path: '/$threadId'
+      path: '/discussions/$threadId'
       fullPath: '/ingredients/$slug/discussions/$threadId'
       preLoaderRoute: typeof IngredientsSlugDiscussionsThreadIdRouteImport
-      parentRoute: typeof IngredientsSlugDiscussionsRoute
+      parentRoute: typeof IngredientsSlugRoute
     }
   }
 }
@@ -591,65 +556,37 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface IngredientsSlugDiscussionsRouteChildren {
+interface IngredientsSlugRouteChildren {
+  IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
+  IngredientsSlugIndexRoute: typeof IngredientsSlugIndexRoute
   IngredientsSlugDiscussionsThreadIdRoute: typeof IngredientsSlugDiscussionsThreadIdRoute
   IngredientsSlugDiscussionsIndexRoute: typeof IngredientsSlugDiscussionsIndexRoute
 }
 
-const IngredientsSlugDiscussionsRouteChildren: IngredientsSlugDiscussionsRouteChildren =
-  {
-    IngredientsSlugDiscussionsThreadIdRoute:
-      IngredientsSlugDiscussionsThreadIdRoute,
-    IngredientsSlugDiscussionsIndexRoute: IngredientsSlugDiscussionsIndexRoute,
-  }
-
-const IngredientsSlugDiscussionsRouteWithChildren =
-  IngredientsSlugDiscussionsRoute._addFileChildren(
-    IngredientsSlugDiscussionsRouteChildren,
-  )
-
-interface IngredientsSlugRouteChildren {
-  IngredientsSlugDiscussionsRoute: typeof IngredientsSlugDiscussionsRouteWithChildren
-  IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
-  IngredientsSlugIndexRoute: typeof IngredientsSlugIndexRoute
-}
-
 const IngredientsSlugRouteChildren: IngredientsSlugRouteChildren = {
-  IngredientsSlugDiscussionsRoute: IngredientsSlugDiscussionsRouteWithChildren,
   IngredientsSlugEditRoute: IngredientsSlugEditRoute,
   IngredientsSlugIndexRoute: IngredientsSlugIndexRoute,
+  IngredientsSlugDiscussionsThreadIdRoute:
+    IngredientsSlugDiscussionsThreadIdRoute,
+  IngredientsSlugDiscussionsIndexRoute: IngredientsSlugDiscussionsIndexRoute,
 }
 
 const IngredientsSlugRouteWithChildren = IngredientsSlugRoute._addFileChildren(
   IngredientsSlugRouteChildren,
 )
 
-interface ProductsSlugDiscussionsRouteChildren {
+interface ProductsSlugRouteChildren {
+  ProductsSlugEditRoute: typeof ProductsSlugEditRoute
+  ProductsSlugIndexRoute: typeof ProductsSlugIndexRoute
   ProductsSlugDiscussionsThreadIdRoute: typeof ProductsSlugDiscussionsThreadIdRoute
   ProductsSlugDiscussionsIndexRoute: typeof ProductsSlugDiscussionsIndexRoute
 }
 
-const ProductsSlugDiscussionsRouteChildren: ProductsSlugDiscussionsRouteChildren =
-  {
-    ProductsSlugDiscussionsThreadIdRoute: ProductsSlugDiscussionsThreadIdRoute,
-    ProductsSlugDiscussionsIndexRoute: ProductsSlugDiscussionsIndexRoute,
-  }
-
-const ProductsSlugDiscussionsRouteWithChildren =
-  ProductsSlugDiscussionsRoute._addFileChildren(
-    ProductsSlugDiscussionsRouteChildren,
-  )
-
-interface ProductsSlugRouteChildren {
-  ProductsSlugDiscussionsRoute: typeof ProductsSlugDiscussionsRouteWithChildren
-  ProductsSlugEditRoute: typeof ProductsSlugEditRoute
-  ProductsSlugIndexRoute: typeof ProductsSlugIndexRoute
-}
-
 const ProductsSlugRouteChildren: ProductsSlugRouteChildren = {
-  ProductsSlugDiscussionsRoute: ProductsSlugDiscussionsRouteWithChildren,
   ProductsSlugEditRoute: ProductsSlugEditRoute,
   ProductsSlugIndexRoute: ProductsSlugIndexRoute,
+  ProductsSlugDiscussionsThreadIdRoute: ProductsSlugDiscussionsThreadIdRoute,
+  ProductsSlugDiscussionsIndexRoute: ProductsSlugDiscussionsIndexRoute,
 }
 
 const ProductsSlugRouteWithChildren = ProductsSlugRoute._addFileChildren(
@@ -659,11 +596,11 @@ const ProductsSlugRouteWithChildren = ProductsSlugRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  LoginRoute: LoginRoute,
-  SignupRoute: SignupRoute,
   TestSvgRoute: TestSvgRoute,
-  VerifyEmailRoute: VerifyEmailRoute,
-  VerifyPendingRoute: VerifyPendingRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthSignupRoute: AuthSignupRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  AuthVerifyPendingRoute: AuthVerifyPendingRoute,
   IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
   IngredientsNewRoute: IngredientsNewRoute,
   ProductsSlugRoute: ProductsSlugRouteWithChildren,
