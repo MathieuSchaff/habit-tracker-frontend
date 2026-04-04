@@ -23,7 +23,7 @@ export function BottomNav() {
     logout.mutate(undefined, {
       onSuccess: () => {
         closeSheet()
-        navigate({ to: '/login' })
+        navigate({ to: '/auth/login' })
       },
     })
   }
@@ -86,10 +86,10 @@ export function BottomNav() {
 
             <div className="bottom-nav__sheet-divider" />
 
-            <Link to="/login" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
+            <Link to="/auth/login" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
               Connexion
             </Link>
-            <Link to="/signup" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
+            <Link to="/auth/signup" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
               S'inscrire
             </Link>
           </>

@@ -35,7 +35,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
       onSuccess: () => {
         closeMenu()
         onItemClick?.()
-        navigate({ to: '/login' })
+        navigate({ to: '/auth/login' })
       },
     })
   }
@@ -91,13 +91,13 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
             ) : (
               <>
                 <li>
-                  <Link to="/login" className="user-menu__item" onClick={handleItemClick}>
+                  <Link to="/auth/login" className="user-menu__item" onClick={handleItemClick}>
                     <LogIn size={16} />
                     <span>Connexion</span>
                   </Link>
                 </li>
                 <li>
-                  <Link to="/signup" className="user-menu__item" onClick={handleItemClick}>
+                  <Link to="/auth/signup" className="user-menu__item" onClick={handleItemClick}>
                     <UserPlus size={16} />
                     <span>S'inscrire</span>
                   </Link>

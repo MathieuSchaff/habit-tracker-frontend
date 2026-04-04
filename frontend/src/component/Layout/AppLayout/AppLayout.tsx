@@ -9,7 +9,7 @@ import { Header } from '../../Header/Header'
 
 export const AppLayout = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const isAuthRoute = ['/login', '/signup', '/verify-email', '/verify-pending'].includes(pathname)
+  const isAuthRoute = pathname.startsWith('/auth/')
 
   const user = useAuthStore((s) => s.user)
   const emailVerified = useAuthStore((s) => s.emailVerified)

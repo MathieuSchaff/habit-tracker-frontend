@@ -34,17 +34,13 @@ const router = createRouter({
       const to = toLocation.pathname
 
       const isListPath = (p: string) => p === '/products/' || p === '/ingredients/'
-      const isDetailPath = (p: string) =>
-        /^\/(products|ingredients)\/[^/]+\/?$/.test(p)
+      const isDetailPath = (p: string) => /^\/(products|ingredients)\/[^/]+\/?$/.test(p)
       const isSubPage = (p: string) =>
         /^\/(products|ingredients)\/[^/]+\/(edit|discussions)/.test(p)
       const isAuth = (p: string) => p.startsWith('/auth/')
 
       // List <-> Detail: crossfade with shared element morph
-      if (
-        (isListPath(from) && isDetailPath(to)) ||
-        (isDetailPath(from) && isListPath(to))
-      ) {
+      if ((isListPath(from) && isDetailPath(to)) || (isDetailPath(from) && isListPath(to))) {
         return ['crossfade', 'shared-element']
       }
 

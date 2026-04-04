@@ -9,7 +9,7 @@ interface UseListFiltersProps<T extends string> {
   from: RoutePaths<typeof routeTree>
   filters: FilterValues<T>
   emptyFilters: FilterValues<T>
-  filterKeys: T[]
+  filterKeys: readonly T[]
 }
 
 export function useListFilters<T extends string>({
