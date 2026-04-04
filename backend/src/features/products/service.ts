@@ -309,8 +309,9 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
     database.selectDistinct({ brand: products.brand }).from(products).orderBy(products.brand),
     database
-      .select({ name: tags.name, slug: tags.slug, category: tags.category })
+      .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
       .from(tags)
+      .innerJoin(productTags, eq(tags.id, productTags.tagId))
       .orderBy(tags.category, tags.name),
   ])
 

@@ -99,7 +99,7 @@ export async function signup(
     }
 
     if (rawToken !== null) {
-      const verificationUrl = `${ctx.frontendUrl}/verify-email?token=${rawToken}`
+      const verificationUrl = `${ctx.frontendUrl}/auth/verify-email?token=${rawToken}`
       try {
         await sendVerificationEmail(user.email, verificationUrl)
       } catch (emailErr) {

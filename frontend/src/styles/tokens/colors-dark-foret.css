@@ -6,34 +6,24 @@
   --hue-deep: 160deg;
   --hue-error: 25deg;
   --hue-info: 240deg;
-  --hue-neutral: 70deg;
+  color-scheme: dark;
 
-  --primary-20: oklch(25% 0.1 var(--hue-primary));
-  --primary-30: oklch(35% 0.14 var(--hue-primary));
   --primary-40: oklch(50% 0.18 var(--hue-primary));
-  --primary-50: oklch(62% 0.2 var(--hue-primary));
   --primary-60: oklch(74% 0.22 var(--hue-primary));
   --primary-75: oklch(84% 0.2 var(--hue-primary));
-  --primary-90: oklch(93% 0.08 var(--hue-primary));
 
-  --accent-20: oklch(25% 0.1 var(--hue-accent));
-  --accent-50: oklch(55% 0.2 var(--hue-accent));
   --accent-60: oklch(74% 0.22 var(--hue-accent));
   --accent-80: oklch(84% 0.2 var(--hue-accent));
   --accent-95: oklch(25% 0.1 var(--hue-accent));
 
   --neutral-10: oklch(15% 0.02 var(--hue-deep));
-  --neutral-20: oklch(25% 0.02 var(--hue-deep));
-  --neutral-50: oklch(50% 0.02 var(--hue-clay));
-  --neutral-70: oklch(70% 0.02 var(--hue-clay));
-  --neutral-95: oklch(94% 0.03 var(--hue-clay));
-  --neutral-99: oklch(98% 0.01 var(--hue-clay));
-
-  --c-vibrant: 0.22;
 
   --color-primary: var(--primary-60);
   --color-primary-hover: var(--primary-75);
-  --color-primary-contrast: var(--neutral-10);
+  --color-primary-dark: oklch(50% 0.16 95deg);
+  --color-primary-deeper: oklch(38% 0.12 95deg);
+  --color-primary-light: oklch(25% 0.06 95deg);
+  --color-primary-text: var(--neutral-10);
   --color-focus: var(--color-primary);
 
   --color-accent: var(--accent-60);
@@ -48,15 +38,10 @@
   --color-error: oklch(82% 0.18 var(--hue-error));
   --color-error-light: oklch(25% 0.07 var(--hue-error) / 0.3);
   --color-info: oklch(75% 0.12 var(--hue-info));
-  --color-info-light: oklch(22% 0.05 var(--hue-info));
   --color-stat-orange: oklch(70% 0.18 45deg);
   --color-stat-purple: oklch(65% 0.15 280deg);
 
-  --color-hover: var(--color-primary);
-
   --color-header-bg: oklch(22% 0.05 var(--hue-deep));
-  --color-header-text: oklch(95% 0.03 var(--hue-clay));
-  --color-header-border: oklch(35% 0.07 var(--hue-deep));
   --color-header-action: var(--primary-60);
   --color-header-action-bg-hover: oklch(from var(--primary-60) l c h / 0.15);
 
@@ -67,6 +52,7 @@
   --color-sidebar-icon-active: oklch(92% 0.16 65deg);
   --color-sidebar-text: oklch(80% 0.06 65deg);
   --color-sidebar-text-active: oklch(95% 0.03 65deg);
+  --color-sidebar-accent: oklch(95% 0.03 65deg);
 
   --bg-page: oklch(18% 0.04 var(--hue-deep));
   --bg-card: oklch(22% 0.05 var(--hue-deep));
@@ -90,8 +76,12 @@
   --border-default: oklch(45% 0.08 var(--hue-primary));
   --border-strong: var(--primary-60);
   --shadow-color: oklch(0% 0 0 / 0.5);
-  --shadow-hard: 0 8px 24px var(--shadow-color);
+  --shadow-hard: 4px 4px 0px oklch(74% 0.22 95deg);
   --shadow-card: 0 4px 16px var(--shadow-color);
   --overlay: oklch(5% 0.05 var(--hue-deep) / 0.7);
   --hero-glow: oklch(25% 0.06 var(--hue-primary));
+  --surface-bright: oklch(99% 0.002 0deg);
+
+  --border-width: 3px;
+  --color-primary-subtle: oklch(22% 0.04 var(--hue-deep));
 }

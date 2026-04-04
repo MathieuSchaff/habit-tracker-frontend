@@ -10,11 +10,13 @@
   --shadow-sm: 0 1px 2px var(--shadow-color);
   --shadow-md: 0 4px 6px -1px var(--shadow-color);
   --shadow-lg: 0 10px 15px -3px var(--shadow-color);
-  --shadow-custom: 6px 0px 20px 0px var(--shadow-color);
 
   /* Transitions */
   --transition-fast: 150ms;
   --transition-base: 200ms;
   --transition-slow: 300ms;
   --transition-slower: 350ms;
+
+  /* Derived — auto-adapts to active theme's --color-accent */
+  --color-accent-subtle: oklch(from var(--color-accent) l c h / 0.1);
 }

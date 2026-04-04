@@ -236,7 +236,7 @@ export const jwtAuthRoutes = app
     }
 
     const rawToken = await createVerificationToken(ctx.db, userId)
-    const verificationUrl = `${ctx.frontendUrl}/verify-email?token=${rawToken}`
+    const verificationUrl = `${ctx.frontendUrl}/auth/verify-email?token=${rawToken}`
     await sendVerificationEmail(user.email, verificationUrl)
 
     return c.json(ok(null), HTTP_STATUS.OK)

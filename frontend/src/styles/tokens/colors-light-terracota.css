@@ -1,7 +1,6 @@
 [data-theme="light"][data-variant="terracota"] {
   color-scheme: light;
 
-  --h-lime: 128;
   --h-mango: 65;
   --h-papaya: 32;
   --h-coral: 18;
@@ -9,7 +8,6 @@
   --h-iron: 33.29;
   --h-forest: 135.95;
 
-  --c-rich: 0.17;
   --c-muted: 0.07;
   --c-soft: 0.02;
 
@@ -20,10 +18,6 @@
   --l-elevated: 99%;
 
   --oxydized-iron: oklch(47.77% 0.1692 var(--h-iron));
-  --iron-darker: oklch(18% 0.09 var(--h-iron));
-  --iron-dark: oklch(22% 0.1 var(--h-iron));
-  --iron-base: oklch(28% 0.12 var(--h-iron));
-  --iron-lighter: oklch(36% 0.14 var(--h-iron));
   --forest-green: oklch(75.42% 0.1726 var(--h-forest));
   --mango-bright: oklch(82% 0.18 var(--h-mango));
   --text-inverse-warm: oklch(100% 0 0);
@@ -33,6 +27,9 @@
   --color-primary-text: var(--text-inverse-warm);
   --color-primary-dark: oklch(34% 0.16 var(--h-forest));
   --color-focus: oklch(62% 0.14 var(--h-forest));
+  --color-primary-deeper: oklch(22% 0.1 var(--h-forest));
+  --color-primary-light: oklch(90% 0.08 var(--h-forest));
+  --color-primary-subtle: oklch(97% 0.01 var(--h-forest));
 
   --color-sidebar-bg: var(--oxydized-iron);
   --color-sidebar-item-hover: oklch(54% 0.16 var(--h-iron));
@@ -41,14 +38,13 @@
   --color-sidebar-icon-active: oklch(100% 0 0);
   --color-sidebar-text: oklch(100% 0 0);
   --color-sidebar-text-active: oklch(100% 0 0);
+  --color-sidebar-accent: oklch(100% 0 0);
 
   --color-secondary: var(--mango-bright);
   --color-tertiary: var(--forest-green);
 
   --color-header-bg: var(--color-secondary);
-  --color-header-border: oklch(72% 0.16 var(--h-papaya));
   --color-header-action: oklch(100% 0 0);
-  --color-header-action-border: oklch(100% 0 0);
   --color-header-action-bg-hover: oklch(from var(--color-primary-dark) l c h / 0.12);
 
   --text-inverse: var(--text-inverse-warm);
@@ -58,13 +54,13 @@
 
   --color-accent: oklch(68% 0.2 var(--h-mango));
   --color-accent-light: oklch(92% 0.1 var(--h-mango));
+  --color-accent-hover: oklch(60% 0.22 var(--h-mango));
 
   --color-success: oklch(50% 0.2 128);
   --color-success-light: oklch(95% 0.05 145deg);
   --color-error: oklch(56% 0.22 var(--h-coral));
   --color-error-light: oklch(93% 0.08 var(--h-coral));
   --color-info: oklch(54% 0.14 var(--h-aqua));
-  --color-info-light: oklch(92% var(--c-muted) var(--h-aqua));
   --color-warning: oklch(75% 0.15 30deg);
   --color-warning-light: oklch(96% 0.06 30deg);
   --color-warning-text: oklch(40% 0.15 30deg);
@@ -77,10 +73,6 @@
   --bg-hover: oklch(from var(--color-primary) l c h / 0.08);
   --bg-active: oklch(from var(--color-primary) l c h / 0.14);
   --bg-selected: var(--color-secondary);
-
-  --card-accent-border: var(--forest-green);
-  --card-icon-bg: oklch(88% 0.16 var(--h-mango));
-  --card-icon-color: oklch(35% 0.22 var(--h-forest));
 
   --border-default: var(--forest-green);
   --border-strong: oklch(from var(--color-primary-dark) l c h / 0.4);
@@ -98,4 +90,6 @@
 
   --color-stat-orange: oklch(70% 0.18 45deg);
   --color-stat-purple: oklch(65% 0.15 280deg);
+  --surface-bright: oklch(99% 0.002 0deg);
+  --hero-glow: oklch(93% 0.04 var(--h-mango));
 }

@@ -4,7 +4,6 @@
   /* =========================
        BASE HUES (inchangées)
     ========================= */
-  --h-lime: 128;
   --h-mango: 65;
   --h-papaya: 32;
   --h-coral: 18;
@@ -15,7 +14,6 @@
   /* =========================
        CHROMA (légèrement boosté)
     ========================= */
-  --c-rich: 0.18;
   --c-muted: 0.08;
   --c-soft: 0.03;
 
@@ -33,9 +31,11 @@
     ========================= */
   --text-inverse-warm: oklch(10% 0.02 var(--h-papaya));
 
-  --color-primary: oklch(65% 0.18 var(--h-forest));
-  --color-primary-hover: oklch(72% 0.2 var(--h-forest));
-  --color-primary-dark: oklch(55% 0.16 var(--h-forest));
+  --color-primary: oklch(68% 0.22 var(--h-forest));
+  --color-primary-hover: oklch(74% 0.24 var(--h-forest));
+  --color-primary-dark: oklch(55% 0.18 var(--h-forest));
+  --color-primary-deeper: oklch(38% 0.1 var(--h-forest));
+  --color-primary-light: oklch(25% 0.08 var(--h-forest));
   --color-primary-text: oklch(12% 0.02 var(--h-forest));
 
   --color-focus: oklch(70% 0.14 var(--h-forest));
@@ -65,15 +65,16 @@
   /* =========================
        SIDEBAR
     ========================= */
-  --color-sidebar-bg: oklch(18% 0.06 var(--h-iron));
-  --color-sidebar-item-hover: oklch(28% 0.08 var(--h-iron));
-  --color-sidebar-item-active: oklch(35% 0.1 var(--h-iron));
+  --color-sidebar-bg: oklch(22% 0.14 var(--h-iron));
+  --color-sidebar-item-hover: oklch(32% 0.16 var(--h-iron));
+  --color-sidebar-item-active: oklch(38% 0.12 var(--h-iron));
 
   --color-sidebar-icon: oklch(85% 0.03 var(--h-papaya));
   --color-sidebar-icon-active: oklch(95% 0.02 var(--h-papaya));
 
   --color-sidebar-text: oklch(80% 0.03 var(--h-papaya));
   --color-sidebar-text-active: oklch(95% 0.02 var(--h-papaya));
+  --color-sidebar-accent: oklch(95% 0.02 var(--h-papaya));
 
   /* =========================
        HEADER
@@ -82,11 +83,8 @@
   --color-tertiary: oklch(60% 0.16 var(--h-forest));
 
   --color-header-bg: oklch(20% 0.06 var(--h-mango));
-  --color-header-border: oklch(30% 0.08 var(--h-papaya));
 
   --color-header-action: oklch(90% 0.02 var(--h-papaya));
-  --color-header-action-border: oklch(90% 0.02 var(--h-papaya));
-
   --color-header-action-bg-hover: oklch(from var(--color-primary) l c h / 0.15);
 
   /* =========================
@@ -99,7 +97,6 @@
   --color-error-light: oklch(25% 0.1 var(--h-coral));
 
   --color-info: oklch(65% 0.14 var(--h-aqua));
-  --color-info-light: oklch(25% 0.08 var(--h-aqua));
 
   --color-warning: oklch(70% 0.15 30deg);
   --color-warning-light: oklch(25% 0.08 30deg);
@@ -111,24 +108,20 @@
     ========================= */
   --color-accent: oklch(70% 0.2 var(--h-mango));
   --color-accent-light: oklch(30% 0.1 var(--h-mango));
-
-  --card-accent-border: oklch(55% 0.16 var(--h-forest));
-
-  --card-icon-bg: oklch(30% 0.12 var(--h-mango));
-  --card-icon-color: oklch(75% 0.2 var(--h-forest));
+  --color-accent-hover: oklch(78% 0.18 var(--h-mango));
 
   /* =========================
        BORDERS
     ========================= */
-  --border-default: oklch(30% 0.08 var(--h-forest));
-  --border-strong: oklch(50% 0.12 var(--h-forest));
+  --border-default: oklch(45% 0.16 var(--h-forest));
+  --border-strong: oklch(55% 0.2 var(--h-forest));
 
   /* =========================
        SHADOWS (moins harsh en dark)
     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.4);
   --shadow-card: 0 4px 12px oklch(0% 0 0 / 0.3);
-  --shadow-hard: 0 6px 0px oklch(40% 0.12 var(--h-forest));
+  --shadow-hard: 4px 4px 0px oklch(55% 0.18 var(--h-forest));
 
   /* =========================
        TAGS
@@ -153,5 +146,9 @@
   /* =========================
        MISC
     ========================= */
+  --color-primary-subtle: oklch(18% 0.04 var(--h-forest));
+  --hero-glow: oklch(20% 0.06 var(--h-forest));
+
   --border-width: 3px;
+  --surface-bright: oklch(99% 0.002 0deg);
 }
