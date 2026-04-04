@@ -17,6 +17,7 @@ import {
   createIngredient,
   deleteIngredient,
   getIngredientBySlug,
+  getIngredientFilterOptions,
   listAllIngredientOptions,
   listIngredientEdits,
   listIngredients,
@@ -54,6 +55,11 @@ export const ingredientRoutes = ingredientsApp
     const results = await searchIngredients(db, q)
 
     return c.json(ok(results), HTTP_STATUS.OK)
+  })
+  .get('/filter-options', async (c) => {
+    const db = c.get('db')
+    const options = await getIngredientFilterOptions(db)
+    return c.json(ok(options), HTTP_STATUS.OK)
   })
   .get('/options', async (c) => {
     const db = c.get('db')

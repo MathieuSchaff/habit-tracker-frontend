@@ -38,7 +38,7 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
   // The filters arrive as one long string with commas, so I cut it into pieces.
   const categories = filters.category?.split(',').filter(Boolean) ?? []
   const concerns = filters.concern?.split(',').filter(Boolean) ?? []
-  const skinTypes = filters.skinType?.split(',').filter(Boolean) ?? []
+  const skinTypes = filters.skin_type?.split(',').filter(Boolean) ?? []
   const attributes = filters.attribute?.split(',').filter(Boolean) ?? []
 
   if (categories.length > 0) {
@@ -301,6 +301,48 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .where(or(ilike(ingredients.name, pattern), ilike(ingredients.slug, pattern)))
     .orderBy(ingredients.name)
     .limit(limit)
+}
+
+export type IngredientFilterOptions = {
+  categories: string[]
+  tags: {
+    concern: { name: string; slug: string }[]
+    skin_type: { name: string; slug: string }[]
+    attribute: { name: string; slug: string }[]
+  }
+}
+
+// We only expose the 3 categories that have meaningful coverage on ingredients.
+// routine_step, product_type, skin_zone are quasi-empty so we skip them.
+export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
+  const EXPOSED_CATEGORIES = ['concern', 'skin_type', 'attribute'] as const
+
+  const [categoryRows, tagRows] = await Promise.all([
+    database
+      .selectDistinct({ category: ingredients.category })
+      .from(ingredients)
+      .orderBy(ingredients.category),
+    database
+      .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
+      .from(tags)
+      .innerJoin(ingredientTags, eq(tags.id, ingredientTags.tagId))
+      .where(inArray(tags.category, [...EXPOSED_CATEGORIES]))
+      .orderBy(tags.category, tags.name),
+  ])
+
+  const tagsByCategory = tagRows.reduce(
+    (acc, tag) => {
+      if (!tag.category || !(tag.category in acc)) return acc
+      acc[tag.category as keyof typeof acc].push({ name: tag.name, slug: tag.slug })
+      return acc
+    },
+    { concern: [], skin_type: [], attribute: [] } as IngredientFilterOptions['tags']
+  )
+
+  return {
+    categories: categoryRows.map((r) => r.category).filter(Boolean) as string[],
+    tags: tagsByCategory,
+  }
 }
 
 // This list is very light, I use it just to fill the small select boxes.

@@ -11,7 +11,7 @@ import { api } from '../api'
 export type ListIngredientsFilters = {
   category?: string[]
   concern?: string[]
-  skinType?: string[]
+  skin_type?: string[]
   attribute?: string[]
   sort?: 'name' | 'random'
   page?: number
@@ -26,6 +26,7 @@ export const ingredientKeys = {
   products: (slug: string) => [...ingredientKeys.all, slug, 'products'] as const,
   tags: (id: string) => [...ingredientKeys.all, id, 'tags'] as const,
   options: () => [...ingredientKeys.all, 'options'] as const,
+  filterOptions: () => [...ingredientKeys.all, 'filter-options'] as const,
 }
 
 export const ingredientQueries = {
@@ -49,7 +50,7 @@ export const ingredientQueries = {
 
         if (filters.category?.length) query.category = filters.category.join(',')
         if (filters.concern?.length) query.concern = filters.concern.join(',')
-        if (filters.skinType?.length) query.skinType = filters.skinType.join(',')
+        if (filters.skin_type?.length) query.skin_type = filters.skin_type.join(',')
         if (filters.attribute?.length) query.attribute = filters.attribute.join(',')
         if (filters.sort !== undefined) query.sort = filters.sort
         if (filters.page) query.page = String(filters.page)
@@ -117,6 +118,18 @@ export const ingredientQueries = {
       queryFn: async () => {
         const res = await api.ingredients.options.$get()
         if (!res.ok) throw new Error('Failed to fetch ingredient options')
+        const json = await res.json()
+        return json.data
+      },
+      staleTime: 10 * 60 * 1000,
+    }),
+
+  filterOptions: () =>
+    queryOptions({
+      queryKey: ingredientKeys.filterOptions(),
+      queryFn: async () => {
+        const res = await api.ingredients['filter-options'].$get()
+        if (!res.ok) throw new Error('Failed to fetch ingredient filter options')
         const json = await res.json()
         return json.data
       },

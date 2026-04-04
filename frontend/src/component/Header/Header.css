@@ -52,7 +52,7 @@
 
 .main-nav__logo {
   margin: 0;
-  color: oklch(100% 0 0);
+  color: var(--color-sidebar-text);
   overflow: hidden;
   max-width: 0;
   opacity: 0;

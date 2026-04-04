@@ -3,7 +3,7 @@
   place-items: center;
   border-radius: var(--radius-full);
   overflow: hidden;
-  background: linear-gradient(135deg, var(--primary-40) 0%, var(--primary-60) 100%);
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
   color: var(--text-inverse);
   flex-shrink: 0;
   user-select: none;

@@ -5,7 +5,6 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { api } from '../api'
 
 export type ListProductsFilters = {
-  kind?: string | string[]
   brand?: string | string[]
   skin_type?: string | string[]
   skin_zone?: string | string[]
@@ -56,7 +55,6 @@ export const productQueries = {
           }
         }
 
-        addParam('kind', filters.kind)
         addParam('brand', filters.brand)
         addParam('skin_type', filters.skin_type)
         addParam('skin_zone', filters.skin_zone)
