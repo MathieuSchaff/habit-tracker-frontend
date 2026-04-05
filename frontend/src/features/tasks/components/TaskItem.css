@@ -26,26 +26,6 @@
   cursor: pointer;
 }
 
-.task-item__checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  flex-shrink: 0;
-  border: 2px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-inverse);
-  cursor: pointer;
-  transition: all var(--transition-fast) ease;
-}
-
-.task-item__checkbox--checked {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
 .task-item__content {
   flex: 1;
   min-width: 0;
@@ -186,25 +166,6 @@
   align-items: center;
   gap: var(--space-2);
   padding: 2px 0;
-}
-
-.subtask-item__checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 0.9rem;
-  height: 0.9rem;
-  flex-shrink: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--text-inverse);
-  cursor: pointer;
-}
-
-.subtask-item__checkbox--checked {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
 }
 
 .subtask-item__title {

@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { useId } from 'react'
 import './Toggle.css'
 
-type ToggleProps = Omit<React.ComponentProps<'input'>, 'type' | 'onChange'> & {
+type ToggleProps = Omit<React.ComponentProps<'input'>, 'type' | 'onChange' | 'size'> & {
   label: string
   hint?: string
   onChange?: (checked: boolean) => void
@@ -24,10 +24,7 @@ export function Toggle({
   const inputId = id ?? generatedId
 
   return (
-    <label
-      className={clsx('toggle', `toggle--${size}`, `toggle--${layout}`)}
-      htmlFor={inputId}
-    >
+    <label className={clsx('toggle', `toggle--${size}`, `toggle--${layout}`)} htmlFor={inputId}>
       <div className="toggle__info">
         <span className="toggle__label">{label}</span>
         {hint && <span className="toggle__hint">{hint}</span>}
@@ -38,7 +35,9 @@ export function Toggle({
         id={inputId}
         type="checkbox"
         className="sr-only"
-        onChange={(e) => { if (!e.target.disabled) onChange?.(e.target.checked) }}
+        onChange={(e) => {
+          if (!e.target.disabled) onChange?.(e.target.checked)
+        }}
       />
       <span className="toggle__switch" aria-hidden="true" />
     </label>

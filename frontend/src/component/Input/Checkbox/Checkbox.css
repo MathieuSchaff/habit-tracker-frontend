@@ -1,0 +1,29 @@
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-inverse);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.checkbox--md {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.checkbox--sm {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-width: 1px;
+  border-radius: var(--radius-xs);
+}
+
+.checkbox--checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}

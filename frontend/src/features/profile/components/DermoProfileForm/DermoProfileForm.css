@@ -1,1 +1,184 @@
-purged from history
+.dermo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: radial-gradient(
+    ellipse at 15% 0%,
+    color-mix(in oklch, var(--color-primary) 8%, transparent) 0%,
+    transparent 60%
+  );
+  border: 1px solid color-mix(in oklch, var(--border-default) 60%, transparent);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+}
+
+.dermo-form__loading {
+  color: var(--text-muted);
+  padding: var(--space-4);
+}
+
+.dermo-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+}
+
+.dermo-section + .dermo-section {
+  border-top: 1px solid;
+  border-image: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklch, var(--color-primary) 30%, transparent),
+      transparent
+    )
+    1;
+}
+
+.dermo-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin: 0;
+  font-feature-settings: var(--font-features-display);
+}
+
+.dermo-section__desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dermo-section__overline {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--color-primary);
+  margin-bottom: calc(-1 * var(--space-1));
+}
+
+.dermo-fitzpatrick {
+  display: flex;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 3.5rem;
+  border: 1px solid color-mix(in oklch, var(--border-default) 50%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Les 6 segments reçoivent leurs couleurs de peau via des sélecteurs nth-child.
+   --fitz-bg est exposé pour que les enfants dérivent leur couleur de texte
+   via relative color syntax. */
+.dermo-fitz-item {
+  /* flex-grow explicite pour une transition fiable (pas le shorthand flex) */
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  cursor: pointer;
+  /* box-shadow initialisé à 0 spread transparent pour éviter le saut au premier clic */
+  box-shadow: inset 0 0 0 0 oklch(0% 0 0 / 0);
+  transition:
+    flex-grow var(--transition-slower) cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow var(--transition-base) ease-out;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-2) var(--space-1);
+  text-align: center;
+}
+
+.dermo-fitz-item:nth-child(1) {
+  --fitz-bg: oklch(88% 0.06 50);
+  background: var(--fitz-bg);
+}
+.dermo-fitz-item:nth-child(2) {
+  --fitz-bg: oklch(78% 0.1 45);
+  background: var(--fitz-bg);
+}
+.dermo-fitz-item:nth-child(3) {
+  --fitz-bg: oklch(66% 0.13 40);
+  background: var(--fitz-bg);
+}
+.dermo-fitz-item:nth-child(4) {
+  --fitz-bg: oklch(52% 0.14 35);
+  background: var(--fitz-bg);
+}
+.dermo-fitz-item:nth-child(5) {
+  --fitz-bg: oklch(36% 0.1 30);
+  background: var(--fitz-bg);
+}
+.dermo-fitz-item:nth-child(6) {
+  --fitz-bg: oklch(22% 0.06 25);
+  background: var(--fitz-bg);
+}
+
+.dermo-fitz-item--active {
+  flex-grow: 2;
+}
+
+.dermo-fitz-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  /* Auto-contrast : noir au-dessus de 60% lightness, blanc en-dessous */
+  color: oklch(from var(--fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0);
+  line-height: 1;
+  font-family: var(--font-display);
+}
+
+/* Description en position absolute : hors du flow, le label reste toujours centré */
+.dermo-fitz-desc {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 0;
+  right: 0;
+  /* 0.5625rem = 9px — taille serrée nécessaire pour tenir dans 3.5rem de hauteur */
+  font-size: 0.5625rem;
+  color: oklch(from var(--fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0 / 0.8);
+  line-height: 1.2;
+  text-align: center;
+  padding: 0 var(--space-1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dermo-fitz-item--active .dermo-fitz-desc {
+  animation: fitz-desc-in var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1) 80ms both;
+}
+
+@keyframes fitz-desc-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+}
+
+.dermo-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid;
+  border-image: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklch, var(--color-primary) 30%, transparent),
+      transparent
+    )
+    1;
+}
