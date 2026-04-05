@@ -1,0 +1,114 @@
+/* Wrapper (the <label>) */
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--bg-hover);
+}
+
+.toggle:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Column layout */
+
+.toggle--column {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* Label + hint */
+
+.toggle__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.toggle__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.toggle__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+/* Switch pill */
+
+.toggle__switch {
+  /* Dimensions via scoped custom properties — avoids magic numbers in rules */
+  --toggle-width: 2.5rem;
+  --toggle-height: 1.375rem;
+  --toggle-knob: 1rem;
+  --toggle-travel: calc(var(--toggle-width) - var(--toggle-knob) - 0.25rem);
+
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--toggle-width);
+  height: var(--toggle-height);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.toggle--sm .toggle__switch {
+  --toggle-width: 2rem;
+  --toggle-height: 1.125rem;
+  --toggle-knob: 0.75rem;
+}
+
+/* Knob */
+
+.toggle__switch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0.125rem;
+  transform: translateY(-50%);
+  width: var(--toggle-knob);
+  height: var(--toggle-knob);
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast);
+}
+
+/* Checked state — driven by sibling selector */
+
+.toggle input:checked ~ .toggle__switch {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.toggle input:checked ~ .toggle__switch::after {
+  transform: translateY(-50%) translateX(var(--toggle-travel));
+  background: white;
+}
+
+/* Focus visible */
+
+.toggle input:focus-visible ~ .toggle__switch {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

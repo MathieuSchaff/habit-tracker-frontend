@@ -185,7 +185,7 @@ export async function updateProduct(
 
 export type ProductSummary = Pick<
   Product,
-  'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents'
+  'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents' | 'totalAmount' | 'amountUnit'
 >
 export type ProductsPage = {
   items: ProductSummary[]
@@ -277,6 +277,8 @@ export async function listProducts(
         kind: products.kind,
         unit: products.unit,
         priceCents: products.priceCents,
+        totalAmount: products.totalAmount,
+        amountUnit: products.amountUnit,
       })
       .from(products)
       .where(where)

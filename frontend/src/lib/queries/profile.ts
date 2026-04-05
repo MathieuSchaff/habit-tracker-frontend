@@ -36,7 +36,6 @@ export const profileQueries = {
       queryFn: async () => {
         const res = await api.profile.dermo.$get()
         const json = await res.json()
-        // if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
         return json.data
       },
       staleTime: 1000 * 60 * 5,
@@ -74,7 +73,6 @@ export const useUpdateDermoProfile = () => {
     mutationFn: async (data: UserDermoProfileUpdateInput) => {
       const res = await api.profile.dermo.$patch({ json: data })
       const json = await res.json()
-      // if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
       return json.data
     },
     onSuccess: (data) => {

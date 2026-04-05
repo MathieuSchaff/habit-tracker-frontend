@@ -30,6 +30,9 @@
   --color-accent-hover: var(--accent-80);
   --color-accent-light: var(--accent-95);
 
+  --color-secondary: oklch(70% 0.18 var(--hue-accent));
+  --color-tertiary: oklch(60% 0.14 var(--hue-deep));
+
   --color-success: oklch(78% 0.15 145deg);
   --color-success-light: oklch(25% 0.08 145deg);
   --color-warning: oklch(75% 0.18 var(--hue-orange));
@@ -38,8 +41,6 @@
   --color-error: oklch(82% 0.18 var(--hue-error));
   --color-error-light: oklch(25% 0.07 var(--hue-error) / 0.3);
   --color-info: oklch(75% 0.12 var(--hue-info));
-  --color-stat-orange: oklch(70% 0.18 45deg);
-  --color-stat-purple: oklch(65% 0.15 280deg);
 
   --color-header-bg: oklch(22% 0.05 var(--hue-deep));
   --color-header-action: var(--primary-60);
@@ -76,12 +77,10 @@
   --border-default: oklch(45% 0.08 var(--hue-primary));
   --border-strong: var(--primary-60);
   --shadow-color: oklch(0% 0 0 / 0.5);
-  --shadow-hard: 4px 4px 0px oklch(74% 0.22 95deg);
   --shadow-card: 0 4px 16px var(--shadow-color);
   --overlay: oklch(5% 0.05 var(--hue-deep) / 0.7);
   --hero-glow: oklch(25% 0.06 var(--hue-primary));
   --surface-bright: oklch(99% 0.002 0deg);
 
-  --border-width: 3px;
   --color-primary-subtle: oklch(22% 0.04 var(--hue-deep));
 }

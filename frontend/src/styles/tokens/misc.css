@@ -1,4 +1,7 @@
 :root {
+  /* Border width */
+  --border-width: 3px;
+
   /* Border radius */
   --radius-sm: 0.375rem; /* 6px */
   --radius-md: 0.75rem; /* 12px */

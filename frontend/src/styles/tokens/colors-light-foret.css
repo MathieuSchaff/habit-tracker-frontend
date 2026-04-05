@@ -50,9 +50,6 @@
   --color-warning: oklch(75% 0.15 50);
   --color-warning-light: oklch(96% 0.06 50);
   --color-warning-text: oklch(40% 0.15 50);
-  --color-stat-orange: oklch(70% 0.18 45);
-  --color-stat-purple: oklch(65% 0.15 280);
-
   /* Surfaces */
   --bg-page: oklch(96% 0.01 140);
   --bg-card: oklch(99.5% 0.005 140);
@@ -69,9 +66,7 @@
 
   /* Shadows */
   --shadow-color: oklch(0% 0 0 / 0.1);
-  --shadow-hard: 4px 4px 0px oklch(40% 0.2 140);
   --shadow-card: 0 2px 0px oklch(40% 0.2 140);
-  --border-width: 3px;
 
   /* Tags */
   --tag-active-bg: oklch(40% 0.16 140);

@@ -22,6 +22,7 @@ export const Header = () => {
         ref={navRef}
         className={`main-nav ${isOpen ? 'main-nav--open' : ''}`}
         aria-label="Navigation principale"
+        style={{ viewTransitionName: 'main-nav' }}
       >
         <div className="main-nav__header">
           <div className="main-nav__logo">

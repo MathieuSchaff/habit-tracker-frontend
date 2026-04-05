@@ -11,7 +11,7 @@ interface NavItem {
   label: string
 }
 
-const navItems: NavItem[] = [
+export const navItems: NavItem[] = [
   { to: '/', icon: HomeIcon, label: 'Accueil' },
   { to: '/habits', icon: CircleDot, label: 'Habitudes' },
   { to: '/products', icon: ProductNavIcon, label: 'Produits' },
