@@ -38,6 +38,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     <GlobalError
       error={new Error("The page you're looking for doesn't exist.")}
       reset={() => window.location.assign('/')}
+      is404
     />
   ),
 })
