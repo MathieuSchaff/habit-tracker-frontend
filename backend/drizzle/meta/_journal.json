@@ -43,6 +43,13 @@
       "when": 1775152033440,
       "tag": "0005_unusual_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775386938599,
+      "tag": "0006_unknown_luminals",
+      "breakpoints": true
     }
   ]
 }

@@ -1,9 +1,11 @@
 import type {
   CriteriaWeights,
   DisplayScale,
+  PrivacySettings,
   ProfilePublic,
   ProfileStats,
   ProfileUpdateInput,
+  UpdatePrivacySettingsInput,
   UpdateUserPreferencesInput,
   UserDermoProfile,
   UserDermoProfileUpdateInput,
@@ -222,4 +224,79 @@ export async function getProfileStats(db: Database, userId: string): Promise<Pro
 export async function deleteUser(db: Database, userId: string) {
   const deletedUser = await db.delete(users).where(eq(users.id, userId)).returning()
   return deletedUser
+}
+
+export async function getPrivacySettings(db: DB, userId: string): Promise<PrivacySettings> {
+  const [profile] = await db
+    .select({ profilePublic: profiles.profilePublic })
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .limit(1)
+
+  const [prefs] = await db
+    .select({ aiConsent: userPreferences.aiConsent })
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, userId))
+    .limit(1)
+
+  return {
+    profilePublic: profile?.profilePublic ?? false,
+    aiConsent: prefs?.aiConsent ?? false,
+  }
+}
+
+export async function updatePrivacySettings(
+  db: DB,
+  userId: string,
+  data: UpdatePrivacySettingsInput
+): Promise<PrivacySettings | null> {
+  let profilePublic: boolean | undefined
+
+  if (data.profilePublic !== undefined) {
+    const [updated] = await db
+      .update(profiles)
+      .set({ profilePublic: data.profilePublic, updatedAt: new Date() })
+      .where(eq(profiles.userId, userId))
+      .returning({ profilePublic: profiles.profilePublic })
+
+    // null signals the caller that the profile row was not found
+    if (!updated) return null
+    profilePublic = updated.profilePublic
+  }
+
+  let aiConsent: boolean | undefined
+
+  if (data.aiConsent !== undefined) {
+    const [existing] = await db
+      .select({
+        displayScale: userPreferences.displayScale,
+        criteriaWeights: userPreferences.criteriaWeights,
+      })
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId))
+      .limit(1)
+
+    await db
+      .insert(userPreferences)
+      .values({
+        userId,
+        displayScale: existing?.displayScale ?? DEFAULT_DISPLAY_SCALE,
+        criteriaWeights: existing?.criteriaWeights ?? DEFAULT_CRITERIA_WEIGHTS,
+        aiConsent: data.aiConsent,
+      })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: { aiConsent: data.aiConsent, updatedAt: new Date() },
+      })
+
+    aiConsent = data.aiConsent
+  }
+
+  // Read only the fields that were NOT updated (to get their current values)
+  const current = await getPrivacySettings(db, userId)
+
+  return {
+    profilePublic: profilePublic ?? current.profilePublic,
+    aiConsent: aiConsent ?? current.aiConsent,
+  }
 }

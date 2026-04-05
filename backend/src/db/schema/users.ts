@@ -63,6 +63,7 @@ export const profiles = pgTable(
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
     links: jsonb('links').$type<ProfileLink[]>().notNull().default(sql`'[]'::jsonb`),
+    profilePublic: boolean('profile_public').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

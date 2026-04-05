@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestSvgRouteImport } from './routes/test-svg'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
@@ -39,6 +40,11 @@ import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes
 const TestSvgRoute = TestSvgRouteImport.update({
   id: '/test-svg',
   path: '/test-svg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -172,6 +178,7 @@ const IngredientsSlugDiscussionsThreadIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/test-svg': typeof TestSvgRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/test-svg': typeof TestSvgRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/test-svg': typeof TestSvgRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
     | '/test-svg'
     | '/collection'
     | '/habits'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/test-svg'
     | '/collection'
     | '/habits'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/privacy'
     | '/test-svg'
     | '/_authenticated/collection'
     | '/_authenticated/habits'
@@ -337,6 +349,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   TestSvgRoute: typeof TestSvgRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/test-svg'
       fullPath: '/test-svg'
       preLoaderRoute: typeof TestSvgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -596,6 +616,7 @@ const ProductsSlugRouteWithChildren = ProductsSlugRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   TestSvgRoute: TestSvgRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
