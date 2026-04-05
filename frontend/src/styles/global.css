@@ -86,6 +86,13 @@ button {
   }
 }
 
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
 input,
 textarea,
 select {

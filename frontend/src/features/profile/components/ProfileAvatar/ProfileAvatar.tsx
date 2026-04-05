@@ -15,18 +15,18 @@ const getInitials = (username?: string | null): string | null => {
 export const ProfileAvatar = ({ avatarUrl, username, size = 'lg' }: ProfileAvatarProps) => {
   const initials = getInitials(username)
 
+  const label = `Avatar de ${username ?? 'utilisateur'}`
+
   return (
-    <div className={`profile-avatar profile-avatar--${size}`}>
+    <div className={`profile-avatar profile-avatar--${size}`} role="img" aria-label={label}>
       {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={`Avatar de ${username ?? 'utilisateur'}`}
-          className="profile-avatar__img"
-        />
+        <img src={avatarUrl} alt={label} className="profile-avatar__img" />
       ) : initials ? (
-        <span className="profile-avatar__initials">{initials}</span>
+        <span className="profile-avatar__initials" aria-hidden="true">
+          {initials}
+        </span>
       ) : (
-        <User className="profile-avatar__icon" />
+        <User className="profile-avatar__icon" aria-hidden="true" />
       )}
     </div>
   )

@@ -51,7 +51,7 @@ export const Button = (props: ButtonProps) => {
   const content = (
     <>
       {loading && <Spinner />}
-      {loading && <span className="sr-only">Loading...</span>}
+      {loading && <span className="sr-only">Chargement…</span>}
       {!loading && children}
     </>
   )

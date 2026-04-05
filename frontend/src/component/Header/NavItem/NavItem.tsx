@@ -1,5 +1,5 @@
 import type { LinkProps } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import type { LucideProps } from 'lucide-react'
 import { CircleCheckBig, CircleDot, FlaskConical } from 'lucide-react'
 
@@ -26,6 +26,8 @@ interface NavSideListProps {
 }
 
 export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+
   return (
     <ul id="main-nav-list" className={`main-nav__list ${className}`}>
       {navItems.map((item) => (
@@ -34,7 +36,7 @@ export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
             to={item.to}
             className="main-nav__link"
             onClick={onItemClick}
-            aria-label={item.label}
+            aria-current={pathname === item.to ? 'page' : undefined}
           >
             <item.icon size={18} className="main-nav__icon" aria-hidden="true" />
             <span className="main-nav__label">{item.label}</span>

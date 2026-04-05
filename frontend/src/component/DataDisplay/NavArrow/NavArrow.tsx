@@ -8,5 +8,5 @@ interface NavArrowProps {
 }
 
 export function NavArrow({ size = 18, className }: NavArrowProps) {
-  return <ChevronRight size={size} className={clsx('nav-arrow', className)} />
+  return <ChevronRight size={size} className={clsx('nav-arrow', className)} aria-hidden="true" />
 }

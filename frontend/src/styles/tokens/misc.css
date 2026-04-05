@@ -1,6 +1,6 @@
 :root {
   /* Border width */
-  --border-width: 3px;
+  --border-width: 1px;
 
   /* Border radius */
   --radius-sm: 0.375rem; /* 6px */

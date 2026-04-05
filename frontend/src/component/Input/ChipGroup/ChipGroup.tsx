@@ -16,6 +16,8 @@ type ChipGroupProps<T extends string> = {
   mode?: 'toggle' | 'exclusive'
   disabled?: boolean
   className?: string
+  'aria-label'?: string
+  'aria-describedby'?: string
 }
 
 export function ChipGroup<T extends string>({
@@ -27,6 +29,8 @@ export function ChipGroup<T extends string>({
   mode = 'toggle',
   disabled,
   className,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
 }: ChipGroupProps<T>) {
   const handleClick = (value: T) => {
     if (mode === 'exclusive') {
@@ -41,25 +45,53 @@ export function ChipGroup<T extends string>({
     }
   }
 
-  return (
-    <div className={clsx('chip-group', className)}>
-      {options.map(({ value, label }) => {
-        const isSelected = selected.includes(value)
-        const isDisabled = disabled || (!isSelected && max != null && selected.length >= max)
+  const isRadio = mode === 'exclusive'
 
-        return (
-          <button
-            key={value}
-            type="button"
-            className={clsx('chip', `chip--${size}`, isSelected && 'chip--active')}
-            onClick={() => handleClick(value)}
-            aria-pressed={isSelected}
-            disabled={isDisabled}
-          >
-            {label}
-          </button>
-        )
-      })}
-    </div>
+  const chips = options.map(({ value, label }) => {
+    const isSelected = selected.includes(value)
+    const isDisabled = disabled || (!isSelected && max != null && selected.length >= max)
+
+    return isRadio ? (
+      <label
+        key={value}
+        className={clsx(
+          'chip',
+          `chip--${size}`,
+          isSelected && 'chip--active',
+          isDisabled && 'chip--disabled'
+        )}
+      >
+        <input
+          type="radio"
+          className="sr-only"
+          checked={isSelected}
+          disabled={isDisabled}
+          onChange={() => handleClick(value)}
+        />
+        {label}
+      </label>
+    ) : (
+      <button
+        key={value}
+        type="button"
+        className={clsx('chip', `chip--${size}`, isSelected && 'chip--active')}
+        onClick={() => handleClick(value)}
+        aria-pressed={isSelected}
+        disabled={isDisabled}
+      >
+        {label}
+      </button>
+    )
+  })
+
+  return (
+    <fieldset
+      className={clsx('chip-group', className)}
+      role={isRadio ? 'radiogroup' : 'group'}
+      aria-describedby={ariaDescribedBy}
+    >
+      {ariaLabel && <legend className="sr-only">{ariaLabel}</legend>}
+      {chips}
+    </fieldset>
   )
 }

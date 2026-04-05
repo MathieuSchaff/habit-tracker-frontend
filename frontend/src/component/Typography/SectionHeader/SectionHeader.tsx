@@ -21,7 +21,12 @@ export function SectionHeader({
     <div className={clsx('section-header', `section-header--${variant}`, className)}>
       <h2 className="section-header__title">
         {title}
-        {count !== undefined && <span className="section-header__count">{count}</span>}
+        {count !== undefined && (
+          <span className="section-header__count" aria-hidden="true">
+            {count}
+          </span>
+        )}
+        {count !== undefined && <span className="sr-only">{count} éléments</span>}
       </h2>
       {children && <div className="section-header__actions">{children}</div>}
     </div>

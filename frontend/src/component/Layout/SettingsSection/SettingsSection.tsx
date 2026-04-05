@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 
 import './SettingsSection.css'
 
@@ -20,6 +20,8 @@ export function SettingsSection({
   children,
   className,
 }: SettingsSectionProps) {
+  const titleId = useId()
+
   return (
     <section
       className={clsx(
@@ -28,8 +30,13 @@ export function SettingsSection({
         compact && 'settings-section--compact',
         className
       )}
+      aria-labelledby={title ? titleId : undefined}
     >
-      {title && <h3 className="settings-section__title">{title}</h3>}
+      {title && (
+        <h3 id={titleId} className="settings-section__title">
+          {title}
+        </h3>
+      )}
       {description && <p className="settings-section__desc">{description}</p>}
       {children}
     </section>

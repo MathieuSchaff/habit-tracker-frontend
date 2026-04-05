@@ -14,7 +14,9 @@ export const AuthLayout = ({ children, footer }: AuthLayoutProps) => {
   return (
     <main className="auth-layout">
       <div className="auth-container">
-        <section className="auth-card">{children}</section>
+        <section className="auth-card" aria-label="Authentification">
+          {children}
+        </section>
 
         {footer && (
           <footer className="auth-footer">

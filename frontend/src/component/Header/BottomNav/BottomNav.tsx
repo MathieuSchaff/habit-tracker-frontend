@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, Repeat, User } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
@@ -16,8 +16,19 @@ export function BottomNav() {
   const logout = useLogout()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
-  const closeSheet = () => setSheetOpen(false)
+  const closeSheet = useCallback(() => setSheetOpen(false), [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
+
+  useEffect(() => {
+    if (!sheetOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSheet()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [sheetOpen, closeSheet])
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -36,6 +47,8 @@ export function BottomNav() {
 
       <div
         className={`bottom-nav__sheet${sheetOpen ? ' bottom-nav__sheet--open' : ''}`}
+        role="dialog"
+        aria-label="Menu supplémentaire"
         aria-hidden={!sheetOpen}
       >
         <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>

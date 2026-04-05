@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useThemeStore } from '../../../../store/theme'
 import { renderWithProviders } from '../../../../test/utils'
-import { PreferenceSettings } from '../PreferenceSettings'
+import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 
 vi.mock('../../../../lib/queries/user-preferences', () => ({
   userPreferenceQueries: {

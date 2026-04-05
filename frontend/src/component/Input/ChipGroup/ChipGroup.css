@@ -25,7 +25,8 @@
   transform: translateY(-1px);
 }
 
-.chip:disabled {
+.chip:disabled,
+.chip--disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
