@@ -1,4 +1,8 @@
-import type { ProfileUpdateInput, UserDermoProfileUpdateInput } from '@habit-tracker/shared'
+import type {
+  ProfileUpdateInput,
+  UpdatePrivacySettingsInput,
+  UserDermoProfileUpdateInput,
+} from '@habit-tracker/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -75,6 +79,36 @@ export const useUpdateDermoProfile = () => {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', 'dermo'], data)
+    },
+  })
+}
+
+export const privacySettingsQueries = {
+  get: () =>
+    queryOptions({
+      queryKey: ['profile', 'privacy'],
+      queryFn: async () => {
+        const res = await api.profile['privacy-settings'].$get()
+        const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60 * 5,
+    }),
+}
+
+export const useUpdatePrivacySettings = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: UpdatePrivacySettingsInput) => {
+      const res = await api.profile['privacy-settings'].$patch({ json: data })
+      const json = await res.json()
+      if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
+      return json.data
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', 'privacy'], data)
     },
   })
 }

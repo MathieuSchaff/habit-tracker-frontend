@@ -124,6 +124,12 @@ export {
   wellbeingMetrics,
 } from './schemas/logs'
 export {
+  type PrivacySettings,
+  privacySettingsSchema,
+  type UpdatePrivacySettingsInput,
+  updatePrivacySettingsSchema,
+} from './schemas/privacy'
+export {
   type CreateProductIngredientInput,
   createProductIngredientSchema,
   productIngredientResponseSchema,

@@ -3,6 +3,7 @@ import {
   HTTP_STATUS,
   ok,
   profileUpdateSchema,
+  updatePrivacySettingsSchema,
   updateUserPreferencesSchema,
   userDermoProfileUpdateSchema,
 } from '@habit-tracker/shared'
@@ -15,9 +16,11 @@ import { requireJwtAuth } from '../auth/middleware'
 import {
   deleteUser,
   getDermoProfile,
+  getPrivacySettings,
   getProfile,
   getProfileStats,
   getUserPreferences,
+  updatePrivacySettings,
   updateProfile,
   updateUserPreferences,
   upsertDermoProfile,
@@ -91,6 +94,25 @@ export const profileRoute = app
     const updated = await upsertDermoProfile(db, userId, data)
     return c.json(ok(updated), HTTP_STATUS.OK)
   })
+  .get('/privacy-settings', async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const settings = await getPrivacySettings(db, userId)
+    return c.json(ok(settings), HTTP_STATUS.OK)
+  })
+  .patch('/privacy-settings', zValidator('json', updatePrivacySettingsSchema), async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const data = c.req.valid('json')
+    const updated = await updatePrivacySettings(db, userId, data)
+
+    if (!updated) {
+      return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
+    }
+
+    return c.json(ok(updated), HTTP_STATUS.OK)
+  })
+
   .delete('/deleteUser', async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
