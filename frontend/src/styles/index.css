@@ -31,8 +31,7 @@
 
 @import "../features/products/styles/kinds.css" layer(components);
 @import "../features/habits/components/HabitsPage/HabitsPage.css" layer(components);
-@import "../features/auth/components/LoginPage/auth-shared.css" layer(components);
-@import "../features/auth/components/LoginPage/LoginPage.css" layer(components);
+@import "../features/auth/styles/auth-shared.css" layer(components);
 @import "../features/auth/components/SignupPage/SignupPage.css" layer(components);
 
 @import "../features/habits/components/styles/HabitDetail.css" layer(components);

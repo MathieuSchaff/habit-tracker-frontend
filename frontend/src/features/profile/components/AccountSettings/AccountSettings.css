@@ -1,1 +1,109 @@
-purged from history
+.account-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.account-action-btn {
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  font-weight: var(--font-semibold);
+  padding: var(--space-3) var(--space-5);
+}
+
+.account-action-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.logout-btn {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.logout-btn:hover:not(:disabled) {
+  background-color: color-mix(in oklch, var(--color-error) 5%, transparent);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.delete-btn {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  opacity: 0.6;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background-color: color-mix(in oklch, var(--color-error) 5%, transparent);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--color-error) 30%, transparent);
+}
+
+.delete-confirm-text {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.change-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background-color: var(--bg-muted);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.form-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.show-passwords-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-base);
+}
+
+.show-passwords-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

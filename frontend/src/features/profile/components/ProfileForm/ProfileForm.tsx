@@ -1,10 +1,11 @@
 import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
 
-import { Check, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
+import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
+import { SettingsSection } from '@/component/Layout/SettingsSection/SettingsSection'
 import { Textarea } from '@/component/Textarea/Textarea'
 import { ProfileLinksEditor } from '../ProfileLinksEditor/ProfileLinksEditor'
 import './ProfileForm.css'
@@ -48,9 +49,7 @@ export const ProfileForm = ({
   }
 
   return (
-    <div className="profile-form-card">
-      <h3 className="profile-form-card__title">Modifier le profil</h3>
-
+    <SettingsSection title="Modifier le profil">
       <form className="profile-form" onSubmit={handleSubmit}>
         <Input
           label="Nom d'utilisateur"
@@ -101,23 +100,10 @@ export const ProfileForm = ({
           <ProfileLinksEditor links={links} onChange={setLinks} disabled={isPending} />
         </div>
 
-        {error && (
-          <p className="profile-form__error" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <FormMessage variant="error">{error}</FormMessage>}
 
-        <div className="profile-form__actions">
-          <Button type="button" variant="outline" size="md" onClick={onCancel} disabled={isPending}>
-            <X size={16} />
-            Annuler
-          </Button>
-          <Button type="submit" variant="primary" size="md" loading={isPending}>
-            <Check size={16} />
-            Enregistrer
-          </Button>
-        </div>
+        <FormActions onCancel={onCancel} isPending={isPending} />
       </form>
-    </div>
+    </SettingsSection>
   )
 }

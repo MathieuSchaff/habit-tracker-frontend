@@ -1,9 +1,10 @@
 import type { Task, TaskEnergy } from '@habit-tracker/shared'
 
 import { useQuery } from '@tanstack/react-query'
-import { Check, ChevronDown, ChevronRight, Edit2, Plus, Trash2, Zap } from 'lucide-react'
+import { ChevronDown, ChevronRight, Edit2, Plus, Trash2, Zap } from 'lucide-react'
 import { useState } from 'react'
 
+import { Checkbox } from '@/component/Input/Checkbox/Checkbox'
 import {
   taskQueries,
   useCreateSubtask,
@@ -30,15 +31,6 @@ export function TaskItem({ task }: TaskItemProps) {
   const createSubtask = useCreateSubtask()
   const updateSubtask = useUpdateSubtask()
   const deleteSubtask = useDeleteSubtask()
-
-  const handleToggleDone = (e: React.MouseEvent) => {
-    // We stop the click here so it does not open the task when we check the box.
-    e.stopPropagation()
-    updateTask.mutate({
-      id: task.id,
-      data: { status: task.status === 'done' ? 'active' : 'done' },
-    })
-  }
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -94,13 +86,22 @@ export function TaskItem({ task }: TaskItemProps) {
         role="button"
         tabIndex={0}
       >
-        <button
-          type="button"
-          className={`task-item__checkbox ${task.status === 'done' ? 'task-item__checkbox--checked' : ''}`}
-          onClick={handleToggleDone}
+        {/* biome-ignore lint/a11y/useSemanticElements: click barrier to prevent expand toggle */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="group"
         >
-          {task.status === 'done' && <Check size={14} />}
-        </button>
+          <Checkbox
+            checked={task.status === 'done'}
+            onChange={() =>
+              updateTask.mutate({
+                id: task.id,
+                data: { status: task.status === 'done' ? 'active' : 'done' },
+              })
+            }
+          />
+        </div>
 
         <div className="task-item__content">
           {isEditingTitle ? (
@@ -193,19 +194,17 @@ export function TaskItem({ task }: TaskItemProps) {
           <div className="subtasks-list">
             {subtasks?.map((subtask) => (
               <div key={subtask.id} className="subtask-item">
-                <button
-                  type="button"
-                  className={`subtask-item__checkbox ${subtask.completed ? 'subtask-item__checkbox--checked' : ''}`}
-                  onClick={() =>
+                <Checkbox
+                  checked={subtask.completed}
+                  onChange={(checked) =>
                     updateSubtask.mutate({
                       taskId: task.id,
                       subId: subtask.id,
-                      data: { completed: !subtask.completed },
+                      data: { completed: checked },
                     })
                   }
-                >
-                  {subtask.completed && <Check size={12} />}
-                </button>
+                  size="sm"
+                />
                 <span
                   className={`subtask-item__title ${subtask.completed ? 'subtask-item__title--done' : ''}`}
                 >
