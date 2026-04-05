@@ -81,6 +81,7 @@ export function QuickAdd({ onClose }: QuickAddProps) {
             <div className="qa-search-section">
               {!selectedProduct ? (
                 <SearchCombobox
+                  label="Rechercher un produit dans le catalogue"
                   placeholder="Rechercher dans le catalogue..."
                   queryFn={(q) => productQueries.search(q)}
                   toResult={(item) => ({

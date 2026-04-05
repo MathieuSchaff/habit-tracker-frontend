@@ -8,5 +8,9 @@ interface IconBoxProps {
 }
 
 export function IconBox({ children, className }: IconBoxProps) {
-  return <div className={clsx('icon-box', className)}>{children}</div>
+  return (
+    <div className={clsx('icon-box', className)} aria-hidden="true">
+      {children}
+    </div>
+  )
 }

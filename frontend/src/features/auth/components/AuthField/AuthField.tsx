@@ -34,7 +34,14 @@ export const AuthField = ({
           <label htmlFor={id} className="auth-field__label">
             {label}
           </label>
-          <input id={id} type={resolvedType} className="auth-field__input" {...inputProps} />
+          <input
+            id={id}
+            type={resolvedType}
+            className="auth-field__input"
+            aria-invalid={!!error}
+            aria-describedby={error ? `${id}-error` : undefined}
+            {...inputProps}
+          />
         </div>
         {passwordToggle && (
           <Button
@@ -48,7 +55,11 @@ export const AuthField = ({
           </Button>
         )}
       </div>
-      {error && <p className="auth-field__error">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="auth-field__error">
+          {error}
+        </p>
+      )}
     </>
   )
 }

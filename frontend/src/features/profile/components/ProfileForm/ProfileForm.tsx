@@ -30,7 +30,7 @@ export const ProfileForm = ({
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')
   const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
 
     const data: ProfileUpdateInput = {}

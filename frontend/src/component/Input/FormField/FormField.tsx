@@ -11,15 +11,32 @@ type FormFieldProps = {
 }
 
 export function FormField({ label, htmlFor, required, hint, error, children }: FormFieldProps) {
+  const hintId = hint ? `${htmlFor}-hint` : undefined
+  const errorId = error ? `${htmlFor}-error` : undefined
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
+
   return (
-    <div className="form-field">
+    <div className="form-field" data-describedby={describedBy}>
       <label className="form-field__label" htmlFor={htmlFor}>
         {label}
-        {required && <span className="form-field__required">*</span>}
+        {required && (
+          <span aria-hidden="true" className="form-field__required">
+            *
+          </span>
+        )}
+        {required && <span className="sr-only">(requis)</span>}
       </label>
       {children}
-      {hint && !error && <span className="form-field__hint">{hint}</span>}
-      {error && <span className="form-field__error">{error}</span>}
+      {hint && !error && (
+        <span id={hintId} className="form-field__hint">
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={errorId} className="form-field__error" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   )
 }

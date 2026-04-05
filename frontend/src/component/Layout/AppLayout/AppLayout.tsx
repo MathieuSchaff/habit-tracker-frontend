@@ -25,7 +25,7 @@ export const AppLayout = () => {
   return (
     <div className="app-layout">
       {!isAuthRoute && user && !emailVerified && (
-        <div className="email-verification-banner">
+        <div className="email-verification-banner" role="alert">
           <span>Vérifiez votre adresse email pour continuer à utiliser Aurore.</span>
           <Button
             type="button"
@@ -39,9 +39,9 @@ export const AppLayout = () => {
         </div>
       )}
       <Header />
-      <div className="content">
+      <main className="content">
         <Outlet />
-      </div>
+      </main>
       <BottomNav />
       <Toaster position="top-center" richColors />
     </div>

@@ -17,7 +17,7 @@ export function DetailPageLayout({
 }: DetailPageLayoutProps) {
   return (
     <div className={clsx('detail-page-layout', className)}>
-      {banner && <div className="detail-page-layout__banner" />}
+      {banner && <div className="detail-page-layout__banner" aria-hidden="true" />}
       <div
         className={clsx(
           'detail-page-layout__content',

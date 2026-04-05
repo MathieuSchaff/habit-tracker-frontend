@@ -25,8 +25,17 @@ export function PageTitle({
         <div className="page-title__heading-wrapper">
           <h1 className="page-title__text">
             {title}
-            {count !== undefined && <span className="page-title__count">{count}</span>}
-            {isLoading && <span className="page-title__loader">...</span>}
+            {count !== undefined && (
+              <span className="page-title__count" aria-hidden="true">
+                {count}
+              </span>
+            )}
+            {count !== undefined && <span className="sr-only">{count} éléments</span>}
+            {isLoading && (
+              <output className="page-title__loader" aria-label="Chargement">
+                ...
+              </output>
+            )}
           </h1>
         </div>
         {subtitle && <p className="page-title__subtitle">{subtitle}</p>}
