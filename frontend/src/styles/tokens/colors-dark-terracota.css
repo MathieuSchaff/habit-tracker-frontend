@@ -121,7 +121,6 @@
     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.4);
   --shadow-card: 0 4px 12px oklch(0% 0 0 / 0.3);
-  --shadow-hard: 4px 4px 0px oklch(55% 0.18 var(--h-forest));
 
   /* =========================
        TAGS
@@ -140,8 +139,6 @@
   /* =========================
        STATS
     ========================= */
-  --color-stat-orange: oklch(65% 0.18 45deg);
-  --color-stat-purple: oklch(65% 0.15 280deg);
 
   /* =========================
        MISC
@@ -149,6 +146,5 @@
   --color-primary-subtle: oklch(18% 0.04 var(--h-forest));
   --hero-glow: oklch(20% 0.06 var(--h-forest));
 
-  --border-width: 3px;
   --surface-bright: oklch(99% 0.002 0deg);
 }

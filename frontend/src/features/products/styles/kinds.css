@@ -1,17 +1,37 @@
-.kind--complement,
 .kind--default,
-.kind--skincare,
-.kind--huile,
-.kind--vitamine,
 .unit--pump,
 .unit--dropper,
 .unit--jar,
 .unit--tube,
 .unit--spray,
 .unit--spf {
-  --_kind-bg: var(--bg-selected, oklch(from var(--color-primary) l c h / 0.1));
+  --_kind-bg: oklch(from var(--color-accent) l c h / 0.1);
+  --_kind-color: var(--color-accent-hover);
+  --_kind-border: oklch(from var(--color-accent) l c h / 0.3);
+}
+
+.kind--skincare {
+  --_kind-bg: oklch(from var(--color-success) l c h / 0.1);
+  --_kind-color: var(--color-success);
+  --_kind-border: oklch(from var(--color-success) l c h / 0.3);
+}
+
+.kind--complement {
+  --_kind-bg: oklch(from var(--color-primary) l c h / 0.1);
   --_kind-color: var(--color-primary);
-  --_kind-border: var(--border-default);
+  --_kind-border: oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.kind--huile {
+  --_kind-bg: oklch(from var(--color-warning) l c h / 0.1);
+  --_kind-color: var(--color-warning-text);
+  --_kind-border: oklch(from var(--color-warning) l c h / 0.3);
+}
+
+.kind--vitamine {
+  --_kind-bg: oklch(from var(--color-info) l c h / 0.1);
+  --_kind-color: var(--color-info);
+  --_kind-border: oklch(from var(--color-info) l c h / 0.3);
 }
 
 .kind-badge {

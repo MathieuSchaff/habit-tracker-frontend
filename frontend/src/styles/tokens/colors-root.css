@@ -19,7 +19,8 @@
   --status-color-avoided: oklch(52% 0.14 25deg);
 
   /* ===================================
-     DIMENSIONS
+     STATS — theme-independent
      =================================== */
-  --border-width: 1px;
+  --color-stat-orange: oklch(70% 0.18 45deg);
+  --color-stat-purple: oklch(65% 0.15 280deg);
 }

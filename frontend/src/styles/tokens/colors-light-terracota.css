@@ -69,7 +69,7 @@
   --bg-card: oklch(var(--l-card) var(--c-soft) 75);
   --bg-muted: oklch(var(--l-muted) var(--c-muted) var(--h-mango));
   --bg-elevated: oklch(var(--l-elevated) 0.01 var(--h-mango));
-  --bg-sunken: oklch(var(--l-sunken) 0.08 var(--h-papaya));
+  --bg-sunken: oklch(93% 0.04 var(--h-mango));
   --bg-hover: oklch(from var(--color-primary) l c h / 0.08);
   --bg-active: oklch(from var(--color-primary) l c h / 0.14);
   --bg-selected: var(--color-secondary);
@@ -78,8 +78,6 @@
   --border-strong: oklch(from var(--color-primary-dark) l c h / 0.4);
   --shadow-color: oklch(0% 0 0 / 0.1);
   --shadow-card: 0 2px 0px var(--forest-green);
-  --shadow-hard: 5px 5px 0px var(--forest-green);
-  --border-width: 3px;
 
   --tag-active-bg: oklch(from var(--color-primary-dark) l c h / 0.8);
   --tag-active-text: var(--color-secondary);
@@ -88,8 +86,6 @@
 
   --overlay: oklch(15% 0.08 var(--h-papaya) / 0.45);
 
-  --color-stat-orange: oklch(70% 0.18 45deg);
-  --color-stat-purple: oklch(65% 0.15 280deg);
   --surface-bright: oklch(99% 0.002 0deg);
   --hero-glow: oklch(93% 0.04 var(--h-mango));
 }

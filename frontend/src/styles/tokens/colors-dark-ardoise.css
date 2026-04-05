@@ -35,8 +35,6 @@
   --color-error: oklch(68% 0.18 var(--hue-error));
   --color-error-light: oklch(20% 0.07 var(--hue-error));
   --color-info: oklch(68% 0.14 var(--hue-info));
-  --color-stat-orange: oklch(70% 0.18 45deg);
-  --color-stat-purple: oklch(65% 0.15 280deg);
 
   --color-header-bg: oklch(18% 0.07 240deg);
   --color-header-action: var(--primary-60);
@@ -74,12 +72,10 @@
   --border-default: oklch(50% 0.18 240);
   --border-strong: var(--primary-60);
   --shadow-color: oklch(0% 0 0 / 0.5);
-  --shadow-hard: 4px 4px 0px oklch(60% 0.22 240);
   --shadow-card: 0 4px 16px var(--shadow-color);
   --overlay: oklch(5% 0.05 240deg / 0.7);
   --hero-glow: oklch(25% 0.06 240deg);
   --surface-bright: oklch(99% 0.002 0deg);
 
-  --border-width: 3px;
   --color-primary-subtle: oklch(22% 0.04 240deg);
 }

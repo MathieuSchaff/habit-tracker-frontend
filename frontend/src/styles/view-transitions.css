@@ -4,6 +4,12 @@
  * with :active-view-transition-type().
  */
 
+/* NAVBAR: excluded from all transitions */
+
+::view-transition-group(main-nav) {
+  animation: none;
+}
+
 /* CROSSFADE (list <-> detail, 200ms) */
 
 :root:active-view-transition-type(crossfade) {
@@ -61,6 +67,24 @@
   }
 }
 
+/* TAB SWITCH (infos <-> discussions, content-only fade, 150ms) */
+
+:root:active-view-transition-type(tab-switch) {
+  /* Header, hero, and tabs stay completely still */
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    animation: none;
+  }
+
+  /* Only the tab content area fades */
+  &::view-transition-old(tab-content) {
+    animation: vt-fade-out 150ms ease forwards;
+  }
+  &::view-transition-new(tab-content) {
+    animation: vt-fade-in 150ms ease;
+  }
+}
+
 /* FADE FAST (auth pages, 150ms) */
 
 :root:active-view-transition-type(fade-fast) {
@@ -76,10 +100,32 @@
 
 :root:active-view-transition-type(fade-scale) {
   &::view-transition-old(root) {
-    animation: vt-fade-scale-out 200ms ease;
+    animation: vt-fade-out 200ms ease;
   }
   &::view-transition-new(root) {
-    animation: vt-fade-scale-in 200ms ease;
+    animation: vt-fade-in 200ms ease;
+  }
+}
+
+/* FADE NAV DOWN (nav: moving to lower item, 200ms) */
+
+:root:active-view-transition-type(fade-nav-down) {
+  &::view-transition-old(root) {
+    animation: vt-fade-nav-out-up 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-fade-nav-in-down 200ms ease;
+  }
+}
+
+/* FADE NAV UP (nav: moving to higher item, 200ms) */
+
+:root:active-view-transition-type(fade-nav-up) {
+  &::view-transition-old(root) {
+    animation: vt-fade-nav-out-down 200ms ease;
+  }
+  &::view-transition-new(root) {
+    animation: vt-fade-nav-in-up 200ms ease;
   }
 }
 
@@ -125,16 +171,30 @@
   }
 }
 
-@keyframes vt-fade-scale-out {
+@keyframes vt-fade-nav-out-up {
   to {
-    transform: scale(0.97);
+    transform: translateY(-15px);
     opacity: 0;
   }
 }
 
-@keyframes vt-fade-scale-in {
+@keyframes vt-fade-nav-in-down {
   from {
-    transform: scale(0.97);
+    transform: translateY(15px);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-nav-out-down {
+  to {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-nav-in-up {
+  from {
+    transform: translateY(-15px);
     opacity: 0;
   }
 }
