@@ -1,0 +1,20 @@
+/* native <dialog> reset: kill the browser default border/padding/bg so each variant fully owns its look.
+   We re-state position/inset/margin explicitly because UA defaults vary across browsers and some
+   variants (.qa-modal) use display: flex which can interact oddly with the UA's fit-content sizing. */
+.dialog-content {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  max-width: 100dvw;
+  max-height: 100dvh;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.dialog-content::backdrop {
+  background: var(--overlay);
+}

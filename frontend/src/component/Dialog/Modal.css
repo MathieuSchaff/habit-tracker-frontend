@@ -1,0 +1,41 @@
+/* native <dialog> centers itself with margin: auto when opened via showModal() */
+.dialog-modal {
+  width: calc(100% - 2rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 1rem;
+  animation: dialogModalIn 0.2s ease-out;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-modal {
+    animation: none;
+  }
+}
+
+.dialog-modal--sm {
+  max-width: 280px;
+}
+
+.dialog-modal--md {
+  max-width: 420px;
+}
+
+.dialog-modal--lg {
+  max-width: 600px;
+}
+
+@keyframes dialogModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
