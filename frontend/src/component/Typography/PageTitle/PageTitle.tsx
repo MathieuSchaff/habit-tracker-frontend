@@ -6,6 +6,8 @@ export interface PageTitleProps {
   title: ReactNode
   subtitle?: ReactNode
   count?: number | string
+  // Screen reader label for the count (default: éléments)
+  countLabel?: string
   isLoading?: boolean
   className?: string
   children?: ReactNode
@@ -15,6 +17,7 @@ export function PageTitle({
   title,
   subtitle,
   count,
+  countLabel = 'éléments',
   isLoading,
   className,
   children,
@@ -30,7 +33,11 @@ export function PageTitle({
                 {count}
               </span>
             )}
-            {count !== undefined && <span className="sr-only">{count} éléments</span>}
+            {count !== undefined && (
+              <span className="sr-only">
+                {count} {countLabel}
+              </span>
+            )}
             {isLoading && (
               <output className="page-title__loader" aria-label="Chargement">
                 ...

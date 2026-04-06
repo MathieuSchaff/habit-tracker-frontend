@@ -1,5 +1,3 @@
-import '../discussions.css'
-
 interface AuthorLineProps {
   authorId: string | null
   authorName: string | null

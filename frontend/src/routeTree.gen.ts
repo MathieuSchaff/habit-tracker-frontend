@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TestSvgRouteImport } from './routes/test-svg'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,11 +36,6 @@ import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/in
 import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
 import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug/discussions/$threadId'
 
-const TestSvgRoute = TestSvgRouteImport.update({
-  id: '/test-svg',
-  path: '/test-svg',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -179,7 +173,6 @@ const IngredientsSlugDiscussionsThreadIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
-  '/test-svg': typeof TestSvgRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -207,7 +200,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
-  '/test-svg': typeof TestSvgRoute
   '/collection': typeof AuthenticatedCollectionRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -235,7 +227,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/privacy': typeof PrivacyRoute
-  '/test-svg': typeof TestSvgRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -265,7 +256,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/privacy'
-    | '/test-svg'
     | '/collection'
     | '/habits'
     | '/profile'
@@ -293,7 +283,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/privacy'
-    | '/test-svg'
     | '/collection'
     | '/habits'
     | '/profile'
@@ -320,7 +309,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/privacy'
-    | '/test-svg'
     | '/_authenticated/collection'
     | '/_authenticated/habits'
     | '/_authenticated/profile'
@@ -350,7 +338,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
-  TestSvgRoute: typeof TestSvgRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
@@ -366,13 +353,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/test-svg': {
-      id: '/test-svg'
-      path: '/test-svg'
-      fullPath: '/test-svg'
-      preLoaderRoute: typeof TestSvgRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -617,7 +597,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
-  TestSvgRoute: TestSvgRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,

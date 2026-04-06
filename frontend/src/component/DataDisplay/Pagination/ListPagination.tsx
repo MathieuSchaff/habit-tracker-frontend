@@ -13,18 +13,18 @@ export function ListPagination({ currentPage, totalPages, onPageChange }: ListPa
   }
 
   return (
-    <div className="list-pagination">
+    <nav className="list-pagination" aria-label={`Page ${currentPage} sur ${totalPages}`}>
       <button
         type="button"
         className="list-pagination__btn"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
-        aria-label="Go to previous page"
+        aria-label="Page précédente"
       >
-        <ChevronLeft size={16} />
+        <ChevronLeft size={16} aria-hidden="true" />
       </button>
 
-      <span className="list-pagination__info">
+      <span className="list-pagination__info" aria-live="polite">
         {currentPage} / {totalPages}
       </span>
 
@@ -33,10 +33,10 @@ export function ListPagination({ currentPage, totalPages, onPageChange }: ListPa
         className="list-pagination__btn"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        aria-label="Go to next page"
+        aria-label="Page suivante"
       >
-        <ChevronRight size={16} />
+        <ChevronRight size={16} aria-hidden="true" />
       </button>
-    </div>
+    </nav>
   )
 }

@@ -33,6 +33,11 @@
   background: var(--color-sidebar-item-hover);
 }
 
+.user-menu__trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
 .user-menu__trigger--active {
   background: var(--color-sidebar-item-active);
 }
@@ -92,6 +97,11 @@
 
 .user-menu__item:hover {
   background: var(--color-sidebar-item-hover);
+}
+
+.user-menu__item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .user-menu__item--danger {

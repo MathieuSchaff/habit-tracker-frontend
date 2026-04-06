@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { IngredientInfoTab } from '@/features/ingredients/components/IngredientPage'
+import { IngredientInfoTab } from '@/features/ingredients/components/IngredientInfoTab'
 import { IngredientInfoSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 

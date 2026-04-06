@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ProductInfoTab } from '@/features/products/components/ProductPage'
+import { ProductInfoTab } from '@/features/products/components/ProductInfoTab'
 import { ProductInfoSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton'
 import { productQueries } from '@/lib/queries/products'
 

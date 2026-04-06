@@ -1,6 +1,7 @@
 import { AlertTriangle, X } from 'lucide-react'
 import { useRef } from 'react'
 
+import { Button } from '@/component/Button/Button'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import './DeleteConfirmDialog.css'
 
@@ -29,39 +30,39 @@ export function DeleteConfirmDialog({
       <div
         className="dcd-dialog"
         ref={ref}
-        role="dialog"
+        role="alertdialog"
         aria-modal="true"
+        aria-labelledby="dcd-title"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="dcd-header">
           <div className="dcd-header-title">
             <AlertTriangle size={14} className="dcd-warning-icon" />
-            <span className="dcd-dialog-title">CONFIRMATION</span>
+            <span id="dcd-title" className="dcd-dialog-title">
+              CONFIRMATION
+            </span>
           </div>
-          <button type="button" className="dcd-close-btn" onClick={onClose} aria-label="Fermer">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
             <X size={14} />
-          </button>
+          </Button>
         </div>
 
         <div className="dcd-body">
           <p>{message}</p>
 
           <div className="dcd-footer">
-            <button type="button" className="dcd-cancel" onClick={onClose} disabled={isPending}>
+            <Button variant="outline" onClick={onClose} disabled={isPending}>
               Annuler
-            </button>
-            <button
-              type="button"
-              className="dcd-confirm"
-              onClick={(e) => {
-                e.stopPropagation()
-                onConfirm()
-              }}
+            </Button>
+            <Button
+              variant="danger-ghost"
+              onClick={() => onConfirm()}
               disabled={isPending}
+              loading={isPending}
             >
-              {isPending ? '...' : confirmLabel}
-            </button>
+              {confirmLabel}
+            </Button>
           </div>
         </div>
       </div>

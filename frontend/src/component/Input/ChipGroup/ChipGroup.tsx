@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useId, useState } from 'react'
 
 import './ChipGroup.css'
 
@@ -18,6 +19,9 @@ type ChipGroupProps<T extends string> = {
   className?: string
   'aria-label'?: string
   'aria-describedby'?: string
+  maxVisible?: number
+  chipTabIndex?: number
+  onChipKeyDown?: (e: React.KeyboardEvent) => void
 }
 
 export function ChipGroup<T extends string>({
@@ -31,7 +35,13 @@ export function ChipGroup<T extends string>({
   className,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
+  maxVisible,
+  chipTabIndex,
+  onChipKeyDown,
 }: ChipGroupProps<T>) {
+  const groupId = useId()
+  const [expanded, setExpanded] = useState(false)
+
   const handleClick = (value: T) => {
     if (mode === 'exclusive') {
       onChange([value])
@@ -45,9 +55,13 @@ export function ChipGroup<T extends string>({
     }
   }
 
+  const limit = maxVisible ?? options.length
+  const visibleOptions = expanded ? options : options.slice(0, limit)
+  const hiddenCount = options.length - limit
+
   const isRadio = mode === 'exclusive'
 
-  const chips = options.map(({ value, label }) => {
+  const chips = visibleOptions.map(({ value, label }) => {
     const isSelected = selected.includes(value)
     const isDisabled = disabled || (!isSelected && max != null && selected.length >= max)
 
@@ -63,10 +77,13 @@ export function ChipGroup<T extends string>({
       >
         <input
           type="radio"
+          name={groupId}
           className="sr-only"
           checked={isSelected}
           disabled={isDisabled}
           onChange={() => handleClick(value)}
+          tabIndex={chipTabIndex}
+          onKeyDown={onChipKeyDown}
         />
         {label}
       </label>
@@ -78,6 +95,8 @@ export function ChipGroup<T extends string>({
         onClick={() => handleClick(value)}
         aria-pressed={isSelected}
         disabled={isDisabled}
+        tabIndex={chipTabIndex}
+        onKeyDown={onChipKeyDown}
       >
         {label}
       </button>
@@ -92,6 +111,17 @@ export function ChipGroup<T extends string>({
     >
       {ariaLabel && <legend className="sr-only">{ariaLabel}</legend>}
       {chips}
+      {!expanded && hiddenCount > 0 && (
+        <button
+          type="button"
+          className={clsx('chip', `chip--${size}`, 'chip--more')}
+          onClick={() => setExpanded(true)}
+          tabIndex={chipTabIndex}
+          aria-label={`Voir les ${options.length} options`}
+        >
+          Voir tout ({options.length})
+        </button>
+      )}
     </fieldset>
   )
 }

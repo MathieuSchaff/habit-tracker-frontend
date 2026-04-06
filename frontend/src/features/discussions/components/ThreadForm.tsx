@@ -1,8 +1,10 @@
-import '../discussions.css'
-
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { FormActions } from '@/component/Input/FormActions/FormActions'
+import { Input } from '@/component/Input/Input'
+import { Textarea } from '@/component/Textarea/Textarea'
+import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { useCreateThread } from '@/lib/queries/discussions'
 
 interface ThreadFormProps {
@@ -16,7 +18,7 @@ export function ThreadForm({ entityType, slug }: ThreadFormProps) {
   const [open, setOpen] = useState(false)
   const { mutate, isPending } = useCreateThread(entityType, slug)
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault()
     if (!title.trim() || !content.trim()) return
     mutate(
@@ -41,31 +43,24 @@ export function ThreadForm({ entityType, slug }: ThreadFormProps) {
 
   return (
     <form className="thread-form" onSubmit={handleSubmit}>
-      <p className="thread-form__title">Nouvelle discussion</p>
-      <input
-        className="input"
+      <SectionHeader title="Nouvelle discussion" as="h3" />
+      <Input
+        label="Sujet"
         placeholder="Sujet (ex: Ce produit m'a fait des boutons)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         maxLength={120}
         required
       />
-      <textarea
-        className="textarea"
+      <Textarea
+        label="Ton expérience"
         placeholder="Décris ton expérience..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
         required
       />
-      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-        <Button type="submit" variant="primary" disabled={isPending}>
-          {isPending ? 'Envoi...' : 'Publier'}
-        </Button>
-        <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-          Annuler
-        </Button>
-      </div>
+      <FormActions onCancel={() => setOpen(false)} submitLabel="Publier" isPending={isPending} />
     </form>
   )
 }

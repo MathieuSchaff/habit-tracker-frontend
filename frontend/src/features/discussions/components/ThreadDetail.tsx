@@ -62,14 +62,7 @@ export function ThreadDetail({ thread, entityType, slug, currentUserId }: Thread
       <div className="thread-detail__opening">
         <h2 className="thread-detail__title">{thread.title}</h2>
         <p className="thread-detail__content">{thread.content}</p>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: 'var(--space-2)',
-          }}
-        >
+        <div className="thread-detail__footer">
           <AuthorLine
             authorId={thread.authorId}
             authorName={thread.authorName}

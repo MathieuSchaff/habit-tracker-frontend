@@ -1,38 +1,20 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute, getRouteApi, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
+import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 
-import { Button } from '@/component/Button/Button'
-import { ThreadDetail } from '@/features/discussions/components/ThreadDetail'
+import { ThreadDetailPage } from '@/features/discussions/pages/ThreadDetailPage'
 import { IngredientThreadSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
 import { discussionQueries } from '@/lib/queries/discussions'
-import { useAuthStore } from '@/store/auth'
 
 const route = getRouteApi('/ingredients/$slug/discussions/$threadId')
 
-function IngredientThreadDetail() {
+function IngredientThreadDetailRoute() {
   const { slug, threadId } = route.useParams()
-  const { data: thread } = useSuspenseQuery(discussionQueries.thread('ingredient', slug, threadId))
-  const user = useAuthStore((s) => s.user)
-  const navigate = useNavigate()
-
   return (
-    <>
-      <Button
-        variant="ghost"
-        onClick={() => navigate({ to: '/ingredients/$slug/discussions', params: { slug } })}
-        style={{ marginBottom: 'var(--space-2)' }}
-      >
-        <ArrowLeft size={14} />
-        Retour aux discussions
-      </Button>
-      <ThreadDetail
-        thread={thread}
-        entityType="ingredient"
-        slug={slug}
-        currentUserId={user?.id ?? null}
-      />
-    </>
+    <ThreadDetailPage
+      entityType="ingredient"
+      slug={slug}
+      threadId={threadId}
+      backTo="/ingredients/$slug/discussions"
+    />
   )
 }
 
@@ -42,5 +24,5 @@ export const Route = createFileRoute('/ingredients/$slug/discussions/$threadId')
       discussionQueries.thread('ingredient', params.slug, params.threadId)
     ),
   pendingComponent: IngredientThreadSkeleton,
-  component: IngredientThreadDetail,
+  component: IngredientThreadDetailRoute,
 })

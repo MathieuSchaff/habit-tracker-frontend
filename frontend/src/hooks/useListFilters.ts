@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router'
 import type { RoutePaths } from '@tanstack/router-core'
 import { useMemo } from 'react'
 
-import type { FilterValues } from '@/component/Filter/Filter'
+import type { FilterValues } from '@/component/Filter'
 import type { routeTree } from '@/routeTree.gen'
 
 interface UseListFiltersProps<T extends string> {

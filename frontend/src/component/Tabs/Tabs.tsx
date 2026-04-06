@@ -80,8 +80,11 @@ export const Tabs = <T extends string>({
               aria-selected={isActive}
               aria-controls={`${idPrefix}-panel-${option.id}`}
               tabIndex={isActive ? 0 : -1}
+              aria-label={
+                option.badge !== undefined ? `${option.label} (${option.badge})` : undefined
+              }
             >
-              {option.icon}
+              {option.icon && <span aria-hidden="true">{option.icon}</span>}
               <span>{option.label}</span>
               {option.badge !== undefined && (
                 <span className="tab-badge" aria-hidden="true">

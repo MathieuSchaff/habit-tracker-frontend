@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, Repeat, User } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
@@ -15,15 +15,50 @@ export function BottomNav() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
   const logout = useLogout()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
-  const closeSheet = useCallback(() => setSheetOpen(false), [])
+  const closeSheet = useCallback(() => {
+    setSheetOpen(false)
+    triggerRef.current?.focus()
+  }, [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
 
+  // Focus first link when sheet opens
+  useEffect(() => {
+    if (sheetOpen) {
+      const firstFocusable = sheetRef.current?.querySelector<HTMLElement>('a, button')
+      firstFocusable?.focus()
+    }
+  }, [sheetOpen])
+
+  // Escape + focus trap
   useEffect(() => {
     if (!sheetOpen) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSheet()
+      if (e.key === 'Escape') {
+        closeSheet()
+        return
+      }
+
+      if (e.key === 'Tab') {
+        const focusable = sheetRef.current?.querySelectorAll<HTMLElement>(
+          'a, button, input, [tabindex]:not([tabindex="-1"])'
+        )
+        if (!focusable?.length) return
+
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown)
@@ -46,6 +81,7 @@ export function BottomNav() {
       {sheetOpen && <div className="bottom-nav__overlay" onClick={closeSheet} aria-hidden="true" />}
 
       <div
+        ref={sheetRef}
         className={`bottom-nav__sheet${sheetOpen ? ' bottom-nav__sheet--open' : ''}`}
         role="dialog"
         aria-label="Menu supplémentaire"
@@ -141,6 +177,7 @@ export function BottomNav() {
         </Link>
 
         <button
+          ref={triggerRef}
           type="button"
           className={`bottom-nav__tab${sheetOpen ? ' bottom-nav__tab--sheet-open' : ''}`}
           onClick={toggleSheet}

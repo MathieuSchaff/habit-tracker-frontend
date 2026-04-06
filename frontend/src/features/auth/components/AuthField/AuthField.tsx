@@ -56,7 +56,7 @@ export const AuthField = ({
         )}
       </div>
       {error && (
-        <p id={`${id}-error`} className="auth-field__error">
+        <p id={`${id}-error`} className="auth-field__error" role="alert">
           {error}
         </p>
       )}

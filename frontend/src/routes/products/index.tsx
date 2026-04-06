@@ -1,7 +1,7 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
-import { filterSearchSchema } from '@/component/Filter/helpers'
+import { filterSearchSchema } from '@/component/Filter'
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { FILTER_KEYS } from '../../features/products/filters'
 

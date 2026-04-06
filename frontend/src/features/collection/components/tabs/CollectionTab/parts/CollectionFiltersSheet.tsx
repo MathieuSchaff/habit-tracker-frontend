@@ -1,6 +1,8 @@
 import clsx from 'clsx'
 import { FilterX, X } from 'lucide-react'
 
+import { Button } from '@/component/Button/Button'
+import { Input } from '@/component/Input/Input'
 import { useCollectionFilter } from '@/features/collection/context/CollectionFilterContext'
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -38,25 +40,24 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
         <div className="coll-sheet-header">
           <h3 id="coll-sheet-title">FILTRES AVANCÉS</h3>
           <div className="coll-sheet-actions">
-            <button
-              type="button"
-              className="coll-reset-btn"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={resetFilters}
               title="Réinitialiser tous les filtres"
             >
               <FilterX size={18} />
               <span>Réinitialiser</span>
-            </button>
-            <button
-              type="button"
-              className="coll-sheet-close"
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onClose}
               aria-label="Fermer les filtres"
-              // biome-ignore lint/a11y/noAutofocus: intentional focus on open
               autoFocus
             >
               <X size={20} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -94,14 +95,15 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
               </select>
             </div>
 
-            <div className="coll-adv-group">
-              <span className="coll-label">Ressenti minimum</span>
+            <fieldset className="coll-adv-group">
+              <legend className="coll-label">Ressenti minimum</legend>
               <div className="coll-sentiment-row">
                 {['all', 1, 2, 3, 4, 5].map((s) => (
                   <button
                     key={s}
                     type="button"
                     className={clsx('coll-sentiment-btn', sentiment === s && 'active')}
+                    aria-pressed={sentiment === s}
                     onClick={() =>
                       setFilter({
                         sentiment: s === 'all' ? 'all' : (s as number),
@@ -112,16 +114,17 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
-            <div className="coll-adv-group">
-              <span className="coll-label">Prêt à racheter ?</span>
+            <fieldset className="coll-adv-group">
+              <legend className="coll-label">Prêt à racheter ?</legend>
               <div className="coll-repurchase-row">
                 {['all', 'yes', 'no', 'unsure'].map((r) => (
                   <button
                     key={r}
                     type="button"
                     className={clsx('coll-repurchase-btn', repurchase === r && 'active')}
+                    aria-pressed={repurchase === r}
                     onClick={() => setFilter({ repurchase: r as 'yes' | 'no' | 'unsure' | 'all' })}
                   >
                     {r === 'all' && 'Tous'}
@@ -131,7 +134,7 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             <div className="coll-adv-group">
               <div className="coll-label-row">
@@ -150,9 +153,9 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
             </div>
 
             <div className="coll-adv-group">
-              <label htmlFor="coll-max-price">Prix maximum (€)</label>
-              <input
+              <Input
                 id="coll-max-price"
+                label="Prix maximum (€)"
                 type="number"
                 placeholder="Ex: 50"
                 value={maxPrice}
@@ -167,9 +170,9 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
         </div>
 
         <div className="coll-sheet-footer">
-          <button type="button" className="coll-apply-btn" onClick={onClose}>
+          <Button fullWidth onClick={onClose}>
             Appliquer les filtres
-          </button>
+          </Button>
         </div>
       </div>
     </div>

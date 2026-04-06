@@ -8,7 +8,15 @@ interface PageTopActionsProps {
 }
 
 export function PageTopActions({ children, className }: PageTopActionsProps) {
-  return <div className={clsx('page-top-actions', className)}>{children}</div>
+  return (
+    <div
+      className={clsx('page-top-actions', className)}
+      role="toolbar"
+      aria-label="Actions de page"
+    >
+      {children}
+    </div>
+  )
 }
 
 export function PageTopActionsRight({ children, className }: PageTopActionsProps) {

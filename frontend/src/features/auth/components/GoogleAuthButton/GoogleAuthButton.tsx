@@ -1,11 +1,12 @@
+import { Button } from '../../../../component/Button/Button'
+
 import './GoogleAuthButton.css'
 
 export const GoogleAuthButton = ({ label }: { label: string }) => {
   return (
-    <button
+    <Button
       type="button"
       className="google-btn"
-      aria-label={label || 'Se connecter avec Google'}
       onClick={() => {
         window.location.href = '/api/auth/google'
       }}
@@ -29,6 +30,6 @@ export const GoogleAuthButton = ({ label }: { label: string }) => {
         />
       </svg>
       {label}
-    </button>
+    </Button>
   )
 }

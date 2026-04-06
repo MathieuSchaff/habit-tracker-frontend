@@ -3,7 +3,9 @@ import { AlertTriangle, ClipboardCopy, Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
 import { FormField } from '@/component/Input/FormField/FormField'
+import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import { isHttpError } from '@/lib/helpers/isHttpError'
@@ -15,7 +17,7 @@ import {
   useUpdateIngredientTags,
 } from '../../../../lib/queries/ingredients'
 import { tagQueries } from '../../../../lib/queries/tags'
-import '../Edit/IngredientPageEditable.css'
+import '../IngredientPageEditable.css'
 
 interface BaseIngredient {
   id: string
@@ -129,111 +131,90 @@ export function IngredientForm({
         ? 'Enregistrement…'
         : 'Enregistrer'
 
-  const handleSubmit = useCallback(
-    async (e: React.SubmitEvent<HTMLFormElement>) => {
-      e.preventDefault()
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
 
-      if (!form.name.trim()) {
-        setError("Le nom de l'ingrédient est obligatoire.")
-        return
-      }
+    if (!form.name.trim()) {
+      setError("Le nom de l'ingrédient est obligatoire.")
+      return
+    }
 
-      try {
-        if (mode === 'create') {
-          const created = await createIngredient.mutateAsync({
-            name: form.name.trim(),
-            slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
-            category: form.category.trim() || undefined,
-            description: form.description.trim() || undefined,
-            content: form.content.trim() || undefined,
+    try {
+      if (mode === 'create') {
+        const created = await createIngredient.mutateAsync({
+          name: form.name.trim(),
+          slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
+          category: form.category.trim() || undefined,
+          description: form.description.trim() || undefined,
+          content: form.content.trim() || undefined,
+        })
+        if (tags.length > 0) {
+          await updateTags.mutateAsync({
+            ingredientId: created.id,
+            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
           })
-          if (tags.length > 0) {
-            await updateTags.mutateAsync({
-              ingredientId: created.id,
-              tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-            })
-          }
-          onSuccess(created.slug)
-        } else {
-          const [updated] = await Promise.all([
-            updateIngredient.mutateAsync({
-              id: ingredient.id,
-              data: {
-                name: form.name.trim(),
-                slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
-                category: form.category.trim() || undefined,
-                description: form.description.trim() || undefined,
-                content: form.content.trim() || undefined,
-                expectedUpdatedAt: new Date(updatedAtOverride ?? ingredient.updatedAt),
-              },
-            }),
-            updateTags.mutateAsync({
-              ingredientId: ingredient.id,
-              tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-            }),
-          ])
-          setConflict(null)
-          setUpdatedAtOverride(null)
-          onSuccess(updated.slug)
         }
-      } catch (err: unknown) {
-        if (isHttpError(err, 409) && mode === 'edit') {
-          // someone else saved while we were editing
-          // so save the user's current work as a draft
-          const draft = { ...form }
-
-          //  fetch the fresh version from the server
-          const fresh = (await qc.fetchQuery({
-            ...ingredientQueries.bySlug(ingredient.slug),
-            staleTime: 0,
-          })) as BaseIngredient
-          // replace the form with the server version
-          setForm({
-            name: fresh.name ?? '',
-            slug: fresh.slug ?? '',
-            category: fresh.category ?? '',
-            description: fresh.description ?? '',
-            content: fresh.content ?? '',
-          })
-
-          //  store the draft + fresh updatedAt so user can recover their work
-          setConflict({ draft, freshUpdatedAt: fresh.updatedAt })
-          setUpdatedAtOverride(fresh.updatedAt)
-          setError(null)
-        } else {
-          setError(
-            err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-          )
-        }
+        onSuccess(created.slug)
+      } else {
+        const [updated] = await Promise.all([
+          updateIngredient.mutateAsync({
+            id: ingredient.id,
+            data: {
+              name: form.name.trim(),
+              slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
+              category: form.category.trim() || undefined,
+              description: form.description.trim() || undefined,
+              content: form.content.trim() || undefined,
+              expectedUpdatedAt: new Date(updatedAtOverride ?? ingredient.updatedAt),
+            },
+          }),
+          updateTags.mutateAsync({
+            ingredientId: ingredient.id,
+            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
+          }),
+        ])
+        setConflict(null)
+        setUpdatedAtOverride(null)
+        onSuccess(updated.slug)
       }
-    },
-    [
-      form,
-      isAdmin,
-      mode,
-      ingredient,
-      tags,
-      updatedAtOverride,
-      createIngredient,
-      updateIngredient,
-      updateTags,
-      onSuccess,
-      qc,
-    ]
-  )
+    } catch (err: unknown) {
+      if (isHttpError(err, 409) && mode === 'edit') {
+        const draft = { ...form }
 
-  // restore a single field from the draft back into the form
-  const restoreField = useCallback((field: FormFieldKey) => {
+        const fresh = (await qc.fetchQuery({
+          ...ingredientQueries.bySlug(ingredient.slug),
+          staleTime: 0,
+        })) as BaseIngredient
+        setForm({
+          name: fresh.name ?? '',
+          slug: fresh.slug ?? '',
+          category: fresh.category ?? '',
+          description: fresh.description ?? '',
+          content: fresh.content ?? '',
+        })
+
+        setConflict({ draft, freshUpdatedAt: fresh.updatedAt })
+        setUpdatedAtOverride(fresh.updatedAt)
+        setError(null)
+      } else {
+        setError(
+          err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
+        )
+      }
+    }
+  }
+
+  function restoreField(field: FormFieldKey) {
     setConflict((prev) => {
       if (!prev) return null
       setForm((f) => ({ ...f, [field]: prev.draft[field] }))
       return prev
     })
-  }, [])
+  }
 
-  const dismissConflict = useCallback(() => {
+  function dismissConflict() {
     setConflict(null)
-  }, [])
+  }
 
   // check if a field differs between the draft and the current form (server version)
   const hasFieldConflict = (field: FormFieldKey): boolean => {
@@ -243,7 +224,7 @@ export function IngredientForm({
 
   return (
     <form className="ingredient-edit-form" onSubmit={handleSubmit}>
-      {error && <div className="ingredient-edit-form__error">{error}</div>}
+      {error && <FormMessage variant="error">{error}</FormMessage>}
 
       {conflict && (
         <div className="ingredient-edit-form__conflict-banner">
@@ -267,14 +248,11 @@ export function IngredientForm({
       )}
 
       <FormField label="Nom" htmlFor="ingredient-name" required>
-        <input
+        <Input
           id="ingredient-name"
-          className="ingredient-edit-form__input"
-          type="text"
           value={form.name}
           onChange={handleChange('name')}
           placeholder="Nom de l'ingrédient"
-          // biome-ignore lint: autofocus ok
           autoFocus
         />
         {hasFieldConflict('name') && (
@@ -284,10 +262,8 @@ export function IngredientForm({
 
       {isAdmin && (
         <FormField label="Slug" htmlFor="ingredient-slug" hint="Lien URL unique (admin uniquement)">
-          <input
+          <Input
             id="ingredient-slug"
-            className="ingredient-edit-form__input"
-            type="text"
             value={form.slug}
             onChange={handleChange('slug')}
             placeholder="Ex: mon-ingredient-slug"
@@ -299,10 +275,8 @@ export function IngredientForm({
       )}
 
       <FormField label="Catégorie" htmlFor="ingredient-category">
-        <input
+        <Input
           id="ingredient-category"
-          className="ingredient-edit-form__input"
-          type="text"
           value={form.category}
           onChange={handleChange('category')}
           placeholder="Ex : Actif, Émollient, Conservateur…"

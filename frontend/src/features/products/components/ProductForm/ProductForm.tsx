@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Save, Trash2, X } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
+import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
 import { FormField } from '@/component/Input/FormField/FormField'
+import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import {
@@ -43,7 +46,6 @@ type ProductWithIngredients = {
 type ProductFormProps =
   | {
       mode: 'create'
-      // product and initialTags should not be passed in create mode
       product?: never
       initialTags?: never
       onSuccess: (slug: string) => void
@@ -149,103 +151,101 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         ? 'Enregistrement…'
         : 'Enregistrer'
 
-  const handleSubmit = useCallback(
-    async (e: React.SubmitEvent<HTMLFormElement>) => {
-      e.preventDefault()
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
 
-      if (!form.name.trim()) {
-        setError('Le nom du produit est obligatoire.')
-        return
-      }
-      if (!form.brand.trim()) {
-        setError('La marque est obligatoire.')
-        return
-      }
-      if (!form.kind.trim()) {
-        setError('La catégorie est obligatoire.')
-        return
-      }
-      if (!form.unit.trim()) {
-        setError("L'unité est obligatoire.")
-        return
-      }
+    if (!form.name.trim()) {
+      setError('Le nom du produit est obligatoire.')
+      return
+    }
+    if (!form.brand.trim()) {
+      setError('La marque est obligatoire.')
+      return
+    }
+    if (!form.kind.trim()) {
+      setError('La catégorie est obligatoire.')
+      return
+    }
+    if (!form.unit.trim()) {
+      setError("L'unité est obligatoire.")
+      return
+    }
 
-      // Backend expects cents
-      const parsedPrice = form.priceEuros.trim()
-        ? Math.round(parseFloat(form.priceEuros) * 100)
-        : undefined
-      const parsedAmount = form.totalAmount.trim() ? parseInt(form.totalAmount, 10) : undefined
-      const productData = {
-        name: form.name.trim(),
-        brand: form.brand.trim(),
-        kind: form.kind.trim(),
-        unit: form.unit.trim(),
-        priceCents: parsedPrice,
-        totalAmount: parsedAmount,
-        amountUnit: form.amountUnit.trim() || undefined,
-        inci: form.inci.trim() || undefined,
-        description: form.description.trim() || undefined,
-        notes: form.notes.trim() || undefined,
-        url: form.url.trim() || undefined,
-      }
+    // Backend expects cents
+    const parsedPrice = form.priceEuros.trim()
+      ? Math.round(parseFloat(form.priceEuros) * 100)
+      : undefined
+    const parsedAmount = form.totalAmount.trim() ? parseInt(form.totalAmount, 10) : undefined
+    const productData = {
+      name: form.name.trim(),
+      brand: form.brand.trim(),
+      kind: form.kind.trim(),
+      unit: form.unit.trim(),
+      priceCents: parsedPrice,
+      totalAmount: parsedAmount,
+      amountUnit: form.amountUnit.trim() || undefined,
+      inci: form.inci.trim() || undefined,
+      description: form.description.trim() || undefined,
+      notes: form.notes.trim() || undefined,
+      url: form.url.trim() || undefined,
+    }
 
-      try {
-        if (mode === 'create') {
-          const newProduct = await createProduct.mutateAsync(productData)
-          if (tags.length > 0) {
-            await updateTags.mutateAsync({
-              productId: newProduct.id,
-              tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-            })
-          }
-          if (pendingIngredients.length > 0) {
-            await Promise.all(
-              pendingIngredients.map((i) =>
-                addIngredient.mutateAsync({
-                  productId: newProduct.id,
-                  ingredientId: i.ingredientId,
-                })
-              )
-            )
-          }
-          onSuccess(newProduct.slug)
-        } else {
-          const [updated] = await Promise.all([
-            updateProduct.mutateAsync({ id: product?.id, data: productData }),
-            updateTags.mutateAsync({
-              productId: product?.id,
-              tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-            }),
-          ])
-          onSuccess(updated.slug)
+    try {
+      if (mode === 'create') {
+        const newProduct = await createProduct.mutateAsync(productData)
+        if (tags.length > 0) {
+          await updateTags.mutateAsync({
+            productId: newProduct.id,
+            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
+          })
         }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-        )
+        if (pendingIngredients.length > 0) {
+          await Promise.all(
+            pendingIngredients.map((i) =>
+              addIngredient.mutateAsync({
+                productId: newProduct.id,
+                ingredientId: i.ingredientId,
+              })
+            )
+          )
+        }
+        onSuccess(newProduct.slug)
+      } else {
+        const [updated] = await Promise.all([
+          updateProduct.mutateAsync({ id: product?.id, data: productData }),
+          updateTags.mutateAsync({
+            productId: product?.id,
+            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
+          }),
+        ])
+        onSuccess(updated.slug)
       }
-    },
-    [
-      form,
-      mode,
-      product,
-      tags,
-      pendingIngredients,
-      createProduct,
-      updateProduct,
-      updateTags,
-      addIngredient,
-      onSuccess,
-    ]
-  )
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
+      )
+    }
+  }
+
+  const ingredientItems = mode === 'edit' ? product.ingredients : pendingIngredients
+
+  function handleRemoveIngredient(ingredientId: string) {
+    if (mode === 'edit') {
+      removeIngredient.mutate({ productId: product.id, ingredientId })
+    } else {
+      setPendingIngredients((prev) => prev.filter((i) => i.ingredientId !== ingredientId))
+    }
+  }
 
   return (
-    <form className="product-edit-form" onSubmit={handleSubmit}>
-      {error && (
-        <div className="product-edit-form__error" role="alert">
-          {error}
-        </div>
-      )}
+    <form
+      className="product-edit-form"
+      onSubmit={handleSubmit}
+      aria-label={
+        mode === 'create' ? 'Créer un produit' : `Modifier ${product?.name ?? 'le produit'}`
+      }
+    >
+      {error && <FormMessage variant="error">{error}</FormMessage>}
 
       {mode === 'create' && similarProducts && similarProducts.length > 0 && (
         <div className="product-edit-form__duplicate-warning" role="alert">
@@ -267,105 +267,93 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
       )}
 
       <div className="product-edit-form__row">
-        <FormField label="Nom" htmlFor="edit-name" required>
-          <input
-            id="edit-name"
-            className="product-edit-form__input"
-            type="text"
-            value={form.name}
-            onChange={handleChange('name')}
-            placeholder="Nom du produit"
-            // biome-ignore lint: autofocus ok
-            autoFocus
-          />
-        </FormField>
+        <Input
+          label="Nom"
+          id="edit-name"
+          required
+          value={form.name}
+          onChange={handleChange('name')}
+          placeholder="Nom du produit"
+          autoFocus
+        />
 
         <FormField label="Marque" htmlFor="product-form-brand" required>
           <BrandCombobox
             id="product-form-brand"
-            value={form.brand ?? ''}
+            value={form.brand}
             onChange={(v, confirmed) => {
               setForm((prev) => ({ ...prev, brand: v }))
               setBrandConfirmed(confirmed)
             }}
-            inputClassName="product-edit-form__input"
           />
         </FormField>
       </div>
 
       <div className="product-edit-form__row">
-        <FormField label="Catégorie" htmlFor="edit-kind" required>
-          <input
-            id="edit-kind"
-            className="product-edit-form__input"
-            type="text"
-            value={form.kind}
-            onChange={handleChange('kind')}
-            placeholder="Ex : skincare, complément, huile…"
-          />
-        </FormField>
+        <Input
+          label="Catégorie"
+          id="edit-kind"
+          required
+          value={form.kind}
+          onChange={handleChange('kind')}
+          placeholder="Ex : skincare, complément, huile…"
+        />
 
-        <FormField label="Unité" htmlFor="edit-unit" required>
-          <input
-            id="edit-unit"
-            className="product-edit-form__input"
-            type="text"
-            value={form.unit}
-            onChange={handleChange('unit')}
-            placeholder="Ex : ml, gélule, goutte…"
-          />
-        </FormField>
+        <Input
+          label="Unité"
+          id="edit-unit"
+          required
+          value={form.unit}
+          onChange={handleChange('unit')}
+          placeholder="Ex : ml, gélule, goutte…"
+        />
       </div>
 
       <div className="product-edit-form__row">
-        <FormField label="Contenance" htmlFor="edit-total-amount">
+        <fieldset className="form-field">
+          <legend className="form-field__label">Contenance</legend>
           <div className="product-edit-form__inline">
-            <input
+            <Input
               id="edit-total-amount"
-              className="product-edit-form__input"
               type="number"
-              min="1"
+              min={1}
               value={form.totalAmount}
               onChange={handleChange('totalAmount')}
               placeholder="Ex : 30"
+              aria-label="Quantité"
             />
-            <input
+            <Input
               id="edit-amount-unit"
-              className="product-edit-form__input product-edit-form__input--short"
-              type="text"
+              className="product-edit-form__input--short"
               value={form.amountUnit}
               onChange={handleChange('amountUnit')}
               placeholder="ml, g…"
               aria-label="Unité de contenance"
             />
           </div>
-        </FormField>
+        </fieldset>
 
-        <FormField label="Prix (€)" htmlFor="edit-price">
-          <input
-            id="edit-price"
-            className="product-edit-form__input"
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.priceEuros}
-            onChange={handleChange('priceEuros')}
-            placeholder="Ex : 12.90"
-          />
-        </FormField>
+        <Input
+          label="Prix (€)"
+          id="edit-price"
+          type="number"
+          min={0}
+          step={0.01}
+          value={form.priceEuros}
+          onChange={handleChange('priceEuros')}
+          placeholder="Ex : 12.90"
+        />
       </div>
 
       <div className="product-edit-form__row">
-        <FormField label="Lien produit" htmlFor="edit-url">
-          <input
-            id="edit-url"
-            className="product-edit-form__input"
-            type="url"
-            value={form.url}
-            onChange={handleChange('url')}
-            placeholder="https://…"
-          />
-        </FormField>
+        <Input
+          label="Lien produit"
+          id="edit-url"
+          type="url"
+          value={form.url}
+          onChange={handleChange('url')}
+          placeholder="https://…"
+        />
       </div>
 
       <FormField label="INCI" htmlFor="edit-inci">
@@ -401,7 +389,8 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         />
       </FormField>
 
-      <FormField label="Tags" htmlFor="tags">
+      <fieldset className="form-field">
+        <legend className="form-field__label">Tags</legend>
         <TagManager
           tags={tags}
           availableTags={availableTags}
@@ -409,67 +398,34 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           onRemoveTag={removeTag}
           onUpdateRelevance={updateRelevance}
         />
-      </FormField>
+      </fieldset>
 
-      <FormField label="Ingrédients" htmlFor="ingredients">
+      <fieldset className="form-field">
+        <legend className="form-field__label">Ingrédients</legend>
         <div className="product-edit-ingredients">
-          {mode === 'edit' ? (
-            <>
-              {product?.ingredients.length === 0 && (
-                <p className="product-edit-ingredients__empty">Aucun ingrédient associé.</p>
-              )}
-              {product?.ingredients.map((ing) => (
-                <div key={ing.ingredientId} className="product-edit-ingredient">
-                  <span className="product-edit-ingredient__name">{ing.ingredientName}</span>
-                  <button
-                    type="button"
-                    className="product-edit-ingredient__remove"
-                    aria-label={`Retirer ${ing.ingredientName}`}
-                    onClick={() =>
-                      removeIngredient.mutate({
-                        productId: product?.id,
-                        ingredientId: ing.ingredientId,
-                      })
-                    }
-                    disabled={removeIngredient.isPending}
-                  >
-                    <Trash2 size={14} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              {pendingIngredients.length === 0 && (
-                <p className="product-edit-ingredients__empty">Aucun ingrédient ajouté.</p>
-              )}
-              {pendingIngredients.map((ing) => (
-                <div key={ing.ingredientId} className="product-edit-ingredient">
-                  <span className="product-edit-ingredient__name">{ing.ingredientName}</span>
-                  <button
-                    type="button"
-                    className="product-edit-ingredient__remove"
-                    aria-label={`Retirer ${ing.ingredientName}`}
-                    onClick={() =>
-                      setPendingIngredients((prev) =>
-                        prev.filter((i) => i.ingredientId !== ing.ingredientId)
-                      )
-                    }
-                  >
-                    <Trash2 size={14} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-            </>
+          {ingredientItems.length === 0 && (
+            <p className="product-edit-ingredients__empty">
+              {mode === 'edit' ? 'Aucun ingrédient associé.' : 'Aucun ingrédient ajouté.'}
+            </p>
           )}
+          {ingredientItems.map((ing) => (
+            <div key={ing.ingredientId} className="product-edit-ingredient">
+              <span className="product-edit-ingredient__name">{ing.ingredientName}</span>
+              <button
+                type="button"
+                className="product-edit-ingredient__remove"
+                aria-label={`Retirer ${ing.ingredientName}`}
+                onClick={() => handleRemoveIngredient(ing.ingredientId)}
+                disabled={mode === 'edit' && removeIngredient.isPending}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+              </button>
+            </div>
+          ))}
         </div>
 
         <IngredientSearch
-          existingIds={
-            mode === 'edit'
-              ? product?.ingredients.map((i) => i.ingredientId)
-              : pendingIngredients.map((i) => i.ingredientId)
-          }
+          existingIds={ingredientItems.map((i) => i.ingredientId)}
           onAdd={(ingredientId, ingredientName) => {
             if (mode === 'edit') {
               addIngredient.mutate({ productId: product?.id, ingredientId })
@@ -478,32 +434,30 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             }
           }}
         />
-      </FormField>
+      </fieldset>
 
       <div className="product-edit-form__actions">
         {mode === 'edit' ? (
-          <Link
-            to="/products/$slug"
-            params={{ slug: product?.slug }}
-            className="product-edit-form__btn product-edit-form__btn--cancel"
-          >
-            <X size={16} />
+          <Button to="/products/$slug" params={{ slug: product?.slug }} variant="outline">
             Annuler
-          </Link>
+          </Button>
         ) : (
-          <Link to="/products" className="product-edit-form__btn product-edit-form__btn--cancel">
-            <X size={16} />
+          <Button to="/products" variant="outline">
             Annuler
-          </Link>
+          </Button>
         )}
-        <button
+        <Button
           type="submit"
-          className="product-edit-form__btn product-edit-form__btn--save"
+          variant="primary"
           disabled={isSubmitDisabled}
+          loading={
+            mode === 'create'
+              ? createProduct.isPending
+              : updateProduct.isPending || updateTags.isPending
+          }
         >
-          <Save size={16} />
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   )
