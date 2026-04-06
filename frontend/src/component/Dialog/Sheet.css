@@ -1,0 +1,44 @@
+/* mobile: sheet stuck to the bottom of the viewport — override native dialog's margin: auto centering */
+.dialog-sheet {
+  margin: auto auto 0;
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: 1.25rem 1.25rem 0 0;
+  border-top: 3px solid var(--color-primary);
+  max-height: 90dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: dialogSheetIn var(--transition-slow) cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow:
+    0 -12px 48px oklch(0% 0 0 / 0.14),
+    0 -4px 24px oklch(from var(--color-primary) l c h / 0.1);
+}
+
+@media (min-width: 640px) {
+  .dialog-sheet {
+    margin: auto;
+    max-width: 680px;
+    border-radius: var(--radius-lg);
+    max-height: 88dvh;
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 1px var(--border-default);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-sheet {
+    animation: none;
+  }
+}
+
+@keyframes dialogSheetIn {
+  from {
+    transform: translateY(60px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
