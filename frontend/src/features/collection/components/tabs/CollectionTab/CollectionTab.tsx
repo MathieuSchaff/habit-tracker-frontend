@@ -3,6 +3,8 @@ import clsx from 'clsx'
 import { ArrowUpDown, Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
+import { Input } from '@/component/Input/Input'
 import { sortLabels, sortOptions } from '@/features/collection/constants'
 import {
   CollectionFilterProvider,
@@ -25,10 +27,10 @@ export function CollectionTab({ userProducts }: CollectionTabProps) {
 
   if (!userProducts) {
     return (
-      <div className="coll-page-container coll-loading">
-        <div className="coll-spinner" />
+      <output className="coll-page-container coll-loading" aria-live="polite">
+        <div className="coll-spinner" aria-hidden="true" />
         <p>Récupération de vos trésors...</p>
-      </div>
+      </output>
     )
   }
 
@@ -62,32 +64,34 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
       <div className="coll-controls">
         <div className="coll-search-wrapper">
           <Search className="coll-search-icon" size={16} />
-          <input
-            type="text"
+          <Input
             placeholder="Rechercher..."
             value={q}
             onChange={(e) => setFilter({ q: e.target.value })}
             className="coll-search-input"
+            aria-label="Rechercher dans la collection"
           />
         </div>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           className="coll-sort-btn"
           onClick={cycleSortBy}
           aria-label={`Trier par ${sortLabels[sort]}`}
           title={`Tri : ${sortLabels[sort]}`}
         >
           <ArrowUpDown size={16} />
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           className={clsx('coll-filter-toggle', hasActiveFilters && 'active')}
           onClick={() => setShowFiltersSheet(true)}
           aria-label="Filtres avancés"
           title="Filtres avancés"
         >
           <SlidersHorizontal size={16} />
-        </button>
+        </Button>
       </div>
 
       <ShelfView

@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
 import { ComboboxPrimitive } from '@/component/search/ComboboxPrimitive'
 import { productQueries } from '@/lib/queries/products'
+
+import './BrandCombobox.css'
 
 interface BrandComboboxProps {
   id?: string
@@ -85,7 +88,7 @@ export function BrandCombobox({
   }
 
   return (
-    <div className="brand-combobox-container">
+    <div>
       <ComboboxPrimitive
         items={filtered}
         isOpen={showDropdown && filtered.length > 0}
@@ -99,70 +102,38 @@ export function BrandCombobox({
         renderItem={(brand) => brand}
         keyExtractor={(brand) => brand}
       >
-        <input
-          id={id}
-          type="text"
-          className={inputClassName}
-          value={inputValue}
-          onChange={handleInputChange}
-          onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          autoComplete="off"
-        />
+        {({ listboxId, activeDescendant }) => (
+          <input
+            id={id}
+            type="text"
+            role="combobox"
+            className={inputClassName}
+            value={inputValue}
+            onChange={handleInputChange}
+            onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            autoComplete="off"
+            aria-label="Marque"
+            aria-expanded={showDropdown && filtered.length > 0}
+            aria-controls={listboxId}
+            aria-activedescendant={activeDescendant}
+            aria-autocomplete="list"
+          />
+        )}
       </ComboboxPrimitive>
 
       {showConfirm && (
-        <div
-          className="brand-combobox__confirm"
-          role="alert"
-          style={{
-            marginTop: 'var(--space-2)',
-            padding: 'var(--space-2) var(--space-3)',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 'var(--text-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            flexWrap: 'wrap',
-          }}
-        >
-          <span style={{ flex: 1, color: 'var(--text-primary)' }}>
+        <div className="brand-combobox__confirm" role="alert">
+          <span className="brand-combobox__confirm-text">
             Marque « {inputValue.trim()} » introuvable. Créer ?
           </span>
-          <button
-            type="button"
-            style={{
-              padding: 'var(--space-1) var(--space-3)',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background: 'var(--color-primary)',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: 'var(--text-xs)',
-              fontWeight: '600',
-            }}
-            onClick={handleConfirmYes}
-          >
+          <Button variant="primary" size="sm" onClick={handleConfirmYes}>
             Oui
-          </button>
-          <button
-            type="button"
-            style={{
-              padding: 'var(--space-1) var(--space-3)',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-default)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: 'var(--text-xs)',
-            }}
-            onClick={handleConfirmNo}
-          >
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleConfirmNo}>
             Non
-          </button>
+          </Button>
         </div>
       )}
     </div>

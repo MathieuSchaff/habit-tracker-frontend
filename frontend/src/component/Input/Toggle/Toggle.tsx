@@ -22,19 +22,27 @@ export function Toggle({
 }: ToggleProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
+  const hintId = hint ? `${inputId}-hint` : undefined
 
   return (
     <label className={clsx('toggle', `toggle--${size}`, `toggle--${layout}`)} htmlFor={inputId}>
       <div className="toggle__info">
         <span className="toggle__label">{label}</span>
-        {hint && <span className="toggle__hint">{hint}</span>}
+        {hint && (
+          <span id={hintId} className="toggle__hint">
+            {hint}
+          </span>
+        )}
       </div>
       <input
         {...props}
         ref={ref}
         id={inputId}
         type="checkbox"
+        role="switch"
+        aria-checked={!!props.checked}
         className="sr-only"
+        aria-describedby={hintId}
         onChange={(e) => {
           if (!e.target.disabled) onChange?.(e.target.checked)
         }}

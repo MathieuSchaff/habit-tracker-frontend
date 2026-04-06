@@ -1,4 +1,4 @@
-import type { FilterSubGroup } from '@/component/Filter/types'
+import type { FilterSubGroup } from '@/component/Filter'
 
 export type FilterKey = 'category' | 'concern' | 'skin_type' | 'attribute'
 

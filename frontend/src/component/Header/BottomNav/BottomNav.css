@@ -113,6 +113,11 @@
     transform: scale(0.92);
   }
 
+  .bottom-nav__tab:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
   .bottom-nav__tab--active,
   .bottom-nav__tab[aria-current="page"],
   .bottom-nav__tab--sheet-open {
@@ -138,6 +143,11 @@
   .bottom-nav__sheet-link:hover {
     background: var(--color-sidebar-item-hover);
     transform: translateX(4px);
+  }
+
+  .bottom-nav__sheet-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
   }
 
   .bottom-nav__sheet-divider {
@@ -176,6 +186,16 @@
 
   .bottom-nav__sheet-logout:hover {
     background: oklch(from var(--color-error) 20% 0.05 h / 0.2);
+  }
+
+  .bottom-nav__sheet-logout:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  .bottom-nav__sheet-auth-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
   }
 }
 

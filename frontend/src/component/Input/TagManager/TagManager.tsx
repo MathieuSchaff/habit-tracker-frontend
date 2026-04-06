@@ -29,7 +29,7 @@ export function TagManager({
             <select
               value={tag.relevance}
               className="tag-item__relevance"
-              aria-label={`Relevance for tag ${tag.tagName}`}
+              aria-label={`Pertinence du tag ${tag.tagName}`}
               onChange={(e) =>
                 onUpdateRelevance(tag.tagId, e.target.value as 'primary' | 'secondary' | 'avoid')
               }
@@ -41,7 +41,7 @@ export function TagManager({
             <button
               type="button"
               className="tag-item__remove"
-              aria-label={`Remove tag ${tag.tagName}`}
+              aria-label={`Retirer le tag ${tag.tagName}`}
               onClick={() => onRemoveTag(tag.tagId)}
             >
               <Trash2 size={14} aria-hidden="true" />
@@ -53,7 +53,7 @@ export function TagManager({
       <div className="tag-manager__add">
         <select
           className="tag-manager__select"
-          aria-label="Add a tag"
+          aria-label="Ajouter un tag"
           value=""
           onChange={(e) => {
             if (e.target.value) {

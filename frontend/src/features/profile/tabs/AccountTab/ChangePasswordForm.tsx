@@ -1,7 +1,7 @@
 import type { ChangePasswordInput } from '@habit-tracker/shared'
 
 import { Eye, EyeOff } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '../../../../component/Feedback/FormMessage/FormMessage'
@@ -19,6 +19,7 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPasswords, setShowPasswords] = useState(false)
+  const confirmRef = useRef<HTMLInputElement>(null)
 
   const changePassword = useChangePassword()
 
@@ -26,7 +27,7 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
     e.preventDefault()
 
     if (newPassword !== confirmPassword) {
-      // We check this here to help the user, but the backend also verifies with Zod.
+      confirmRef.current?.focus()
       return
     }
 
@@ -88,6 +89,7 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
         />
 
         <Input
+          ref={confirmRef}
           label="Confirmer le nouveau mot de passe"
           type={showPasswords ? 'text' : 'password'}
           value={confirmPassword}

@@ -5,8 +5,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  padding: 1.5rem;
+  padding: 1rem;
   box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .profile-dashboard {
+    padding: 1.5rem;
+  }
 }
 
 .profile-hero {
@@ -89,20 +95,6 @@
   min-width: 0;
 }
 
-.profile-hero__name {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.profile-hero__handle {
-  font-size: var(--text-sm);
-  color: var(--color-primary);
-  font-weight: var(--font-semibold);
-}
-
 .profile-hero__bio {
   font-size: var(--text-sm);
   color: var(--text-secondary);
@@ -154,10 +146,6 @@
     align-items: flex-start;
   }
 
-  .profile-hero__name {
-    font-size: var(--text-2xl);
-  }
-
   .profile-hero__bio {
     margin-top: var(--space-4);
   }
@@ -168,13 +156,22 @@
   }
 }
 
+/* Tabs */
+
 .profile-tabs-container {
-  padding: 0 1rem;
+  padding: 0;
   margin: 1.5rem 0 0.5rem;
 }
 
 .profile-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
   animation: fadeIn 0.3s ease;
+}
+
+.profile-tab-content[hidden] {
+  display: none;
 }
 
 @keyframes fadeIn {
@@ -196,6 +193,54 @@
   width: 100%;
 }
 
+/* Profile info read mode */
+
+.profile-info-read {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.profile-info-read__bio {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.profile-info-read__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.profile-info-read__link {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+}
+
+.profile-info-read__link:hover {
+  text-decoration: underline;
+  background: color-mix(in oklch, var(--color-primary) 8%, transparent);
+}
+
+.profile-info-read__empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Loading / Error */
+
 .profile-loading {
   display: grid;
   place-items: center;
@@ -213,20 +258,11 @@
 }
 
 @media (max-width: 480px) {
-  .profile-hero__name {
-    font-size: var(--text-2xl);
-    white-space: normal;
-  }
-
   .profile-hero__bio {
     max-width: 100%;
   }
 
   .profile-hero__since {
     justify-content: center;
-  }
-
-  .profile-hero__edit {
-    align-self: center;
   }
 }

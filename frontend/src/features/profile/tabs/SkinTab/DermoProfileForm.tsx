@@ -13,7 +13,11 @@ import { FITZPATRICK_ITEMS, SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/cons
 import { profileQueries, useUpdateDermoProfile } from '../../../../lib/queries/profile'
 import './DermoProfileForm.css'
 
-export function DermoProfileForm() {
+type DermoProfileFormProps = {
+  onSave?: () => void
+}
+
+export function DermoProfileForm({ onSave }: DermoProfileFormProps) {
   const { data: dermo, isLoading } = useQuery(profileQueries.dermo())
   const updateMutation = useUpdateDermoProfile()
 
@@ -42,13 +46,24 @@ export function DermoProfileForm() {
       skinConcerns,
       privateNotes: privateNotes || null,
     }
-    updateMutation.mutate(data, { onSuccess: () => setIsDirty(false) })
+    updateMutation.mutate(data, {
+      onSuccess: () => {
+        setIsDirty(false)
+        onSave?.()
+      },
+    })
   }
 
   if (isLoading) return <output className="dermo-form__loading">Chargement...</output>
 
   return (
-    <div className="dermo-form">
+    <form
+      className="dermo-form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        handleSave()
+      }}
+    >
       <section className="dermo-section">
         <span className="dermo-section__overline" aria-hidden="true">
           Type de peau
@@ -160,16 +175,15 @@ export function DermoProfileForm() {
 
       <div className="dermo-form__actions">
         <Button
-          type="button"
+          type="submit"
           variant="primary"
           size="md"
-          onClick={handleSave}
           loading={updateMutation.isPending}
           disabled={!isDirty}
         >
           Enregistrer
         </Button>
       </div>
-    </div>
+    </form>
   )
 }

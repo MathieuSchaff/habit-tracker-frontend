@@ -1,41 +1,47 @@
 import type { ProfileUpdateInput } from '@habit-tracker/shared'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Calendar, Droplets, LayoutDashboard, Settings, Shield, UserCircle } from 'lucide-react'
-import { Suspense, useState } from 'react'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { Calendar, Settings, UserCircle } from 'lucide-react'
+import { Suspense, useCallback, useState } from 'react'
 
 import { Spinner } from '@/component/Feedback/Spinner/Spinner'
+import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
+import { EditableSection } from '../../components/EditableSection/EditableSection'
 import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
 import { ProfileForm } from '../../components/ProfileForm/ProfileForm'
+import { SkinProfileRead } from '../../components/SkinProfileRead/SkinProfileRead'
 import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
 import { ProfileStats } from '../../tabs/OverviewTab/ProfileStats'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
-import { PrivacySettings } from '../../tabs/PrivacyTab/PrivacySettings'
 import { DermoProfileForm } from '../../tabs/SkinTab/DermoProfileForm'
 import './ProfileDashboard.css'
-
-import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 
 const formatJoinDate = (date?: string | null): string => {
   if (!date) return ''
   return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date(date))
 }
 
-type TabType = 'overview' | 'preferences' | 'account' | 'skin' | 'privacy'
+type TabType = 'profile' | 'preferences' | 'account'
+type EditingSection = 'hero' | 'skin' | null
 
 export const ProfileDashboard = () => {
   const { data: profile } = useSuspenseQuery(profileQueries.me())
+  const { data: dermo } = useQuery(profileQueries.dermo())
   const updateProfile = useUpdateProfile()
-  const [isEditing, setIsEditing] = useState(false)
-  const [activeTab, setActiveTab] = useState<TabType>('overview')
+  const [activeTab, setActiveTab] = useState<TabType>('profile')
+  const [editingSection, setEditingSection] = useState<EditingSection>(null)
 
   const displayName = profile.username ?? 'Utilisateur'
 
-  const handleUpdate = (data: ProfileUpdateInput) => {
+  const handleEditSection = useCallback((section: EditingSection) => {
+    setEditingSection(section)
+  }, [])
+
+  const handleProfileUpdate = (data: ProfileUpdateInput) => {
     updateProfile.mutate(data, {
-      onSuccess: () => setIsEditing(false),
+      onSuccess: () => setEditingSection(null),
     })
   }
 
@@ -45,9 +51,9 @@ export const ProfileDashboard = () => {
 
   const tabOptions: TabOption<TabType>[] = [
     {
-      id: 'overview',
-      label: 'Résumé',
-      icon: <LayoutDashboard size={18} />,
+      id: 'profile',
+      label: 'Profil',
+      icon: <UserCircle size={18} />,
     },
     {
       id: 'preferences',
@@ -58,16 +64,6 @@ export const ProfileDashboard = () => {
       id: 'account',
       label: 'Compte',
       icon: <UserCircle size={18} />,
-    },
-    {
-      id: 'skin',
-      label: 'Peau',
-      icon: <Droplets size={18} />,
-    },
-    {
-      id: 'privacy',
-      label: 'Confidentialité',
-      icon: <Shield size={18} />,
     },
   ]
 
@@ -82,11 +78,7 @@ export const ProfileDashboard = () => {
 
           <div className="profile-hero__main">
             <div className="profile-hero__header">
-              <PageTitle
-                title={displayName}
-                subtitle={profile.username ? `@${profile.username}` : undefined}
-                className="profile-hero__info"
-              />
+              <PageTitle title={displayName} className="profile-hero__info" />
             </div>
 
             {profile.bio && <p className="profile-hero__bio">{profile.bio}</p>}
@@ -101,86 +93,105 @@ export const ProfileDashboard = () => {
         </div>
       </div>
 
-      {!isEditing && (
-        <Tabs
-          options={tabOptions}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          className="profile-tabs-container"
-          idPrefix="profile-tab"
-        />
-      )}
+      <Tabs
+        options={tabOptions}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="profile-tabs-container"
+        idPrefix="profile-tab"
+      />
 
       <div className="profile-dashboard__body">
-        {isEditing ? (
-          <ProfileForm
-            profile={profile}
-            onSubmit={handleUpdate}
-            onCancel={() => {
-              setIsEditing(false)
-              updateProfile.reset()
-            }}
-            isPending={updateProfile.isPending}
-            error={errorMessage}
+        <div
+          className="profile-tab-content"
+          role="tabpanel"
+          id="profile-tab-panel-profile"
+          aria-labelledby="profile-tab-profile"
+          hidden={activeTab !== 'profile'}
+        >
+          <EditableSection
+            title="Mes informations"
+            isEditing={editingSection === 'hero'}
+            onEdit={() => handleEditSection('hero')}
+            readContent={
+              <div className="profile-info-read">
+                {profile.bio && <p className="profile-info-read__bio">{profile.bio}</p>}
+                {profile.links && profile.links.length > 0 && (
+                  <div className="profile-info-read__links">
+                    {profile.links.map((link) => (
+                      <a
+                        key={link.url}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="profile-info-read__link"
+                      >
+                        {link.label || link.url}
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {!profile.bio && (!profile.links || profile.links.length === 0) && (
+                  <p className="profile-info-read__empty">Aucune information renseignée.</p>
+                )}
+              </div>
+            }
+            editContent={
+              <ProfileForm
+                profile={profile}
+                onSubmit={handleProfileUpdate}
+                onCancel={() => {
+                  setEditingSection(null)
+                  updateProfile.reset()
+                }}
+                isPending={updateProfile.isPending}
+                error={errorMessage}
+              />
+            }
           />
-        ) : (
-          <>
-            {activeTab === 'overview' && (
-              <div
-                className="profile-tab-content"
-                role="tabpanel"
-                id="profile-tab-panel-overview"
-                aria-labelledby="profile-tab-overview"
-              >
-                <Suspense fallback={<Spinner />}>
-                  <ProfileStats />
-                </Suspense>
-              </div>
-            )}
-            {activeTab === 'preferences' && (
-              <div
-                className="profile-tab-content"
-                role="tabpanel"
-                id="profile-tab-panel-preferences"
-                aria-labelledby="profile-tab-preferences"
-              >
-                <PreferenceSettings />
-              </div>
-            )}
-            {activeTab === 'account' && (
-              <div
-                className="profile-tab-content"
-                role="tabpanel"
-                id="profile-tab-panel-account"
-                aria-labelledby="profile-tab-account"
-              >
-                <AccountSettings onEditProfile={() => setIsEditing(true)} />
-              </div>
-            )}
-            {activeTab === 'skin' && (
-              <div
-                className="profile-tab-content"
-                role="tabpanel"
-                id="profile-tab-panel-skin"
-                aria-labelledby="profile-tab-skin"
-              >
-                <Suspense fallback={<Spinner />}>
-                  <DermoProfileForm />
-                </Suspense>
-              </div>
-            )}
-            {activeTab === 'privacy' && (
-              <div
-                className="profile-tab-content"
-                role="tabpanel"
-                id="profile-tab-panel-privacy"
-                aria-labelledby="profile-tab-privacy"
-              >
-                <PrivacySettings />
-              </div>
-            )}
-          </>
-        )}
+
+          <Suspense fallback={<Spinner />}>
+            <ProfileStats />
+          </Suspense>
+
+          <EditableSection
+            title="Ma peau"
+            isEditing={editingSection === 'skin'}
+            onEdit={() => handleEditSection('skin')}
+            readContent={
+              dermo ? (
+                <SkinProfileRead dermo={dermo} />
+              ) : (
+                <p className="skin-read__empty">Chargement...</p>
+              )
+            }
+            editContent={
+              <Suspense fallback={<Spinner />}>
+                <DermoProfileForm onSave={() => setEditingSection(null)} />
+              </Suspense>
+            }
+          />
+        </div>
+
+        <div
+          className="profile-tab-content"
+          role="tabpanel"
+          id="profile-tab-panel-preferences"
+          aria-labelledby="profile-tab-preferences"
+          hidden={activeTab !== 'preferences'}
+        >
+          <PreferenceSettings />
+        </div>
+
+        <div
+          className="profile-tab-content"
+          role="tabpanel"
+          id="profile-tab-panel-account"
+          aria-labelledby="profile-tab-account"
+          hidden={activeTab !== 'account'}
+        >
+          <AccountSettings />
+        </div>
       </div>
     </main>
   )

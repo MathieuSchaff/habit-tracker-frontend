@@ -1,5 +1,5 @@
 import { History, MoreHorizontal } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useDeletePurchase } from '@/lib/queries/purchases'
@@ -43,6 +43,7 @@ function RowMenu({
     >
       <button
         type="button"
+        role="menuitem"
         className="coll-hist-menu-item"
         onClick={() => {
           onEdit()
@@ -53,6 +54,7 @@ function RowMenu({
       </button>
       <button
         type="button"
+        role="menuitem"
         className="coll-hist-menu-item coll-hist-menu-item--danger"
         onClick={() => {
           onDelete()
@@ -72,18 +74,22 @@ export function HistoryTab({ userProducts }: HistoryTabProps) {
   const [editingPurchase, setEditingPurchase] = useState<PurchaseEntry | null>(null)
   const [deletingPurchase, setDeletingPurchase] = useState<PurchaseEntry | null>(null)
 
-  const allPurchases: PurchaseEntry[] = userProducts
-    .flatMap((up) =>
-      (up.purchases ?? []).map((purchase) => ({
-        ...purchase,
-        product: up.product,
-      }))
-    )
-    .sort((a, b) => {
-      const dateA = a.purchasedAt ? new Date(a.purchasedAt).getTime() : 0
-      const dateB = b.purchasedAt ? new Date(b.purchasedAt).getTime() : 0
-      return dateB - dateA
-    })
+  const allPurchases: PurchaseEntry[] = useMemo(
+    () =>
+      userProducts
+        .flatMap((up) =>
+          (up.purchases ?? []).map((purchase) => ({
+            ...purchase,
+            product: up.product,
+          }))
+        )
+        .sort((a, b) => {
+          const dateA = a.purchasedAt ? new Date(a.purchasedAt).getTime() : 0
+          const dateB = b.purchasedAt ? new Date(b.purchasedAt).getTime() : 0
+          return dateB - dateA
+        }),
+    [userProducts]
+  )
 
   if (allPurchases.length === 0) {
     return (

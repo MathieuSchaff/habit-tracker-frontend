@@ -65,30 +65,31 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // Shared logic: add a product to the user's collection, with an
+  // optional first purchase when the status is 'in_stock'.
+  const addToCollection = async (productId: string) => {
+    const created = await addUserProduct.mutateAsync({
+      productId,
+      status: selectedStatus,
+    })
+
+    if (selectedStatus === 'in_stock') {
+      if (!created.id) throw new Error('userProduct created without id')
+      await addPurchase.mutateAsync({
+        userProductId: created.id,
+        input: {
+          purchasedAt,
+          pricePaidCents: purchasePrice ? Math.round(parseFloat(purchasePrice) * 100) : undefined,
+          expiresAt: expiresAt || undefined,
+        },
+      })
+    }
+  }
+
   const handleAddExisting = async () => {
     if (!selectedProduct) return
     try {
-      // When a product is 'in_stock', we also need to save when we bought it.
-      if (selectedStatus === 'in_stock') {
-        const created = await addUserProduct.mutateAsync({
-          productId: selectedProduct.id,
-          status: 'in_stock',
-        })
-        if (!created.id) throw new Error('userProduct created without id')
-        await addPurchase.mutateAsync({
-          userProductId: created.id,
-          input: {
-            purchasedAt,
-            pricePaidCents: purchasePrice ? Math.round(parseFloat(purchasePrice) * 100) : undefined,
-            expiresAt: expiresAt || undefined,
-          },
-        })
-      } else {
-        await addUserProduct.mutateAsync({
-          productId: selectedProduct.id,
-          status: selectedStatus,
-        })
-      }
+      await addToCollection(selectedProduct.id)
       toast.success(`${selectedProduct.name} ajouté à votre collection !`)
       onClose()
     } catch (error) {
@@ -100,35 +101,15 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
   const handleCreateAndAdd = async (e?: React.SubmitEvent<HTMLFormElement>) => {
     e?.preventDefault()
     try {
-      // First we must create the product in the global catalogue,
-      // then we can add it to the user's personal collection.
+      // First create the product in the global catalogue,
+      // then add it to the user's personal collection.
       const product = await createProduct.mutateAsync({
         name: newName,
         brand: newBrand,
         kind: newKind,
         unit: newUnit,
       })
-
-      if (selectedStatus === 'in_stock') {
-        const created = await addUserProduct.mutateAsync({
-          productId: product.id,
-          status: 'in_stock',
-        })
-        if (!created.id) throw new Error('userProduct created without id')
-        await addPurchase.mutateAsync({
-          userProductId: created.id,
-          input: {
-            purchasedAt,
-            pricePaidCents: purchasePrice ? Math.round(parseFloat(purchasePrice) * 100) : undefined,
-            expiresAt: expiresAt || undefined,
-          },
-        })
-      } else {
-        await addUserProduct.mutateAsync({
-          productId: product.id,
-          status: selectedStatus,
-        })
-      }
+      await addToCollection(product.id)
       toast.success(`${newName} créé et ajouté à votre collection !`)
       onClose()
     } catch (error) {

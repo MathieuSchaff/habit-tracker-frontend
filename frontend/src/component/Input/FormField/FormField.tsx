@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import './FormField.css'
 
 type FormFieldProps = {
@@ -15,8 +15,20 @@ export function FormField({ label, htmlFor, required, hint, error, children }: F
   const errorId = error ? `${htmlFor}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
+  // Inject aria-describedby into the first child element
+  const enhancedChildren =
+    describedBy && isValidElement(children)
+      ? cloneElement(
+          children as ReactElement<{ 'aria-describedby'?: string; 'aria-invalid'?: boolean }>,
+          {
+            'aria-describedby': describedBy,
+            ...(error ? { 'aria-invalid': true } : {}),
+          }
+        )
+      : children
+
   return (
-    <div className="form-field" data-describedby={describedBy}>
+    <div className="form-field">
       <label className="form-field__label" htmlFor={htmlFor}>
         {label}
         {required && (
@@ -26,7 +38,7 @@ export function FormField({ label, htmlFor, required, hint, error, children }: F
         )}
         {required && <span className="sr-only">(requis)</span>}
       </label>
-      {children}
+      {enhancedChildren}
       {hint && !error && (
         <span id={hintId} className="form-field__hint">
           {hint}

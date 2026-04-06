@@ -2,6 +2,8 @@ import { Calendar, Euro, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import { Button } from '@/component/Button/Button'
+import { Input } from '@/component/Input/Input'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useAddPurchase, useUpdatePurchase } from '@/lib/queries/purchases'
 
@@ -83,17 +85,23 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
 
   return (
     <div className="apd-overlay">
-      <div className="apd-dialog" role="dialog" aria-modal="true" ref={ref}>
+      <div
+        className="apd-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="apd-title"
+        ref={ref}
+      >
         <div className="apd-header">
           <div className="apd-header-title">
             <Euro size={16} />
-            <span className="apd-title">
+            <span id="apd-title" className="apd-title">
               {isEditMode ? "MODIFIER L'ACHAT" : 'ENREGISTRER UN ACHAT'}
             </span>
           </div>
-          <button type="button" className="apd-close" onClick={onClose} aria-label="Fermer">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSave} className="apd-form">
@@ -102,7 +110,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
               <Calendar size={14} />
               Date d'achat
             </label>
-            <input
+            <Input
               id="apd-date"
               type="date"
               value={purchaseDate}
@@ -116,7 +124,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
               <Euro size={14} />
               Prix payé (€)
             </label>
-            <input
+            <Input
               id="apd-price"
               type="number"
               step="0.01"
@@ -128,12 +136,12 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
           </div>
 
           <div className="apd-footer">
-            <button type="button" className="apd-cancel" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}>
               Annuler
-            </button>
-            <button type="submit" className="apd-submit" disabled={!purchaseDate || isPending}>
-              {isPending ? '...' : 'Valider'}
-            </button>
+            </Button>
+            <Button type="submit" disabled={!purchaseDate || isPending} loading={isPending}>
+              Valider
+            </Button>
           </div>
         </form>
       </div>

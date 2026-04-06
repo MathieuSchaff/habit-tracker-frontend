@@ -4,6 +4,7 @@ import { Toaster, toast } from 'sonner'
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { Button } from '../../Button/Button'
+import { DevThemeSwitcher } from '../../DevThemeSwitcher/DevThemeSwitcher'
 import { BottomNav } from '../../Header/BottomNav/BottomNav'
 import { Header } from '../../Header/Header'
 
@@ -34,7 +35,14 @@ export const AppLayout = () => {
             onClick={handleResend}
             disabled={resend.isPending}
           >
-            {resend.isPending ? '...' : 'Renvoyer'}
+            {resend.isPending ? (
+              <>
+                <span aria-hidden="true">...</span>
+                <span className="sr-only">Envoi en cours</span>
+              </>
+            ) : (
+              'Renvoyer'
+            )}
           </Button>
         </div>
       )}
@@ -43,6 +51,7 @@ export const AppLayout = () => {
         <Outlet />
       </main>
       <BottomNav />
+      <DevThemeSwitcher />
       <Toaster position="top-center" richColors />
     </div>
   )

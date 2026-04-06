@@ -20,9 +20,9 @@
   --color-secondary: oklch(74% 0.16 65);
   --color-tertiary: oklch(66% 0.12 65);
 
-  /* Sidebar — Ambre doré chaud */
-  --color-sidebar-bg: oklch(52% 0.18 50);
-  --color-sidebar-item-hover: oklch(58% 0.16 52);
+  /* Sidebar — Ardoise profond */
+  --color-sidebar-bg: oklch(28% 0.15 240);
+  --color-sidebar-item-hover: oklch(36% 0.15 240);
   --color-sidebar-item-active: oklch(from oklch(100% 0 0) l c h / 0.2);
   --color-sidebar-icon: oklch(100% 0 0);
   --color-sidebar-icon-active: oklch(100% 0 0);
@@ -52,7 +52,7 @@
   --color-warning-text: oklch(40% 0.15 50);
 
   /* Surfaces */
-  --bg-page: oklch(96% 0.008 240);
+  --bg-page: oklch(96.5% 0.003 240);
   --bg-card: oklch(99.5% 0.003 240);
   --bg-muted: oklch(91% 0.03 240);
   --bg-elevated: oklch(98% 0.003 240);
@@ -62,12 +62,12 @@
   --bg-selected: oklch(92% 0.08 65);
 
   /* Borders */
-  --border-default: oklch(55% 0.18 240);
-  --border-strong: oklch(35% 0.2 240);
+  --border-default: oklch(86% 0.03 240);
+  --border-strong: oklch(72% 0.07 240);
 
   /* Shadows */
   --shadow-color: oklch(0% 0 0 / 0.1);
-  --shadow-card: 0 2px 0px oklch(35% 0.2 240);
+  --shadow-card: 0 2px 8px oklch(0% 0 0 / 0.08);
 
   /* Tags */
   --tag-active-bg: oklch(35% 0.2 240);

@@ -143,59 +143,6 @@
   }
 }
 
-.coll-hist-date {
-  font-size: 0.8rem;
-  font-weight: var(--font-medium);
-  color: var(--text-muted);
-}
-
-.coll-hist-name {
-  display: block;
-  font-weight: var(--font-bold);
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.coll-hist-brand {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  font-weight: var(--font-medium);
-  letter-spacing: var(--tracking-wide);
-}
-
-.coll-hist-qty {
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
-  font-size: 0.875rem;
-  font-family: var(--font-display);
-  font-feature-settings: "onum" 1;
-}
-
-.coll-hist-price {
-  font-family: var(--font-display);
-  font-feature-settings: "onum" 1;
-  font-weight: var(--font-bold);
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  text-align: right;
-}
-
-/* Transparent backdrop to close menu */
-
-.coll-hist-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 48;
-}
-
-/* The menu with edit/delete buttons */
-
-.coll-hist-actions {
-  position: relative;
-  z-index: 49;
-}
-
 .coll-hist-menu-btn {
   display: flex;
   align-items: center;
@@ -247,18 +194,6 @@
 
 .coll-hist-menu-item--danger {
   color: var(--color-error, #e53e3e);
-}
-
-/* On desktop the actions column is the 4th grid cell */
-@media (min-width: 640px) {
-  .coll-hist-row-bottom {
-    display: contents;
-  }
-
-  .coll-hist-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
 }
 
 .coll-empty-state {

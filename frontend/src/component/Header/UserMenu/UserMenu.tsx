@@ -59,7 +59,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
         const items = menuListRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]')
         if (!items?.length) return
 
-        const currentIndex = Array.from(items).findIndex((el) => el === document.activeElement)
+        const currentIndex = Array.from(items).indexOf(document.activeElement as HTMLElement)
         const nextIndex =
           e.key === 'ArrowDown'
             ? (currentIndex + 1) % items.length

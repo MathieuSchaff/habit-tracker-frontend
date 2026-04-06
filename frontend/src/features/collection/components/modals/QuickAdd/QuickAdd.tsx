@@ -3,6 +3,9 @@ import type { UserProductStatus } from '@habit-tracker/shared'
 import clsx from 'clsx'
 import { X } from 'lucide-react'
 
+import { Button } from '@/component/Button/Button'
+import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
+import { Input } from '@/component/Input/Input'
 import { SearchCombobox } from '@/component/search/SearchCombobox'
 import { statusLabels } from '@/features/collection/constants'
 import { useQuickAdd } from '@/features/collection/hooks/useQuickAdd'
@@ -54,24 +57,28 @@ export function QuickAdd({ onClose }: QuickAddProps) {
       <div className="qa-modal" role="dialog" aria-modal="true" aria-labelledby="qa-modal-title">
         <div className="qa-modal-header">
           <h2 id="qa-modal-title">AJOUTER À MA COLLECTION</h2>
-          <button type="button" className="qa-close-btn" onClick={onClose} aria-label="Fermer">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         <div className="qa-modal-content">
-          <div className="qa-tabs">
+          <div className="qa-tabs" role="tablist">
             <button
               type="button"
+              role="tab"
               className={clsx('qa-tab', activeTab === 'existing' && 'active')}
               onClick={() => setActiveTab('existing')}
+              aria-selected={activeTab === 'existing'}
             >
               Produit existant
             </button>
             <button
               type="button"
+              role="tab"
               className={clsx('qa-tab', activeTab === 'new' && 'active')}
               onClick={() => setActiveTab('new')}
+              aria-selected={activeTab === 'new'}
             >
               Nouveau produit
             </button>
@@ -106,13 +113,9 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                       <h3>{selectedProduct.name}</h3>
                       <p>{selectedProduct.brand}</p>
                     </div>
-                    <button
-                      type="button"
-                      className="qa-change-prod"
-                      onClick={() => setSelectedProduct(null)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedProduct(null)}>
                       Changer
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="qa-status-grid">
@@ -125,6 +128,7 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                           type="button"
                           className={clsx('qa-status-opt', selectedStatus === s && 'active')}
                           onClick={() => setSelectedStatus(s)}
+                          aria-pressed={selectedStatus === s}
                         >
                           <Icon size={18} />
                           <span>{cfg.label}</span>
@@ -135,65 +139,55 @@ export function QuickAdd({ onClose }: QuickAddProps) {
 
                   {selectedStatus === 'in_stock' && (
                     <div className="qa-purchase-fields">
-                      <div className="qa-field">
-                        <label htmlFor="qa-purchased-at">Date d'achat</label>
-                        <input
-                          id="qa-purchased-at"
-                          type="date"
-                          value={purchasedAt}
-                          onChange={(e) => setPurchasedAt(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="qa-field">
-                        <label htmlFor="qa-purchase-price">Prix payé (€) — optionnel</label>
-                        <input
-                          id="qa-purchase-price"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={purchasePrice}
-                          onChange={(e) => setPurchasePrice(e.target.value)}
-                        />
-                      </div>
-                      <div className="qa-field">
-                        <label htmlFor="qa-expires-at">Date d'expiration — optionnel</label>
-                        <input
-                          id="qa-expires-at"
-                          type="date"
-                          value={expiresAt}
-                          onChange={(e) => setExpiresAt(e.target.value)}
-                        />
-                      </div>
+                      <Input
+                        id="qa-purchased-at"
+                        label="Date d'achat"
+                        type="date"
+                        value={purchasedAt}
+                        onChange={(e) => setPurchasedAt(e.target.value)}
+                        required
+                      />
+                      <Input
+                        id="qa-purchase-price"
+                        label="Prix payé (€) — optionnel"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={purchasePrice}
+                        onChange={(e) => setPurchasePrice(e.target.value)}
+                      />
+                      <Input
+                        id="qa-expires-at"
+                        label="Date d'expiration — optionnel"
+                        type="date"
+                        value={expiresAt}
+                        onChange={(e) => setExpiresAt(e.target.value)}
+                      />
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    className="qa-submit-btn"
-                    style={{ width: '100%' }}
+                  <Button
+                    fullWidth
                     onClick={handleAddExisting}
                     disabled={isPending}
+                    loading={isPending}
                   >
-                    {isPending ? 'Ajout...' : 'Ajouter à ma collection'}
-                  </button>
+                    Ajouter à ma collection
+                  </Button>
                 </>
               )}
             </div>
           ) : (
             <form className="qa-form" onSubmit={handleCreateAndAdd}>
-              <div className="qa-field">
-                <label htmlFor="qa-new-name">Nom du produit</label>
-                <input
-                  id="qa-new-name"
-                  type="text"
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="ex: CeraVe Hydrating Cleanser"
-                />
-              </div>
+              <Input
+                id="qa-new-name"
+                label="Nom du produit"
+                required
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="ex: CeraVe Hydrating Cleanser"
+              />
               <div className="qa-field">
                 <label htmlFor="qa-new-brand">Marque</label>
                 <BrandCombobox
@@ -207,7 +201,7 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                 />
               </div>
               {similarProducts && similarProducts.length > 0 && (
-                <div className="qa-duplicate-warning" role="alert">
+                <FormMessage variant="warning">
                   <p>
                     {similarProducts.length === 1
                       ? 'Un produit similaire existe déjà :'
@@ -223,21 +217,18 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                   <p className="qa-duplicate-hint">
                     Vous pouvez l'ajouter via l'onglet « Produit existant ».
                   </p>
-                </div>
+                </FormMessage>
               )}
 
-              <div className="qa-field">
-                <label htmlFor="qa-new-kind">Catégorie</label>
-                <input
-                  id="qa-new-kind"
-                  type="text"
-                  required
-                  value={newKind}
-                  onChange={(e) => setNewKind(e.target.value)}
-                />
-              </div>
+              <Input
+                id="qa-new-kind"
+                label="Catégorie"
+                required
+                value={newKind}
+                onChange={(e) => setNewKind(e.target.value)}
+              />
 
-              <div className="qa-status-grid" style={{ marginTop: '0.5rem' }}>
+              <div className="qa-status-grid qa-status-grid--spaced">
                 {(Object.keys(statusLabels) as UserProductStatus[]).map((s) => {
                   const cfg = statusLabels[s]
                   const Icon = cfg.icon
@@ -257,47 +248,42 @@ export function QuickAdd({ onClose }: QuickAddProps) {
 
               {selectedStatus === 'in_stock' && (
                 <div className="qa-purchase-fields">
-                  <div className="qa-field">
-                    <label htmlFor="qa-new-purchased-at">Date d'achat</label>
-                    <input
-                      id="qa-new-purchased-at"
-                      type="date"
-                      value={purchasedAt}
-                      onChange={(e) => setPurchasedAt(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="qa-field">
-                    <label htmlFor="qa-new-purchase-price">Prix payé (€) — optionnel</label>
-                    <input
-                      id="qa-new-purchase-price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={purchasePrice}
-                      onChange={(e) => setPurchasePrice(e.target.value)}
-                    />
-                  </div>
-                  <div className="qa-field">
-                    <label htmlFor="qa-new-expires-at">Date d'expiration — optionnel</label>
-                    <input
-                      id="qa-new-expires-at"
-                      type="date"
-                      value={expiresAt}
-                      onChange={(e) => setExpiresAt(e.target.value)}
-                    />
-                  </div>
+                  <Input
+                    id="qa-new-purchased-at"
+                    label="Date d'achat"
+                    type="date"
+                    value={purchasedAt}
+                    onChange={(e) => setPurchasedAt(e.target.value)}
+                    required
+                  />
+                  <Input
+                    id="qa-new-purchase-price"
+                    label="Prix payé (€) — optionnel"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={purchasePrice}
+                    onChange={(e) => setPurchasePrice(e.target.value)}
+                  />
+                  <Input
+                    id="qa-new-expires-at"
+                    label="Date d'expiration — optionnel"
+                    type="date"
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                  />
                 </div>
               )}
 
-              <button
+              <Button
                 type="submit"
-                className="qa-submit-btn"
+                fullWidth
                 disabled={isPending || !newBrand.trim() || !newBrandConfirmed}
+                loading={isPending}
               >
-                {isPending ? 'Chargement...' : 'Créer et ajouter'}
-              </button>
+                Créer et ajouter
+              </Button>
             </form>
           )}
         </div>

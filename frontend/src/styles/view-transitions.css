@@ -205,6 +205,6 @@
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) {
-    animation: none !important;
+    animation: none;
   }
 }

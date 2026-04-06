@@ -1,1 +1,46 @@
-purged from history
+.card {
+  --card-accent: var(--color-primary);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--border-default);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+}
+
+/* Top accent bar */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-accent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  opacity: 0.85;
+}
+
+/* Border glow hover — only on interactive elements */
+.card:is(button, a, [role="button"]):hover,
+.card:is(button, a, [role="button"]):focus-visible,
+.card--interactive:hover,
+.card--interactive:focus-visible {
+  border-color: oklch(from var(--card-accent) l c h / 0.45);
+  box-shadow:
+    0 0 0 3px oklch(from var(--card-accent) l c h / 0.1),
+    0 4px 16px oklch(from var(--card-accent) l c h / 0.12);
+  outline: none;
+}
+
+@media (forced-colors: active) {
+  .card:is(button, a, [role="button"]):focus-visible,
+  .card--interactive:focus-visible {
+    outline: 2px solid ButtonText;
+    outline-offset: 2px;
+  }
+}

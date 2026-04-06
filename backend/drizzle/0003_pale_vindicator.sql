@@ -1,0 +1,1 @@
+CREATE INDEX "error_occurrences_user_occurred_idx" ON "error_occurrences" USING btree ("user_id","occurred_at");

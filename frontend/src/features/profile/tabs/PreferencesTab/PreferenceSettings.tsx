@@ -1,6 +1,7 @@
 import type { DisplayScale } from '@habit-tracker/shared'
 
 import { useQuery } from '@tanstack/react-query'
+import { useRef } from 'react'
 
 import { ChipGroup } from '../../../../component/Input/ChipGroup/ChipGroup'
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
@@ -18,6 +19,7 @@ const PALETTE_SWATCHES: Array<{ variant: Variant; label: string; color: string }
   { variant: 'terracota', label: 'Terracota', color: 'oklch(52% 0.13 32)' },
   { variant: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
   { variant: 'ardoise', label: 'Ardoise', color: 'oklch(35% 0.12 240)' },
+  { variant: 'vivid', label: 'Vivid', color: 'oklch(52% 0.22 145)' },
 ]
 
 const criteriaLabels: Record<string, string> = {
@@ -41,13 +43,15 @@ export function PreferenceSettings() {
   const updateMutation = useUpdateUserPreferences()
   const { variant, setVariant } = useThemeStore()
 
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
   if (isLoading || !prefs) return <output>Chargement des préférences...</output>
 
-  // No debounce — keeps the UI feeling fast.
   const handleWeightChange = (key: string, value: number) => {
-    updateMutation.mutate({
-      criteriaWeights: { [key]: value },
-    })
+    clearTimeout(debounceTimers.current[key])
+    debounceTimers.current[key] = setTimeout(() => {
+      updateMutation.mutate({ criteriaWeights: { [key]: value } })
+    }, 400)
   }
 
   const scaleOptions = (Object.keys(scaleLabels) as DisplayScale[]).map((s) => ({

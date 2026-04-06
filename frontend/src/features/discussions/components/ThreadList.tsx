@@ -5,6 +5,7 @@ import type { DiscussionThread } from '@habit-tracker/shared'
 import { Link } from '@tanstack/react-router'
 import { MessageSquare } from 'lucide-react'
 
+import { EmptyState } from '@/component/Feedback/EmptyState/EmptyState'
 import { AuthorLine } from './AuthorLine'
 import { ThreadForm } from './ThreadForm'
 
@@ -27,7 +28,7 @@ export function ThreadList({
     <div className="discussions-section">
       {isLoggedIn && <ThreadForm entityType={entityType} slug={slug} />}
       {threads.length === 0 ? (
-        <p className="discussions-empty">Aucune discussion pour l'instant.</p>
+        <EmptyState subtitle="Aucune discussion pour l'instant." />
       ) : (
         <div className="thread-list">
           {threads.map((thread) => (
