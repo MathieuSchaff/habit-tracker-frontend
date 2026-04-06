@@ -14,6 +14,14 @@ vi.mock('@/lib/queries/user-products', async (importOriginal) => {
   }
 })
 
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+  return {
+    ...actual,
+    useQuery: () => ({ data: { criteriaWeights: undefined, displayScale: 'out_of_20' } }),
+  }
+})
+
 function makeProduct(id: string, status: UserProduct['status'], name: string): UserProduct {
   return {
     id,
@@ -52,15 +60,7 @@ describe('ShelfView', () => {
       makeProduct('2', 'in_stock', 'Produit B'),
       makeProduct('3', 'wishlist', 'Produit A'),
     ]
-    render(
-      <ShelfView
-        products={products}
-        onStatusChange={vi.fn()}
-        onToggleExpand={vi.fn()}
-        criteriaWeights={undefined}
-        displayScale={undefined}
-      />
-    )
+    render(<ShelfView products={products} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
 
     expect(screen.getByText('Saint Graal')).toBeInTheDocument()
     expect(screen.getByText('En stock')).toBeInTheDocument()
@@ -73,15 +73,7 @@ describe('ShelfView', () => {
 
   it('hides sections with no products', () => {
     const products = [makeProduct('1', 'in_stock', 'Produit A')]
-    render(
-      <ShelfView
-        products={products}
-        onStatusChange={vi.fn()}
-        onToggleExpand={vi.fn()}
-        criteriaWeights={undefined}
-        displayScale={undefined}
-      />
-    )
+    render(<ShelfView products={products} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
 
     expect(screen.getByText('En stock')).toBeInTheDocument()
     expect(screen.queryByText('Wishlist')).not.toBeInTheDocument()
@@ -89,15 +81,7 @@ describe('ShelfView', () => {
   })
 
   it('renders empty state when no products', () => {
-    render(
-      <ShelfView
-        products={[]}
-        onStatusChange={vi.fn()}
-        onToggleExpand={vi.fn()}
-        criteriaWeights={undefined}
-        displayScale={undefined}
-      />
-    )
+    render(<ShelfView products={[]} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
     expect(screen.queryByText('En stock')).not.toBeInTheDocument()
   })
 })

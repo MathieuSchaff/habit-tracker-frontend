@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { BarChart3, History, Package, Plus } from 'lucide-react'
+import { BarChart3, History, Package } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { userProductQueries } from '@/lib/queries/user-products'
@@ -44,28 +43,16 @@ export const CollectionPage = () => {
 
   return (
     <div className="coll-page-wrapper">
-      <PageHeader
-        title="Ma Collection"
-        actions={
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            onClick={() => setShowAddModal(true)}
-            aria-label="Ajouter un produit"
-          >
-            <Plus size={14} />
-            <span>Ajouter</span>
-          </Button>
-        }
-      />
+      <PageHeader title="Ma Collection" />
 
       <div className="coll-tabs-wrapper">
         <Tabs options={tabOptions} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       <div className="coll-page-container">
-        {activeTab === 'collection' && <CollectionTab userProducts={userProducts} />}
+        {activeTab === 'collection' && (
+          <CollectionTab userProducts={userProducts} onAddClick={() => setShowAddModal(true)} />
+        )}
 
         {activeTab === 'insights' && userProducts && <AnalysisTab userProducts={userProducts} />}
 

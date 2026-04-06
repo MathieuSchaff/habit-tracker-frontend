@@ -54,15 +54,18 @@
   background: var(--color-primary);
   color: var(--color-primary-text, var(--text-inverse));
   border: none;
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .button.primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
+  box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.4);
+  transform: translateY(-1px);
 }
 
 .button.secondary,
 .button.default {
-  background: var(--bg-card);
+  background: var(--bg-muted);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
 }
@@ -70,20 +73,22 @@
 .button.secondary:hover:not(:disabled),
 .button.default:hover:not(:disabled) {
   color: var(--color-primary);
-  background: var(--bg-hover);
+  background: oklch(from var(--color-primary) l c h / 0.08);
   border-color: var(--color-primary);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.15);
 }
 
 .button.outline {
   background: transparent;
   border: 1px solid var(--border-strong);
-  color: var(--text-primary);
+  color: var(--color-primary);
 }
 
 .button.outline:hover:not(:disabled) {
-  background: var(--bg-hover);
+  background: oklch(from var(--color-primary) l c h / 0.1);
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--color-primary-hover);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.15);
 }
 
 .button.ghost {
@@ -122,17 +127,17 @@
 }
 
 .button.accent {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
   color: var(--color-primary-text);
   border: none;
   font-weight: var(--font-bold);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 12px oklch(from var(--color-accent) l c h / 0.35);
 }
 
 .button.accent:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: linear-gradient(135deg, var(--color-accent-hover) 0%, var(--color-accent) 100%);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 20px oklch(from var(--color-accent) l c h / 0.4);
 }
 
 .button svg {

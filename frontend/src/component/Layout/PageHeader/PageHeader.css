@@ -3,8 +3,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  border-bottom: 1px solid var(--border-default);
-  background-color: var(--bg-page);
+  border-bottom: 2px solid oklch(from var(--color-primary) l c h / 0.2);
+  background: linear-gradient(
+    180deg,
+    oklch(from var(--color-primary) l c h / 0.04) 0%,
+    var(--bg-page) 100%
+  );
 }
 
 .page-header__info {
@@ -19,7 +23,7 @@
   font-weight: 500;
   letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--color-primary);
+  color: var(--page-title-color, var(--color-primary));
   margin: 0;
   display: flex;
   align-items: center;

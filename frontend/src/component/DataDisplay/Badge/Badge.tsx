@@ -10,6 +10,7 @@ export type BadgeVariant =
   | 'vitamine'
   | 'complement'
   | 'error'
+  | 'chip'
 
 interface BadgeProps {
   children: ReactNode

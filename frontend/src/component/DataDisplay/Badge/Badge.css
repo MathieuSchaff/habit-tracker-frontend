@@ -6,40 +6,55 @@
   font-weight: var(--font-semibold);
   line-height: 1;
   border-radius: var(--radius-sm);
-  background: var(--tag-active-bg, oklch(from var(--color-primary) l c h / 0.1));
+  background: var(--tag-active-bg, oklch(from var(--color-primary) l c h / 0.18));
   color: var(--tag-active-text, var(--color-primary));
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
 }
 
 .badge--rounded {
   border-radius: var(--radius-full);
 }
 
-.badge--skincare,
 .badge--huile,
 .badge--vitamine,
 .badge--complement,
 .badge--default {
-  --_badge-bg: oklch(from var(--color-primary) l c h / 0.1);
+  --_badge-bg: oklch(from var(--color-primary) l c h / 0.12);
   --_badge-color: var(--color-primary);
   background: var(--_badge-bg);
   color: var(--_badge-color);
+  border-color: oklch(from var(--color-primary) l c h / 0.25);
 }
 
-[data-theme="light"] .badge--skincare,
-[data-theme="light"] .badge--huile,
-[data-theme="light"] .badge--vitamine,
-[data-theme="light"] .badge--complement,
-[data-theme="light"] .badge--default {
-  --_badge-bg: var(--bg-selected, oklch(from var(--color-primary) l c h / 0.1));
-  background: var(--_badge-bg);
+.badge--skincare {
+  background: var(--tag-default-bg);
+  color: var(--tag-default-text);
+  border-color: oklch(from var(--tag-default-text) l c h / 0.25);
 }
 
 .badge--primary {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: var(--color-primary-text, white);
+  border-color: transparent;
+  box-shadow: 0 1px 4px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+/* Unified chip variant used inside cards — tints by the parent Card accent */
+.badge--chip {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--color-primary);
+  border: var(--border-width) solid var(--bg-card);
+  letter-spacing: 0.4px;
+  text-transform: capitalize;
+  line-height: 1;
 }
 
 .badge--error {
-  background: oklch(from var(--color-error) l c h / 0.1);
+  background: oklch(from var(--color-error) l c h / 0.18);
   color: var(--color-error);
+  border-color: oklch(from var(--color-error) l c h / 0.3);
 }

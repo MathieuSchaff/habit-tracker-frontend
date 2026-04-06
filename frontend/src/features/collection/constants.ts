@@ -77,3 +77,13 @@ export const sortLabels: Record<SortOption, string> = {
   price_asc: 'Prix ↑',
   price_desc: 'Prix ↓',
 }
+
+/**
+ * Score thresholds for the product card chip color (out of 20).
+ * Above gold = best, above rare = great, above good = decent, below = neutral.
+ */
+export const SCORE_THRESHOLDS = {
+  gold: 17,
+  rare: 14,
+  good: 10,
+} as const

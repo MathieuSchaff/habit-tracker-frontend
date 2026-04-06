@@ -27,9 +27,11 @@
   width: 100%;
   max-width: 28rem;
   max-height: 80dvh;
-  background: var(--bg-card);
+  background: var(--color-primary-subtle);
   border: 1px solid var(--border-default);
+  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -50,6 +52,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
+  background: linear-gradient(to right, var(--color-primary-subtle), var(--bg-page));
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
 }
@@ -58,7 +61,7 @@
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--font-bold);
-  color: var(--text-primary);
+  color: var(--color-primary);
 }
 
 .filter-drawer__body {
@@ -83,6 +86,7 @@
 .filter-drawer__footer {
   flex-shrink: 0;
   padding: var(--space-4) var(--space-5);
+  background: var(--bg-page);
   border-top: 1px solid var(--border-default);
   display: flex;
   gap: var(--space-3);
@@ -132,6 +136,8 @@
     max-width: 22rem;
     max-height: 100dvh;
     height: 100%;
+    border-top: 1px solid var(--border-default);
+    border-left: 3px solid var(--color-primary);
     border-radius: var(--radius-lg) 0 0 var(--radius-lg);
     animation: drawer-slide-left var(--transition-base) ease;
   }
@@ -143,39 +149,5 @@
     to {
       translate: 0 0;
     }
-  }
-}
-
-[data-theme="light"] {
-  .filter-drawer__panel {
-    background: var(--color-primary-subtle);
-    border: 1px solid var(--border-default);
-    border-top: 3px solid var(--color-primary);
-    box-shadow: var(--shadow-card);
-  }
-
-  .filter-drawer__header {
-    background: linear-gradient(to right, var(--color-primary-subtle), var(--bg-page));
-    border-bottom-color: var(--border-default);
-  }
-
-  .filter-drawer__title {
-    color: var(--color-primary);
-  }
-
-  .filter-drawer__footer {
-    background: var(--bg-page);
-    border-top-color: var(--border-default);
-  }
-
-  .filter-drawer__separator-label {
-    color: var(--text-muted);
-  }
-}
-
-@media (min-width: 640px) {
-  [data-theme="light"] .filter-drawer__panel {
-    border-top: 1px solid var(--border-default);
-    border-left: 3px solid var(--color-primary);
   }
 }

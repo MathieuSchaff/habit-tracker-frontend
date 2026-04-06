@@ -1,12 +1,14 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from 'react'
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 
-import { calculateWeightedScore } from '@/lib/helpers/reviews'
+import { applyFilters, sortProducts } from '@/features/collection/filterLogic'
 import type { UserPreferences } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
 import type { CollectionSearch } from '@/routes/_authenticated/collection'
 
 const routeApi = getRouteApi('/_authenticated/collection')
+
+type CollectionFilterUpdates = Partial<CollectionSearch> & { q?: string }
 
 type CollectionFilterContextValue = {
   q: string
@@ -22,7 +24,7 @@ type CollectionFilterContextValue = {
   filterOptions: { brands: string[]; kinds: string[] }
   hasActiveFilters: boolean
 
-  setFilter: (updates: Partial<CollectionSearch>) => void
+  setFilter: (updates: CollectionFilterUpdates) => void
   resetFilters: () => void
 }
 
@@ -39,8 +41,11 @@ export function CollectionFilterProvider({
   prefs,
   children,
 }: CollectionFilterProviderProps) {
-  const { q, sort, brand, kind, sentiment, repurchase, minNote, maxPrice } = routeApi.useSearch()
+  const { sort, brand, kind, sentiment, repurchase, minNote, maxPrice } = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
+  // Local state — search input doesn't need to live in the URL, and keeping it
+  // out avoids re-running the route loader on every keystroke.
+  const [q, setQ] = useState('')
 
   const filterOptions = useMemo(() => {
     if (!userProducts) return { brands: [], kinds: [] }
@@ -51,60 +56,12 @@ export function CollectionFilterProvider({
 
   const filteredProducts = useMemo(() => {
     if (!userProducts) return []
-
-    const result = userProducts.filter((p) => {
-      const score = calculateWeightedScore(p.review, prefs?.criteriaWeights, 'out_of_20')
-      const numericScore = score ? Number.parseFloat(score) : 0
-
-      const matchesSearch =
-        p.product.name.toLowerCase().includes(q.toLowerCase()) ||
-        p.product.brand.toLowerCase().includes(q.toLowerCase())
-
-      const matchesBrand = brand === 'all' || p.product.brand === brand
-      const matchesKind = kind === 'all' || p.product.kind === kind
-      const matchesSentiment = sentiment === 'all' || p.sentiment === sentiment
-      const matchesRepurchase = repurchase === 'all' || p.wouldRepurchase === repurchase
-      const matchesNote = numericScore >= minNote
-      const matchesPrice = maxPrice === '' || (p.product.priceCents || 0) / 100 <= maxPrice
-
-      return (
-        matchesSearch &&
-        matchesBrand &&
-        matchesKind &&
-        matchesSentiment &&
-        matchesRepurchase &&
-        matchesNote &&
-        matchesPrice
-      )
-    })
-
-    result.sort((a, b) => {
-      switch (sort) {
-        case 'name':
-          return a.product.name.localeCompare(b.product.name)
-        case 'sentiment':
-          return (b.sentiment || 0) - (a.sentiment || 0)
-        case 'date':
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        case 'price_asc':
-          return (a.product.priceCents || 0) - (b.product.priceCents || 0)
-        case 'price_desc':
-          return (b.product.priceCents || 0) - (a.product.priceCents || 0)
-        case 'note': {
-          const sA = Number.parseFloat(
-            calculateWeightedScore(a.review, prefs?.criteriaWeights, prefs?.displayScale) || '0'
-          )
-          const sB = Number.parseFloat(
-            calculateWeightedScore(b.review, prefs?.criteriaWeights, prefs?.displayScale) || '0'
-          )
-          return sB - sA
-        }
-        default:
-          return 0
-      }
-    })
-
-    return result
+    const filtered = applyFilters(
+      userProducts,
+      { q, brand, kind, sentiment, repurchase, minNote, maxPrice },
+      prefs?.criteriaWeights
+    )
+    return sortProducts(filtered, sort, prefs?.criteriaWeights, prefs?.displayScale)
   }, [userProducts, q, sort, prefs, brand, kind, sentiment, repurchase, minNote, maxPrice])
 
   const hasActiveFilters = useMemo(() => {
@@ -119,8 +76,12 @@ export function CollectionFilterProvider({
   }, [brand, kind, sentiment, repurchase, minNote, maxPrice])
 
   const setFilter = useCallback(
-    (updates: Partial<CollectionSearch>) => {
-      navigate({ search: (prev) => ({ ...prev, ...updates }) })
+    (updates: CollectionFilterUpdates) => {
+      const { q: nextQ, ...rest } = updates
+      if (nextQ !== undefined) setQ(nextQ)
+      if (Object.keys(rest).length > 0) {
+        navigate({ search: (prev) => ({ ...prev, ...rest }) })
+      }
     },
     [navigate]
   )

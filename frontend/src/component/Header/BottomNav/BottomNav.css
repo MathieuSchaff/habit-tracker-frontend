@@ -207,14 +207,3 @@
     opacity: 1;
   }
 }
-
-/* En mode Clair, on garde la barre sombre pour le sentiment luxueux, 
-   mais on s'assure que les contrastes sont parfaits */
-[data-theme="light"] .bottom-nav {
-  /* On réutilise les variables Indigo pour garder la cohérence avec la sidebar desktop */
-  background: radial-gradient(circle at top, oklch(28% 0.08 260deg), oklch(22% 0.08 260deg));
-}
-
-[data-theme="light"] .bottom-nav__sheet {
-  background: oklch(25% 0.08 260deg / 0.98);
-}

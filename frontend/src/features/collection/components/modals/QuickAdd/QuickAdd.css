@@ -1,46 +1,11 @@
-.qa-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.qa-backdrop {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: none;
-  cursor: default;
-}
-
 .qa-modal {
-  background: var(--bg-card);
-  width: 100%;
   max-width: 500px;
   max-height: calc(100dvh - 2rem);
   display: flex;
   flex-direction: column;
   border-radius: 1.5rem;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  z-index: 1;
-  animation: modalScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes modalScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  border-color: oklch(from var(--color-primary) l c h / 0.15);
+  padding: 0;
 }
 
 .qa-modal-header {
@@ -65,31 +30,12 @@
 }
 
 .qa-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: var(--bg-muted);
-  padding: 0.25rem;
-  border-radius: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
-.qa-tab {
-  flex: 1;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
-  font-size: 0.8125rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-muted);
-  background: transparent;
-}
-
-.qa-tab.active {
-  background: var(--bg-card);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+.qa-status-opt:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* If we choose an existing product */
@@ -149,9 +95,9 @@
 }
 
 .qa-status-opt.active {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
-  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.3);
+  box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35);
 }
 
 /* If we want to create a brand new product */
@@ -169,6 +115,12 @@
 
 .qa-status-grid--spaced {
   margin-top: 0.5rem;
+}
+
+.qa-purchase-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .qa-duplicate-hint {

@@ -1,7 +1,8 @@
 .settings-section {
   padding: var(--space-5);
   background-color: var(--bg-card);
-  border: 1px solid var(--border-default);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.15);
+  border-left: 3px solid oklch(from var(--color-primary) l c h / 0.4);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -20,7 +21,7 @@
 .settings-section__title {
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--text-primary);
+  color: var(--color-primary);
 }
 
 .settings-section--danger .settings-section__title {

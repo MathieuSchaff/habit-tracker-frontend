@@ -8,7 +8,7 @@
 }
 
 .filter-accordion--essential {
-  background: oklch(from var(--color-secondary) l c h / 0.08);
+  background: oklch(from var(--color-primary) l c h / 0.05);
 }
 
 .filter-accordion__trigger {
@@ -37,7 +37,7 @@
 .filter-accordion__label {
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -58,11 +58,12 @@
   height: 1.25rem;
   padding: 0 var(--space-1);
   border-radius: var(--radius-full);
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: var(--text-inverse);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   line-height: 1;
+  box-shadow: 0 1px 4px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .filter-accordion__chevron {
@@ -137,24 +138,5 @@
   .filter-accordion__chevron,
   .filter-accordion__body {
     transition: none;
-  }
-}
-
-[data-theme="light"] {
-  .filter-accordion--essential {
-    background: oklch(from var(--color-primary) l c h / 0.05);
-  }
-
-  .filter-accordion__label {
-    color: var(--text-secondary);
-  }
-
-  .filter-accordion__trigger:hover {
-    background: var(--bg-hover);
-  }
-
-  .filter-subgroup__label {
-    color: var(--color-primary);
-    background: oklch(from var(--color-primary) l c h / 0.06);
   }
 }

@@ -1,19 +1,61 @@
-.coll-controls {
+/* Full-width row: search pill + Add button side-by-side */
+.coll-toolbar {
+  --coll-green: var(--color-primary);
   display: flex;
-  background: var(--bg-card);
-  padding: 4px;
-  border-radius: var(--radius-lg);
+  align-items: stretch;
+  gap: var(--space-2);
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
+.coll-toolbar .coll-add-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 0;
+  height: auto;
+  align-self: stretch;
+  /* Shave a couple pixels top/bottom so it's slightly shorter than the search pill */
+  margin: 2px 0;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+}
+
+.coll-controls {
+  --coll-green: var(--color-primary);
+
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  background: var(--bg-muted);
+  padding: 3px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--border-default);
-  align-items: center;
-  margin-bottom: var(--space-4);
-  box-shadow: 0 2px 6px oklch(0% 0 0 / 0.02);
-  gap: 4px;
+  align-items: stretch;
+  gap: 3px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Reserve the green border for focus, search is a secondary action */
+.coll-controls:focus-within {
+  border-color: var(--coll-green);
+  box-shadow: 0 0 0 3px oklch(from var(--coll-green) l c h / 0.12);
 }
 
 .coll-search-wrapper {
   position: relative;
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Kill the Input component's default vertical margin so it fills the pill */
+.coll-search-wrapper .input-wrapper {
+  width: 100%;
+  margin: 0;
+  display: flex;
 }
 
 .coll-search-icon {
@@ -26,35 +68,75 @@
   z-index: 2;
 }
 
-.coll-search-input {
+.coll-search-wrapper .input-wrapper input.coll-search-input {
   width: 100%;
-  padding: 0.625rem 0.75rem 0.625rem 2.5rem;
-  border-radius: var(--radius-md);
+  height: 100%;
+  min-height: 34px;
+  padding: 0.25rem 0.75rem 0.25rem 2.5rem;
+  border-radius: 9999px 6px 6px 9999px;
   border: 1px solid transparent;
-  background: var(--bg-muted);
-  font-size: 0.95rem;
-  font-weight: 600;
+  background: var(--bg-card);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+  caret-color: var(--coll-green);
   transition: all 0.2s ease;
   color: var(--text-primary);
 }
 
-.coll-search-input:focus {
-  background: var(--bg-card);
-  border-color: var(--color-primary);
+.coll-search-wrapper .input-wrapper input.coll-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.coll-search-wrapper .input-wrapper input.coll-search-input:focus {
+  background: oklch(100% 0 0);
+  border-color: transparent;
   outline: none;
-  box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.08);
+  box-shadow: none;
 }
 
 .coll-sort-btn,
 .coll-filter-toggle {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: auto;
+  min-height: 0;
+  align-self: stretch;
   flex-shrink: 0;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  padding: 0;
+}
+
+.coll-sort-btn {
+  border-radius: 0;
+}
+
+.coll-filter-toggle {
+  border-radius: 0 9999px 9999px 0;
+}
+
+.coll-sort-btn,
+.coll-filter-toggle {
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.coll-sort-btn:hover,
+.coll-filter-toggle:hover {
+  background: oklch(from var(--coll-green) 96% 0.03 h);
+  color: var(--coll-green);
+}
+
+.coll-sort-btn:active,
+.coll-filter-toggle:active {
+  transform: scale(0.94);
 }
 
 .coll-filter-toggle.active {
-  color: var(--color-primary);
-  background: oklch(from var(--color-primary) l c h / 0.1);
+  color: oklch(100% 0 0);
+  background: oklch(from var(--coll-green) calc(l - 0.08) c h);
 }
 
 .coll-loading {

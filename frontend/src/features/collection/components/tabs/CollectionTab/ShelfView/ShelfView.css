@@ -1,90 +1,74 @@
 @layer components {
-  /* Big container for everything */
   .shelf-view {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
+    gap: var(--space-6);
+    padding: var(--space-2) 0;
   }
 
-  /* One part of the shelf (like "In Stock") */
   .shelf-section {
     position: relative;
-    padding: var(--space-3);
-    background: oklch(from var(--bg-card) l c h / 0.4);
+    background: var(--bg-card);
     border: 1px solid var(--border-default);
-    border-radius: var(--radius-xl);
-    transition: all var(--transition-fast) ease;
+    border-left: 4px solid var(--shelf-accent, var(--text-muted));
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition-fast) ease;
   }
 
   .shelf-section.is-over {
-    background: oklch(from var(--color-primary) l c h / 0.05);
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px oklch(from var(--color-primary) l c h / 0.1);
+    background: oklch(from var(--color-primary) l c h / 0.04);
   }
 
-  /* Status-tinted section backgrounds */
-  .shelf-section--wishlist {
-    background: oklch(from var(--status-color-wishlist) l c h / 0.06);
-  }
-  .shelf-section--watched {
-    background: oklch(from var(--status-color-watched) l c h / 0.06);
-  }
-  .shelf-section--avoided {
-    background: oklch(from var(--status-color-avoided) l c h / 0.06);
-  }
-  .shelf-section--holy-grail {
-    background: oklch(from var(--status-color-holy-grail) l c h / 0.06);
-  }
-  .shelf-section--in-stock {
-    background: oklch(from var(--status-color-in-stock) l c h / 0.06);
-  }
-  .shelf-section--archived {
-    background: oklch(from var(--status-color-archived) l c h / 0.06);
-  }
-
-  /* The top bar of each section */
+  /* Clickable handle of the accordion */
   .shelf-header {
     display: flex;
     align-items: center;
     gap: var(--space-3);
     width: 100%;
-    padding: var(--space-2) var(--space-3);
-    margin-bottom: var(--space-4);
-    background: var(--bg-card);
-    border: 1px solid var(--border-default);
-    border-left: 4px solid;
-    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    margin: 0;
+    background: color-mix(in oklch, var(--shelf-accent, var(--text-muted)) 6%, transparent);
+    border: none;
+    border-bottom: 1px solid var(--border-default);
+    /* Match the section's top corners (minus the 1px border) */
+    border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
     text-align: left;
     font-family: inherit;
     appearance: none;
-    box-shadow: var(--shadow-card);
     cursor: pointer;
-    transition: all var(--transition-fast) ease;
+    color: var(--shelf-accent, var(--text-primary));
+    transition: background var(--transition-fast) ease;
+  }
+
+  .shelf-header::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--shelf-accent, var(--text-muted));
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px oklch(from var(--shelf-accent, var(--text-muted)) l c h / 0.15);
   }
 
   .shelf-header:hover {
-    border-color: var(--color-primary);
-    box-shadow:
-      var(--shadow-card),
-      0 0 0 1px oklch(from var(--color-primary) l c h / 0.15);
-    translate: 0 -1px;
+    background: color-mix(in oklch, var(--shelf-accent, var(--text-muted)) 10%, transparent);
   }
 
   .shelf-header.is-collapsed {
-    margin-bottom: 0;
+    border-bottom-color: transparent;
   }
 
   .shelf-header > svg {
     flex-shrink: 0;
-    color: inherit;
-    opacity: 0.7;
+    color: var(--shelf-accent, var(--text-muted));
+    opacity: 0.9;
   }
 
   .shelf-header-label {
     flex: 1;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: var(--font-bold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
@@ -95,8 +79,10 @@
   .shelf-header-count {
     font-size: var(--text-xs);
     font-weight: var(--font-bold);
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: var(--radius-full);
+    min-width: 26px;
+    text-align: center;
   }
 
   .shelf-header-chevron {
@@ -109,52 +95,49 @@
     transform: rotate(-90deg);
   }
 
-  .shelf-header.drop-target {
-    border-color: var(--color-primary);
-    background: var(--bg-muted);
+  /* Height animation uses the grid-template-rows 1fr ↔ 0fr trick */
+  .shelf-section-content {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--transition-slow) ease;
   }
 
-  /* Ghost card to show where to drop */
-  .shelf-drop-indicator {
-    height: 4.75rem; /* Match card height */
-    border: 2px dashed var(--color-primary);
-    border-radius: var(--radius-md);
-    background: oklch(from var(--color-primary) l c h / 0.05);
-    animation: pulse 1.5s infinite;
+  .shelf-section.is-collapsed .shelf-section-content {
+    grid-template-rows: 0fr;
   }
 
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 0.3;
-    }
-    50% {
-      opacity: 0.6;
-    }
+  .shelf-section-content-inner {
+    min-height: 0;
+    padding: var(--space-4);
+    overflow: hidden;
+    transition: padding var(--transition-slow) ease;
+    /* overflow:hidden is safe: dragged cards are rendered in a DragOverlay
+       portal, so they escape this clipping container */
   }
 
-  /* The grid for product cards */
+  .shelf-section.is-collapsed .shelf-section-content-inner {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
   .shelf-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    /* auto-fill with a min card width avoids the rigid 2-col gap at ~960px */
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: var(--space-3);
-    perspective: 1000px; /* Enable 3D space for cards */
+    perspective: 1000px;
 
     @media (--sm) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-4);
-    }
-
-    @media (--lg) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  /* For people who don't like moving things */
+  /* Reduced motion: disable accordion transitions */
   @media (--reduced-motion) {
     .shelf-header,
     .shelf-header-chevron,
-    .shelf-drop-indicator {
+    .shelf-section-content,
+    .shelf-section-content-inner {
       transition: none;
       animation: none;
       translate: none;

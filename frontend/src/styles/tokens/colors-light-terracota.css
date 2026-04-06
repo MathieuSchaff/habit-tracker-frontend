@@ -1,38 +1,91 @@
 [data-theme="light"][data-variant="terracota"] {
   color-scheme: light;
 
+  /* Palette de test — à utiliser plus tard */
+  /* Jaunes / Dorés */
+  --palette-golden-glow: oklch(0.8908 0.1774 102.01);
+  --palette-bright-amber: oklch(0.8597 0.173 88.59);
+  --palette-lime-cream: oklch(0.8912 0.1271 116.43);
+  --palette-cream: oklch(0.9748 0.0789 115.45);
+
+  /* Oranges / Tangerines */
+  --palette-vivid-tangerine: oklch(0.7319 0.1858 52.98);
+  --palette-burnt-tangerine: oklch(0.5952 0.2125 33.06);
+  --palette-scarlet-fire: oklch(0.6291 0.2218 33.22);
+  --palette-blazing-flame: oklch(0.6556 0.2323 33.11);
+
+  /* Verts */
+  --palette-sea-green: oklch(0.5656 0.1536 150.51);
+  --palette-turf-green: oklch(0.485 0.0904 156.06);
+  --palette-shamrock: oklch(0.6006 0.1268 154.47);
+  --palette-emerald-dark: oklch(0.7123 0.1644 154.09);
+  --palette-jungle-green: oklch(0.6633 0.1112 153.66);
+  --palette-emerald: oklch(0.7836 0.1394 156.93);
+  --palette-emerald-light: oklch(0.8111 0.1383 157.61);
+  --palette-celadon: oklch(0.7979 0.106 166.46);
+  --palette-tropical-mint: oklch(0.8221 0.1563 158.86);
+  --palette-light-green: oklch(0.8792 0.1706 152.51);
+
+  /* Bleus */
+  --palette-prussian-blue: oklch(0.2641 0.0609 256.95);
+  --palette-dark-amethyst: oklch(0.1582 0.0948 281.35);
+  --palette-egyptian-blue: oklch(0.3866 0.1669 271.6);
+  --palette-sombre-desature: oklch(0.4824 0.0837 250.98);
+  --palette-smart-blue: oklch(0.5151 0.1217 264.66);
+  --palette-rich-cerulean: oklch(0.5342 0.108 240.19);
+  --palette-electric-sapphire: oklch(0.5902 0.2139 269.37);
+  --palette-crayola-blue: oklch(0.606 0.2133 262.77);
+  --palette-steel-blue: oklch(0.6079 0.1181 246.61);
+  --palette-pur-bleu: oklch(0.6883 0.1523 237.89);
+  --palette-cool-sky: oklch(0.7067 0.1626 246.71);
+  --palette-powder-blue: oklch(0.7736 0.0997 276.22);
+  --palette-frozen-lake: oklch(0.83 0.111 226.72);
+
   --h-mango: 65;
   --h-papaya: 32;
   --h-coral: 18;
   --h-aqua: 185;
   --h-iron: 33.29;
-  --h-forest: 135.95;
+  /* --h-forest: 135.95; */
+  --h-forest: 151.3708;
 
   --c-muted: 0.07;
   --c-soft: 0.02;
 
-  --l-page: 88%;
-  --l-muted: 87%;
-  --l-sunken: 85%;
-  --l-card: 99.5%;
-  --l-elevated: 99%;
+  /* Surface lightness — page warm ivory, cards pure white */
+  --l-page: 98.5%;
+  --l-card: 100%;
+  --l-elevated: 100%;
+  --l-sunken: 95%;
+  --l-muted: 97%;
 
   --oxydized-iron: oklch(47.77% 0.1692 var(--h-iron));
   --forest-green: oklch(75.42% 0.1726 var(--h-forest));
   --mango-bright: oklch(82% 0.18 var(--h-mango));
   --text-inverse-warm: oklch(100% 0 0);
 
-  --color-primary: oklch(50% 0.2 var(--h-forest));
-  --color-primary-hover: oklch(44% 0.2 var(--h-forest));
-  --color-primary-text: var(--text-inverse-warm);
-  --color-primary-dark: oklch(34% 0.16 var(--h-forest));
-  --color-focus: oklch(62% 0.14 var(--h-forest));
-  --color-primary-deeper: oklch(22% 0.1 var(--h-forest));
-  --color-primary-light: oklch(90% 0.08 var(--h-forest));
-  --color-primary-subtle: oklch(97% 0.01 var(--h-forest));
+  /* CTA: emerald green — testing oklch(73.98% 0.19736 151.3708) */
+  /* CANDIDAT RETENU: emerald-dark oklch(71.23% 0.1644 154.09) — j'aime bien,
+     mais il faudra adapter/changer l'orange secondary (mango) pour l'harmoniser */
+  /* NAVBAR CANDIDAT: vivid-tangerine oklch(73.19% 0.1858 52.98) — j'aime */
+  /* CARD FOOTER CANDIDAT: frozen-lake oklch(83% 0.111 226.72) — pas mal */
+  /* CARD FOOTER RETENU: powder-blue oklch(77.36% 0.0997 276.22) */
+  /* CARD FOOTER CANDIDAT: cool-sky oklch(70.67% 0.1626 246.71) — bien aussi mais bleu assez fort */
+  /* CARD FOOTER CANDIDAT (DARK MODE): steel-blue oklch(60.79% 0.1181 246.61) — trop foncé pour light, à tester en dark mode */
+  /* --color-primary: oklch(68% 0.24 145); */
+  /* --color-primary-hover: oklch(62% 0.26 145); */
+  /* --color-primary-dark: oklch(52% 0.22 145); */
+  --color-primary: oklch(71.23% 0.1644 154.09);
+  --color-primary-hover: oklch(63% 0.175 154.09);
+  --color-primary-text: oklch(100% 0 0);
+  --color-primary-dark: oklch(50% 0.16 154.09);
+  --color-focus: oklch(71.23% 0.1644 154.09);
+  --color-primary-deeper: oklch(26% 0.1 154.09);
+  --color-primary-light: oklch(92% 0.08 154.09);
+  --color-primary-subtle: oklch(97% 0.012 154.09);
 
-  --color-sidebar-bg: var(--oxydized-iron);
-  --color-sidebar-item-hover: oklch(54% 0.16 var(--h-iron));
+  --color-sidebar-bg: oklch(73.19% 0.1858 52.98);
+  --color-sidebar-item-hover: oklch(65% 0.2 52.98);
   --color-sidebar-item-active: oklch(from var(--text-inverse-warm) l c h / 0.2);
   --color-sidebar-icon: oklch(100% 0 0);
   --color-sidebar-icon-active: oklch(100% 0 0);
@@ -56,8 +109,8 @@
   --color-accent-light: oklch(92% 0.1 var(--h-mango));
   --color-accent-hover: oklch(60% 0.22 var(--h-mango));
 
-  --color-success: oklch(50% 0.2 128);
-  --color-success-light: oklch(95% 0.05 145deg);
+  --color-success: oklch(48% 0.13 154.09);
+  --color-success-light: oklch(94% 0.05 154.09);
   --color-error: oklch(56% 0.22 var(--h-coral));
   --color-error-light: oklch(93% 0.08 var(--h-coral));
   --color-info: oklch(54% 0.14 var(--h-aqua));
@@ -65,19 +118,34 @@
   --color-warning-light: oklch(96% 0.06 30deg);
   --color-warning-text: oklch(40% 0.15 30deg);
 
-  --bg-page: oklch(var(--l-page) 0.04 75);
-  --bg-card: oklch(var(--l-card) var(--c-soft) 75);
-  --bg-muted: oklch(var(--l-muted) 0.1 var(--h-mango));
-  --bg-elevated: oklch(var(--l-elevated) 0.01 var(--h-mango));
-  --bg-sunken: oklch(var(--l-sunken) 0.05 var(--h-mango));
+  /* Page warm ivory, cards pure white — product footers get mango via scoped rule */
+  --bg-page: oklch(var(--l-page) 0.006 75);
+  --bg-card: oklch(var(--l-card) 0 0);
+  --bg-elevated: oklch(var(--l-elevated) 0 0);
+  --bg-sunken: oklch(var(--l-sunken) 0.02 75);
+  --bg-muted: oklch(var(--l-muted) 0.008 75);
+
+  /* Page H1 — mango */
+  --page-title-color: oklch(68% 0.2 65);
+
+  /* Card footer — subtle warm tint, dark text */
+  --card-footer-bg: oklch(95% 0.026 65);
+  --card-footer-border: oklch(85% 0.06 65);
+  --card-footer-color: var(--text-primary);
+  --card-footer-color-muted: var(--text-muted);
+
+  /* Product unit chip — white bg, mango text (page-specific override) */
+  --product-unit-chip-bg: oklch(100% 0 0);
+  --product-unit-chip-text: oklch(58% 0.2 65);
+  --product-unit-chip-border: oklch(100% 0 0);
   --bg-hover: oklch(from var(--color-primary) l c h / 0.08);
   --bg-active: oklch(from var(--color-primary) l c h / 0.14);
   --bg-selected: var(--color-secondary);
 
-  --border-default: oklch(82% 0.05 32);
-  --border-strong: oklch(65% 0.1 32);
+  --border-default: oklch(75% 0.05 45);
+  --border-strong: oklch(60% 0.08 45);
   --shadow-color: oklch(0% 0 0 / 0.1);
-  --shadow-card: 0 2px 12px oklch(0% 0 0 / 0.12), 0 1px 3px oklch(0% 0 0 / 0.08);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.1), 0 1px 4px oklch(0% 0 0 / 0.06);
 
   --tag-active-bg: oklch(from var(--color-primary-dark) l c h / 0.8);
   --tag-active-text: var(--color-secondary);
@@ -88,4 +156,12 @@
 
   --surface-bright: oklch(99% 0.002 0deg);
   --hero-glow: oklch(93% 0.04 var(--h-mango));
+
+  /* Toggle */
+  --toggle-track-bg: var(--color-primary-dark);
+  --toggle-track-hover-bg: var(--color-primary-deeper);
+  --toggle-fg: oklch(100% 0 0);
+  --toggle-fg-opacity: 0.85;
+  --toggle-active-icon: var(--color-primary-dark);
+  --toggle-active-filter: none;
 }

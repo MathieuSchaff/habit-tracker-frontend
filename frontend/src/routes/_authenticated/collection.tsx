@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { CollectionPage } from '../../features/collection/page/CollectionPage'
 
 export const collectionSearchSchema = z.object({
-  q: z.string().default(''),
   sort: z.enum(['name', 'note', 'sentiment', 'date', 'price_asc', 'price_desc']).default('name'),
   brand: z.string().default('all'),
   kind: z.string().default('all'),
@@ -16,7 +15,6 @@ export const collectionSearchSchema = z.object({
 })
 
 const defaultValues: z.infer<typeof collectionSearchSchema> = {
-  q: '',
   sort: 'name',
   brand: 'all',
   kind: 'all',

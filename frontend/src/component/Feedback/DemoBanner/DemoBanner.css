@@ -1,1 +1,14 @@
-purged from history
+.demo-banner {
+  background: linear-gradient(
+    90deg,
+    var(--color-warning-light) 0%,
+    oklch(from var(--color-warning) l c h / 0.15) 50%,
+    var(--color-warning-light) 100%
+  );
+  border-bottom: 2px solid var(--color-warning);
+  color: var(--color-warning-text);
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: var(--font-medium);
+}

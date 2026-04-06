@@ -1,6 +1,14 @@
 .coll-page-wrapper {
   flex: 1;
   animation: fadeIn 0.3s ease-out;
+  padding: 0 var(--space-4);
+}
+
+.coll-page-wrapper .page-header {
+  padding-left: 0;
+  padding-right: 0;
+  border-bottom: none;
+  background: transparent;
 }
 
 @keyframes fadeIn {
@@ -14,69 +22,27 @@
   }
 }
 
-/* Override PageHeader for collection: row layout with compact button */
+/* Centered title — no actions in the header anymore, Add lives in the toolbar */
 .coll-page-wrapper .page-header {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.coll-page-wrapper .page-header__actions {
-  flex-direction: row;
-  width: auto;
-}
-
-.coll-page-wrapper .page-header__actions > * {
-  width: auto;
-}
-
-.coll-topbar {
-  background: var(--bg-card);
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border-default);
-}
-
-.coll-topbar-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.5rem;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.coll-topbar-add {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.2);
+  text-align: center;
 }
 
-.coll-topbar-add:hover {
-  transform: scale(1.1) rotate(90deg);
-  background: var(--color-primary-hover);
+.coll-page-wrapper .page-header__info {
+  align-items: center;
 }
 
-/* Tabs wrapper for spacing */
+.coll-page-wrapper .page-header__title {
+  justify-content: center;
+}
+
 .coll-tabs-wrapper {
-  padding: 0 var(--space-4);
-  max-width: 600px;
-  margin: var(--space-3) auto 0;
+  margin: var(--space-2) 0 0;
 }
 
 .coll-page-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.25rem 0.75rem 2rem;
+  padding: var(--space-4) 0 var(--space-8);
 }

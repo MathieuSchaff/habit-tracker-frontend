@@ -1,14 +1,13 @@
 import type { UserProductStatus } from '@habit-tracker/shared'
 
-import { useQuery } from '@tanstack/react-query'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { useScrollLock } from '@/hooks/useScrollLock'
-import { productQueries, useCreateProduct } from '@/lib/queries/products'
+import { useCreateProduct } from '@/lib/queries/products'
 import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
+import { useDuplicateProductCheck } from './useDuplicateProductCheck'
 
 interface UseQuickAddProps {
   onClose: () => void
@@ -37,36 +36,8 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
   const addUserProduct = useCreateUserProduct()
   const addPurchase = useAddPurchase()
 
-  // We check if the product already exists with this name or brand
-  // so we don't create it two times by mistake.
-  const [debouncedNewName, setDebouncedNewName] = useState('')
-  const [debouncedNewBrand, setDebouncedNewBrand] = useState('')
+  const similarProducts = useDuplicateProductCheck(newName, newBrand)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedNewName(newName.trim())
-      setDebouncedNewBrand(newBrand.trim())
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [newName, newBrand])
-
-  const { data: similarProducts } = useQuery({
-    ...productQueries.checkDuplicate(debouncedNewName, debouncedNewBrand),
-    enabled: debouncedNewName.length >= 2 && debouncedNewBrand.length >= 1,
-  })
-
-  useScrollLock(true)
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
-  // Shared logic: add a product to the user's collection, with an
-  // optional first purchase when the status is 'in_stock'.
   const addToCollection = async (productId: string) => {
     const created = await addUserProduct.mutateAsync({
       productId,
@@ -101,8 +72,6 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
   const handleCreateAndAdd = async (e?: React.SubmitEvent<HTMLFormElement>) => {
     e?.preventDefault()
     try {
-      // First create the product in the global catalogue,
-      // then add it to the user's personal collection.
       const product = await createProduct.mutateAsync({
         name: newName,
         brand: newBrand,

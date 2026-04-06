@@ -5,11 +5,11 @@
 
 .icon-tabs {
   display: flex;
-  background: var(--bg-muted);
+  background: var(--color-primary);
   padding: 4px;
   border-radius: 14px;
   gap: 0;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--color-primary);
   position: relative;
   overflow: hidden;
 }
@@ -20,11 +20,9 @@
   bottom: 4px;
   left: 4px;
   width: calc((100% - 8px) / var(--tabs-count));
-  background: var(--bg-card);
+  background: oklch(100% 0 0);
   border-radius: 10px;
-  box-shadow:
-    0 2px 8px oklch(0% 0 0 / 0.08),
-    0 1px 3px oklch(0% 0 0 / 0.05);
+  box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(calc(var(--active-index) * 100%));
   z-index: 1;
@@ -39,7 +37,7 @@
   padding: var(--space-2) var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  color: var(--text-secondary);
+  color: oklch(100% 0 0 / 0.7);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -51,13 +49,10 @@
 }
 
 .icon-tab:hover {
-  color: var(--text-primary);
+  color: oklch(100% 0 0);
 }
 
-.icon-tab-active {
-  color: var(--color-primary);
-}
-
+.icon-tab-active,
 .icon-tab-active:hover {
   color: var(--color-primary);
 }
