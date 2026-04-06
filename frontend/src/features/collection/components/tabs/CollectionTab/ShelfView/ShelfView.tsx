@@ -1,18 +1,17 @@
-import type { DisplayScale } from '@habit-tracker/shared'
-
 import {
   DndContext,
   type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
 import { restrictToWindowEdges } from '@dnd-kit/modifiers'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { SHELF_ORDER } from '@/features/collection/constants'
-import type { CriteriaWeights } from '@/lib/helpers/reviews'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { ProductCardCondensed } from '../ProductCard/Condensed/ProductCardCondensed'
 import { ShelfGrid } from './ShelfGrid'
@@ -24,17 +23,9 @@ interface ShelfViewProps {
   products: UserProduct[]
   onStatusChange: (productId: string, newStatus: UserProduct['status']) => void
   onToggleExpand: (id: string) => void
-  criteriaWeights: CriteriaWeights | undefined
-  displayScale: DisplayScale | undefined
 }
 
-export function ShelfView({
-  products,
-  onStatusChange,
-  onToggleExpand,
-  criteriaWeights,
-  displayScale,
-}: ShelfViewProps) {
+export function ShelfView({ products, onStatusChange, onToggleExpand }: ShelfViewProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: { distance: 10 },
@@ -58,7 +49,15 @@ export function ShelfView({
     return map
   }, [products])
 
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const activeProduct = activeId ? (products.find((p) => p.id === activeId) ?? null) : null
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null)
     const { active, over } = event
     if (!over) return
 
@@ -72,7 +71,13 @@ export function ShelfView({
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
+      modifiers={[restrictToWindowEdges]}
+    >
       <div className="shelf-view">
         {SHELF_ORDER.map((status) => {
           const list = productsByStatus[status] || []
@@ -84,8 +89,6 @@ export function ShelfView({
                     key={p.id}
                     p={p}
                     onToggleExpand={() => onToggleExpand(p.id)}
-                    criteriaWeights={criteriaWeights}
-                    displayScale={displayScale}
                   />
                 ))}
               </ShelfGrid>
@@ -93,6 +96,11 @@ export function ShelfView({
           )
         })}
       </div>
+      <DragOverlay>
+        {activeProduct ? (
+          <ProductCardCondensed p={activeProduct} onToggleExpand={() => {}} isOverlay />
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }

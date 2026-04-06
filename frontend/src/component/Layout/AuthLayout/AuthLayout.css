@@ -7,17 +7,17 @@
   background:
     radial-gradient(
       circle at 8% 0%,
-      color-mix(in oklch, var(--color-primary) 12%, transparent) 0%,
+      color-mix(in oklch, var(--color-primary) 20%, transparent) 0%,
       transparent 55%
     ),
     radial-gradient(
       circle at 92% 100%,
-      color-mix(in oklch, var(--color-secondary) 10%, transparent) 0%,
+      color-mix(in oklch, var(--color-secondary) 18%, transparent) 0%,
       transparent 50%
     ),
     radial-gradient(
       circle at 85% 10%,
-      color-mix(in oklch, var(--color-accent) 6%, transparent) 0%,
+      color-mix(in oklch, var(--color-accent) 12%, transparent) 0%,
       transparent 40%
     ),
     var(--bg-page);
@@ -48,10 +48,11 @@
   max-width: 420px;
   padding: var(--space-6) var(--space-6) var(--space-8);
   background: var(--bg-card);
-  border: 1px solid color-mix(in oklch, var(--color-primary) 20%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow:
-    0 4px 24px color-mix(in oklch, var(--color-primary) 8%, transparent),
+    0 4px 24px color-mix(in oklch, var(--color-primary) 12%, transparent),
     0 1px 4px color-mix(in oklch, var(--text-primary) 4%, transparent);
 }
 

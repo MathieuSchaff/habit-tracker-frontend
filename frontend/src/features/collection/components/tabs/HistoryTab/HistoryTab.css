@@ -1,8 +1,17 @@
 .coll-history-table {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
-  border: var(--border-width) solid var(--bg-muted);
+  border: var(--border-width) solid oklch(from var(--color-primary) l c h / 0.15);
   overflow: visible;
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.05);
+  width: 100%;
+  border-collapse: collapse;
+  /* Mobile: drop table layout so rows stack like cards. */
+  display: block;
+}
+
+.coll-history-table tbody {
+  display: block;
 }
 
 .coll-history-head {
@@ -18,11 +27,19 @@
   position: relative;
 }
 
-.coll-hist-row-top {
+.coll-history-row > .coll-hist-date {
+  display: block;
+}
+
+.coll-history-row > .coll-hist-prod {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  min-width: 0;
   padding-right: 32px; /* Space for the absolute menu button on mobile */
+}
+
+.coll-history-row > .coll-hist-price {
+  display: block;
 }
 
 .coll-hist-date {
@@ -76,11 +93,20 @@
   position: absolute;
   top: 0.75rem;
   right: 0.5rem;
-  z-index: 49;
+}
+
+/* Lift the open row so its dropdown is not covered by the next rows. */
+.coll-history-row.is-menu-open {
+  position: relative;
+  z-index: 60;
 }
 
 @media (min-width: 640px) {
   .coll-history-head {
+    display: grid;
+  }
+
+  .coll-history-head tr {
     display: grid;
     grid-template-columns: 120px 1fr 100px 60px;
     padding: 1rem 1.25rem;
@@ -91,6 +117,12 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: var(--tracking-widest);
+    text-align: left;
+  }
+
+  .coll-history-head th {
+    font-weight: inherit;
+    text-align: left;
   }
 
   .coll-history-row {
@@ -101,13 +133,8 @@
     gap: 0;
   }
 
-  .coll-hist-row-top {
-    display: contents;
+  .coll-history-row > .coll-hist-prod {
     padding-right: 0;
-  }
-
-  .coll-hist-row-bottom {
-    display: contents;
   }
 
   .coll-hist-date {

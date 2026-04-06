@@ -5,7 +5,7 @@
   gap: var(--space-3);
   width: 100%;
   padding: var(--space-3) var(--space-6);
-  border: 2px solid var(--border-default);
+  border: 2px solid oklch(from var(--color-primary) l c h / 0.2);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--text-primary);
@@ -14,12 +14,14 @@
   cursor: pointer;
   transition:
     border-color var(--transition-base),
-    background var(--transition-base);
+    background var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .google-btn:hover {
   border-color: var(--color-primary);
-  background: var(--bg-hover);
+  background: oklch(from var(--color-primary) l c h / 0.06);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.12);
 }
 
 .google-btn:focus-visible {

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowUpDown, Search, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpDown, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
@@ -20,9 +20,10 @@ import './CollectionTab.css'
 
 interface CollectionTabProps {
   userProducts: UserProduct[] | undefined
+  onAddClick: () => void
 }
 
-export function CollectionTab({ userProducts }: CollectionTabProps) {
+export function CollectionTab({ userProducts, onAddClick }: CollectionTabProps) {
   const { data: prefs } = useQuery(userPreferenceQueries.get())
 
   if (!userProducts) {
@@ -36,12 +37,18 @@ export function CollectionTab({ userProducts }: CollectionTabProps) {
 
   return (
     <CollectionFilterProvider userProducts={userProducts} prefs={prefs}>
-      <CollectionTabContent prefs={prefs} />
+      <CollectionTabContent prefs={prefs} onAddClick={onAddClick} />
     </CollectionFilterProvider>
   )
 }
 
-function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined }) {
+function CollectionTabContent({
+  prefs,
+  onAddClick,
+}: {
+  prefs: UserPreferences | undefined
+  onAddClick: () => void
+}) {
   const { filteredProducts, q, sort, setFilter, hasActiveFilters } = useCollectionFilter()
 
   const updateMutation = useUpdateUserProduct()
@@ -61,36 +68,49 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
 
   return (
     <>
-      <div className="coll-controls">
-        <div className="coll-search-wrapper">
-          <Search className="coll-search-icon" size={16} />
-          <Input
-            placeholder="Rechercher..."
-            value={q}
-            onChange={(e) => setFilter({ q: e.target.value })}
-            className="coll-search-input"
-            aria-label="Rechercher dans la collection"
-          />
+      <div className="coll-toolbar">
+        <div className="coll-controls">
+          <div className="coll-search-wrapper">
+            <Search className="coll-search-icon" size={16} aria-hidden="true" />
+            <Input
+              placeholder="Rechercher..."
+              value={q}
+              onChange={(e) => setFilter({ q: e.target.value })}
+              className="coll-search-input"
+              aria-label="Rechercher dans la collection"
+            />
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="coll-sort-btn"
+            onClick={cycleSortBy}
+            aria-label={`Trier par ${sortLabels[sort]}`}
+            title={`Tri : ${sortLabels[sort]}`}
+          >
+            <ArrowUpDown size={16} aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={clsx('coll-filter-toggle', hasActiveFilters && 'active')}
+            onClick={() => setShowFiltersSheet(true)}
+            aria-label="Filtres avancés"
+            title="Filtres avancés"
+          >
+            <SlidersHorizontal size={16} aria-hidden="true" />
+          </Button>
         </div>
         <Button
-          variant="ghost"
-          size="sm"
-          className="coll-sort-btn"
-          onClick={cycleSortBy}
-          aria-label={`Trier par ${sortLabels[sort]}`}
-          title={`Tri : ${sortLabels[sort]}`}
+          type="button"
+          variant="primary"
+          size="md"
+          className="coll-add-btn"
+          onClick={onAddClick}
+          aria-label="Ajouter un produit"
         >
-          <ArrowUpDown size={16} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={clsx('coll-filter-toggle', hasActiveFilters && 'active')}
-          onClick={() => setShowFiltersSheet(true)}
-          aria-label="Filtres avancés"
-          title="Filtres avancés"
-        >
-          <SlidersHorizontal size={16} />
+          <Plus size={16} aria-hidden="true" />
+          <span>Ajouter</span>
         </Button>
       </div>
 
@@ -100,8 +120,6 @@ function CollectionTabContent({ prefs }: { prefs: UserPreferences | undefined })
           updateMutation.mutate({ id: productId, input: { status: newStatus } })
         }}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-        criteriaWeights={prefs?.criteriaWeights}
-        displayScale={prefs?.displayScale}
       />
 
       {showFiltersSheet && <CollectionFiltersSheet onClose={() => setShowFiltersSheet(false)} />}

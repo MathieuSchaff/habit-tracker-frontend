@@ -37,11 +37,12 @@
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  background: oklch(from var(--color-primary) l c h / 0.1);
+  background: oklch(from var(--color-primary) l c h / 0.18);
   color: var(--color-primary);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-full);
   letter-spacing: normal;
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
 }
 
 .page-title__loader {

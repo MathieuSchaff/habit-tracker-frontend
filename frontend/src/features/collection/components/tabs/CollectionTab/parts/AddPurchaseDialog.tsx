@@ -1,10 +1,10 @@
 import { Calendar, Euro, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/component/Button/Button'
+import { Modal } from '@/component/Dialog/Modal'
 import { Input } from '@/component/Input/Input'
-import { useClickOutside } from '@/hooks/useClickOutside'
 import { useAddPurchase, useUpdatePurchase } from '@/lib/queries/purchases'
 
 import './AddPurchaseDialog.css'
@@ -25,7 +25,6 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
   const isEditMode = purchase !== undefined
   const addPurchaseMutation = useAddPurchase()
   const updatePurchaseMutation = useUpdatePurchase()
-  const ref = useRef<HTMLDivElement>(null)
 
   const [purchaseDate, setPurchaseDate] = useState(
     () => purchase?.purchasedAt.split('T')[0] ?? new Date().toISOString().split('T')[0]
@@ -33,8 +32,6 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
   const [purchasePrice, setPurchasePrice] = useState(() =>
     purchase?.pricePaidCents != null ? (purchase.pricePaidCents / 100).toFixed(2) : ''
   )
-
-  useClickOutside(ref, onClose)
 
   const isPending = addPurchaseMutation.isPending || updatePurchaseMutation.isPending
 
@@ -84,67 +81,59 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
   }
 
   return (
-    <div className="apd-overlay">
-      <div
-        className="apd-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="apd-title"
-        ref={ref}
-      >
-        <div className="apd-header">
-          <div className="apd-header-title">
-            <Euro size={16} />
-            <span id="apd-title" className="apd-title">
-              {isEditMode ? "MODIFIER L'ACHAT" : 'ENREGISTRER UN ACHAT'}
-            </span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
-            <X size={18} />
-          </Button>
+    <Modal onClose={onClose} className="apd-dialog">
+      <div className="apd-header">
+        <div className="apd-header-title">
+          <Euro size={16} />
+          <Modal.Title className="apd-title">
+            {isEditMode ? "MODIFIER L'ACHAT" : 'ENREGISTRER UN ACHAT'}
+          </Modal.Title>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
+          <X size={18} />
+        </Button>
+      </div>
+
+      <form onSubmit={handleSave} className="apd-form">
+        <div className="apd-field">
+          <label htmlFor="apd-date">
+            <Calendar size={14} />
+            Date d'achat
+          </label>
+          <Input
+            id="apd-date"
+            type="date"
+            value={purchaseDate}
+            onChange={(e) => setPurchaseDate(e.target.value)}
+            required
+          />
         </div>
 
-        <form onSubmit={handleSave} className="apd-form">
-          <div className="apd-field">
-            <label htmlFor="apd-date">
-              <Calendar size={14} />
-              Date d'achat
-            </label>
-            <Input
-              id="apd-date"
-              type="date"
-              value={purchaseDate}
-              onChange={(e) => setPurchaseDate(e.target.value)}
-              required
-            />
-          </div>
+        <div className="apd-field">
+          <label htmlFor="apd-price">
+            <Euro size={14} />
+            Prix payé (€)
+          </label>
+          <Input
+            id="apd-price"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            value={purchasePrice}
+            onChange={(e) => setPurchasePrice(e.target.value)}
+          />
+        </div>
 
-          <div className="apd-field">
-            <label htmlFor="apd-price">
-              <Euro size={14} />
-              Prix payé (€)
-            </label>
-            <Input
-              id="apd-price"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(e.target.value)}
-            />
-          </div>
-
-          <div className="apd-footer">
-            <Button variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={!purchaseDate || isPending} loading={isPending}>
-              Valider
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="apd-footer">
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button type="submit" disabled={!purchaseDate || isPending} loading={isPending}>
+            Valider
+          </Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

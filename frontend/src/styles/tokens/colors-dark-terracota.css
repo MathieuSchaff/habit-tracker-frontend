@@ -21,19 +21,21 @@
        LIGHTNESS (inversée propre)
     ========================= */
   --l-page: 12%;
-  --l-muted: 18%;
-  --l-sunken: 10%;
-  --l-card: 16%;
-  --l-elevated: 20%;
+  --l-card: 30%;
+  --l-elevated: 34%;
+  --l-sunken: 22%;
+  /* Interactive-in-card: LIGHTER than card (mirror of light's quasi-white) */
+  --l-muted: 40%;
 
   /* =========================
        CORE COLORS
     ========================= */
   --text-inverse-warm: oklch(10% 0.02 var(--h-papaya));
 
-  --color-primary: oklch(68% 0.22 var(--h-forest));
-  --color-primary-hover: oklch(74% 0.24 var(--h-forest));
-  --color-primary-dark: oklch(55% 0.18 var(--h-forest));
+  /* Complementary: bright teal contrasts warm cards */
+  --color-primary: oklch(72% 0.16 210);
+  --color-primary-hover: oklch(80% 0.16 210);
+  --color-primary-dark: oklch(58% 0.16 210);
   --color-primary-deeper: oklch(38% 0.1 var(--h-forest));
   --color-primary-light: oklch(25% 0.08 var(--h-forest));
   --color-primary-text: oklch(12% 0.02 var(--h-forest));
@@ -43,11 +45,13 @@
   /* =========================
        BACKGROUNDS
     ========================= */
-  --bg-page: oklch(var(--l-page) var(--c-soft) 75);
-  --bg-card: oklch(var(--l-card) var(--c-soft) 75);
-  --bg-muted: oklch(var(--l-muted) var(--c-muted) var(--h-mango));
-  --bg-elevated: oklch(var(--l-elevated) 0.02 var(--h-mango));
-  --bg-sunken: oklch(var(--l-sunken) 0.06 var(--h-papaya));
+  /* Colored dark: cards clearly lighter and tinted (warm hue 45) */
+  --bg-page: oklch(var(--l-page) 0.01 60);
+  --bg-card: oklch(var(--l-card) 0.06 45);
+  --bg-elevated: oklch(var(--l-elevated) 0.07 45);
+  --bg-sunken: oklch(var(--l-sunken) 0.05 45);
+  /* Interactive-in-card: lighter than card */
+  --bg-muted: oklch(var(--l-muted) 0.04 45);
 
   --bg-hover: oklch(from var(--color-primary) l c h / 0.12);
   --bg-active: oklch(from var(--color-primary) l c h / 0.18);
@@ -113,14 +117,14 @@
   /* =========================
        BORDERS
     ========================= */
-  --border-default: oklch(45% 0.16 var(--h-forest));
-  --border-strong: oklch(55% 0.2 var(--h-forest));
+  --border-default: oklch(45% 0.08 45);
+  --border-strong: oklch(58% 0.1 45);
 
   /* =========================
        SHADOWS (moins harsh en dark)
     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.4);
-  --shadow-card: 0 4px 12px oklch(0% 0 0 / 0.3);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.4), 0 1px 4px oklch(0% 0 0 / 0.25);
 
   /* =========================
        TAGS
@@ -147,4 +151,22 @@
   --hero-glow: oklch(20% 0.06 var(--h-forest));
 
   --surface-bright: oklch(99% 0.002 0deg);
+
+  /* Toggle */
+  --toggle-track-bg: oklch(from var(--color-header-action) l c h / 0.15);
+  --toggle-track-hover-bg: var(--color-header-action-bg-hover);
+  --toggle-fg: var(--color-header-action);
+  --toggle-fg-opacity: 0.35;
+  --toggle-active-icon: var(--color-header-bg);
+  --toggle-active-filter: drop-shadow(0 0 3px oklch(from var(--color-header-action) l c h / 0.6));
+
+  /* Card / page overrides — defaults equivalent to component fallbacks */
+  --page-title-color: var(--color-primary);
+  --card-footer-bg: var(--bg-sunken);
+  --card-footer-border: var(--border-default);
+  --card-footer-color: var(--text-primary);
+  --card-footer-color-muted: var(--text-muted);
+  --product-unit-chip-bg: transparent;
+  --product-unit-chip-text: var(--text-secondary);
+  --product-unit-chip-border: var(--bg-muted);
 }

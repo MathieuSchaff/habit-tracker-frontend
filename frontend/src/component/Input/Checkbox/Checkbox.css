@@ -18,7 +18,7 @@
   flex-shrink: 0;
   border: 2px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  background: transparent;
+  background: oklch(from var(--color-primary) l c h / 0.06);
   color: var(--text-inverse);
   transition: all var(--transition-fast) ease;
 }
@@ -36,8 +36,9 @@
 }
 
 .checkbox--checked .checkbox__box {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-color: var(--color-primary);
+  box-shadow: 0 1px 4px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .checkbox:has(input:focus-visible) .checkbox__box {

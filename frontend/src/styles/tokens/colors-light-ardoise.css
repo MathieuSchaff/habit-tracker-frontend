@@ -2,9 +2,10 @@
   color-scheme: light;
 
   /* Primary (Ardoise — slate blue-gray) */
-  --color-primary: oklch(35% 0.2 240);
-  --color-primary-hover: oklch(45% 0.2 240);
-  --color-primary-dark: oklch(25% 0.18 240);
+  /* Complementary action color: warm amber contrasts slate cards */
+  --color-primary: oklch(60% 0.18 65);
+  --color-primary-hover: oklch(54% 0.2 65);
+  --color-primary-dark: oklch(45% 0.16 65);
   --color-primary-text: oklch(99% 0.003 240);
   --color-focus: var(--color-primary);
   --color-primary-deeper: oklch(18% 0.08 240);
@@ -52,22 +53,24 @@
   --color-warning-text: oklch(40% 0.15 50);
 
   /* Surfaces */
-  --bg-page: oklch(96.5% 0.003 240);
-  --bg-card: oklch(99.5% 0.003 240);
-  --bg-muted: oklch(91% 0.03 240);
-  --bg-elevated: oklch(98% 0.003 240);
-  --bg-sunken: oklch(86% 0.05 240);
+  /* Page quasi-white, card = tinted slate block */
+  --bg-page: oklch(98.5% 0.006 75);
+  --bg-card: oklch(89% 0.055 240);
+  --bg-elevated: oklch(88% 0.065 240);
+  --bg-sunken: oklch(82% 0.06 240);
+  /* Interactive-in-card: quasi white */
+  --bg-muted: oklch(98% 0.006 75);
   --bg-hover: oklch(from oklch(35% 0.12 240) l c h / 0.08);
   --bg-active: oklch(from oklch(35% 0.12 240) l c h / 0.14);
   --bg-selected: oklch(92% 0.08 65);
 
   /* Borders */
-  --border-default: oklch(86% 0.03 240);
-  --border-strong: oklch(72% 0.07 240);
+  --border-default: oklch(75% 0.05 240);
+  --border-strong: oklch(60% 0.1 240);
 
   /* Shadows */
   --shadow-color: oklch(0% 0 0 / 0.1);
-  --shadow-card: 0 2px 8px oklch(0% 0 0 / 0.08);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.1), 0 1px 4px oklch(0% 0 0 / 0.06);
 
   /* Tags */
   --tag-active-bg: oklch(35% 0.2 240);
@@ -79,4 +82,22 @@
   --overlay: oklch(15% 0.06 240 / 0.45);
   --hero-glow: oklch(94% 0.02 240);
   --surface-bright: oklch(99% 0.002 0deg);
+
+  /* Toggle */
+  --toggle-track-bg: var(--color-primary-dark);
+  --toggle-track-hover-bg: var(--color-primary-deeper);
+  --toggle-fg: oklch(100% 0 0);
+  --toggle-fg-opacity: 0.85;
+  --toggle-active-icon: var(--color-primary-dark);
+  --toggle-active-filter: none;
+
+  /* Card / page overrides — defaults equivalent to component fallbacks */
+  --page-title-color: var(--color-primary);
+  --card-footer-bg: var(--bg-sunken);
+  --card-footer-border: var(--border-default);
+  --card-footer-color: var(--text-primary);
+  --card-footer-color-muted: var(--text-muted);
+  --product-unit-chip-bg: transparent;
+  --product-unit-chip-text: var(--text-secondary);
+  --product-unit-chip-border: var(--bg-muted);
 }
