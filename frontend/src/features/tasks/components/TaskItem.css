@@ -1,17 +1,19 @@
 .task-item {
   background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-left: 3px solid oklch(from var(--color-primary) l c h / 0.25);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.15);
+  border-left: 3px solid oklch(from var(--color-primary) l c h / 0.35);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition:
     border-color var(--transition-fast) ease,
-    border-left-color var(--transition-fast) ease;
+    border-left-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
 }
 
 .task-item:hover {
   border-color: var(--color-primary);
   border-left-color: var(--color-primary);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.12);
 }
 
 .task-item--done {

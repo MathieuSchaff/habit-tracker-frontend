@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { Input } from '@/component/Input/Input'
 import { ComboboxPrimitive } from '@/component/search/ComboboxPrimitive'
 import { productQueries } from '@/lib/queries/products'
 
@@ -11,7 +12,9 @@ interface BrandComboboxProps {
   id?: string
   value: string
   onChange: (value: string, confirmed: boolean) => void
-  inputClassName?: string
+  /** Optional label rendered by the inner Input. Omit when an external <FormField> already provides one. */
+  label?: string
+  required?: boolean
   placeholder?: string
 }
 
@@ -22,7 +25,8 @@ export function BrandCombobox({
   id,
   value,
   onChange,
-  inputClassName = '',
+  label,
+  required,
   placeholder = 'Ex : The Ordinary, Solgar…',
 }: BrandComboboxProps) {
   const [inputValue, setInputValue] = useState(value)
@@ -103,18 +107,20 @@ export function BrandCombobox({
         keyExtractor={(brand) => brand}
       >
         {({ listboxId, activeDescendant }) => (
-          <input
+          <Input
             id={id}
             type="text"
             role="combobox"
-            className={inputClassName}
+            label={label}
+            required={required}
+            // when no visible label, keep an accessible name
+            aria-label={label ? undefined : 'Marque'}
             value={inputValue}
             onChange={handleInputChange}
             onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
             onBlur={handleBlur}
             placeholder={placeholder}
             autoComplete="off"
-            aria-label="Marque"
             aria-expanded={showDropdown && filtered.length > 0}
             aria-controls={listboxId}
             aria-activedescendant={activeDescendant}

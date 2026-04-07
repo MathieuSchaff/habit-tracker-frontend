@@ -12,14 +12,21 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--bg-muted);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.1);
+  border-left: 3px solid oklch(from var(--color-primary) l c h / 0.25);
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .thread-item:hover {
   background: var(--bg-hover);
+  border-left-color: var(--color-primary);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.1);
 }
 
 .thread-item__title {
