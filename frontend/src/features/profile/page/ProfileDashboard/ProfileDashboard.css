@@ -18,8 +18,10 @@
 .profile-hero {
   position: relative;
   background-color: var(--bg-card);
-  border: 1px solid var(--border-default);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+  box-shadow:
+    var(--shadow-sm),
+    0 8px 32px oklch(from var(--color-primary) l c h / 0.08);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -31,7 +33,12 @@
   height: 4rem;
   width: 100%;
   border-radius: 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-accent) 50%,
+    var(--color-secondary) 100%
+  );
   position: relative;
 }
 
@@ -102,10 +109,6 @@
   margin-top: var(--space-2);
   max-width: 100%;
   white-space: pre-line;
-}
-
-[data-theme="dark"] .profile-hero__bio {
-  color: var(--text-muted);
 }
 
 .profile-hero__since {
@@ -221,15 +224,17 @@
   padding: var(--space-1) var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-primary);
-  background: var(--bg-muted);
-  border: 1px solid var(--border-default);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
   border-radius: var(--radius-full);
   text-decoration: none;
+  transition: all var(--transition-fast) ease;
 }
 
 .profile-info-read__link:hover {
   text-decoration: underline;
-  background: color-mix(in oklch, var(--color-primary) 8%, transparent);
+  background: oklch(from var(--color-primary) l c h / 0.15);
+  border-color: var(--color-primary);
 }
 
 .profile-info-read__empty {

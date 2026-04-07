@@ -3,10 +3,11 @@
   place-items: center;
   border-radius: var(--radius-full);
   overflow: hidden;
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: var(--text-inverse);
   flex-shrink: 0;
   user-select: none;
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
 }
 
 .profile-avatar--sm {
