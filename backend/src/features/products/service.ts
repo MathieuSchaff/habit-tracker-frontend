@@ -6,7 +6,7 @@ import type {
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, asc, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
+import { and, asc, count, eq, ilike, inArray, notInArray, or, type SQL, sql } from 'drizzle-orm'
 import { ingredients, productIngredients } from 'src/db/schema'
 import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
@@ -261,6 +261,22 @@ export async function listProducts(
           .where(and(inArray(tags.slug, slugs), eq(tags.category, category)))
       )
     )
+  }
+
+  if (filters.avoid_for) {
+    const slugs = filters.avoid_for.split(',').filter(Boolean)
+    if (slugs.length > 0) {
+      conditions.push(
+        notInArray(
+          products.id,
+          database
+            .select({ productId: productTags.productId })
+            .from(productTags)
+            .innerJoin(tags, eq(productTags.tagId, tags.id))
+            .where(and(inArray(tags.slug, slugs), eq(productTags.relevance, 'avoid')))
+        )
+      )
+    }
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined

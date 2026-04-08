@@ -13,6 +13,7 @@ export type ListProductsFilters = {
   attribute?: string | string[]
   routine_step?: string | string[]
   ingredient?: string | string[]
+  avoid_for?: string | string[]
   sort?: 'name' | 'random'
   page?: number
   limit?: number
@@ -63,6 +64,7 @@ export const productQueries = {
         addParam('attribute', filters.attribute)
         addParam('routine_step', filters.routine_step)
         addParam('ingredient', filters.ingredient)
+        addParam('avoid_for', filters.avoid_for)
 
         if (filters.sort !== undefined) query.sort = filters.sort
 
