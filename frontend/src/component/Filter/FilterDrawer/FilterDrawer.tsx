@@ -16,6 +16,7 @@ type FilterDrawerProps<T extends string> = {
   onApply: (filters: FilterValues<T>) => void
   onReset: () => void
   initialFilters: FilterValues<T>
+  children?: React.ReactNode
 }
 
 export function FilterDrawer<T extends string>({
@@ -26,6 +27,7 @@ export function FilterDrawer<T extends string>({
   onApply,
   onReset,
   initialFilters,
+  children,
 }: FilterDrawerProps<T>) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [localFilters, setLocalFilters] = useState<FilterValues<T>>(currentFilters)
@@ -130,6 +132,7 @@ export function FilterDrawer<T extends string>({
           onSubmit={(e) => e.preventDefault()}
           onKeyDown={handleArrowNav}
         >
+          {children}
           {essentialGroups.map((group) => (
             <FilterAccordion
               key={group.id}
