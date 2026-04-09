@@ -16,6 +16,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { recalculateSignalForUser } from '../../services/dermoSignalService'
 import { requireJwtAuth } from '../auth/middleware'
 import {
   addPurchase,
@@ -105,6 +106,13 @@ export const userProductRoutes = app
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await upsertUserProductReview(userId, id, input, db)
+
+      // Fire-and-forget: recalculate dermo signal after review save.
+      // Does not block the HTTP response.
+      recalculateSignalForUser(userId, id, db).catch((err) =>
+        console.error('[dermoSignal] recalculation failed:', err)
+      )
+
       return c.json(ok(result), HTTP_STATUS.OK)
     }
   )

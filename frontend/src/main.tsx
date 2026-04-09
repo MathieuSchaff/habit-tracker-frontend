@@ -35,6 +35,9 @@ const router = createRouter({
 
       const from = fromLocation.pathname
       const to = toLocation.pathname
+
+      // Search param changes (filters, pagination) — no transition
+      if (from === to) return false
       // full page products or ingredients
       const isListPath = (p: string) => p === '/products/' || p === '/ingredients/'
       // page/slug of products or ingredients

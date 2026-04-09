@@ -10,7 +10,9 @@ export type ListProductsFilters = {
   skin_zone?: string | string[]
   product_type?: string | string[]
   concern?: string | string[]
-  attribute?: string | string[]
+  skin_effect?: string | string[]
+  product_label?: string | string[]
+  shared_label?: string | string[]
   routine_step?: string | string[]
   ingredient?: string | string[]
   avoid_for?: string | string[]
@@ -61,7 +63,9 @@ export const productQueries = {
         addParam('skin_zone', filters.skin_zone)
         addParam('product_type', filters.product_type)
         addParam('concern', filters.concern)
-        addParam('attribute', filters.attribute)
+        addParam('skin_effect', filters.skin_effect)
+        addParam('product_label', filters.product_label)
+        addParam('shared_label', filters.shared_label)
         addParam('routine_step', filters.routine_step)
         addParam('ingredient', filters.ingredient)
         addParam('avoid_for', filters.avoid_for)

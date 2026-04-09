@@ -27,7 +27,9 @@ export const products = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     brand: text('brand').notNull(),
-    // complémentents alimentaires, skincare etc...
+    // broad category: skincare, complément, haircare, etc.
+    category: text('category'),
+    // specific product type within a category: serum, cleanser, gélule, etc.
     kind: text('kind').notNull().default('Pas spécifié'),
     // gouttes, gélules, pump ( pour la skincare), etc...
     // amountUnit existe parce que parfois l'unité de dosage

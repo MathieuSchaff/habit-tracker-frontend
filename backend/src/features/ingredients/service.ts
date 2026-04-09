@@ -7,7 +7,9 @@ import type {
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
+  filterCategoriesFor,
   ingredientChangesSchema,
+  type TagCategory,
   updateIngredientSchema,
 } from '@habit-tracker/shared'
 
@@ -35,18 +37,16 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
   const limit = filters.limit ?? 20
   const offset = (page - 1) * limit
 
-  // The filters arrive as one long string with commas, so I cut it into pieces.
-  const categories = filters.category?.split(',').filter(Boolean) ?? []
+  // Filters arrive as comma-joined strings from the query params.
   const concerns = filters.concern?.split(',').filter(Boolean) ?? []
   const skinTypes = filters.skin_type?.split(',').filter(Boolean) ?? []
-  const attributes = filters.attribute?.split(',').filter(Boolean) ?? []
+  const ingredientAttributes = filters.ingredient_attribute?.split(',').filter(Boolean) ?? []
+  const skinEffects = filters.skin_effect?.split(',').filter(Boolean) ?? []
+  const sharedLabels = filters.shared_label?.split(',').filter(Boolean) ?? []
 
-  if (categories.length > 0) {
-    conditions.push(inArray(ingredients.category, categories))
-  }
-
-  // Tags are a bit complicated because they live in a separate table.
-  // I have to write a small "sub-query" to find ingredients that have the right tags.
+  // All tag filters share the same sub-query shape: "ingredient has at
+  // least one row in ingredient_tags whose tag slug is in this list".
+  // AND between groups, OR within a group.
   const addTagGroup = (slugs: string[]) => {
     if (slugs.length === 0) return
     conditions.push(
@@ -63,7 +63,9 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
 
   addTagGroup(concerns)
   addTagGroup(skinTypes)
-  addTagGroup(attributes)
+  addTagGroup(ingredientAttributes)
+  addTagGroup(skinEffects)
+  addTagGroup(sharedLabels)
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -304,45 +306,37 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
 }
 
 export type IngredientFilterOptions = {
-  categories: string[]
-  tags: {
-    concern: { name: string; slug: string }[]
-    skin_type: { name: string; slug: string }[]
-    attribute: { name: string; slug: string }[]
-  }
+  tags: Record<IngredientFilterCategory, { name: string; slug: string }[]>
 }
 
-// We only expose the 3 categories that have meaningful coverage on ingredients.
-// routine_step, product_type, skin_zone are quasi-empty so we skip them.
+type IngredientFilterCategory = Extract<
+  TagCategory,
+  'skin_type' | 'concern' | 'ingredient_attribute' | 'skin_effect' | 'shared_label'
+>
+
+const INGREDIENT_FILTER_CATEGORIES = filterCategoriesFor('ingredient') as IngredientFilterCategory[]
+
 export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
-  const EXPOSED_CATEGORIES = ['concern', 'skin_type', 'attribute'] as const
+  const tagRows = await database
+    .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
+    .from(tags)
+    .innerJoin(ingredientTags, eq(tags.id, ingredientTags.tagId))
+    .where(inArray(tags.category, INGREDIENT_FILTER_CATEGORIES))
+    .orderBy(tags.category, tags.name)
 
-  const [categoryRows, tagRows] = await Promise.all([
-    database
-      .selectDistinct({ category: ingredients.category })
-      .from(ingredients)
-      .orderBy(ingredients.category),
-    database
-      .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
-      .from(tags)
-      .innerJoin(ingredientTags, eq(tags.id, ingredientTags.tagId))
-      .where(inArray(tags.category, [...EXPOSED_CATEGORIES]))
-      .orderBy(tags.category, tags.name),
-  ])
+  const empty = Object.fromEntries(
+    INGREDIENT_FILTER_CATEGORIES.map((c) => [c, []])
+  ) as unknown as IngredientFilterOptions['tags']
 
-  const tagsByCategory = tagRows.reduce(
-    (acc, tag) => {
-      if (!tag.category || !(tag.category in acc)) return acc
-      acc[tag.category as keyof typeof acc].push({ name: tag.name, slug: tag.slug })
-      return acc
-    },
-    { concern: [], skin_type: [], attribute: [] } as IngredientFilterOptions['tags']
-  )
-
-  return {
-    categories: categoryRows.map((r) => r.category).filter(Boolean) as string[],
-    tags: tagsByCategory,
+  for (const tag of tagRows) {
+    if (!tag.category) continue
+    const bucket = tag.category as IngredientFilterCategory
+    if (bucket in empty) {
+      empty[bucket].push({ name: tag.name, slug: tag.slug })
+    }
   }
+
+  return { tags: empty }
 }
 
 // This list is very light, I use it just to fill the small select boxes.

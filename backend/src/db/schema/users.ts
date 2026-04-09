@@ -1,4 +1,4 @@
-import type { ProfileLink } from '@habit-tracker/shared'
+import type { ProfileLink, SkinConcern, SkinType } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -78,9 +78,9 @@ export const userDermoProfiles = pgTable('user_dermo_profiles', {
   userId: uuid('user_id')
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
-  skinTypes: text('skin_types').array(),
+  skinTypes: text('skin_types').array().$type<SkinType[]>(),
   fitzpatrickType: integer('fitzpatrick_type'),
-  skinConcerns: text('skin_concerns').array().notNull().default([]),
+  skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
   privateNotes: text('private_notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true })

@@ -9,10 +9,11 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 import { api } from '../api'
 
 export type ListIngredientsFilters = {
-  category?: string[]
-  concern?: string[]
   skin_type?: string[]
-  attribute?: string[]
+  concern?: string[]
+  ingredient_attribute?: string[]
+  skin_effect?: string[]
+  shared_label?: string[]
   sort?: 'name' | 'random'
   page?: number
   limit?: number
@@ -48,10 +49,12 @@ export const ingredientQueries = {
       queryFn: async () => {
         const query: Record<string, string> = {}
 
-        if (filters.category?.length) query.category = filters.category.join(',')
-        if (filters.concern?.length) query.concern = filters.concern.join(',')
         if (filters.skin_type?.length) query.skin_type = filters.skin_type.join(',')
-        if (filters.attribute?.length) query.attribute = filters.attribute.join(',')
+        if (filters.concern?.length) query.concern = filters.concern.join(',')
+        if (filters.ingredient_attribute?.length)
+          query.ingredient_attribute = filters.ingredient_attribute.join(',')
+        if (filters.skin_effect?.length) query.skin_effect = filters.skin_effect.join(',')
+        if (filters.shared_label?.length) query.shared_label = filters.shared_label.join(',')
         if (filters.sort !== undefined) query.sort = filters.sort
         if (filters.page) query.page = String(filters.page)
         if (filters.limit) query.limit = String(filters.limit)
