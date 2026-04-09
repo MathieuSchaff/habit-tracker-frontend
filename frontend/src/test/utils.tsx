@@ -80,6 +80,7 @@ export function makeUserProduct(
       amountUnit: string
       slug: string
       url: string | null
+      category: string | null
       imageUrl: string | null
       notes: string | null
       productIngredients: {
@@ -163,6 +164,7 @@ export function makeUserProduct(
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,
+      category: null,
       imageUrl: null,
       notes: null,
     },

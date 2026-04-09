@@ -213,15 +213,6 @@ describe('Ingredient Service', () => {
       expect(result.items[2]?.name).toBe('Zinc PCA')
     })
 
-    it('should filter by category', async () => {
-      await makeIngredient('Rétinol', { category: 'actif' })
-      await makeIngredient('Eau', { category: 'excipient' })
-
-      const result = await listIngredients(testDb, { category: 'actif' })
-      expect(result.total).toBe(1)
-      expect(result.items[0]?.name).toBe('Rétinol')
-    })
-
     it('should filter by tags (concern)', async () => {
       const i1 = await makeIngredient('Rétinol')
       const tag = await makeTag('Anti-âge', 'concern')

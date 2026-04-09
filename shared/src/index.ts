@@ -88,6 +88,11 @@ export {
   updateHabitSchema,
 } from './schemas/habits'
 export {
+  INGREDIENT_CATEGORIES,
+  INGREDIENT_CATEGORY_VALUES,
+  type IngredientCategory,
+} from './schemas/ingredient-categories'
+export {
   type CreateIngredientInput,
   createIngredientSchema,
   type IngredientChanges,
@@ -134,6 +139,15 @@ export {
   createProductIngredientSchema,
   productIngredientResponseSchema,
 } from './schemas/product-ingredients'
+export {
+  PRODUCT_CATEGORIES,
+  PRODUCT_CATEGORY_VALUES,
+  PRODUCT_KINDS,
+  type ProductCategory,
+  type ProductKind,
+  type ProductKindsMap,
+} from './schemas/product-kinds'
+export { PRODUCT_UNITS, type ProductUnit } from './schemas/product-units'
 export {
   type CreateProductInput,
   createProductSchema,
@@ -182,6 +196,23 @@ export {
   type UpdatePurchaseInput,
   updatePurchaseSchema,
 } from './schemas/purchases'
+export {
+  type FilterTier,
+  filterCategoriesFor,
+  TAG_CATEGORY_META,
+  type TagCategoryMeta,
+} from './schemas/tag-filters'
+export { TAG_SLUGS, type TagSlug } from './schemas/tag-slugs'
+export {
+  canTagEntity,
+  getTagCategory,
+  isValidAvoidTag,
+  TAG_CATEGORIES,
+  TAG_TAXONOMY,
+  type TagCategory,
+  type TagMeta,
+  type TagScope,
+} from './schemas/tag-taxonomy'
 export {
   type AddIngredientTagInput,
   type AddProductTagInput,

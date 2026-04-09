@@ -387,11 +387,13 @@ describe('Product Routes', () => {
       const data = await res.json()
       const tags = data.data.tags
       expect(tags).toHaveProperty('routine_step')
-      expect(tags).toHaveProperty('attribute')
       expect(tags).toHaveProperty('skin_type')
       expect(tags).toHaveProperty('skin_zone')
       expect(tags).toHaveProperty('product_type')
       expect(tags).toHaveProperty('concern')
+      expect(tags).toHaveProperty('skin_effect')
+      expect(tags).toHaveProperty('product_label')
+      expect(tags).toHaveProperty('shared_label')
     })
 
     it('should return populated kinds and brands after creating products', async () => {

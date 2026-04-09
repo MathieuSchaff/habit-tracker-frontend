@@ -1,68 +1,16 @@
-import type { FilterSubGroup } from '@/component/Filter'
+// Filter keys for the ingredients list page. Derived from the shared
+// taxonomy: one filter key per TagCategory that is filterable on an
+// ingredient (scope='ingredient' or 'both'). No hand-maintained list.
 
-export type FilterKey = 'category' | 'concern' | 'skin_type' | 'attribute'
+import { filterCategoriesFor, TAG_CATEGORY_META, type TagCategory } from '@habit-tracker/shared'
 
-export const FILTER_KEYS = [
-  'category',
-  'concern',
-  'skin_type',
-  'attribute',
-] as const satisfies readonly FilterKey[]
+export type FilterKey = Extract<
+  TagCategory,
+  'skin_type' | 'concern' | 'ingredient_attribute' | 'skin_effect' | 'shared_label'
+>
 
-export const GROUP_LABELS: Record<FilterKey, string> = {
-  skin_type: 'Peau',
-  concern: 'Problème',
-  attribute: 'Propriété',
-  category: 'Catégorie',
-}
+export const FILTER_KEYS = filterCategoriesFor('ingredient') as readonly FilterKey[]
 
-export const ATTRIBUTE_SUBGROUPS: FilterSubGroup[] = [
-  {
-    label: 'Actions',
-    slugs: [
-      'apaisant',
-      'humectant',
-      'anti-oxydant',
-      'emollient',
-      'occlusif',
-      'matifiant',
-      'sebo-regulateur',
-      'reparateur',
-      'protection-cutanee',
-      'prebiotique',
-    ],
-    maxVisible: 6,
-  },
-  {
-    label: 'Technique',
-    slugs: [
-      'keratolytique',
-      'astringent',
-      'antiseptique',
-      'anti-bacterien',
-      'biomimetique',
-      'filtres-chimiques',
-      'filtres-mineraux',
-      'pigments-verts',
-      'comedogene',
-    ],
-    maxVisible: 4,
-  },
-  {
-    label: 'Formulation',
-    slugs: [
-      'bio-naturel',
-      'vegan',
-      'cruelty-free',
-      'sans-parfum',
-      'sans-savon',
-      'hypoallergenique',
-      'non-comedogene',
-      'grossesse-compatible',
-      'texture-legere',
-      'texture-riche',
-      'barriere-cutanee-alteree',
-    ],
-    maxVisible: 6,
-  },
-]
+export const GROUP_LABELS: Record<FilterKey, string> = Object.fromEntries(
+  FILTER_KEYS.map((key) => [key, TAG_CATEGORY_META[key].label])
+) as Record<FilterKey, string>
