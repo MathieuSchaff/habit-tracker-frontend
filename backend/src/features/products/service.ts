@@ -4,7 +4,7 @@ import type {
   ProductSearchResult,
   UpdateProductInput,
 } from '@habit-tracker/shared'
-import { filterCategoriesFor, type TagCategory } from '@habit-tracker/shared'
+import { productFilterCategories, type ProductTagCategory } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, asc, count, eq, ilike, inArray, notInArray, or, type SQL, sql } from 'drizzle-orm'
@@ -14,7 +14,7 @@ import { listIngredientsByProduct } from 'src/features/products/product-ingredie
 import { db } from '../../db'
 import type { Database, DB } from '../../db/index'
 import { type Product, products } from '../../db/schema/products'
-import { productTags, tags } from '../../db/schema/tags'
+import { tagProducts, productTagsDefs } from '../../db/schema/tags'
 import { isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
@@ -258,10 +258,10 @@ export async function listProducts(
       inArray(
         products.id,
         database
-          .select({ productId: productTags.productId })
-          .from(productTags)
-          .innerJoin(tags, eq(productTags.tagId, tags.id))
-          .where(and(inArray(tags.slug, slugs), eq(tags.category, category)))
+          .select({ productId: tagProducts.productId })
+          .from(tagProducts)
+          .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+          .where(and(inArray(productTagsDefs.slug, slugs), eq(productTagsDefs.tagType, category)))
       )
     )
   }
@@ -273,10 +273,10 @@ export async function listProducts(
         notInArray(
           products.id,
           database
-            .select({ productId: productTags.productId })
-            .from(productTags)
-            .innerJoin(tags, eq(productTags.tagId, tags.id))
-            .where(and(inArray(tags.slug, slugs), eq(productTags.relevance, 'avoid')))
+            .select({ productId: tagProducts.productId })
+            .from(tagProducts)
+            .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+            .where(and(inArray(productTagsDefs.slug, slugs), eq(tagProducts.relevance, 'avoid')))
         )
       )
     }
@@ -310,9 +310,9 @@ export async function listProducts(
   const total = countResult[0]?.total ?? 0
   return { items, total, page, limit }
 }
-type ProductFilterCategory = Exclude<TagCategory, 'ingredient_attribute'>
+type ProductFilterCategory = ProductTagCategory
 
-const PRODUCT_FILTER_CATEGORIES = filterCategoriesFor('product') as ProductFilterCategory[]
+const PRODUCT_FILTER_CATEGORIES = productFilterCategories()
 
 export type FilterOptions = {
   kinds: string[]
@@ -325,11 +325,11 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
     database.selectDistinct({ brand: products.brand }).from(products).orderBy(products.brand),
     database
-      .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
-      .from(tags)
-      .innerJoin(productTags, eq(tags.id, productTags.tagId))
-      .where(inArray(tags.category, PRODUCT_FILTER_CATEGORIES))
-      .orderBy(tags.category, tags.name),
+      .selectDistinct({ name: productTagsDefs.label, slug: productTagsDefs.slug, category: productTagsDefs.tagType })
+      .from(productTagsDefs)
+      .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
+      .where(inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES))
+      .orderBy(productTagsDefs.tagType, productTagsDefs.label),
   ])
 
   const tagsByCategory = Object.fromEntries(

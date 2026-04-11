@@ -1,6 +1,6 @@
-// Schemas (runtime validators + inferred types)
+// Core (HTTP constants, response types, schemas, factories, OpenAPI helpers)
 
-export { ErrorResponseSchema, SuccessResponseSchema } from './schemas/api'
+// Schemas (runtime validators + inferred types)
 export {
   type AuthFieldErrors,
   type AuthInput,
@@ -23,7 +23,29 @@ export {
   signupSchema,
   userPublicSchema,
   verifyEmailBodySchema,
-} from './schemas/auth'
+} from './auth'
+export type { ApiError, ApiResponse, ApiSuccess } from './core'
+export {
+  baseErrorMapping,
+  type CommonErrorCode,
+  type ContentfulHttpStatus,
+  ErrorResponseSchema,
+  err,
+  errorResponse,
+  errorResponseWithOptionnalErrorCode,
+  errorToStatus,
+  type FieldChange,
+  type FilterTier,
+  fieldChangeSchema,
+  HTTP_STATUS,
+  type HttpStatus,
+  isApiError,
+  isApiSuccess,
+  ok,
+  SuccessResponseSchema,
+  successResponse,
+  type TagCategoryMeta,
+} from './core'
 export {
   type CreateReplyInput,
   type CreateThreadInput,
@@ -32,7 +54,7 @@ export {
   replyResponseSchema,
   threadResponseSchema,
   threadWithRepliesResponseSchema,
-} from './schemas/discussions'
+} from './discussions'
 export {
   type CheckHabitInput,
   type CreateHabitInput,
@@ -86,22 +108,36 @@ export {
   uncheckHabitSchema,
   updateFrequencySchema,
   updateHabitSchema,
-} from './schemas/habits'
-export {
-  INGREDIENT_CATEGORIES,
-  INGREDIENT_CATEGORY_VALUES,
-  type IngredientCategory,
-} from './schemas/ingredient-categories'
+} from './habits'
 export {
   type CreateIngredientInput,
   createIngredientSchema,
+  type EditableIngredientKeys,
+  getIngredientTagCategory,
+  INGREDIENT_CATEGORIES,
+  INGREDIENT_CATEGORY_VALUES,
+  INGREDIENT_TAG_CATEGORIES,
+  INGREDIENT_TAG_CATEGORY_META,
+  INGREDIENT_TAG_SLUGS,
+  INGREDIENT_TAG_TAXONOMY,
+  type Ingredient,
+  type IngredientCategory,
   type IngredientChanges,
+  type IngredientEdit,
   type IngredientEditResponse,
+  type IngredientErrorCode,
+  type IngredientFilterOptions,
   type IngredientResponse,
   type IngredientSearchFilters,
   type IngredientSearchResult,
+  type IngredientTagCategory,
+  type IngredientTagMeta,
+  type IngredientTagSlug,
   ingredientChangesSchema,
   ingredientEditResponseSchema,
+  ingredientErrorMapping,
+  ingredientFilterCategories,
+  ingredientFilterOptionsSchema,
   ingredientResponseSchema,
   ingredientSearchResultSchema,
   ingredientsSearchSchema,
@@ -109,7 +145,7 @@ export {
   type UpdateIngredientRouteInput,
   updateIngredientRouteSchema,
   updateIngredientSchema,
-} from './schemas/ingredients'
+} from './ingredients'
 export {
   type HabitCheckProductResponse,
   type HabitCheckWithProductsResponse,
@@ -127,49 +163,72 @@ export {
   wellbeingLogResponseSchema,
   wellbeingMetricSchema,
   wellbeingMetrics,
-} from './schemas/logs'
-export {
-  type PrivacySettings,
-  privacySettingsSchema,
-  type UpdatePrivacySettingsInput,
-  updatePrivacySettingsSchema,
-} from './schemas/privacy'
+} from './logs'
 export {
   type CreateProductIngredientInput,
+  type CreateProductInput,
   createProductIngredientSchema,
-  productIngredientResponseSchema,
-} from './schemas/product-ingredients'
-export {
+  createProductSchema,
+  type EditableProductKeys,
+  filterOptionsSchema,
+  getProductTagCategory,
+  type ListProductsFilters,
+  listProductsQuery,
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_VALUES,
   PRODUCT_KINDS,
+  PRODUCT_TAG_CATEGORIES,
+  PRODUCT_TAG_CATEGORY_META,
+  PRODUCT_TAG_SLUGS,
+  PRODUCT_TAG_TAXONOMY,
+  PRODUCT_UNITS,
+  type Product,
   type ProductCategory,
+  type ProductChanges,
+  type ProductEdit,
+  type ProductEditResponseSchema,
+  type ProductErrorCode,
+  type ProductIngredient,
+  type ProductIngredientErrorCode,
   type ProductKind,
   type ProductKindsMap,
-} from './schemas/product-kinds'
-export { PRODUCT_UNITS, type ProductUnit } from './schemas/product-units'
-export {
-  type CreateProductInput,
-  createProductSchema,
-  filterOptionsSchema,
-  type ListProductsFilters,
-  listProductsQuery,
-  type ProductChanges,
-  type ProductEditResponseSchema,
+  type ProductSearchResult,
   type ProductsPage,
+  type ProductTagCategory,
+  type ProductTagMeta,
+  type ProductTagSlug,
+  type ProductUnit,
+  type ProductWithStock,
   productChangesSchema,
   productEditResponseSchema,
+  productErrorMapping,
+  productFilterCategories,
+  productIngredientErrorMapping,
+  productIngredientResponseSchema,
   productResponseSchema,
   productsPageSchema,
   searchProductsQuery,
   type UpdateProductInput,
   updateProductSchema,
-} from './schemas/products'
+} from './products'
 export {
   BIO_MAX_LENGTH,
+  type CriteriaWeights,
+  criteriaWeightsSchema,
+  type DisplayScale,
+  displayScale,
+  displayScaleSchema,
+  type MeResponse,
+  type PrivacySettings,
+  type ProfileErrorCode,
   type ProfileLink,
+  type ProfilePublic,
   type ProfileStats,
+  type ProfileStatsResponse,
   type ProfileUpdateInput,
+  type ProfileUpdateResponse,
+  privacySettingsSchema,
+  profileErrorMapping,
   profileLinkSchema,
   profilePublicSchema,
   profileStatsSchema,
@@ -178,12 +237,18 @@ export {
   SKIN_TYPES,
   type SkinConcern,
   type SkinType,
+  type UpdatePrivacySettingsInput,
+  type UpdateUserPreferencesInput,
   USERNAME_MAX_LENGTH,
   type UserDermoProfile,
   type UserDermoProfileUpdateInput,
+  type UserPreferences,
+  updatePrivacySettingsSchema,
+  updateUserPreferencesSchema,
   userDermoProfileSchema,
   userDermoProfileUpdateSchema,
-} from './schemas/profile'
+  userPreferencesSchema,
+} from './profile'
 export {
   type AddPurchaseInput,
   addPurchaseSchema,
@@ -195,24 +260,7 @@ export {
   purchaseSchema,
   type UpdatePurchaseInput,
   updatePurchaseSchema,
-} from './schemas/purchases'
-export {
-  type FilterTier,
-  filterCategoriesFor,
-  TAG_CATEGORY_META,
-  type TagCategoryMeta,
-} from './schemas/tag-filters'
-export { TAG_SLUGS, type TagSlug } from './schemas/tag-slugs'
-export {
-  canTagEntity,
-  getTagCategory,
-  isValidAvoidTag,
-  TAG_CATEGORIES,
-  TAG_TAXONOMY,
-  type TagCategory,
-  type TagMeta,
-  type TagScope,
-} from './schemas/tag-taxonomy'
+} from './purchases'
 export {
   type AddIngredientTagInput,
   type AddProductTagInput,
@@ -230,7 +278,7 @@ export {
   replaceProductTagsSchema,
   tagResponseSchema,
   type UpdateTagInput,
-} from './schemas/tags'
+} from './tags'
 export {
   type CreateSubtaskInput,
   type CreateTaskInput,
@@ -240,18 +288,7 @@ export {
   type UpdateTaskInput,
   updateSubtaskSchema,
   updateTaskSchema,
-} from './schemas/tasks'
-export {
-  type CriteriaWeights,
-  criteriaWeightsSchema,
-  type DisplayScale,
-  displayScale,
-  displayScaleSchema,
-  type UpdateUserPreferencesInput,
-  type UserPreferences,
-  updateUserPreferencesSchema,
-  userPreferencesSchema,
-} from './schemas/user-preferences'
+} from './tasks'
 export {
   type CreateUserProductInput,
   createUserProductSchema,
@@ -261,26 +298,20 @@ export {
   type UpdateUserProductInput,
   type UpdateUserProductReviewInput,
   type UserProduct,
+  type UserProductErrorCode,
   type UserProductReview,
   type UserProductStatus,
   updateUserProductReviewSchema,
   updateUserProductSchema,
+  userProductErrorMapping,
   userProductReviewSchema,
   userProductSchema,
   userProductStatus,
   userProductStatusSchema,
-} from './schemas/user-products'
+} from './user-products'
 
 // Types (entity types, error codes, composed types)
 
-// Types (entity types, error codes, composed types)
-
-export type {
-  ApiError,
-  ApiResponse,
-  ApiSuccess,
-  CommonErrorCode,
-} from './types/api'
 export type {
   AccessTokenPayload,
   AuthErrorCode,
@@ -297,14 +328,13 @@ export type {
   RefreshTokenPayload,
   SignupResult,
   UserPublic,
-} from './types/auth'
-export type { FieldChange } from './types/common'
+} from './auth'
 export type {
   DiscussionErrorCode,
   DiscussionReply,
   DiscussionThread,
   DiscussionThreadWithReplies,
-} from './types/discussions'
+} from './discussions'
 export type {
   Habit,
   HabitCheck,
@@ -322,83 +352,29 @@ export type {
   TodayHabit,
   TodayUserProduct,
   ToggleCheckResult,
-} from './types/habits'
-export type {
-  EditableIngredientKeys,
-  Ingredient,
-  IngredientEdit,
-  IngredientErrorCode,
-} from './types/ingredients'
-export type { LogsErrorCode } from './types/logs'
-export type {
-  ProductIngredient,
-  ProductIngredientErrorCode,
-} from './types/product-ingredients'
-export type {
-  EditableProductKeys,
-  Product,
-  ProductEdit,
-  ProductErrorCode,
-  ProductSearchResult,
-  ProductWithStock,
-} from './types/products'
-export type {
-  MeResponse,
-  ProfileErrorCode,
-  ProfilePublic,
-  ProfileStatsResponse,
-  ProfileUpdateResponse,
-} from './types/profile'
-export type { PurchaseErrorCode } from './types/purchases'
+} from './habits'
+export type { LogsErrorCode } from './logs'
+export type { PurchaseErrorCode } from './purchases'
 export type {
   IngredientTag,
   ProductTag,
   Tag,
   TagErrorCode,
-} from './types/tags'
+} from './tags'
 export type {
   Subtask,
   Task,
   TaskEnergy,
   TaskErrorCode,
   TaskStatus,
-} from './types/tasks'
-export type { UserProductErrorCode } from './types/user-products'
+} from './tasks'
 
 // Helpers (error mappings, constants, utilities)
 
-// Helpers (error mappings, constants, utilities)
-
-export {
-  err,
-  errorToStatus,
-  isApiError,
-  isApiSuccess,
-  ok,
-} from './helpers/api'
-export { authErrorMapping } from './helpers/auth'
-export {
-  baseErrorMapping,
-  type ContentfulHttpStatus,
-  HTTP_STATUS,
-  type HttpStatus,
-} from './helpers/constants'
-export { discussionErrorMapping } from './helpers/discussions'
-export { habitErrorMapping } from './helpers/habits'
-export { ingredientErrorMapping } from './helpers/ingredients'
-export { logsErrorMapping } from './helpers/logs'
-export { productIngredientErrorMapping } from './helpers/product-ingredients'
-export { productErrorMapping } from './helpers/products'
-export { profileErrorMapping } from './helpers/profile'
-export { purchaseErrorMapping } from './helpers/purchases'
-export { tagErrorMapping } from './helpers/tags'
-export { taskErrorMapping } from './helpers/tasks'
-export { userProductErrorMapping } from './helpers/user-products'
-
-// OpenAPI
-
-export {
-  errorResponse,
-  errorResponseWithOptionnalErrorCode,
-  successResponse,
-} from './openapi/responses'
+export { authErrorMapping } from './auth'
+export { discussionErrorMapping } from './discussions'
+export { habitErrorMapping } from './habits'
+export { logsErrorMapping } from './logs'
+export { purchaseErrorMapping } from './purchases'
+export { tagErrorMapping } from './tags'
+export { taskErrorMapping } from './tasks'

@@ -1,16 +1,16 @@
 // Filter keys for the ingredients list page. Derived from the shared
-// taxonomy: one filter key per TagCategory that is filterable on an
-// ingredient (scope='ingredient' or 'both'). No hand-maintained list.
+// ingredient taxonomy — one filter key per IngredientTagCategory.
 
-import { filterCategoriesFor, TAG_CATEGORY_META, type TagCategory } from '@habit-tracker/shared'
+import {
+  ingredientFilterCategories,
+  INGREDIENT_TAG_CATEGORY_META,
+  type IngredientTagCategory,
+} from '@habit-tracker/shared'
 
-export type FilterKey = Extract<
-  TagCategory,
-  'skin_type' | 'concern' | 'ingredient_attribute' | 'skin_effect' | 'shared_label'
->
+export type FilterKey = IngredientTagCategory
 
-export const FILTER_KEYS = filterCategoriesFor('ingredient') as readonly FilterKey[]
+export const FILTER_KEYS = ingredientFilterCategories() as readonly FilterKey[]
 
 export const GROUP_LABELS: Record<FilterKey, string> = Object.fromEntries(
-  FILTER_KEYS.map((key) => [key, TAG_CATEGORY_META[key].label])
+  FILTER_KEYS.map((key) => [key, INGREDIENT_TAG_CATEGORY_META[key].label])
 ) as Record<FilterKey, string>

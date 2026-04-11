@@ -7,9 +7,9 @@ import type {
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
-  filterCategoriesFor,
   ingredientChangesSchema,
-  type TagCategory,
+  ingredientFilterCategories,
+  type IngredientTagCategory,
   updateIngredientSchema,
 } from '@habit-tracker/shared'
 
@@ -18,7 +18,7 @@ import { and, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients'
-import { ingredientTags, tags } from '../../db/schema/tags'
+import { tagIngredients, ingredientTagsDefs } from '../../db/schema/tags'
 import { areEqual, isUniqueViolation } from '../../lib/helpers'
 import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
@@ -53,10 +53,10 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
       inArray(
         ingredients.id,
         database
-          .select({ ingredientId: ingredientTags.ingredientId })
-          .from(ingredientTags)
-          .innerJoin(tags, eq(ingredientTags.tagId, tags.id))
-          .where(inArray(tags.slug, slugs))
+          .select({ ingredientId: tagIngredients.ingredientId })
+          .from(tagIngredients)
+          .innerJoin(ingredientTagsDefs, eq(tagIngredients.ingredientTagId, ingredientTagsDefs.id))
+          .where(inArray(ingredientTagsDefs.slug, slugs))
       )
     )
   }
@@ -309,20 +309,17 @@ export type IngredientFilterOptions = {
   tags: Record<IngredientFilterCategory, { name: string; slug: string }[]>
 }
 
-type IngredientFilterCategory = Extract<
-  TagCategory,
-  'skin_type' | 'concern' | 'ingredient_attribute' | 'skin_effect' | 'shared_label'
->
+type IngredientFilterCategory = IngredientTagCategory
 
-const INGREDIENT_FILTER_CATEGORIES = filterCategoriesFor('ingredient') as IngredientFilterCategory[]
+const INGREDIENT_FILTER_CATEGORIES = ingredientFilterCategories()
 
 export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
   const tagRows = await database
-    .selectDistinct({ name: tags.name, slug: tags.slug, category: tags.category })
-    .from(tags)
-    .innerJoin(ingredientTags, eq(tags.id, ingredientTags.tagId))
-    .where(inArray(tags.category, INGREDIENT_FILTER_CATEGORIES))
-    .orderBy(tags.category, tags.name)
+    .selectDistinct({ name: ingredientTagsDefs.label, slug: ingredientTagsDefs.slug, category: ingredientTagsDefs.tagType })
+    .from(ingredientTagsDefs)
+    .innerJoin(tagIngredients, eq(ingredientTagsDefs.id, tagIngredients.ingredientTagId))
+    .where(inArray(ingredientTagsDefs.tagType, INGREDIENT_FILTER_CATEGORIES))
+    .orderBy(ingredientTagsDefs.tagType, ingredientTagsDefs.label)
 
   const empty = Object.fromEntries(
     INGREDIENT_FILTER_CATEGORIES.map((c) => [c, []])
