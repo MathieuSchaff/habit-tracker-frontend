@@ -2,21 +2,24 @@
 // + a couple of product-only filters (`brand`, `ingredient`) that are
 // not tag categories.
 
-import { filterCategoriesFor, TAG_CATEGORY_META, type TagCategory } from '@habit-tracker/shared'
+import {
+  productFilterCategories,
+  PRODUCT_TAG_CATEGORY_META,
+  type ProductTagCategory,
+} from '@habit-tracker/shared'
 
-export type TagFilterKey = Exclude<TagCategory, 'ingredient_attribute'>
+export type TagFilterKey = ProductTagCategory
 
 export type FilterKey = TagFilterKey | 'brand' | 'ingredient'
 
-export const TAG_FILTER_KEYS = filterCategoriesFor('product') as readonly TagFilterKey[]
+export const TAG_FILTER_KEYS = productFilterCategories() as readonly TagFilterKey[]
 
 export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient'] as const
 
 export const GROUP_LABELS: Record<FilterKey, string> = {
-  ...(Object.fromEntries(TAG_FILTER_KEYS.map((k) => [k, TAG_CATEGORY_META[k].label])) as Record<
-    TagFilterKey,
-    string
-  >),
+  ...(Object.fromEntries(
+    TAG_FILTER_KEYS.map((k) => [k, PRODUCT_TAG_CATEGORY_META[k].label])
+  ) as Record<TagFilterKey, string>),
   brand: 'Marque',
   ingredient: 'Ingr.',
 }
