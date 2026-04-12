@@ -104,18 +104,16 @@ export function makeUserProduct(
           updatedAt: string
         }
       }[]
-      productTags: {
-        id: string
-        createdAt: string
+      tagProducts: {
+        productTagId: string
         productId: string
         relevance: 'primary' | 'secondary' | 'avoid'
-        tagId: string
-        tag: {
+        productTag: {
           id: string
-          name: string
-          createdAt: string
           slug: string
-          category: string | null
+          label: string
+          tagType: string
+          createdAt: string
         }
       }[]
     }
@@ -160,7 +158,7 @@ export function makeUserProduct(
       totalAmount: null,
       priceCents: 1299,
       productIngredients: [],
-      productTags: [],
+      tagProducts: [],
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,

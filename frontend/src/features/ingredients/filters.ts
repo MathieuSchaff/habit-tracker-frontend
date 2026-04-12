@@ -2,9 +2,9 @@
 // ingredient taxonomy — one filter key per IngredientTagCategory.
 
 import {
-  ingredientFilterCategories,
   INGREDIENT_TAG_CATEGORY_META,
   type IngredientTagCategory,
+  ingredientFilterCategories,
 } from '@habit-tracker/shared'
 
 export type FilterKey = IngredientTagCategory

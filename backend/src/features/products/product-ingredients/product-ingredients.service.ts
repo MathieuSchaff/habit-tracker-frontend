@@ -1,9 +1,12 @@
 import { and, eq, getTableColumns } from 'drizzle-orm'
 
 import type { Database, DB } from '../../../db/index'
-import { ingredients } from '../../../db/schema/ingredients'
-import { type ProductIngredient, productIngredients } from '../../../db/schema/product-ingredients'
+import { ingredients } from '../../../db/schema/ingredients/ingredients'
 import { type Product, products } from '../../../db/schema/products'
+import {
+  type ProductIngredient,
+  productIngredients,
+} from '../../../db/schema/products/product-ingredients'
 
 type CreateProductIngredientInput = {
   productId: string

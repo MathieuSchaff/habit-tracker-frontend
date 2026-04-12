@@ -7,9 +7,9 @@ import type {
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
+  type IngredientTagCategory,
   ingredientChangesSchema,
   ingredientFilterCategories,
-  type IngredientTagCategory,
   updateIngredientSchema,
 } from '@habit-tracker/shared'
 
@@ -17,8 +17,8 @@ import slugify from '@sindresorhus/slugify'
 import { and, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
-import { ingredientEdits, ingredients } from '../../db/schema/ingredients'
-import { tagIngredients, ingredientTagsDefs } from '../../db/schema/tags'
+import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
+import { ingredientTagsDefs, tagIngredients } from '../../db/schema/tags/tags'
 import { areEqual, isUniqueViolation } from '../../lib/helpers'
 import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
@@ -315,7 +315,11 @@ const INGREDIENT_FILTER_CATEGORIES = ingredientFilterCategories()
 
 export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
   const tagRows = await database
-    .selectDistinct({ name: ingredientTagsDefs.label, slug: ingredientTagsDefs.slug, category: ingredientTagsDefs.tagType })
+    .selectDistinct({
+      name: ingredientTagsDefs.label,
+      slug: ingredientTagsDefs.slug,
+      category: ingredientTagsDefs.tagType,
+    })
     .from(ingredientTagsDefs)
     .innerJoin(tagIngredients, eq(ingredientTagsDefs.id, tagIngredients.ingredientTagId))
     .where(inArray(ingredientTagsDefs.tagType, INGREDIENT_FILTER_CATEGORIES))

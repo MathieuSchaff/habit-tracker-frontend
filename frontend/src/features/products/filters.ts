@@ -3,9 +3,9 @@
 // not tag categories.
 
 import {
-  productFilterCategories,
   PRODUCT_TAG_CATEGORY_META,
   type ProductTagCategory,
+  productFilterCategories,
 } from '@habit-tracker/shared'
 
 export type TagFilterKey = ProductTagCategory

@@ -8,7 +8,7 @@ import type {
 import { and, desc, eq, isNull, not } from 'drizzle-orm'
 
 import type { DB } from '../../db'
-import { purchases } from '../../db/schema/purchases'
+import { purchases } from '../../db/schema/products/purchases'
 import { userProducts } from '../../db/schema/user-products'
 import { PurchaseError } from './purchase-error'
 

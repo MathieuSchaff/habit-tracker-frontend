@@ -16,7 +16,7 @@ import {
   type Task,
   type TaskInsert,
   tasks,
-} from '../../db/schema/tasks'
+} from '../../db/schema/tasks/tasks'
 import { TaskError } from './task-error'
 
 export async function getActiveTasks(userId: string, database: Database = db): Promise<Task[]> {
