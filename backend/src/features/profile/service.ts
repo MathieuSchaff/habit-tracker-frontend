@@ -14,8 +14,8 @@ import type {
 import { and, count, eq, isNull } from 'drizzle-orm'
 
 import type { Database, DB } from '../../db'
+import { userPreferences } from '../../db/schema/auth/user-preferences'
 import { habitChecks, habits } from '../../db/schema/habits'
-import { userPreferences } from '../../db/schema/user-preferences'
 import { userProducts } from '../../db/schema/user-products'
 import {
   type Profile,

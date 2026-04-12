@@ -4,7 +4,7 @@ import type {
   ProductSearchResult,
   UpdateProductInput,
 } from '@habit-tracker/shared'
-import { productFilterCategories, type ProductTagCategory } from '@habit-tracker/shared'
+import { type ProductTagCategory, productFilterCategories } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, asc, count, eq, ilike, inArray, notInArray, or, type SQL, sql } from 'drizzle-orm'
@@ -14,7 +14,7 @@ import { listIngredientsByProduct } from 'src/features/products/product-ingredie
 import { db } from '../../db'
 import type { Database, DB } from '../../db/index'
 import { type Product, products } from '../../db/schema/products'
-import { tagProducts, productTagsDefs } from '../../db/schema/tags'
+import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
 import { isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
@@ -325,7 +325,11 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
     database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
     database.selectDistinct({ brand: products.brand }).from(products).orderBy(products.brand),
     database
-      .selectDistinct({ name: productTagsDefs.label, slug: productTagsDefs.slug, category: productTagsDefs.tagType })
+      .selectDistinct({
+        name: productTagsDefs.label,
+        slug: productTagsDefs.slug,
+        category: productTagsDefs.tagType,
+      })
       .from(productTagsDefs)
       .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
       .where(inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES))

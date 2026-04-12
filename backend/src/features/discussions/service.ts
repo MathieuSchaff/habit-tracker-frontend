@@ -4,9 +4,9 @@ import { count, desc, eq } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { db } from '../../db'
-import { discussionReplies, discussionThreads } from '../../db/schema/discussions'
-import { ingredients } from '../../db/schema/ingredients'
+import { ingredients } from '../../db/schema/ingredients/ingredients'
 import { products } from '../../db/schema/products'
+import { discussionReplies, discussionThreads } from '../../db/schema/products/discussions'
 import { profiles } from '../../db/schema/users'
 import { DiscussionError } from './discussion-error'
 

@@ -18,9 +18,9 @@ export async function getUserProducts(userId: string, db: DB) {
       purchases: true,
       product: {
         with: {
-          productTags: {
+          tagProducts: {
             with: {
-              tag: true,
+              productTag: true,
             },
           },
           productIngredients: {
@@ -42,9 +42,9 @@ export async function getUserProductById(userId: string, userProductId: string, 
       purchases: true,
       product: {
         with: {
-          productTags: {
+          tagProducts: {
             with: {
-              tag: true,
+              productTag: true,
             },
           },
           productIngredients: {
@@ -66,9 +66,9 @@ export async function getUserProductByProductId(userId: string, productId: strin
       purchases: true,
       product: {
         with: {
-          productTags: {
+          tagProducts: {
             with: {
-              tag: true,
+              productTag: true,
             },
           },
           productIngredients: {
