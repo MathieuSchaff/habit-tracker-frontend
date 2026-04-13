@@ -79,11 +79,20 @@ jobs:
       - name: Prepare Backend DB & Run Tests
         env:
           DATABASE_URL: postgres://app:testpassword@localhost:5433/appdb_test
+        continue-on-error: true
         run: |
-          # Rejoue les migrations versionnées (reproduit exactement ce qui sera déployé en prod)
           cd backend && bun x drizzle-kit migrate
-          # Lance les tests
-          cd backend && bun test
+          mkdir -p test-results
+          bun test --reporter=junit > test-results/backend.xml
+
+      - name: Backend Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Backend Tests
+          path: backend/test-results/backend.xml
+          reporter: java-junit
+          fail-on-error: true
 
   # Étape 3 : Tests Frontend (en parallèle avec le Backend)
   test-frontend:
@@ -108,4 +117,16 @@ jobs:
         run: make install-deps
 
       - name: Run Frontend Tests
-        run: make test-frontend
+        continue-on-error: true
+        run: |
+          mkdir -p frontend/test-results
+          cd frontend && bunx vitest run --reporter=junit --outputFile=test-results/frontend.xml
+
+      - name: Frontend Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Frontend Tests
+          path: frontend/test-results/frontend.xml
+          reporter: java-junit
+          fail-on-error: true
