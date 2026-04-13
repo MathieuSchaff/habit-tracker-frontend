@@ -70,3 +70,7 @@ pgdata/
 # =========================
 docs/
 frontend/.tanstack/tmp/
+PROMPT_LOG.md
+
+# Test results (generated in CI)
+**/test-results/
