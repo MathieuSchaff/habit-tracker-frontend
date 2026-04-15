@@ -2,155 +2,167 @@
   color-scheme: dark;
 
   /* =========================
-       BASE HUES (inchangées)
-    ========================= */
+       HUES — Aubergine base + warm citrus accents + emerald CTA
+     ========================= */
+  --h-plum: 320;
   --h-mango: 65;
   --h-papaya: 32;
   --h-coral: 18;
   --h-aqua: 185;
-  --h-iron: 33.29;
-  --h-forest: 135.95;
+  --h-forest: 152;
 
   /* =========================
-       CHROMA (légèrement boosté)
-    ========================= */
-  --c-muted: 0.08;
-  --c-soft: 0.03;
+       CHROMA
+     ========================= */
+  --c-muted: 0.05;
+  --c-soft: 0.02;
 
   /* =========================
-       LIGHTNESS (inversée propre)
-    ========================= */
-  --l-page: 12%;
-  --l-card: 30%;
-  --l-elevated: 34%;
-  --l-sunken: 22%;
-  /* Interactive-in-card: LIGHTER than card (mirror of light's quasi-white) */
-  --l-muted: 40%;
+       LIGHTNESS — Jewel paradigm
+     ========================= */
+  --l-page: 13%;
+  --l-card: 26%;
+  --l-elevated: 30%;
+  --l-sunken: 18%;
+  --l-muted: 36%;
 
   /* =========================
-       CORE COLORS
-    ========================= */
-  --text-inverse-warm: oklch(10% 0.02 var(--h-papaya));
-
-  /* Complementary: bright teal contrasts warm cards */
-  --color-primary: oklch(72% 0.16 210);
-  --color-primary-hover: oklch(80% 0.16 210);
-  --color-primary-dark: oklch(58% 0.16 210);
-  --color-primary-deeper: oklch(38% 0.1 var(--h-forest));
-  --color-primary-light: oklch(25% 0.08 var(--h-forest));
-  --color-primary-text: oklch(12% 0.02 var(--h-forest));
-
-  --color-focus: oklch(70% 0.14 var(--h-forest));
+       NAMED COLORS
+     ========================= */
+  --plum-deep: oklch(20% 0.08 var(--h-plum));
+  --plum-mid: oklch(45% 0.12 var(--h-plum));
+  --emerald-bright: oklch(76% 0.18 var(--h-forest));
+  --emerald-deep: oklch(56% 0.18 var(--h-forest));
+  --mango-bright: oklch(82% 0.17 var(--h-mango));
+  --mango-deep: oklch(65% 0.18 var(--h-mango));
+  --text-inverse-warm: oklch(10% 0.04 var(--h-plum));
 
   /* =========================
-       BACKGROUNDS
-    ========================= */
-  /* Colored dark: cards clearly lighter and tinted (warm hue 45) */
-  --bg-page: oklch(var(--l-page) 0.01 60);
-  --bg-card: oklch(var(--l-card) 0.06 45);
-  --bg-elevated: oklch(var(--l-elevated) 0.07 45);
-  --bg-sunken: oklch(var(--l-sunken) 0.05 45);
-  /* Interactive-in-card: lighter than card */
-  --bg-muted: oklch(var(--l-muted) 0.04 45);
-
-  --bg-hover: oklch(from var(--color-primary) l c h / 0.12);
-  --bg-active: oklch(from var(--color-primary) l c h / 0.18);
-  --bg-selected: oklch(30% 0.12 var(--h-mango));
+       PRIMARY — Fresh emerald CTA (terra DNA)
+     ========================= */
+  --color-primary: var(--emerald-bright);
+  --color-primary-hover: oklch(82% 0.17 var(--h-forest));
+  --color-primary-text: oklch(13% 0.05 var(--h-forest));
+  --color-primary-dark: var(--emerald-deep);
+  --color-focus: var(--emerald-bright);
+  --color-primary-deeper: oklch(40% 0.14 var(--h-forest));
+  --color-primary-light: oklch(28% 0.08 var(--h-forest));
+  --color-primary-subtle: oklch(20% 0.05 var(--h-forest));
 
   /* =========================
-       TEXT
-    ========================= */
-  --text-primary: oklch(92% 0.03 var(--h-papaya));
-  --text-secondary: oklch(75% 0.04 var(--h-papaya));
-  --text-muted: oklch(60% var(--c-muted) var(--h-mango));
-
-  --text-inverse: oklch(98% 0 0);
-
-  /* =========================
-       SIDEBAR
-    ========================= */
-  --color-sidebar-bg: oklch(22% 0.14 var(--h-iron));
-  --color-sidebar-item-hover: oklch(32% 0.16 var(--h-iron));
-  --color-sidebar-item-active: oklch(38% 0.12 var(--h-iron));
-
-  --color-sidebar-icon: oklch(85% 0.03 var(--h-papaya));
-  --color-sidebar-icon-active: oklch(95% 0.02 var(--h-papaya));
-
-  --color-sidebar-text: oklch(80% 0.03 var(--h-papaya));
-  --color-sidebar-text-active: oklch(95% 0.02 var(--h-papaya));
-  --color-sidebar-accent: oklch(95% 0.02 var(--h-papaya));
+       SIDEBAR — Deepest plum, mango accents
+     ========================= */
+  --color-sidebar-bg: oklch(16% 0.07 var(--h-plum));
+  --color-sidebar-item-hover: oklch(24% 0.09 var(--h-plum));
+  --color-sidebar-item-active: oklch(from var(--mango-bright) l c h / 0.22);
+  --color-sidebar-icon: oklch(94% 0.04 var(--h-mango));
+  --color-sidebar-icon-active: var(--mango-bright);
+  --color-sidebar-text: oklch(90% 0.04 var(--h-mango));
+  --color-sidebar-text-active: var(--mango-bright);
+  --color-sidebar-accent: var(--mango-bright);
 
   /* =========================
-       HEADER
-    ========================= */
-  --color-secondary: oklch(60% 0.18 var(--h-mango));
-  --color-tertiary: oklch(60% 0.16 var(--h-forest));
-
-  --color-header-bg: oklch(20% 0.06 var(--h-mango));
-
-  --color-header-action: oklch(90% 0.02 var(--h-papaya));
-  --color-header-action-bg-hover: oklch(from var(--color-primary) l c h / 0.15);
+       SECONDARY / TERTIARY
+     ========================= */
+  --color-secondary: var(--mango-bright);
+  --color-tertiary: var(--emerald-deep);
 
   /* =========================
-       STATUS COLORS
-    ========================= */
-  --color-success: oklch(65% 0.2 128);
-  --color-success-light: oklch(25% 0.08 145deg);
-
-  --color-error: oklch(65% 0.22 var(--h-coral));
-  --color-error-light: oklch(25% 0.1 var(--h-coral));
-
-  --color-info: oklch(65% 0.14 var(--h-aqua));
-
-  --color-warning: oklch(70% 0.15 30deg);
-  --color-warning-light: oklch(25% 0.08 30deg);
-
-  --color-warning-text: oklch(80% 0.12 30deg);
+       HEADER — Saturated mango band, dark actions
+     ========================= */
+  --color-header-bg: oklch(55% 0.18 var(--h-mango));
+  --color-header-action: oklch(15% 0.05 var(--h-papaya));
+  --color-header-action-bg-hover: oklch(from oklch(0% 0 0) l c h / 0.18);
 
   /* =========================
-       ACCENTS
-    ========================= */
-  --color-accent: oklch(70% 0.2 var(--h-mango));
+       TEXT — Warm cream on plum
+     ========================= */
+  --text-inverse: oklch(15% 0.04 var(--h-plum));
+  --text-primary: oklch(96% 0.02 var(--h-mango));
+  --text-secondary: oklch(80% 0.03 var(--h-mango));
+  --text-muted: oklch(62% var(--c-muted) var(--h-plum));
+
+  /* =========================
+       ACCENT — Mango
+     ========================= */
+  --color-accent: var(--mango-bright);
   --color-accent-light: oklch(30% 0.1 var(--h-mango));
-  --color-accent-hover: oklch(78% 0.18 var(--h-mango));
+  --color-accent-hover: oklch(86% 0.16 var(--h-mango));
+
+  /* =========================
+       STATUS
+     ========================= */
+  --color-success: var(--emerald-bright);
+  --color-success-light: oklch(25% 0.08 var(--h-forest));
+  --color-error: oklch(70% 0.22 var(--h-coral));
+  --color-error-light: oklch(25% 0.1 var(--h-coral));
+  --color-info: oklch(70% 0.13 var(--h-aqua));
+  --color-warning: oklch(78% 0.16 30);
+  --color-warning-light: oklch(25% 0.08 30);
+  --color-warning-text: oklch(86% 0.14 30);
+
+  /* =========================
+       BACKGROUNDS — Page deep plum, cards lifted aubergine
+     ========================= */
+  --bg-page: oklch(var(--l-page) 0.04 var(--h-plum));
+  --bg-card: oklch(var(--l-card) 0.06 var(--h-plum));
+  --bg-elevated: oklch(var(--l-elevated) 0.07 var(--h-plum));
+  --bg-sunken: oklch(var(--l-sunken) 0.05 var(--h-plum));
+  --bg-muted: oklch(var(--l-muted) 0.06 var(--h-plum));
+
+  /* =========================
+       PAGE TITLE — Mango pop
+     ========================= */
+  --page-title-color: var(--mango-bright);
+
+  /* =========================
+       CARD FOOTER — Gold haze on plum
+     ========================= */
+  --card-footer-bg: oklch(20% 0.06 var(--h-mango));
+  --card-footer-border: oklch(35% 0.09 var(--h-mango));
+  --card-footer-color: var(--mango-bright);
+  --card-footer-color-muted: oklch(70% 0.05 var(--h-mango));
+
+  /* =========================
+       PRODUCT UNIT CHIP — Mango glow
+     ========================= */
+  --product-unit-chip-bg: oklch(from var(--mango-bright) l c h / 0.14);
+  --product-unit-chip-text: var(--mango-bright);
+  --product-unit-chip-border: oklch(from var(--mango-bright) l c h / 0.32);
+
+  /* =========================
+       HOVER / ACTIVE / SELECTED
+     ========================= */
+  --bg-hover: oklch(from var(--emerald-bright) l c h / 0.1);
+  --bg-active: oklch(from var(--emerald-bright) l c h / 0.18);
+  --bg-selected: oklch(32% 0.13 var(--h-mango));
 
   /* =========================
        BORDERS
-    ========================= */
-  --border-default: oklch(45% 0.08 45);
-  --border-strong: oklch(58% 0.1 45);
+     ========================= */
+  --border-default: oklch(40% 0.07 var(--h-plum));
+  --border-strong: oklch(58% 0.1 var(--h-plum));
 
   /* =========================
-       SHADOWS (moins harsh en dark)
-    ========================= */
-  --shadow-color: oklch(0% 0 0 / 0.4);
-  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.4), 0 1px 4px oklch(0% 0 0 / 0.25);
+       SHADOWS
+     ========================= */
+  --shadow-color: oklch(0% 0 0 / 0.55);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.45), 0 1px 4px oklch(0% 0 0 / 0.3);
 
   /* =========================
        TAGS
-    ========================= */
-  --tag-active-bg: oklch(45% 0.16 var(--h-forest));
-  --tag-active-text: oklch(90% 0.04 var(--h-mango));
-
-  --tag-default-bg: oklch(25% 0.05 var(--h-papaya));
-  --tag-default-text: oklch(70% 0.06 var(--h-papaya));
-
-  /* =========================
-       OVERLAY
-    ========================= */
-  --overlay: oklch(5% 0.02 var(--h-papaya) / 0.7);
-
-  /* =========================
-       STATS
-    ========================= */
+     ========================= */
+  --tag-active-bg: oklch(from var(--emerald-deep) l c h / 0.85);
+  --tag-active-text: var(--mango-bright);
+  --tag-default-bg: oklch(25% 0.06 var(--h-plum));
+  --tag-default-text: oklch(75% 0.07 var(--h-mango));
 
   /* =========================
        MISC
-    ========================= */
-  --color-primary-subtle: oklch(18% 0.04 var(--h-forest));
-  --hero-glow: oklch(20% 0.06 var(--h-forest));
-
+     ========================= */
+  --overlay: oklch(6% 0.04 var(--h-plum) / 0.78);
   --surface-bright: oklch(99% 0.002 0deg);
+  --hero-glow: oklch(22% 0.08 var(--h-plum));
 
   /* Toggle */
   --toggle-track-bg: oklch(from var(--color-header-action) l c h / 0.15);
@@ -159,14 +171,4 @@
   --toggle-fg-opacity: 0.35;
   --toggle-active-icon: var(--color-header-bg);
   --toggle-active-filter: drop-shadow(0 0 3px oklch(from var(--color-header-action) l c h / 0.6));
-
-  /* Card / page overrides — defaults equivalent to component fallbacks */
-  --page-title-color: var(--color-primary);
-  --card-footer-bg: var(--bg-sunken);
-  --card-footer-border: var(--border-default);
-  --card-footer-color: var(--text-primary);
-  --card-footer-color-muted: var(--text-muted);
-  --product-unit-chip-bg: transparent;
-  --product-unit-chip-text: var(--text-secondary);
-  --product-unit-chip-border: var(--bg-muted);
 }
