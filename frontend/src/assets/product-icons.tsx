@@ -180,13 +180,7 @@ const KIND_FALLBACK: Record<string, React.ElementType> = {
   vitamine: Sun,
 }
 
-/**
- * Resolves the best icon for a product.
- * Priority: unit match → kind fallback → Package
- *
- * @param unit  Raw `unit` value from DB (e.g. "pump", "30ml", null)
- * @param kind  Raw `kind` value from DB (e.g. "complément", "skincare")
- */
+// priority: unit match → kind fallback → Package
 export function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
   const normalizedUnit = unit?.toLowerCase().trim()
   if (normalizedUnit && UNIT_TO_ICON[normalizedUnit]) {

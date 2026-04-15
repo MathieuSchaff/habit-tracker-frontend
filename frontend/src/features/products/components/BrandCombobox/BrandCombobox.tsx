@@ -18,9 +18,6 @@ interface BrandComboboxProps {
   placeholder?: string
 }
 
-/**
- * Brand combobox using the shared primitive for consistency and accessibility.
- */
 export function BrandCombobox({
   id,
   value,

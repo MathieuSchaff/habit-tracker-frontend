@@ -23,8 +23,6 @@
   margin-bottom: var(--space-6);
 }
 
-/* Info tab skeleton */
-
 .ingredient-info-skeleton__section {
   margin-top: var(--space-8);
   margin-bottom: var(--space-8);
@@ -55,8 +53,6 @@
   border: 1px solid var(--border-default);
   border-left: 3px solid var(--border-default);
 }
-
-/* Discussion skeleton */
 
 .ingredient-discussion-skeleton {
   display: flex;

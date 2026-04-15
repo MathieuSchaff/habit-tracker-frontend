@@ -53,7 +53,7 @@
 .coll-hist-prod {
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Allow text truncation if needed */
+  min-width: 0;
 }
 
 .coll-hist-name {

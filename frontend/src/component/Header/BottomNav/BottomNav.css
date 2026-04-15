@@ -28,7 +28,6 @@
     right: 0;
     padding-bottom: env(safe-area-inset-bottom, 0);
     height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0));
-    /* Utilisation de var(--color-sidebar-bg) qui est Indigo profond */
     background: radial-gradient(
       circle at top,
       oklch(from var(--color-sidebar-bg) 28% 0.04 h),
@@ -50,7 +49,6 @@
     right: 0;
     max-height: 85dvh;
     overflow-y: auto;
-    /* On utilise une version légèrement plus claire du fond pour la sheet */
     background: oklch(from var(--color-sidebar-bg) l c h / 0.98);
     backdrop-filter: blur(24px);
     border-top: 1px solid oklch(from var(--color-sidebar-bg) 40% 0.05 h);
@@ -98,7 +96,6 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    /* Use the new Digital Cyan variable */
     color: var(--color-sidebar-text);
     font-size: 0.6rem;
     font-weight: 700;
@@ -130,7 +127,6 @@
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    /* High legibility on dark sheet */
     color: var(--color-sidebar-text-active);
     font-size: 1rem;
     font-weight: 500;

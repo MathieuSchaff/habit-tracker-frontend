@@ -51,7 +51,6 @@ export const Button = (props: ButtonProps) => {
   const content = (
     <>
       {loading && <Spinner />}
-      {loading && <span className="sr-only">Chargement…</span>}
       {!loading && children}
     </>
   )
@@ -71,7 +70,15 @@ export const Button = (props: ButtonProps) => {
     } = props as ButtonAsLinkProps
 
     return (
-      <Link to={to as never} params={params} search={search} className={classes} {...linkRest}>
+      <Link
+        to={to as never}
+        params={params}
+        search={search}
+        className={classes}
+        aria-busy={loading || undefined}
+        aria-disabled={loading || undefined}
+        {...linkRest}
+      >
         {content}
       </Link>
     )
@@ -97,6 +104,7 @@ export const Button = (props: ButtonProps) => {
       onClick={onClick}
       className={classes}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...buttonRest}
     >
       {content}

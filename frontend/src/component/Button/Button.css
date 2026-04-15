@@ -19,12 +19,21 @@
   min-height: 2rem;
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Sizing */
+.button[aria-disabled='true'] {
+  pointer-events: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .button.sm {
   padding: var(--space-1) var(--space-3);
   font-size: var(--text-xs);
@@ -142,4 +151,15 @@
 
 .button svg {
   flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button.primary:hover:not(:disabled),
+  .button.accent:hover:not(:disabled) {
+    transform: none;
+  }
 }

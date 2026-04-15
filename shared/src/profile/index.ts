@@ -8,10 +8,7 @@ import { HTTP_STATUS } from '../core'
 
 // profile
 
-/** Longueur maximale du username. */
 export const USERNAME_MAX_LENGTH = 32
-
-/** Longueur maximale de la bio. */
 export const BIO_MAX_LENGTH = 500
 
 // These values are tag slugs from the `skin_type` category in the tags table.
@@ -62,14 +59,7 @@ export const profileLinkSchema = z.object({
   url: z.url(),
 })
 
-/**
- * Représentation publique d'un profil (safe pour le client).
- *
- * @remarks
- * Ne contient jamais de données sensibles.
- * Utilisé dans les réponses API et les schemas OpenAPI.
- *
- */
+/* No sensitive data — safe for the client. */
 export const profilePublicSchema = z.object({
   userId: z.uuid(),
   username: z.string().max(USERNAME_MAX_LENGTH).nullable().optional(),
@@ -80,25 +70,7 @@ export const profilePublicSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 })
 
-/**
- * Schema de validation pour la mise à jour d'un profil.
- *
- * @remarks
- * Mode strict — rejette tout champ non déclaré.
- * Tous les champs sont optionnels (delta update).
- *
- * Règles de validation :
- * - **username** : 1–{@link USERNAME_MAX_LENGTH} caractères, optionnel
- * - **bio** : max {@link BIO_MAX_LENGTH} caractères, optionnel
- * - **avatarUrl** : URL valide, optionnel
- * - **links** : max 5 liens, optionnel
- *
- * @example
- * ```ts
- * const input = profileUpdateSchema.parse({ username: 'alice' })
- * // input.username → 'alice'
- * ```
- */
+/* Strict mode — rejects unknown fields. All fields optional (delta update). */
 export const profileUpdateSchema = z
   .object({
     username: z.string().min(1).max(USERNAME_MAX_LENGTH).optional(),
@@ -128,9 +100,6 @@ export const userDermoProfileUpdateSchema = z
   })
   .strict()
 
-/**
- * Statistiques d'utilisation d'un utilisateur.
- */
 export const profileStatsSchema = z.object({
   totalHabits: z.number(),
   totalChecks: z.number(),
@@ -194,13 +163,11 @@ export type SkinConcern = (typeof SKIN_CONCERNS)[number]
 
 export type ProfileLink = z.infer<typeof profileLinkSchema>
 
-/** Input typé pour la mise à jour d'un profil, inféré depuis {@link profileUpdateSchema}. */
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 
 export type UserDermoProfile = z.infer<typeof userDermoProfileSchema>
 export type UserDermoProfileUpdateInput = z.infer<typeof userDermoProfileUpdateSchema>
 
-/** Statistiques d'un profil, inférées depuis {@link profileStatsSchema}. */
 export type ProfileStats = z.infer<typeof profileStatsSchema>
 
 // privacy inferred types
@@ -221,13 +188,6 @@ export type ProfilePublic = z.infer<typeof profilePublicSchema>
 
 // error codes
 
-/**
- * Codes d'erreur spécifiques au domaine profil.
- *
- * @remarks
- * Étend {@link CommonErrorCode} avec les erreurs propres
- * à la gestion des profils utilisateur.
- */
 export type ProfileErrorCode =
   | CommonErrorCode
   | 'profile_not_found'
@@ -236,40 +196,15 @@ export type ProfileErrorCode =
 
 // API response types
 
-/**
- * Résultat possible de l'opération GET /api/profile.
- *
- * @remarks
- * Combine les erreurs auth (token invalide, session expirée)
- * et profil (profil introuvable) car la route requiert un JWT valide.
- *
- * @see {@link ApiResponse}
- */
+/* Combines auth + profile errors because the route needs a valid JWT. */
 export type MeResponse = ApiResponse<ProfilePublic, AuthErrorCode | ProfileErrorCode>
 
-/**
- * Résultat possible de l'opération PATCH /api/profile.
- *
- * @see {@link ApiResponse}
- */
 export type ProfileUpdateResponse = ApiResponse<ProfilePublic, AuthErrorCode | ProfileErrorCode>
 
-/**
- * Résultat possible de l'opération GET /api/profile/stats.
- *
- * @see {@link ApiResponse}
- */
 export type ProfileStatsResponse = ApiResponse<ProfileStats, AuthErrorCode | ProfileErrorCode>
 
 // HELPERS
 
-/**
- * Mapping des codes d'erreur profil vers les status HTTP correspondants.
- *
- * @remarks
- * Utilisé avec {@link errorToStatus} pour résoudre le status HTTP
- * à partir d'un code d'erreur profil.
- */
 export const profileErrorMapping = {
   profile_not_found: HTTP_STATUS.NOT_FOUND,
   invalid_profile_data: HTTP_STATUS.BAD_REQUEST,

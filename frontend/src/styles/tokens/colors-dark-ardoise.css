@@ -1,86 +1,166 @@
 [data-theme="dark"][data-variant="ardoise"] {
   color-scheme: dark;
 
-  --hue-primary: 240deg;
-  --hue-accent: 65deg;
-  --hue-deep: 240deg;
-  --hue-orange: 30deg;
-  --hue-error: 15deg;
-  --hue-info: 220deg;
+  /* =========================
+       HUES (mirror light)
+     ========================= */
+  --h-slate: 245;
+  --h-gold: 75;
+  --h-rose: 15;
+  --h-ink: 250;
+  --h-cool: 235;
 
-  --primary-40: oklch(40% 0.2 var(--hue-primary));
-  --primary-60: oklch(60% 0.22 var(--hue-primary));
-  --primary-75: oklch(74% 0.2 var(--hue-primary));
+  /* =========================
+       CHROMA — boosted for dark depth
+     ========================= */
+  --c-muted: 0.07;
+  --c-soft: 0.025;
 
-  /* Complementary: amber contrasts slate cards */
-  --color-primary: oklch(72% 0.18 65);
-  --color-primary-hover: oklch(80% 0.16 65);
-  --color-primary-dark: oklch(58% 0.18 65);
-  --color-primary-deeper: oklch(38% 0.12 240deg);
-  --color-primary-light: oklch(25% 0.07 240deg);
-  --color-primary-text: oklch(15% 0.02 240deg);
-  --color-focus: var(--color-primary);
+  /* =========================
+       LIGHTNESS — page deep, cards lifted slate
+     ========================= */
+  --l-page: 13%;
+  --l-card: 28%;
+  --l-elevated: 32%;
+  --l-sunken: 20%;
+  --l-muted: 38%;
 
-  --color-accent: oklch(70% 0.16 var(--hue-accent));
-  --color-accent-hover: oklch(78% 0.14 var(--hue-accent));
-  --color-accent-light: oklch(24% 0.08 var(--hue-accent));
+  /* =========================
+       NAMED COLORS
+     ========================= */
+  --slate-deep: oklch(22% 0.09 var(--h-slate));
+  --slate-mid: oklch(55% 0.14 var(--h-slate));
+  --gold-warm: oklch(78% 0.16 var(--h-gold));
+  --gold-deep: oklch(65% 0.18 var(--h-gold));
+  --rose-dust: oklch(72% 0.1 var(--h-rose));
+  --text-inverse-warm: oklch(10% 0.02 var(--h-ink));
 
-  --color-secondary: oklch(62% 0.14 var(--hue-accent));
-  --color-tertiary: oklch(52% 0.12 var(--hue-accent));
+  /* =========================
+       PRIMARY — Gold CTA pops on slate cards
+     ========================= */
+  --color-primary: var(--gold-warm);
+  --color-primary-hover: oklch(85% 0.14 var(--h-gold));
+  --color-primary-text: oklch(14% 0.04 var(--h-ink));
+  --color-primary-dark: var(--gold-deep);
+  --color-focus: var(--gold-warm);
+  --color-primary-deeper: oklch(42% 0.13 var(--h-gold));
+  --color-primary-light: oklch(25% 0.07 var(--h-slate));
+  --color-primary-subtle: oklch(18% 0.04 var(--h-slate));
 
-  --color-success: oklch(74% 0.15 145deg);
-  --color-success-light: oklch(22% 0.08 145deg);
-  --color-warning: oklch(72% 0.18 var(--hue-orange));
-  --color-warning-light: oklch(22% 0.08 var(--hue-orange));
-  --color-warning-text: oklch(82% 0.15 var(--hue-orange));
-  --color-error: oklch(68% 0.18 var(--hue-error));
-  --color-error-light: oklch(20% 0.07 var(--hue-error));
-  --color-info: oklch(68% 0.14 var(--hue-info));
+  /* =========================
+       SIDEBAR — Even deeper midnight slate
+     ========================= */
+  --color-sidebar-bg: oklch(15% 0.07 var(--h-slate));
+  --color-sidebar-item-hover: oklch(26% 0.1 var(--h-slate));
+  --color-sidebar-item-active: oklch(from var(--gold-warm) l c h / 0.22);
+  --color-sidebar-icon: oklch(82% 0.04 var(--h-gold));
+  --color-sidebar-icon-active: var(--gold-warm);
+  --color-sidebar-text: oklch(78% 0.03 var(--h-gold));
+  --color-sidebar-text-active: var(--gold-warm);
+  --color-sidebar-accent: var(--gold-warm);
 
-  --color-header-bg: oklch(18% 0.07 240deg);
-  --color-header-action: var(--primary-60);
-  --color-header-action-bg-hover: oklch(from var(--primary-60) l c h / 0.15);
+  /* =========================
+       SECONDARY / TERTIARY
+     ========================= */
+  --color-secondary: var(--gold-warm);
+  --color-tertiary: var(--rose-dust);
 
-  /* Sidebar — Ambre doré profond */
-  --color-sidebar-bg: oklch(24% 0.12 50);
-  --color-sidebar-item-hover: oklch(32% 0.14 52);
-  --color-sidebar-item-active: oklch(40% 0.14 52);
-  --color-sidebar-icon: oklch(100% 0 0);
-  --color-sidebar-icon-active: oklch(100% 0 0);
-  --color-sidebar-text: oklch(93% 0.01 55);
-  --color-sidebar-text-active: oklch(100% 0 0);
-  --color-sidebar-accent: oklch(100% 0 0);
+  /* =========================
+       HEADER — Slate band, gold actions
+     ========================= */
+  --color-header-bg: oklch(18% 0.07 var(--h-slate));
+  --color-header-action: var(--gold-warm);
+  --color-header-action-bg-hover: oklch(from var(--gold-warm) l c h / 0.15);
 
-  /* Colored dark: cards clearly lighter and tinted */
-  --bg-page: oklch(12% 0.01 60);
-  --bg-card: oklch(30% 0.06 240);
-  --bg-elevated: oklch(34% 0.07 240);
-  --bg-sunken: oklch(22% 0.05 240);
-  /* Interactive-in-card: lighter than card */
-  --bg-muted: oklch(40% 0.05 240);
-  --bg-hover: oklch(30% 0.06 240deg);
-  --bg-active: oklch(34% 0.08 240deg);
-  --bg-selected: oklch(28% 0.12 var(--hue-primary) / 0.3);
+  /* =========================
+       TEXT — Warm-tinted on dark slate
+     ========================= */
+  --text-inverse: oklch(15% 0.04 var(--h-ink));
+  --text-primary: oklch(94% 0.02 var(--h-gold));
+  --text-secondary: oklch(78% 0.03 var(--h-gold));
+  --text-muted: oklch(60% var(--c-muted) var(--h-slate));
 
-  --text-primary: oklch(98% 0.01 240deg);
-  --text-secondary: oklch(85% 0.02 240deg);
-  --text-muted: oklch(60% 0.03 240deg);
-  --text-inverse: oklch(15% 0.02 240deg);
+  /* =========================
+       ACCENT — Gold
+     ========================= */
+  --color-accent: var(--gold-warm);
+  --color-accent-light: oklch(28% 0.1 var(--h-gold));
+  --color-accent-hover: oklch(85% 0.14 var(--h-gold));
 
-  --tag-default-bg: oklch(30% 0.08 var(--hue-primary));
-  --tag-default-text: oklch(80% 0.12 var(--hue-primary));
-  --tag-active-bg: oklch(from var(--primary-40) l c h / 0.5);
-  --tag-active-text: var(--primary-75);
+  /* =========================
+       STATUS
+     ========================= */
+  --color-success: oklch(70% 0.18 152);
+  --color-success-light: oklch(25% 0.08 152);
+  --color-error: oklch(68% 0.2 var(--h-rose));
+  --color-error-light: oklch(25% 0.09 var(--h-rose));
+  --color-info: oklch(68% 0.15 var(--h-cool));
+  --color-warning: oklch(72% 0.16 45);
+  --color-warning-light: oklch(25% 0.08 45);
+  --color-warning-text: oklch(82% 0.14 45);
 
-  --border-default: oklch(45% 0.08 240);
-  --border-strong: var(--primary-60);
+  /* =========================
+       BACKGROUNDS — Page deep, cards tinted slate
+     ========================= */
+  --bg-page: oklch(var(--l-page) 0.015 var(--h-slate));
+  --bg-card: oklch(var(--l-card) 0.05 var(--h-slate));
+  --bg-elevated: oklch(var(--l-elevated) 0.06 var(--h-slate));
+  --bg-sunken: oklch(var(--l-sunken) 0.04 var(--h-slate));
+  --bg-muted: oklch(var(--l-muted) 0.04 var(--h-slate));
+
+  /* =========================
+       PAGE TITLE — Gold pop
+     ========================= */
+  --page-title-color: var(--gold-warm);
+
+  /* =========================
+       CARD FOOTER — Warm gold haze
+     ========================= */
+  --card-footer-bg: oklch(20% 0.05 var(--h-gold));
+  --card-footer-border: oklch(35% 0.08 var(--h-gold));
+  --card-footer-color: oklch(92% 0.05 var(--h-gold));
+  --card-footer-color-muted: oklch(65% 0.05 var(--h-gold));
+
+  /* =========================
+       PRODUCT UNIT CHIP — Gold tinted
+     ========================= */
+  --product-unit-chip-bg: oklch(from var(--gold-warm) l c h / 0.12);
+  --product-unit-chip-text: var(--gold-warm);
+  --product-unit-chip-border: oklch(from var(--gold-warm) l c h / 0.3);
+
+  /* =========================
+       HOVER / ACTIVE / SELECTED
+     ========================= */
+  --bg-hover: oklch(from var(--gold-warm) l c h / 0.1);
+  --bg-active: oklch(from var(--gold-warm) l c h / 0.18);
+  --bg-selected: oklch(30% 0.12 var(--h-gold));
+
+  /* =========================
+       BORDERS
+     ========================= */
+  --border-default: oklch(42% 0.07 var(--h-slate));
+  --border-strong: oklch(58% 0.1 var(--h-slate));
+
+  /* =========================
+       SHADOWS — softer in dark
+     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.5);
-  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.4), 0 1px 4px oklch(0% 0 0 / 0.25);
-  --overlay: oklch(5% 0.05 240deg / 0.7);
-  --hero-glow: oklch(25% 0.06 240deg);
-  --surface-bright: oklch(99% 0.002 0deg);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.45), 0 1px 4px oklch(0% 0 0 / 0.3);
 
-  --color-primary-subtle: oklch(22% 0.04 240deg);
+  /* =========================
+       TAGS
+     ========================= */
+  --tag-active-bg: oklch(45% 0.14 var(--h-gold));
+  --tag-active-text: oklch(96% 0.04 var(--h-gold));
+  --tag-default-bg: oklch(25% 0.05 var(--h-slate));
+  --tag-default-text: oklch(72% 0.06 var(--h-gold));
+
+  /* =========================
+       MISC
+     ========================= */
+  --overlay: oklch(6% 0.04 var(--h-ink) / 0.75);
+  --surface-bright: oklch(99% 0.002 0deg);
+  --hero-glow: oklch(22% 0.08 var(--h-gold));
 
   /* Toggle */
   --toggle-track-bg: oklch(from var(--color-header-action) l c h / 0.15);
@@ -89,14 +169,4 @@
   --toggle-fg-opacity: 0.35;
   --toggle-active-icon: var(--color-header-bg);
   --toggle-active-filter: drop-shadow(0 0 3px oklch(from var(--color-header-action) l c h / 0.6));
-
-  /* Card / page overrides — defaults equivalent to component fallbacks */
-  --page-title-color: var(--color-primary);
-  --card-footer-bg: var(--bg-sunken);
-  --card-footer-border: var(--border-default);
-  --card-footer-color: var(--text-primary);
-  --card-footer-color-muted: var(--text-muted);
-  --product-unit-chip-bg: transparent;
-  --product-unit-chip-text: var(--text-secondary);
-  --product-unit-chip-border: var(--bg-muted);
 }
