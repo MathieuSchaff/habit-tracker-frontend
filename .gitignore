@@ -71,6 +71,9 @@ pgdata/
 docs/
 frontend/.tanstack/tmp/
 PROMPT_LOG.md
+scripts/*
+
+# =========================
 
 # Test results (generated in CI)
 **/test-results/
