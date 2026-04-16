@@ -23,7 +23,6 @@ export const createIngredientSchema = z.object({
   content: z.string().max(50000).optional(),
   type: ingredientTypeSchema.optional(),
   category: z.string().min(1).max(100).optional(),
-  supplementCategory: z.string().min(1).max(100).optional(),
 })
 
 export const updateIngredientSchema = z
@@ -34,7 +33,6 @@ export const updateIngredientSchema = z
     content: z.string().max(50000).optional(),
     type: ingredientTypeSchema.optional(),
     category: z.string().min(1).max(100).nullable().optional(),
-    supplementCategory: z.string().min(1).max(100).nullable().optional(),
   })
   .strict()
 
@@ -47,7 +45,6 @@ export const ingredientResponseSchema = z.object({
   content: z.string(),
   type: ingredientTypeSchema,
   category: z.string().nullable(),
-  supplementCategory: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -58,7 +55,6 @@ export const ingredientSearchResultSchema = z.object({
   slug: z.string(),
   type: ingredientTypeSchema,
   category: z.string().nullable(),
-  supplementCategory: z.string().nullable(),
 })
 
 export const ingredientEditResponseSchema = z.object({
@@ -84,7 +80,6 @@ export const ingredientChangesSchema = z
     content: fieldChangeSchema(z.string()),
     type: fieldChangeSchema(z.string()),
     category: fieldChangeSchema(z.string()),
-    supplementCategory: fieldChangeSchema(z.string()),
   })
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
