@@ -79,6 +79,7 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
         id: ingredients.id,
         name: ingredients.name,
         slug: ingredients.slug,
+        type: ingredients.type,
         category: ingredients.category,
         // I only take the beginning of the description to avoid sending too much text.
         description: sql<string | null>`left(${ingredients.description}, 120)`,
@@ -297,6 +298,7 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
       id: ingredients.id,
       name: ingredients.name,
       slug: ingredients.slug,
+      type: ingredients.type,
       category: ingredients.category,
     })
     .from(ingredients)
