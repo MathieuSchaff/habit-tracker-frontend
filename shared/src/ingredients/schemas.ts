@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { fieldChangeSchema } from '../core'
+import { INGREDIENT_TYPE_VALUES } from './ingredient-types'
 
 // SCHEMAS
 
@@ -13,12 +14,16 @@ const slugSchema = z
     message: 'Slug must contain only lowercase letters, numbers, and hyphens',
   })
 
+const ingredientTypeSchema = z.enum(INGREDIENT_TYPE_VALUES)
+
 export const createIngredientSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   slug: slugSchema.optional(),
   content: z.string().max(50000).optional(),
+  type: ingredientTypeSchema.optional(),
   category: z.string().min(1).max(100).optional(),
+  supplementCategory: z.string().min(1).max(100).optional(),
 })
 
 export const updateIngredientSchema = z
@@ -27,7 +32,9 @@ export const updateIngredientSchema = z
     slug: slugSchema.optional(),
     description: z.string().max(2000).optional(),
     content: z.string().max(50000).optional(),
+    type: ingredientTypeSchema.optional(),
     category: z.string().min(1).max(100).nullable().optional(),
+    supplementCategory: z.string().min(1).max(100).nullable().optional(),
   })
   .strict()
 
@@ -38,7 +45,9 @@ export const ingredientResponseSchema = z.object({
   slug: z.string(),
   description: z.string(),
   content: z.string(),
+  type: ingredientTypeSchema,
   category: z.string().nullable(),
+  supplementCategory: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -47,7 +56,9 @@ export const ingredientSearchResultSchema = z.object({
   id: uuid,
   name: z.string(),
   slug: z.string(),
+  type: ingredientTypeSchema,
   category: z.string().nullable(),
+  supplementCategory: z.string().nullable(),
 })
 
 export const ingredientEditResponseSchema = z.object({
@@ -71,7 +82,9 @@ export const ingredientChangesSchema = z
     name: fieldChangeSchema(z.string()),
     description: fieldChangeSchema(z.string()),
     content: fieldChangeSchema(z.string()),
+    type: fieldChangeSchema(z.string()),
     category: fieldChangeSchema(z.string()),
+    supplementCategory: fieldChangeSchema(z.string()),
   })
   .partial()
   .refine((data) => Object.keys(data).length > 0, {

@@ -16,7 +16,9 @@ export const ingredients = pgTable(
     slug: text('slug').notNull(), // URL-friendly: "retinol", "azelaic-acid"
     description: text('description').notNull().default(''), // short description
     content: text('content').notNull().default(''), // wiki content (markdown)
-    category: text('category'), // "actif", "excipient", "vitamine", "minéral"
+    type: text('type').notNull().default('skincare'),
+    category: text('category'), // skincare formulation role: "actif", "humectant", "emollient", "filtre-uv", "tensioactif", "excipient"
+    supplementCategory: text('supplement_category'), // oral supplement functional class: "vitamine", "mineral", "plante", "adaptogene", etc.
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
@@ -26,7 +28,9 @@ export const ingredients = pgTable(
   (t) => [
     uniqueIndex('ingredients_slug_unique').on(t.slug),
     index('ingredients_name_idx').on(t.name),
+    index('ingredients_type_idx').on(t.type),
     index('ingredients_category_idx').on(t.category),
+    index('ingredients_supplement_category_idx').on(t.supplementCategory),
   ]
 )
 
