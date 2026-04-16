@@ -36,7 +36,6 @@ export type Ingredient = {
   content: string
   type: string
   category: string | null
-  supplementCategory: string | null
   createdAt: string | Date
   updatedAt: string | Date
 }
