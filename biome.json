@@ -13,6 +13,9 @@
       "!backend/src/db/seed/**/*",
       "!backend/src/**/*.js",
       "!**/drizzle.backup",
+      "!**/*.test.ts",
+      "!**/*.test.tsx",
+      "!**/__tests__"
     ]
   },
   "formatter": {
