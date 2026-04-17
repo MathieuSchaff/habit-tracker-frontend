@@ -7,6 +7,7 @@ import { HTTP_STATUS, type HttpStatus } from '../core'
 
 export const accessTokenPayloadSchema = z.object({
   sub: z.string(),
+  role: z.enum(['user', 'admin']),
   type: z.literal('access'),
   jti: z.string(),
   iat: z.number(),
@@ -181,6 +182,7 @@ export type ChangePasswordResult = ApiResponse<null, 'invalid_credentials' | 'se
 /* Short-lived (~15 min). `jti` is unique so we can revoke individual tokens. */
 export interface AccessTokenPayload {
   sub: string
+  role: 'user' | 'admin'
   type: 'access'
   jti: string
   iat: number

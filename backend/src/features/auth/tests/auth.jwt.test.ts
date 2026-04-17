@@ -13,18 +13,19 @@ describe('JWT Utils', () => {
   describe('generateAccessToken / verifyAccessToken', () => {
     it('should generate and verify access token', async () => {
       const userId = crypto.randomUUID()
-      const token = await generateAccessToken(userId, JWT_SECRET)
+      const token = await generateAccessToken(userId, 'user', JWT_SECRET)
       const payload = await verifyAccessToken(token, JWT_SECRET)
 
       if (!payload) return
 
       expect(payload.sub).toBe(userId)
+      expect(payload.role).toBe('user')
       expect(payload.type).toBe('access')
       expect(payload.exp).toBeGreaterThan(payload.iat)
     })
 
     it('should reject access token verified with wrong secret', async () => {
-      const token = await generateAccessToken('user-id', JWT_SECRET)
+      const token = await generateAccessToken('user-id', 'user', JWT_SECRET)
       const payload = await verifyAccessToken(token, 'wrong-secret')
       expect(payload).toBeNull()
     })
@@ -58,7 +59,7 @@ describe('JWT Utils', () => {
     })
 
     it('should reject access token when verified as refresh', async () => {
-      const token = await generateAccessToken('user-id', REFRESH_SECRET)
+      const token = await generateAccessToken('user-id', 'user', REFRESH_SECRET)
       const payload = await verifyRefreshToken(token, REFRESH_SECRET)
       expect(payload).toBeNull()
     })

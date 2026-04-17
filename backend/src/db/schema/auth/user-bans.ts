@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, pgEnum, pgPolicy, pgRole, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { users } from './users'
 
@@ -28,7 +28,21 @@ export const userBans = pgTable(
   (t) => [
     index('user_bans_user_idx').on(t.userId),
     index('user_bans_user_scope_idx').on(t.userId, t.scope),
+    pgPolicy('user_bans_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+    }),
+    pgPolicy('user_bans_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
   ]
-)
+).enableRLS()
 
 export type UserBan = typeof userBans.$inferSelect

@@ -3,6 +3,8 @@ import {
   index,
   integer,
   pgEnum,
+  pgPolicy,
+  pgRole,
   pgTable,
   text,
   timestamp,
@@ -48,8 +50,22 @@ export const userProducts = pgTable(
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
     index('user_products_user_idx').on(t.userId),
     index('user_products_status_idx').on(t.status),
+    pgPolicy('user_products_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+    }),
+    pgPolicy('user_products_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
   ]
-)
+).enableRLS()
 
 export const userProductReviews = pgTable(
   'user_product_reviews',
@@ -72,8 +88,33 @@ export const userProductReviews = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index('user_product_reviews_user_product_idx').on(t.userProductId)]
-)
+  (t) => [
+    index('user_product_reviews_user_product_idx').on(t.userProductId),
+    // Explicit user_id check keeps policy correct for owner role (bypasses RLS until FORCE RLS in T7).
+    pgPolicy('user_product_reviews_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`EXISTS (
+        SELECT 1 FROM ${userProducts} p
+        WHERE p.id = ${t.userProductId}
+          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
+      )`,
+      withCheck: sql`EXISTS (
+        SELECT 1 FROM ${userProducts} p
+        WHERE p.id = ${t.userProductId}
+          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
+      )`,
+    }),
+    pgPolicy('user_product_reviews_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
+  ]
+).enableRLS()
 
 export type UserProduct = typeof userProducts.$inferSelect
 export type UserProductInsert = typeof userProducts.$inferInsert

@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm'
-import { boolean, numeric, pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  numeric,
+  pgPolicy,
+  pgRole,
+  pgTable,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
 
 import { users } from '../auth/users'
 import { ingredients } from './ingredients'
@@ -20,8 +29,24 @@ export const userIngredientAnalysisScore = pgTable(
     isFavorite: boolean('is_favorite').default(false),
     updatedAt: timestamp('updated_at').defaultNow(),
   },
-  (t) => [uniqueIndex('user_ing_intel_idx').on(t.userId, t.ingredientId)]
-)
+  (t) => [
+    uniqueIndex('user_ing_intel_idx').on(t.userId, t.ingredientId),
+    pgPolicy('user_ingredient_analysis_score_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+    }),
+    pgPolicy('user_ingredient_analysis_score_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
+  ]
+).enableRLS()
 
 export type UserIngredientAnalysisScore = typeof userIngredientAnalysisScore.$inferSelect
 export type UserIngredientAnalysisScoreInsert = typeof userIngredientAnalysisScore.$inferInsert

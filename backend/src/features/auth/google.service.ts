@@ -5,6 +5,7 @@ import { decodeIdToken, generateCodeVerifier, generateState, type OAuth2Tokens }
 import { eq } from 'drizzle-orm'
 
 import { users } from '../../db/schema'
+import { bindRlsContext } from '../../db/rls'
 import { getGoogleInstance } from '../../lib/artic'
 import { type AuthContext, createTokenPair } from './service'
 import { createProfile, createUser, getUser, toPublicUser } from './user.utils'
@@ -41,7 +42,7 @@ export async function handleGoogleCallback(
       .limit(1)
 
     if (existingByGoogle) {
-      const tokenPair = await createTokenPair(ctx, existingByGoogle.id)
+      const tokenPair = await createTokenPair(ctx, existingByGoogle.id, existingByGoogle.role)
       return ok({ user: toPublicUser(existingByGoogle), ...tokenPair })
     }
 
@@ -50,7 +51,7 @@ export async function handleGoogleCallback(
 
     if (existingByEmail) {
       await ctx.db.update(users).set({ googleSub }).where(eq(users.id, existingByEmail.id))
-      const tokenPair = await createTokenPair(ctx, existingByEmail.id)
+      const tokenPair = await createTokenPair(ctx, existingByEmail.id, existingByEmail.role)
       return ok({ user: toPublicUser(existingByEmail), ...tokenPair })
     }
 
@@ -62,11 +63,13 @@ export async function handleGoogleCallback(
         emailVerifiedAt: new Date(),
       })
       await tx.update(users).set({ googleSub }).where(eq(users.id, newUser.id))
+      // Set RLS context so the profiles insert passes WITH CHECK on app_runtime.
+      await bindRlsContext(tx, newUser.id)
       await createProfile(tx, newUser.id, { avatarUrl: picture ?? null })
       return newUser
     })
 
-    const tokenPair = await createTokenPair(ctx, user.id)
+    const tokenPair = await createTokenPair(ctx, user.id, user.role)
     return ok({ user: toPublicUser(user), ...tokenPair })
   } catch (e) {
     console.error('Google callback failed:', e)

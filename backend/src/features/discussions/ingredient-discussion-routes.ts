@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
+import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createReply,
   createThread,
@@ -29,6 +30,7 @@ app.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
 })
+app.use('*', withRlsContext)
 
 export const ingredientDiscussionRoutes = app
   .get('/:slug/discussions', zValidator('param', slugParam), async (c) => {

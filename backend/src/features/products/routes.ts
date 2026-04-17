@@ -13,6 +13,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
+import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createProduct,
   deleteProduct,
@@ -39,6 +40,7 @@ productsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
 })
+productsApp.use('*', withRlsContext)
 
 export const productRoutes = productsApp
 
