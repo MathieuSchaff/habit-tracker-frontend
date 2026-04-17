@@ -67,6 +67,10 @@ const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
 
+// These authenticated routes write to users / refresh_tokens / email_verifications —
+// all tables kept outside RLS because auth lookups happen pre-identity. If RLS is ever
+// added to those tables (e.g. column-level secrets), this router must also register
+// withRlsContext alongside requireJwtAuth.
 app.use('/logout', requireJwtAuth)
 app.use('/session', requireJwtAuth)
 app.use('/mobile/logout', requireJwtAuth)

@@ -13,6 +13,7 @@ import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
+import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   deleteUser,
   getDermoProfile,
@@ -29,6 +30,7 @@ import {
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
+app.use('*', withRlsContext)
 
 export const profileRoute = app
 

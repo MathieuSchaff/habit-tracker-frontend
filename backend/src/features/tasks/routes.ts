@@ -13,6 +13,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
+import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createSubtask,
   createTask,
@@ -31,6 +32,7 @@ const subIdParam = z.object({ id: z.uuid(), subId: z.uuid() })
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
+app.use('*', withRlsContext)
 
 export const taskRoutes = app
   .get('/', async (c) => {

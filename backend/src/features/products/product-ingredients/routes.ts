@@ -7,6 +7,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
 import { requireJwtAuth } from '../../auth/middleware'
+import { withRlsContext } from '../../auth/rls-context.middleware'
 import {
   addIngredientToProduct,
   listIngredientsByProduct,
@@ -38,6 +39,7 @@ productIngredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, next)
 })
+productIngredientsApp.use('*', withRlsContext)
 
 export const productIngredientRoutes = productIngredientsApp
 

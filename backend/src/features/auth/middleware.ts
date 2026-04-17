@@ -26,6 +26,7 @@ export const requireJwtAuth = async (c: Context<AppEnv>, next: Next) => {
   }
 
   c.set('userId', payload.sub)
+  c.set('userRole', payload.role)
 
   await next()
 }

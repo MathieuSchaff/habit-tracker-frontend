@@ -1,0 +1,2 @@
+ALTER TABLE "tasks" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "tasks_tenant_isolation" ON "tasks" AS PERMISSIVE FOR ALL TO "app_runtime" USING (user_id = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK (user_id = (SELECT current_setting('app.user_id', true)::uuid));

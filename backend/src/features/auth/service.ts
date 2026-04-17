@@ -15,6 +15,7 @@ import { err, ok } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import type { Database, DB } from '../../db/index'
+import { bindRlsContext } from '../../db/rls'
 import { users } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
 import { seedDemoData } from './demo-seed'
@@ -49,8 +50,12 @@ export type AuthContext = {
 // Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
-export async function createTokenPair(ctx: AuthContext, userId: string) {
-  const accessToken = await generateAccessToken(userId, ctx.jwtSecret)
+export async function createTokenPair(
+  ctx: AuthContext,
+  userId: string,
+  role: 'user' | 'admin'
+) {
+  const accessToken = await generateAccessToken(userId, role, ctx.jwtSecret)
   const {
     token: refreshToken,
     jti,
@@ -85,11 +90,13 @@ export async function signup(
         passwordHash,
         emailVerifiedAt: null,
       })
+      // Set RLS context so the profiles insert passes WITH CHECK on app_runtime.
+      await bindRlsContext(tx, user.id)
       await createProfile(tx, user.id)
       return user
     })
 
-    const tokens = await createTokenPair(ctx, user.id)
+    const tokens = await createTokenPair(ctx, user.id, user.role)
 
     let rawToken: string | null = null
     try {
@@ -135,7 +142,7 @@ export async function login(
       if (graceExpired) return err('email_not_verified')
     }
 
-    const tokens = await createTokenPair(ctx, user.id)
+    const tokens = await createTokenPair(ctx, user.id, user.role)
 
     cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => console.error('Cleanup failed:', e))
 
@@ -181,7 +188,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     }
     await cleanupUserRefreshTokens(ctx.db, payload.sub)
 
-    const tokens = await createTokenPair(ctx, payload.sub)
+    const tokens = await createTokenPair(ctx, payload.sub, user.role)
     await revokeRefreshToken(ctx.db, payload.jti)
 
     return ok({
@@ -249,13 +256,15 @@ export async function createDemo(
         emailVerifiedAt: new Date(),
         isDemo: true,
       })
+      // Set RLS context so all inserts in this transaction pass WITH CHECK on app_runtime.
+      await bindRlsContext(tx, created.id)
       await createProfile(tx, created.id)
+      // Seed inside the transaction so app.user_id is still set for RLS-protected tables.
+      await seedDemoData(created.id, tx as unknown as Database)
       return created
     })
 
-    await seedDemoData(user.id, ctx.db as Database)
-
-    const tokens = await createTokenPair(ctx, user.id)
+    const tokens = await createTokenPair(ctx, user.id, user.role)
 
     return ok({
       user: toPublicUser(user),

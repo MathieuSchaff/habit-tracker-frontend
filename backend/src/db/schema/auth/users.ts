@@ -8,6 +8,8 @@ import {
   integer,
   jsonb,
   pgEnum,
+  pgPolicy,
+  pgRole,
   pgTable,
   text,
   timestamp,
@@ -71,23 +73,56 @@ export const profiles = pgTable(
     uniqueIndex('profiles_username_ux').on(t.username),
     // Needed for public profile lookup by username (/u/:username)
     index('profiles_username_idx').on(t.username),
+    pgPolicy('profiles_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+    }),
+    pgPolicy('profiles_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
   ]
-)
+).enableRLS()
 
-export const userDermoProfiles = pgTable('user_dermo_profiles', {
-  userId: uuid('user_id')
-    .primaryKey()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  skinTypes: text('skin_types').array().$type<SkinType[]>(),
-  fitzpatrickType: integer('fitzpatrick_type'),
-  skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
-  privateNotes: text('private_notes'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-})
+export const userDermoProfiles = pgTable(
+  'user_dermo_profiles',
+  {
+    userId: uuid('user_id')
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    skinTypes: text('skin_types').array().$type<SkinType[]>(),
+    fitzpatrickType: integer('fitzpatrick_type'),
+    skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
+    privateNotes: text('private_notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    pgPolicy('user_dermo_profiles_tenant_isolation', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+    }),
+    pgPolicy('user_dermo_profiles_admin_bypass', {
+      as: 'permissive',
+      for: 'all',
+      to: pgRole('app_runtime').existing(),
+      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+    }),
+  ]
+).enableRLS()
 
 export const refreshTokens = pgTable(
   'refresh_tokens',

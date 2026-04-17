@@ -14,11 +14,16 @@ export const JWT_CONFIG = {
   refreshTokenExpiry: 7 * 24 * 60 * 60,
 } as const
 
-export async function generateAccessToken(userId: string, secret: string): Promise<string> {
+export async function generateAccessToken(
+  userId: string,
+  role: 'user' | 'admin',
+  secret: string
+): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
   return sign(
     {
       sub: userId,
+      role,
       type: 'access',
       jti: Bun.randomUUIDv7(),
       iat: now,

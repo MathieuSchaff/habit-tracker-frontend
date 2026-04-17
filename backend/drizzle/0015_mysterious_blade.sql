@@ -1,0 +1,18 @@
+ALTER TABLE "user_bans" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "user_preferences" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "profiles" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "user_dermo_profiles" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "habit_checks" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "habits" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "wellbeing_logs" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "user_ingredient_analysis_score" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "user_products" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "user_bans_tenant_isolation" ON "user_bans" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("user_bans"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("user_bans"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "user_preferences_tenant_isolation" ON "user_preferences" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("user_preferences"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("user_preferences"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "profiles_tenant_isolation" ON "profiles" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("profiles"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("profiles"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "user_dermo_profiles_tenant_isolation" ON "user_dermo_profiles" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("user_dermo_profiles"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("user_dermo_profiles"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "habit_checks_tenant_isolation" ON "habit_checks" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("habit_checks"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("habit_checks"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "habits_tenant_isolation" ON "habits" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("habits"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("habits"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "wellbeing_logs_tenant_isolation" ON "wellbeing_logs" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("wellbeing_logs"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("wellbeing_logs"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "user_ingredient_analysis_score_tenant_isolation" ON "user_ingredient_analysis_score" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("user_ingredient_analysis_score"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("user_ingredient_analysis_score"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));--> statement-breakpoint
+CREATE POLICY "user_products_tenant_isolation" ON "user_products" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("user_products"."user_id" = (SELECT current_setting('app.user_id', true)::uuid)) WITH CHECK ("user_products"."user_id" = (SELECT current_setting('app.user_id', true)::uuid));
