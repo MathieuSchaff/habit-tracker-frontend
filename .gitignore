@@ -31,6 +31,7 @@ backend/src/**/*.js
 backups/
 *.sql
 !backend/drizzle/**/*.sql
+!backend/drizzle-init/**/*.sql
 backend/src/db/seed/products/otherData.csv
 
 # =========================

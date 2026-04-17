@@ -6,6 +6,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   REFRESH_SECRET: z.string().min(32),
   DATABASE_URL: z.string(),
+  APP_DATABASE_URL: z.string(),
   POSTGRES_PASSWORD: z.string().optional(),
   RESEND_API_KEY: z.string(),
   FRONTEND_URL: z.url(),
