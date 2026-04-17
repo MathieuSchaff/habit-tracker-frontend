@@ -21,7 +21,7 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 export const users = pgTable(
   'users',
   {
-    id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     email: varchar('email', { length: 320 }).notNull(),
 
     // Nullable: user can sign up via Google without a password
@@ -92,7 +92,7 @@ export const userDermoProfiles = pgTable('user_dermo_profiles', {
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
-    id: uuid('id').primaryKey().default(sql`uuidv7()`), // upgrade pg18
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

@@ -7,7 +7,7 @@ import type { PgTransaction } from 'drizzle-orm/pg-core'
 import { env } from '../config/env'
 import * as schema from './schema'
 
-export const client = new SQL(env.DATABASE_URL)
+export const client = new SQL(env.APP_DATABASE_URL)
 
 export type Database = BunSQLDatabase<typeof schema> & { $client: SQL }
 
