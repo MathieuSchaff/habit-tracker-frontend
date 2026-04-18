@@ -5,7 +5,7 @@ import type { DiscussionThread } from '@habit-tracker/shared'
 import { Link } from '@tanstack/react-router'
 import { MessageSquare } from 'lucide-react'
 
-import { EmptyState } from '@/component/Feedback/EmptyState/EmptyState'
+import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { AuthorLine } from './AuthorLine'
 import { ThreadForm } from './ThreadForm'
 

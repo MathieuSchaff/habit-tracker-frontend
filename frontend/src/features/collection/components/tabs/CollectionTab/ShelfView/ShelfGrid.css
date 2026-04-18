@@ -1,0 +1,19 @@
+@layer components {
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-3);
+    perspective: 1000px;
+
+    @media (--sm) {
+      gap: var(--space-4);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shelf-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+  }
+}

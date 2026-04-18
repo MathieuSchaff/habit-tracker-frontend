@@ -119,7 +119,13 @@ function CollectionTabContent({
         onStatusChange={(productId, newStatus) => {
           updateMutation.mutate({ id: productId, input: { status: newStatus } })
         }}
+        onStatusChangeMany={(productIds, newStatus) => {
+          for (const id of productIds) {
+            updateMutation.mutate({ id, input: { status: newStatus } })
+          }
+        }}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        onAddClick={onAddClick}
       />
 
       {showFiltersSheet && <CollectionFiltersSheet onClose={() => setShowFiltersSheet(false)} />}

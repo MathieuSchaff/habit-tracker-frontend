@@ -3,10 +3,10 @@ import { BIO_MAX_LENGTH, USERNAME_MAX_LENGTH } from '@habit-tracker/shared'
 
 import { useState } from 'react'
 
-import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
+import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
-import { Textarea } from '@/component/Textarea/Textarea'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { ProfileLinksEditor } from '../ProfileLinksEditor/ProfileLinksEditor'
 import './ProfileForm.css'
 

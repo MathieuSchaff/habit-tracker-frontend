@@ -174,16 +174,16 @@ describe('CollectionPage', () => {
     expect(screen.getByText(/Aucun achat enregistré/i)).toBeInTheDocument()
   })
 
-  it('products are grouped by status in shelf sections', async () => {
+  it('renders shelf tabs with status labels and shows all products on "Tout"', async () => {
     renderWithProviders(<CollectionPage />)
 
-    // Both products visible in their respective sections
+    // Both products visible on the default "Tout" tab
     expect(await screen.findByText('Super Serum')).toBeInTheDocument()
     expect(screen.getByText('Cool Cream')).toBeInTheDocument()
 
-    // Section headers show status labels
-    expect(screen.getByText('En stock')).toBeInTheDocument()
-    expect(screen.getByText('Wishlist')).toBeInTheDocument()
+    // Shelf tabs expose status labels
+    expect(screen.getByRole('tab', { name: /En stock/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Wishlist/i })).toBeInTheDocument()
   })
 
   it('recherche un produit par son nom', async () => {

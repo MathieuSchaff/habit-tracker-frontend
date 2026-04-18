@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { UserProduct } from '@/lib/queries/user-products'
 import { ShelfView } from '../ShelfView'
@@ -8,9 +8,7 @@ vi.mock('@/lib/queries/user-products', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/queries/user-products')>()
   return {
     ...actual,
-    useUpdateUserProduct: vi.fn(() => ({
-      mutate: vi.fn(),
-    })),
+    useUpdateUserProduct: vi.fn(() => ({ mutate: vi.fn() })),
   }
 })
 
@@ -53,35 +51,110 @@ function makeProduct(id: string, status: UserProduct['status'], name: string): U
   } as unknown as UserProduct
 }
 
+beforeEach(() => {
+  window.localStorage.clear()
+})
+
 describe('ShelfView', () => {
-  it('renders sections and products', () => {
+  const noop = () => {}
+
+  it('shows FirstTimeEmpty when products list is empty', () => {
+    const onAdd = vi.fn()
+    render(
+      <ShelfView
+        products={[]}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={onAdd}
+      />,
+    )
+    expect(screen.getByText(/étagère est vide/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /ajouter mon premier/i }))
+    expect(onAdd).toHaveBeenCalledOnce()
+  })
+
+  it('renders Tout + status tabs with accurate counts', () => {
     const products = [
-      makeProduct('1', 'holy_grail', 'Produit C'),
-      makeProduct('2', 'in_stock', 'Produit B'),
-      makeProduct('3', 'wishlist', 'Produit A'),
+      makeProduct('1', 'holy_grail', 'Grail A'),
+      makeProduct('2', 'holy_grail', 'Grail B'),
+      makeProduct('3', 'in_stock', 'Stock A'),
     ]
-    render(<ShelfView products={products} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
-
-    expect(screen.getByText('Saint Graal')).toBeInTheDocument()
-    expect(screen.getByText('En stock')).toBeInTheDocument()
-    expect(screen.getByText('Wishlist')).toBeInTheDocument()
-
-    expect(screen.getByText('Produit C')).toBeInTheDocument()
-    expect(screen.getByText('Produit B')).toBeInTheDocument()
-    expect(screen.getByText('Produit A')).toBeInTheDocument()
+    render(
+      <ShelfView
+        products={products}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />,
+    )
+    const tout = screen.getByRole('tab', { name: /tout/i })
+    expect(tout).toHaveAttribute('aria-selected', 'true')
+    expect(tout).toHaveTextContent('3')
   })
 
-  it('hides sections with no products', () => {
-    const products = [makeProduct('1', 'in_stock', 'Produit A')]
-    render(<ShelfView products={products} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
+  it('filters products when switching tabs', () => {
+    const products = [
+      makeProduct('1', 'holy_grail', 'Grail A'),
+      makeProduct('2', 'in_stock', 'Stock A'),
+    ]
+    render(
+      <ShelfView
+        products={products}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />,
+    )
+    expect(screen.getByText('Grail A')).toBeInTheDocument()
+    expect(screen.getByText('Stock A')).toBeInTheDocument()
 
-    expect(screen.getByText('En stock')).toBeInTheDocument()
-    expect(screen.queryByText('Wishlist')).not.toBeInTheDocument()
-    expect(screen.queryByText('Archivé')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /saint graal/i }))
+    expect(screen.getByText('Grail A')).toBeInTheDocument()
+    expect(screen.queryByText('Stock A')).not.toBeInTheDocument()
   })
 
-  it('renders empty state when no products', () => {
-    render(<ShelfView products={[]} onStatusChange={vi.fn()} onToggleExpand={vi.fn()} />)
-    expect(screen.queryByText('En stock')).not.toBeInTheDocument()
+  it('shows a per-shelf empty state for a status tab with no products', () => {
+    const products = [makeProduct('1', 'in_stock', 'Stock A')]
+    render(
+      <ShelfView
+        products={products}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />,
+    )
+    fireEvent.click(screen.getByRole('tab', { name: /wishlist/i }))
+    expect(screen.getByText(/Wishlist vide/i)).toBeInTheDocument()
+  })
+
+  it('persists the active tab in localStorage', () => {
+    const products = [makeProduct('1', 'wishlist', 'Wish A')]
+    const { unmount } = render(
+      <ShelfView
+        products={products}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />,
+    )
+    fireEvent.click(screen.getByRole('tab', { name: /wishlist/i }))
+    expect(window.localStorage.getItem('collection:activeShelf')).toBe('wishlist')
+    unmount()
+
+    render(
+      <ShelfView
+        products={products}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />,
+    )
+    expect(screen.getByRole('tab', { name: /wishlist/i })).toHaveAttribute('aria-selected', 'true')
   })
 })

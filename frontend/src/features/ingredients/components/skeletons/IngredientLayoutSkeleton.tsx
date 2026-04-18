@@ -1,4 +1,4 @@
-import { Skeleton } from '@/component/Feedback/Skeleton/Skeleton'
+import { Skeleton } from '@/component/Feedback/ui/Skeleton/Skeleton'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import './IngredientLayoutSkeleton.css'
 

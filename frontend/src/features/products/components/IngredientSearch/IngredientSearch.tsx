@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import { ComboboxPrimitive } from '../../../../component/search/ComboboxPrimitive'
+import { ComboboxPrimitive } from '../../../../component/Search/ComboboxPrimitive'
 import { ingredientQueries } from '../../../../lib/queries/ingredients'
 import './IngredientSearch.css'
 

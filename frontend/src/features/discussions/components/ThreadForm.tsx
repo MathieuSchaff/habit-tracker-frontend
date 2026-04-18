@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
-import { Textarea } from '@/component/Textarea/Textarea'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { useCreateThread } from '@/lib/queries/discussions'
 

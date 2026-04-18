@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
-import { ThemeToggle } from '../../Themetoggle/Themetoggle'
+import { ThemeToggle } from '../../ThemeToggle/ThemeToggle'
 import './BottomNav.css'
 
 import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'

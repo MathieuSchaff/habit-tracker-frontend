@@ -4,7 +4,7 @@ import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
+import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'

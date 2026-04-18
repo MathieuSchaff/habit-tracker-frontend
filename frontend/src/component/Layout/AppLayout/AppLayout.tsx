@@ -3,8 +3,8 @@ import { Toaster, toast } from 'sonner'
 
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
+import { DevThemeSwitcher } from '../../_dev/DevThemeSwitcher/DevThemeSwitcher'
 import { Button } from '../../Button/Button'
-import { DevThemeSwitcher } from '../../DevThemeSwitcher/DevThemeSwitcher'
 import { BottomNav } from '../../Header/BottomNav/BottomNav'
 import { Header } from '../../Header/Header'
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { AuthLayout } from '@/component/Layout/AuthLayout/AuthLayout'
-import { VerifyPendingPage } from '@/features/auth/components/VerifyPendingPage/VerifyPendingPage'
+import { VerifyPendingPage } from '@/features/auth/page/VerifyPendingPage/VerifyPendingPage'
 
 export const Route = createFileRoute('/auth/verify-pending')({
   component: RouteComponent,

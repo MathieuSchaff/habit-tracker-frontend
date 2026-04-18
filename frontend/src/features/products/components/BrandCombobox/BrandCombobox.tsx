@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
-import { ComboboxPrimitive } from '@/component/search/ComboboxPrimitive'
+import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
 import { productQueries } from '@/lib/queries/products'
 
 import './BrandCombobox.css'

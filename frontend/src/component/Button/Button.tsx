@@ -2,7 +2,7 @@ import { Link, type LinkProps } from '@tanstack/react-router'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
-import { Spinner } from '../Feedback/Spinner/Spinner'
+import { Spinner } from '../Feedback/ui/Spinner/Spinner'
 
 type BaseProps = {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent' | 'default' | 'danger-ghost'

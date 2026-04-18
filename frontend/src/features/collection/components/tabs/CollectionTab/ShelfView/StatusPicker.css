@@ -1,0 +1,94 @@
+@layer components {
+  .status-picker {
+    width: 240px;
+    padding: var(--space-1);
+  }
+
+  .status-picker-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: var(--font-bold);
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+    padding: 0 var(--space-1);
+  }
+
+  .status-picker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  /* DropdownMenu.Item applies `.dropdown-menu__item` to the child; reset padding
+     so our option button controls spacing, and neutralize the default hover bg. */
+  .status-picker-grid .dropdown-menu__item {
+    padding: 0;
+    background: transparent;
+  }
+
+  .status-picker-grid .dropdown-menu__item:hover {
+    background: transparent;
+  }
+
+  .status-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    transition: background var(--transition-fast) ease;
+  }
+
+  .dropdown-menu__item:hover .status-option,
+  .dropdown-menu__item:focus-visible .status-option,
+  .status-option:hover,
+  .status-option:focus-visible {
+    background: var(--opt-bg);
+    outline: none;
+  }
+
+  .status-option.active {
+    background: var(--opt-bg);
+    color: var(--opt-color);
+    font-weight: var(--font-semibold);
+  }
+
+  .status-option-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--opt-bg);
+    color: var(--opt-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .status-option-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-option-check {
+    color: var(--opt-color);
+    flex-shrink: 0;
+  }
+
+  @media (--reduced-motion) {
+    .status-option {
+      transition: none;
+    }
+  }
+}
