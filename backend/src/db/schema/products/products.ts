@@ -59,7 +59,7 @@ export const products = pgTable(
 export const productEdits = pgTable(
   'product_edits',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
     productId: uuid('product_id')
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),

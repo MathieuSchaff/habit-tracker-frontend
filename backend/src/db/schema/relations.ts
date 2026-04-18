@@ -54,9 +54,9 @@ export const discussionThreadsRelations = relations(discussionThreads, ({ one, m
     fields: [discussionThreads.ingredientId],
     references: [ingredients.id],
   }),
-  author: one(profiles, {
+  author: one(users, {
     fields: [discussionThreads.authorId],
-    references: [profiles.userId],
+    references: [users.id],
   }),
   replies: many(discussionReplies),
 }))
@@ -66,8 +66,15 @@ export const discussionRepliesRelations = relations(discussionReplies, ({ one })
     fields: [discussionReplies.threadId],
     references: [discussionThreads.id],
   }),
-  author: one(profiles, {
+  author: one(users, {
     fields: [discussionReplies.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const usersRelations = relations(users, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [users.id],
     references: [profiles.userId],
   }),
 }))
