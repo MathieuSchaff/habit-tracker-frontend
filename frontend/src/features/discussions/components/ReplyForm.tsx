@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { Textarea } from '@/component/Textarea/Textarea'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { useCreateReply } from '@/lib/queries/discussions'
 

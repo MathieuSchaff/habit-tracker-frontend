@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useClickOutside } from '../../hooks/useClickOutside'
 import { AuroreLogo } from '../Logo/Logo'
-import { ThemeToggle } from '../Themetoggle/Themetoggle'
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
 import { NavSideList } from './NavItem/NavItem'
 import { UserMenu } from './UserMenu/UserMenu'
 

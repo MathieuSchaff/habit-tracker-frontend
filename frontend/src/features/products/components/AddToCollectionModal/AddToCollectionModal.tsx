@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
-import { FormMessage } from '@/component/Feedback/FormMessage/FormMessage'
+import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
 import { useAddPurchase } from '../../../../lib/queries/purchases'
 import { useCreateUserProduct } from '../../../../lib/queries/user-products'

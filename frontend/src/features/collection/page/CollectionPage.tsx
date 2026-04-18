@@ -41,9 +41,12 @@ export const CollectionPage = () => {
     },
   ]
 
+  const headerMeta =
+    totalProducts > 0 ? `${totalProducts} ${totalProducts > 1 ? 'produits' : 'produit'}` : null
+
   return (
     <div className="coll-page-wrapper">
-      <PageHeader title="Ma Collection" />
+      <PageHeader title="Ma Collection" meta={headerMeta} />
 
       <div className="coll-tabs-wrapper">
         <Tabs options={tabOptions} activeTab={activeTab} onTabChange={setActiveTab} />

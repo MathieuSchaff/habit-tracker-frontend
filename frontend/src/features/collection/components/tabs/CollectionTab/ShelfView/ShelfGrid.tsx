@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import './ShelfView.css'
+
+import './ShelfGrid.css'
 
 interface ShelfGridProps {
   children: ReactNode

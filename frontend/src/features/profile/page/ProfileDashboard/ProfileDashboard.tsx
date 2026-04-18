@@ -4,7 +4,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Calendar, Settings, UserCircle } from 'lucide-react'
 import { Suspense, useCallback, useState } from 'react'
 
-import { Spinner } from '@/component/Feedback/Spinner/Spinner'
+import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'

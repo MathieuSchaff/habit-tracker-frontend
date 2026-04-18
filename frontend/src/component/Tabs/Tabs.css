@@ -3,6 +3,10 @@
   width: 100%;
 }
 
+/* ======================================================================== */
+/* Variant: pill (default) — equal-width segmented control                   */
+/* ======================================================================== */
+
 .icon-tabs {
   display: flex;
   background: var(--color-primary);
@@ -72,4 +76,128 @@
 .icon-tab:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
+}
+
+/* ======================================================================== */
+/* Variant: underline — horizontal list, per-tab color, measure-based rule   */
+/* ======================================================================== */
+
+@layer components {
+  .underline-tabs {
+    --active-tab-color: var(--color-primary);
+    position: relative;
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border-default);
+    padding: 0 var(--space-1);
+    margin: 0 calc(var(--space-1) * -1);
+  }
+
+  .underline-tabs.tabs-scrollable {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  .underline-tabs.tabs-scrollable::-webkit-scrollbar {
+    display: none;
+  }
+
+  .underline-tab {
+    --tab-color: var(--text-primary);
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    transition:
+      color var(--transition-fast) ease,
+      background var(--transition-fast) ease;
+  }
+
+  .underline-tab:hover:not(.underline-tab-active) {
+    color: var(--text-primary);
+    background: color-mix(in oklch, var(--tab-color) 8%, transparent);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  .underline-tab:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .underline-tab-active {
+    color: var(--tab-color);
+    font-weight: var(--font-semibold);
+  }
+
+  .underline-tab-dimmed {
+    opacity: 0.5;
+  }
+
+  .underline-tab .tab-badge {
+    background: var(--bg-muted);
+    color: var(--text-muted);
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    border-radius: 999px;
+    transition:
+      background var(--transition-fast) ease,
+      color var(--transition-fast) ease;
+  }
+
+  .underline-tab-active .tab-badge {
+    background: color-mix(in oklch, var(--tab-color) 15%, transparent);
+    color: var(--tab-color);
+  }
+
+  .underline-tabs-indicator {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 2.5px;
+    background: var(--active-tab-color);
+    border-radius: 2px 2px 0 0;
+    transition:
+      transform 280ms cubic-bezier(0.34, 1.2, 0.64, 1),
+      width 280ms cubic-bezier(0.34, 1.2, 0.64, 1),
+      background-color 200ms ease;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .underline-tab {
+      padding: 12px;
+      font-size: 0.85rem;
+      min-height: 44px;
+    }
+    .underline-tab > span:not(.tab-badge) {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  @media (--reduced-motion) {
+    .underline-tab,
+    .underline-tabs-indicator {
+      transition: none;
+    }
+  }
 }

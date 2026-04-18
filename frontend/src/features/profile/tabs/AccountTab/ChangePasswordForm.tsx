@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { FormMessage } from '../../../../component/Feedback/FormMessage/FormMessage'
+import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
 import { FormActions } from '../../../../component/Input/FormActions/FormActions'
 import { Input } from '../../../../component/Input/Input'
 import { useChangePassword } from '../../../../lib/queries/auth'

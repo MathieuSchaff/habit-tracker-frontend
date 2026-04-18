@@ -1,106 +1,128 @@
-import {
-  DndContext,
-  type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import { restrictToWindowEdges } from '@dnd-kit/modifiers'
-import { useMemo, useState } from 'react'
+import type { UserProductStatus } from '@habit-tracker/shared'
 
-import { SHELF_ORDER } from '@/features/collection/constants'
+import { useCallback, useMemo, useState } from 'react'
+
 import type { UserProduct } from '@/lib/queries/user-products'
 import { ProductCardCondensed } from '../ProductCard/Condensed/ProductCardCondensed'
+import { BulkBar } from './BulkBar'
+import { FirstTimeEmpty } from './FirstTimeEmpty'
+import { ShelfEmpty } from './ShelfEmpty'
 import { ShelfGrid } from './ShelfGrid'
-import { ShelfSection } from './ShelfSection'
+import { type ShelfTabKey, ShelfTabs } from './ShelfTabs'
 
 import './ShelfView.css'
 
 interface ShelfViewProps {
   products: UserProduct[]
-  onStatusChange: (productId: string, newStatus: UserProduct['status']) => void
+  onStatusChange: (productId: string, newStatus: UserProductStatus) => void
+  onStatusChangeMany: (productIds: string[], newStatus: UserProductStatus) => void
   onToggleExpand: (id: string) => void
+  onAddClick: () => void
 }
 
-export function ShelfView({ products, onStatusChange, onToggleExpand }: ShelfViewProps) {
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { distance: 10 },
-    }),
-    useSensor(TouchSensor, {
-      // If the user moves the finger more than 5px very fast, we think they
-      // want to scroll the page, not drag the card.
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    })
-  )
+const ACTIVE_SHELF_KEY = 'collection:activeShelf'
 
-  const productsByStatus = useMemo(() => {
-    const map: Partial<Record<UserProduct['status'], UserProduct[]>> = {}
-    for (const p of products) {
-      if (!map[p.status]) map[p.status] = []
-      map[p.status]?.push(p)
+const ALL_STATUSES: UserProductStatus[] = [
+  'holy_grail',
+  'in_stock',
+  'wishlist',
+  'watched',
+  'archived',
+  'avoided',
+]
+
+export function ShelfView({
+  products,
+  onStatusChange,
+  onStatusChangeMany,
+  onToggleExpand,
+  onAddClick,
+}: ShelfViewProps) {
+  const [activeTab, setActiveTab] = useState<ShelfTabKey>(() => {
+    if (typeof window === 'undefined') return 'all'
+    const saved = window.localStorage.getItem(ACTIVE_SHELF_KEY)
+    return (saved as ShelfTabKey) ?? 'all'
+  })
+
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const selectMode = selected.size > 0
+
+  const handleTabChange = useCallback((key: ShelfTabKey) => {
+    setActiveTab(key)
+    try {
+      window.localStorage.setItem(ACTIVE_SHELF_KEY, key)
+    } catch {
+      /* ignore quota errors */
     }
-    return map
+  }, [])
+
+  const countsByStatus = useMemo(() => {
+    const counts: Record<UserProductStatus, number> = {
+      holy_grail: 0,
+      in_stock: 0,
+      wishlist: 0,
+      watched: 0,
+      archived: 0,
+      avoided: 0,
+    }
+    for (const p of products) counts[p.status] += 1
+    return counts
   }, [products])
 
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const activeProduct = activeId ? (products.find((p) => p.id === activeId) ?? null) : null
+  const visibleProducts = useMemo(() => {
+    if (activeTab === 'all') return products
+    return products.filter((p) => p.status === activeTab)
+  }, [products, activeTab])
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
+  const toggleSelect = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const clearSelection = useCallback(() => setSelected(new Set()), [])
+
+  const handleMoveBulk = useCallback(
+    (status: UserProductStatus) => {
+      onStatusChangeMany(Array.from(selected), status)
+      setSelected(new Set())
+    },
+    [selected, onStatusChangeMany]
+  )
+
+  if (products.length === 0) {
+    return <FirstTimeEmpty onAdd={onAddClick} />
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null)
-    const { active, over } = event
-    if (!over) return
-
-    const productId = active.id as string
-    const newStatus = over.id as UserProduct['status']
-    const product = products.find((p) => p.id === productId)
-
-    if (product && product.status !== newStatus) {
-      onStatusChange(productId, newStatus)
-    }
-  }
+  const showShelfEmpty =
+    activeTab !== 'all' && visibleProducts.length === 0 && ALL_STATUSES.includes(activeTab)
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveId(null)}
-      modifiers={[restrictToWindowEdges]}
-    >
-      <div className="shelf-view">
-        {SHELF_ORDER.map((status) => {
-          const list = productsByStatus[status] || []
-          return (
-            <ShelfSection key={status} status={status} count={list.length}>
-              <ShelfGrid>
-                {list.map((p) => (
-                  <ProductCardCondensed
-                    key={p.id}
-                    p={p}
-                    onToggleExpand={() => onToggleExpand(p.id)}
-                  />
-                ))}
-              </ShelfGrid>
-            </ShelfSection>
-          )
-        })}
-      </div>
-      <DragOverlay>
-        {activeProduct ? (
-          <ProductCardCondensed p={activeProduct} onToggleExpand={() => {}} isOverlay />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+    <div className="shelf-view">
+      <ShelfTabs active={activeTab} onChange={handleTabChange} countsByStatus={countsByStatus} />
+
+      {showShelfEmpty ? (
+        <ShelfEmpty status={activeTab as UserProductStatus} />
+      ) : (
+        <ShelfGrid>
+          {visibleProducts.map((p) => (
+            <ProductCardCondensed
+              key={p.id}
+              p={p}
+              selectMode={selectMode}
+              selected={selected.has(p.id)}
+              onToggleSelect={() => toggleSelect(p.id)}
+              onToggleExpand={() => onToggleExpand(p.id)}
+              onMoveStatus={(s) => onStatusChange(p.id, s)}
+            />
+          ))}
+        </ShelfGrid>
+      )}
+
+      <BulkBar selectedCount={selected.size} onMove={handleMoveBulk} onClear={clearSelection} />
+    </div>
   )
 }

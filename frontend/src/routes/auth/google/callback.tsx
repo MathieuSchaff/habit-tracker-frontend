@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { AuthLayout } from '../../../component/Layout/AuthLayout/AuthLayout'
-import { GoogleCallbackPage } from '../../../features/auth/components/GoogleCallbackPage/GoogleCallbackPage'
+import { GoogleCallbackPage } from '../../../features/auth/page/GoogleCallbackPage/GoogleCallbackPage'
 
 export const Route = createFileRoute('/auth/google/callback')({
   validateSearch: (search: Record<string, unknown>) => ({

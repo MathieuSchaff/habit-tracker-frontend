@@ -10,8 +10,8 @@ const TanStackRouterDevtools = import.meta.env.DEV
     )
   : () => null
 
-import { GlobalError } from '../component/Feedback/GlobalError/GlobalError'
-import { NavigationProgress } from '../component/Feedback/NavigationProgress/NavigationProgress'
+import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
+import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
 import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'

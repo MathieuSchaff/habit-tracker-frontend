@@ -43,5 +43,5 @@
 @import "../features/habits/components/styles/JournalView.css" layer(components);
 @import "../features/products/components/AddToCollectionModal/AddToCollectionModal.css"
   layer(components);
-@import "../features/tasks/components/TasksPage/TasksPage.css" layer(components);
+@import "../features/tasks/page/TasksPage.css" layer(components);
 @import "../features/tasks/components/TaskItem.css" layer(components);

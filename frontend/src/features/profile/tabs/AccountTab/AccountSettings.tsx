@@ -4,7 +4,7 @@ import { ExternalLink, LogOut, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '../../../../component/Button/Button'
-import { FormMessage } from '../../../../component/Feedback/FormMessage/FormMessage'
+import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
 import { Toggle } from '../../../../component/Input/Toggle/Toggle'
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
 import { useLogout } from '../../../../lib/queries/auth'
