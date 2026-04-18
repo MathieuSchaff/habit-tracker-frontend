@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema } from '../core'
+import { fieldChangeSchema, tagItemSchema } from '../core'
 import { PRODUCT_CATEGORY_VALUES } from './kinds'
 
 const uuid = z.uuid()
@@ -17,6 +17,7 @@ export const createProductSchema = z.object({
   totalAmount: z.number().int().min(1).optional(),
   amountUnit: z.string().min(1).max(50).optional(),
   url: z.url().max(2000).optional(),
+  imageUrl: z.url().max(2000).optional(),
   notes: z.string().max(5000).optional(),
   priceCents: z.number().int().min(0).optional(),
 })
@@ -34,6 +35,7 @@ export const updateProductSchema = z
     totalAmount: z.number().int().min(1).nullable().optional(),
     amountUnit: z.string().min(1).max(50).nullable().optional(),
     url: z.url().max(2000).nullable().optional(),
+    imageUrl: z.url().max(2000).nullable().optional(),
     notes: z.string().max(5000).nullable().optional(),
     priceCents: z.number().int().min(0).nullable().optional(),
   })
@@ -53,6 +55,7 @@ export const productResponseSchema = z.object({
   totalAmount: z.number().int().nullable(),
   amountUnit: z.string().nullable(),
   url: z.string().nullable(),
+  imageUrl: z.string().nullable(),
   notes: z.string().nullable(),
   priceCents: z.number().int().nullable(),
   createdAt: z.date(),
@@ -73,8 +76,6 @@ export const productEditResponseSchema = z.object({
   summary: z.string().nullable(),
   createdAt: z.date(),
 })
-
-const tagItemSchema = z.object({ name: z.string(), slug: z.string() })
 
 export const filterOptionsSchema = z.object({
   kinds: z.array(z.string()),
@@ -132,6 +133,7 @@ const editableProductFields = {
   totalAmount: fieldChangeSchema(z.number().int()),
   amountUnit: fieldChangeSchema(z.string()),
   url: fieldChangeSchema(z.url()),
+  imageUrl: fieldChangeSchema(z.url()),
   notes: fieldChangeSchema(z.string()),
   priceCents: fieldChangeSchema(z.number().int()),
   updatedAt: fieldChangeSchema(z.iso.datetime()),

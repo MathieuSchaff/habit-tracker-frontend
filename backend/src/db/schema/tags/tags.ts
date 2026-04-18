@@ -1,3 +1,5 @@
+import { relevanceValues } from '@habit-tracker/shared'
+
 import { sql } from 'drizzle-orm'
 import {
   index,
@@ -47,7 +49,7 @@ export const productTagsDefs = pgTable(
 )
 
 // Junction tables — composite PK = uniqueness constraint
-export const relevanceEnum = pgEnum('relevance', ['primary', 'secondary', 'avoid'])
+export const relevanceEnum = pgEnum('relevance', relevanceValues)
 
 export const tagIngredients = pgTable(
   'tag_ingredients',

@@ -2,6 +2,7 @@ import type {
   CreateIngredientInput,
   FieldChange,
   IngredientChanges,
+  IngredientFilterOptions,
   IngredientSearchFilters,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
@@ -43,6 +44,7 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
   const ingredientAttributes = filters.ingredient_attribute?.split(',').filter(Boolean) ?? []
   const skinEffects = filters.skin_effect?.split(',').filter(Boolean) ?? []
   const sharedLabels = filters.shared_label?.split(',').filter(Boolean) ?? []
+  const ingredientTypes = filters.ingredient_type?.split(',').filter(Boolean) ?? []
 
   // All tag filters share the same sub-query shape: "ingredient has at
   // least one row in ingredient_tags whose tag slug is in this list".
@@ -66,6 +68,10 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
   addTagGroup(ingredientAttributes)
   addTagGroup(skinEffects)
   addTagGroup(sharedLabels)
+
+  if (ingredientTypes.length > 0) {
+    conditions.push(inArray(ingredients.type, ingredientTypes))
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -307,12 +313,6 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .limit(limit)
 }
 
-export type IngredientFilterOptions = {
-  tags: Record<IngredientFilterCategory, { name: string; slug: string }[]>
-}
-
-type IngredientFilterCategory = IngredientTagCategory
-
 const INGREDIENT_FILTER_CATEGORIES = ingredientFilterCategories()
 
 export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
@@ -333,7 +333,7 @@ export async function getIngredientFilterOptions(database: DB): Promise<Ingredie
 
   for (const tag of tagRows) {
     if (!tag.category) continue
-    const bucket = tag.category as IngredientFilterCategory
+    const bucket = tag.category as IngredientTagCategory
     if (bucket in empty) {
       empty[bucket].push({ name: tag.name, slug: tag.slug })
     }

@@ -62,6 +62,9 @@ export type FieldChange<T> = {
 // Shared by both products and ingredients tag-filter modules.
 export type FilterTier = 'essential' | 'advanced'
 
+// Shared tag item shape used in filter-options responses.
+export const tagItemSchema = z.object({ name: z.string(), slug: z.string() })
+
 export interface TagCategoryMeta {
   label: string
   placeholder: string
@@ -76,20 +79,6 @@ export const fieldChangeSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
     old: valueSchema.nullable(),
     new: valueSchema.nullable(),
   })
-
-/* Used in createRoute definitions to generate OpenAPI docs. */
-export const SuccessResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
-  z.object({
-    success: z.literal(true),
-    data: dataSchema,
-    message: z.string().optional(),
-  })
-
-export const ErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string(),
-  details: z.unknown().optional(),
-})
 
 // Response Factories
 
@@ -127,34 +116,4 @@ export const isApiError = <T, E extends string>(
   response: ApiResponse<T, E>
 ): response is ApiError<E> => {
   return response.success === false
-}
-
-// OpenAPI Response Helpers
-
-export function successResponse<T extends z.ZodType>(schema: T, description: string) {
-  return {
-    content: { 'application/json': { schema: SuccessResponseSchema(schema) } },
-    description,
-  }
-}
-
-export function errorResponse(description: string) {
-  return {
-    content: { 'application/json': { schema: ErrorResponseSchema } },
-    description,
-  }
-}
-
-export function errorResponseWithOptionnalErrorCode(
-  description: string,
-  errorCodes?: readonly string[]
-) {
-  const schema = errorCodes
-    ? ErrorResponseSchema.extend({ error: z.enum(errorCodes as [string, ...string[]]) })
-    : ErrorResponseSchema
-
-  return {
-    content: { 'application/json': { schema } },
-    description,
-  }
 }

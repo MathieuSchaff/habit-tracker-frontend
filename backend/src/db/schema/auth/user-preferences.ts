@@ -1,7 +1,16 @@
 import type { CriteriaWeights } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
-import { boolean, jsonb, pgEnum, pgPolicy, pgRole, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  jsonb,
+  pgEnum,
+  pgPolicy,
+  pgRole,
+  pgTable,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core'
 
 import { users } from './users'
 

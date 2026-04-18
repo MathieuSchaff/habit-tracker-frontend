@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema } from '../core'
+import { fieldChangeSchema, tagItemSchema } from '../core'
 import { INGREDIENT_TYPE_VALUES } from './ingredient-types'
 
 // SCHEMAS
@@ -78,27 +78,25 @@ export const ingredientChangesSchema = z
     name: fieldChangeSchema(z.string()),
     description: fieldChangeSchema(z.string()),
     content: fieldChangeSchema(z.string()),
-    type: fieldChangeSchema(z.string()),
-    category: fieldChangeSchema(z.string()),
+    type: fieldChangeSchema(z.enum(INGREDIENT_TYPE_VALUES)),
+    category: fieldChangeSchema(z.string()), // free-form text, no enum
   })
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field change is required',
   })
 
-const ingredientTagItemSchema = z.object({ name: z.string(), slug: z.string() })
-
 export const ingredientFilterOptionsSchema = z.object({
   tags: z.object({
-    skin_type: z.array(ingredientTagItemSchema),
-    concern: z.array(ingredientTagItemSchema),
+    skin_type: z.array(tagItemSchema),
+    concern: z.array(tagItemSchema),
     // Rôle fonctionnel : propriété intrinsèque de molécule.
-    ingredient_attribute: z.array(ingredientTagItemSchema),
+    ingredient_attribute: z.array(tagItemSchema),
     // Rendu sur peau — slugs scope='both' uniquement (occlusif,
     // matifiant, repulpant, protection-cutanee).
-    skin_effect: z.array(ingredientTagItemSchema),
+    skin_effect: z.array(tagItemSchema),
     // Comédogénicité — paire comedogene/non-comedogene.
-    shared_label: z.array(ingredientTagItemSchema),
+    shared_label: z.array(tagItemSchema),
   }),
 })
 
@@ -109,6 +107,7 @@ export const ingredientsSearchSchema = z.object({
   ingredient_attribute: z.string().optional(),
   skin_effect: z.string().optional(),
   shared_label: z.string().optional(),
+  ingredient_type: z.string().optional(),
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
   sort: z.enum(['name', 'random']).optional(),

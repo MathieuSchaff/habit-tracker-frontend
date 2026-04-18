@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm'
-import { date, index, integer, pgPolicy, pgRole, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+  date,
+  index,
+  integer,
+  pgPolicy,
+  pgRole,
+  pgTable,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core'
 
 import { userProducts } from './user-products'
 

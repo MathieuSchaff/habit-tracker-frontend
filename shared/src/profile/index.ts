@@ -1,9 +1,5 @@
 import { z } from 'zod'
 
-import type { AuthErrorCode } from '../auth'
-import type { ApiResponse, CommonErrorCode, HttpStatus } from '../core'
-import { HTTP_STATUS } from '../core'
-
 // SCHEMAS
 
 // profile
@@ -54,13 +50,12 @@ export const SKIN_CONCERNS = [
   'keratose-pilaire',
 ] as const
 
-export const profileLinkSchema = z.object({
+const profileLinkSchema = z.object({
   label: z.string().min(1).max(50),
   url: z.url(),
 })
 
-/* No sensitive data — safe for the client. */
-export const profilePublicSchema = z.object({
+const profilePublicSchema = z.object({
   userId: z.uuid(),
   username: z.string().max(USERNAME_MAX_LENGTH).nullable().optional(),
   bio: z.string().max(BIO_MAX_LENGTH).nullable().optional(),
@@ -80,7 +75,7 @@ export const profileUpdateSchema = z
   })
   .strict()
 
-export const userDermoProfileSchema = z.object({
+const userDermoProfileSchema = z.object({
   userId: z.uuid(),
   skinTypes: z.array(z.enum(SKIN_TYPES)).max(3).nullable(),
   fitzpatrickType: z.number().int().min(1).max(6).nullable(),
@@ -100,7 +95,7 @@ export const userDermoProfileUpdateSchema = z
   })
   .strict()
 
-export const profileStatsSchema = z.object({
+const profileStatsSchema = z.object({
   totalHabits: z.number(),
   totalChecks: z.number(),
   bestStreak: z.number(),
@@ -109,7 +104,7 @@ export const profileStatsSchema = z.object({
 
 // privacy
 
-export const privacySettingsSchema = z.object({
+const privacySettingsSchema = z.object({
   profilePublic: z.boolean(),
   aiConsent: z.boolean(),
 })
@@ -135,7 +130,7 @@ export const criteriaWeightsSchema = z.object({
   valueForMoney: z.number().min(0).max(10).default(1),
 })
 
-export const userPreferencesSchema = z.object({
+const userPreferencesSchema = z.object({
   userId: z.uuid(),
   displayScale: displayScaleSchema.default('out_of_20'),
   criteriaWeights: criteriaWeightsSchema.default({
@@ -185,28 +180,3 @@ export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSch
 // profile entity types
 
 export type ProfilePublic = z.infer<typeof profilePublicSchema>
-
-// error codes
-
-export type ProfileErrorCode =
-  | CommonErrorCode
-  | 'profile_not_found'
-  | 'invalid_profile_data'
-  | 'profile_update_failed'
-
-// API response types
-
-/* Combines auth + profile errors because the route needs a valid JWT. */
-export type MeResponse = ApiResponse<ProfilePublic, AuthErrorCode | ProfileErrorCode>
-
-export type ProfileUpdateResponse = ApiResponse<ProfilePublic, AuthErrorCode | ProfileErrorCode>
-
-export type ProfileStatsResponse = ApiResponse<ProfileStats, AuthErrorCode | ProfileErrorCode>
-
-// HELPERS
-
-export const profileErrorMapping = {
-  profile_not_found: HTTP_STATUS.NOT_FOUND,
-  invalid_profile_data: HTTP_STATUS.BAD_REQUEST,
-  profile_update_failed: HTTP_STATUS.CONFLICT,
-} as const satisfies Partial<Record<ProfileErrorCode, HttpStatus>>

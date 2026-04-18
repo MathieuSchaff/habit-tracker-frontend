@@ -46,47 +46,8 @@ export const authSchema = z.object({
   password: passwordSchema,
 })
 
-/* Same schema as authSchema, just a clearer name in context. */
-export const loginSchema = authSchema
-export const signupSchema = authSchema
-
 export const verifyEmailBodySchema = z.object({
   token: z.string().min(1),
-})
-
-/* No password or sensitive fields — safe for the client. */
-export const userPublicSchema = z.object({
-  id: z.string(),
-  email: z.email(),
-  createdAt: z.union([z.date(), z.string()]),
-  emailVerified: z.boolean(),
-  role: z.enum(['user', 'admin']),
-  isDemo: z.boolean(),
-})
-
-/* refreshToken is NOT in the body — it goes in an httpOnly cookie. */
-export const browserAuthResultSchema = z.object({
-  user: userPublicSchema,
-  accessToken: z.string(),
-})
-
-/* refreshToken is in the body so mobile apps can store it in Keychain/Keystore. */
-export const mobileAuthResultSchema = z.object({
-  user: userPublicSchema,
-  accessToken: z.string(),
-  refreshToken: z.string(),
-})
-
-/* No user — just the rotated token pair. */
-export const mobileRefreshResultSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
-})
-
-export const sessionResultSchema = z.object({
-  authenticated: z.literal(true),
-  userId: z.string(),
-  role: z.enum(['user', 'admin']),
 })
 
 export const refreshTokenBodySchema = z.object({
@@ -103,11 +64,6 @@ export const changePasswordSchema = z.object({
 export type AuthInput = z.infer<typeof authSchema>
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
-
-export type AuthFieldErrors = {
-  email?: string[]
-  password?: string[]
-}
 
 /* Branded — you can't pass a raw string where an Email is expected. */
 export type Email = string & z.BRAND<'Email'>
@@ -127,19 +83,11 @@ export type UserPublic = {
   isDemo: boolean
 }
 
-export type AuthTokens = {
+/* The service always returns this full shape — the handler picks what to expose (body vs cookie). */
+export type AuthenticatedResult = {
   accessToken: string
   refreshToken: string
-}
-
-/* The service always returns this full shape — the handler picks what to expose (body vs cookie). */
-export type AuthenticatedResult = AuthTokens & {
   user: UserPublic
-}
-
-export type BrowserAuthResult = {
-  user: UserPublic
-  accessToken: string
 }
 
 export type MobileAuthResult = AuthenticatedResult

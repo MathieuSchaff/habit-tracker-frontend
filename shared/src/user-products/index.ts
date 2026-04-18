@@ -18,32 +18,6 @@ export const repurchaseFlag = ['yes', 'no', 'unsure'] as const
 export const userProductStatusSchema = z.enum(userProductStatus)
 export const repurchaseFlagSchema = z.enum(repurchaseFlag)
 
-export const userProductSchema = z.object({
-  id: z.uuid(),
-  userId: z.uuid(),
-  productId: z.uuid(),
-  status: userProductStatusSchema,
-  sentiment: z.number().int().min(1).max(5).nullable(),
-  wouldRepurchase: repurchaseFlagSchema.nullable(),
-  comment: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
-
-export const userProductReviewSchema = z.object({
-  id: z.uuid(),
-  userProductId: z.uuid(),
-  tolerance: z.number().int().min(1).max(5).nullable(),
-  efficacy: z.number().int().min(1).max(5).nullable(),
-  sensoriality: z.number().int().min(1).max(5).nullable(),
-  stability: z.number().int().min(1).max(5).nullable(),
-  mixability: z.number().int().min(1).max(5).nullable(),
-  valueForMoney: z.number().int().min(1).max(5).nullable(),
-  comment: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
-
 export const createUserProductSchema = z.object({
   productId: z.uuid(),
   status: userProductStatusSchema.default('in_stock'),
@@ -73,8 +47,6 @@ export const updateUserProductReviewSchema = z.object({
 
 export type UserProductStatus = z.infer<typeof userProductStatusSchema>
 export type RepurchaseFlag = z.infer<typeof repurchaseFlagSchema>
-export type UserProduct = z.infer<typeof userProductSchema>
-export type UserProductReview = z.infer<typeof userProductReviewSchema>
 export type CreateUserProductInput = z.infer<typeof createUserProductSchema>
 export type UpdateUserProductInput = z.infer<typeof updateUserProductSchema>
 export type UpdateUserProductReviewInput = z.infer<typeof updateUserProductReviewSchema>

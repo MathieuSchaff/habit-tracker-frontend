@@ -18,8 +18,6 @@ export const productErrorMapping = {
   product_update_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   product_delete_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   product_already_exists: HTTP_STATUS.CONFLICT,
-  stock_update_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   unauthorized_access: HTTP_STATUS.FORBIDDEN,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-  no_updatable_fields: HTTP_STATUS.BAD_REQUEST,
 } as const satisfies Record<ProductErrorCode, HttpStatus>
