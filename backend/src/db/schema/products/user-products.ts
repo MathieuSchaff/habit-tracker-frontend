@@ -1,3 +1,5 @@
+import { repurchaseFlag, userProductStatus } from '@habit-tracker/shared'
+
 import { sql } from 'drizzle-orm'
 import {
   index,
@@ -15,16 +17,9 @@ import {
 import { users } from '../auth/users'
 import { products } from './products'
 
-export const userProductStatusEnum = pgEnum('user_product_status', [
-  'in_stock',
-  'wishlist',
-  'watched',
-  'holy_grail',
-  'archived',
-  'avoided',
-])
+export const userProductStatusEnum = pgEnum('user_product_status', [...userProductStatus])
 
-export const repurchaseFlagEnum = pgEnum('repurchase_flag', ['yes', 'no', 'unsure'])
+export const repurchaseFlagEnum = pgEnum('repurchase_flag', [...repurchaseFlag])
 
 export const userProducts = pgTable(
   'user_products',

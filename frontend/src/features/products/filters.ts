@@ -27,5 +27,5 @@ export const GROUP_LABELS: Record<FilterKey, string> = {
 // Kept as explicit overrides — these are special-case display tweaks,
 // not derivable from the taxonomy.
 export const LABEL_OVERRIDES: Record<string, string> = {
-  'barriere-alteree': 'Peau sensibilisée',
+  'barriere-cutanee-alteree': 'Peau sensibilisée',
 }

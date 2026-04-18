@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 
 import { productEdits } from '../../../db/schema/products'
 import { createIngredient } from '../../../features/ingredients/service'
-import { createTag } from '../../../features/tags/tags.service'
+import { createProductTag } from '../../../features/tags/tags.service'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -40,7 +40,7 @@ async function makeIngredient(name: string) {
 }
 
 async function _makeTag(name: string, category?: string) {
-  return createTag(testDb, { name, category })
+  return createProductTag(testDb, { name, category })
 }
 
 describe('Product Service', () => {

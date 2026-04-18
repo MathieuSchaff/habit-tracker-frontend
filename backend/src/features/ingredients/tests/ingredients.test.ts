@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 
 import { users } from '../../../db/schema'
-import { addTagToIngredient, createTag } from '../../../features/tags/tags.service'
+import { addTagToIngredient, createIngredientTag } from '../../../features/tags/tags.service'
 import { testDb } from '../../../tests/db.test.config'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { IngredientError } from '../ingredients-error'
@@ -28,7 +28,7 @@ async function makeIngredient(
 }
 
 async function makeTag(name: string, category?: string) {
-  return createTag(testDb, { name, category })
+  return createIngredientTag(testDb, { name, category })
 }
 
 describe('Ingredient Service', () => {

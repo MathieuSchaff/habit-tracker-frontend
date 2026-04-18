@@ -20,7 +20,7 @@ describe('runtime role (app_runtime)', () => {
   it('can SELECT from an existing table', async () => {
     const pool = new SQL(process.env.APP_DATABASE_URL!)
     // Table may be empty — we care that the query succeeds without a permission error.
-    const rows = await pool`SELECT 1 AS ok FROM users LIMIT 1` as unknown as Array<{ ok: number }>
+    const rows = (await pool`SELECT 1 AS ok FROM users LIMIT 1`) as unknown as Array<{ ok: number }>
     await pool.close()
     expect(Array.isArray(rows)).toBe(true)
   })

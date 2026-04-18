@@ -1,13 +1,11 @@
 import type { z } from 'zod'
 
 import type { FieldChange } from '../core'
-import type { UserProduct } from '../user-products'
 import type {
   createProductSchema,
   listProductsQuery,
   productChangesSchema,
   productEditResponseSchema,
-  productsPageSchema,
   updateProductSchema,
 } from './schemas'
 
@@ -19,6 +17,7 @@ export type Product = {
   name: string
   slug: string
   brand: string
+  category: string | null
   kind: string
   unit: string
 
@@ -36,10 +35,6 @@ export type Product = {
   // Timestamps (en ISO String pour le transit API, ou Date)
   createdAt: string | Date
   updatedAt: string | Date
-}
-
-export type ProductWithStock = Product & {
-  stock: UserProduct | null
 }
 
 export type EditableProductKeys = Exclude<keyof Product, 'id' | 'createdBy' | 'createdAt' | 'slug'>
@@ -72,10 +67,8 @@ export type ProductErrorCode =
   | 'product_update_failed'
   | 'product_delete_failed'
   | 'product_already_exists'
-  | 'stock_update_failed'
   | 'unauthorized_access'
   | 'database_error'
-  | 'no_updatable_fields'
 
 // z.infer<> aliases moved from schemas.ts
 
@@ -83,5 +76,4 @@ export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type ProductEditResponseSchema = z.infer<typeof productEditResponseSchema>
 export type ProductChanges = z.infer<typeof productChangesSchema>
-export type ProductsPage = z.infer<typeof productsPageSchema>
 export type ListProductsFilters = z.infer<typeof listProductsQuery>

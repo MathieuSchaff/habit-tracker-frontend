@@ -4,14 +4,14 @@ import { eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+import { tasks } from '../../db/schema'
 import { generateAccessToken } from '../../features/auth/jwt.utils'
 import { requireJwtAuth } from '../../features/auth/middleware'
 import { withRlsContext } from '../../features/auth/rls-context.middleware'
-import { tasks } from '../../db/schema'
-import { createTestApp } from '../helpers/createTestApp'
-import { createTestUser } from '../helpers/test-factories'
 import { testDb } from '../db.test.config'
+import { createTestApp } from '../helpers/createTestApp'
 import { JWT_SECRET } from '../helpers/secrets'
+import { createTestUser } from '../helpers/test-factories'
 
 describe('withRlsContext', () => {
   it('binds app.user_id for the duration of the request', async () => {
@@ -82,10 +82,7 @@ describe('withRlsContext', () => {
     expect(res.status).toBeGreaterThanOrEqual(500)
 
     // Confirm the tx rolled back: the row must not exist outside the request tx.
-    const persisted = await testDb
-      .select()
-      .from(tasks)
-      .where(eq(tasks.title, 'should-not-persist'))
+    const persisted = await testDb.select().from(tasks).where(eq(tasks.title, 'should-not-persist'))
     expect(persisted).toHaveLength(0)
   })
 })

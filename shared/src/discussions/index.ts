@@ -4,8 +4,6 @@ import { HTTP_STATUS, type HttpStatus } from '../core'
 
 // SCHEMAS
 
-const uuid = z.uuid()
-
 export const createThreadSchema = z.object({
   title: z.string().min(1).max(120),
   content: z.string().min(1),
@@ -13,31 +11,6 @@ export const createThreadSchema = z.object({
 
 export const createReplySchema = z.object({
   content: z.string().min(1),
-})
-
-export const replyResponseSchema = z.object({
-  id: uuid,
-  threadId: uuid,
-  authorId: uuid.nullable(),
-  authorName: z.string().nullable(),
-  content: z.string(),
-  createdAt: z.date(),
-})
-
-export const threadResponseSchema = z.object({
-  id: uuid,
-  productId: uuid.nullable(),
-  ingredientId: uuid.nullable(),
-  authorId: uuid.nullable(),
-  authorName: z.string().nullable(),
-  title: z.string(),
-  content: z.string(),
-  replyCount: z.number().int(),
-  createdAt: z.date(),
-})
-
-export const threadWithRepliesResponseSchema = threadResponseSchema.extend({
-  replies: z.array(replyResponseSchema),
 })
 
 // TYPES
@@ -54,7 +27,7 @@ export type DiscussionThread = {
   title: string
   content: string
   replyCount: number
-  createdAt: string | Date
+  createdAt: string
 }
 
 export type DiscussionReply = {
@@ -63,7 +36,7 @@ export type DiscussionReply = {
   authorId: string | null
   authorName: string | null
   content: string
-  createdAt: string | Date
+  createdAt: string
 }
 
 export type DiscussionThreadWithReplies = DiscussionThread & {

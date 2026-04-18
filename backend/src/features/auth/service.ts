@@ -50,11 +50,7 @@ export type AuthContext = {
 // Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
-export async function createTokenPair(
-  ctx: AuthContext,
-  userId: string,
-  role: 'user' | 'admin'
-) {
+export async function createTokenPair(ctx: AuthContext, userId: string, role: 'user' | 'admin') {
   const accessToken = await generateAccessToken(userId, role, ctx.jwtSecret)
   const {
     token: refreshToken,

@@ -3,7 +3,7 @@
 export const PRODUCT_CATEGORIES = {
   SKINCARE: 'skincare',
   SOLAIRE: 'solaire',
-  COMPLEMENT: 'complément',
+  COMPLEMENT: 'complement',
   HAIRCARE: 'haircare',
   BODYCARE: 'bodycare',
   DENTAL: 'dental',
@@ -42,7 +42,7 @@ export const PRODUCT_KINDS = {
     AFTER_SUN: 'after-sun',
     SELF_TANNER: 'self-tanner',
   },
-  complément: {
+  complement: {
     GELULE: 'gelule',
     CAPSULE: 'capsule',
     AMPOULE: 'ampoule',

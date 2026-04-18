@@ -20,12 +20,12 @@
 }
 
 .button:disabled,
-.button[aria-disabled='true'] {
+.button[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.button[aria-disabled='true'] {
+.button[aria-disabled="true"] {
   pointer-events: none;
 }
 

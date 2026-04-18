@@ -1,4 +1,5 @@
 import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
+import { BIO_MAX_LENGTH, USERNAME_MAX_LENGTH } from '@habit-tracker/shared'
 
 import { useState } from 'react'
 
@@ -55,8 +56,8 @@ export const ProfileForm = ({
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="mon-pseudo"
-        maxLength={32}
-        hint="Entre 1 et 32 caractères"
+        maxLength={USERNAME_MAX_LENGTH}
+        hint={`Entre 1 et ${USERNAME_MAX_LENGTH} caractères`}
         disabled={isPending}
       />
 
@@ -65,8 +66,8 @@ export const ProfileForm = ({
         value={bio}
         onChange={(e) => setBio(e.target.value)}
         placeholder="Quelques mots sur vous…"
-        maxLength={500}
-        hint={`${bio.length}/500`}
+        maxLength={BIO_MAX_LENGTH}
+        hint={`${bio.length}/${BIO_MAX_LENGTH}`}
         rows={4}
         disabled={isPending}
       />
