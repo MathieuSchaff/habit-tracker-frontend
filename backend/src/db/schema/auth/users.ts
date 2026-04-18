@@ -138,7 +138,6 @@ export const refreshTokens = pgTable(
     ip: varchar('ip', { length: 45 }),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),

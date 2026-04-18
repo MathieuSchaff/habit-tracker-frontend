@@ -43,7 +43,6 @@ export const userProducts = pgTable(
   },
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
-    index('user_products_user_idx').on(t.userId),
     index('user_products_status_idx').on(t.status),
     pgPolicy('user_products_tenant_isolation', {
       as: 'permissive',
