@@ -1,3 +1,4 @@
+export * from './auth/auth.schema'
 export * from './auth/email-verifications'
 export * from './auth/user-bans'
 export * from './auth/user-preferences'
