@@ -123,7 +123,7 @@ make test-dev-watch ARGS="habits"
 | `make db-push` | Sync schema without migration |
 | `make db-studio` | Drizzle UI (http://localhost:4983) |
 | `make db-seed` | Inject test data |
-| `make db-reset` | Wipe + push + seed |
+| `make db-reset` | Wipe + migrate + seed |
 | `make db-backup` | Backup to `./backups/` |
 | `make db-restore FILE=...` | Restore from a `.sql` file |
 
