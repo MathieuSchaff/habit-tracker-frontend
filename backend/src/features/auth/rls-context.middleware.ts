@@ -3,9 +3,9 @@ import type { Context, Next } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 
-// Wrap authenticated requests in a tx and bind per-request RLS context.
+// Wrap authenticated requests in a tx and bind the request in question with RLS context.
 // Must run AFTER requireJwtAuth so c.get('userId') is set.
-// Skips gracefully when userId is absent (e.g. public GET routes with optional auth).
+// Skips when userId is absent (ex: public GET routes with optional auth).
 //
 // Hono's onError swallows domain errors before they propagate back through next().
 // If the route ran a failing DB op (e.g. unique constraint), the Postgres transaction
@@ -33,8 +33,11 @@ export const withRlsContext = async (c: Context<AppEnv>, next: Next) => {
 
   try {
     await baseDb.transaction(async (tx) => {
+      // set config because se local only support literal string, so we woul ddo concatenation of strings
+      // can lead to sql injection. set_config is safer
       await tx.execute(sql`SELECT set_config('app.user_id', ${userId}, true)`)
       await tx.execute(sql`SELECT set_config('app.role', ${role}, true)`)
+      // replace the db handler with the transaction
       c.set('db', tx as unknown as typeof baseDb)
       await next()
       // Hono's onError sets c.error when it handles a domain error. If a DB op
@@ -51,3 +54,27 @@ export const withRlsContext = async (c: Context<AppEnv>, next: Next) => {
     throw e
   }
 }
+
+// 7. Le bloc if (c.error) { tx.rollback() }
+
+// Subtil. Hono a un onError qui attrape les erreurs domain (ex: 409 Conflict). Quand ça arrive :
+// - La route a lancé une erreur (ex: unique violation)
+// - Postgres a aborté la TX automatiquement (état "aborted")
+// - Hono a formé une réponse 409 propre
+// - MAIS Drizzle s'apprête à COMMIT la TX aborted → Postgres renvoie 500
+
+// La solution : si c.error est set, on force tx.rollback(). Drizzle lève TransactionRollbackError → on sort du bloc
+// proprement.
+
+// 8. Le catch (e)
+// On swallow TransactionRollbackError (c'est NOUS qui l'avons déclenché, c'est attendu). Toute autre erreur → on
+// re-throw.
+
+// L'invariant critique (commentaires 17-21)
+
+// ▎ Services that touch the DB MUST re-throw Postgres errors.
+
+// Si un service catch une erreur DB et renvoie un succès applicatif → c.error reste null → le middleware essaie de
+// COMMIT une TX aborted → 500.
+
+// Règle implicite du codebase : jamais avaler silencieusement une erreur DB dans un service.
