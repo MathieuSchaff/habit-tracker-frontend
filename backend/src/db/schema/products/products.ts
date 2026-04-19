@@ -1,4 +1,9 @@
-import type { ProductChanges } from '@habit-tracker/shared'
+import type {
+  ProductCategory,
+  ProductChanges,
+  ProductKind,
+  ProductUnit,
+} from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -27,12 +32,12 @@ export const products = pgTable(
     name: text('name').notNull(),
     brand: text('brand').notNull(),
     // broad category: skincare, complément, haircare, etc.
-    category: text('category'),
+    category: text('category').notNull().$type<ProductCategory>(),
     // specific product type within a category: serum, cleanser, gélule, etc.
-    kind: text('kind').notNull().default('Pas spécifié'),
+    kind: text('kind').notNull().$type<ProductKind>(),
     // amountUnit differs from unit when dosage and container units differ
     // (e.g. dosed in "gouttes" but the bottle is in "mL"). When identical, amountUnit is null.
-    unit: text('unit').notNull(),
+    unit: text('unit').notNull().$type<ProductUnit>(),
     inci: text('inci'),
     description: text('description'),
     totalAmount: integer('total_amount'), // 200, 60, etc
