@@ -1,0 +1,1 @@
+ALTER TABLE "ingredients" ADD CONSTRAINT "ingredients_type_check" CHECK ("ingredients"."type" IN ('skincare', 'haircare', 'dental', 'supplement'));

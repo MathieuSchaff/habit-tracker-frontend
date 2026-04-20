@@ -63,7 +63,13 @@ export type FieldChange<T> = {
 export type FilterTier = 'essential' | 'advanced'
 
 // Shared tag item shape used in filter-options responses.
-export const tagItemSchema = z.object({ name: z.string(), slug: z.string() })
+// `count` is optional so endpoints that don't aggregate (e.g. ingredient
+// filter-options today) keep a plain shape; products endpoint populates it.
+export const tagItemSchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+  count: z.number().int().nonnegative().optional(),
+})
 
 export interface TagCategoryMeta {
   label: string

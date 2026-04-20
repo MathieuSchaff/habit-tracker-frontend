@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema, tagItemSchema } from '../core'
+import { fieldChangeSchema } from '../core'
 import { INGREDIENT_TYPE_VALUES } from './ingredient-types'
 
 // SCHEMAS
@@ -21,7 +21,7 @@ export const createIngredientSchema = z.object({
   description: z.string().max(2000).optional(),
   slug: slugSchema.optional(),
   content: z.string().max(50000).optional(),
-  type: ingredientTypeSchema.optional(),
+  type: ingredientTypeSchema,
   category: z.string().min(1).max(100).optional(),
 })
 
@@ -85,33 +85,6 @@ export const ingredientChangesSchema = z
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field change is required',
   })
-
-export const ingredientFilterOptionsSchema = z.object({
-  tags: z.object({
-    skin_type: z.array(tagItemSchema),
-    concern: z.array(tagItemSchema),
-    // Rôle fonctionnel : propriété intrinsèque de molécule.
-    ingredient_attribute: z.array(tagItemSchema),
-    // Rendu sur peau — slugs scope='both' uniquement (occlusif,
-    // matifiant, repulpant, protection-cutanee).
-    skin_effect: z.array(tagItemSchema),
-    // Comédogénicité — paire comedogene/non-comedogene.
-    shared_label: z.array(tagItemSchema),
-  }),
-})
-
-// coerce because query params always arrive as strings
-export const ingredientsSearchSchema = z.object({
-  concern: z.string().optional(),
-  skin_type: z.string().optional(),
-  ingredient_attribute: z.string().optional(),
-  skin_effect: z.string().optional(),
-  shared_label: z.string().optional(),
-  ingredient_type: z.string().optional(),
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
-  sort: z.enum(['name', 'random']).optional(),
-})
 
 export const updateIngredientRouteSchema = updateIngredientSchema.extend({
   expectedUpdatedAt: z.coerce.date().optional(),

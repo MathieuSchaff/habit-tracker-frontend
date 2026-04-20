@@ -1,6 +1,6 @@
 {
-  "id": "9dd60552-1456-4380-9269-5570fc5f20b3",
-  "prevId": "5204d28c-28eb-4686-bf00-0e2364bde71c",
+  "id": "37e39170-ddcf-4b41-8bfc-5543c77348c0",
+  "prevId": "7601cd55-fa1e-4ff2-bca6-a504ebbf2d44",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -484,12 +484,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -1222,21 +1216,6 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "habit_periods_habit_idx": {
-          "name": "habit_periods_habit_idx",
-          "columns": [
-            {
-              "expression": "habit_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -2327,8 +2306,7 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'skincare'"
+          "notNull": true
         },
         "category": {
           "name": "category",
@@ -2427,7 +2405,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "ingredients_type_check": {
+          "name": "ingredients_type_check",
+          "value": "\"ingredients\".\"type\" IN ('skincare', 'haircare', 'dental', 'supplement')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.user_ingredient_analysis_score": {
@@ -3322,14 +3305,13 @@
           "name": "category",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "kind": {
           "name": "kind",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'Pas spécifié'"
+          "notNull": true
         },
         "unit": {
           "name": "unit",
@@ -3832,21 +3814,6 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "user_products_user_idx": {
-          "name": "user_products_user_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -4520,7 +4487,9 @@
       "values": ["inbox", "active", "done", "snoozed"]
     }
   },
-  "schemas": {},
+  "schemas": {
+    "auth": "auth"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},
