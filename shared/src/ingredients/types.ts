@@ -4,10 +4,8 @@ import type {
   createIngredientSchema,
   ingredientChangesSchema,
   ingredientEditResponseSchema,
-  ingredientFilterOptionsSchema,
   ingredientResponseSchema,
   ingredientSearchResultSchema,
-  ingredientsSearchSchema,
   updateIngredientRouteSchema,
   updateIngredientSchema,
 } from './schemas'
@@ -22,8 +20,6 @@ export type IngredientSearchResult = z.infer<typeof ingredientSearchResultSchema
 export type IngredientEditResponse = z.infer<typeof ingredientEditResponseSchema>
 // IngredientChanges = the Zod-validated change payload (used for API + DB column type)
 export type IngredientChanges = z.infer<typeof ingredientChangesSchema>
-export type IngredientFilterOptions = z.infer<typeof ingredientFilterOptionsSchema>
-export type IngredientSearchFilters = z.infer<typeof ingredientsSearchSchema>
 export type UpdateIngredientRouteInput = z.infer<typeof updateIngredientRouteSchema>
 
 // Entity types

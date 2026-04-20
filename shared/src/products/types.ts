@@ -3,7 +3,6 @@ import type { z } from 'zod'
 import type { FieldChange } from '../core'
 import type {
   createProductSchema,
-  listProductsQuery,
   productChangesSchema,
   productEditResponseSchema,
   updateProductSchema,
@@ -32,7 +31,7 @@ export type Product = {
   notes: string | null
   priceCents: number | null
 
-  // Timestamps (en ISO String pour le transit API, ou Date)
+  // ISO string on the wire, Date in memory
   createdAt: string | Date
   updatedAt: string | Date
 }
@@ -76,4 +75,3 @@ export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type ProductEditResponseSchema = z.infer<typeof productEditResponseSchema>
 export type ProductChanges = z.infer<typeof productChangesSchema>
-export type ListProductsFilters = z.infer<typeof listProductsQuery>
