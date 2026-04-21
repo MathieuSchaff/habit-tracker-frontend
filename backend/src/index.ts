@@ -7,6 +7,7 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { jwtAuthRoutes } from './features/auth'
+import { articleRoutes } from './features/blog'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
 import { habits } from './features/habits/routes'
@@ -72,6 +73,7 @@ const routes = app
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
   .route('/api/errors', errorsRoute)
+  .route('/api/articles', articleRoutes)
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }

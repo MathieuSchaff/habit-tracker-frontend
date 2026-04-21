@@ -1,4 +1,5 @@
 import {
+  articleErrorMapping,
   authErrorMapping,
   type ContentfulHttpStatus,
   discussionErrorMapping,
@@ -19,6 +20,7 @@ import {
 
 import type { Context } from 'hono'
 
+import { BlogError } from '../../features/blog/blog-error'
 import { logger } from '../../lib/logger'
 
 // I create these interfaces because Typescript gets angry if we just check error.code without telling it what error is.
@@ -77,6 +79,9 @@ export async function globalErrorHandler(error: Error, c: Context) {
         break
       case 'UserProductError':
         mapping = userProductErrorMapping as Record<string, HttpStatus>
+        break
+      case 'BlogError':
+        mapping = articleErrorMapping as Record<string, HttpStatus>
         break
       case 'DiscussionError':
         mapping = discussionErrorMapping as Record<string, HttpStatus>
