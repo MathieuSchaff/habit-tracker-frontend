@@ -15,7 +15,7 @@ import {
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 async function createIngredient(app: Hono<AppEnv>, token: string, name = 'Rétinol') {
-  const res = await authPost(app, '/ingredients', token, { name })
+  const res = await authPost(app, '/ingredients', token, { name, type: 'skincare' })
   const data = await res.json()
   return data.data as { id: string; slug: string }
 }

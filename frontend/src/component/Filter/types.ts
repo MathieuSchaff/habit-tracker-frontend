@@ -1,4 +1,4 @@
-export type FilterOption = { value: string; label: string }
+export type FilterOption = { value: string; label: string; count?: number }
 
 export type FilterFieldConfig<T extends string> = {
   key: T

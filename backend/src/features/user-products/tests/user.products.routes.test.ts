@@ -31,7 +31,7 @@ describe('User Products API', () => {
     token = await loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
     const product = await createProduct(
       user.id,
-      { name: 'Crème hydratante', brand: 'Avène', kind: 'soin', unit: 'flacon' },
+      { name: 'Crème hydratante', brand: 'Avène', category: 'skincare', kind: 'soin', unit: 'flacon' },
       testDb
     )
     productId = product.id

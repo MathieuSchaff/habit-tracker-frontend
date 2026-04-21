@@ -15,11 +15,11 @@ import {
 import { createProduct } from '../service'
 
 async function makeProduct(userId: string, name = 'Produit Test') {
-  return createProduct(userId, { name, brand: 'toto', kind: 'complément', unit: 'gélule' }, testDb)
+  return createProduct(userId, { name, brand: 'toto', category: 'skincare', kind: 'complément', unit: 'gélule' }, testDb)
 }
 
 async function makeIngredient(userId: string, name = 'Ingrédient Test') {
-  return createIngredient(testDb, userId, { name })
+  return createIngredient(testDb, userId, { name, type: 'skincare' })
 }
 
 describe('Product Ingredients Service', () => {
@@ -162,6 +162,7 @@ describe('Product Ingredients Service', () => {
       const product = await makeProduct(user.id)
       const ingredient = await createIngredient(testDb, user.id, {
         name: 'Acide Hyaluronique',
+        type: 'skincare',
         category: 'actif',
         description: 'Hydratant',
       })

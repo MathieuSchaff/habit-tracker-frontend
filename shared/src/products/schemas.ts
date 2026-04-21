@@ -1,34 +1,43 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema, tagItemSchema } from '../core'
-import { PRODUCT_CATEGORY_VALUES } from './kinds'
+import { fieldChangeSchema } from '../core'
+import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
+import { PRODUCT_UNIT_VALUES } from './units'
 
 const uuid = z.uuid()
 
-export const createProductSchema = z.object({
-  name: z.string().min(1).max(200),
-  brand: z.string().min(1).max(200),
-  category: z.enum(PRODUCT_CATEGORY_VALUES).nullable().optional(),
-  kind: z.string().min(1).max(100),
-  unit: z.string().min(1).max(50),
-  slug: z.string().max(100).optional(),
-  inci: z.string().max(5000).optional(),
-  description: z.string().max(5000).optional(),
-  totalAmount: z.number().int().min(1).optional(),
-  amountUnit: z.string().min(1).max(50).optional(),
-  url: z.url().max(2000).optional(),
-  imageUrl: z.url().max(2000).optional(),
-  notes: z.string().max(5000).optional(),
-  priceCents: z.number().int().min(0).optional(),
-})
+export const createProductSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    brand: z.string().min(1).max(200),
+    category: z.enum(PRODUCT_CATEGORY_VALUES),
+    kind: z.string().min(1).max(100),
+    unit: z.enum(PRODUCT_UNIT_VALUES),
+    slug: z.string().max(100).optional(),
+    inci: z.string().max(5000).optional(),
+    description: z.string().max(5000).optional(),
+    totalAmount: z.number().int().min(1).optional(),
+    amountUnit: z.string().min(1).max(50).optional(),
+    url: z.url().max(2000).optional(),
+    imageUrl: z.url().max(2000).optional(),
+    notes: z.string().max(5000).optional(),
+    priceCents: z.number().int().min(0).optional(),
+  })
+  .refine(
+    (d) => {
+      const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
+      return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
+    },
+    { message: 'kind is not valid for the given category' }
+  )
 
 export const updateProductSchema = z
   .object({
     name: z.string().min(1).max(200).optional(),
     brand: z.string().min(1).max(200).optional(),
-    category: z.enum(PRODUCT_CATEGORY_VALUES).nullable().optional(),
+    category: z.enum(PRODUCT_CATEGORY_VALUES).optional(),
     kind: z.string().min(1).max(100).optional(),
-    unit: z.string().min(1).max(50).optional(),
+    unit: z.enum(PRODUCT_UNIT_VALUES).optional(),
     slug: z.string().max(100).optional(),
     inci: z.string().max(5000).nullable().optional(),
     description: z.string().max(5000).nullable().optional(),
@@ -40,6 +49,28 @@ export const updateProductSchema = z
     priceCents: z.number().int().min(0).nullable().optional(),
   })
   .strict()
+  .superRefine((d, ctx) => {
+    const hasCategory = d.category !== undefined
+    const hasKind = d.kind !== undefined
+    if (hasCategory !== hasKind) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'category and kind must be updated together',
+        path: [hasCategory ? 'kind' : 'category'],
+      })
+      return
+    }
+    if (hasCategory && hasKind) {
+      const validKinds = PRODUCT_KINDS[d.category!]
+      if (!validKinds || !Object.values(validKinds).includes(d.kind as never)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'kind is not valid for the given category',
+          path: ['kind'],
+        })
+      }
+    }
+  })
 
 export const productResponseSchema = z.object({
   id: uuid,
@@ -49,7 +80,7 @@ export const productResponseSchema = z.object({
   brand: z.string(),
   category: z.enum(PRODUCT_CATEGORY_VALUES).nullable(),
   kind: z.string(),
-  unit: z.string(),
+  unit: z.enum(PRODUCT_UNIT_VALUES),
   inci: z.string().nullable(),
   description: z.string().nullable(),
   totalAmount: z.number().int().nullable(),
@@ -77,25 +108,6 @@ export const productEditResponseSchema = z.object({
   createdAt: z.date(),
 })
 
-export const filterOptionsSchema = z.object({
-  kinds: z.array(z.string()),
-  brands: z.array(z.string()),
-  tags: z.object({
-    routine_step: z.array(tagItemSchema),
-    skin_type: z.array(tagItemSchema),
-    skin_zone: z.array(tagItemSchema),
-    product_type: z.array(tagItemSchema),
-    concern: z.array(tagItemSchema),
-    // Attributs ex-'attribute' éclatés en 3 seaux distincts :
-    //   - skin_effect   : rendu sur peau (matifiant, occlusif, repulpant, …)
-    //   - product_label : labels de formulation (sans-parfum, vegan, …)
-    //   - shared_label  : labels molécule+produit (comedogene, non-comedogene)
-    skin_effect: z.array(tagItemSchema),
-    product_label: z.array(tagItemSchema),
-    shared_label: z.array(tagItemSchema),
-  }),
-})
-
 export const productsPageSchema = z.object({
   items: z.array(productResponseSchema),
   total: z.number().int(),
@@ -103,30 +115,12 @@ export const productsPageSchema = z.object({
   limit: z.number().int(),
 })
 
-export const listProductsQuery = z.object({
-  kind: z.string().optional(),
-  brand: z.string().optional(),
-  routine_step: z.string().optional(),
-  skin_type: z.string().optional(),
-  concern: z.string().optional(),
-  product_type: z.string().optional(),
-  ingredient: z.string().optional(),
-  skin_zone: z.string().optional(),
-  skin_effect: z.string().optional(),
-  product_label: z.string().optional(),
-  shared_label: z.string().optional(),
-  avoid_for: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(['name', 'random']).optional(),
-})
-
 const editableProductFields = {
   name: fieldChangeSchema(z.string()),
   brand: fieldChangeSchema(z.string()),
   category: fieldChangeSchema(z.enum(PRODUCT_CATEGORY_VALUES)),
   kind: fieldChangeSchema(z.string()),
-  unit: fieldChangeSchema(z.string()),
+  unit: fieldChangeSchema(z.enum(PRODUCT_UNIT_VALUES)),
   slug: fieldChangeSchema(z.string()),
   inci: fieldChangeSchema(z.string()),
   description: fieldChangeSchema(z.string()),
