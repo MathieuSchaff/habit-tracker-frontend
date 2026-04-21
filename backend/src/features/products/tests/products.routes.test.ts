@@ -17,8 +17,9 @@ import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 const VALID_PRODUCT = {
   name: 'Vitamine C',
   brand: 'Solgar',
-  kind: 'complément',
-  unit: 'gélule',
+  category: 'complement',
+  kind: 'gelule',
+  unit: 'bottle',
 }
 
 describe('Product Routes', () => {
@@ -147,8 +148,9 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Magnésium',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const res = await app.request('/products')
@@ -164,15 +166,16 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Sérum C',
         brand: 'The Ordinary',
-        kind: 'skincare',
+        category: 'skincare',
+        kind: 'serum',
         unit: 'pump',
       })
 
-      const res = await app.request('/products?kind=skincare')
+      const res = await app.request('/products?kind=serum')
 
       const data = await res.json()
       expect(data.data.total).toBe(1)
-      expect(data.data.items[0].kind).toBe('skincare')
+      expect(data.data.items[0].kind).toBe('serum')
     })
 
     it('should filter by brand', async () => {
@@ -181,7 +184,8 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Sérum C',
         brand: 'CeraVe',
-        kind: 'skincare',
+        category: 'skincare',
+        kind: 'serum',
         unit: 'pump',
       })
 
@@ -198,14 +202,16 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Magnésium',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
       await authPost(app, '/products', token, {
         name: 'Zinc',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const res = await app.request('/products?limit=2&page=1')
@@ -223,14 +229,16 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Magnésium',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
       await authPost(app, '/products', token, {
         name: 'Zinc',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const res = await app.request('/products?limit=2&page=2')
@@ -339,20 +347,23 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Serum C',
         brand: 'The Ordinary',
-        kind: 'skincare',
-        unit: 'ml',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'bottle',
       })
       await authPost(app, '/products', token, {
         name: 'SPF 50',
         brand: 'Avène',
-        kind: 'skincare',
-        unit: 'ml',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'bottle',
       })
       await authPost(app, '/products', token, {
         name: 'Niacinamide',
         brand: 'The Ordinary',
-        kind: 'skincare',
-        unit: 'ml',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'bottle',
       })
 
       const res = await app.request('/products/brands')
@@ -402,15 +413,16 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Sérum C',
         brand: 'CeraVe',
-        kind: 'skincare',
+        category: 'skincare',
+        kind: 'serum',
         unit: 'pump',
       })
 
       const res = await app.request('/products/filter-options')
       const data = await res.json()
 
-      expect(data.data.kinds).toContain('complément')
-      expect(data.data.kinds).toContain('skincare')
+      expect(data.data.kinds).toContain('gelule')
+      expect(data.data.kinds).toContain('serum')
       expect(data.data.brands).toContain('Solgar')
       expect(data.data.brands).toContain('CeraVe')
     })
@@ -419,6 +431,38 @@ describe('Product Routes', () => {
       const res = await app.request('/products/filter-options')
 
       expect(res.status).toBe(HTTP_STATUS.OK)
+    })
+  })
+
+  describe('GET /products/filter-options?category=', () => {
+    it('scopes brands and kinds to the requested tab', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      await authPost(app, '/products', token, {
+        name: 'Sérum Vitamine C',
+        brand: 'Brand-Skincare',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'pump',
+      })
+      await authPost(app, '/products', token, {
+        name: 'Shampoo Doux',
+        brand: 'Brand-Haircare',
+        category: 'haircare',
+        kind: 'shampoo',
+        unit: 'bottle',
+      })
+
+      const res = await app.request('/products/filter-options?category=haircare')
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      expect(data.data.brands).toEqual(['Brand-Haircare'])
+      expect(data.data.kinds).toEqual(['shampoo'])
+    })
+
+    it('rejects unknown category value', async () => {
+      const res = await app.request('/products/filter-options?category=nope')
+      expect(res.status).toBe(400)
     })
   })
 
@@ -505,8 +549,9 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Magnésium',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}`)
@@ -522,7 +567,8 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Sérum C',
         brand: 'CeraVe',
-        kind: 'skincare',
+        category: 'skincare',
+        kind: 'serum',
         unit: 'pump',
       })
 
@@ -555,14 +601,16 @@ describe('Product Routes', () => {
       await authPost(app, '/products', token, {
         name: 'Vitamine D',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
       await authPost(app, '/products', token, {
         name: 'Vitamine E',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}&limit=2`)
@@ -725,8 +773,9 @@ describe('Product Routes', () => {
       const r2 = await authPost(app, '/products', token, {
         name: 'Magnésium',
         brand: 'Solgar',
-        kind: 'complément',
-        unit: 'gélule',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
       })
 
       const { data: p1 } = await r1.json()

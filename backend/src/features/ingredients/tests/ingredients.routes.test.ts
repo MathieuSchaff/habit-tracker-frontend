@@ -17,7 +17,7 @@ import {
 } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
-const VALID_INGREDIENT = { name: 'Rétinol' }
+const VALID_INGREDIENT = { name: 'Rétinol', type: 'skincare' }
 
 describe('Ingredient Routes', () => {
   let app: Hono<AppEnv>
@@ -48,6 +48,7 @@ describe('Ingredient Routes', () => {
 
       const res = await authPost(app, '/ingredients', token, {
         name: 'Acide Ascorbique',
+        type: 'skincare',
         description: 'Forme pure de la vitamine C',
         content: '## Description\n\nActif antioxydant.',
         category: 'vitamine',
@@ -63,7 +64,7 @@ describe('Ingredient Routes', () => {
     it('should auto-generate slug from name', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, { name: 'Acide Hyaluronique' })
+      const res = await authPost(app, '/ingredients', token, { name: 'Acide Hyaluronique', type: 'skincare' })
       const data = await res.json()
 
       expect(data.data.slug).toBe('acide-hyaluronique')
@@ -79,6 +80,7 @@ describe('Ingredient Routes', () => {
 
       const res = await authPost(app, '/ingredients', token, {
         name: 'Niacinamide',
+        type: 'skincare',
         slug: 'niacin',
       })
       const data = await res.json()
@@ -91,6 +93,7 @@ describe('Ingredient Routes', () => {
 
       const res = await authPost(app, '/ingredients', token, {
         name: 'Niacinamide',
+        type: 'skincare',
         slug: 'niacin',
       })
       const data = await res.json()
@@ -106,9 +109,10 @@ describe('Ingredient Routes', () => {
       const { data: profile } = await profileRes.json()
       await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profile.userId))
 
-      await authPost(app, '/ingredients', token, { name: 'Magnésium', slug: 'magnesium' })
+      await authPost(app, '/ingredients', token, { name: 'Magnésium', type: 'skincare', slug: 'magnesium' })
       const res = await authPost(app, '/ingredients', token, {
         name: 'Magnésium Bis',
+        type: 'skincare',
         slug: 'magnesium',
       })
 
@@ -287,7 +291,7 @@ describe('Ingredient Routes', () => {
     it('should auto-update slug when name changes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, { name: 'Vitamine E' })
+      const createRes = await authPost(app, '/ingredients', token, { name: 'Vitamine E', type: 'skincare' })
       const { data: created } = await createRes.json()
 
       const res = await authPatch(app, `/ingredients/${created.id}`, token, {
@@ -361,7 +365,7 @@ describe('Ingredient Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       const r1 = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const r2 = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
 
       const { data: i1 } = await r1.json()
       const { data: i2 } = await r2.json()
@@ -456,7 +460,7 @@ describe('Ingredient Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       const r1 = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const r2 = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
 
       const { data: i1 } = await r1.json()
       const { data: i2 } = await r2.json()
@@ -473,6 +477,7 @@ describe('Ingredient Routes', () => {
 
       const createRes = await authPost(app, '/ingredients', token, {
         name: 'Rétinol',
+        type: 'skincare',
         description: 'Ancienne description',
       })
       const { data: created } = await createRes.json()
@@ -494,6 +499,7 @@ describe('Ingredient Routes', () => {
 
       const createRes = await authPost(app, '/ingredients', token, {
         name: 'Rétinol',
+        type: 'skincare',
         description: 'Description inchangée',
       })
       const { data: created } = await createRes.json()
@@ -510,7 +516,7 @@ describe('Ingredient Routes', () => {
     it('should not track slug in edits when name changes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, { name: 'Vitamine C' })
+      const createRes = await authPost(app, '/ingredients', token, { name: 'Vitamine C', type: 'skincare' })
       const { data: created } = await createRes.json()
 
       const patchRes = await authPatch(app, `/ingredients/${created.id}`, token, {

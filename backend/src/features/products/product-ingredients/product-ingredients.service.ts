@@ -30,7 +30,7 @@ export async function addIngredientToProduct(db: DB, data: CreateProductIngredie
   return link
 }
 export async function addManyIngredientsToProduct(
-  db: Database,
+  db: DB,
   data: CreateProductIngredientInput[]
 ): Promise<ProductIngredient[]> {
   if (data.length === 0) return []

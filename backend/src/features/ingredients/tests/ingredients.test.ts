@@ -22,9 +22,9 @@ let user: any
 
 async function makeIngredient(
   name: string,
-  extra: { category?: string; description?: string; slug?: string; content?: string } = {}
+  extra: { type?: string; category?: string; description?: string; slug?: string; content?: string } = {}
 ) {
-  return createIngredient(testDb, user.id, { name, ...extra })
+  return createIngredient(testDb, user.id, { name, type: 'skincare', ...extra })
 }
 
 async function makeTag(name: string, category?: string) {
@@ -101,7 +101,7 @@ describe('Ingredient Service', () => {
     it('should allow different users to create ingredients with different names', async () => {
       const other = await createTestUser('other@test.com')
       const i1 = await makeIngredient('Rétinol')
-      const i2 = await createIngredient(testDb, other.id, { name: 'Bakuchiol' })
+      const i2 = await createIngredient(testDb, other.id, { name: 'Bakuchiol', type: 'skincare' })
 
       expect(i1.id).not.toBe(i2.id)
     })

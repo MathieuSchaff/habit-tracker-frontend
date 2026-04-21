@@ -29,7 +29,7 @@ describe('User Products Service', () => {
     user = await createTestUser('user@test.com')
     product = await createProduct(
       user.id,
-      { name: 'Vitamine C', brand: 'Solgar', kind: 'complément', unit: 'gélule' },
+      { name: 'Vitamine C', brand: 'Solgar', category: 'skincare', kind: 'complément', unit: 'gélule' },
       testDb
     )
   })

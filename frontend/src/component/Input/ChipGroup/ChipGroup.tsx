@@ -6,6 +6,7 @@ import './ChipGroup.css'
 type ChipOption<T extends string> = {
   value: T
   label: string
+  count?: number
 }
 
 type ChipGroupProps<T extends string> = {
@@ -61,9 +62,23 @@ export function ChipGroup<T extends string>({
 
   const isRadio = mode === 'exclusive'
 
-  const chips = visibleOptions.map(({ value, label }) => {
+  const chips = visibleOptions.map(({ value, label, count }) => {
     const isSelected = selected.includes(value)
     const isDisabled = disabled || (!isSelected && max != null && selected.length >= max)
+
+    const content = (
+      <>
+        {label}
+        {count !== undefined && (
+          <>
+            <span className="chip__count" aria-hidden="true">
+              {count}
+            </span>
+            <span className="sr-only"> ({count} résultats)</span>
+          </>
+        )}
+      </>
+    )
 
     return isRadio ? (
       <label
@@ -85,7 +100,7 @@ export function ChipGroup<T extends string>({
           tabIndex={chipTabIndex}
           onKeyDown={onChipKeyDown}
         />
-        {label}
+        {content}
       </label>
     ) : (
       <button
@@ -98,7 +113,7 @@ export function ChipGroup<T extends string>({
         tabIndex={chipTabIndex}
         onKeyDown={onChipKeyDown}
       >
-        {label}
+        {content}
       </button>
     )
   })

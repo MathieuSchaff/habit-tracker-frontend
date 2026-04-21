@@ -1,0 +1,19 @@
+.sort-control__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.sort-control__check {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}

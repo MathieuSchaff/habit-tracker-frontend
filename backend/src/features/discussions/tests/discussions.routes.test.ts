@@ -12,8 +12,9 @@ import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 const VALID_PRODUCT = {
   name: 'Vitamine C Discussions',
   brand: 'Solgar',
-  kind: 'complément',
-  unit: 'gélule',
+  category: 'complement',
+  kind: 'gelule',
+  unit: 'bottle',
 }
 const VALID_THREAD = {
   title: "Ce produit m'a fait des boutons",

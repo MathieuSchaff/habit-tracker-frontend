@@ -1,13 +1,33 @@
 import type {
   CreateProductInput,
-  ListProductsFilters,
+  ProductKind,
   ProductSearchResult,
+  ProductUnit,
+  SkincareListProductsFilters,
   UpdateProductInput,
 } from '@habit-tracker/shared'
-import { type ProductTagCategory, productFilterCategories } from '@habit-tracker/shared'
+import {
+  PRODUCT_DOMAIN_DB_CATEGORIES,
+  type ProductDomainTab,
+  type SkincareProductTagCategory,
+  skincareProductFilterCategories,
+} from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, asc, count, eq, ilike, inArray, notInArray, or, type SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  notInArray,
+  or,
+  type SQL,
+  sql,
+} from 'drizzle-orm'
 import { ingredients, productIngredients } from 'src/db/schema'
 import { listIngredientsByProduct } from 'src/features/products/product-ingredients/product-ingredients.service'
 
@@ -32,8 +52,8 @@ export async function createProduct(userId: string, input: CreateProductInput, d
         createdBy: userId,
         name,
         brand,
-        kind: normalize(input.kind),
-        unit: normalize(input.unit),
+        kind: normalize(input.kind) as ProductKind,
+        unit: normalize(input.unit) as ProductUnit,
         amountUnit: input.amountUnit ? normalize(input.amountUnit) : input.amountUnit,
         slug: slugify(slug),
       })
@@ -55,6 +75,7 @@ async function getProductRow(condition: SQL, database: Database) {
       slug: products.slug,
       name: products.name,
       brand: products.brand,
+      category: products.category,
       description: products.description,
       inci: products.inci,
       totalAmount: products.totalAmount,
@@ -98,6 +119,7 @@ const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt'])
 const TRACKED_FIELDS = [
   'name',
   'brand',
+  'category',
   'kind',
   'unit',
   'inci',
@@ -197,7 +219,7 @@ export type ProductsPage = {
 
 // This is the search with many filters
 export async function listProducts(
-  filters: ListProductsFilters = { page: 1, limit: 20 },
+  filters: SkincareListProductsFilters = { page: 1, limit: 20 },
   database: Database = db
 ): Promise<ProductsPage> {
   const page = filters.page ?? 1
@@ -206,10 +228,16 @@ export async function listProducts(
 
   const conditions: SQL[] = []
 
+  if (filters.category) {
+    conditions.push(inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[filters.category]]))
+  }
+
   if (filters.kind) {
     const kinds = Array.isArray(filters.kind) ? filters.kind : filters.kind.split(',')
     conditions.push(
-      kinds.length === 1 ? eq(products.kind, kinds[0]) : inArray(products.kind, kinds)
+      kinds.length === 1
+        ? eq(products.kind, kinds[0] as ProductKind)
+        : inArray(products.kind, kinds as ProductKind[])
     )
   }
 
@@ -266,6 +294,15 @@ export async function listProducts(
     )
   }
 
+  // Price range — NULL priceCents is excluded when either bound is active
+  // (NULL comparisons in SQL are falsy, so gte/lte naturally drops them).
+  if (filters.priceMin !== undefined) {
+    conditions.push(gte(products.priceCents, filters.priceMin))
+  }
+  if (filters.priceMax !== undefined) {
+    conditions.push(lte(products.priceCents, filters.priceMax))
+  }
+
   if (filters.avoid_for) {
     const slugs = filters.avoid_for.split(',').filter(Boolean)
     if (slugs.length > 0) {
@@ -284,7 +321,22 @@ export async function listProducts(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
-  const orderBy = filters.sort === 'random' ? sql`random()` : products.name
+  // NULLS LAST on price/date sorts so products without the field
+  // don't surface at the top of the list.
+  const orderBy = (() => {
+    switch (filters.sort) {
+      case 'random':
+        return sql`random()`
+      case 'price_asc':
+        return sql`${products.priceCents} ASC NULLS LAST`
+      case 'price_desc':
+        return sql`${products.priceCents} DESC NULLS LAST`
+      case 'newest':
+        return sql`${products.createdAt} DESC NULLS LAST`
+      default:
+        return products.name
+    }
+  })()
 
   const [items, countResult] = await Promise.all([
     database
@@ -310,30 +362,67 @@ export async function listProducts(
   const total = countResult[0]?.total ?? 0
   return { items, total, page, limit }
 }
-type ProductFilterCategory = ProductTagCategory
+type ProductFilterCategory = SkincareProductTagCategory
 
-const PRODUCT_FILTER_CATEGORIES = productFilterCategories()
+const PRODUCT_FILTER_CATEGORIES = skincareProductFilterCategories()
 
 export type FilterOptions = {
   kinds: string[]
   brands: string[]
-  tags: Record<ProductFilterCategory, { name: string; slug: string }[]>
+  tags: Record<ProductFilterCategory, { name: string; slug: string; count: number }[]>
 }
 
-export async function getFilterOptions(database: Database = db): Promise<FilterOptions> {
+export async function getFilterOptions(
+  database: Database = db,
+  category?: ProductDomainTab
+): Promise<FilterOptions> {
+  const dbCategories = category ? [...PRODUCT_DOMAIN_DB_CATEGORIES[category]] : null
+  const productScope = dbCategories ? inArray(products.category, dbCategories) : undefined
+
+  // count is the number of distinct products associated with a given tag,
+  // all relevances combined — aligned with the current tag filter logic in
+  // listProducts (no relevance filter on positive filters).
   const [kindRows, brandRows, tagRows] = await Promise.all([
-    database.selectDistinct({ kind: products.kind }).from(products).orderBy(products.kind),
-    database.selectDistinct({ brand: products.brand }).from(products).orderBy(products.brand),
     database
-      .selectDistinct({
-        name: productTagsDefs.label,
-        slug: productTagsDefs.slug,
-        category: productTagsDefs.tagType,
-      })
-      .from(productTagsDefs)
-      .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
-      .where(inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES))
-      .orderBy(productTagsDefs.tagType, productTagsDefs.label),
+      .selectDistinct({ kind: products.kind })
+      .from(products)
+      .where(productScope)
+      .orderBy(products.kind),
+    database
+      .selectDistinct({ brand: products.brand })
+      .from(products)
+      .where(productScope)
+      .orderBy(products.brand),
+    // Non-skincare tabs have no product tag taxonomy yet — short-circuit the JOIN.
+    category && category !== 'skincare'
+      ? Promise.resolve(
+          [] as { name: string; slug: string; category: string | null; count: number }[]
+        )
+      : database
+          .select({
+            name: productTagsDefs.label,
+            slug: productTagsDefs.slug,
+            category: productTagsDefs.tagType,
+            count: count(tagProducts.productId),
+          })
+          .from(productTagsDefs)
+          .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
+          .innerJoin(products, eq(tagProducts.productId, products.id))
+          .where(
+            dbCategories
+              ? and(
+                  inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES),
+                  inArray(products.category, dbCategories)
+                )
+              : inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES)
+          )
+          .groupBy(
+            productTagsDefs.id,
+            productTagsDefs.label,
+            productTagsDefs.slug,
+            productTagsDefs.tagType
+          )
+          .orderBy(productTagsDefs.tagType, productTagsDefs.label),
   ])
 
   const tagsByCategory = Object.fromEntries(
@@ -344,7 +433,7 @@ export async function getFilterOptions(database: Database = db): Promise<FilterO
     if (!tag.category) continue
     const bucket = tag.category as ProductFilterCategory
     if (bucket in tagsByCategory) {
-      tagsByCategory[bucket].push({ name: tag.name, slug: tag.slug })
+      tagsByCategory[bucket].push({ name: tag.name, slug: tag.slug, count: tag.count })
     }
   }
 

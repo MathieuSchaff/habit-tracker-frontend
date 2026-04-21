@@ -18,7 +18,8 @@ import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 const VALID_PRODUCT = {
   name: 'Sérum Rétinol',
   brand: 'The Ordinary',
-  kind: 'skincare',
+  category: 'skincare',
+  kind: 'serum',
   unit: 'pump',
 }
 
@@ -52,6 +53,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await authPost(app, '/ingredients', token, {
         name: 'Rétinol',
+        type: 'skincare',
         description: 'Dérivé de la vitamine A',
         category: 'actif',
       })
@@ -86,13 +88,14 @@ describe('Product Ingredients Routes', () => {
       const r2 = await authPost(app, '/products', token, {
         name: 'Autre Sérum',
         brand: 'CeraVe',
-        kind: 'skincare',
+        category: 'skincare',
+        kind: 'serum',
         unit: 'pump',
       })
       const { data: p1 } = await r1.json()
       const { data: p2 } = await r2.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${p1.id}/ingredients`, token, {
@@ -117,7 +120,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Zinc' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Zinc', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -140,7 +143,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -165,7 +168,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -212,7 +215,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -240,7 +243,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -318,7 +321,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -340,7 +343,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -359,8 +362,8 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const r1 = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc' })
+      const r1 = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
+      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc', type: 'skincare' })
       const { data: i1 } = await r1.json()
       const { data: i2 } = await r2.json()
 
@@ -409,8 +412,8 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const r1 = await authPost(app, '/ingredients', token, { name: 'Ancien' })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Nouveau' })
+      const r1 = await authPost(app, '/ingredients', token, { name: 'Ancien', type: 'skincare' })
+      const r2 = await authPost(app, '/ingredients', token, { name: 'Nouveau', type: 'skincare' })
       const { data: old } = await r1.json()
       const { data: nouveau } = await r2.json()
 
@@ -436,7 +439,7 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol' })
+      const ingredientRes = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
       const { data: ingredient } = await ingredientRes.json()
 
       await authPost(app, `/products/${product.id}/ingredients`, token, {
@@ -462,8 +465,8 @@ describe('Product Ingredients Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const r1 = await authPost(app, '/ingredients', token, { name: 'Niacinamide' })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc' })
+      const r1 = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
+      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc', type: 'skincare' })
       const { data: i1 } = await r1.json()
       const { data: i2 } = await r2.json()
 
