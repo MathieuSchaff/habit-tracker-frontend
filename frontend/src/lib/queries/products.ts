@@ -1,4 +1,5 @@
 import type {
+  AllProductTagCategory,
   CreateProductInput,
   ProductDomainTab,
   UpdateProductInput,
@@ -6,22 +7,17 @@ import type {
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { TAG_FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
 
 export type ProductSort = 'name' | 'random' | 'price_asc' | 'price_desc' | 'newest'
 
+// Pre-serialization shape: arrays allowed (buildListProductsQuery converts to CSV).
+// Kept local (not shared discriminated union) because Hono RPC expects Record<string,string>.
 export type ListProductsFilters = {
   category?: ProductDomainTab
   kind?: string | string[]
   brand?: string | string[]
-  skin_type?: string | string[]
-  skin_zone?: string | string[]
-  product_type?: string | string[]
-  concern?: string | string[]
-  skin_effect?: string | string[]
-  product_label?: string | string[]
-  shared_label?: string | string[]
-  routine_step?: string | string[]
   ingredient?: string | string[]
   avoid_for?: string | string[]
   sort?: ProductSort
@@ -29,11 +25,8 @@ export type ListProductsFilters = {
   priceMax?: number
   page?: number
   limit?: number
-}
+} & { [K in AllProductTagCategory]?: string | string[] }
 
-// The list API accepts comma-separated strings, not real arrays, so arrays
-// are joined before sending. Numeric params are stringified. Keys are omitted
-// entirely when the corresponding filter is undefined / empty.
 export function buildListProductsQuery(
   filters: ListProductsFilters
 ): Record<string, string | string[]> {
@@ -49,24 +42,18 @@ export function buildListProductsQuery(
 
   if (filters.category !== undefined) query.category = filters.category
 
+  for (const key of TAG_FILTER_KEYS) {
+    addParam(key, (filters as Record<string, string | string[] | undefined>)[key])
+  }
+
   addParam('kind', filters.kind)
   addParam('brand', filters.brand)
-  addParam('skin_type', filters.skin_type)
-  addParam('skin_zone', filters.skin_zone)
-  addParam('product_type', filters.product_type)
-  addParam('concern', filters.concern)
-  addParam('skin_effect', filters.skin_effect)
-  addParam('product_label', filters.product_label)
-  addParam('shared_label', filters.shared_label)
-  addParam('routine_step', filters.routine_step)
   addParam('ingredient', filters.ingredient)
   addParam('avoid_for', filters.avoid_for)
 
   if (filters.sort !== undefined) query.sort = filters.sort
-
   if (filters.priceMin !== undefined) query.priceMin = String(filters.priceMin)
   if (filters.priceMax !== undefined) query.priceMax = String(filters.priceMax)
-
   if (filters.page !== undefined) query.page = String(filters.page)
   if (filters.limit !== undefined) query.limit = String(filters.limit)
 
@@ -101,7 +88,12 @@ export const productQueries = {
     queryOptions({
       queryKey: productKeys.list(filters),
       queryFn: async () => {
-        const query = buildListProductsQuery(filters)
+        // Hono RPC types the query as a Zod discriminated union on `category`.
+        // buildListProductsQuery returns a stringified record that the backend
+        // validator accepts at runtime; the cast bridges that shape gap.
+        const query = buildListProductsQuery(filters) as Parameters<
+          typeof api.products.$get
+        >[0]['query']
         const res = await api.products.$get({ query })
         if (!res.ok) throw new Error('Failed to fetch products')
         const json = await res.json()

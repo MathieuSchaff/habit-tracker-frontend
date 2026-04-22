@@ -1,6 +1,12 @@
 import type { SupplementProductTagSlug } from './tag-slugs'
 
-export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [] as const
+export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [
+  'goal',
+  'product_type',
+  'moment',
+  'restriction',
+  'product_label',
+] as const
 
 export type SupplementProductTagCategory = (typeof SUPPLEMENT_PRODUCT_TAG_CATEGORIES)[number]
 

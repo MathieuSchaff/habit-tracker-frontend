@@ -7,10 +7,10 @@ import type {
   UpdateProductInput,
 } from '@habit-tracker/shared'
 import {
+  type AllProductTagCategory,
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
   PRODUCT_DOMAIN_DB_CATEGORIES,
   type ProductDomainTab,
-  type SkincareProductTagCategory,
-  skincareProductFilterCategories,
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
@@ -362,14 +362,10 @@ export async function listProducts(
   const total = countResult[0]?.total ?? 0
   return { items, total, page, limit }
 }
-type ProductFilterCategory = SkincareProductTagCategory
-
-const PRODUCT_FILTER_CATEGORIES = skincareProductFilterCategories()
-
 export type FilterOptions = {
   kinds: string[]
   brands: string[]
-  tags: Record<ProductFilterCategory, { name: string; slug: string; count: number }[]>
+  tags: Partial<Record<AllProductTagCategory, { name: string; slug: string; count: number }[]>>
 }
 
 export async function getFilterOptions(
@@ -378,6 +374,14 @@ export async function getFilterOptions(
 ): Promise<FilterOptions> {
   const dbCategories = category ? [...PRODUCT_DOMAIN_DB_CATEGORIES[category]] : null
   const productScope = dbCategories ? inArray(products.category, dbCategories) : undefined
+
+  // Resolve which tag categories to expose for this domain tab.
+  // No-category (admin/all view): deduplicated union across all 4 domains.
+  const filterCategories: readonly AllProductTagCategory[] = category
+    ? DOMAIN_PRODUCT_FILTER_CATEGORIES[category]
+    : ([
+        ...new Set(Object.values(DOMAIN_PRODUCT_FILTER_CATEGORIES).flat()),
+      ] as AllProductTagCategory[])
 
   // count is the number of distinct products associated with a given tag,
   // all relevances combined — aligned with the current tag filter logic in
@@ -393,47 +397,42 @@ export async function getFilterOptions(
       .from(products)
       .where(productScope)
       .orderBy(products.brand),
-    // Non-skincare tabs have no product tag taxonomy yet — short-circuit the JOIN.
-    category && category !== 'skincare'
-      ? Promise.resolve(
-          [] as { name: string; slug: string; category: string | null; count: number }[]
-        )
-      : database
-          .select({
-            name: productTagsDefs.label,
-            slug: productTagsDefs.slug,
-            category: productTagsDefs.tagType,
-            count: count(tagProducts.productId),
-          })
-          .from(productTagsDefs)
-          .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
-          .innerJoin(products, eq(tagProducts.productId, products.id))
-          .where(
-            dbCategories
-              ? and(
-                  inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES),
-                  inArray(products.category, dbCategories)
-                )
-              : inArray(productTagsDefs.tagType, PRODUCT_FILTER_CATEGORIES)
-          )
-          .groupBy(
-            productTagsDefs.id,
-            productTagsDefs.label,
-            productTagsDefs.slug,
-            productTagsDefs.tagType
-          )
-          .orderBy(productTagsDefs.tagType, productTagsDefs.label),
+    database
+      .select({
+        name: productTagsDefs.label,
+        slug: productTagsDefs.slug,
+        category: productTagsDefs.tagType,
+        count: count(tagProducts.productId),
+      })
+      .from(productTagsDefs)
+      .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
+      .innerJoin(products, eq(tagProducts.productId, products.id))
+      .where(
+        dbCategories
+          ? and(
+              inArray(productTagsDefs.tagType, filterCategories as string[]),
+              inArray(products.category, dbCategories)
+            )
+          : inArray(productTagsDefs.tagType, filterCategories as string[])
+      )
+      .groupBy(
+        productTagsDefs.id,
+        productTagsDefs.label,
+        productTagsDefs.slug,
+        productTagsDefs.tagType
+      )
+      .orderBy(productTagsDefs.tagType, productTagsDefs.label),
   ])
 
   const tagsByCategory = Object.fromEntries(
-    PRODUCT_FILTER_CATEGORIES.map((c) => [c, []])
-  ) as unknown as FilterOptions['tags']
+    filterCategories.map((c) => [c, []])
+  ) as FilterOptions['tags']
 
   for (const tag of tagRows) {
     if (!tag.category) continue
-    const bucket = tag.category as ProductFilterCategory
+    const bucket = tag.category as AllProductTagCategory
     if (bucket in tagsByCategory) {
-      tagsByCategory[bucket].push({ name: tag.name, slug: tag.slug, count: tag.count })
+      tagsByCategory[bucket]!.push({ name: tag.name, slug: tag.slug, count: tag.count })
     }
   }
 

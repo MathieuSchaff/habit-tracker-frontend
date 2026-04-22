@@ -1,6 +1,13 @@
 import type { HaircareProductTagSlug } from './tag-slugs'
 
-export const HAIRCARE_PRODUCT_TAG_CATEGORIES = [] as const
+export const HAIRCARE_PRODUCT_TAG_CATEGORIES = [
+  'hair_type',
+  'concern',
+  'product_type',
+  'routine_step',
+  'hair_effect',
+  'product_label',
+] as const
 
 export type HaircareProductTagCategory = (typeof HAIRCARE_PRODUCT_TAG_CATEGORIES)[number]
 
