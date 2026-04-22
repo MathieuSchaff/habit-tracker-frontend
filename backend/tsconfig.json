@@ -32,8 +32,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/**/*.test.ts", // Exclut tous les fichiers .test.ts
-    "src/db/seed/**/*" // Ignore TOUT le contenu du dossier seed (fichiers et sous-dossiers)
+    "src/**/*.test.ts" // Exclut tous les fichiers .test.ts
   ], // Ignore les dépendances et les fichiers déjà compilés
 
   /* References doit être à la racine du JSON */

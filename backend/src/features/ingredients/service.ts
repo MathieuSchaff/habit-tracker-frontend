@@ -2,15 +2,16 @@ import type {
   CreateIngredientInput,
   FieldChange,
   IngredientChanges,
-  IngredientFilterOptions,
-  IngredientSearchFilters,
+  IngredientType,
+  SkincareIngredientFilterOptions,
+  SkincareIngredientSearchFilters,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
-  type IngredientTagCategory,
   ingredientChangesSchema,
-  ingredientFilterCategories,
+  type SkincareIngredientTagCategory,
+  skincareIngredientFilterCategories,
   updateIngredientSchema,
 } from '@habit-tracker/shared'
 
@@ -32,7 +33,7 @@ const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 // they change automatically, like the slug.
 const AUDIT_EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug', 'updatedAt'])
 
-export async function listIngredients(database: DB, filters: IngredientSearchFilters) {
+export async function listIngredients(database: DB, filters: SkincareIngredientSearchFilters) {
   const conditions: SQL[] = []
   const page = filters.page ?? 1
   const limit = filters.limit ?? 20
@@ -70,7 +71,7 @@ export async function listIngredients(database: DB, filters: IngredientSearchFil
   addTagGroup(sharedLabels)
 
   if (ingredientTypes.length > 0) {
-    conditions.push(inArray(ingredients.type, ingredientTypes))
+    conditions.push(inArray(ingredients.type, ingredientTypes as IngredientType[]))
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
@@ -313,9 +314,11 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .limit(limit)
 }
 
-const INGREDIENT_FILTER_CATEGORIES = ingredientFilterCategories()
+const INGREDIENT_FILTER_CATEGORIES = skincareIngredientFilterCategories()
 
-export async function getIngredientFilterOptions(database: DB): Promise<IngredientFilterOptions> {
+export async function getIngredientFilterOptions(
+  database: DB
+): Promise<SkincareIngredientFilterOptions> {
   const tagRows = await database
     .selectDistinct({
       name: ingredientTagsDefs.label,
@@ -329,11 +332,11 @@ export async function getIngredientFilterOptions(database: DB): Promise<Ingredie
 
   const empty = Object.fromEntries(
     INGREDIENT_FILTER_CATEGORIES.map((c) => [c, []])
-  ) as unknown as IngredientFilterOptions['tags']
+  ) as unknown as SkincareIngredientFilterOptions['tags']
 
   for (const tag of tagRows) {
     if (!tag.category) continue
-    const bucket = tag.category as IngredientTagCategory
+    const bucket = tag.category as SkincareIngredientTagCategory
     if (bucket in empty) {
       empty[bucket].push({ name: tag.name, slug: tag.slug })
     }

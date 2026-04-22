@@ -1,8 +1,8 @@
 import {
   createIngredientSchema,
   HTTP_STATUS,
-  ingredientsSearchSchema,
   ok,
+  skincareIngredientsSearchSchema,
   updateIngredientRouteSchema,
 } from '@habit-tracker/shared'
 
@@ -68,7 +68,7 @@ export const ingredientRoutes = ingredientsApp
     const items = await listAllIngredientOptions(db)
     return c.json(ok(items), HTTP_STATUS.OK)
   })
-  .get('/', zValidator('query', ingredientsSearchSchema), async (c) => {
+  .get('/', zValidator('query', skincareIngredientsSearchSchema), async (c) => {
     const db = c.get('db')
     const query = c.req.valid('query')
     const { items, total } = await listIngredients(db, query)

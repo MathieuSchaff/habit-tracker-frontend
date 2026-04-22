@@ -1,4 +1,14 @@
-import type { Purchase, RepurchaseFlag, UserProductStatus } from '@habit-tracker/shared'
+import type {
+  IngredientType,
+  ProductCategory,
+  ProductKind,
+  ProductUnit,
+  Purchase,
+  RepurchaseFlag,
+  SkincareIngredientCategory,
+  SupplementCategory,
+  UserProductStatus,
+} from '@habit-tracker/shared'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { type RenderOptions, render } from '@testing-library/react'
@@ -71,8 +81,8 @@ export function makeUserProduct(
       createdAt: string
       updatedAt: string
       createdBy: string
-      kind: string
-      unit: string
+      kind: ProductKind
+      unit: ProductUnit
       inci: string | null
       description: string | null
       totalAmount: number | null
@@ -80,7 +90,7 @@ export function makeUserProduct(
       amountUnit: string
       slug: string
       url: string | null
-      category: string | null
+      category: ProductCategory
       imageUrl: string | null
       notes: string | null
       productIngredients: {
@@ -96,8 +106,8 @@ export function makeUserProduct(
           id: string
           name: string
           slug: string
-          type: string
-          category: string | null
+          type: IngredientType
+          category: SkincareIngredientCategory | SupplementCategory | null
           description: string
           content: string
           createdBy: string
@@ -152,8 +162,8 @@ export function makeUserProduct(
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       createdBy: 'test-user-1',
-      kind: 'skincare',
-      unit: 'flacon pompe',
+      kind: 'cleanser' as ProductKind,
+      unit: 'pump' as ProductUnit,
       inci: null,
       description: null,
       totalAmount: null,
@@ -163,7 +173,7 @@ export function makeUserProduct(
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,
-      category: null,
+      category: 'skincare' as ProductCategory,
       imageUrl: null,
       notes: null,
     },
