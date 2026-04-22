@@ -572,15 +572,45 @@ describe('Product Service', () => {
         expect(options.kinds.sort()).toEqual(['serum', 'sunscreen'])
       })
 
-      it('returns empty tags for non-skincare tabs (taxonomy not yet seeded)', async () => {
+      it('returns haircare tag buckets (empty when no tags seeded)', async () => {
         await makeProduct('Shampoing', 'Brand', 'shampoo', 'bottle', { category: 'haircare' })
 
         const options = await getFilterOptions(testDb, 'haircare')
         expect(options.brands).toEqual(['Brand'])
         expect(options.kinds).toEqual(['shampoo'])
+        // haircare keys present, all empty because no haircare tags are linked in this test
+        expect(options.tags).toHaveProperty('hair_type')
+        expect(options.tags).toHaveProperty('concern')
+        expect(options.tags).toHaveProperty('hair_effect')
+        expect(options.tags).not.toHaveProperty('skin_type')
+        expect(options.tags).not.toHaveProperty('goal')
         for (const bucket of Object.values(options.tags)) {
           expect(bucket).toEqual([])
         }
+      })
+
+      it('returns haircare tags linked to haircare products', async () => {
+        const hairTag = await createProductTag(testDb, { name: 'Cheveux bouclés', category: 'hair_type' })
+        const p = await makeProduct('Shampoing Boucles', 'Brand', 'shampoo', 'bottle', { category: 'haircare' })
+        await replaceProductTags(testDb, p.id, [hairTag.id])
+
+        const options = await getFilterOptions(testDb, 'haircare')
+        const hairTypes = options.tags.hair_type ?? []
+        expect(hairTypes).toHaveLength(1)
+        expect(hairTypes[0]?.slug).toBe(hairTag.slug)
+        expect(hairTypes[0]?.count).toBe(1)
+        // skincare tag category must not be present
+        expect(options.tags).not.toHaveProperty('skin_type')
+      })
+
+      it('does not return haircare tags when scoped to skincare tab', async () => {
+        const hairTag = await createProductTag(testDb, { name: 'Cheveux fins', category: 'hair_type' })
+        const p = await makeProduct('Shampoing', 'Brand', 'shampoo', 'bottle', { category: 'haircare' })
+        await replaceProductTags(testDb, p.id, [hairTag.id])
+
+        const options = await getFilterOptions(testDb, 'skincare')
+        const allSlugs = Object.values(options.tags).flat().map((t) => t.slug)
+        expect(allSlugs).not.toContain(hairTag.slug)
       })
 
       it('omitting category keeps current (unscoped) behavior', async () => {

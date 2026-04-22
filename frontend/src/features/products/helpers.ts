@@ -1,8 +1,8 @@
-import type { ProductDomainTab } from '@habit-tracker/shared'
+import { DOMAIN_PRODUCT_FILTER_CATEGORIES, type ProductDomainTab } from '@habit-tracker/shared'
 
 import type { FilterValues } from '@/component/Filter'
 import type { ListProductsFilters, ProductSort } from '@/lib/queries/products'
-import { FILTER_KEYS, type FilterKey } from './filters'
+import type { TagFilterKey } from './filters'
 
 export function hasActivePriceRange(priceMin?: number, priceMax?: number): boolean {
   return priceMin !== undefined || priceMax !== undefined
@@ -19,7 +19,9 @@ export function isDiscoveryMode(args: {
 }
 
 export function buildProductsApiFilters(args: {
-  filters: FilterValues<FilterKey>
+  category: ProductDomainTab
+  kind: string[]
+  filters: FilterValues<TagFilterKey>
   avoidFor: string[]
   sort: ProductSort
   priceMin?: number
@@ -31,15 +33,21 @@ export function buildProductsApiFilters(args: {
   const avoidFor = args.avoidFor.length > 0 ? args.avoidFor : undefined
 
   if (isDiscoveryMode({ hasFilters: args.hasFilters, hasPriceRange, sort: args.sort })) {
-    return { sort: 'random', limit: 12, avoid_for: avoidFor }
+    return { category: args.category, sort: 'random', limit: 12, avoid_for: avoidFor }
   }
 
+  const domainKeys = DOMAIN_PRODUCT_FILTER_CATEGORIES[args.category]
   const tagFields = Object.fromEntries(
-    FILTER_KEYS.map((k) => [k, args.filters[k].length > 0 ? args.filters[k] : undefined])
+    domainKeys.map((k) => {
+      const val = args.filters[k as TagFilterKey]
+      return [k, val?.length > 0 ? val : undefined]
+    })
   ) as Partial<ListProductsFilters>
 
   return {
+    category: args.category,
     ...tagFields,
+    kind: args.kind.length > 0 ? args.kind : undefined,
     avoid_for: avoidFor,
     sort: args.sort,
     priceMin: args.priceMin,

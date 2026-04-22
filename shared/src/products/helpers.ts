@@ -1,17 +1,12 @@
 import type { HttpStatus } from '../core'
 import { HTTP_STATUS } from '../core'
+import { type DentalProductTagCategory, dentalProductFilterCategories } from './dental'
+import type { ProductDomainTab } from './domain-tabs'
+import { type HaircareProductTagCategory, haircareProductFilterCategories } from './haircare'
+import { type SkincareProductTagCategory, skincareProductFilterCategories } from './skincare'
+import { type SupplementProductTagCategory, supplementProductFilterCategories } from './supplement'
 import type { ProductErrorCode } from './types'
 
-/**
- * Mapping des codes d'erreur products vers les status HTTP correspondants.
- *
- * @remarks
- * Utilisé avec {@link errorToStatus} pour résoudre le status HTTP
- * à partir d'un code d'erreur product.
- * @example
- * const status = errorToStatus(error.code, productErrorMapping)
- * return c.json(err(error.code), status)
- */
 export const productErrorMapping = {
   product_not_found: HTTP_STATUS.NOT_FOUND,
   product_creation_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -21,3 +16,22 @@ export const productErrorMapping = {
   unauthorized_access: HTTP_STATUS.FORBIDDEN,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
 } as const satisfies Record<ProductErrorCode, HttpStatus>
+
+export type AllProductTagCategory =
+  | SkincareProductTagCategory
+  | HaircareProductTagCategory
+  | DentalProductTagCategory
+  | SupplementProductTagCategory
+
+// Maps each domain tab to its tag filter category keys.
+// Used by both frontend (buildProductsApiFilters, filterSearchSchema) and backend
+// (getFilterOptions — future fix).
+export const DOMAIN_PRODUCT_FILTER_CATEGORIES: Record<
+  ProductDomainTab,
+  readonly AllProductTagCategory[]
+> = {
+  skincare: skincareProductFilterCategories(),
+  haircare: haircareProductFilterCategories(),
+  dental: dentalProductFilterCategories(),
+  complement: supplementProductFilterCategories(), // tab "complement" → domaine supplement
+}
