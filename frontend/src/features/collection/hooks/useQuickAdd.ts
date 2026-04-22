@@ -1,4 +1,4 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import type { ProductCategory, ProductUnit, UserProductStatus } from '@habit-tracker/shared'
 
 import type React from 'react'
 import { useState } from 'react'
@@ -28,9 +28,18 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
 
   const [newName, setNewName] = useState('')
   const [newBrand, setNewBrand] = useState('')
-  const [newKind, setNewKind] = useState('skincare')
-  const [newUnit] = useState('flacon pompe')
+  const [newCategory, setNewCategory] = useState<ProductCategory>('skincare')
+  const [newUnit] = useState<ProductUnit>('pump')
   const [newBrandConfirmed, setNewBrandConfirmed] = useState(false)
+
+  const FIRST_KIND: Record<ProductCategory, string> = {
+    skincare: 'cleanser',
+    haircare: 'shampoo',
+    dental: 'toothpaste',
+    solaire: 'sunscreen',
+    complement: 'gelule',
+    bodycare: 'body-lotion',
+  }
 
   const createProduct = useCreateProduct()
   const addUserProduct = useCreateUserProduct()
@@ -75,7 +84,8 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       const product = await createProduct.mutateAsync({
         name: newName,
         brand: newBrand,
-        kind: newKind,
+        category: newCategory,
+        kind: FIRST_KIND[newCategory],
         unit: newUnit,
       })
       await addToCollection(product.id)
@@ -106,8 +116,8 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
     setNewName,
     newBrand,
     setNewBrand,
-    newKind,
-    setNewKind,
+    newCategory,
+    setNewCategory,
     newBrandConfirmed,
     setNewBrandConfirmed,
     similarProducts,

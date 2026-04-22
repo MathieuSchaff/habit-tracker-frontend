@@ -1,4 +1,4 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import type { ProductCategory, UserProductStatus } from '@habit-tracker/shared'
 
 import clsx from 'clsx'
 import { X } from 'lucide-react'
@@ -45,8 +45,8 @@ export function QuickAdd({ onClose }: QuickAddProps) {
     setNewName,
     newBrand,
     setNewBrand,
-    newKind,
-    setNewKind,
+    newCategory,
+    setNewCategory,
     newBrandConfirmed,
     setNewBrandConfirmed,
     similarProducts,
@@ -222,8 +222,8 @@ export function QuickAdd({ onClose }: QuickAddProps) {
               id="qa-new-kind"
               label="Catégorie"
               required
-              value={newKind}
-              onChange={(e) => setNewKind(e.target.value)}
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value as ProductCategory)}
             />
 
             <div className="qa-status-grid qa-status-grid--spaced">

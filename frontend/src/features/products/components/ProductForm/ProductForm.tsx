@@ -1,3 +1,6 @@
+import type { ProductCategory, ProductUnit } from '@habit-tracker/shared'
+import { PRODUCT_CATEGORY_VALUES } from '@habit-tracker/shared'
+
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
@@ -5,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
@@ -22,11 +26,21 @@ import { BrandCombobox } from '../BrandCombobox/BrandCombobox'
 import { IngredientSearch } from '../IngredientSearch/IngredientSearch'
 import './ProductForm.css'
 
+const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  skincare: 'Soin visage',
+  haircare: 'Cheveux',
+  dental: 'Dents',
+  solaire: 'Solaire',
+  complement: 'Compléments',
+  bodycare: 'Corps',
+}
+
 type ProductWithIngredients = {
   id: string
   slug: string
   name: string | null
   brand: string | null
+  category?: string | null
   kind: string | null
   unit: string | null
   priceCents: number | null
@@ -67,6 +81,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const [form, setForm] = useState({
     name: product?.name ?? '',
     brand: product?.brand ?? '',
+    category: (product?.category ?? 'skincare') as ProductCategory,
     kind: product?.kind ?? '',
     unit: product?.unit ?? '',
     priceEuros: product?.priceCents != null ? (product.priceCents / 100).toFixed(2) : '',
@@ -121,6 +136,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const isDirty =
     form.name !== (product?.name ?? '') ||
     form.brand !== (product?.brand ?? '') ||
+    form.category !== ((product?.category ?? 'skincare') as ProductCategory) ||
     form.kind !== (product?.kind ?? '') ||
     form.unit !== (product?.unit ?? '') ||
     form.priceEuros !== originalPriceEuros ||
@@ -179,8 +195,9 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     const productData = {
       name: form.name.trim(),
       brand: form.brand.trim(),
+      category: form.category,
       kind: form.kind.trim(),
-      unit: form.unit.trim(),
+      unit: form.unit.trim() as ProductUnit,
       priceCents: parsedPrice,
       totalAmount: parsedAmount,
       amountUnit: form.amountUnit.trim() || undefined,
@@ -265,6 +282,16 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           </ul>
         </div>
       )}
+
+      <FormField label="Domaine" htmlFor="edit-category" required>
+        <ChipGroup
+          options={PRODUCT_CATEGORY_VALUES.map((v) => ({ value: v, label: CATEGORY_LABELS[v] }))}
+          selected={[form.category]}
+          onChange={([v]) => v && setForm((prev) => ({ ...prev, category: v as ProductCategory }))}
+          mode="exclusive"
+          aria-label="Domaine du produit"
+        />
+      </FormField>
 
       <div className="product-edit-form__row">
         <Input

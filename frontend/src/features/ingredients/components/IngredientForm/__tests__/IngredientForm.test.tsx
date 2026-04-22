@@ -51,6 +51,7 @@ const mockIngredient = {
   id: 'i1',
   slug: 'retinol',
   name: 'Retinol',
+  type: 'skincare' as const,
   category: 'actif',
   description: 'Old description',
   content: 'Old content',

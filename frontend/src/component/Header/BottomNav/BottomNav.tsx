@@ -1,5 +1,13 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, Repeat, User } from 'lucide-react'
+import {
+  BookOpen,
+  CircleCheckBig,
+  FlaskConical,
+  LogOut,
+  MoreHorizontal,
+  Repeat,
+  User,
+} from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
@@ -98,6 +106,10 @@ export function BottomNav() {
         <Link to="/ingredients" className="bottom-nav__sheet-link" onClick={closeSheet}>
           <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
           Ingrédients
+        </Link>
+        <Link to="/blog" className="bottom-nav__sheet-link" onClick={closeSheet}>
+          <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />
+          Blog
         </Link>
 
         <div className="bottom-nav__sheet-divider" />

@@ -1,9 +1,13 @@
+import type { IngredientType } from '@habit-tracker/shared'
+import { INGREDIENT_TYPE_LABELS, INGREDIENT_TYPE_VALUES } from '@habit-tracker/shared'
+
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, ClipboardCopy, Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
@@ -23,6 +27,7 @@ interface BaseIngredient {
   id: string
   slug: string
   name: string | null
+  type: IngredientType
   category: string | null
   description: string | null
   content: string | null
@@ -89,6 +94,10 @@ export function IngredientForm({
     content: ingredient?.content ?? '',
   })
 
+  const [ingredientType, setIngredientType] = useState<IngredientType>(
+    ingredient?.type ?? 'skincare'
+  )
+
   const { tags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } = useFormTags({
     initialTags,
     allTags,
@@ -115,6 +124,7 @@ export function IngredientForm({
     form.category !== (ingredient?.category ?? '') ||
     form.description !== (ingredient?.description ?? '') ||
     form.content !== (ingredient?.content ?? '') ||
+    ingredientType !== (ingredient?.type ?? 'skincare') ||
     isTagsDirty
 
   const isPending = createIngredient.isPending || updateIngredient.isPending || updateTags.isPending
@@ -143,6 +153,7 @@ export function IngredientForm({
       if (mode === 'create') {
         const created = await createIngredient.mutateAsync({
           name: form.name.trim(),
+          type: ingredientType,
           slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
           category: form.category.trim() || undefined,
           description: form.description.trim() || undefined,
@@ -246,6 +257,19 @@ export function IngredientForm({
           </button>
         </div>
       )}
+
+      <FormField label="Type" htmlFor="ingredient-type">
+        <ChipGroup
+          options={INGREDIENT_TYPE_VALUES.map((v) => ({
+            value: v,
+            label: INGREDIENT_TYPE_LABELS[v],
+          }))}
+          selected={[ingredientType]}
+          onChange={([v]) => v && setIngredientType(v)}
+          mode="exclusive"
+          aria-label="Type d'ingrédient"
+        />
+      </FormField>
 
       <FormField label="Nom" htmlFor="ingredient-name" required>
         <Input
