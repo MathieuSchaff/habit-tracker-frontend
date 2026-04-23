@@ -1,10 +1,11 @@
-import type { IngredientInput } from './seed-ingredients'
 import { dentalIngredients } from './dental'
 import { haircareIngredients } from './haircare'
 import { skincareIngredients } from './skincare'
 import { supplementIngredients } from './supplements'
+import type { IngredientInput } from './types'
 
 export type { IngredientInput }
+
 export { INGREDIENT_SLUGS } from './ingredient-slugs'
 
 // Some haircare stubs reuse slugs that are already defined (with full content)
@@ -31,7 +32,7 @@ function dedupeBySlug(entries: IngredientInput[]): IngredientInput[] {
 }
 
 export const ingredientData: IngredientInput[] = dedupeBySlug([
-  ...skincareIngredients.map((i) => ({ type: 'skincare' as const, ...i })),
+  ...skincareIngredients.map((i) => ({ ...i, type: 'skincare' as const })),
   ...supplementIngredients,
   ...dentalIngredients,
   ...haircareIngredients,

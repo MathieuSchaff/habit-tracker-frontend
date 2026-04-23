@@ -1,9 +1,18 @@
 import {
+  DENTAL_INGREDIENT_TAG_SLUGS,
+  DENTAL_INGREDIENT_TAG_TAXONOMY,
+  DENTAL_PRODUCT_TAG_SLUGS,
+  DENTAL_PRODUCT_TAG_TAXONOMY,
+  type DentalIngredientTagSlug,
+  type DentalProductTagSlug,
+  HAIRCARE_INGREDIENT_TAG_SLUGS,
+  HAIRCARE_INGREDIENT_TAG_TAXONOMY,
+  type HaircareIngredientTagSlug,
   SKINCARE_INGREDIENT_TAG_SLUGS,
   SKINCARE_INGREDIENT_TAG_TAXONOMY,
-  type SkincareIngredientTagSlug,
   SKINCARE_PRODUCT_TAG_SLUGS,
   SKINCARE_PRODUCT_TAG_TAXONOMY,
+  type SkincareIngredientTagSlug,
   type SkincareProductTagSlug,
   SUPPLEMENT_INGREDIENT_TAG_SLUGS,
   SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
@@ -239,6 +248,102 @@ const TAG_LABELS: Record<string, string> = {
   'cofacteur-enzymatique': 'Cofacteur enzymatique',
   stimulant: 'Stimulant',
   calmant: 'Calmant',
+
+  // Dental concerns
+  carie: 'Caries',
+  'sensibilite-dentinaire': 'Sensibilité dentinaire',
+  gencivite: 'Gingivite',
+  parodontite: 'Parodontite',
+  plaque: 'Plaque dentaire',
+  tartre: 'Tartre',
+  taches: 'Taches dentaires',
+  'erosion-acide': 'Érosion acide',
+  halitose: 'Mauvaise haleine',
+  bruxisme: 'Bruxisme',
+  aphtes: 'Aphtes',
+
+  // Dental age groups
+  adulte: 'Adulte',
+  enfant: 'Enfant',
+  senior: 'Senior',
+  orthodontie: 'Orthodontie',
+  implants: 'Implants',
+  'dents-lait': 'Dents de lait',
+
+  // Dental ingredient attributes
+  remineralisant: 'Reminéralisant',
+  antibacterien: 'Antibactérien',
+  'anti-plaque': 'Anti-plaque',
+  'anti-tartre': 'Anti-tartre',
+  'abrasif-doux': 'Abrasif doux',
+  'abrasif-fort': 'Abrasif fort',
+  blanchissant: 'Blanchissant',
+  'neutralisant-acide': 'Neutralisant acide',
+  fluorure: 'Fluorure',
+  desensibilisant: 'Désensibilisant',
+
+  // Dental effects
+  fraicheur: 'Fraîcheur',
+  blancheur: 'Blancheur',
+  'apaisement-gencives': 'Apaisement gencives',
+  'renforcement-email': 'Renforcement émail',
+  'reduction-sensibilite': 'Réduction sensibilité',
+
+  // Dental product labels
+  'sans-fluor': 'Sans fluor',
+  'sans-alcool': 'Sans alcool',
+  'sans-sls': 'Sans SLS',
+
+  // Haircare concerns
+  pellicules: 'Pellicules',
+  chute: 'Chute de cheveux',
+  casse: 'Casse',
+  fourches: 'Fourches',
+  frisottis: 'Frisottis',
+  'manque-volume': 'Manque de volume',
+  'cheveux-secs': 'Cheveux secs',
+  'cheveux-gras': 'Cheveux gras',
+  'cuir-chevelu-sensible': 'Cuir chevelu sensible',
+  'cuir-chevelu-irrite': 'Cuir chevelu irrité',
+  alopecie: 'Alopécie',
+  'post-coloration': 'Post-coloration',
+  'cheveux-ternes': 'Cheveux ternes',
+  'jaunissement-blond': 'Jaunissement blond',
+  'porosite-excessive': 'Porosité excessive',
+  'pointes-seches': 'Pointes sèches',
+
+  // Haircare hair types
+  lisses: 'Cheveux lisses',
+  ondules: 'Cheveux ondulés',
+  boucles: 'Cheveux bouclés',
+  crepus: 'Cheveux crépus',
+  fins: 'Cheveux fins',
+  epais: 'Cheveux épais',
+  moyens: 'Cheveux moyens',
+  colores: 'Cheveux colorés',
+  decolores: 'Cheveux décolorés',
+  naturels: 'Cheveux naturels',
+  'cheveux-tous-types': 'Tous types de cheveux',
+
+  // Haircare ingredient attributes
+  proteine: 'Protéine',
+  'film-protecteur': 'Film protecteur',
+  'tensioactif-doux': 'Tensioactif doux',
+  chelateur: 'Chélateur',
+  'anti-pelliculaire': 'Anti-pelliculaire',
+  'stimulant-follicule': 'Stimulant folliculaire',
+  'conditionneur-cationique': 'Conditionneur cationique',
+  gainant: 'Gainant',
+
+  // Haircare effects
+  douceur: 'Douceur',
+  volume: 'Volume',
+  discipline: 'Discipline',
+  nutrition: 'Nutrition',
+  lissant: 'Lissant',
+  fixation: 'Fixation',
+  'definition-boucles': 'Définition des boucles',
+  gainage: 'Gainage',
 }
 
 function labelFor(slug: string): string {
@@ -268,17 +373,53 @@ const supplementIngredientTags = (
   tagType: SUPPLEMENT_INGREDIENT_TAG_TAXONOMY[slug].category as string,
 }))
 
-const seenIngredientSlugs = new Set<string>()
-export const ingredientTagData = [...skincareIngredientTags, ...supplementIngredientTags].filter(
-  (row) => {
-    if (seenIngredientSlugs.has(row.slug)) return false
-    seenIngredientSlugs.add(row.slug)
-    return true
-  }
-)
+const dentalIngredientTags = (
+  Object.values(DENTAL_INGREDIENT_TAG_SLUGS) as DentalIngredientTagSlug[]
+).map((slug) => ({
+  slug,
+  label: labelFor(slug),
+  tagType: DENTAL_INGREDIENT_TAG_TAXONOMY[slug].category as string,
+}))
 
-export const productTagData = (Object.values(SKINCARE_PRODUCT_TAG_SLUGS) as SkincareProductTagSlug[]).map((slug) => ({
+const haircareIngredientTags = (
+  Object.values(HAIRCARE_INGREDIENT_TAG_SLUGS) as HaircareIngredientTagSlug[]
+).map((slug) => ({
+  slug,
+  label: labelFor(slug),
+  tagType: HAIRCARE_INGREDIENT_TAG_TAXONOMY[slug].category as string,
+}))
+
+const seenIngredientSlugs = new Set<string>()
+export const ingredientTagData = [
+  ...skincareIngredientTags,
+  ...supplementIngredientTags,
+  ...dentalIngredientTags,
+  ...haircareIngredientTags,
+].filter((row) => {
+  if (seenIngredientSlugs.has(row.slug)) return false
+  seenIngredientSlugs.add(row.slug)
+  return true
+})
+
+const skincareProductTags = (
+  Object.values(SKINCARE_PRODUCT_TAG_SLUGS) as SkincareProductTagSlug[]
+).map((slug) => ({
   slug,
   label: labelFor(slug),
   tagType: SKINCARE_PRODUCT_TAG_TAXONOMY[slug].category,
 }))
+
+const dentalProductTags = (Object.values(DENTAL_PRODUCT_TAG_SLUGS) as DentalProductTagSlug[]).map(
+  (slug) => ({
+    slug,
+    label: labelFor(slug),
+    tagType: DENTAL_PRODUCT_TAG_TAXONOMY[slug].category as string,
+  })
+)
+
+const seenProductSlugs = new Set<string>()
+export const productTagData = [...skincareProductTags, ...dentalProductTags].filter((row) => {
+  if (seenProductSlugs.has(row.slug)) return false
+  seenProductSlugs.add(row.slug)
+  return true
+})

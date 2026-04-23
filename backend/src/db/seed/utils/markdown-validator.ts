@@ -23,6 +23,7 @@
 export interface IngredientSeed {
   name: string
   slug: string
+  type: string
   category: string
   description: string
   content: string
