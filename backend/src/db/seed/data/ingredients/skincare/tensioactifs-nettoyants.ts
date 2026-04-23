@@ -1,11 +1,13 @@
 import { SKINCARE_INGREDIENT_CATEGORIES } from '@habit-tracker/shared'
+
 import { INGREDIENT_SLUGS } from '../ingredient-slugs'
-import type { IngredientInput } from '../seed-ingredients'
+import type { IngredientInput } from '../types'
 
 export const TENSIOACTIFS_NETTOYANTS: IngredientInput[] = [
   {
     name: 'Gleditsia Seed Extract (Gleditsia Triacanthos Seed Extract)',
     slug: INGREDIENT_SLUGS.GLEDITSIA_TRIACANTHOS_SEED_EXTRACT,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       "Extrait de graines d'acacia à miel, antioxydant et protecteur, utilisé pour conditionner peau et cheveux tout en stabilisant les formules.",
@@ -39,6 +41,7 @@ export const TENSIOACTIFS_NETTOYANTS: IngredientInput[] = [
   {
     name: 'Sodium Cocoyl Isethionate (SCI)',
     slug: INGREDIENT_SLUGS.SODIUM_COCOYL_ISETHIONATE,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Surnommé "mousse de bébé", ce tensioactif solide issu de l’huile de coco offre une mousse riche et crémeuse sans effet desséchant.',
@@ -69,6 +72,7 @@ export const TENSIOACTIFS_NETTOYANTS: IngredientInput[] = [
   {
     name: 'Coco-Glucoside',
     slug: INGREDIENT_SLUGS.COCO_GLUCOSIDE,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Un tensioactif non-ionique ultra-doux issu de la noix de coco et du sucre, conçu pour nettoyer la peau sans altérer son précieux film hydrolipidique.',
@@ -101,6 +105,7 @@ export const TENSIOACTIFS_NETTOYANTS: IngredientInput[] = [
   {
     name: 'Sodium Lauroyl Methyl Isethionate',
     slug: INGREDIENT_SLUGS.SODIUM_LAUROYL_METHYL_ISETHIONATE,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Tensioactif anionique doux offrant une mousse crémeuse et un nettoyage efficace tout en restant plus tolérant que les sulfates classiques.',
@@ -128,6 +133,7 @@ Très utilisé dans les nettoyants solides, pains dermatologiques et gels lavant
   {
     name: 'Decyl Glucoside',
     slug: INGREDIENT_SLUGS.DECYL_GLUCOSIDE,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Tensioactif non ionique particulièrement doux, adapté aux peaux sensibles et aux formules nettoyantes délicates.',
@@ -155,6 +161,7 @@ Souvent utilisé dans les nettoyants pour bébés ou les formules dermatologique
   {
     name: 'PEG-20 Glyceryl Triisostearate',
     slug: INGREDIENT_SLUGS.PEG_20_GLYCERYL_TRIISOSTEARATE,
+    type: 'skincare',
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Émulsifiant très efficace utilisé principalement dans les huiles et baumes démaquillants pour permettre un rinçage parfait à l’eau.',

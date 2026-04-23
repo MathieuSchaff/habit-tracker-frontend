@@ -1,4 +1,5 @@
 export * from './skincare/ingredient-slugs'
+
 import {
   ACTIFS_ANTI_AGE_REPARATEURS,
   ANTI_ACNE_SEBUM,
@@ -21,6 +22,7 @@ import {
 } from './skincare/ingredient-slugs'
 
 export * from './supplements/ingredient-slugs'
+
 import {
   SUPPLEMENTS_ACIDES_AMINES,
   SUPPLEMENTS_ACIDES_GRAS,
@@ -34,17 +36,22 @@ import {
 } from './supplements/ingredient-slugs'
 
 export * from './dental/ingredient-slugs'
+
 import {
   DENTAL_ABRASIFS,
+  DENTAL_ACTIFS_COMPLEMENTAIRES,
   DENTAL_ANTI_SENSIBILITE,
   DENTAL_ANTIMICROBIENS,
   DENTAL_BLANCHISSANTS,
   DENTAL_DIVERS,
   DENTAL_EXCIPIENTS,
   DENTAL_REMINERALISATION,
+  DENTAL_TENSIOACTIFS_DOUX,
+  DENTAL_ZINC,
 } from './dental/ingredient-slugs'
 
 export * from './haircare/ingredient-slugs'
+
 import {
   HAIR_AGENTS_NACRANTS,
   HAIR_ANTIPELLICULAIRES,
@@ -100,6 +107,9 @@ export const INGREDIENT_SLUGS = {
   ...DENTAL_REMINERALISATION,
   ...DENTAL_EXCIPIENTS,
   ...DENTAL_DIVERS,
+  ...DENTAL_ZINC,
+  ...DENTAL_ACTIFS_COMPLEMENTAIRES,
+  ...DENTAL_TENSIOACTIFS_DOUX,
   ...HAIR_TENSIOACTIFS_ANIONIQUES,
   ...HAIR_TENSIOACTIFS_AMPHOTERES,
   ...HAIR_TENSIOACTIFS_NON_IONIQUES,
