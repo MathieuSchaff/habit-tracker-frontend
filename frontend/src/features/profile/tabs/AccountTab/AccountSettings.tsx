@@ -28,8 +28,8 @@ export const AccountSettings = () => {
 
   const handleLogout = () => {
     logout.mutate(undefined, {
-      onSuccess: () => navigate({ to: '/auth/login' }),
-      onError: () => navigate({ to: '/auth/login' }),
+      onSuccess: () => navigate({ to: '/auth/login', search: { redirect: undefined } }),
+      onError: () => navigate({ to: '/auth/login', search: { redirect: undefined } }),
     })
   }
 
@@ -161,7 +161,7 @@ export const AccountSettings = () => {
                   className="account-action-btn delete-btn"
                   onClick={() =>
                     deleteUser.mutate(undefined, {
-                      onSuccess: () => navigate({ to: '/auth/login' }),
+                      onSuccess: () => navigate({ to: '/auth/login', search: { redirect: undefined } }),
                     })
                   }
                   disabled={deleteUser.isPending}

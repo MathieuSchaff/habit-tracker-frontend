@@ -9,7 +9,7 @@ import { BlogListSkeleton } from '@/features/blog/components/skeletons/BlogSkele
 import { articleQueries } from '@/lib/queries/articles'
 
 const searchSchema = z.object({
-  page: z.number().min(1).default(1),
+  page: z.number().min(1).default(1).catch(1),
 })
 
 const defaultValues = { page: 1 }

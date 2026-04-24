@@ -5,7 +5,7 @@ import { GoogleCallbackPage } from '../../../features/auth/page/GoogleCallbackPa
 
 export const Route = createFileRoute('/auth/google/callback')({
   validateSearch: (search: Record<string, unknown>) => ({
-    token: typeof search.token === 'string' ? search.token : undefined,
+    oauth: search.oauth === '1' || search.oauth === 1 ? true : undefined,
   }),
   component: RouteComponent,
 })

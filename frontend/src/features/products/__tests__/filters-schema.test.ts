@@ -27,8 +27,8 @@ describe('productsSearchSchema — sort', () => {
     }
   )
 
-  it('rejects unknown sort values', () => {
-    expect(() => productsSearchSchema.parse({ sort: 'alphabetical' })).toThrow()
+  it('falls back to default for unknown sort values', () => {
+    expect(productsSearchSchema.parse({ sort: 'alphabetical' }).sort).toBe('random')
   })
 })
 
@@ -93,8 +93,8 @@ describe('productsSearchSchema — category', () => {
     }
   )
 
-  it('rejects unknown category', () => {
-    expect(() => productsSearchSchema.parse({ category: 'nope' })).toThrow()
+  it('falls back to skincare for unknown category', () => {
+    expect(productsSearchSchema.parse({ category: 'nope' }).category).toBe('skincare')
   })
 })
 

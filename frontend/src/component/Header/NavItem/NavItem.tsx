@@ -37,6 +37,7 @@ export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
             className="main-nav__link"
             onClick={onItemClick}
             aria-current={pathname === item.to ? 'page' : undefined}
+
           >
             <item.icon size={18} className="main-nav__icon" aria-hidden="true" />
             <span className="main-nav__label">{item.label}</span>

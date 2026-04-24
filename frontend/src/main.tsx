@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { navItems } from './component/Header/NavItem/NavItem'
 import { queryClient } from './lib/queryClient'
 import { routeTree } from './routeTree.gen'
+import { useAuthStore } from './store/auth'
 // STYLES
 import './styles/index.css'
 
@@ -22,7 +23,7 @@ const ReactQueryDevtools = import.meta.env.DEV
 // https://tanstack.com/router/latest/docs/api/router/RouterOptionsType
 const router = createRouter({
   routeTree,
-  context: { queryClient } satisfies RouterContext,
+  context: { queryClient, auth: { isAuthenticated: false, accessToken: null } } satisfies RouterContext,
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
@@ -118,6 +119,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+function InnerApp() {
+  const accessToken = useAuthStore((s) => s.accessToken)
+  return (
+    <RouterProvider
+      router={router}
+      context={{ queryClient, auth: { isAuthenticated: !!accessToken, accessToken } }}
+    />
+  )
+}
+
 // biome-ignore lint: root will be here
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
@@ -125,7 +136,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <InnerApp />
         <Suspense>
           <ReactQueryDevtools />
         </Suspense>
