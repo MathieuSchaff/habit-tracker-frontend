@@ -1,7 +1,7 @@
 import { type AuthInput, authSchema } from '@habit-tracker/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
 import z from 'zod'
@@ -20,6 +20,7 @@ export const LoginPage = () => {
   const [errors, setErrors] = useState<FieldErrors>({})
 
   const navigate = useNavigate()
+  const { redirect } = useSearch({ from: '/auth/login' })
   const login = useLogin()
   const queryClient = useQueryClient()
 
@@ -49,7 +50,7 @@ export const LoginPage = () => {
     login.mutate(result.data, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['session'] })
-        navigate({ to: '/collection' })
+        navigate({ to: redirect ?? '/collection' })
       },
       onError: (error) => {
         if (error.message === 'email_not_verified') {

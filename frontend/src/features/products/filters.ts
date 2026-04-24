@@ -68,10 +68,10 @@ export const LABEL_OVERRIDES: Record<string, string> = {
 const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
 export const productsSearchSchema = baseSchema.extend({
-  category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
-  kind: z.array(z.string()).default([]),
-  profile_filter: z.boolean().default(false),
-  sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('random'),
+  category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare').catch('skincare'),
+  kind: z.array(z.string()).default([]).catch([]),
+  profile_filter: z.boolean().default(false).catch(false),
+  sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('random').catch('random'),
   priceMin: z.number().int().min(0).optional(),
   priceMax: z.number().int().min(0).optional(),
 })

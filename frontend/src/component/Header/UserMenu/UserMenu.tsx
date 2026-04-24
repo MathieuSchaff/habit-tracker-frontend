@@ -24,7 +24,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
     logout.mutate(undefined, {
       onSuccess: () => {
         onItemClick?.()
-        navigate({ to: '/auth/login' })
+        navigate({ to: '/auth/login', search: { redirect: undefined } })
       },
     })
   }
@@ -66,7 +66,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
         ) : (
           <>
             <DropdownMenu.Item index={0} onSelect={onItemClick}>
-              <Link to="/auth/login">
+              <Link to="/auth/login" search={{ redirect: undefined }}>
                 <LogIn size={16} aria-hidden="true" />
                 <span>Connexion</span>
               </Link>

@@ -18,6 +18,8 @@ function ProductThreadDetailRoute() {
   )
 }
 
+// No routing-level auth guard: threads are public (read). Write actions (post/reply)
+// are gated by the backend — frontend shows UI conditionally via useAuthStore.
 export const Route = createFileRoute('/products/$slug/discussions/$threadId')({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(

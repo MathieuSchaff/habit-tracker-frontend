@@ -6,10 +6,9 @@ import { useAuthStore } from '../../../../store/auth'
 
 export const GoogleCallbackPage = () => {
   const navigate = useNavigate()
-  const { token } = useSearch({ from: '/auth/google/callback' })
+  const { oauth } = useSearch({ from: '/auth/google/callback' })
 
   useEffect(() => {
-    // Read at effect execution time, not render time
     const accessToken = useAuthStore.getState().accessToken
 
     if (accessToken) {
@@ -17,16 +16,14 @@ export const GoogleCallbackPage = () => {
       return
     }
 
-    // No token param = direct navigation, not a failed OAuth — redirect silently
-    if (!token) {
-      navigate({ to: '/auth/login', replace: true })
+    if (!oauth) {
+      navigate({ to: '/auth/login', search: { redirect: undefined }, replace: true })
       return
     }
 
-    // OAuth came from Google (token param present) but silentRefresh failed
     toast.error('Connexion Google échouée, veuillez réessayer')
-    navigate({ to: '/auth/login', replace: true })
-  }, [token, navigate])
+    navigate({ to: '/auth/login', search: { redirect: undefined }, replace: true })
+  }, [oauth, navigate])
 
   return (
     <div className="auth-page__header">

@@ -13,18 +13,13 @@ const TanStackRouterDevtools = import.meta.env.DEV
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
 import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
+import { useTokenRefresh } from '../lib/hooks/useTokenRefresh'
 import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'
-import { useAuthStore } from '../store/auth'
 
-export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({ context }) => {
-    // We try to refresh the session at start for recover it from the cookie httpOnly.
-    if (!useAuthStore.getState().accessToken) {
-      await silentRefresh(context.queryClient)
-    }
-  },
-  component: () => (
+function RootComponent() {
+  useTokenRefresh()
+  return (
     <>
       <NavigationProgress />
       <AppLayout />
@@ -32,7 +27,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         <TanStackRouterDevtools />
       </Suspense>
     </>
-  ),
+  )
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: async ({ context, preload }) => {
+    // Skip during link hover prefetch — actual navigation re-runs this with preload=false.
+    if (preload) return
+    if (!context.auth.accessToken) {
+      await silentRefresh(context.queryClient)
+    }
+  },
+  component: RootComponent,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,
   notFoundComponent: () => (
     <GlobalError

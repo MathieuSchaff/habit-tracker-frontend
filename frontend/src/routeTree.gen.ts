@@ -15,9 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
-import { Route as ProductsNewRouteImport } from './routes/products/new'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
-import { Route as IngredientsNewRouteImport } from './routes/ingredients/new'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
@@ -34,6 +32,8 @@ import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug/ed
 import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug/edit'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$slug'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
+import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
+import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
 import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
 import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
 import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
@@ -68,19 +68,9 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductsNewRoute = ProductsNewRouteImport.update({
-  id: '/products/new',
-  path: '/products/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/products/$slug',
   path: '/products/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngredientsNewRoute = IngredientsNewRouteImport.update({
-  id: '/ingredients/new',
-  path: '/ingredients/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
@@ -163,6 +153,18 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   path: '/auth/google/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProductsNewRoute =
+  AuthenticatedProductsNewRouteImport.update({
+    id: '/products/new',
+    path: '/products/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedIngredientsNewRoute =
+  AuthenticatedIngredientsNewRouteImport.update({
+    id: '/ingredients/new',
+    path: '/ingredients/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ProductsSlugDiscussionsIndexRoute =
   ProductsSlugDiscussionsIndexRouteImport.update({
     id: '/discussions/',
@@ -200,12 +202,12 @@ export interface FileRoutesByFullPath {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
-  '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
-  '/products/new': typeof ProductsNewRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
+  '/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
@@ -229,11 +231,11 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
-  '/ingredients/new': typeof IngredientsNewRoute
-  '/products/new': typeof ProductsNewRoute
   '/blog': typeof BlogIndexRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
+  '/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
@@ -260,12 +262,12 @@ export interface FileRoutesById {
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
-  '/ingredients/new': typeof IngredientsNewRoute
   '/products/$slug': typeof ProductsSlugRouteWithChildren
-  '/products/new': typeof ProductsNewRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/_authenticated/ingredients/new': typeof AuthenticatedIngredientsNewRoute
+  '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
@@ -292,12 +294,12 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/auth/verify-pending'
     | '/ingredients/$slug'
-    | '/ingredients/new'
     | '/products/$slug'
-    | '/products/new'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
+    | '/ingredients/new'
+    | '/products/new'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/ingredients/$slug/edit'
@@ -321,11 +323,11 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
-    | '/ingredients/new'
-    | '/products/new'
     | '/blog'
     | '/ingredients'
     | '/products'
+    | '/ingredients/new'
+    | '/products/new'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/ingredients/$slug/edit'
@@ -351,12 +353,12 @@ export interface FileRouteTypes {
     | '/auth/verify-email'
     | '/auth/verify-pending'
     | '/ingredients/$slug'
-    | '/ingredients/new'
     | '/products/$slug'
-    | '/products/new'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
+    | '/_authenticated/ingredients/new'
+    | '/_authenticated/products/new'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/ingredients/$slug/edit'
@@ -379,9 +381,7 @@ export interface RootRouteChildren {
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   AuthVerifyPendingRoute: typeof AuthVerifyPendingRoute
   IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
-  IngredientsNewRoute: typeof IngredientsNewRoute
   ProductsSlugRoute: typeof ProductsSlugRouteWithChildren
-  ProductsNewRoute: typeof ProductsNewRoute
   BlogIndexRoute: typeof BlogIndexRoute
   IngredientsIndexRoute: typeof IngredientsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -434,25 +434,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products/new': {
-      id: '/products/new'
-      path: '/products/new'
-      fullPath: '/products/new'
-      preLoaderRoute: typeof ProductsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/products/$slug': {
       id: '/products/$slug'
       path: '/products/$slug'
       fullPath: '/products/$slug'
       preLoaderRoute: typeof ProductsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ingredients/new': {
-      id: '/ingredients/new'
-      path: '/ingredients/new'
-      fullPath: '/ingredients/new'
-      preLoaderRoute: typeof IngredientsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ingredients/$slug': {
@@ -567,6 +553,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/products/new': {
+      id: '/_authenticated/products/new'
+      path: '/products/new'
+      fullPath: '/products/new'
+      preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ingredients/new': {
+      id: '/_authenticated/ingredients/new'
+      path: '/ingredients/new'
+      fullPath: '/ingredients/new'
+      preLoaderRoute: typeof AuthenticatedIngredientsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/products/$slug/discussions/': {
       id: '/products/$slug/discussions/'
       path: '/discussions'
@@ -603,6 +603,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedIngredientsNewRoute: typeof AuthenticatedIngredientsNewRoute
+  AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -610,6 +612,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedIngredientsNewRoute: AuthenticatedIngredientsNewRoute,
+  AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -662,9 +666,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   AuthVerifyPendingRoute: AuthVerifyPendingRoute,
   IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
-  IngredientsNewRoute: IngredientsNewRoute,
   ProductsSlugRoute: ProductsSlugRouteWithChildren,
-  ProductsNewRoute: ProductsNewRoute,
   BlogIndexRoute: BlogIndexRoute,
   IngredientsIndexRoute: IngredientsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,

@@ -50,13 +50,13 @@ describe('requireAuth', () => {
   it('does nothing when the token is valid and session check passes', async () => {
     setAuthenticated()
 
-    await expect(requireAuth({ queryClient, pathname: '/dashboard' })).resolves.toBeUndefined()
+    await expect(requireAuth({ queryClient, pathname: '/dashboard', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
   })
 
   it('attempts silent refresh when no token exists', async () => {
     mockSilentRefresh.mockResolvedValue(true)
 
-    await expect(requireAuth({ queryClient, pathname: '/dashboard' })).resolves.toBeUndefined()
+    await expect(requireAuth({ queryClient, pathname: '/dashboard', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 
     expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
   })
@@ -65,7 +65,7 @@ describe('requireAuth', () => {
     mockSilentRefresh.mockResolvedValue(false)
 
     try {
-      await requireAuth({ queryClient, pathname: '/dashboard' })
+      await requireAuth({ queryClient, pathname: '/dashboard', accessToken: useAuthStore.getState().accessToken })
       expect.unreachable('should have thrown redirect')
     } catch {
       // Redirect thrown — store should be cleared
@@ -80,7 +80,7 @@ describe('requireAuth', () => {
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
     mockSilentRefresh.mockResolvedValue(true)
 
-    await expect(requireAuth({ queryClient, pathname: '/settings' })).resolves.toBeUndefined()
+    await expect(requireAuth({ queryClient, pathname: '/settings', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 
     expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
   })
@@ -92,7 +92,7 @@ describe('requireAuth', () => {
     mockSilentRefresh.mockResolvedValue(false)
 
     try {
-      await requireAuth({ queryClient, pathname: '/settings' })
+      await requireAuth({ queryClient, pathname: '/settings', accessToken: useAuthStore.getState().accessToken })
       expect.unreachable('should have thrown redirect')
     } catch {
       // Redirect thrown — store and queries should be cleared
@@ -113,7 +113,7 @@ describe('requireAuth', () => {
 
     mockSilentRefresh.mockResolvedValue(true)
 
-    await expect(requireAuth({ queryClient, pathname: '/profile' })).resolves.toBeUndefined()
+    await expect(requireAuth({ queryClient, pathname: '/profile', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 
     expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
   })
