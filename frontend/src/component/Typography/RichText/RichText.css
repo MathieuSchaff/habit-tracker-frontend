@@ -2,9 +2,58 @@
   font-size: var(--text-sm);
   color: var(--text-primary);
   line-height: var(--leading-relaxed);
-  overflow-x: auto;
-  word-break: break-word;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
   white-space: normal;
+
+  & img,
+  & video,
+  & iframe {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: var(--space-4) 0;
+    border-radius: var(--radius-md);
+  }
+
+  & .table-wrapper,
+  & figure {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-4) 0;
+  }
+
+  & table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-collapse: collapse;
+    margin: var(--space-4) 0;
+    font-size: var(--text-sm);
+  }
+  & th,
+  & td {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-default);
+    text-align: left;
+    vertical-align: top;
+  }
+  & th {
+    background: var(--bg-muted);
+    font-weight: var(--font-semibold);
+  }
+
+  & .katex-display {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--space-1) 0;
+  }
 
   /* strip margins on the edges so the content doesn't double up spacing with the container */
   & > :first-child {
@@ -107,11 +156,18 @@
     background: var(--bg-sunken);
     border-radius: var(--radius-md);
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
     & code {
       padding: 0;
       background: none;
       color: var(--text-primary);
+      white-space: pre;
     }
+  }
+
+  & code {
+    word-break: break-all;
   }
 
   & hr {

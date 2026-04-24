@@ -77,8 +77,14 @@ export const profiles = pgTable(
       as: 'permissive',
       for: 'all',
       to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
+      using: sql`${t.userId} = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid)`,
+      withCheck: sql`${t.userId} = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid)`,
+    }),
+    pgPolicy('profiles_select_public', {
+      as: 'permissive',
+      for: 'select',
+      to: pgRole('app_runtime').existing(),
+      using: sql`true`,
     }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',

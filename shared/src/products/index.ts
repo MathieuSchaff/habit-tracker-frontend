@@ -7,8 +7,14 @@ export * from './kinds'
 export {
   type ComplementListProductsFilters,
   complementListProductsQuery,
+  type DentalListProductsFilters,
+  dentalListProductsQuery,
+  type HaircareListProductsFilters,
+  haircareListProductsQuery,
   type ListProductsFilters,
   listProductsQuery,
+  type SkincareListProductsFilters,
+  skincareListProductsQuery,
 } from './list-products-query'
 export * from './schemas'
 export * from './skincare'

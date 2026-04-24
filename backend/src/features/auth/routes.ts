@@ -44,7 +44,10 @@ function buildAuthContext(c: Context<AppEnv>): AuthContext {
     jwtSecret: c.get('jwtSecret'),
     refreshSecret: c.get('refreshSecret'),
     frontendUrl: c.get('frontendUrl'),
-    ip: c.req.header('CF-Connecting-IP') ?? c.req.header('X-Forwarded-For') ?? 'unknown',
+    ip:
+      c.req.header('CF-Connecting-IP') ??
+      c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() ??
+      'unknown',
     userAgent: c.req.header('User-Agent') ?? 'unknown',
   }
 }

@@ -4,8 +4,6 @@ import { fieldChangeSchema } from '../core'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
 import { PRODUCT_UNIT_VALUES } from './units'
 
-const uuid = z.uuid()
-
 export const createProductSchema = z
   .object({
     name: z.string().min(1).max(200),
@@ -60,8 +58,8 @@ export const updateProductSchema = z
       })
       return
     }
-    if (hasCategory && hasKind) {
-      const validKinds = PRODUCT_KINDS[d.category!]
+    if (d.category !== undefined && d.kind !== undefined) {
+      const validKinds = PRODUCT_KINDS[d.category]
       if (!validKinds || !Object.values(validKinds).includes(d.kind as never)) {
         ctx.addIssue({
           code: 'custom',
@@ -71,49 +69,6 @@ export const updateProductSchema = z
       }
     }
   })
-
-export const productResponseSchema = z.object({
-  id: uuid,
-  createdBy: uuid,
-  name: z.string(),
-  slug: z.string(),
-  brand: z.string(),
-  category: z.enum(PRODUCT_CATEGORY_VALUES).nullable(),
-  kind: z.string(),
-  unit: z.enum(PRODUCT_UNIT_VALUES),
-  inci: z.string().nullable(),
-  description: z.string().nullable(),
-  totalAmount: z.number().int().nullable(),
-  amountUnit: z.string().nullable(),
-  url: z.string().nullable(),
-  imageUrl: z.string().nullable(),
-  notes: z.string().nullable(),
-  priceCents: z.number().int().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
-
-export const productEditResponseSchema = z.object({
-  id: uuid,
-  productId: uuid,
-  editedBy: uuid,
-  changes: z.record(
-    z.string(),
-    z.object({
-      old: z.string().nullable(),
-      new: z.string().nullable(),
-    })
-  ),
-  summary: z.string().nullable(),
-  createdAt: z.date(),
-})
-
-export const productsPageSchema = z.object({
-  items: z.array(productResponseSchema),
-  total: z.number().int(),
-  page: z.number().int(),
-  limit: z.number().int(),
-})
 
 const editableProductFields = {
   name: fieldChangeSchema(z.string()),
@@ -144,6 +99,7 @@ export const searchProductsQuery = z.object({
   q: z.string().trim().min(1).max(100),
   limit: z.coerce.number().int().min(1).max(20).default(8),
 })
+
 export const patentSchema = z.object({
   name: z.string(), // 'Rosactiv 2.0'
   description: z
