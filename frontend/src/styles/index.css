@@ -1,7 +1,7 @@
 @layer reset, variables, base, components, utilities;
 @import "katex/dist/katex.min.css";
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
-  layer(base);
+layer(base);
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
 @import "./tokens/colors-light-bleu.css" layer(variables);
@@ -32,15 +32,9 @@
 @import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
 
 @import "../features/products/styles/kinds.css" layer(components);
-@import "../features/habits/components/HabitsPage/HabitsPage.css" layer(components);
 @import "../features/auth/styles/auth-shared.css" layer(components);
 @import "../features/auth/page/SignupPage/SignupPage.css" layer(components);
 
-@import "../features/habits/components/styles/HabitDetail.css" layer(components);
-@import "../features/habits/components/styles/HabitsListView.css" layer(components);
-@import "../features/habits/components/styles/HabtiFormDialog.css" layer(components);
-@import "../features/habits/components/styles/TodayView.css" layer(components);
-@import "../features/habits/components/styles/JournalView.css" layer(components);
 @import "../features/products/components/AddToCollectionModal/AddToCollectionModal.css"
   layer(components);
 @import "../features/tasks/page/TasksPage.css" layer(components);

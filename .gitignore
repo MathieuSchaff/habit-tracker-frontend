@@ -72,7 +72,6 @@ pgdata/
 docs/
 !backend/src/db/seed/docs/
 frontend/.tanstack/tmp/
-PROMPT_LOG.md
 scripts/*
 
 # =========================

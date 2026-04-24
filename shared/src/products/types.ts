@@ -3,12 +3,11 @@ import type { z } from 'zod'
 import type { FieldChange } from '../core'
 import type {
   createProductSchema,
+  patentSchema,
   productChangesSchema,
   productEditResponseSchema,
   updateProductSchema,
 } from './schemas'
-
-// TYPES
 
 export type Product = {
   id: string
@@ -75,3 +74,4 @@ export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
 export type ProductEditResponseSchema = z.infer<typeof productEditResponseSchema>
 export type ProductChanges = z.infer<typeof productChangesSchema>
+export type Patent = z.infer<typeof patentSchema>
