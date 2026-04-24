@@ -1,3 +1,5 @@
+import type { ProductUnit } from '@habit-tracker/shared'
+
 export interface ProductTagGroups {
   primary: string[]
   secondary: string[]
@@ -20,7 +22,7 @@ export interface UnifiedProductSeed {
   brand: string
   category?: string
   kind: string
-  unit: string
+  unit: ProductUnit
   totalAmount: number
   amountUnit: string
   priceCents: number

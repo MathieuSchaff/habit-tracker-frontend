@@ -84,7 +84,7 @@ export const profiles = pgTable(
       as: 'permissive',
       for: 'select',
       to: pgRole('app_runtime').existing(),
-      using: sql`true`,
+      using: sql`${t.profilePublic}`,
     }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',
