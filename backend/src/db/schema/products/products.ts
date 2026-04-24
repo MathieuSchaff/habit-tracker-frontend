@@ -1,4 +1,5 @@
 import type {
+  Patent,
   ProductCategory,
   ProductChanges,
   ProductKind,
@@ -44,6 +45,7 @@ export const products = pgTable(
     amountUnit: text('amount_unit'), // ml, gélules, litres, etc
     slug: text('slug').notNull(),
     url: text('url'),
+    patents: jsonb('patents').$type<Patent[]>().notNull().default([]),
     imageUrl: text('image_url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),

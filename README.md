@@ -17,9 +17,6 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 **Tasks**
 - Simple tasks, no streaks, no pressure
 
-**Habits** *(in progress)*
-- Recurring routines without guilt mechanics
-
 ---
 
 ## Stack
@@ -102,14 +99,14 @@ make test-db-up  # once per session, starts Docker on port 5433
 Run targeted tests:
 
 ```bash
-make test-dev ARGS="habits"
-make test-dev ARGS="features/habits/tests/habits.routes.test.ts"
+make test-dev ARGS="products"
+make test-dev ARGS="features/products/tests/products.routes.test.ts"
 ```
 
 Watch mode (TDD):
 
 ```bash
-make test-dev-watch ARGS="habits"
+make test-dev-watch ARGS="products"
 ```
 
 > Each test (`beforeEach`) cleans tables via `cleanDatabase` — no need to restart Docker between tests.
@@ -132,7 +129,7 @@ make test-dev-watch ARGS="habits"
 ## Structure
 
 ```text
-habit-tracker/
+aurore/
 ├── backend/            # Hono API
 ├── frontend/           # React SPA (Vite + TanStack)
 ├── shared/             # Shared Zod schemas (source of truth)

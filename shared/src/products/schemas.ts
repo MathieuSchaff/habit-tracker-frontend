@@ -144,3 +144,14 @@ export const searchProductsQuery = z.object({
   q: z.string().trim().min(1).max(100),
   limit: z.coerce.number().int().min(1).max(20).default(8),
 })
+export const patentSchema = z.object({
+  name: z.string(), // 'Rosactiv 2.0'
+  description: z
+    .string()
+    .transform((v) => (v.trim() === '' ? null : v))
+    .nullable()
+    .optional(),
+  // si url = "" =>  ZodError => sucess est false=>  l'update échoue
+  // { name: "Rosactiv", url: "" } =>   ZodError =>  update bloqué
+  url: z.preprocess((v) => (v === '' ? null : v), z.url().nullable().optional()),
+})

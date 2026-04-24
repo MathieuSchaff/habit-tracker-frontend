@@ -1,5 +1,3 @@
-// Product Units
-
 export const PRODUCT_UNITS = {
   PUMP: 'pump',
   DROPPER: 'dropper',

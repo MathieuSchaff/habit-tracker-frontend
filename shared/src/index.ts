@@ -177,6 +177,7 @@ export {
   haircareProductFilterOptionsSchema,
   type ListProductsFilters,
   listProductsQuery,
+  type Patent,
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_VALUES,
   PRODUCT_DOMAIN_DB_CATEGORIES,
