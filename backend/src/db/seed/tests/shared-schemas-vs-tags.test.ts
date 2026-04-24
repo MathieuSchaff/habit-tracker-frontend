@@ -41,10 +41,13 @@ describe('Shared schemas ↔ seed tags integrity', () => {
   // (accented) while the tag was 'gelule' — the match was silently broken
   // and no product could ever be filtered by that product_type tag.
   describe('PRODUCT_KINDS.complement vs product_type tags', () => {
-    // Known gap: 'huile' (oral supplement oil) has no product_type tag yet.
-    // No supplement products exist in the DB today, so we skip it on purpose.
-    // Remove from this allowlist when the first "huile" supplement is added.
-    const KNOWN_MISSING = new Set<string>(['huile'])
+    // Legacy PRODUCT_KINDS.complement values that are superseded by more
+    // specific product_type tag slugs in SUPPLEMENT_PRODUCT_TAG_SLUGS:
+    //   'huile'   → 'huile-orale'
+    //   'ampoule' → 'ampoule-buvable'
+    // No supplement product uses these kinds today; keep the allowlist until
+    // PRODUCT_KINDS.complement is migrated to the tag-slug values.
+    const KNOWN_MISSING = new Set<string>(['huile', 'ampoule'])
 
     it('every complément kind has a matching product_type tag', () => {
       const complementKinds = Object.values(PRODUCT_KINDS.complement)

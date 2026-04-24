@@ -1,10 +1,10 @@
 import {
   createProductSchema,
   HTTP_STATUS,
+  listProductsQuery,
   ok,
   PRODUCT_DOMAIN_TABS,
   searchProductsQuery,
-  skincareListProductsQuery,
   updateProductSchema,
 } from '@habit-tracker/shared'
 
@@ -73,7 +73,7 @@ export const productRoutes = productsApp
     const result = await searchProducts({ q, limit }, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
-  .get('/', zValidator('query', skincareListProductsQuery), async (c) => {
+  .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
     const filters = c.req.valid('query')
 

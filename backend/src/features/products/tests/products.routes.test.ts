@@ -123,7 +123,7 @@ describe('Product Routes', () => {
 
   describe('GET /products', () => {
     it('should return the correct paginated shape', async () => {
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=skincare')
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
@@ -135,14 +135,14 @@ describe('Product Routes', () => {
     })
 
     it('should return empty items when no products exist', async () => {
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=skincare')
 
       const data = await res.json()
       expect(data.data.items).toEqual([])
       expect(data.data.total).toBe(0)
     })
 
-    it('should list all products without filters', async () => {
+    it('should list all products within a domain without filters', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       await authPost(app, '/products', token, VALID_PRODUCT)
       await authPost(app, '/products', token, {
@@ -153,7 +153,7 @@ describe('Product Routes', () => {
         unit: 'bottle',
       })
 
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=complement')
 
       const data = await res.json()
       expect(data.data.total).toBe(2)
@@ -171,7 +171,7 @@ describe('Product Routes', () => {
         unit: 'pump',
       })
 
-      const res = await app.request('/products?kind=serum')
+      const res = await app.request('/products?category=skincare&kind=serum')
 
       const data = await res.json()
       expect(data.data.total).toBe(1)
@@ -189,7 +189,7 @@ describe('Product Routes', () => {
         unit: 'pump',
       })
 
-      const res = await app.request('/products?brand=CeraVe')
+      const res = await app.request('/products?category=skincare&brand=CeraVe')
 
       const data = await res.json()
       expect(data.data.total).toBe(1)
@@ -214,7 +214,7 @@ describe('Product Routes', () => {
         unit: 'bottle',
       })
 
-      const res = await app.request('/products?limit=2&page=1')
+      const res = await app.request('/products?category=complement&limit=2&page=1')
 
       const data = await res.json()
       expect(data.data.items).toHaveLength(2)
@@ -241,7 +241,7 @@ describe('Product Routes', () => {
         unit: 'bottle',
       })
 
-      const res = await app.request('/products?limit=2&page=2')
+      const res = await app.request('/products?category=complement&limit=2&page=2')
 
       const data = await res.json()
       expect(data.data.items).toHaveLength(1)
@@ -249,7 +249,7 @@ describe('Product Routes', () => {
     })
 
     it('should default to page=1 and limit=20', async () => {
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=skincare')
 
       const data = await res.json()
       expect(data.data.page).toBe(1)
@@ -257,13 +257,13 @@ describe('Product Routes', () => {
     })
 
     it('should return 400 for invalid limit', async () => {
-      const res = await app.request('/products?limit=999')
+      const res = await app.request('/products?category=skincare&limit=999')
 
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should not require authentication', async () => {
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=skincare')
 
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
@@ -275,7 +275,7 @@ describe('Product Routes', () => {
         priceCents: 1500,
       })
 
-      const res = await app.request('/products')
+      const res = await app.request('/products?category=complement')
       const data = await res.json()
       const item = data.data.items[0]
 
@@ -787,15 +787,15 @@ describe('Product Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 
-    it('should return 500 for unknown id (product_delete_failed)', async () => {
+    it('should return 404 for unknown id (product_not_found)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       const res = await authDelete(app, `/products/${crypto.randomUUID()}`, token)
 
-      expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
       const data = await res.json()
       expect(data.success).toBe(false)
-      expect(data.error).toBe('product_delete_failed')
+      expect(data.error).toBe('product_not_found')
     })
 
     it('should reject unauthenticated request', async () => {

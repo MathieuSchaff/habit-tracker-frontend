@@ -9,9 +9,9 @@ export const SUPPLEMENT_PRODUCT_TAG_CATEGORY_META: Record<
   TagCategoryMeta
 > = {
   goal: { label: 'Objectif', placeholder: 'Tous', tier: 'essential', order: 1 },
-  product_type: { label: 'Type', placeholder: 'Tous', tier: 'essential', order: 2 },
-  moment: { label: 'Moment', placeholder: 'Tous', tier: 'advanced', order: 3 },
-  restriction: { label: 'Restriction', placeholder: 'Toutes', tier: 'advanced', order: 4 },
+  product_type: { label: 'Forme', placeholder: 'Toutes', tier: 'essential', order: 2 },
+  moment: { label: 'Moment', placeholder: 'Tous', tier: 'essential', order: 3 },
+  restriction: { label: 'Contre-indication', placeholder: 'Aucune', tier: 'advanced', order: 4 },
   product_label: { label: 'Label', placeholder: 'Tous', tier: 'advanced', order: 5 },
 }
 

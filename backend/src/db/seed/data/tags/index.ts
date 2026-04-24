@@ -16,7 +16,10 @@ import {
   type SkincareProductTagSlug,
   SUPPLEMENT_INGREDIENT_TAG_SLUGS,
   SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS,
+  SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
   type SupplementIngredientTagSlug,
+  type SupplementProductTagSlug,
 } from '@habit-tracker/shared'
 
 // Combined legacy alias — still consumed by other seed modules that have not
@@ -25,6 +28,8 @@ export const TAG_SLUGS = {
   ...SKINCARE_INGREDIENT_TAG_SLUGS,
   ...SKINCARE_PRODUCT_TAG_SLUGS,
   ...SUPPLEMENT_INGREDIENT_TAG_SLUGS,
+  ...SUPPLEMENT_PRODUCT_TAG_SLUGS,
+  ...DENTAL_PRODUCT_TAG_SLUGS,
 } as const
 export type TagSlug = (typeof TAG_SLUGS)[keyof typeof TAG_SLUGS]
 
@@ -221,6 +226,9 @@ const TAG_LABELS: Record<string, string> = {
   detox: 'Détox',
   'peau-orale': 'Peau (voie orale)',
   'cheveux-orale': 'Cheveux (voie orale)',
+  'peau-cheveux-ongles': 'Peau, cheveux, ongles',
+  'stress-anxiete': 'Stress et anxiété',
+  'recuperation-musculaire': 'Récupération musculaire',
 
   // Supplement moment
   // `matin` / `soir` labels already defined above (routine steps) — shared.
@@ -228,14 +236,33 @@ const TAG_LABELS: Record<string, string> = {
   'a-jeun': 'À jeun',
   'pre-entrainement': 'Pré-entraînement',
   'post-entrainement': 'Post-entraînement',
+  'matin-supplement': 'Matin',
+  'soir-supplement': 'Soir',
+  'autour-sport': 'Autour du sport',
 
   // Supplement restrictions
   'grossesse-incompatible': 'Contre-indiqué grossesse',
   'allaitement-incompatible': 'Contre-indiqué allaitement',
   'enfant-non-adapte': 'Non adapté enfant',
   'interaction-anticoagulants': 'Interaction anticoagulants',
+  'interaction-thyroide': 'Interaction thyroïde',
   'insuffisance-hepatique': 'Insuffisance hépatique',
   'insuffisance-renale': 'Insuffisance rénale',
+
+  // Supplement product types
+  // `gelule` / `capsule` / `poudre` / `sirop` / `gummy` already defined above.
+  comprime: 'Comprimé',
+  'ampoule-buvable': 'Ampoule buvable',
+  'huile-orale': 'Huile orale',
+  'spray-sublingual': 'Spray sublingual',
+
+  // Supplement product labels
+  // `vegan` already defined above (skincare label).
+  'sans-gluten': 'Sans gluten',
+  'sans-lactose': 'Sans lactose',
+  'fabrication-fr': 'Fabrication France',
+  'extrait-titre': 'Extrait titré',
+  'dose-clinique': 'Dose clinique',
 
   // Supplement biochemical attributes
   antioxydant: 'Antioxydant',
@@ -261,6 +288,8 @@ const TAG_LABELS: Record<string, string> = {
   halitose: 'Mauvaise haleine',
   bruxisme: 'Bruxisme',
   aphtes: 'Aphtes',
+  'email-affaibli': 'Émail affaibli',
+  'secheresse-buccale': 'Sécheresse buccale',
 
   // Dental age groups
   adulte: 'Adulte',
@@ -269,6 +298,11 @@ const TAG_LABELS: Record<string, string> = {
   orthodontie: 'Orthodontie',
   implants: 'Implants',
   'dents-lait': 'Dents de lait',
+  ado: 'Adolescent',
+
+  // Dental product types
+  brossette: 'Brossette',
+  'kit-blanchiment': 'Kit blanchiment',
 
   // Dental ingredient attributes
   remineralisant: 'Reminéralisant',
@@ -288,11 +322,14 @@ const TAG_LABELS: Record<string, string> = {
   'apaisement-gencives': 'Apaisement gencives',
   'renforcement-email': 'Renforcement émail',
   'reduction-sensibilite': 'Réduction sensibilité',
+  remineralisation: 'Reminéralisation',
 
   // Dental product labels
   'sans-fluor': 'Sans fluor',
   'sans-alcool': 'Sans alcool',
   'sans-sls': 'Sans SLS',
+  'sans-edulcorants-artificiels': 'Sans édulcorants artificiels',
+  bio: 'Bio',
 
   // Haircare concerns
   pellicules: 'Pellicules',
@@ -417,8 +454,20 @@ const dentalProductTags = (Object.values(DENTAL_PRODUCT_TAG_SLUGS) as DentalProd
   })
 )
 
+const supplementProductTags = (
+  Object.values(SUPPLEMENT_PRODUCT_TAG_SLUGS) as SupplementProductTagSlug[]
+).map((slug) => ({
+  slug,
+  label: labelFor(slug),
+  tagType: SUPPLEMENT_PRODUCT_TAG_TAXONOMY[slug].category as string,
+}))
+
 const seenProductSlugs = new Set<string>()
-export const productTagData = [...skincareProductTags, ...dentalProductTags].filter((row) => {
+export const productTagData = [
+  ...skincareProductTags,
+  ...dentalProductTags,
+  ...supplementProductTags,
+].filter((row) => {
   if (seenProductSlugs.has(row.slug)) return false
   seenProductSlugs.add(row.slug)
   return true

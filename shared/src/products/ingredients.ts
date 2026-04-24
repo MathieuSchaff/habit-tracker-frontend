@@ -13,31 +13,7 @@ export const createProductIngredientSchema = z.object({
   notes: z.string().max(500).optional(),
 })
 
-export const productIngredientResponseSchema = z.object({
-  id: z.uuid(),
-  productId: z.uuid(),
-  ingredientId: z.uuid(),
-  concentrationValue: z.string().nullable(),
-  concentrationUnit: z.string().nullable(),
-  concentrationPer: z.string().nullable(),
-  notes: z.string().nullable(),
-  createdAt: z.date(),
-})
-
 // TYPES
-
-export type CreateProductIngredientInput = z.infer<typeof createProductIngredientSchema>
-
-export type ProductIngredient = {
-  id: string
-  productId: string
-  ingredientId: string
-  concentrationValue: string | null // numeric revient en string depuis PG
-  concentrationUnit: string | null
-  concentrationPer: string | null
-  notes: string | null
-  createdAt: string | Date
-}
 
 export type ProductIngredientErrorCode =
   | 'product_ingredient_not_found'

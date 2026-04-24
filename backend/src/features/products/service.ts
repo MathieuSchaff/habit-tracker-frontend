@@ -1,16 +1,20 @@
 import type {
   CreateProductInput,
+  ListProductsFilters,
   ProductKind,
   ProductSearchResult,
   ProductUnit,
-  SkincareListProductsFilters,
   UpdateProductInput,
 } from '@habit-tracker/shared'
 import {
   type AllProductTagCategory,
+  DENTAL_PRODUCT_TAG_CATEGORIES,
   DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  HAIRCARE_PRODUCT_TAG_CATEGORIES,
   PRODUCT_DOMAIN_DB_CATEGORIES,
   type ProductDomainTab,
+  SKINCARE_PRODUCT_TAG_CATEGORIES,
+  SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
@@ -219,7 +223,7 @@ export type ProductsPage = {
 
 // This is the search with many filters
 export async function listProducts(
-  filters: SkincareListProductsFilters = { page: 1, limit: 20 },
+  filters: ListProductsFilters,
   database: Database = db
 ): Promise<ProductsPage> {
   const page = filters.page ?? 1
@@ -228,9 +232,7 @@ export async function listProducts(
 
   const conditions: SQL[] = []
 
-  if (filters.category) {
-    conditions.push(inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[filters.category]]))
-  }
+  conditions.push(inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[filters.category]]))
 
   if (filters.kind) {
     const kinds = Array.isArray(filters.kind) ? filters.kind : filters.kind.split(',')
@@ -266,32 +268,44 @@ export async function listProducts(
     }
   }
 
-  const TAG_FILTERS = [
-    'routine_step',
-    'skin_type',
-    'concern',
-    'product_type',
-    'skin_zone',
-    'skin_effect',
-    'product_label',
-    'shared_label',
-  ] as const
-
-  for (const category of TAG_FILTERS) {
-    const value = filters[category]
-    if (!value) continue
-    const slugs = Array.isArray(value) ? value : value.split(',')
-    if (slugs.length === 0) continue
-    conditions.push(
-      inArray(
-        products.id,
-        database
-          .select({ productId: tagProducts.productId })
-          .from(tagProducts)
-          .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-          .where(and(inArray(productTagsDefs.slug, slugs), eq(productTagsDefs.tagType, category)))
-      )
+  const tagFilterCondition = (raw: string, tagType: string): SQL =>
+    inArray(
+      products.id,
+      database
+        .select({ productId: tagProducts.productId })
+        .from(tagProducts)
+        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .where(
+          and(inArray(productTagsDefs.slug, raw.split(',')), eq(productTagsDefs.tagType, tagType))
+        )
     )
+
+  // Tag filters dispatched per domain — categories come from the shared taxonomy
+  // (single source of truth: shared/src/products/{domain}/tag-taxonomy.ts).
+  if (filters.category === 'skincare') {
+    for (const tagType of SKINCARE_PRODUCT_TAG_CATEGORIES) {
+      const value = filters[tagType]
+      if (!value) continue
+      conditions.push(tagFilterCondition(value, tagType))
+    }
+  } else if (filters.category === 'haircare') {
+    for (const tagType of HAIRCARE_PRODUCT_TAG_CATEGORIES) {
+      const value = filters[tagType]
+      if (!value) continue
+      conditions.push(tagFilterCondition(value, tagType))
+    }
+  } else if (filters.category === 'dental') {
+    for (const tagType of DENTAL_PRODUCT_TAG_CATEGORIES) {
+      const value = filters[tagType]
+      if (!value) continue
+      conditions.push(tagFilterCondition(value, tagType))
+    }
+  } else if (filters.category === 'complement') {
+    for (const tagType of SUPPLEMENT_PRODUCT_TAG_CATEGORIES) {
+      const value = filters[tagType]
+      if (!value) continue
+      conditions.push(tagFilterCondition(value, tagType))
+    }
   }
 
   // Price range — NULL priceCents is excluded when either bound is active

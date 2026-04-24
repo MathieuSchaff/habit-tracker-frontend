@@ -1,52 +1,56 @@
+// Dental Product Tag Slugs
+// Tags applicable to dental products.
+// Categories: concern, age_group, product_type, dental_effect, product_label.
+//
+// concern / age_group / dental_effect : slugs alignés sur
+// DENTAL_INGREDIENT_TAG_SLUGS quand le sens est partagé (rows DB indépendantes,
+// scope `both` déduit — cohérence cross-entité, même pattern que skincare).
+// product_type / product_label : slugs nouveaux scope produit.
+//
+// Note `gencivite` / `taches` : orthographe préservée pour aligner avec les
+// ingredient slugs existants (typo `gencivite` vs correct `gingivite` à
+// harmoniser plus tard, hors scope de l'étape §4.5).
+
 export const DENTAL_PRODUCT_TAG_SLUGS = {
   // Concerns
   CARIE: 'carie',
   SENSIBILITE_DENTINAIRE: 'sensibilite-dentinaire',
-  GENCIVITE: 'gencivite',
-  PARODONTITE: 'parodontite',
-  PLAQUE: 'plaque',
-  TARTRE: 'tartre',
-  TACHES: 'taches',
-  EROSION_ACIDE: 'erosion-acide',
   HALITOSE: 'halitose',
-  BRUXISME: 'bruxisme',
-  APHTES: 'aphtes',
+  GENCIVITE: 'gencivite',
+  PLAQUE: 'plaque',
+  TACHES: 'taches',
+  TARTRE: 'tartre',
+  EMAIL_AFFAIBLI: 'email-affaibli',
+  SECHERESSE_BUCCALE: 'secheresse-buccale',
 
   // Age group
   ADULTE: 'adulte',
   ENFANT: 'enfant',
-  SENIOR: 'senior',
+  ADO: 'ado',
   ORTHODONTIE: 'orthodontie',
-  IMPLANTS: 'implants',
-  DENTS_LAIT: 'dents-lait',
+  SENIOR: 'senior',
 
-  // Product type
-  // Slugs shared with SKINCARE_PRODUCT_TAG_SLUGS — same DB rows, dental
-  // taxonomy references them to drive the dental filter drawer.
+  // Product types
   DENTIFRICE: 'dentifrice',
   BAIN_DE_BOUCHE: 'bain-de-bouche',
-  BLANCHIMENT_DENTAIRE: 'blanchiment-dentaire',
   FIL_DENTAIRE: 'fil-dentaire',
+  BROSSETTE: 'brossette',
+  KIT_BLANCHIMENT: 'kit-blanchiment',
 
-  // Dental effects
+  // Dental effect
   FRAICHEUR: 'fraicheur',
   BLANCHEUR: 'blancheur',
-  APAISEMENT_GENCIVES: 'apaisement-gencives',
   RENFORCEMENT_EMAIL: 'renforcement-email',
-  REDUCTION_SENSIBILITE: 'reduction-sensibilite',
+  ANTI_PLAQUE: 'anti-plaque',
+  REMINERALISATION: 'remineralisation',
+  APAISEMENT_GENCIVES: 'apaisement-gencives',
 
   // Product labels
-  // Shared with skincare — no new DB rows, taxonomy reference only.
-  SANS_PARFUM: 'sans-parfum',
-  BIO_NATUREL: 'bio-naturel',
-  VEGAN: 'vegan',
-  CRUELTY_FREE: 'cruelty-free',
-  HYPOALLERGENIQUE: 'hypoallergenique',
-  GROSSESSE_COMPATIBLE: 'grossesse-compatible',
-  // Dental-specific labels — new DB rows.
   SANS_FLUOR: 'sans-fluor',
-  SANS_ALCOOL: 'sans-alcool',
   SANS_SLS: 'sans-sls',
+  SANS_EDULCORANTS_ARTIFICIELS: 'sans-edulcorants-artificiels',
+  VEGAN: 'vegan',
+  BIO: 'bio',
 } as const
 
 export type DentalProductTagSlug =

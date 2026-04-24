@@ -3,7 +3,7 @@ import { Toaster, toast } from 'sonner'
 
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
-// import { DevThemeSwitcher } from '../../_dev/DevThemeSwitcher/DevThemeSwitcher'
+import { DevThemeSwitcher } from '../../_dev/DevThemeSwitcher/DevThemeSwitcher'
 import { Button } from '../../Button/Button'
 import { BottomNav } from '../../Header/BottomNav/BottomNav'
 import { Header } from '../../Header/Header'
@@ -51,7 +51,7 @@ export const AppLayout = () => {
         <Outlet />
       </main>
       <BottomNav />
-      {/*<DevThemeSwitcher />*/}
+      {import.meta.env.DEV && !window.location.hostname.includes('ngrok') && <DevThemeSwitcher />}
       <Toaster position="top-center" richColors />
     </div>
   )

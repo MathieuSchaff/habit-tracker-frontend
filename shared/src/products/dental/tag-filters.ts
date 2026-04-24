@@ -5,7 +5,7 @@ export const DENTAL_PRODUCT_TAG_CATEGORY_META: Record<DentalProductTagCategory, 
   concern: { label: 'Problème', placeholder: 'Tous', tier: 'essential', order: 1 },
   age_group: { label: 'Âge', placeholder: 'Tous', tier: 'essential', order: 2 },
   product_type: { label: 'Type', placeholder: 'Tous', tier: 'essential', order: 3 },
-  dental_effect: { label: 'Effet', placeholder: 'Tous', tier: 'advanced', order: 4 },
+  dental_effect: { label: 'Bénéfice', placeholder: 'Tous', tier: 'advanced', order: 4 },
   product_label: { label: 'Label', placeholder: 'Tous', tier: 'advanced', order: 5 },
 }
 

@@ -1,10 +1,10 @@
-import type { SupplementProductTagSlug } from './tag-slugs'
+import { SUPPLEMENT_PRODUCT_TAG_SLUGS, type SupplementProductTagSlug } from './tag-slugs'
 
 export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [
   'goal',
-  'product_type',
   'moment',
   'restriction',
+  'product_type',
   'product_label',
 ] as const
 
@@ -14,13 +14,73 @@ export interface SupplementProductTagMeta {
   category: SupplementProductTagCategory
 }
 
-export const SUPPLEMENT_PRODUCT_TAG_TAXONOMY = {} as Record<
+const GOAL: SupplementProductTagSlug[] = [
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SOMMEIL,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.ENERGIE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.COGNITION,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.IMMUNITE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.PEAU_CHEVEUX_ONGLES,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.DIGESTION,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.STRESS_ANXIETE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.RECUPERATION_MUSCULAIRE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.LONGEVITE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.HORMONAL,
+]
+
+const MOMENT: SupplementProductTagSlug[] = [
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.MATIN_SUPPLEMENT,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SOIR_SUPPLEMENT,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.AVEC_REPAS,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.A_JEUN,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.AUTOUR_SPORT,
+]
+
+const RESTRICTION: SupplementProductTagSlug[] = [
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.GROSSESSE_INCOMPATIBLE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.ALLAITEMENT_INCOMPATIBLE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.INTERACTION_ANTICOAGULANTS,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.INTERACTION_THYROIDE,
+]
+
+const PRODUCT_TYPE: SupplementProductTagSlug[] = [
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.GELULE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.CAPSULE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.COMPRIME,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.AMPOULE_BUVABLE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.POUDRE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SIROP,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.GUMMY,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.HUILE_ORALE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SPRAY_SUBLINGUAL,
+]
+
+const PRODUCT_LABEL: SupplementProductTagSlug[] = [
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.VEGAN,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SANS_GLUTEN,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.SANS_LACTOSE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.BIO,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.FABRICATION_FR,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.EXTRAIT_TITRE,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS.DOSE_CLINIQUE,
+]
+
+type Entry = [SupplementProductTagSlug, SupplementProductTagMeta]
+
+const entries: Entry[] = [
+  ...GOAL.map((s): Entry => [s, { category: 'goal' }]),
+  ...MOMENT.map((s): Entry => [s, { category: 'moment' }]),
+  ...RESTRICTION.map((s): Entry => [s, { category: 'restriction' }]),
+  ...PRODUCT_TYPE.map((s): Entry => [s, { category: 'product_type' }]),
+  ...PRODUCT_LABEL.map((s): Entry => [s, { category: 'product_label' }]),
+]
+
+export const SUPPLEMENT_PRODUCT_TAG_TAXONOMY = Object.fromEntries(entries) as Record<
   SupplementProductTagSlug,
   SupplementProductTagMeta
 >
 
 export function getSupplementProductTagCategory(
-  _slug: SupplementProductTagSlug
+  slug: SupplementProductTagSlug
 ): SupplementProductTagCategory | undefined {
-  return undefined
+  return SUPPLEMENT_PRODUCT_TAG_TAXONOMY[slug]?.category
 }

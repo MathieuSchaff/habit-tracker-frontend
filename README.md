@@ -158,7 +158,6 @@ aurore/
 | Drizzle Studio | 4983 |
 
 ---
-
 ## Troubleshooting
 
 **Editor shows errors / Docker crashes at startup**

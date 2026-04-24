@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 
+import { ProdCreamJarIcon, ProdPumpIcon, ProdTubeIcon } from '@/assets/product-icons'
 import { Button } from '@/component/Button/Button'
 
 import './FirstTimeEmpty.css'
@@ -13,9 +14,15 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
     <div className="first-empty">
       <div className="first-empty-art" aria-hidden="true">
         <div className="first-empty-shelf" />
-        <div className="first-empty-bottle first-empty-bottle--b1" />
-        <div className="first-empty-bottle first-empty-bottle--b2" />
-        <div className="first-empty-bottle first-empty-bottle--b3" />
+        <div className="first-empty-bottle first-empty-bottle--b1">
+          <ProdTubeIcon size={32} />
+        </div>
+        <div className="first-empty-bottle first-empty-bottle--b2">
+          <ProdPumpIcon size={40} />
+        </div>
+        <div className="first-empty-bottle first-empty-bottle--b3">
+          <ProdCreamJarIcon size={30} />
+        </div>
         <div className="first-empty-sparkle first-empty-sparkle--s1">✦</div>
         <div className="first-empty-sparkle first-empty-sparkle--s2">✦</div>
       </div>

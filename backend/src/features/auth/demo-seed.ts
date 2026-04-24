@@ -80,7 +80,10 @@ async function seedDemoTasks(userId: string, db: Database) {
 }
 
 async function seedDemoCollection(userId: string, db: Database) {
-  const { items: products } = await listProducts({ page: 1, limit: 15, sort: 'random' }, db)
+  const { items: products } = await listProducts(
+    { category: 'skincare', page: 1, limit: 15, sort: 'random' },
+    db
+  )
 
   if (products.length === 0) {
     console.warn('No products found in catalog — skipping collection seed')
