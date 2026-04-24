@@ -16,6 +16,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { logger } from '../../lib/logger'
 import { recalculateSignalForUser } from '../../services/dermoSignalService'
 import { requireJwtAuth } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
@@ -112,7 +113,7 @@ export const userProductRoutes = app
       // Fire-and-forget: recalculate dermo signal after review save.
       // Does not block the HTTP response.
       recalculateSignalForUser(userId, id, db).catch((err) =>
-        console.error('[dermoSignal] recalculation failed:', err)
+        logger.error({ err }, 'dermoSignal recalculation failed')
       )
 
       return c.json(ok(result), HTTP_STATUS.OK)

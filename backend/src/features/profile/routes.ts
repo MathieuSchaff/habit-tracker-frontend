@@ -118,6 +118,6 @@ export const profileRoute = app
   .delete('/deleteUser', async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
-    deleteUser(db, userId)
+    await deleteUser(db, userId)
     return c.body(null, 204)
   })

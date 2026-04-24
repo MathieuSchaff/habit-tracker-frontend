@@ -9,7 +9,7 @@ import { and, asc, eq, ilike, isNotNull, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { articles } from '../../db/schema/blog/articles'
-import { isUniqueViolation } from '../../lib/helpers'
+import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { BlogError } from './blog-error'
 
 export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmin = false) {
@@ -30,7 +30,7 @@ export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmi
   }
 
   if (filters.q) {
-    conditions.push(ilike(articles.title, `%${filters.q}%`))
+    conditions.push(ilike(articles.title, `%${escapeLike(filters.q)}%`))
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined

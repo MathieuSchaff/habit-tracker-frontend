@@ -35,7 +35,7 @@ import { db } from '../../db'
 import type { Database, DB } from '../../db/index'
 import { type Product, products } from '../../db/schema/products'
 import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
-import { isUniqueViolation } from '../../lib/helpers'
+import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
 
@@ -450,12 +450,12 @@ export async function getDistinctBrands(database: Database = db): Promise<string
   return rows.map((r) => r.brand)
 }
 
-export async function deleteProduct(id: string, database: Database = db): Promise<void> {
-  const rows = await database
-    .delete(products)
-    .where(eq(products.id, id))
-    .returning({ id: products.id })
-  if (!rows[0]) throw new ProductError('product_delete_failed')
+export async function deleteProduct(userId: string, id: string, database: Database = db): Promise<void> {
+  const product = await database.query.products.findFirst({ where: eq(products.id, id) })
+  if (!product) throw new ProductError('product_not_found')
+  if (product.createdBy !== userId) throw new ProductError('unauthorized_access')
+
+  await database.delete(products).where(eq(products.id, id))
 }
 
 // We look for products that look the same to avoid duplicates
@@ -485,7 +485,7 @@ export async function findSimilarProducts(
         ),
         or(
           sql`similarity(lower(${products.name}), lower(${trimmedName})) > 0.3`,
-          ilike(products.name, `%${trimmedName}%`)
+          ilike(products.name, `%${escapeLike(trimmedName)}%`)
         )
       )
     )
@@ -511,8 +511,8 @@ export async function searchProducts(
     .from(products)
     .where(
       or(
-        ilike(products.name, `%${q}%`),
-        ilike(products.brand, `%${q}%`),
+        ilike(products.name, `%${escapeLike(q)}%`),
+        ilike(products.brand, `%${escapeLike(q)}%`),
         sql`similarity(lower(${products.name}), lower(${q})) > 0.3`,
         sql`similarity(lower(${products.brand}), lower(${q})) > 0.3`
       )

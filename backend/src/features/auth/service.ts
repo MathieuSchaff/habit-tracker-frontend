@@ -18,6 +18,7 @@ import type { Database, DB } from '../../db/index'
 import { bindRlsContext } from '../../db/rls'
 import { users } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
+import { logger } from '../../lib/logger'
 import { seedDemoData } from './demo-seed'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken } from './email-verification.service'
@@ -98,7 +99,7 @@ export async function signup(
     try {
       rawToken = await createVerificationToken(ctx.db, user.id)
     } catch (tokenErr) {
-      console.error('Failed to create verification token (best-effort):', tokenErr)
+      logger.error({ err: tokenErr }, 'Failed to create verification token (best-effort)')
     }
 
     if (rawToken !== null) {
@@ -106,7 +107,7 @@ export async function signup(
       try {
         await sendVerificationEmail(user.email, verificationUrl)
       } catch (emailErr) {
-        console.error('Verification email send failed (best-effort):', emailErr)
+        logger.error({ err: emailErr }, 'Verification email send failed (best-effort)')
       }
     }
 
@@ -116,7 +117,7 @@ export async function signup(
     })
   } catch (e) {
     if (isUniqueViolation(e)) return err('email_exists')
-    console.error('Signup failed:', e)
+    logger.error({ err: e }, 'Signup failed')
     return err('server_error')
   }
 }
@@ -140,14 +141,14 @@ export async function login(
 
     const tokens = await createTokenPair(ctx, user.id, user.role)
 
-    cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => console.error('Cleanup failed:', e))
+    cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => logger.error({ err: e }, 'Cleanup failed'))
 
     return ok({
       user: toPublicUser(user),
       ...tokens,
     })
   } catch (e) {
-    console.error('Login failed:', e)
+    logger.error({ err: e }, 'Login failed')
     return err('server_error')
   }
 }
@@ -160,13 +161,13 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     // Verify token exists and hasn't been revoked (double-check after JWT validation)
     const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
     if (!storedToken) {
-      console.warn(`Potential token replay for user ${payload.sub}`)
+      logger.warn({ userId: payload.sub }, 'Potential token replay')
       await revokeAllUserRefreshTokens(ctx.db, payload.sub)
       return err('invalid_token')
     }
 
     if (storedToken.userId !== payload.sub) {
-      console.error(`Token userId mismatch: stored=${storedToken.userId}, payload=${payload.sub}`)
+      logger.error({ storedUserId: storedToken.userId, payloadSub: payload.sub }, 'Token userId mismatch')
       await revokeAllUserRefreshTokens(ctx.db, payload.sub)
       await revokeAllUserRefreshTokens(ctx.db, storedToken.userId)
       return err('invalid_token')
@@ -182,6 +183,10 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       const graceExpired = createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)
       if (graceExpired) return err('email_not_verified')
     }
+    // Order matters: cleanup runs BEFORE createTokenPair, which is safe because
+    // it only deletes expired or already-revoked tokens — not the active one
+    // being used right now (payload.jti). If createTokenPair fails, the caller
+    // still holds a valid token and can retry.
     await cleanupUserRefreshTokens(ctx.db, payload.sub)
 
     const tokens = await createTokenPair(ctx, payload.sub, user.role)
@@ -192,7 +197,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       ...tokens,
     })
   } catch (e) {
-    console.error('Refresh failed:', e)
+    logger.error({ err: e }, 'Refresh failed')
     return err('server_error')
   }
 }
@@ -203,7 +208,7 @@ export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise
     if (payload) await revokeRefreshToken(ctx.db, payload.jti)
     return ok(null)
   } catch {
-    console.error('Logout failed')
+    logger.error('Logout failed')
     return ok(null)
   }
 }
@@ -234,7 +239,7 @@ export async function changePassword(
 
     return ok(null)
   } catch (e) {
-    console.error('Change password failed:', e)
+    logger.error({ err: e }, 'Change password failed')
     return err('server_error')
   }
 }
@@ -267,7 +272,7 @@ export async function createDemo(
       ...tokens,
     })
   } catch (e) {
-    console.error('Demo creation failed:', e)
+    logger.error({ err: e }, 'Demo creation failed')
     return err('server_error')
   }
 }

@@ -4,7 +4,6 @@ import { describe, expect, it } from 'bun:test'
 import type { Email, HashedPassword } from '@habit-tracker/shared'
 import { emailSchema } from '@habit-tracker/shared'
 
-import { hash } from 'argon2'
 
 import { testDb } from '../../../tests/db.test.config'
 import { getProfile } from '../../profile'
@@ -14,7 +13,7 @@ describe('User Utils', () => {
   describe('getUser', () => {
     it('should find user by email', async () => {
       const email = 'find@example.com' as Email
-      const passwordHash = (await hash('Azerty123!')) as HashedPassword
+      const passwordHash = (await Bun.password.hash('Azerty123!')) as HashedPassword
 
       await createUser(testDb, { email, passwordHash })
 

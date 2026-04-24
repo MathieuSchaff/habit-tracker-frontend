@@ -19,6 +19,11 @@ export function isUniqueViolation(e: unknown): boolean {
   return getErrorCode(e) === '23505'
 }
 
+// Escape LIKE/ILIKE metacharacters so user input is matched literally.
+export function escapeLike(s: string): string {
+  return s.replace(/[%_\\]/g, '\\$&')
+}
+
 /**
  * Normal comparison doesn't work well for Dates because they are objects.
  * I use this to check if two things are really the same.
