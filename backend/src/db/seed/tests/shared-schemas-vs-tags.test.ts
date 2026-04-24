@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'bun:test'
 
 import {
+  DENTAL_INGREDIENT_TAG_TAXONOMY,
+  DENTAL_PRODUCT_TAG_TAXONOMY,
+  HAIRCARE_INGREDIENT_TAG_TAXONOMY,
+  HAIRCARE_PRODUCT_TAG_TAXONOMY,
   SKINCARE_INGREDIENT_CATEGORY_VALUES,
   SKINCARE_INGREDIENT_TAG_TAXONOMY,
   PRODUCT_KINDS,
   SKINCARE_PRODUCT_TAG_TAXONOMY,
   SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
+  SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
 } from '@habit-tracker/shared'
 
 import { ingredientTagMap } from '../data/ingredient-tags'
@@ -28,6 +33,11 @@ const skinTypeTagSlugs = new Set(
 )
 const concernTagSlugs = new Set(
   ingredientTagData.filter((t) => t.tagType === 'concern').map((t) => t.slug)
+)
+// Haircare equivalent of skin_type — used in `avoid` to express
+// "contraindicated for dry hair / curly hair / colored hair…".
+const hairTypeTagSlugs = new Set(
+  ingredientTagData.filter((t) => t.tagType === 'hair_type').map((t) => t.slug)
 )
 
 describe('Shared schemas ↔ seed tags integrity', () => {
@@ -95,8 +105,14 @@ describe('Shared schemas ↔ seed tags integrity', () => {
         for (const slug of toCheck) {
           const inSkincareIngredient = slug in SKINCARE_INGREDIENT_TAG_TAXONOMY
           const inSupplementIngredient = slug in SUPPLEMENT_INGREDIENT_TAG_TAXONOMY
+          const inDentalIngredient = slug in DENTAL_INGREDIENT_TAG_TAXONOMY
+          const inHaircareIngredient = slug in HAIRCARE_INGREDIENT_TAG_TAXONOMY
           const inProduct = slug in SKINCARE_PRODUCT_TAG_TAXONOMY
-          const inAnyIngredient = inSkincareIngredient || inSupplementIngredient
+          const inAnyIngredient =
+            inSkincareIngredient ||
+            inSupplementIngredient ||
+            inDentalIngredient ||
+            inHaircareIngredient
           if (!inAnyIngredient && !inProduct) {
             bad.push(`${ingSlug} → ${slug} (unknown slug)`)
           } else if (!inAnyIngredient) {
@@ -114,13 +130,14 @@ describe('Shared schemas ↔ seed tags integrity', () => {
       ingredientTagData.filter((t) => t.tagType === 'restriction').map((t) => t.slug)
     )
 
-    it('avoid contains only skin_type, concern or restriction slugs (+ grossesse-compatible)', () => {
+    it('avoid contains only skin_type, hair_type, concern or restriction slugs (+ grossesse-compatible)', () => {
       const bad: string[] = []
       for (const [ingSlug, groups] of Object.entries(ingredientTagMap)) {
         for (const tag of groups.avoid) {
           const slug = tag as string
           const ok =
             skinTypeTagSlugs.has(slug) ||
+            hairTypeTagSlugs.has(slug) ||
             concernTagSlugs.has(slug) ||
             restrictionTagSlugs.has(slug) ||
             slug === AVOID_EXCEPTION
@@ -148,7 +165,11 @@ describe('Shared schemas ↔ seed tags integrity', () => {
           ...groups.avoid.filter((t) => t !== AVOID_EXCEPTION),
         ]
         for (const slug of toCheck) {
-          const inProduct = slug in SKINCARE_PRODUCT_TAG_TAXONOMY
+          const inProduct =
+            slug in SKINCARE_PRODUCT_TAG_TAXONOMY ||
+            slug in HAIRCARE_PRODUCT_TAG_TAXONOMY ||
+            slug in DENTAL_PRODUCT_TAG_TAXONOMY ||
+            slug in SUPPLEMENT_PRODUCT_TAG_TAXONOMY
           const inIngredient = slug in SKINCARE_INGREDIENT_TAG_TAXONOMY
           if (!inProduct && !inIngredient) {
             bad.push(`${prodSlug} → ${slug} (unknown slug)`)

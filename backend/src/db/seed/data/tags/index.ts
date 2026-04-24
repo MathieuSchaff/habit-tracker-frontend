@@ -7,7 +7,10 @@ import {
   type DentalProductTagSlug,
   HAIRCARE_INGREDIENT_TAG_SLUGS,
   HAIRCARE_INGREDIENT_TAG_TAXONOMY,
+  HAIRCARE_PRODUCT_TAG_SLUGS,
+  HAIRCARE_PRODUCT_TAG_TAXONOMY,
   type HaircareIngredientTagSlug,
+  type HaircareProductTagSlug,
   SKINCARE_INGREDIENT_TAG_SLUGS,
   SKINCARE_INGREDIENT_TAG_TAXONOMY,
   SKINCARE_PRODUCT_TAG_SLUGS,
@@ -28,8 +31,17 @@ export const TAG_SLUGS = {
   ...SKINCARE_INGREDIENT_TAG_SLUGS,
   ...SKINCARE_PRODUCT_TAG_SLUGS,
   ...SUPPLEMENT_INGREDIENT_TAG_SLUGS,
-  ...SUPPLEMENT_PRODUCT_TAG_SLUGS,
+  ...DENTAL_INGREDIENT_TAG_SLUGS,
+  ...HAIRCARE_INGREDIENT_TAG_SLUGS,
+  // Product-side dental slugs (DENTIFRICE, BAIN_DE_BOUCHE, FIL_DENTAIRE, etc.)
+  // spread after skincare so dental seed files that reference
+  // `TAG_SLUGS.DENTIFRICE` keep resolving (same slug value, now owned by dental
+  // instead of the removed skincare legacy keys).
   ...DENTAL_PRODUCT_TAG_SLUGS,
+  // Same migration for supplement product_type slugs (GELULE, CAPSULE, POUDRE,
+  // SIROP, GUMMY) — removed from skincare, ownership moved to supplement so
+  // nutripure/etc. seeds that use `TAG_SLUGS.GELULE` still resolve.
+  ...SUPPLEMENT_PRODUCT_TAG_SLUGS,
 } as const
 export type TagSlug = (typeof TAG_SLUGS)[keyof typeof TAG_SLUGS]
 
@@ -226,9 +238,6 @@ const TAG_LABELS: Record<string, string> = {
   detox: 'Détox',
   'peau-orale': 'Peau (voie orale)',
   'cheveux-orale': 'Cheveux (voie orale)',
-  'peau-cheveux-ongles': 'Peau, cheveux, ongles',
-  'stress-anxiete': 'Stress et anxiété',
-  'recuperation-musculaire': 'Récupération musculaire',
 
   // Supplement moment
   // `matin` / `soir` labels already defined above (routine steps) — shared.
@@ -236,33 +245,14 @@ const TAG_LABELS: Record<string, string> = {
   'a-jeun': 'À jeun',
   'pre-entrainement': 'Pré-entraînement',
   'post-entrainement': 'Post-entraînement',
-  'matin-supplement': 'Matin',
-  'soir-supplement': 'Soir',
-  'autour-sport': 'Autour du sport',
 
   // Supplement restrictions
   'grossesse-incompatible': 'Contre-indiqué grossesse',
   'allaitement-incompatible': 'Contre-indiqué allaitement',
   'enfant-non-adapte': 'Non adapté enfant',
   'interaction-anticoagulants': 'Interaction anticoagulants',
-  'interaction-thyroide': 'Interaction thyroïde',
   'insuffisance-hepatique': 'Insuffisance hépatique',
   'insuffisance-renale': 'Insuffisance rénale',
-
-  // Supplement product types
-  // `gelule` / `capsule` / `poudre` / `sirop` / `gummy` already defined above.
-  comprime: 'Comprimé',
-  'ampoule-buvable': 'Ampoule buvable',
-  'huile-orale': 'Huile orale',
-  'spray-sublingual': 'Spray sublingual',
-
-  // Supplement product labels
-  // `vegan` already defined above (skincare label).
-  'sans-gluten': 'Sans gluten',
-  'sans-lactose': 'Sans lactose',
-  'fabrication-fr': 'Fabrication France',
-  'extrait-titre': 'Extrait titré',
-  'dose-clinique': 'Dose clinique',
 
   // Supplement biochemical attributes
   antioxydant: 'Antioxydant',
@@ -277,32 +267,25 @@ const TAG_LABELS: Record<string, string> = {
   calmant: 'Calmant',
 
   // Dental concerns
-  carie: 'Caries',
+  carie: 'Carie',
   'sensibilite-dentinaire': 'Sensibilité dentinaire',
   gencivite: 'Gingivite',
   parodontite: 'Parodontite',
-  plaque: 'Plaque dentaire',
+  plaque: 'Plaque',
   tartre: 'Tartre',
-  taches: 'Taches dentaires',
+  taches: 'Taches',
   'erosion-acide': 'Érosion acide',
-  halitose: 'Mauvaise haleine',
+  halitose: 'Halitose',
   bruxisme: 'Bruxisme',
   aphtes: 'Aphtes',
-  'email-affaibli': 'Émail affaibli',
-  'secheresse-buccale': 'Sécheresse buccale',
 
-  // Dental age groups
+  // Dental age group
   adulte: 'Adulte',
   enfant: 'Enfant',
   senior: 'Senior',
   orthodontie: 'Orthodontie',
   implants: 'Implants',
   'dents-lait': 'Dents de lait',
-  ado: 'Adolescent',
-
-  // Dental product types
-  brossette: 'Brossette',
-  'kit-blanchiment': 'Kit blanchiment',
 
   // Dental ingredient attributes
   remineralisant: 'Reminéralisant',
@@ -315,21 +298,14 @@ const TAG_LABELS: Record<string, string> = {
   'neutralisant-acide': 'Neutralisant acide',
   fluorure: 'Fluorure',
   desensibilisant: 'Désensibilisant',
+  // `anti-inflammatoire` already defined above.
 
   // Dental effects
   fraicheur: 'Fraîcheur',
   blancheur: 'Blancheur',
   'apaisement-gencives': 'Apaisement gencives',
-  'renforcement-email': 'Renforcement émail',
-  'reduction-sensibilite': 'Réduction sensibilité',
-  remineralisation: 'Reminéralisation',
-
-  // Dental product labels
-  'sans-fluor': 'Sans fluor',
-  'sans-alcool': 'Sans alcool',
-  'sans-sls': 'Sans SLS',
-  'sans-edulcorants-artificiels': 'Sans édulcorants artificiels',
-  bio: 'Bio',
+  'renforcement-email': 'Renforcement de l’émail',
+  'reduction-sensibilite': 'Réduction de la sensibilité',
 
   // Haircare concerns
   pellicules: 'Pellicules',
@@ -349,7 +325,7 @@ const TAG_LABELS: Record<string, string> = {
   'porosite-excessive': 'Porosité excessive',
   'pointes-seches': 'Pointes sèches',
 
-  // Haircare hair types
+  // Hair types
   lisses: 'Cheveux lisses',
   ondules: 'Cheveux ondulés',
   boucles: 'Cheveux bouclés',
@@ -372,15 +348,115 @@ const TAG_LABELS: Record<string, string> = {
   'conditionneur-cationique': 'Conditionneur cationique',
   gainant: 'Gainant',
 
-  // Haircare effects
+  // Haircare effects (brillance + hydratation already defined upstream) ─
   douceur: 'Douceur',
   volume: 'Volume',
   discipline: 'Discipline',
   nutrition: 'Nutrition',
   lissant: 'Lissant',
   fixation: 'Fixation',
-  'definition-boucles': 'Définition des boucles',
+  'definition-boucles': 'Définition boucles',
   gainage: 'Gainage',
+
+  // Haircare product concerns (extra)
+  'racines-grasses': 'Racines grasses',
+
+  // Haircare product types
+  shampooing: 'Shampooing',
+  'shampooing-sec': 'Shampooing sec',
+  'shampooing-clarifiant': 'Shampooing clarifiant',
+  'co-wash': 'Co-wash',
+  'apres-shampooing': 'Après-shampooing',
+  'masque-capillaire': 'Masque capillaire',
+  'soin-profond': 'Soin profond',
+  'serum-capillaire': 'Sérum capillaire',
+  'huile-capillaire': 'Huile capillaire',
+  'leave-in': 'Leave-in',
+  'lotion-fortifiante': 'Lotion fortifiante',
+  'gel-coiffant': 'Gel coiffant',
+  'mousse-coiffante': 'Mousse coiffante',
+  'creme-coiffante': 'Crème coiffante',
+  'spray-coiffant': 'Spray coiffant',
+  'spray-thermoprotecteur': 'Spray thermoprotecteur',
+  'cire-coiffante': 'Cire coiffante',
+
+  // Haircare routine steps
+  'pre-shampooing': 'Pré-shampooing',
+  lavage: 'Lavage',
+  conditionnement: 'Conditionnement',
+  'masque-hebdo-cheveux': 'Masque hebdo cheveux',
+  'traitement-cuir-chevelu': 'Traitement cuir chevelu',
+  'soin-sans-rincage': 'Soin sans rinçage',
+  coiffage: 'Coiffage',
+  finition: 'Finition',
+
+  // Haircare product-specific effects
+  // -cheveux suffix disambiguates from skincare slugs (brillance/concern,
+  // hydratation/routine_step). Same display text intentionally.
+  'brillance-cheveux': 'Brillance',
+  'hydratation-cheveux': 'Hydratation',
+  'anti-frisottis': 'Anti-frisottis',
+  demelage: 'Démêlage',
+  reparation: 'Réparation',
+  thermoprotection: 'Thermoprotection',
+
+  // Haircare product labels (extra)
+  'sans-sulfates': 'Sans sulfates',
+  'sans-silicones': 'Sans silicones',
+  'cgm-friendly': 'Curly Girl Method',
+
+  // Dental product concerns (extra)
+  'email-affaibli': 'Émail affaibli',
+  'secheresse-buccale': 'Sécheresse buccale',
+
+  // Dental age group (extra)
+  ado: 'Ado',
+
+  // Dental product types (extra)
+  brossette: 'Brossette',
+  'kit-blanchiment': 'Kit blanchiment',
+
+  // Dental effects (extra)
+  remineralisation: 'Reminéralisation',
+
+  // Dental product labels
+  'sans-fluor': 'Sans fluor',
+  'sans-sls': 'Sans SLS',
+  'sans-edulcorants-artificiels': 'Sans édulcorants artificiels',
+  bio: 'Bio',
+
+  // Supplement product goals (extra)
+  // sommeil/energie/cognition/immunite/digestion/longevite/hormonal déjà
+  // définis côté ingredient, réutilisés via labelFor.
+  'peau-cheveux-ongles': 'Peau, cheveux, ongles',
+  'stress-anxiete': 'Stress & anxiété',
+  'recuperation-musculaire': 'Récupération musculaire',
+
+  // Supplement moment (extra)
+  // `matin-supplement` / `soir-supplement` gardent l'affichage 'Matin' / 'Soir'
+  // (distinction seulement côté slug DB pour lever la collision avec skincare
+  // routine_step.matin / routine_step.soir — même pattern que haircare
+  // brillance-cheveux / hydratation-cheveux).
+  'matin-supplement': 'Matin',
+  'soir-supplement': 'Soir',
+  'autour-sport': 'Autour du sport',
+
+  // Supplement restriction (extra)
+  'interaction-thyroide': 'Interaction thyroïde',
+
+  // Supplement product types (extra)
+  // gelule/capsule/poudre/sirop/gummy déjà définis (déplacés de skincare).
+  comprime: 'Comprimé',
+  'ampoule-buvable': 'Ampoule buvable',
+  'huile-orale': 'Huile orale',
+  'spray-sublingual': 'Spray sublingual',
+
+  // Supplement product labels (extra)
+  'sans-gluten': 'Sans gluten',
+  'sans-lactose': 'Sans lactose',
+  'fabrication-fr': 'Fabrication française',
+  'extrait-titre': 'Extrait titré',
+  'dose-clinique': 'Dose clinique',
 }
 
 function labelFor(slug: string): string {
@@ -443,7 +519,15 @@ const skincareProductTags = (
 ).map((slug) => ({
   slug,
   label: labelFor(slug),
-  tagType: SKINCARE_PRODUCT_TAG_TAXONOMY[slug].category,
+  tagType: SKINCARE_PRODUCT_TAG_TAXONOMY[slug].category as string,
+}))
+
+const haircareProductTags = (
+  Object.values(HAIRCARE_PRODUCT_TAG_SLUGS) as HaircareProductTagSlug[]
+).map((slug) => ({
+  slug,
+  label: labelFor(slug),
+  tagType: HAIRCARE_PRODUCT_TAG_TAXONOMY[slug].category as string,
 }))
 
 const dentalProductTags = (Object.values(DENTAL_PRODUCT_TAG_SLUGS) as DentalProductTagSlug[]).map(
@@ -462,9 +546,12 @@ const supplementProductTags = (
   tagType: SUPPLEMENT_PRODUCT_TAG_TAXONOMY[slug].category as string,
 }))
 
+// Same de-dup pattern as ingredientTagData: first-wins on shared slugs
+// (e.g. `sans-parfum`, `vegan` — same tagType `product_label` across domains).
 const seenProductSlugs = new Set<string>()
 export const productTagData = [
   ...skincareProductTags,
+  ...haircareProductTags,
   ...dentalProductTags,
   ...supplementProductTags,
 ].filter((row) => {

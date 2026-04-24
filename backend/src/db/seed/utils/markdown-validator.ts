@@ -18,12 +18,14 @@
  * const correctedData = validation.fixed
  */
 
+import type { IngredientType } from '@habit-tracker/shared'
+
 // TYPES
 
 export interface IngredientSeed {
   name: string
   slug: string
-  type: string
+  type: IngredientType
   category: string
   description: string
   content: string
@@ -243,22 +245,19 @@ function validateIngredient(ing: IngredientSeed): {
 
   const { fixed, issues: indentationIssues } = fixMarkdownIndentation(ing.content)
   fixedContent = fixed
-  indentationIssues.forEach((issue) => warnings.push(issue))
+  warnings.push(...indentationIssues)
 
   // Validation des listes
 
-  const listIssues = validateLists(fixedContent)
-  listIssues.forEach((issue) => warnings.push(issue))
+  warnings.push(...validateLists(fixedContent))
 
   // Validation des tableaux
 
-  const tableIssues = validateTables(fixedContent)
-  tableIssues.forEach((issue) => warnings.push(issue))
+  warnings.push(...validateTables(fixedContent))
 
   // Détection LaTeX
 
-  const latexIssues = detectLatex(fixedContent)
-  latexIssues.forEach((issue) => warnings.push(issue))
+  warnings.push(...detectLatex(fixedContent))
 
   // Résultat final
 

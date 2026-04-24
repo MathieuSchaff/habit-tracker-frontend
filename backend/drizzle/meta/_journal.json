@@ -218,6 +218,13 @@
       "when": 1777067401206,
       "tag": "0030_watery_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1777073483018,
+      "tag": "0031_little_komodo",
+      "breakpoints": true
     }
   ]
 }

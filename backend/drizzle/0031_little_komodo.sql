@@ -1,0 +1,1 @@
+ALTER POLICY "profiles_select_public" ON "profiles" TO app_runtime USING ("profiles"."profile_public");
