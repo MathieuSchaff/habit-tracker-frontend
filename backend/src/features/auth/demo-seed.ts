@@ -1,8 +1,6 @@
 import { addDays, format, subDays, subMonths } from 'date-fns'
 
 import type { Database } from '../../db/index'
-import { checkHabit } from '../habits/habit-checks'
-import { createHabit } from '../habits/habit-crud'
 import { listProducts } from '../products/service'
 import { createSubtask, createTask, updateTask } from '../tasks/service'
 import { addPurchase, finishPurchase, openPurchase } from '../user-products/purchase.service'
@@ -13,61 +11,10 @@ const d = (date: Date) => format(date, 'yyyy-MM-dd')
 export async function seedDemoData(userId: string, db: Database) {
   console.log(`🌱 Seeding demo data for user ${userId}...`)
 
-  await seedDemoHabits(userId, db)
   await seedDemoTasks(userId, db)
   await seedDemoCollection(userId, db)
 
   console.log(`✅ Demo data seeded successfully for user ${userId}`)
-}
-
-async function seedDemoHabits(userId: string, db: Database) {
-  const habitsToCreate = [
-    {
-      name: 'Méditation',
-      category: 'Bien-être',
-      frequency: { type: 'daily' as const },
-      timings: [{ time: '08:00', label: 'Matin' }],
-    },
-    {
-      name: 'Sport',
-      category: 'Santé',
-      frequency: {
-        type: 'weekly' as const,
-        daysOfWeek: [0, 2, 4],
-      },
-      timings: [{ time: '18:30', label: 'Soir' }],
-    },
-    {
-      name: 'Lecture',
-      category: 'Personnel',
-      frequency: { type: 'daily' as const },
-      timings: [{ time: '22:00', label: 'Coucher' }],
-    },
-  ]
-
-  for (const habitInput of habitsToCreate) {
-    const habit = await createHabit(habitInput, userId, db)
-
-    for (let i = 0; i < 7; i++) {
-      const date = subDays(new Date(), i)
-      const dateStr = d(date)
-      const shouldCheck = Math.random() < 0.8
-
-      if (shouldCheck) {
-        if (habitInput.frequency.type === 'weekly') {
-          const dayOfWeek = date.getDay()
-          const mappedDay = (dayOfWeek + 6) % 7
-          if (!habitInput.frequency.daysOfWeek.includes(mappedDay)) continue
-        }
-
-        try {
-          await checkHabit({ userId, habitId: habit.id, date: dateStr }, db)
-        } catch (e) {
-          console.error(`Failed to seed check for habit ${habit.name} on ${dateStr}`, e)
-        }
-      }
-    }
-  }
 }
 
 async function seedDemoTasks(userId: string, db: Database) {

@@ -4,12 +4,11 @@ BEGIN
     CREATE ROLE app_runtime WITH LOGIN NOINHERIT PASSWORD 'CHANGE_ME_IMMEDIATELY';
   END IF;
 END
-$$;
-
-GRANT USAGE ON SCHEMA public TO app_runtime;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_runtime;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_runtime;
+$$;--> statement-breakpoint
+GRANT USAGE ON SCHEMA public TO app_runtime;--> statement-breakpoint
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_runtime;--> statement-breakpoint
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_runtime;--> statement-breakpoint
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_runtime;
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_runtime;--> statement-breakpoint
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO app_runtime;

@@ -1,13 +1,5 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import {
-  BookOpen,
-  CircleCheckBig,
-  FlaskConical,
-  LogOut,
-  MoreHorizontal,
-  Repeat,
-  User,
-} from 'lucide-react'
+import { BookOpen, CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, User } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
@@ -147,7 +139,12 @@ export function BottomNav() {
 
             <div className="bottom-nav__sheet-divider" />
 
-            <Link to="/auth/login" search={{ redirect: undefined }} className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
+            <Link
+              to="/auth/login"
+              search={{ redirect: undefined }}
+              className="bottom-nav__sheet-auth-link"
+              onClick={closeSheet}
+            >
               Connexion
             </Link>
             <Link to="/auth/signup" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
@@ -166,16 +163,6 @@ export function BottomNav() {
         >
           <ChestIcon size={22} strokeWidth={1.5} aria-hidden="true" />
           Collection
-        </Link>
-
-        <Link
-          to="/habits"
-          className={`bottom-nav__tab${isActive('/habits') ? ' bottom-nav__tab--active' : ''}`}
-          aria-label="Habitudes"
-          aria-current={isActive('/habits') ? 'page' : undefined}
-        >
-          <Repeat size={22} strokeWidth={1.5} aria-hidden="true" />
-          Habitudes
         </Link>
 
         <Link
