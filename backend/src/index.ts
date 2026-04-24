@@ -2,6 +2,8 @@ const port = Number(process.env.PORT ?? 3000)
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { bodyLimit } from 'hono/body-limit'
+import { secureHeaders } from 'hono/secure-headers'
 
 import type { AppEnv } from './app-env'
 import { env } from './config/env'
@@ -14,7 +16,6 @@ import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
 import { ingredientRoutes } from './features/ingredients/routes'
-import { logsRoutes } from './features/logs'
 import { productsFeature } from './features/products'
 import { profileRoute } from './features/profile'
 import { tagRoutes } from './features/tags/routes'
@@ -28,6 +29,8 @@ const app = new Hono<AppEnv>()
 
 app.onError(globalErrorHandler)
 
+app.use(secureHeaders())
+app.use(bodyLimit({ maxSize: 1024 * 1024 }))
 app.use(
   '*',
   cors({
@@ -69,11 +72,12 @@ const routes = app
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/ingredients', ingredientDiscussionRoutes)
   .route('/api/tags', tagRoutes)
-  .route('/api/logs', logsRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
   .route('/api/errors', errorsRoute)
   .route('/api/articles', articleRoutes)
+
+app.notFound((c) => c.json({ success: false, error: 'not_found' }, 404))
 
 export type AppType = typeof routes
 export default { port, fetch: app.fetch }

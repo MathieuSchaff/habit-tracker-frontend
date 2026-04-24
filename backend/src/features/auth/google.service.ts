@@ -5,6 +5,7 @@ import { decodeIdToken, generateCodeVerifier, generateState, type OAuth2Tokens }
 import { eq } from 'drizzle-orm'
 
 import { bindRlsContext } from '../../db/rls'
+import { logger } from '../../lib/logger'
 import { users } from '../../db/schema'
 import { getGoogleInstance } from '../../lib/artic'
 import { type AuthContext, createTokenPair } from './service'
@@ -72,7 +73,7 @@ export async function handleGoogleCallback(
     const tokenPair = await createTokenPair(ctx, user.id, user.role)
     return ok({ user: toPublicUser(user), ...tokenPair })
   } catch (e) {
-    console.error('Google callback failed:', e)
+    logger.error({ err: e }, 'Google callback failed')
     return err('server_error')
   }
 }

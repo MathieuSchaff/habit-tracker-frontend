@@ -115,8 +115,14 @@ describe('Product Service', () => {
   describe('deleteProduct', () => {
     it('should permanently remove the product', async () => {
       const created = await makeProduct('Sélénium', 'Solgar')
-      await deleteProduct(created.id, testDb)
+      await deleteProduct(user.id, created.id, testDb)
       expect(getProductById(created.id, testDb)).rejects.toThrow(ProductError)
+    })
+
+    it('should reject deletion by non-owner', async () => {
+      const created = await makeProduct('Sélénium', 'Solgar')
+      const otherUser = await createTestUser(testDb)
+      expect(deleteProduct(otherUser.id, created.id, testDb)).rejects.toThrow(ProductError)
     })
   })
 

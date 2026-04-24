@@ -1,5 +1,7 @@
 import { Resend } from 'resend'
 
+import { logger } from '../../lib/logger'
+
 export async function sendVerificationEmail(to: string, verificationUrl: string): Promise<void> {
   const resend = new Resend(Bun.env.RESEND_API_KEY)
   try {
@@ -16,6 +18,6 @@ export async function sendVerificationEmail(to: string, verificationUrl: string)
       `,
     })
   } catch (e) {
-    console.error('Failed to send verification email:', e)
+    logger.error({ err: e }, 'Failed to send verification email')
   }
 }

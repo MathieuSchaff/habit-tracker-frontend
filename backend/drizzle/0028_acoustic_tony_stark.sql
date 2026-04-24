@@ -1,0 +1,2 @@
+CREATE POLICY "profiles_select_public" ON "profiles" AS PERMISSIVE FOR SELECT TO "app_runtime" USING (true);--> statement-breakpoint
+ALTER POLICY "profiles_tenant_isolation" ON "profiles" TO app_runtime USING ("profiles"."user_id" = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid)) WITH CHECK ("profiles"."user_id" = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid));

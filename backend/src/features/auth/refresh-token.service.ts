@@ -3,6 +3,7 @@ import type { CreateRefreshTokenArgs } from '@habit-tracker/shared'
 import { and, eq, gt, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
+import { logger } from '../../lib/logger'
 import { refreshTokens } from '../../db/schema'
 import { hashJti } from './jwt.utils'
 
@@ -19,7 +20,7 @@ export async function storeRefreshToken(db: DB, args: CreateRefreshTokenArgs) {
     })
   } catch (error) {
     // Should not happen — unique constraint on jtiHash ensures no duplicates
-    console.error('Failed to store refresh token:', error)
+    logger.error({ err: error }, 'Failed to store refresh token')
     throw new Error('duplicate_refresh_token')
   }
 }

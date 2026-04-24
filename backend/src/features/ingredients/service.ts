@@ -21,7 +21,7 @@ import { and, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
 import { ingredientTagsDefs, tagIngredients } from '../../db/schema/tags/tags'
-import { areEqual, isUniqueViolation } from '../../lib/helpers'
+import { areEqual, escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
 
@@ -299,7 +299,7 @@ export async function listIngredientEdits(database: DB, ingredientId: string) {
 // I use a simple "ILIKE" search to find ingredients by their name or slug.
 // It's very useful for the search bar on the front-end.
 export async function searchIngredients(database: DB, query: string, limit = 10) {
-  const pattern = `%${query}%`
+  const pattern = `%${escapeLike(query)}%`
   return database
     .select({
       id: ingredients.id,

@@ -1,4 +1,4 @@
-import { err, errorToStatus } from '@habit-tracker/shared'
+import { err, HTTP_STATUS } from '@habit-tracker/shared'
 
 import type { Context, MiddlewareHandler, Next } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
@@ -31,7 +31,7 @@ export const rateLimiterFunc: MiddlewareHandler<AppEnv> = isDev
           err('rate_limit_exceeded', {
             retryAfter: c.res.headers.get('Retry-After'),
           }),
-          errorToStatus('rate_limit_exceeded', 'rate_limit_exceedeed')
+          HTTP_STATUS.RATE_LIMIT_EXCEEDED
         ),
 
       skip: (c) =>

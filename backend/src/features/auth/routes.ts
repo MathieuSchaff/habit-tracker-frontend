@@ -17,9 +17,11 @@ import { eq } from 'drizzle-orm'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { csrf } from 'hono/csrf'
 import { getGoogleAuthUrl, handleGoogleCallback } from 'src/features/auth/google.service'
 
 import type { AppEnv } from '../../app-env'
+import { env } from '../../config/env'
 import { users } from '../../db/schema'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { sendVerificationEmail } from './email.service'
@@ -66,6 +68,7 @@ function checkResendLimit(userId: string): boolean {
 const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
+app.use('*', csrf({ origin: (origin) => origin === env.FRONTEND_URL }))
 
 // These authenticated routes write to users / refresh_tokens / email_verifications —
 // all tables kept outside RLS because auth lookups happen pre-identity. If RLS is ever
@@ -365,7 +368,6 @@ export const jwtAuthRoutes = app
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
 
-    // Use query param for access token: browser handles redirect and stores token before navigating
     const frontendUrl = c.get('frontendUrl')
-    return c.redirect(`${frontendUrl}/auth/google/callback?token=${result.data.accessToken}`)
+    return c.redirect(`${frontendUrl}/auth/google/callback?oauth=1`)
   })
