@@ -1,8 +1,8 @@
 const port = Number(process.env.PORT ?? 3000)
 
 import { Hono } from 'hono'
-import { cors } from 'hono/cors'
 import { bodyLimit } from 'hono/body-limit'
+import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 
 import type { AppEnv } from './app-env'
@@ -12,7 +12,6 @@ import { jwtAuthRoutes } from './features/auth'
 import { articleRoutes } from './features/blog'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
-import { habits } from './features/habits/routes'
 import { healthRoute } from './features/health/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
 import { ingredientRoutes } from './features/ingredients/routes'
@@ -65,7 +64,6 @@ app.use('*', async (c, next) => {
 const routes = app
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
-  .route('/api/habits', habits)
   .route('/api/profile', profileRoute)
   .route('/api', productsFeature)
   .route('/api/ingredients', ingredientRoutes)

@@ -11,11 +11,10 @@ import type {
   UserDermoProfileUpdateInput,
 } from '@habit-tracker/shared'
 
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { count, eq } from 'drizzle-orm'
 
 import type { Database, DB } from '../../db'
 import { userPreferences } from '../../db/schema/auth/user-preferences'
-import { habitChecks, habits } from '../../db/schema/habits'
 import { userProducts } from '../../db/schema/user-products'
 import {
   type Profile,
@@ -24,7 +23,6 @@ import {
   userDermoProfiles,
   users,
 } from '../../db/schema/users'
-import { getHabitStreak } from '../habits/service'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
@@ -183,40 +181,15 @@ export async function updateUserPreferences(
 }
 
 export async function getProfileStats(db: Database, userId: string): Promise<ProfileStats> {
-  const [habitCount] = await db
-    .select({ count: count() })
-    .from(habits)
-    .where(and(eq(habits.userId, userId), isNull(habits.archivedAt)))
-
-  const [checkCount] = await db
-    .select({ count: count() })
-    .from(habitChecks)
-    .innerJoin(habits, eq(habitChecks.habitId, habits.id))
-    .where(and(eq(habits.userId, userId), eq(habitChecks.status, 'done')))
-
   const [productCount] = await db
     .select({ count: count() })
     .from(userProducts)
     .where(eq(userProducts.userId, userId))
 
-  const userHabits = await db
-    .select({ id: habits.id })
-    .from(habits)
-    .where(and(eq(habits.userId, userId), isNull(habits.archivedAt)))
-
-  // I loop on every habit to find which one has the biggest streak
-  let bestStreak = 0
-  for (const habit of userHabits) {
-    const streak = await getHabitStreak(habit.id, db)
-    if (streak > bestStreak) {
-      bestStreak = streak
-    }
-  }
-
   return {
-    totalHabits: habitCount?.count ?? 0,
-    totalChecks: checkCount?.count ?? 0,
-    bestStreak,
+    totalHabits: 0,
+    totalChecks: 0,
+    bestStreak: 0,
     totalProducts: productCount?.count ?? 0,
   }
 }

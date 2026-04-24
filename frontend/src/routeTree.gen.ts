@@ -23,7 +23,6 @@ import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
@@ -108,11 +107,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
-  id: '/habits',
-  path: '/habits',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
@@ -194,7 +188,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/collection': typeof AuthenticatedCollectionRoute
-  '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/auth/login': typeof AuthLoginRoute
@@ -224,7 +217,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/collection': typeof AuthenticatedCollectionRoute
-  '/habits': typeof AuthenticatedHabitsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/auth/login': typeof AuthLoginRoute
@@ -254,7 +246,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
-  '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/auth/login': typeof AuthLoginRoute
@@ -286,7 +277,6 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/collection'
-    | '/habits'
     | '/profile'
     | '/tasks'
     | '/auth/login'
@@ -316,7 +306,6 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/collection'
-    | '/habits'
     | '/profile'
     | '/tasks'
     | '/auth/login'
@@ -345,7 +334,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/privacy'
     | '/_authenticated/collection'
-    | '/_authenticated/habits'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
     | '/auth/login'
@@ -490,13 +478,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/habits': {
-      id: '/_authenticated/habits'
-      path: '/habits'
-      fullPath: '/habits'
-      preLoaderRoute: typeof AuthenticatedHabitsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/collection': {
       id: '/_authenticated/collection'
       path: '/collection'
@@ -600,7 +581,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
-  AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedIngredientsNewRoute: typeof AuthenticatedIngredientsNewRoute
@@ -609,7 +589,6 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
-  AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedIngredientsNewRoute: AuthenticatedIngredientsNewRoute,
