@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '../../../store/auth'
 
 vi.mock('../../queries/silentRefresh', () => ({
-  silentRefresh: vi.fn().mockResolvedValue(true),
+  silentRefresh: vi.fn().mockResolvedValue('ok'),
 }))
 
 import { silentRefresh } from '../../queries/silentRefresh'
@@ -26,7 +26,7 @@ describe('useTokenRefresh', () => {
     queryClient = new QueryClient()
     useAuthStore.getState().clearAuth()
     mockSilentRefresh.mockReset()
-    mockSilentRefresh.mockResolvedValue(true)
+    mockSilentRefresh.mockResolvedValue('ok')
   })
 
   afterEach(() => {
@@ -87,5 +87,69 @@ describe('useTokenRefresh', () => {
     // Advance 1 minute — the new schedule should fire
     vi.advanceTimersByTime(60_000)
     expect(mockSilentRefresh).toHaveBeenCalledOnce()
+  })
+
+  describe('visibilitychange', () => {
+    function setVisibility(state: 'visible' | 'hidden') {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => state,
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+
+    function loginWithExpiry(secondsFromNow: number) {
+      const token = `h.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + secondsFromNow }))}.s`
+      useAuthStore.getState().setAuth(token, {
+        id: 'u1',
+        email: 'a@b.com',
+        emailVerified: true,
+        role: 'user',
+        isDemo: false,
+      } as any)
+    }
+
+    it('refreshes when tab becomes visible and token is expired', () => {
+      loginWithExpiry(-10) // already expired
+      renderHook(() => useTokenRefresh(), { wrapper })
+      mockSilentRefresh.mockClear() // ignore the immediate-on-mount refresh
+
+      setVisibility('hidden')
+      setVisibility('visible')
+
+      expect(mockSilentRefresh).toHaveBeenCalledOnce()
+    })
+
+    it('does not refresh on visibility change when token is still valid', () => {
+      loginWithExpiry(3600) // 1h ahead
+      renderHook(() => useTokenRefresh(), { wrapper })
+      mockSilentRefresh.mockClear()
+
+      setVisibility('hidden')
+      setVisibility('visible')
+
+      expect(mockSilentRefresh).not.toHaveBeenCalled()
+    })
+
+    it('does not refresh on visibility change when user is not logged in', () => {
+      // No token in store
+      renderHook(() => useTokenRefresh(), { wrapper })
+
+      setVisibility('hidden')
+      setVisibility('visible')
+
+      expect(mockSilentRefresh).not.toHaveBeenCalled()
+    })
+
+    it('removes the listener on unmount', () => {
+      loginWithExpiry(-10)
+      const { unmount } = renderHook(() => useTokenRefresh(), { wrapper })
+      mockSilentRefresh.mockClear()
+
+      unmount()
+      setVisibility('visible')
+
+      expect(mockSilentRefresh).not.toHaveBeenCalled()
+    })
   })
 })

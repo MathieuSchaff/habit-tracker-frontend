@@ -60,6 +60,10 @@ export const products = pgTable(
     index('products_created_by_idx').on(t.createdBy),
     uniqueIndex('products_name_brand_unique').on(sql`lower(${t.name})`, sql`lower(${t.brand})`),
     uniqueIndex('products_slug_unique').on(t.slug),
+    // Trigram GIN indexes feed `searchProducts` / `findSimilarProducts` —
+    // both rely on `similarity()` and `ILIKE %q%` which seq-scan otherwise.
+    index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
+    index('products_brand_trgm_idx').using('gin', sql`${t.brand} gin_trgm_ops`),
   ]
 )
 

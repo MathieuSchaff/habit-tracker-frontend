@@ -80,3 +80,60 @@ export type ProductKindsMap = typeof PRODUCT_KINDS
 export type ProductKind = {
   [C in keyof ProductKindsMap]: (typeof PRODUCT_KINDS)[C][keyof (typeof PRODUCT_KINDS)[C]]
 }[keyof ProductKindsMap]
+
+// FR labels per kind slug. Consumed by frontend filters and product cards
+// to avoid showing raw slugs (`hair-serum`, `body-lotion`) to end users.
+export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
+  // skincare
+  serum: 'Sérum',
+  moisturizer: 'Crème hydratante',
+  cleanser: 'Nettoyant',
+  toner: 'Lotion tonique',
+  exfoliant: 'Exfoliant',
+  'eye-cream': 'Contour des yeux',
+  mask: 'Masque',
+  mist: 'Brume',
+  essence: 'Essence',
+  'spot-treatment': 'Soin ciblé',
+  'lip-care': 'Soin lèvres',
+  balm: 'Baume',
+  oil: 'Huile',
+  primer: 'Base lissante',
+  patch: 'Patch',
+  // solaire
+  sunscreen: 'Solaire',
+  'after-sun': 'Après-soleil',
+  'self-tanner': 'Autobronzant',
+  // complement
+  gelule: 'Gélule',
+  capsule: 'Capsule',
+  ampoule: 'Ampoule',
+  poudre: 'Poudre',
+  sirop: 'Sirop',
+  gummy: 'Gummies',
+  huile: 'Huile',
+  // haircare
+  shampoo: 'Shampooing',
+  conditioner: 'Après-shampooing',
+  'hair-mask': 'Masque capillaire',
+  'hair-serum': 'Sérum capillaire',
+  'hair-oil': 'Huile capillaire',
+  styling: 'Coiffant',
+  // bodycare
+  'body-lotion': 'Lait corps',
+  'body-oil': 'Huile corps',
+  'body-scrub': 'Gommage corps',
+  'body-wash': 'Gel douche',
+  deodorant: 'Déodorant',
+  'hand-cream': 'Crème mains',
+  'foot-cream': 'Crème pieds',
+  // dental
+  toothpaste: 'Dentifrice',
+  mouthwash: 'Bain de bouche',
+  'teeth-whitening': 'Blanchiment',
+  floss: 'Fil dentaire',
+}
+
+export function getProductKindLabel(kind: string): string {
+  return PRODUCT_KIND_LABELS[kind as ProductKind] ?? kind
+}

@@ -1,4 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
+import { sortFilterCategories } from '../tag-taxonomy-builder'
 import {
   SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
   type SupplementProductTagCategory,
@@ -16,8 +17,8 @@ export const SUPPLEMENT_PRODUCT_TAG_CATEGORY_META: Record<
 }
 
 export function supplementProductFilterCategories(): SupplementProductTagCategory[] {
-  return [...SUPPLEMENT_PRODUCT_TAG_CATEGORIES].sort(
-    (a, b) =>
-      SUPPLEMENT_PRODUCT_TAG_CATEGORY_META[a].order - SUPPLEMENT_PRODUCT_TAG_CATEGORY_META[b].order
+  return sortFilterCategories(
+    SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
+    SUPPLEMENT_PRODUCT_TAG_CATEGORY_META
   )
 }

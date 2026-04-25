@@ -1,4 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
+import { sortFilterCategories } from '../tag-taxonomy-builder'
 import { HAIRCARE_PRODUCT_TAG_CATEGORIES, type HaircareProductTagCategory } from './tag-taxonomy'
 
 export const HAIRCARE_PRODUCT_TAG_CATEGORY_META: Record<
@@ -14,8 +15,5 @@ export const HAIRCARE_PRODUCT_TAG_CATEGORY_META: Record<
 }
 
 export function haircareProductFilterCategories(): HaircareProductTagCategory[] {
-  return [...HAIRCARE_PRODUCT_TAG_CATEGORIES].sort(
-    (a, b) =>
-      HAIRCARE_PRODUCT_TAG_CATEGORY_META[a].order - HAIRCARE_PRODUCT_TAG_CATEGORY_META[b].order
-  )
+  return sortFilterCategories(HAIRCARE_PRODUCT_TAG_CATEGORIES, HAIRCARE_PRODUCT_TAG_CATEGORY_META)
 }

@@ -1,13 +1,36 @@
 import { z } from 'zod'
 
+import { PRODUCT_DOMAIN_DB_CATEGORIES, type ProductDomainTab } from './domain-tabs'
+import { PRODUCT_KINDS } from './kinds'
+
 // Query schema for GET /products. Discriminated on `category` so each domain
 // declares only its own filter keys — prevents e.g. skin_type from leaking into
 // a haircare request. Per-domain keys mirror shared/src/products/{domain}/tag-filters.ts.
 
 const sortEnum = z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest'])
 
+// Reject ?kind=<value> that does not belong to the tab's DB categories
+// (e.g. skincare tab + kind=shampoo). Skincare tab spans skincare/solaire/bodycare,
+// so the valid kind set is the union of those PRODUCT_KINDS buckets.
+const validKindsForDomain = (domain: ProductDomainTab): Set<string> => {
+  const valid = new Set<string>()
+  for (const cat of PRODUCT_DOMAIN_DB_CATEGORIES[domain]) {
+    for (const v of Object.values(PRODUCT_KINDS[cat])) valid.add(v)
+  }
+  return valid
+}
+
+const kindFilterFor = (domain: ProductDomainTab) => {
+  const valid = validKindsForDomain(domain)
+  return z
+    .string()
+    .optional()
+    .refine((v) => v === undefined || v.split(',').every((k) => valid.has(k.trim())), {
+      message: `kind must be one of: ${[...valid].sort().join(', ')}`,
+    })
+}
+
 const baseListProductsQuery = z.object({
-  kind: z.string().optional(),
   brand: z.string().optional(),
   ingredient: z.string().optional(),
   avoid_for: z.string().optional(),
@@ -20,6 +43,7 @@ const baseListProductsQuery = z.object({
 
 export const skincareListProductsQuery = baseListProductsQuery.extend({
   category: z.literal('skincare'),
+  kind: kindFilterFor('skincare'),
   routine_step: z.string().optional(),
   skin_type: z.string().optional(),
   concern: z.string().optional(),
@@ -32,6 +56,7 @@ export const skincareListProductsQuery = baseListProductsQuery.extend({
 
 export const haircareListProductsQuery = baseListProductsQuery.extend({
   category: z.literal('haircare'),
+  kind: kindFilterFor('haircare'),
   concern: z.string().optional(),
   hair_type: z.string().optional(),
   product_type: z.string().optional(),
@@ -42,6 +67,7 @@ export const haircareListProductsQuery = baseListProductsQuery.extend({
 
 export const dentalListProductsQuery = baseListProductsQuery.extend({
   category: z.literal('dental'),
+  kind: kindFilterFor('dental'),
   concern: z.string().optional(),
   age_group: z.string().optional(),
   product_type: z.string().optional(),
@@ -51,6 +77,7 @@ export const dentalListProductsQuery = baseListProductsQuery.extend({
 
 export const complementListProductsQuery = baseListProductsQuery.extend({
   category: z.literal('complement'),
+  kind: kindFilterFor('complement'),
   goal: z.string().optional(),
   product_type: z.string().optional(),
   moment: z.string().optional(),

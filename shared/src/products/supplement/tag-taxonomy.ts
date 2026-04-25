@@ -1,3 +1,4 @@
+import { buildTagTaxonomy } from '../tag-taxonomy-builder'
 import { SUPPLEMENT_PRODUCT_TAG_SLUGS, type SupplementProductTagSlug } from './tag-slugs'
 
 export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [
@@ -12,6 +13,54 @@ export type SupplementProductTagCategory = (typeof SUPPLEMENT_PRODUCT_TAG_CATEGO
 
 export interface SupplementProductTagMeta {
   category: SupplementProductTagCategory
+  label: string
+}
+
+const SUPPLEMENT_PRODUCT_TAG_LABELS: Record<SupplementProductTagSlug, string> = {
+  // Goals
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SOMMEIL]: 'Sommeil',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.ENERGIE]: 'Énergie',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.COGNITION]: 'Cognition',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.IMMUNITE]: 'Immunité',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.PEAU_CHEVEUX_ONGLES]: 'Peau, cheveux, ongles',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.DIGESTION]: 'Digestion',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.STRESS_ANXIETE]: 'Stress & anxiété',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.RECUPERATION_MUSCULAIRE]: 'Récupération musculaire',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.LONGEVITE]: 'Longévité',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.HORMONAL]: 'Équilibre hormonal',
+
+  // Moment
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.MATIN_SUPPLEMENT]: 'Matin',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SOIR_SUPPLEMENT]: 'Soir',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.AVEC_REPAS]: 'Avec repas',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.A_JEUN]: 'À jeun',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.AUTOUR_SPORT]: 'Autour du sport',
+
+  // Restriction
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.GROSSESSE_INCOMPATIBLE]: 'Contre-indiqué grossesse',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.ALLAITEMENT_INCOMPATIBLE]: 'Contre-indiqué allaitement',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.INTERACTION_ANTICOAGULANTS]: 'Interaction anticoagulants',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.INTERACTION_THYROIDE]: 'Interaction thyroïde',
+
+  // Product types
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.GELULE]: 'Gélule',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.CAPSULE]: 'Capsule',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.COMPRIME]: 'Comprimé',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.AMPOULE_BUVABLE]: 'Ampoule buvable',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.POUDRE]: 'Poudre',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SIROP]: 'Sirop',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.GUMMY]: 'Gummy',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.HUILE_ORALE]: 'Huile orale',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SPRAY_SUBLINGUAL]: 'Spray sublingual',
+
+  // Product labels
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.VEGAN]: 'Vegan',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SANS_GLUTEN]: 'Sans gluten',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.SANS_LACTOSE]: 'Sans lactose',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.BIO]: 'Bio',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.FABRICATION_FR]: 'Fabrication française',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.EXTRAIT_TITRE]: 'Extrait titré',
+  [SUPPLEMENT_PRODUCT_TAG_SLUGS.DOSE_CLINIQUE]: 'Dose clinique',
 }
 
 const GOAL: SupplementProductTagSlug[] = [
@@ -64,23 +113,13 @@ const PRODUCT_LABEL: SupplementProductTagSlug[] = [
   SUPPLEMENT_PRODUCT_TAG_SLUGS.DOSE_CLINIQUE,
 ]
 
-type Entry = [SupplementProductTagSlug, SupplementProductTagMeta]
-
-const entries: Entry[] = [
-  ...GOAL.map((s): Entry => [s, { category: 'goal' }]),
-  ...MOMENT.map((s): Entry => [s, { category: 'moment' }]),
-  ...RESTRICTION.map((s): Entry => [s, { category: 'restriction' }]),
-  ...PRODUCT_TYPE.map((s): Entry => [s, { category: 'product_type' }]),
-  ...PRODUCT_LABEL.map((s): Entry => [s, { category: 'product_label' }]),
-]
-
-export const SUPPLEMENT_PRODUCT_TAG_TAXONOMY = Object.fromEntries(entries) as Record<
+export const SUPPLEMENT_PRODUCT_TAG_TAXONOMY = buildTagTaxonomy<
   SupplementProductTagSlug,
-  SupplementProductTagMeta
->
-
-export function getSupplementProductTagCategory(
-  slug: SupplementProductTagSlug
-): SupplementProductTagCategory | undefined {
-  return SUPPLEMENT_PRODUCT_TAG_TAXONOMY[slug]?.category
-}
+  SupplementProductTagCategory
+>(SUPPLEMENT_PRODUCT_TAG_LABELS, {
+  goal: GOAL,
+  moment: MOMENT,
+  restriction: RESTRICTION,
+  product_type: PRODUCT_TYPE,
+  product_label: PRODUCT_LABEL,
+})

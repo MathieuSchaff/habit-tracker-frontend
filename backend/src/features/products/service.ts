@@ -23,11 +23,11 @@ import {
   asc,
   count,
   eq,
+  exists,
   gte,
   ilike,
   inArray,
   lte,
-  notInArray,
   or,
   type SQL,
   sql,
@@ -43,11 +43,16 @@ import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { ProductError } from './product-error'
 
+// Trim + collapse internal whitespace. Applied to all user-typed string fields
+// so that update and create write identical normalized values.
+const normalizeString = (s: string) => s.trim().replace(/\s+/g, ' ')
+
+const NORMALIZED_STRING_FIELDS = ['name', 'brand', 'kind', 'unit', 'amountUnit'] as const
+
 export async function createProduct(userId: string, input: CreateProductInput, database: DB = db) {
   try {
-    const normalize = (s: string) => s.trim().replace(/\s+/g, ' ')
-    const name = normalize(input.name)
-    const brand = normalize(input.brand)
+    const name = normalizeString(input.name)
+    const brand = normalizeString(input.brand)
     const slug = input.slug ?? `${name}${brand ? `-${brand}` : ''}`
     const [product] = await database
       .insert(products)
@@ -56,9 +61,9 @@ export async function createProduct(userId: string, input: CreateProductInput, d
         createdBy: userId,
         name,
         brand,
-        kind: normalize(input.kind) as ProductKind,
-        unit: normalize(input.unit) as ProductUnit,
-        amountUnit: input.amountUnit ? normalize(input.amountUnit) : input.amountUnit,
+        kind: normalizeString(input.kind) as ProductKind,
+        unit: normalizeString(input.unit) as ProductUnit,
+        amountUnit: input.amountUnit ? normalizeString(input.amountUnit) : input.amountUnit,
         slug: slugify(slug),
       })
       .returning()
@@ -153,6 +158,13 @@ export async function updateProduct(
   summary?: string,
   database = db
 ): Promise<Product> {
+  for (const field of NORMALIZED_STRING_FIELDS) {
+    const v = data[field]
+    if (typeof v === 'string') {
+      ;(data as Record<string, unknown>)[field] = normalizeString(v)
+    }
+  }
+
   const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
   if (slug !== undefined) data.slug = slug
 
@@ -213,7 +225,11 @@ export async function updateProduct(
 export type ProductSummary = Pick<
   Product,
   'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents' | 'totalAmount' | 'amountUnit'
->
+> & {
+  // Avoid-tag slugs matching the caller's profile (avoid_for). Empty when no
+  // profile filter is active. Drives the "Éviter" badge on cards.
+  profileMatches: string[]
+}
 export type ProductsPage = {
   items: ProductSummary[]
   total: number
@@ -250,33 +266,40 @@ export async function listProducts(
     )
   }
 
+  // Correlated EXISTS lets the planner short-circuit on first match per product
+  // and use product_ingredients_product_idx as the driving index. The previous
+  // `IN (SELECT ...)` materialized the full slug→productId set upfront.
   if (filters.ingredient) {
     const slugs = Array.isArray(filters.ingredient)
       ? filters.ingredient
       : filters.ingredient.split(',')
     if (slugs.length > 0) {
       conditions.push(
-        inArray(
-          products.id,
+        exists(
           database
-            .select({ productId: productIngredients.productId })
+            .select({ one: sql`1` })
             .from(productIngredients)
             .innerJoin(ingredients, eq(productIngredients.ingredientId, ingredients.id))
-            .where(inArray(ingredients.slug, slugs))
+            .where(
+              and(eq(productIngredients.productId, products.id), inArray(ingredients.slug, slugs))
+            )
         )
       )
     }
   }
 
   const tagFilterCondition = (raw: string, tagType: string): SQL =>
-    inArray(
-      products.id,
+    exists(
       database
-        .select({ productId: tagProducts.productId })
+        .select({ one: sql`1` })
         .from(tagProducts)
         .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
         .where(
-          and(inArray(productTagsDefs.slug, raw.split(',')), eq(productTagsDefs.tagType, tagType))
+          and(
+            eq(tagProducts.productId, products.id),
+            inArray(productTagsDefs.slug, raw.split(',')),
+            eq(productTagsDefs.tagType, tagType)
+          )
         )
     )
 
@@ -317,21 +340,9 @@ export async function listProducts(
     conditions.push(lte(products.priceCents, filters.priceMax))
   }
 
-  if (filters.avoid_for) {
-    const slugs = filters.avoid_for.split(',').filter(Boolean)
-    if (slugs.length > 0) {
-      conditions.push(
-        notInArray(
-          products.id,
-          database
-            .select({ productId: tagProducts.productId })
-            .from(tagProducts)
-            .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-            .where(and(inArray(productTagsDefs.slug, slugs), eq(tagProducts.relevance, 'avoid')))
-        )
-      )
-    }
-  }
+  // avoid_for is computed post-fetch as per-product profileMatches (badge UX)
+  // rather than excluding rows — keeps the catalog visible while flagging risks.
+  const avoidSlugs = filters.avoid_for ? filters.avoid_for.split(',').filter(Boolean) : []
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -374,7 +385,36 @@ export async function listProducts(
   ])
 
   const total = countResult[0]?.total ?? 0
-  return { items, total, page, limit }
+
+  const matchesByProduct = new Map<string, string[]>()
+  if (avoidSlugs.length > 0 && items.length > 0) {
+    const rows = await database
+      .select({ productId: tagProducts.productId, slug: productTagsDefs.slug })
+      .from(tagProducts)
+      .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+      .where(
+        and(
+          inArray(
+            tagProducts.productId,
+            items.map((i) => i.id)
+          ),
+          inArray(productTagsDefs.slug, avoidSlugs),
+          eq(tagProducts.relevance, 'avoid')
+        )
+      )
+    for (const row of rows) {
+      const list = matchesByProduct.get(row.productId) ?? []
+      list.push(row.slug)
+      matchesByProduct.set(row.productId, list)
+    }
+  }
+
+  const itemsWithMatches: ProductSummary[] = items.map((i) => ({
+    ...i,
+    profileMatches: matchesByProduct.get(i.id) ?? [],
+  }))
+
+  return { items: itemsWithMatches, total, page, limit }
 }
 export type FilterOptions = {
   kinds: string[]
@@ -446,7 +486,7 @@ export async function getFilterOptions(
     if (!tag.category) continue
     const bucket = tag.category as AllProductTagCategory
     if (bucket in tagsByCategory) {
-      tagsByCategory[bucket]!.push({ name: tag.name, slug: tag.slug, count: tag.count })
+      tagsByCategory[bucket]?.push({ name: tag.name, slug: tag.slug, count: tag.count })
     }
   }
 
@@ -464,7 +504,11 @@ export async function getDistinctBrands(database: Database = db): Promise<string
   return rows.map((r) => r.brand)
 }
 
-export async function deleteProduct(userId: string, id: string, database: Database = db): Promise<void> {
+export async function deleteProduct(
+  userId: string,
+  id: string,
+  database: Database = db
+): Promise<void> {
   const product = await database.query.products.findFirst({ where: eq(products.id, id) })
   if (!product) throw new ProductError('product_not_found')
   if (product.createdBy !== userId) throw new ProductError('unauthorized_access')

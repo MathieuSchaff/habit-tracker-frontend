@@ -346,9 +346,9 @@ export const allProductTagsMap: Record<string, ProductTagGroups> = Object.fromEn
 )
 
 const allProductIngredientsMap: Record<string, Ingredient[]> = Object.fromEntries(
-  allUnified
-    .filter((p) => p.keyIngredients && p.keyIngredients.length > 0)
-    .map((p) => [p.slug, p.keyIngredients!])
+  allUnified.flatMap((p) =>
+    p.keyIngredients && p.keyIngredients.length > 0 ? [[p.slug, p.keyIngredients] as const] : []
+  )
 )
 
 export { allProductIngredientsMap as ALL_PRODUCT_INGREDIENTS_MAP }

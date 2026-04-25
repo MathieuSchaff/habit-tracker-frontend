@@ -15,15 +15,22 @@ type RequireAuthOptions = {
 /**
  * Guards the route by checking local token validity first, then verifying with the server.
  * Falls back to a silent refresh before giving up and redirecting to login.
+ *
+ * Cooldown handling: when silentRefresh is throttled by its backoff window, we don't have
+ * a definitive answer. We let the user stay on the route instead of logging them out on
+ * what may be a transient network blip — queries will still go through the 401 interceptor
+ * (which also respects the cooldown) and recover once the window expires.
  */
-export async function requireAuth({ queryClient, pathname, accessToken }: RequireAuthOptions): Promise<void> {
+export async function requireAuth({
+  queryClient,
+  pathname,
+  accessToken,
+}: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
 
   if (!accessToken || store.isTokenExpired()) {
-    const refreshed = await silentRefresh(queryClient)
-    if (!refreshed) {
-      clearAndRedirect(store, queryClient, pathname)
-    }
+    const result = await silentRefresh(queryClient)
+    if (result === 'failed') clearAndRedirect(store, queryClient, pathname)
     return
   }
 
@@ -32,10 +39,8 @@ export async function requireAuth({ queryClient, pathname, accessToken }: Requir
     await queryClient.ensureQueryData(authQueries.session())
   } catch (error) {
     if (isRedirect(error)) throw error
-    const refreshed = await silentRefresh(queryClient)
-    if (!refreshed) {
-      clearAndRedirect(store, queryClient, pathname)
-    }
+    const result = await silentRefresh(queryClient)
+    if (result === 'failed') clearAndRedirect(store, queryClient, pathname)
   }
 }
 
