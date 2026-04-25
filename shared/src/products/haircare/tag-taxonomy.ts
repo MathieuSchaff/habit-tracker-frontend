@@ -1,3 +1,4 @@
+import { buildTagTaxonomy } from '../tag-taxonomy-builder'
 import { HAIRCARE_PRODUCT_TAG_SLUGS, type HaircareProductTagSlug } from './tag-slugs'
 
 export const HAIRCARE_PRODUCT_TAG_CATEGORIES = [
@@ -13,6 +14,95 @@ export type HaircareProductTagCategory = (typeof HAIRCARE_PRODUCT_TAG_CATEGORIES
 
 export interface HaircareProductTagMeta {
   category: HaircareProductTagCategory
+  label: string
+}
+
+const HAIRCARE_PRODUCT_TAG_LABELS: Record<HaircareProductTagSlug, string> = {
+  // Concerns
+  [HAIRCARE_PRODUCT_TAG_SLUGS.PELLICULES]: 'Pellicules',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CHUTE]: 'Chute de cheveux',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CASSE]: 'Casse',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.FOURCHES]: 'Fourches',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.MANQUE_VOLUME]: 'Manque de volume',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CHEVEUX_SECS]: 'Cheveux secs',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CHEVEUX_GRAS]: 'Cheveux gras',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.RACINES_GRASSES]: 'Racines grasses',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CUIR_CHEVELU_SENSIBLE]: 'Cuir chevelu sensible',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CUIR_CHEVELU_IRRITE]: 'Cuir chevelu irrité',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.ALOPECIE]: 'Alopécie',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.POST_COLORATION]: 'Post-coloration',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CHEVEUX_TERNES]: 'Cheveux ternes',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.JAUNISSEMENT_BLOND]: 'Jaunissement blond',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.POROSITE_EXCESSIVE]: 'Porosité excessive',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.POINTES_SECHES]: 'Pointes sèches',
+
+  // Hair types
+  [HAIRCARE_PRODUCT_TAG_SLUGS.LISSES]: 'Cheveux lisses',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.ONDULES]: 'Cheveux ondulés',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.BOUCLES]: 'Cheveux bouclés',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CREPUS]: 'Cheveux crépus',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.FINS]: 'Cheveux fins',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.EPAIS]: 'Cheveux épais',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.MOYENS]: 'Cheveux moyens',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.COLORES]: 'Cheveux colorés',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.DECOLORES]: 'Cheveux décolorés',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.NATURELS]: 'Cheveux naturels',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CHEVEUX_TOUS_TYPES]: 'Tous types de cheveux',
+
+  // Product types
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SHAMPOOING]: 'Shampooing',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SHAMPOOING_SEC]: 'Shampooing sec',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SHAMPOOING_CLARIFIANT]: 'Shampooing clarifiant',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CO_WASH]: 'Co-wash',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.APRES_SHAMPOOING]: 'Après-shampooing',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.MASQUE_CAPILLAIRE]: 'Masque capillaire',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SOIN_PROFOND]: 'Soin profond',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SERUM_CAPILLAIRE]: 'Sérum capillaire',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.HUILE_CAPILLAIRE]: 'Huile capillaire',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.LEAVE_IN]: 'Leave-in',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.LOTION_FORTIFIANTE]: 'Lotion fortifiante',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.GEL_COIFFANT]: 'Gel coiffant',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.MOUSSE_COIFFANTE]: 'Mousse coiffante',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CREME_COIFFANTE]: 'Crème coiffante',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SPRAY_COIFFANT]: 'Spray coiffant',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SPRAY_THERMOPROTECTEUR]: 'Spray thermoprotecteur',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CIRE_COIFFANTE]: 'Cire coiffante',
+
+  // Routine step
+  [HAIRCARE_PRODUCT_TAG_SLUGS.PRE_SHAMPOOING]: 'Pré-shampooing',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.LAVAGE]: 'Lavage',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CONDITIONNEMENT]: 'Conditionnement',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.MASQUE_HEBDO_CHEVEUX]: 'Masque hebdo cheveux',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.TRAITEMENT_CUIR_CHEVELU]: 'Traitement cuir chevelu',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SOIN_SANS_RINCAGE]: 'Soin sans rinçage',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.COIFFAGE]: 'Coiffage',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.FINITION]: 'Finition',
+
+  // Hair effect
+  [HAIRCARE_PRODUCT_TAG_SLUGS.BRILLANCE]: 'Brillance',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.DOUCEUR]: 'Douceur',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.VOLUME]: 'Volume',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.DISCIPLINE]: 'Discipline',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.HYDRATATION]: 'Hydratation',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.NUTRITION]: 'Nutrition',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.LISSANT]: 'Lissant',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.FIXATION]: 'Fixation',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.DEFINITION_BOUCLES]: 'Définition boucles',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.GAINAGE]: 'Gainage',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.ANTI_FRISOTTIS]: 'Anti-frisottis',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.DEMELAGE]: 'Démêlage',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.REPARATION]: 'Réparation',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.THERMOPROTECTION]: 'Thermoprotection',
+
+  // Product labels
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SANS_SULFATES]: 'Sans sulfates',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SANS_SILICONES]: 'Sans silicones',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.SANS_PARFUM]: 'Sans parfum',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CGM_FRIENDLY]: 'Curly Girl Method',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.VEGAN]: 'Vegan',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.CRUELTY_FREE]: 'Cruelty-free',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.BIO_NATUREL]: 'Bio / Naturel',
+  [HAIRCARE_PRODUCT_TAG_SLUGS.HYPOALLERGENIQUE]: 'Hypoallergénique',
 }
 
 const CONCERN: HaircareProductTagSlug[] = [
@@ -107,24 +197,14 @@ const PRODUCT_LABEL: HaircareProductTagSlug[] = [
   HAIRCARE_PRODUCT_TAG_SLUGS.HYPOALLERGENIQUE,
 ]
 
-type Entry = [HaircareProductTagSlug, HaircareProductTagMeta]
-
-const entries: Entry[] = [
-  ...CONCERN.map((s): Entry => [s, { category: 'concern' }]),
-  ...HAIR_TYPE.map((s): Entry => [s, { category: 'hair_type' }]),
-  ...PRODUCT_TYPE.map((s): Entry => [s, { category: 'product_type' }]),
-  ...ROUTINE_STEP.map((s): Entry => [s, { category: 'routine_step' }]),
-  ...HAIR_EFFECT.map((s): Entry => [s, { category: 'hair_effect' }]),
-  ...PRODUCT_LABEL.map((s): Entry => [s, { category: 'product_label' }]),
-]
-
-export const HAIRCARE_PRODUCT_TAG_TAXONOMY = Object.fromEntries(entries) as Record<
+export const HAIRCARE_PRODUCT_TAG_TAXONOMY = buildTagTaxonomy<
   HaircareProductTagSlug,
-  HaircareProductTagMeta
->
-
-export function getHaircareProductTagCategory(
-  slug: HaircareProductTagSlug
-): HaircareProductTagCategory | undefined {
-  return HAIRCARE_PRODUCT_TAG_TAXONOMY[slug]?.category
-}
+  HaircareProductTagCategory
+>(HAIRCARE_PRODUCT_TAG_LABELS, {
+  concern: CONCERN,
+  hair_type: HAIR_TYPE,
+  product_type: PRODUCT_TYPE,
+  routine_step: ROUTINE_STEP,
+  hair_effect: HAIR_EFFECT,
+  product_label: PRODUCT_LABEL,
+})

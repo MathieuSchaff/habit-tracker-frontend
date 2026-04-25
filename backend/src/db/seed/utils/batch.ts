@@ -58,7 +58,9 @@ export async function seedBatch<T>(
 
   if (failed.length > 0) {
     console.error(`\n❌ ${failed.length}/${items.length} ${label} échoué(s) :`)
-    failed.slice(0, 10).forEach((f, i) => console.error(`  ${i + 1}. [${f.item}] → ${f.reason}`))
+    failed.slice(0, 10).forEach((f, i) => {
+      console.error(`  ${i + 1}. [${f.item}] → ${f.reason}`)
+    })
     if (failed.length > 10) console.error(`  ... et ${failed.length - 10} autres erreurs.`)
     if (critical) throw new Error(`Seed interrompu : ${label} contient des erreurs critiques`)
   } else {

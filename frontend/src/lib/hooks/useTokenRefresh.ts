@@ -24,4 +24,19 @@ export function useTokenRefresh() {
     const timer = setTimeout(() => silentRefresh(queryClient), delay)
     return () => clearTimeout(timer)
   }, [tokenExpiresAt, queryClient])
+
+  // Background tabs throttle setTimeout heavily (can drift by minutes), so the scheduled
+  // refresh above may fire late or not at all when the user comes back. Catch the moment
+  // the tab regains visibility and proactively refresh if the token is already expired,
+  // so queries firing on focus don't all 401 first.
+  useEffect(() => {
+    function handleVisible() {
+      if (document.visibilityState !== 'visible') return
+      const store = useAuthStore.getState()
+      if (!store.accessToken) return
+      if (store.isTokenExpired()) silentRefresh(queryClient)
+    }
+    document.addEventListener('visibilitychange', handleVisible)
+    return () => document.removeEventListener('visibilitychange', handleVisible)
+  }, [queryClient])
 }

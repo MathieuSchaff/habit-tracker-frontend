@@ -30,17 +30,6 @@ export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient', 'kind'] a
   | 'kind'
 )[]
 
-// Re-export for components that need per-domain keys (useTagFilterGroups dispatch).
-export const DOMAIN_TAG_KEYS = DOMAIN_PRODUCT_FILTER_CATEGORIES
-
-// Per-domain meta (labels, placeholder, tier) — used by useTagFilterGroups.
-export const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>> = {
-  skincare: SKINCARE_PRODUCT_TAG_CATEGORY_META,
-  haircare: HAIRCARE_PRODUCT_TAG_CATEGORY_META,
-  dental: DENTAL_PRODUCT_TAG_CATEGORY_META,
-  complement: SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
-}
-
 // Merge order: supplement/dental/haircare first → skincare wins for shared keys
 // (concern="Problème", product_type="Type", product_label="Label", routine_step="Étape").
 const _allMeta: Record<string, TagCategoryMeta> = {
@@ -50,14 +39,25 @@ const _allMeta: Record<string, TagCategoryMeta> = {
   ...SKINCARE_PRODUCT_TAG_CATEGORY_META,
 }
 
+// Labels for non-tag filters — tag labels come from shared metas above.
+export const NON_TAG_FILTER_LABELS = {
+  brand: 'Marque',
+  ingredient: 'Ingrédient',
+  kind: 'Format',
+} as const satisfies Record<'brand' | 'ingredient' | 'kind', string>
+
+export const NON_TAG_FILTER_PLACEHOLDERS = {
+  brand: 'Rechercher une marque...',
+  ingredient: 'Rechercher un ingrédient...',
+  kind: 'Tous formats',
+} as const satisfies Record<'brand' | 'ingredient' | 'kind', string>
+
 export const GROUP_LABELS: Record<FilterKey, string> = {
   ...(Object.fromEntries(TAG_FILTER_KEYS.map((k) => [k, _allMeta[k].label])) as Record<
     TagFilterKey,
     string
   >),
-  brand: 'Marque',
-  ingredient: 'Ingrédient',
-  kind: 'Type',
+  ...NON_TAG_FILTER_LABELS,
 }
 
 // Kept as explicit overrides — special-case display tweaks not derivable from taxonomy.
@@ -71,7 +71,7 @@ export const productsSearchSchema = baseSchema.extend({
   category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
   kind: z.array(z.string()).default([]),
   profile_filter: z.boolean().default(false),
-  sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('random'),
+  sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('newest'),
   priceMin: z.number().int().min(0).optional(),
   priceMax: z.number().int().min(0).optional(),
 })
@@ -81,5 +81,5 @@ export const productsSearchDefaults = {
   category: 'skincare' as ProductDomainTab,
   kind: [] as string[],
   profile_filter: false,
-  sort: 'random' as const,
+  sort: 'newest' as const,
 }

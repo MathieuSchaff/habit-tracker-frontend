@@ -92,12 +92,6 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   NETTOYANT_CORPS: 'nettoyant-corps',
   DEODORANT: 'deodorant',
   CREME_PIEDS: 'creme-pieds',
-  SHAMPOING: 'shampoing',
-  APRES_SHAMPOING: 'apres-shampoing',
-  MASQUE_CHEVEUX: 'masque-cheveux',
-  SERUM_CHEVEUX: 'serum-cheveux',
-  HUILE_CHEVEUX: 'huile-cheveux',
-  PRODUIT_COIFFANT: 'produit-coiffant',
   PATCH: 'patch',
   OUTIL_MASSAGE: 'outil-massage',
 

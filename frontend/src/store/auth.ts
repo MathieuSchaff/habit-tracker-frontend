@@ -10,15 +10,23 @@ interface AuthStore {
   role: 'user' | 'admin'
   isAdmin: boolean
   isDemo: boolean
+  // Latch flipped after the first silent-refresh probe at boot, so subsequent navigations
+  // don't re-fire /auth/refresh on every click when the user has no session cookie.
+  bootRefreshAttempted: boolean
 
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
+  markBootRefreshAttempted: () => void
   isTokenExpired: () => boolean
 }
 
 function decodeTokenExp(token: string): number | null {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    // JWT payload is base64url-encoded (RFC 7519 §3); atob only accepts standard base64,
+    // so swap `-_` back to `+/` before decoding to avoid silent failures on tokens that
+    // happen to contain those chars.
+    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(b64))
     return typeof payload.exp === 'number' ? payload.exp * 1000 : null
   } catch {
     return null
@@ -33,6 +41,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   role: 'user',
   isAdmin: false,
   isDemo: false,
+  bootRefreshAttempted: false,
 
   setAuth: (token, user) =>
     set({
@@ -43,8 +52,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       role: user.role,
       isAdmin: user.role === 'admin',
       isDemo: user.isDemo ?? false,
+      bootRefreshAttempted: true,
     }),
 
+  // After logout we know there's no session — keep the latch on to avoid re-probing.
   clearAuth: () =>
     set({
       accessToken: null,
@@ -54,7 +65,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       role: 'user',
       isAdmin: false,
       isDemo: false,
+      bootRefreshAttempted: true,
     }),
+
+  markBootRefreshAttempted: () => set({ bootRefreshAttempted: true }),
 
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt

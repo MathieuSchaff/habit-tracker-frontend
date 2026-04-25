@@ -41,6 +41,10 @@ export const ingredients = pgTable(
     index('ingredients_name_idx').on(t.name),
     index('ingredients_type_idx').on(t.type),
     index('ingredients_category_idx').on(t.category),
+    // Trigram GIN feeds `searchIngredients` (ILIKE %q% on name/slug) — used by
+    // the upcoming async ingredient autocomplete in the products filter.
+    index('ingredients_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
+    index('ingredients_slug_trgm_idx').using('gin', sql`${t.slug} gin_trgm_ops`),
     check(
       'ingredients_type_check',
       sql`${t.type} IN ('skincare', 'haircare', 'dental', 'supplement')`

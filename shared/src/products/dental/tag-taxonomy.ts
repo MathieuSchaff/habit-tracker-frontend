@@ -1,3 +1,4 @@
+import { buildTagTaxonomy } from '../tag-taxonomy-builder'
 import { DENTAL_PRODUCT_TAG_SLUGS, type DentalProductTagSlug } from './tag-slugs'
 
 export const DENTAL_PRODUCT_TAG_CATEGORIES = [
@@ -12,6 +13,49 @@ export type DentalProductTagCategory = (typeof DENTAL_PRODUCT_TAG_CATEGORIES)[nu
 
 export interface DentalProductTagMeta {
   category: DentalProductTagCategory
+  label: string
+}
+
+const DENTAL_PRODUCT_TAG_LABELS: Record<DentalProductTagSlug, string> = {
+  // Concerns
+  [DENTAL_PRODUCT_TAG_SLUGS.CARIE]: 'Carie',
+  [DENTAL_PRODUCT_TAG_SLUGS.SENSIBILITE_DENTINAIRE]: 'Sensibilité dentinaire',
+  [DENTAL_PRODUCT_TAG_SLUGS.HALITOSE]: 'Halitose',
+  [DENTAL_PRODUCT_TAG_SLUGS.GENCIVITE]: 'Gingivite',
+  [DENTAL_PRODUCT_TAG_SLUGS.PLAQUE]: 'Plaque',
+  [DENTAL_PRODUCT_TAG_SLUGS.TACHES]: 'Taches',
+  [DENTAL_PRODUCT_TAG_SLUGS.TARTRE]: 'Tartre',
+  [DENTAL_PRODUCT_TAG_SLUGS.EMAIL_AFFAIBLI]: 'Émail affaibli',
+  [DENTAL_PRODUCT_TAG_SLUGS.SECHERESSE_BUCCALE]: 'Sécheresse buccale',
+
+  // Age group
+  [DENTAL_PRODUCT_TAG_SLUGS.ADULTE]: 'Adulte',
+  [DENTAL_PRODUCT_TAG_SLUGS.ENFANT]: 'Enfant',
+  [DENTAL_PRODUCT_TAG_SLUGS.ADO]: 'Ado',
+  [DENTAL_PRODUCT_TAG_SLUGS.ORTHODONTIE]: 'Orthodontie',
+  [DENTAL_PRODUCT_TAG_SLUGS.SENIOR]: 'Senior',
+
+  // Product types
+  [DENTAL_PRODUCT_TAG_SLUGS.DENTIFRICE]: 'Dentifrice',
+  [DENTAL_PRODUCT_TAG_SLUGS.BAIN_DE_BOUCHE]: 'Bain de bouche',
+  [DENTAL_PRODUCT_TAG_SLUGS.FIL_DENTAIRE]: 'Fil dentaire',
+  [DENTAL_PRODUCT_TAG_SLUGS.BROSSETTE]: 'Brossette',
+  [DENTAL_PRODUCT_TAG_SLUGS.KIT_BLANCHIMENT]: 'Kit blanchiment',
+
+  // Dental effect
+  [DENTAL_PRODUCT_TAG_SLUGS.FRAICHEUR]: 'Fraîcheur',
+  [DENTAL_PRODUCT_TAG_SLUGS.BLANCHEUR]: 'Blancheur',
+  [DENTAL_PRODUCT_TAG_SLUGS.RENFORCEMENT_EMAIL]: 'Renforcement de l’émail',
+  [DENTAL_PRODUCT_TAG_SLUGS.ANTI_PLAQUE]: 'Anti-plaque',
+  [DENTAL_PRODUCT_TAG_SLUGS.REMINERALISATION]: 'Reminéralisation',
+  [DENTAL_PRODUCT_TAG_SLUGS.APAISEMENT_GENCIVES]: 'Apaisement gencives',
+
+  // Product labels
+  [DENTAL_PRODUCT_TAG_SLUGS.SANS_FLUOR]: 'Sans fluor',
+  [DENTAL_PRODUCT_TAG_SLUGS.SANS_SLS]: 'Sans SLS',
+  [DENTAL_PRODUCT_TAG_SLUGS.SANS_EDULCORANTS_ARTIFICIELS]: 'Sans édulcorants artificiels',
+  [DENTAL_PRODUCT_TAG_SLUGS.VEGAN]: 'Vegan',
+  [DENTAL_PRODUCT_TAG_SLUGS.BIO]: 'Bio',
 }
 
 const CONCERN: DentalProductTagSlug[] = [
@@ -59,23 +103,13 @@ const PRODUCT_LABEL: DentalProductTagSlug[] = [
   DENTAL_PRODUCT_TAG_SLUGS.BIO,
 ]
 
-type Entry = [DentalProductTagSlug, DentalProductTagMeta]
-
-const entries: Entry[] = [
-  ...CONCERN.map((s): Entry => [s, { category: 'concern' }]),
-  ...AGE_GROUP.map((s): Entry => [s, { category: 'age_group' }]),
-  ...PRODUCT_TYPE.map((s): Entry => [s, { category: 'product_type' }]),
-  ...DENTAL_EFFECT.map((s): Entry => [s, { category: 'dental_effect' }]),
-  ...PRODUCT_LABEL.map((s): Entry => [s, { category: 'product_label' }]),
-]
-
-export const DENTAL_PRODUCT_TAG_TAXONOMY = Object.fromEntries(entries) as Record<
+export const DENTAL_PRODUCT_TAG_TAXONOMY = buildTagTaxonomy<
   DentalProductTagSlug,
-  DentalProductTagMeta
->
-
-export function getDentalProductTagCategory(
-  slug: DentalProductTagSlug
-): DentalProductTagCategory | undefined {
-  return DENTAL_PRODUCT_TAG_TAXONOMY[slug]?.category
-}
+  DentalProductTagCategory
+>(DENTAL_PRODUCT_TAG_LABELS, {
+  concern: CONCERN,
+  age_group: AGE_GROUP,
+  product_type: PRODUCT_TYPE,
+  dental_effect: DENTAL_EFFECT,
+  product_label: PRODUCT_LABEL,
+})

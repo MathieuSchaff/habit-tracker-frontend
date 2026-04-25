@@ -54,7 +54,7 @@ describe('requireAuth', () => {
   })
 
   it('attempts silent refresh when no token exists', async () => {
-    mockSilentRefresh.mockResolvedValue(true)
+    mockSilentRefresh.mockResolvedValue('ok')
 
     await expect(requireAuth({ queryClient, pathname: '/dashboard', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 
@@ -62,7 +62,7 @@ describe('requireAuth', () => {
   })
 
   it('redirects to login when no token and refresh fails', async () => {
-    mockSilentRefresh.mockResolvedValue(false)
+    mockSilentRefresh.mockResolvedValue('failed')
 
     try {
       await requireAuth({ queryClient, pathname: '/dashboard', accessToken: useAuthStore.getState().accessToken })
@@ -73,12 +73,24 @@ describe('requireAuth', () => {
     }
   })
 
+  it("does NOT redirect when refresh is in 'cooldown' (transient backoff)", async () => {
+    // No token + cooldown: we'd normally try to refresh, but the backoff window is active.
+    // We let the user stay rather than logging them out on what may be a network blip.
+    mockSilentRefresh.mockResolvedValue('cooldown')
+
+    await expect(
+      requireAuth({ queryClient, pathname: '/dashboard', accessToken: null })
+    ).resolves.toBeUndefined()
+    // Store untouched — no clearAuth.
+    expect(useAuthStore.getState().accessToken).toBeNull()
+  })
+
   it('attempts silent refresh when token looks valid but server rejects session', async () => {
     setAuthenticated()
 
     // Make ensureQueryData throw to simulate server rejection
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
-    mockSilentRefresh.mockResolvedValue(true)
+    mockSilentRefresh.mockResolvedValue('ok')
 
     await expect(requireAuth({ queryClient, pathname: '/settings', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 
@@ -89,7 +101,7 @@ describe('requireAuth', () => {
     setAuthenticated()
 
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
-    mockSilentRefresh.mockResolvedValue(false)
+    mockSilentRefresh.mockResolvedValue('failed')
 
     try {
       await requireAuth({ queryClient, pathname: '/settings', accessToken: useAuthStore.getState().accessToken })
@@ -98,6 +110,20 @@ describe('requireAuth', () => {
       // Redirect thrown — store and queries should be cleared
       expect(useAuthStore.getState().accessToken).toBeNull()
     }
+  })
+
+  it("does NOT redirect when server rejects but refresh is in 'cooldown'", async () => {
+    setAuthenticated()
+    const tokenBefore = useAuthStore.getState().accessToken
+
+    vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
+    mockSilentRefresh.mockResolvedValue('cooldown')
+
+    await expect(
+      requireAuth({ queryClient, pathname: '/settings', accessToken: tokenBefore })
+    ).resolves.toBeUndefined()
+    // Token preserved — user not kicked out on a backoff blip.
+    expect(useAuthStore.getState().accessToken).toBe(tokenBefore)
   })
 
   it('attempts refresh when token is expired', async () => {
@@ -111,7 +137,7 @@ describe('requireAuth', () => {
       isDemo: false,
     } as any)
 
-    mockSilentRefresh.mockResolvedValue(true)
+    mockSilentRefresh.mockResolvedValue('ok')
 
     await expect(requireAuth({ queryClient, pathname: '/profile', accessToken: useAuthStore.getState().accessToken })).resolves.toBeUndefined()
 

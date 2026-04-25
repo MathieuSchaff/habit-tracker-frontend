@@ -5,6 +5,7 @@ import {
   DENTAL_PRODUCT_TAG_TAXONOMY,
   type DentalIngredientTagSlug,
   type DentalProductTagSlug,
+  getProductTagLabel,
   HAIRCARE_INGREDIENT_TAG_SLUGS,
   HAIRCARE_INGREDIENT_TAG_TAXONOMY,
   HAIRCARE_PRODUCT_TAG_SLUGS,
@@ -24,6 +25,13 @@ import {
   type SupplementIngredientTagSlug,
   type SupplementProductTagSlug,
 } from '@habit-tracker/shared'
+
+// Re-export the haircare product slug map directly. It cannot be folded into
+// the legacy `TAG_SLUGS` alias below: keys `BRILLANCE` and `HYDRATATION` exist
+// in both skincare and haircare product taxonomies with different slug values
+// (`brillance` / `brillance-cheveux`, `hydratation` / `hydratation-cheveux`),
+// so spreading would silently rewrite skincare seeds that reference those keys.
+export { HAIRCARE_PRODUCT_TAG_SLUGS } from '@habit-tracker/shared'
 
 // Combined legacy alias — still consumed by other seed modules that have not
 // been migrated to the split slug maps yet.
@@ -45,11 +53,13 @@ export const TAG_SLUGS = {
 } as const
 export type TagSlug = (typeof TAG_SLUGS)[keyof typeof TAG_SLUGS]
 
-// Shared labels (slug → FR display name). Defined once; reused for both
-// ingredient and product tag tables since the shared slugs (concern,
-// skin_type, shared_label, skin_effect) carry the same UI label across
-// domains.
-const TAG_LABELS: Record<string, string> = {
+// Ingredient-only labels (slug → FR display name). Product tag labels now
+// live in the shared product taxonomies and are resolved via
+// `getProductTagLabel`. Shared concern/skin_type/etc slugs that happen to
+// also be ingredient slugs stay defined here; the cross-entity duplication
+// (e.g. `anti-rougeurs` for both an ingredient row and a product row) is
+// expected — DB rows are independent.
+const INGREDIENT_TAG_LABELS: Record<string, string> = {
   // Concerns
   'anti-rougeurs': 'Anti-rougeurs',
   rosacee: 'Rosacée',
@@ -138,12 +148,6 @@ const TAG_LABELS: Record<string, string> = {
   'nettoyant-corps': 'Nettoyant corps',
   deodorant: 'Déodorant',
   'creme-pieds': 'Crème pieds',
-  shampoing: 'Shampoing',
-  'apres-shampoing': 'Après-shampoing',
-  'masque-cheveux': 'Masque cheveux',
-  'serum-cheveux': 'Sérum cheveux',
-  'huile-cheveux': 'Huile cheveux',
-  'produit-coiffant': 'Produit coiffant',
   dentifrice: 'Dentifrice',
   'bain-de-bouche': 'Bain de bouche',
   'blanchiment-dentaire': 'Blanchiment dentaire',
@@ -459,8 +463,12 @@ const TAG_LABELS: Record<string, string> = {
   'dose-clinique': 'Dose clinique',
 }
 
-function labelFor(slug: string): string {
-  return TAG_LABELS[slug] ?? slug
+function labelForIngredient(slug: string): string {
+  return INGREDIENT_TAG_LABELS[slug] ?? slug
+}
+
+function labelForProduct(slug: string): string {
+  return getProductTagLabel(slug) ?? slug
 }
 
 // Seed rows consumed by createIngredientTag / createProductTag. Category
@@ -474,7 +482,7 @@ const skincareIngredientTags = (
   Object.values(SKINCARE_INGREDIENT_TAG_SLUGS) as SkincareIngredientTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForIngredient(slug),
   tagType: SKINCARE_INGREDIENT_TAG_TAXONOMY[slug].category as string,
 }))
 
@@ -482,7 +490,7 @@ const supplementIngredientTags = (
   Object.values(SUPPLEMENT_INGREDIENT_TAG_SLUGS) as SupplementIngredientTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForIngredient(slug),
   tagType: SUPPLEMENT_INGREDIENT_TAG_TAXONOMY[slug].category as string,
 }))
 
@@ -490,7 +498,7 @@ const dentalIngredientTags = (
   Object.values(DENTAL_INGREDIENT_TAG_SLUGS) as DentalIngredientTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForIngredient(slug),
   tagType: DENTAL_INGREDIENT_TAG_TAXONOMY[slug].category as string,
 }))
 
@@ -498,7 +506,7 @@ const haircareIngredientTags = (
   Object.values(HAIRCARE_INGREDIENT_TAG_SLUGS) as HaircareIngredientTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForIngredient(slug),
   tagType: HAIRCARE_INGREDIENT_TAG_TAXONOMY[slug].category as string,
 }))
 
@@ -518,7 +526,7 @@ const skincareProductTags = (
   Object.values(SKINCARE_PRODUCT_TAG_SLUGS) as SkincareProductTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForProduct(slug),
   tagType: SKINCARE_PRODUCT_TAG_TAXONOMY[slug].category as string,
 }))
 
@@ -526,14 +534,14 @@ const haircareProductTags = (
   Object.values(HAIRCARE_PRODUCT_TAG_SLUGS) as HaircareProductTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForProduct(slug),
   tagType: HAIRCARE_PRODUCT_TAG_TAXONOMY[slug].category as string,
 }))
 
 const dentalProductTags = (Object.values(DENTAL_PRODUCT_TAG_SLUGS) as DentalProductTagSlug[]).map(
   (slug) => ({
     slug,
-    label: labelFor(slug),
+    label: labelForProduct(slug),
     tagType: DENTAL_PRODUCT_TAG_TAXONOMY[slug].category as string,
   })
 )
@@ -542,7 +550,7 @@ const supplementProductTags = (
   Object.values(SUPPLEMENT_PRODUCT_TAG_SLUGS) as SupplementProductTagSlug[]
 ).map((slug) => ({
   slug,
-  label: labelFor(slug),
+  label: labelForProduct(slug),
   tagType: SUPPLEMENT_PRODUCT_TAG_TAXONOMY[slug].category as string,
 }))
 
