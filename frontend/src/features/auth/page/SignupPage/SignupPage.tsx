@@ -1,10 +1,9 @@
-import { type AuthInput, authSchema } from '@habit-tracker/shared'
+import { type SignupErrorCode, type SignupFormInput, signupSchema } from '@habit-tracker/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { Check, Lock, Mail, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import z from 'zod'
 
 import { Button } from '../../../../component/Button/Button'
 import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
@@ -13,8 +12,15 @@ import { AuthDivider } from '../../components/AuthDivider/AuthDivider'
 import { AuthField } from '../../components/AuthField/AuthField'
 import { DemoButton } from '../../components/DemoButton/DemoButton'
 import { GoogleAuthButton } from '../../components/GoogleAuthButton/GoogleAuthButton'
+import { parseAuthForm } from '../../lib/parseAuthForm'
 
-type FieldErrors = Partial<Record<keyof AuthInput | 'confirmPassword' | 'form', string>>
+type FieldErrors = Partial<Record<keyof SignupFormInput | 'form', string>>
+
+/* Exhaustive map: TS errors if a SignupErrorCode is added without a label here. */
+const SIGNUP_ERRORS: Record<SignupErrorCode, string> = {
+  email_exists: 'Un compte existe déjà avec cet email',
+  server_error: 'Une erreur est survenue, réessayez plus tard',
+}
 
 const PASSWORD_RULES = [
   { key: 'length', label: '8 caractères minimum', test: (v: string) => v.length >= 8 },
@@ -26,6 +32,7 @@ const PASSWORD_RULES = [
 
 export const SignupPage = () => {
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
@@ -41,30 +48,28 @@ export const SignupPage = () => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (password !== confirmPassword) {
-      setErrors({ confirmPassword: 'Les mots de passe ne correspondent pas' })
-      return
-    }
-
-    const formData = Object.fromEntries(new FormData(e.currentTarget))
-    const result = authSchema.safeParse(formData)
-
-    if (!result.success) {
-      const { fieldErrors } = z.flattenError(result.error)
+    const parsed = parseAuthForm(e.currentTarget, signupSchema)
+    if (!parsed.ok) {
       setErrors({
-        email: fieldErrors.email?.[0],
-        password: fieldErrors.password?.[0],
+        email: parsed.fieldErrors.email?.[0],
+        password: parsed.fieldErrors.password?.[0],
+        confirmPassword: parsed.fieldErrors.confirmPassword?.[0],
       })
       return
     }
+
     setErrors({})
-    signup.mutate(result.data, {
+
+    // confirmPassword is UI-only — don't ship it to the backend.
+    const { confirmPassword: _confirm, ...payload } = parsed.data
+    signup.mutate(payload, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['session'] })
         navigate({ to: '/collection' })
       },
       onError: (error) => {
-        setErrors({ form: error.message })
+        const code = error.message as SignupErrorCode
+        setErrors({ form: SIGNUP_ERRORS[code] ?? SIGNUP_ERRORS.server_error })
       },
     })
   }
@@ -94,6 +99,8 @@ export const SignupPage = () => {
           error={errors.email}
           required
           autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <AuthField
@@ -129,6 +136,7 @@ export const SignupPage = () => {
 
         <AuthField
           id="signup-confirm"
+          name="confirmPassword"
           label="Confirmer le mot de passe"
           icon={<Lock size={18} />}
           placeholder="••••••••"
@@ -157,6 +165,7 @@ export const SignupPage = () => {
         <Button
           type="submit"
           variant="primary"
+          size="lg"
           loading={signup.isPending}
           fullWidth
           className="auth-submit-btn"

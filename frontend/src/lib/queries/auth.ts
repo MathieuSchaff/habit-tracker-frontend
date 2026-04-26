@@ -50,9 +50,8 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await api.auth.login.$post({ json: data })
-      if (!res.ok) throw new Error('server_error')
       const json = await res.json()
-      if (!json.success) throw new Error(json.error ?? 'server_error')
+      if (!json.success) throw new Error(json.error)
       return json.data
     },
     onSuccess: (data) => {
@@ -68,9 +67,8 @@ export function useSignup() {
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await api.auth.signup.$post({ json: data })
-      if (!res.ok) throw new Error('Signup failed')
       const json = await res.json()
-      if (!json.success) throw new Error(json.error ?? 'Signup failed')
+      if (!json.success) throw new Error(json.error)
       return json.data
     },
     onSuccess: (data) => {

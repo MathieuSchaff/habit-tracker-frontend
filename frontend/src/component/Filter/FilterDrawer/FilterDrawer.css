@@ -24,18 +24,34 @@
 }
 
 .filter-drawer__panel {
+  position: relative;
   width: 100%;
   max-width: 28rem;
   max-height: 80dvh;
-  background: var(--color-primary-subtle);
+  background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-top: 3px solid var(--color-primary);
+  border-bottom: none;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: drawer-slide-up var(--transition-base) ease;
+}
+
+/* Drag indicator: tactile cue on mobile bottom-sheet, neutral so the surface stays calm */
+.filter-drawer__panel::before {
+  content: "";
+  position: absolute;
+  top: var(--space-2);
+  left: 50%;
+  translate: -50% 0;
+  width: 2.25rem;
+  height: 0.25rem;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 @keyframes drawer-slide-up {
@@ -51,17 +67,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  background: linear-gradient(to right, var(--color-primary-subtle), var(--bg-page));
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  background: linear-gradient(to bottom, var(--color-primary-subtle), var(--bg-card));
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
 }
 
 .filter-drawer__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--font-bold);
   color: var(--color-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Accent dot pairs with the primary title — gives the header a 2-color palette
+   instead of monochromatic primary */
+.filter-drawer__title::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  flex-shrink: 0;
 }
 
 .filter-drawer__body {
@@ -69,6 +100,7 @@
   overflow-y: scroll;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  background: var(--bg-card);
 }
 
 .filter-drawer__body::-webkit-scrollbar {
@@ -83,10 +115,14 @@
   border-bottom: 1px solid var(--border-default);
 }
 
+.filter-drawer__group:last-child {
+  border-bottom: none;
+}
+
 .filter-drawer__footer {
   flex-shrink: 0;
   padding: var(--space-4) var(--space-5);
-  background: var(--bg-page);
+  background: var(--bg-surface);
   border-top: 1px solid var(--border-default);
   display: flex;
   gap: var(--space-3);
@@ -96,7 +132,6 @@
   flex: 1;
 }
 
-/* Nested search-select groups inside an accordion */
 .filter-drawer__group--nested {
   border-bottom: none;
   padding: var(--space-1) var(--space-5) var(--space-3);
@@ -122,7 +157,7 @@
   font-weight: var(--font-semibold);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   white-space: nowrap;
 }
 
@@ -136,10 +171,15 @@
     max-width: 22rem;
     max-height: 100dvh;
     height: 100%;
-    border-top: 1px solid var(--border-default);
-    border-left: 3px solid var(--color-primary);
+    border: 1px solid var(--border-default);
+    border-right: none;
     border-radius: var(--radius-lg) 0 0 var(--radius-lg);
     animation: drawer-slide-left var(--transition-base) ease;
+  }
+
+  /* Drag handle is mobile-only — the side panel doesn't need it */
+  .filter-drawer__panel::before {
+    display: none;
   }
 
   @keyframes drawer-slide-left {

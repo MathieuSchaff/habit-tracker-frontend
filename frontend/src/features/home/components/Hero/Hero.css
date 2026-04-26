@@ -95,44 +95,187 @@
   pointer-events: none;
 }
 
-.shape {
+@media (max-width: 900px) {
+  .hero-visuals {
+    display: none;
+  }
+}
+
+.hcard {
   position: absolute;
-  filter: blur(1px);
-}
-
-.sphere.frosted {
-  width: 300px;
-  height: 300px;
-  top: 10%;
-  right: 15%;
-  background: oklch(100% 0 0 / 0.3);
-  backdrop-filter: blur(40px);
-  border-radius: 50%;
-  border: 1px solid oklch(100% 0 0 / 0.5);
+  background: var(--surface-bright);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 0.875rem 1rem;
+  width: 220px;
   box-shadow:
-    inset 0 10px 30px oklch(100% 0 0 / 0.2),
-    0 30px 60px oklch(25% 0.1 var(--hue-primary) / 0.1);
+    0 4px 24px oklch(20% 0.05 220deg / 0.08),
+    0 1px 3px oklch(20% 0.05 220deg / 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.cube.quartz {
-  width: 120px;
-  height: 120px;
-  bottom: 20%;
-  right: 25%;
-  background: var(--color-accent);
-  opacity: 0.8;
-  transform: rotate(15deg);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px oklch(from var(--color-accent) 25% c h / 0.2);
+.hcard__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.ring.ceramic {
-  width: 200px;
-  height: 200px;
-  top: 40%;
-  left: 10%;
-  border: 40px solid var(--surface-bright);
+.hcard__dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  opacity: 0.6;
-  filter: blur(2px);
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.hcard__dot--accent {
+  background: var(--color-accent);
+}
+
+.hcard__name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hcard__badge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.hcard__badge--safe {
+  background: oklch(92% 0.1 145deg);
+  color: oklch(30% 0.12 145deg);
+}
+
+.hcard__inci {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.hcard__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.hcard__tag {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--tag-default-bg);
+  color: var(--tag-default-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hcard__tag--active {
+  background: var(--tag-active-bg);
+  color: var(--tag-active-text);
+}
+
+.hcard__score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hcard__score-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--tag-default-bg);
+  overflow: hidden;
+}
+
+.hcard__score-fill {
+  width: 80%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+.hcard__score-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.hcard__meta {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+.hcard__warn {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.hcard--ingredient {
+  top: 8%;
+  right: 8%;
+  border-top: 3px solid var(--color-primary);
+  animation: hfloat-a 5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.hcard--product {
+  bottom: 22%;
+  left: 5%;
+  border-top: 3px solid var(--color-accent);
+  animation: hfloat-b 6s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.hcard--profile {
+  bottom: 6%;
+  right: 10%;
+  width: 180px;
+  animation: hfloat-c 4.5s ease-in-out infinite;
+  animation-delay: -1s;
+}
+
+@keyframes hfloat-a {
+  0%,
+  100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-2deg) translateY(-10px);
+  }
+}
+
+@keyframes hfloat-b {
+  0%,
+  100% {
+    transform: rotate(2.5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2.5deg) translateY(-8px);
+  }
+}
+
+@keyframes hfloat-c {
+  0%,
+  100% {
+    transform: rotate(-1deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-1deg) translateY(-12px);
+  }
 }

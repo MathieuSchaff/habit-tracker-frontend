@@ -6,6 +6,8 @@ export const GoogleAuthButton = ({ label }: { label: string }) => {
   return (
     <Button
       type="button"
+      size="lg"
+      fullWidth
       className="google-btn"
       onClick={() => {
         window.location.href = '/api/auth/google'

@@ -46,6 +46,18 @@ export const authSchema = z.object({
   password: passwordSchema,
 })
 
+/* UI-side schema: backend only validates authSchema. confirmPassword stays client-only. */
+export const signupSchema = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
+
 export const verifyEmailBodySchema = z.object({
   token: z.string().min(1),
 })
@@ -62,6 +74,8 @@ export const changePasswordSchema = z.object({
 // TYPES
 
 export type AuthInput = z.infer<typeof authSchema>
+
+export type SignupFormInput = z.infer<typeof signupSchema>
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 
@@ -104,12 +118,13 @@ export type AuthErrorCode =
   | 'token_expired'
   | 'too_many_requests'
 
-export type SignupResult = ApiResponse<AuthenticatedResult, 'email_exists' | 'server_error'>
+export type SignupErrorCode = 'email_exists' | 'server_error'
 
-export type LoginResult = ApiResponse<
-  AuthenticatedResult,
-  'invalid_credentials' | 'email_not_verified' | 'server_error'
->
+export type LoginErrorCode = 'invalid_credentials' | 'email_not_verified' | 'server_error'
+
+export type SignupResult = ApiResponse<AuthenticatedResult, SignupErrorCode>
+
+export type LoginResult = ApiResponse<AuthenticatedResult, LoginErrorCode>
 
 export type RefreshResult = ApiResponse<
   AuthenticatedResult,

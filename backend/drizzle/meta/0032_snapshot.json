@@ -1,6 +1,6 @@
 {
-  "id": "d3642bc9-d1a8-4f86-aa54-329447f30bcc",
-  "prevId": "89162ab0-d5a3-401c-b054-75cbdbe25cd7",
+  "id": "0221f1a3-c01f-49f1-99da-3dcf8299bdfe",
+  "prevId": "d3642bc9-d1a8-4f86-aa54-329447f30bcc",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1258,6 +1258,36 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "ingredients_name_trgm_idx": {
+          "name": "ingredients_name_trgm_idx",
+          "columns": [
+            {
+              "expression": "\"name\" gin_trgm_ops",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        },
+        "ingredients_slug_trgm_idx": {
+          "name": "ingredients_slug_trgm_idx",
+          "columns": [
+            {
+              "expression": "\"slug\" gin_trgm_ops",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2329,6 +2359,36 @@
           "isUnique": true,
           "concurrently": false,
           "method": "btree",
+          "with": {}
+        },
+        "products_name_trgm_idx": {
+          "name": "products_name_trgm_idx",
+          "columns": [
+            {
+              "expression": "\"name\" gin_trgm_ops",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
+          "with": {}
+        },
+        "products_brand_trgm_idx": {
+          "name": "products_brand_trgm_idx",
+          "columns": [
+            {
+              "expression": "\"brand\" gin_trgm_ops",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gin",
           "with": {}
         }
       },

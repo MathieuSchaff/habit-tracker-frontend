@@ -72,6 +72,19 @@
   width: auto;
 }
 
+.user-menu__dropdown .dropdown-menu__item {
+  color: var(--color-sidebar-text);
+}
+
+.user-menu__dropdown .dropdown-menu__item:hover {
+  background: var(--color-sidebar-item-hover);
+}
+
+.user-menu__dropdown .dropdown-menu__item.active {
+  background: var(--color-sidebar-item-active);
+  color: var(--color-sidebar-text);
+}
+
 .user-menu__list {
   list-style: none;
   padding: 0.25rem;

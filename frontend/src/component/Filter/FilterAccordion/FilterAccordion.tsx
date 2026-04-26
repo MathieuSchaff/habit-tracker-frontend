@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
+import { AsyncSearchSelect } from '../AsyncSearchSelect/AsyncSearchSelect'
 import { SearchSelect } from '../SearchSelect/SearchSelect'
 import type { FilterGroupConfig, FilterValues } from '../types'
 import { SubGroupedChips } from './SubGroupedChips'
@@ -92,6 +93,23 @@ export function FilterAccordion<T extends string>({
                     options={sf.options}
                     selected={selected}
                     onToggle={(value) => onToggle(sf.key, value)}
+                    placeholder={sf.placeholder}
+                    label={sf.label}
+                  />
+                </div>
+              )
+            }
+
+            if (variant === 'async-search-select') {
+              if (!sf.loadOptionsQuery || !sf.resolveValuesQuery) return null
+              return (
+                <div key={sf.key} className="filter-drawer__group filter-drawer__group--nested">
+                  <span className="filter-subgroup__label">{sf.label}</span>
+                  <AsyncSearchSelect
+                    selected={selected}
+                    onToggle={(value) => onToggle(sf.key, value)}
+                    loadOptionsQuery={sf.loadOptionsQuery}
+                    resolveValuesQuery={sf.resolveValuesQuery}
                     placeholder={sf.placeholder}
                     label={sf.label}
                   />
