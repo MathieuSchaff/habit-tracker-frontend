@@ -18,7 +18,6 @@ import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { csrf } from 'hono/csrf'
-import { getGoogleAuthUrl, handleGoogleCallback } from 'src/features/auth/google.service'
 
 import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
@@ -26,6 +25,7 @@ import { users } from '../../db/schema'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
+import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
 import { requireJwtAuth } from './middleware'
 import {
@@ -71,7 +71,11 @@ function checkResendLimit(userId: string): boolean {
 const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
-app.use('*', csrf({ origin: (origin) => origin === env.FRONTEND_URL }))
+// In-process tests use app.request without an Origin header; csrf would 403 every POST.
+// CSRF only matters for browser-driven cross-origin flows, so skip it under NODE_ENV=test.
+if (env.NODE_ENV !== 'test') {
+  app.use('*', csrf({ origin: (origin) => origin === env.FRONTEND_URL }))
+}
 
 // These authenticated routes write to users / refresh_tokens / email_verifications —
 // all tables kept outside RLS because auth lookups happen pre-identity. If RLS is ever

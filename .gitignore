@@ -62,6 +62,10 @@ bun-debug.log*
 # Test
 # =========================
 coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/.playwright/
 
 # =========================
 # Docker (local volumes)

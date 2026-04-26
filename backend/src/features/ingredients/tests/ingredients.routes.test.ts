@@ -237,6 +237,35 @@ describe('Ingredient Routes', () => {
     })
   })
 
+  describe('GET /ingredients/by-slugs', () => {
+    it('returns name+slug for known slugs and skips unknown ones', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const a = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
+      const b = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
+      const { data: niac } = await a.json()
+      const { data: retinol } = await b.json()
+
+      const res = await app.request(`/ingredients/by-slugs?slugs=${niac.slug},${retinol.slug},nope`)
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const { data } = await res.json()
+      const slugs = data.map((d: { slug: string }) => d.slug).sort()
+      expect(slugs).toEqual([niac.slug, retinol.slug].sort())
+    })
+
+    it('returns an empty list when slugs is comma-only', async () => {
+      const res = await app.request('/ingredients/by-slugs?slugs=,,,')
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const { data } = await res.json()
+      expect(data).toEqual([])
+    })
+
+    it('rejects when slugs param is missing', async () => {
+      const res = await app.request('/ingredients/by-slugs')
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+  })
+
   describe('PATCH /ingredients/:id', () => {
     it('should update ingredient fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)

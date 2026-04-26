@@ -115,6 +115,23 @@ export const ingredientQueries = {
       },
       enabled: query.length >= 2,
     }),
+
+  // Resolve names for a list of slugs (chips deep-linked from URL).
+  // Cached long enough that re-mount of the filter doesn't refetch.
+  bySlugs: (slugs: string[]) =>
+    queryOptions({
+      queryKey: [...ingredientKeys.all, 'by-slugs', [...slugs].sort()] as const,
+      queryFn: async () => {
+        const res = await api.ingredients['by-slugs'].$get({
+          query: { slugs: slugs.join(',') },
+        })
+        if (!res.ok) throw new Error('Failed to resolve ingredient slugs')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: slugs.length > 0,
+      staleTime: 10 * 60 * 1000,
+    }),
   options: () =>
     queryOptions({
       queryKey: [...ingredientKeys.all, 'options'] as const,

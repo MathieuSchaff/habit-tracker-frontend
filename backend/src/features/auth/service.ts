@@ -141,7 +141,9 @@ export async function login(
 
     const tokens = await createTokenPair(ctx, user.id, user.role)
 
-    cleanupUserRefreshTokens(ctx.db, user.id).catch((e) => logger.error({ err: e }, 'Cleanup failed'))
+    cleanupUserRefreshTokens(ctx.db, user.id).catch((e) =>
+      logger.error({ err: e }, 'Cleanup failed')
+    )
 
     return ok({
       user: toPublicUser(user),
@@ -167,7 +169,10 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     }
 
     if (storedToken.userId !== payload.sub) {
-      logger.error({ storedUserId: storedToken.userId, payloadSub: payload.sub }, 'Token userId mismatch')
+      logger.error(
+        { storedUserId: storedToken.userId, payloadSub: payload.sub },
+        'Token userId mismatch'
+      )
       await revokeAllUserRefreshTokens(ctx.db, payload.sub)
       await revokeAllUserRefreshTokens(ctx.db, storedToken.userId)
       return err('invalid_token')

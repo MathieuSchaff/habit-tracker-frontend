@@ -22,6 +22,7 @@ import {
   listAllIngredientOptions,
   listIngredientEdits,
   listIngredients,
+  listIngredientsBySlugs,
   searchIngredients,
   updateIngredient,
 } from './service'
@@ -37,6 +38,14 @@ const idParam = z.object({
 const searchQuery = z.object({
   q: z.string().min(1).max(100),
 })
+
+// Comma-separated slugs. Capped at 2000 chars so a stray client never seq-scans
+// the table — handler splits + caps at 50 entries before hitting the DB.
+const bySlugsQuery = z.object({
+  slugs: z.string().min(1).max(2000),
+})
+
+const MAX_SLUG_LOOKUP = 50
 
 const ingredientsApp = new Hono<AppEnv>()
 
@@ -56,6 +65,13 @@ export const ingredientRoutes = ingredientsApp
 
     const results = await searchIngredients(db, q)
 
+    return c.json(ok(results), HTTP_STATUS.OK)
+  })
+  .get('/by-slugs', zValidator('query', bySlugsQuery), async (c) => {
+    const db = c.get('db')
+    const { slugs } = c.req.valid('query')
+    const list = slugs.split(',').filter(Boolean).slice(0, MAX_SLUG_LOOKUP)
+    const results = await listIngredientsBySlugs(db, list)
     return c.json(ok(results), HTTP_STATUS.OK)
   })
   .get('/filter-options', async (c) => {

@@ -31,7 +31,7 @@ describe('User Utils', () => {
   describe('createUser', () => {
     it('should create a new user and a linked profile', async () => {
       const email = `newuser-${randomUUID()}@example.com` as Email
-      const passwordHash = (await hash('Secret123!')) as HashedPassword
+      const passwordHash = (await Bun.password.hash('Secret123!')) as HashedPassword
 
       const user = await createUser(testDb, { email, passwordHash })
       await createProfile(testDb, user.id)
@@ -53,7 +53,7 @@ describe('User Utils', () => {
 
     it('should throw error if email already exists', async () => {
       const email = 'duplicate@example.com' as Email
-      const passwordHash = (await hash('Pass123!')) as HashedPassword
+      const passwordHash = (await Bun.password.hash('Pass123!')) as HashedPassword
 
       await createUser(testDb, { email, passwordHash })
 
