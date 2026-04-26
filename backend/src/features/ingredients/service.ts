@@ -356,3 +356,13 @@ export async function listAllIngredientOptions(database: DB) {
     .from(ingredients)
     .orderBy(ingredients.name)
 }
+
+// Batch lookup used by the async ingredient filter to resolve `name` for
+// chips deep-linked from the URL (a slug list with no labels in cache).
+export async function listIngredientsBySlugs(database: DB, slugs: string[]) {
+  if (slugs.length === 0) return []
+  return database
+    .select({ slug: ingredients.slug, name: ingredients.name })
+    .from(ingredients)
+    .where(inArray(ingredients.slug, slugs))
+}

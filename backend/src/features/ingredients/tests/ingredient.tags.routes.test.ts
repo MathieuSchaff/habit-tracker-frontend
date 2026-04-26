@@ -5,6 +5,8 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { createIngredientTag } from '../../../features/tags/tags.service'
+import { testDb } from '../../../tests/db.test.config'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import {
   authDelete,
@@ -20,10 +22,11 @@ async function createIngredient(app: Hono<AppEnv>, token: string, name = 'Rétin
   return data.data as { id: string; slug: string }
 }
 
-async function createTag(app: Hono<AppEnv>, token: string, name = 'Anti-âge') {
-  const res = await authPost(app, '/tags', token, { name })
-  const data = await res.json()
-  return data.data as { id: string; slug: string }
+async function createTag(_app: Hono<AppEnv>, _token: string, name = 'Anti-âge') {
+  // Ingredient↔tag links FK to `ingredient_tags`, not `product_tags_defs`.
+  // Insert directly via service since no public ingredient-tag-creation route exists.
+  const tag = await createIngredientTag(testDb, { name })
+  return { id: tag.id, slug: tag.slug }
 }
 
 describe('Ingredient Tag Routes', () => {
@@ -86,7 +89,7 @@ describe('Ingredient Tag Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
       expect(data.success).toBe(true)
-      expect(data.data.tagId).toBe(tag.id)
+      expect(data.data.ingredientTagId).toBe(tag.id)
       expect(data.data.ingredientId).toBe(ingredient.id)
     })
 
@@ -180,7 +183,7 @@ describe('Ingredient Tag Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].tagId).toBe(tag2.id)
+      expect(data.data[0].ingredientTagId).toBe(tag2.id)
     })
 
     it('should clear all tags when tagIds is empty', async () => {

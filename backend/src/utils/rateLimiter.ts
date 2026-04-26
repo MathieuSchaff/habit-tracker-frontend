@@ -10,9 +10,9 @@ import type { AppEnv } from '../app-env'
 // pour l'instant le store est :
 // "By default, hono-rate-limiter uses an in-memory store (MemoryStore)"
 // Il faudrait plus tard changer le store
-const isDev = process.env.NODE_ENV === 'development'
+const skipLimiter = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
 
-export const rateLimiterFunc: MiddlewareHandler<AppEnv> = isDev
+export const rateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
   ? async (_c: Context, next: Next) => await next()
   : rateLimiter<AppEnv>({
       windowMs: 15 * 60 * 1000,
