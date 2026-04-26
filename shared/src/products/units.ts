@@ -65,3 +65,30 @@ const _flat = Object.values(PRODUCT_UNITS).flatMap(
   (domain) => Object.values(domain) as ProductUnit[]
 )
 export const PRODUCT_UNIT_VALUES = Array.from(new Set(_flat)) as [ProductUnit, ...ProductUnit[]]
+
+export const PRODUCT_UNIT_LABELS: Record<ProductUnit, string> = {
+  // format/applicator
+  pump: 'Pompe',
+  dropper: 'Compte-gouttes',
+  jar: 'Pot',
+  tube: 'Tube',
+  bottle: 'Flacon',
+  spray: 'Spray',
+  pack: 'Pack',
+  roller: 'Roller',
+  bar: 'Pain',
+  aerosol: 'Aérosol',
+  stick: 'Stick',
+  sachet: 'Sachet',
+  cartridge: 'Cartouche',
+  // complement forms
+  tablet: 'Comprimé',
+  capsule: 'Capsule',
+  gummy: 'Gummies',
+  powder: 'Poudre',
+  ampoule: 'Ampoule',
+}
+
+export function getProductUnitLabel(unit: string): string {
+  return PRODUCT_UNIT_LABELS[unit as ProductUnit] ?? unit
+}
