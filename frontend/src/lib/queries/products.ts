@@ -1,11 +1,18 @@
 import type {
   AllProductTagCategory,
   CreateProductInput,
+  ProductConcentrationUnit,
   ProductDomainTab,
   UpdateProductInput,
 } from '@habit-tracker/shared'
 
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  infiniteQueryOptions,
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import { TAG_FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
@@ -116,14 +123,19 @@ export const productQueries = {
     }),
 
   search: (q: string) =>
-    queryOptions({
+    infiniteQueryOptions({
       queryKey: [...productKeys.all, 'search', q] as const,
-      queryFn: async () => {
-        const res = await api.products.search.$get({ query: { q } })
+      queryFn: async ({ pageParam }: { pageParam: number }) => {
+        const res = await api.products.search.$get({
+          query: { q, limit: '20', offset: String(pageParam) },
+        })
         if (!res.ok) throw new Error('Failed to search products')
         const json = await res.json()
         return json.data
       },
+      initialPageParam: 0 as number,
+      getNextPageParam: (lastPage): number | undefined =>
+        lastPage.hasMore ? lastPage.nextOffset : undefined,
       enabled: q.length >= 2,
       staleTime: 30 * 1000,
     }),
@@ -220,12 +232,14 @@ export function useUpdateProduct() {
 export function useDeleteProduct() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id }: { id: string; slug: string }) => {
       const res = await api.products[':id'].$delete({ param: { id } })
       if (!res.ok) throw new Error('Failed to delete product')
     },
-    onSuccess: () => {
+    onSuccess: (_, { slug }) => {
+      qc.removeQueries({ queryKey: productKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
+      qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
   })
 }
@@ -238,6 +252,7 @@ export function useUpdateProductTags() {
       tags,
     }: {
       productId: string
+      slug: string
       tags: { tagId: string; relevance: 'primary' | 'secondary' | 'avoid' }[]
     }) => {
       const res = await api.products[':productId'].tags.$put({
@@ -249,8 +264,10 @@ export function useUpdateProductTags() {
       if (!json.success) throw new Error('Failed to update product tags')
       return json.data
     },
-    onSuccess: (_, { productId }) => {
+    onSuccess: (_, { productId, slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.tags(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
+      qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
   })
 }
@@ -261,21 +278,65 @@ export function useAddProductIngredient() {
     mutationFn: async ({
       productId,
       ingredientId,
+      concentrationValue,
+      concentrationUnit,
     }: {
       productId: string
+      slug: string
       ingredientId: string
+      concentrationValue?: number
+      concentrationUnit?: ProductConcentrationUnit
     }) => {
       const res = await api.products[':productId'].ingredients.$post({
         param: { productId },
-        json: { ingredientId },
+        json: {
+          ingredientId,
+          concentrationValue,
+          concentrationUnit,
+        },
       })
       if (!res.ok) throw new Error('Failed to add product ingredient')
       const json = await res.json()
       if (!json.success) throw new Error('Failed to add product ingredient')
       return json.data
     },
-    onSuccess: (_, { productId }) => {
+    onSuccess: (_, { productId, slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
+    },
+  })
+}
+
+export function useUpdateProductIngredient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      ingredientId,
+      concentrationValue,
+      concentrationUnit,
+    }: {
+      productId: string
+      slug: string
+      ingredientId: string
+      concentrationValue?: number | null
+      concentrationUnit?: ProductConcentrationUnit | null
+    }) => {
+      const res = await api.products[':productId'].ingredients[':ingredientId'].$patch({
+        param: { productId, ingredientId },
+        json: {
+          concentrationValue,
+          concentrationUnit,
+        },
+      })
+      if (!res.ok) throw new Error('Failed to update product ingredient')
+      const json = await res.json()
+      if (!json.success) throw new Error('Failed to update product ingredient')
+      return json.data
+    },
+    onSuccess: (_, { productId, slug }) => {
+      qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
   })
 }
@@ -288,6 +349,7 @@ export function useRemoveProductIngredient() {
       ingredientId,
     }: {
       productId: string
+      slug: string
       ingredientId: string
     }) => {
       const res = await api.products[':productId'].ingredients[':ingredientId'].$delete({
@@ -295,8 +357,9 @@ export function useRemoveProductIngredient() {
       })
       if (!res.ok) throw new Error('Failed to remove product ingredient')
     },
-    onSuccess: (_, { productId }) => {
+    onSuccess: (_, { productId, slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
+      qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
   })
 }
@@ -304,3 +367,5 @@ export function useRemoveProductIngredient() {
 export function useProducts(filters: ListProductsFilters = {}) {
   return useQuery(productQueries.list(filters))
 }
+
+export type ProductListItem = NonNullable<ReturnType<typeof useProducts>['data']>['items'][number]

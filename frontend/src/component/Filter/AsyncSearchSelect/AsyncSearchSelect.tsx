@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, X } from 'lucide-react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import { useFlipPlacement } from '@/component/Search/useFlipPlacement'
 import type { AsyncSearchQueryFactory } from '../types'
 
 import '../SearchSelect/SearchSelect.css'
@@ -147,60 +148,10 @@ export function AsyncSearchSelect({
     [isOpen, activeIndex, filtered, onToggle]
   )
 
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' })
-    }
-  }, [isOpen])
-
-  // dropdown uses position:fixed to escape overflow:hidden ancestors —
-  // flip above when there isn't enough room below. Depends on filtered.length
-  // too: the listbox only mounts when results exist, which can happen one
-  // render after showDropdown flips (async query). Without it, ref is null
-  // on first run and inline coords stay empty.
-  useEffect(() => {
-    if (!showDropdown || !dropdownRef.current || !clickOutsideContainer.current) return
-
-    const GAP = 4
-
-    const updatePosition = () => {
-      const wrapper = clickOutsideContainer.current
-      const dropdown = dropdownRef.current
-      if (!wrapper || !dropdown) return
-
-      const rect = wrapper.getBoundingClientRect()
-      const dropdownHeight = dropdown.offsetHeight
-      const spaceBelow = window.innerHeight - rect.bottom - GAP
-      const spaceAbove = rect.top - GAP
-      const placeAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
-
-      dropdown.style.left = `${rect.left}px`
-      dropdown.style.width = `${rect.width}px`
-
-      const MAX_HEIGHT = window.innerWidth >= 640 ? 240 : 200
-
-      if (placeAbove) {
-        dropdown.style.top = 'auto'
-        dropdown.style.bottom = `${window.innerHeight - rect.top + GAP}px`
-        dropdown.style.maxHeight = `${Math.min(spaceAbove, MAX_HEIGHT)}px`
-      } else {
-        dropdown.style.top = `${rect.bottom + GAP}px`
-        dropdown.style.bottom = 'auto'
-        dropdown.style.maxHeight = `${Math.min(spaceBelow, MAX_HEIGHT)}px`
-      }
-    }
-
-    updatePosition()
-
-    const scrollable = clickOutsideContainer.current.closest('.filter-drawer__body')
-    scrollable?.addEventListener('scroll', updatePosition)
-    window.addEventListener('resize', updatePosition)
-
-    return () => {
-      scrollable?.removeEventListener('scroll', updatePosition)
-      window.removeEventListener('resize', updatePosition)
-    }
-  }, [showDropdown, filtered.length])
+  // filtered.length is a deps trigger: listbox only mounts when results exist,
+  // which can lag showDropdown by one render (async query). Without it, ref is
+  // null on first run and inline coords stay empty.
+  useFlipPlacement(clickOutsideContainer, dropdownRef, showDropdown, [filtered.length])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

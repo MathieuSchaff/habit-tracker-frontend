@@ -13,12 +13,28 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 20px oklch(from var(--color-primary) l c h / 0.15);
+  display: flex;
+  flex-direction: column;
   max-height: 12rem;
-  overflow-y: auto;
+  overflow: hidden;
   list-style: none;
   margin: 0;
-  padding: var(--space-1) 0;
+  padding: 0;
   animation: dropdown-fade-in 0.15s ease-out;
+}
+
+.combobox-primitive__items {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--space-1) 0;
+}
+
+.combobox-primitive__footer {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-elevated);
+  padding: var(--space-1) 0;
 }
 
 @keyframes dropdown-fade-in {
@@ -58,4 +74,8 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
   font-style: italic;
+}
+
+.combobox-primitive__sentinel {
+  min-height: 1px;
 }

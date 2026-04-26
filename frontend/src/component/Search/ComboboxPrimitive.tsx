@@ -1,4 +1,6 @@
 import { type ReactNode, useEffect, useId, useRef } from 'react'
+
+import { useFlipPlacement } from './useFlipPlacement'
 import './ComboboxPrimitive.css'
 
 export interface ComboboxAriaProps {
@@ -19,6 +21,12 @@ interface ComboboxPrimitiveProps<T> {
   isLoading?: boolean
   emptyMessage?: string
   keyExtractor?: (item: T, index: number) => string | number
+  footer?: ReactNode
+  // Infinite scroll: when hasMore is true and the sentinel intersects the dropdown
+  // viewport, onLoadMore is invoked. isLoadingMore renders a "loading more" status.
+  hasMore?: boolean
+  onLoadMore?: () => void
+  isLoadingMore?: boolean
   children: (ariaProps: ComboboxAriaProps) => ReactNode
 }
 
@@ -36,10 +44,21 @@ export function ComboboxPrimitive<T>({
   isLoading,
   emptyMessage = 'Aucun résultat',
   keyExtractor,
+  footer,
+  hasMore,
+  onLoadMore,
+  isLoadingMore,
   children,
 }: ComboboxPrimitiveProps<T>) {
   const listboxId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const itemsRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  // items.length is a deps trigger: dropdown height changes as results stream
+  // in (async queries), and we want the flip recalculated when content shifts.
+  useFlipPlacement(containerRef, dropdownRef, isOpen, [items.length])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -57,6 +76,25 @@ export function ComboboxPrimitive<T>({
       element?.scrollIntoView({ block: 'nearest' })
     }
   }, [highlightedIndex, isOpen, listboxId])
+
+  useEffect(() => {
+    if (!isOpen || !hasMore || !onLoadMore) return
+    const sentinel = sentinelRef.current
+    const root = itemsRef.current
+    if (!sentinel || !root) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            onLoadMore()
+          }
+        }
+      },
+      { root, rootMargin: '40px', threshold: 0 }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [isOpen, hasMore, onLoadMore])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // let the parent handle its own keys first, so it can intercept things like Tab before we do
@@ -96,38 +134,54 @@ export function ComboboxPrimitive<T>({
       {children({ listboxId, activeDescendant })}
 
       {isOpen && (
-        <div
-          id={listboxId}
-          role="listbox"
-          className="combobox-primitive__dropdown"
-          aria-label="Suggestions"
-        >
+        <div ref={dropdownRef} className="combobox-primitive__dropdown">
           {isLoading ? (
             <output className="combobox-primitive__status">Chargement...</output>
-          ) : items.length === 0 ? (
-            inputValue.trim() !== '' && (
-              <output className="combobox-primitive__empty">{emptyMessage}</output>
-            )
           ) : (
-            items.map((item, index) => {
-              const isActive = index === highlightedIndex
-              const key = keyExtractor ? keyExtractor(item, index) : index
-              return (
-                // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
-                <div
-                  key={key}
-                  id={`${listboxId}-option-${index}`}
-                  role="option"
-                  aria-selected={isActive}
-                  className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => onSelect(item)}
-                  tabIndex={-1}
-                >
-                  {renderItem(item, index, isActive)}
-                </div>
-              )
-            })
+            <>
+              <div
+                id={listboxId}
+                ref={itemsRef}
+                role="listbox"
+                className="combobox-primitive__items"
+                aria-label="Suggestions"
+              >
+                {items.map((item, index) => {
+                  const isActive = index === highlightedIndex
+                  const key = keyExtractor ? keyExtractor(item, index) : index
+                  return (
+                    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
+                    <div
+                      key={key}
+                      id={`${listboxId}-option-${index}`}
+                      role="option"
+                      aria-selected={isActive}
+                      className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => onSelect(item)}
+                      tabIndex={-1}
+                    >
+                      {renderItem(item, index, isActive)}
+                    </div>
+                  )
+                })}
+                {items.length === 0 && !footer && inputValue.trim() !== '' && (
+                  <output className="combobox-primitive__empty">{emptyMessage}</output>
+                )}
+                {hasMore && (
+                  <div
+                    ref={sentinelRef}
+                    className="combobox-primitive__sentinel"
+                    aria-hidden="true"
+                  >
+                    {isLoadingMore && (
+                      <output className="combobox-primitive__status">Chargement...</output>
+                    )}
+                  </div>
+                )}
+              </div>
+              {footer && <div className="combobox-primitive__footer">{footer}</div>}
+            </>
           )}
         </div>
       )}

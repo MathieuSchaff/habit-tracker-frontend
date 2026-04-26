@@ -1,6 +1,11 @@
-import { type QueryKey, type UseQueryOptions, useQuery } from '@tanstack/react-query'
+import {
+  type InfiniteData,
+  type QueryKey,
+  type UseInfiniteQueryOptions,
+  useInfiniteQuery,
+} from '@tanstack/react-query'
 import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { ComboboxPrimitive } from './ComboboxPrimitive'
 import './SearchCombobox.css'
@@ -12,12 +17,37 @@ export interface SearchComboboxResult {
   sublabel?: string
 }
 
+export interface SearchComboboxExtraEntry {
+  id: string
+  label: string
+  icon?: ReactNode
+  onSelect: () => void
+}
+
+// Pages are uniform across consumers; backends without real pagination wrap
+// their single-page response as { items, hasMore: false, nextOffset: 0 }.
+export interface SearchPage<TItem> {
+  items: TItem[]
+  hasMore: boolean
+  nextOffset: number
+}
+
 interface SearchComboboxProps<TItem, TQueryKey extends QueryKey> {
-  queryFn: (query: string) => UseQueryOptions<TItem[], Error, TItem[], TQueryKey>
-  // NoInfer prevents TypeScript from trying to infer TItem from toResult,
-  // forcing it to rely solely on queryFn for the source of truth.
+  queryFn: (
+    query: string
+  ) => UseInfiniteQueryOptions<
+    SearchPage<TItem>,
+    Error,
+    InfiniteData<SearchPage<TItem>, unknown>,
+    TQueryKey,
+    number
+  >
+  // NoInfer keeps inference anchored to queryFn — TItem flows from there.
   toResult: (item: NoInfer<TItem>) => SearchComboboxResult
   onSelect: (slug: string, result: SearchComboboxResult) => void
+  // Optional shortcut entries rendered at the bottom of the dropdown.
+  // Use case: "see all results for X" when query matches a known facet (brand, etc.).
+  extraEntries?: (debouncedQuery: string) => SearchComboboxExtraEntry[]
   placeholder?: string
   label: string
   minChars?: number
@@ -28,6 +58,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   queryFn,
   toResult,
   onSelect,
+  extraEntries,
   placeholder = 'Rechercher...',
   label,
   minChars = 2,
@@ -43,11 +74,12 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     return () => clearTimeout(timer)
   }, [query, debounce])
 
-  const { data: rawResults = [], isFetching } = useQuery({
+  const { data, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     ...queryFn(debouncedQuery),
     enabled: debouncedQuery.length >= minChars,
   })
 
+  const rawResults = data?.pages.flatMap((p) => p.items) ?? []
   const results = rawResults.map(toResult)
 
   function handleSelect(result: SearchComboboxResult) {
@@ -55,6 +87,15 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     setIsOpen(false)
     setHighlightedIndex(-1)
     onSelect(result.slug, result)
+  }
+
+  const extras = extraEntries?.(debouncedQuery) ?? []
+
+  function handleExtraSelect(entry: SearchComboboxExtraEntry) {
+    setQuery('')
+    setIsOpen(false)
+    setHighlightedIndex(-1)
+    entry.onSelect()
   }
 
   const showDropdown = isOpen && debouncedQuery.length >= minChars
@@ -79,7 +120,12 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setHighlightedIndex={setHighlightedIndex}
       inputValue={debouncedQuery}
       onKeyDown={handleKeyDown}
-      isLoading={isFetching}
+      isLoading={isFetching && !isFetchingNextPage}
+      isLoadingMore={isFetchingNextPage}
+      hasMore={!!hasNextPage}
+      onLoadMore={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage()
+      }}
       keyExtractor={(item) => item.id}
       renderItem={(item) => (
         <>
@@ -87,6 +133,22 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
           {item.sublabel && <span className="search-combobox__sublabel">{item.sublabel}</span>}
         </>
       )}
+      footer={
+        extras.length > 0
+          ? extras.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className="search-combobox__extra"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleExtraSelect(entry)}
+              >
+                {entry.icon}
+                <span>{entry.label}</span>
+              </button>
+            ))
+          : null
+      }
     >
       {({ listboxId, activeDescendant }) => (
         <div className="search-combobox__input-wrap">
