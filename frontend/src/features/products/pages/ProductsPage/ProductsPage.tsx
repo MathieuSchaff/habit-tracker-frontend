@@ -12,6 +12,7 @@ import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
 import { AlertTriangle, Package, Plus, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { ProductIcon } from '@/assets/product-icons'
 import { Button } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
@@ -29,18 +30,10 @@ import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
-import { useListFilters } from '@/hooks/useListFilters'
-import { useProductTagFilterGroups } from '@/hooks/useProductTagFilterGroups'
-import { ProductIcon } from '../../../assets/product-icons'
-import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '../../../constants/skin'
-import { ingredientQueries } from '../../../lib/queries/ingredients'
-import {
-  type ListProductsFilters,
-  type ProductSort,
-  productQueries,
-} from '../../../lib/queries/products'
-import { profileQueries } from '../../../lib/queries/profile'
-import { useAuthStore } from '../../../store/auth'
+import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
+import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
+import { PriceRangeFilter } from '@/features/products/components/PriceRangeFilter/PriceRangeFilter'
+import { SortControl } from '@/features/products/components/SortControl/SortControl'
 import {
   FILTER_KEYS,
   type FilterKey,
@@ -49,16 +42,19 @@ import {
   NON_TAG_FILTER_LABELS,
   NON_TAG_FILTER_PLACEHOLDERS,
   TAG_FILTER_KEYS,
-} from '../filters'
+} from '@/features/products/filters'
 import {
   buildDomainSwitchSearch,
   buildProductsApiFilters,
   buildResetSearchParams,
   hasActivePriceRange,
-} from '../helpers'
-import { AddToCollectionModal } from './AddToCollectionModal/AddToCollectionModal'
-import { PriceRangeFilter } from './PriceRangeFilter/PriceRangeFilter'
-import { SortControl } from './SortControl/SortControl'
+} from '@/features/products/helpers'
+import { useListFilters } from '@/hooks/useListFilters'
+import { useProductTagFilterGroups } from '@/hooks/useProductTagFilterGroups'
+import { ingredientQueries } from '@/lib/queries/ingredients'
+import { type ListProductsFilters, type ProductSort, productQueries } from '@/lib/queries/products'
+import { profileQueries } from '@/lib/queries/profile'
+import { useAuthStore } from '@/store/auth'
 
 import '@/component/Layout/PageLayout/ListPage.css'
 import './ProductsPage.css'

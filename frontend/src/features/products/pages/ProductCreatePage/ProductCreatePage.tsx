@@ -4,7 +4,7 @@ import { BackButton } from '@/component/Button/BackButton'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions } from '@/component/Layout/PageLayout/PageTopActions'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
-import { ProductForm } from './ProductForm/ProductForm'
+import { ProductForm } from '@/features/products/components/ProductForm/ProductForm'
 
 export function ProductCreatePage() {
   const navigate = useNavigate()

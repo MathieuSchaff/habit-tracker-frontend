@@ -10,7 +10,7 @@ import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
 import { productQueries } from '@/lib/queries/products'
 import '@/features/products/styles/kinds.css'
-import '@/features/products/components/ProductInfoTab.css'
+import '@/features/products/pages/ProductInfoTab/ProductInfoTab.css'
 
 import { BackButton } from '@/component/Button/BackButton'
 import { Button } from '@/component/Button/Button'

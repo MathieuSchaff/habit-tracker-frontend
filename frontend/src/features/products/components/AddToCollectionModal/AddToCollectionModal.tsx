@@ -7,8 +7,8 @@ import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
-import { useAddPurchase } from '../../../../lib/queries/purchases'
-import { useCreateUserProduct } from '../../../../lib/queries/user-products'
+import { useAddPurchase } from '@/lib/queries/purchases'
+import { useCreateUserProduct } from '@/lib/queries/user-products'
 import './AddToCollectionModal.css'
 
 interface ModalProduct {

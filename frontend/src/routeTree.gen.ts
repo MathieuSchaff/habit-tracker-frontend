@@ -27,8 +27,8 @@ import { Route as AuthenticatedCollectionRouteImport } from './routes/_authentic
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
 import { Route as BlogCategoryIndexRouteImport } from './routes/blog/$category/index'
-import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug/edit'
-import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug/edit'
+import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug_/edit'
+import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug_/edit'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$slug'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
@@ -128,14 +128,14 @@ const BlogCategoryIndexRoute = BlogCategoryIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => ProductsSlugRoute,
+  id: '/products/$slug_/edit',
+  path: '/products/$slug/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => IngredientsSlugRoute,
+  id: '/ingredients/$slug_/edit',
+  path: '/ingredients/$slug/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
   id: '/blog/$category/$slug',
@@ -261,8 +261,8 @@ export interface FileRoutesById {
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
-  '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
-  '/products/$slug/edit': typeof ProductsSlugEditRoute
+  '/ingredients/$slug_/edit': typeof IngredientsSlugEditRoute
+  '/products/$slug_/edit': typeof ProductsSlugEditRoute
   '/blog/$category/': typeof BlogCategoryIndexRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
@@ -349,8 +349,8 @@ export interface FileRouteTypes {
     | '/_authenticated/products/new'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
-    | '/ingredients/$slug/edit'
-    | '/products/$slug/edit'
+    | '/ingredients/$slug_/edit'
+    | '/products/$slug_/edit'
     | '/blog/$category/'
     | '/ingredients/$slug/'
     | '/products/$slug/'
@@ -375,6 +375,8 @@ export interface RootRouteChildren {
   ProductsIndexRoute: typeof ProductsIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
+  IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
+  ProductsSlugEditRoute: typeof ProductsSlugEditRoute
   BlogCategoryIndexRoute: typeof BlogCategoryIndexRoute
 }
 
@@ -506,19 +508,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogCategoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products/$slug/edit': {
-      id: '/products/$slug/edit'
-      path: '/edit'
+    '/products/$slug_/edit': {
+      id: '/products/$slug_/edit'
+      path: '/products/$slug/edit'
       fullPath: '/products/$slug/edit'
       preLoaderRoute: typeof ProductsSlugEditRouteImport
-      parentRoute: typeof ProductsSlugRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/ingredients/$slug/edit': {
-      id: '/ingredients/$slug/edit'
-      path: '/edit'
+    '/ingredients/$slug_/edit': {
+      id: '/ingredients/$slug_/edit'
+      path: '/ingredients/$slug/edit'
       fullPath: '/ingredients/$slug/edit'
       preLoaderRoute: typeof IngredientsSlugEditRouteImport
-      parentRoute: typeof IngredientsSlugRoute
+      parentRoute: typeof rootRouteImport
     }
     '/blog/$category/$slug': {
       id: '/blog/$category/$slug'
@@ -600,14 +602,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface IngredientsSlugRouteChildren {
-  IngredientsSlugEditRoute: typeof IngredientsSlugEditRoute
   IngredientsSlugIndexRoute: typeof IngredientsSlugIndexRoute
   IngredientsSlugDiscussionsThreadIdRoute: typeof IngredientsSlugDiscussionsThreadIdRoute
   IngredientsSlugDiscussionsIndexRoute: typeof IngredientsSlugDiscussionsIndexRoute
 }
 
 const IngredientsSlugRouteChildren: IngredientsSlugRouteChildren = {
-  IngredientsSlugEditRoute: IngredientsSlugEditRoute,
   IngredientsSlugIndexRoute: IngredientsSlugIndexRoute,
   IngredientsSlugDiscussionsThreadIdRoute:
     IngredientsSlugDiscussionsThreadIdRoute,
@@ -619,14 +619,12 @@ const IngredientsSlugRouteWithChildren = IngredientsSlugRoute._addFileChildren(
 )
 
 interface ProductsSlugRouteChildren {
-  ProductsSlugEditRoute: typeof ProductsSlugEditRoute
   ProductsSlugIndexRoute: typeof ProductsSlugIndexRoute
   ProductsSlugDiscussionsThreadIdRoute: typeof ProductsSlugDiscussionsThreadIdRoute
   ProductsSlugDiscussionsIndexRoute: typeof ProductsSlugDiscussionsIndexRoute
 }
 
 const ProductsSlugRouteChildren: ProductsSlugRouteChildren = {
-  ProductsSlugEditRoute: ProductsSlugEditRoute,
   ProductsSlugIndexRoute: ProductsSlugIndexRoute,
   ProductsSlugDiscussionsThreadIdRoute: ProductsSlugDiscussionsThreadIdRoute,
   ProductsSlugDiscussionsIndexRoute: ProductsSlugDiscussionsIndexRoute,
@@ -651,6 +649,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsIndexRoute: ProductsIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
+  IngredientsSlugEditRoute: IngredientsSlugEditRoute,
+  ProductsSlugEditRoute: ProductsSlugEditRoute,
   BlogCategoryIndexRoute: BlogCategoryIndexRoute,
 }
 export const routeTree = rootRouteImport

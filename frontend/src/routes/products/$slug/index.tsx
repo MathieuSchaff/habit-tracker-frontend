@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ProductInfoTab } from '@/features/products/components/ProductInfoTab'
-import { ProductInfoSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton'
+import { ProductInfoSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
+import { ProductInfoTab } from '@/features/products/pages/ProductInfoTab/ProductInfoTab'
 import { productQueries } from '@/lib/queries/products'
 
 export const Route = createFileRoute('/products/$slug/')({

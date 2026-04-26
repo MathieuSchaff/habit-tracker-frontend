@@ -23,7 +23,10 @@ const ReactQueryDevtools = import.meta.env.DEV
 // https://tanstack.com/router/latest/docs/api/router/RouterOptionsType
 const router = createRouter({
   routeTree,
-  context: { queryClient, auth: { isAuthenticated: false, accessToken: null } } satisfies RouterContext,
+  context: {
+    queryClient,
+    auth: { isAuthenticated: false, accessToken: null },
+  } satisfies RouterContext,
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,

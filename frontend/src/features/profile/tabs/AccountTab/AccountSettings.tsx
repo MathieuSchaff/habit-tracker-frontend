@@ -161,7 +161,8 @@ export const AccountSettings = () => {
                   className="account-action-btn delete-btn"
                   onClick={() =>
                     deleteUser.mutate(undefined, {
-                      onSuccess: () => navigate({ to: '/auth/login', search: { redirect: undefined } }),
+                      onSuccess: () =>
+                        navigate({ to: '/auth/login', search: { redirect: undefined } }),
                     })
                   }
                   disabled={deleteUser.isPending}

@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 
 import { ThreadList } from '@/features/discussions/components/ThreadList'
-import { ProductDiscussionSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton'
+import { ProductDiscussionSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
 import { discussionQueries } from '@/lib/queries/discussions'
 import { useAuthStore } from '@/store/auth'
 

@@ -7,9 +7,9 @@ import Markdown from 'react-markdown'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
-import { productQueries } from '../../../lib/queries/products'
-import { profileQueries } from '../../../lib/queries/profile'
-import { useAuthStore } from '../../../store/auth'
+import { productQueries } from '@/lib/queries/products'
+import { profileQueries } from '@/lib/queries/profile'
+import { useAuthStore } from '@/store/auth'
 import './ProductInfoTab.css'
 
 const route = getRouteApi('/products/$slug/')

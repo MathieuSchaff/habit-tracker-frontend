@@ -1,7 +1,7 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 
 import { ThreadDetailPage } from '@/features/discussions/pages/ThreadDetailPage'
-import { ProductThreadSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton'
+import { ProductThreadSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
 import { discussionQueries } from '@/lib/queries/discussions'
 
 const route = getRouteApi('/products/$slug/discussions/$threadId')

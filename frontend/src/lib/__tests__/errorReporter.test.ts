@@ -2,18 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../store/auth'
 
-// Mock fetch globally
+// Stubbing inside beforeEach so it overrides MSW's globalThis.fetch patch (set in beforeAll).
 const fetchSpy = vi.fn()
-vi.stubGlobal('fetch', fetchSpy)
 
 describe('reportError', () => {
   beforeEach(() => {
     fetchSpy.mockReset()
     fetchSpy.mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchSpy)
     useAuthStore.getState().clearAuth()
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
