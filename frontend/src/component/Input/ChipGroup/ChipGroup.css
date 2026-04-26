@@ -4,25 +4,33 @@
   gap: var(--space-2);
 }
 
-/* Base chip */
-
+/* Idle uses primary-subtle (calibrated soft per theme) so chips carry the brand
+   tint without competing with the active state */
 .chip {
   border-radius: var(--radius-full);
-  border: 1.5px solid color-mix(in oklch, var(--color-primary) 35%, transparent);
-  background: color-mix(in oklch, var(--color-primary) 12%, transparent);
-  color: color-mix(in oklch, var(--color-primary) 85%, var(--text-primary));
+  border: 1px solid var(--border-default);
+  background: var(--color-primary-subtle);
+  color: var(--text-secondary);
   font-weight: var(--font-medium);
   cursor: pointer;
   transition:
     border-color var(--transition-fast),
     background var(--transition-fast),
+    color var(--transition-fast),
     transform var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
 .chip:hover:not(:disabled) {
-  border-color: color-mix(in oklch, var(--color-primary) 65%, transparent);
+  background: oklch(from var(--color-primary) l c h / 0.12);
+  border-color: oklch(from var(--color-primary) l c h / 0.5);
+  color: var(--text-primary);
   transform: translateY(-1px);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 2px;
 }
 
 .chip:disabled,
@@ -31,20 +39,19 @@
   cursor: not-allowed;
 }
 
-/* Active state */
-
 .chip--active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary-text);
-  box-shadow: 0 2px 10px color-mix(in oklch, var(--color-primary) 35%, transparent);
+  color: var(--color-primary-text, var(--text-inverse));
+  box-shadow: 0 2px 10px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .chip--active:hover:not(:disabled) {
-  box-shadow: 0 4px 14px color-mix(in oklch, var(--color-primary) 40%, transparent);
+  background: var(--color-primary-hover, var(--color-primary));
+  border-color: var(--color-primary-hover, var(--color-primary));
+  color: var(--color-primary-text, var(--text-inverse));
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.4);
 }
-
-/* Size variants */
 
 .chip--md {
   padding: var(--space-2) var(--space-4);
@@ -56,41 +63,44 @@
   font-size: var(--text-xs);
 }
 
-/* Small active uses subtler fill */
-
+/* Compact size: ring style instead of solid fill — keeps chip lists scannable */
 .chip--sm.chip--active {
-  background: color-mix(in oklch, var(--color-primary) 14%, transparent);
+  background: oklch(from var(--color-primary) l c h / 0.14);
   border-color: var(--color-primary);
-  color: color-mix(in oklch, var(--color-primary) 90%, var(--text-primary));
+  color: var(--color-primary);
   font-weight: var(--font-semibold);
   box-shadow: none;
 }
 
-/* "Voir tout" expand button */
+.chip--sm.chip--active:hover:not(:disabled) {
+  background: oklch(from var(--color-primary) l c h / 0.2);
+  color: var(--color-primary-hover, var(--color-primary));
+  box-shadow: none;
+}
 
+/* "Voir tout" reuses accent (theme-paired with primary) so it doesn't look like another idle chip */
 .chip--more {
   border-style: dashed;
-  color: var(--text-muted);
+  border-color: oklch(from var(--color-accent) l c h / 0.5);
+  background: transparent;
+  color: var(--color-accent);
   font-style: italic;
 }
 
 .chip--more:hover:not(:disabled) {
   border-style: solid;
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-accent);
+  background: oklch(from var(--color-accent) l c h / 0.1);
+  color: var(--color-accent-hover, var(--color-accent));
   transform: none;
 }
 
-/* Count badge (result count next to label) */
-
 .chip__count {
   margin-left: var(--space-2);
-  opacity: 0.65;
+  opacity: 0.7;
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-normal);
 }
-
-/* Removable chip (selected tag with ×) */
 
 .chip--removable {
   display: inline-flex;

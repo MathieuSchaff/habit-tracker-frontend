@@ -178,6 +178,18 @@ describe('Product Routes', () => {
       expect(data.data.items[0].kind).toBe('serum')
     })
 
+    it('should reject kind that does not belong to the requested category', async () => {
+      // Cross-category leak guard: ?category=skincare&kind=shampoo must 400.
+      const res = await app.request('/products?category=skincare&kind=shampoo')
+      expect(res.status).toBe(400)
+    })
+
+    it('should accept solaire kinds on the skincare tab', async () => {
+      // Skincare tab spans skincare/solaire/bodycare DB categories; sunscreen must pass.
+      const res = await app.request('/products?category=skincare&kind=sunscreen')
+      expect(res.status).toBe(200)
+    })
+
     it('should filter by brand', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       await authPost(app, '/products', token, VALID_PRODUCT)

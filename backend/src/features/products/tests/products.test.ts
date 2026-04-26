@@ -416,7 +416,7 @@ describe('Product Service', () => {
     })
 
     describe('avoid_for filter', () => {
-      it('should exclude products flagged as avoid for the given profile slugs', async () => {
+      it('flags matching products via profileMatches but does not exclude them', async () => {
         const reactive = await createProductTag(testDb, {
           name: 'Peau réactive',
           category: 'skin_type',
@@ -431,12 +431,14 @@ describe('Product Service', () => {
           { category: 'skincare', page: 1, limit: 10, avoid_for: reactive.slug },
           testDb
         )
-        expect(result.items.map((p) => p.name)).toEqual(['Hydratant doux'])
-        expect(result.items.map((p) => p.id)).not.toContain(retinol.id)
-        void gentle
+        expect(result.items.map((p) => p.name).sort()).toEqual(['Hydratant doux', 'Rétinol fort'])
+        const flagged = result.items.find((p) => p.id === retinol.id)
+        expect(flagged?.profileMatches).toEqual([reactive.slug])
+        const ok = result.items.find((p) => p.id === gentle.id)
+        expect(ok?.profileMatches).toEqual([])
       })
 
-      it('should NOT exclude products where the tag relevance is primary or secondary', async () => {
+      it('does not flag products where the tag relevance is primary or secondary', async () => {
         const reactive = await createProductTag(testDb, {
           name: 'Peau réactive',
           category: 'skin_type',
@@ -451,6 +453,16 @@ describe('Product Service', () => {
           testDb
         )
         expect(result.items.map((p) => p.name)).toEqual(['Produit pour peau réactive'])
+        expect(result.items[0]?.profileMatches).toEqual([])
+      })
+
+      it('returns empty profileMatches when no avoid_for filter is provided', async () => {
+        await makeProduct('Produit simple', 'A')
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 10 },
+          testDb
+        )
+        expect(result.items[0]?.profileMatches).toEqual([])
       })
     })
 
@@ -525,7 +537,7 @@ describe('Product Service', () => {
       expect(options.kinds).toContain('complément')
     })
 
-    it('should include product counts per tag', async () => {
+    it('should include product counts per tag in tagCounts map', async () => {
       const tagAcne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
       const tagAging = await createProductTag(testDb, { name: 'Anti-âge', category: 'concern' })
 
@@ -538,46 +550,19 @@ describe('Product Service', () => {
       await replaceProductTags(testDb, p3.id, [tagAging.id])
 
       const options = await getFilterOptions(testDb)
-      const concerns = options.tags.concern ?? []
-      const acneTag = concerns.find((t) => t.slug === tagAcne.slug)
-      const agingTag = concerns.find((t) => t.slug === tagAging.slug)
-
-      expect(acneTag?.count).toBe(2)
-      expect(agingTag?.count).toBe(2)
+      expect(options.tagCounts[tagAcne.slug]).toBe(2)
+      expect(options.tagCounts[tagAging.slug]).toBe(2)
     })
 
-    it('should only return tags belonging to PRODUCT_FILTER_CATEGORIES', async () => {
-      const concernTag = await createProductTag(testDb, {
-        name: 'Acné',
-        category: 'concern',
-      })
-      // 'unknown_category' is NOT one of the 8 product filter categories,
-      // so it must not appear in the filter-options response.
-      const offTag = await createProductTag(testDb, {
-        name: 'Hors-scope',
-        category: 'unknown_category',
-      })
-      const p = await makeProduct('P', 'B')
-      await replaceProductTags(testDb, p.id, [concernTag.id, offTag.id])
-
-      const options = await getFilterOptions(testDb)
-      const allReturnedSlugs = Object.values(options.tags)
-        .flat()
-        .map((t) => t.slug)
-      expect(allReturnedSlugs).toContain(concernTag.slug)
-      expect(allReturnedSlugs).not.toContain(offTag.slug)
-    })
-
-    it('should exclude orphan tags (defined but not linked to any product)', async () => {
+    it('omits orphan tags (defined but not linked to any product) from tagCounts', async () => {
       const linked = await createProductTag(testDb, { name: 'Lié', category: 'concern' })
       const orphan = await createProductTag(testDb, { name: 'Orphelin', category: 'concern' })
       const p = await makeProduct('P', 'B')
       await replaceProductTags(testDb, p.id, [linked.id])
 
       const options = await getFilterOptions(testDb)
-      const slugs = (options.tags.concern ?? []).map((t) => t.slug)
-      expect(slugs).toContain(linked.slug)
-      expect(slugs).not.toContain(orphan.slug)
+      expect(options.tagCounts[linked.slug]).toBe(1)
+      expect(options.tagCounts[orphan.slug]).toBeUndefined()
     })
 
     describe('domain tab scoping', () => {
@@ -591,15 +576,26 @@ describe('Product Service', () => {
         expect(options.kinds.sort()).toEqual(['serum', 'sunscreen'])
       })
 
-      it('returns empty tags for non-skincare tabs (taxonomy not yet seeded)', async () => {
-        await makeProduct('Shampoing', 'Brand', 'shampoo', 'bottle', { category: 'haircare' })
+      it('scopes tagCounts to the requested domain tab', async () => {
+        const skinTag = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
+        const hairTag = await createProductTag(testDb, { name: 'Pellicules', category: 'concern' })
 
-        const options = await getFilterOptions(testDb, 'haircare')
-        expect(options.brands).toEqual(['Brand'])
-        expect(options.kinds).toEqual(['shampoo'])
-        for (const bucket of Object.values(options.tags)) {
-          expect(bucket).toEqual([])
-        }
+        const skinProduct = await makeProduct('Sérum', 'A', 'serum', 'pump', {
+          category: 'skincare',
+        })
+        const hairProduct = await makeProduct('Shampoing', 'B', 'shampoo', 'bottle', {
+          category: 'haircare',
+        })
+        await replaceProductTags(testDb, skinProduct.id, [skinTag.id])
+        await replaceProductTags(testDb, hairProduct.id, [hairTag.id])
+
+        const skinOptions = await getFilterOptions(testDb, 'skincare')
+        expect(skinOptions.tagCounts[skinTag.slug]).toBe(1)
+        expect(skinOptions.tagCounts[hairTag.slug]).toBeUndefined()
+
+        const hairOptions = await getFilterOptions(testDb, 'haircare')
+        expect(hairOptions.tagCounts[hairTag.slug]).toBe(1)
+        expect(hairOptions.tagCounts[skinTag.slug]).toBeUndefined()
       })
 
       it('omitting category keeps current (unscoped) behavior', async () => {

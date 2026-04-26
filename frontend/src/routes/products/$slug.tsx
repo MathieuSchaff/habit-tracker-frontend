@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
-import { ProductLayout } from '@/features/products/components/ProductLayout'
-import { ProductLayoutSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton'
+import { ProductLayoutSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
+import { ProductLayout } from '@/features/products/pages/ProductLayout/ProductLayout'
 import { productQueries } from '@/lib/queries/products'
 
 export const Route = createFileRoute('/products/$slug')({

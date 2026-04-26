@@ -4,10 +4,10 @@ import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { BackButton } from '@/component/Button/BackButton'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions } from '@/component/Layout/PageLayout/PageTopActions'
-import { productQueries } from '../../../lib/queries/products'
-import { ProductForm } from './ProductForm/ProductForm'
+import { ProductForm } from '@/features/products/components/ProductForm/ProductForm'
+import { productQueries } from '@/lib/queries/products'
 
-const route = getRouteApi('/products/$slug/edit')
+const route = getRouteApi('/products/$slug_/edit')
 
 export function ProductEditPage() {
   const { slug } = route.useParams()

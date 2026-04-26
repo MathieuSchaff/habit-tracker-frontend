@@ -7,6 +7,7 @@ type ChipOption<T extends string> = {
   value: T
   label: string
   count?: number
+  disabled?: boolean
 }
 
 type ChipGroupProps<T extends string> = {
@@ -62,9 +63,10 @@ export function ChipGroup<T extends string>({
 
   const isRadio = mode === 'exclusive'
 
-  const chips = visibleOptions.map(({ value, label, count }) => {
+  const chips = visibleOptions.map(({ value, label, count, disabled: optionDisabled }) => {
     const isSelected = selected.includes(value)
-    const isDisabled = disabled || (!isSelected && max != null && selected.length >= max)
+    const isDisabled =
+      disabled || optionDisabled || (!isSelected && max != null && selected.length >= max)
 
     const content = (
       <>
@@ -106,7 +108,12 @@ export function ChipGroup<T extends string>({
       <button
         key={value}
         type="button"
-        className={clsx('chip', `chip--${size}`, isSelected && 'chip--active')}
+        className={clsx(
+          'chip',
+          `chip--${size}`,
+          isSelected && 'chip--active',
+          isDisabled && 'chip--disabled'
+        )}
         onClick={() => handleClick(value)}
         aria-pressed={isSelected}
         disabled={isDisabled}
