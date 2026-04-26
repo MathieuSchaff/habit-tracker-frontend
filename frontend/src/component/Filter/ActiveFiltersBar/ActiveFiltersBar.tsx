@@ -2,12 +2,20 @@ import { Button } from '@/component/Button/Button'
 
 import './ActiveFiltersBar.css'
 
+export type ExtraChip = {
+  id: string
+  prefix: string
+  label: string
+  onRemove: () => void
+}
+
 type ActiveFiltersBarProps<T extends string> = {
   activeTags: { key: T; value: string }[]
   groupLabels: Record<T, string>
   getFilterLabel: (key: T, value: string) => string
   onRemoveTag: (key: T, value: string) => void
   onClearAll: () => void
+  extraChips?: ExtraChip[]
 }
 
 export function ActiveFiltersBar<T extends string>({
@@ -16,8 +24,10 @@ export function ActiveFiltersBar<T extends string>({
   getFilterLabel,
   onRemoveTag,
   onClearAll,
+  extraChips,
 }: ActiveFiltersBarProps<T>) {
-  if (activeTags.length === 0) {
+  const extras = extraChips ?? []
+  if (activeTags.length === 0 && extras.length === 0) {
     return null
   }
 
@@ -34,6 +44,21 @@ export function ActiveFiltersBar<T extends string>({
         >
           <span className="list-active-filter-tag__prefix">{groupLabels[key]}:</span>
           {getFilterLabel(key, value)}
+          <span className="list-active-filter-tag__x" aria-hidden="true">
+            &times;
+          </span>
+        </button>
+      ))}
+      {extras.map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          className="list-active-filter-tag"
+          onClick={chip.onRemove}
+          aria-label={`Retirer le filtre ${chip.prefix} ${chip.label}`}
+        >
+          <span className="list-active-filter-tag__prefix">{chip.prefix}:</span>
+          {chip.label}
           <span className="list-active-filter-tag__x" aria-hidden="true">
             &times;
           </span>

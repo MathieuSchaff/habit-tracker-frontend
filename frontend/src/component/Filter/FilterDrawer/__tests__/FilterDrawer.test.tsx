@@ -1,4 +1,5 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { FilterGroupConfig, FilterValues } from '../../types'
@@ -186,5 +187,213 @@ describe('FilterDrawer — extra children', () => {
       </FilterDrawer>
     )
     expect(screen.getByTestId('extra-slot')).toBeInTheDocument()
+  })
+})
+
+describe('FilterDrawer — Escape key (native cancel)', () => {
+  it('applies + closes when Escape fires the dialog cancel event', () => {
+    const onApply = vi.fn()
+    const onClose = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={onClose}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={onApply}
+        onReset={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    // Native <dialog> turns Escape into a `cancel` event; the drawer
+    // intercepts it via onCancel and routes through handleClose.
+    fireEvent(dialog, new Event('cancel', { bubbles: false, cancelable: true }))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onApply).toHaveBeenCalledTimes(1)
+    const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
+    expect(payload.concern).toEqual(['acne'])
+  })
+})
+
+describe('FilterDrawer — backdrop click', () => {
+  it('closes when the click target is the dialog itself (backdrop)', () => {
+    const onClose = vi.fn()
+    const onApply = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={onClose}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={onApply}
+        onReset={vi.fn()}
+      />
+    )
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    fireEvent.click(dialog)
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onApply).toHaveBeenCalledTimes(1)
+  })
+
+  it('does NOT close when the click bubbles up from inside the panel', () => {
+    const onClose = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={onClose}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('heading', { name: /Filtres/ }))
+    expect(onClose).not.toHaveBeenCalled()
+  })
+})
+
+describe('FilterDrawer — currentFilters resync', () => {
+  it('resets local state when currentFilters changes while open', () => {
+    const onApply = vi.fn()
+    const { rerender } = render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={onApply}
+        onReset={vi.fn()}
+      />
+    )
+    // User makes a local change, then the parent pushes a different snapshot
+    // (e.g. URL state changed externally).
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+    rerender(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={{ concern: ['anti-age'], skin_type: [] }}
+        initialFilters={EMPTY}
+        onApply={onApply}
+        onReset={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Appliquer/i }))
+    const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
+    // Local 'acne' was wiped by the resync to the new currentFilters.
+    expect(payload.concern).toEqual(['anti-age'])
+  })
+})
+
+describe('FilterDrawer — body scroll lock', () => {
+  it('locks the body when open and releases on close', () => {
+    const { rerender, unmount } = render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    expect(document.body.style.position).toBe('fixed')
+    expect(document.body.style.overflow).toBe('hidden')
+
+    rerender(
+      <FilterDrawer
+        open={false}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    expect(document.body.style.position).toBe('')
+    expect(document.body.style.overflow).toBe('')
+    unmount()
+  })
+})
+
+describe('FilterDrawer — focus restoration', () => {
+  it('restores focus to the element that opened the drawer on close', async () => {
+    const opener = document.createElement('button')
+    opener.textContent = 'Open'
+    document.body.appendChild(opener)
+    opener.focus()
+    expect(document.activeElement).toBe(opener)
+
+    const onClose = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={onClose}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Fermer les filtres/i }))
+
+    // handleClose schedules `previousFocusRef.current?.focus()` via setTimeout(0).
+    await waitFor(() => {
+      expect(document.activeElement).toBe(opener)
+    })
+    document.body.removeChild(opener)
+  })
+})
+
+describe('FilterDrawer — async child does not block the drawer', () => {
+  it('keeps the chips and footer interactive while a child query is pending', async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    function PendingChild() {
+      // Hangs forever — simulates a slow async loader injected into the drawer.
+      useQuery({
+        queryKey: ['pending'],
+        queryFn: () => new Promise<never>(() => {}),
+      })
+      return <div data-testid="pending-child">loading...</div>
+    }
+
+    const onApply = vi.fn()
+    render(
+      <QueryClientProvider client={client}>
+        <FilterDrawer
+          open={true}
+          onClose={vi.fn()}
+          groups={GROUPS}
+          currentFilters={EMPTY}
+          initialFilters={EMPTY}
+          onApply={onApply}
+          onReset={vi.fn()}
+        >
+          <PendingChild />
+        </FilterDrawer>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByTestId('pending-child')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Appliquer/i }))
+
+    const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
+    expect(payload.concern).toEqual(['acne'])
+    client.clear()
   })
 })

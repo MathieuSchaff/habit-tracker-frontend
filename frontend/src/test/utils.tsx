@@ -1,5 +1,6 @@
 import type {
   IngredientType,
+  Patent,
   ProductCategory,
   ProductKind,
   ProductUnit,
@@ -11,8 +12,14 @@ import type {
 } from '@habit-tracker/shared'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router'
 import { type RenderOptions, render } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 import type { CriteriaWeights, ReviewCriteria } from '../lib/helpers/reviews'
 
@@ -36,6 +43,34 @@ export function renderWithProviders(
     ),
     ...options,
   })
+}
+
+// Integration helper: real TanStack Router (memory history) + QueryClient.
+// Tests using this MUST `vi.unmock('@tanstack/react-router')` at the top of the file —
+// the global setup.ts mock would otherwise neutralise hooks like useNavigate.
+export function renderWithRouter(
+  ui: ReactNode,
+  options?: {
+    initialEntries?: string[]
+    queryClient?: QueryClient
+  } & Omit<RenderOptions, 'wrapper'>
+) {
+  const queryClient = options?.queryClient ?? createTestQueryClient()
+  const rootRoute = createRootRoute({ component: () => <>{ui}</> })
+  const router = createRouter({
+    routeTree: rootRoute,
+    history: createMemoryHistory({ initialEntries: options?.initialEntries ?? ['/'] }),
+  })
+  return {
+    router,
+    queryClient,
+    ...render(<RouterProvider router={router} />, {
+      wrapper: ({ children }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+      ...options,
+    }),
+  }
 }
 
 export function makeReview(overrides: Partial<ReviewCriteria> = {}): ReviewCriteria {
@@ -90,6 +125,7 @@ export function makeUserProduct(
       amountUnit: string
       slug: string
       url: string | null
+      patents: Patent[]
       category: ProductCategory
       imageUrl: string | null
       notes: string | null
@@ -173,6 +209,7 @@ export function makeUserProduct(
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,
+      patents: [],
       category: 'skincare' as ProductCategory,
       imageUrl: null,
       notes: null,

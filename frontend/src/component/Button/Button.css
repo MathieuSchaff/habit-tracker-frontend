@@ -11,7 +11,7 @@
   cursor: pointer;
   transition: all var(--transition-fast) ease;
   line-height: 1;
-  border: 1px solid transparent;
+  border: none;
   white-space: nowrap;
   background: none;
   color: var(--text-primary);
@@ -75,34 +75,35 @@
 .button.secondary,
 .button.default {
   background: var(--bg-muted);
-  border: 1px solid var(--border-default);
+  box-shadow: inset 0 0 0 1px var(--border-default);
   color: var(--text-secondary);
 }
 
 .button.secondary:hover:not(:disabled),
 .button.default:hover:not(:disabled) {
-  color: var(--color-primary);
-  background: oklch(from var(--color-primary) l c h / 0.08);
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.15);
+  color: var(--color-primary-text, var(--text-inverse));
+  background: var(--color-primary);
+  box-shadow:
+    inset 0 0 0 1px var(--color-primary),
+    0 4px 12px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .button.outline {
   background: transparent;
-  border: 1px solid var(--border-strong);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
   color: var(--color-primary);
 }
 
 .button.outline:hover:not(:disabled) {
   background: oklch(from var(--color-primary) l c h / 0.1);
-  border-color: var(--color-primary);
   color: var(--color-primary-hover);
-  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.15);
+  box-shadow:
+    inset 0 0 0 1px var(--color-primary),
+    0 2px 8px oklch(from var(--color-primary) l c h / 0.15);
 }
 
 .button.ghost {
   background: transparent;
-  border-color: transparent;
   color: var(--color-primary);
   font-weight: var(--font-bold);
   text-transform: uppercase;
@@ -117,7 +118,6 @@
 
 .button.danger-ghost {
   background: transparent;
-  border-color: transparent;
   color: var(--color-accent);
   font-weight: var(--font-bold);
   text-transform: uppercase;

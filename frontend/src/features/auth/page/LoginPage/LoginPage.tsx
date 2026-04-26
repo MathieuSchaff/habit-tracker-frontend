@@ -1,10 +1,9 @@
-import { type AuthInput, authSchema } from '@habit-tracker/shared'
+import { type AuthInput, authSchema, type LoginErrorCode } from '@habit-tracker/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
-import z from 'zod'
 
 import { Button } from '../../../../component/Button/Button'
 import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
@@ -13,8 +12,16 @@ import { AuthDivider } from '../../components/AuthDivider/AuthDivider'
 import { AuthField } from '../../components/AuthField/AuthField'
 import { DemoButton } from '../../components/DemoButton/DemoButton'
 import { GoogleAuthButton } from '../../components/GoogleAuthButton/GoogleAuthButton'
+import { parseAuthForm } from '../../lib/parseAuthForm'
 
 type FieldErrors = Partial<Record<keyof AuthInput | 'form', string>>
+
+/* Exhaustive map: TS errors if a LoginErrorCode is added without a label here. */
+const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
+  invalid_credentials: 'Email ou mot de passe incorrect',
+  email_not_verified: "Votre adresse email n'est pas vérifiée",
+  server_error: 'Une erreur est survenue, réessayez plus tard',
+}
 
 export const LoginPage = () => {
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -27,27 +34,18 @@ export const LoginPage = () => {
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const formData = Object.fromEntries(new FormData(e.currentTarget))
-    const result = authSchema.safeParse(formData)
-
-    if (!result.success) {
-      const { fieldErrors } = z.flattenError(result.error)
+    const parsed = parseAuthForm(e.currentTarget, authSchema)
+    if (!parsed.ok) {
       setErrors({
-        email: fieldErrors.email?.[0],
-        password: fieldErrors.password?.[0],
+        email: parsed.fieldErrors.email?.[0],
+        password: parsed.fieldErrors.password?.[0],
       })
       return
     }
 
     setErrors({})
 
-    const LOGIN_ERRORS: Record<string, string> = {
-      invalid_credentials: 'Email ou mot de passe incorrect',
-      email_not_verified: "Votre adresse email n'est pas vérifiée",
-      server_error: 'Une erreur est survenue, réessayez plus tard',
-    }
-
-    login.mutate(result.data, {
+    login.mutate(parsed.data, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['session'] })
         navigate({ to: redirect ?? '/collection' })
@@ -57,9 +55,8 @@ export const LoginPage = () => {
           navigate({ to: '/auth/verify-pending' })
           return
         }
-        setErrors({
-          form: LOGIN_ERRORS[error.message] ?? 'Une erreur est survenue, réessaie plus tard',
-        })
+        const code = error.message as LoginErrorCode
+        setErrors({ form: LOGIN_ERRORS[code] ?? LOGIN_ERRORS.server_error })
       },
     })
   }
@@ -106,6 +103,7 @@ export const LoginPage = () => {
         <Button
           type="submit"
           variant="primary"
+          size="lg"
           loading={login.isPending}
           fullWidth
           className="auth-submit-btn"

@@ -48,6 +48,10 @@ export function FilterDrawer<T extends string>({
     setTimeout(() => previousFocusRef.current?.focus(), 0)
   }, [localFilters, onApply, onClose])
 
+  // Only reseed local state when the drawer transitions closed→open. Re-running
+  // on currentFilters changes wipes unapplied chip selections whenever a child
+  // sub-filter (e.g. PriceRangeFilter commit) navigates while the drawer is open.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — see comment above
   useEffect(() => {
     if (open) {
       setLocalFilters(currentFilters)
@@ -55,7 +59,7 @@ export function FilterDrawer<T extends string>({
     } else {
       dialogRef.current?.close()
     }
-  }, [open, currentFilters])
+  }, [open])
 
   const handleToggle = (key: T, value: string) => {
     setLocalFilters((prev) => {

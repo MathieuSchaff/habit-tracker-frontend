@@ -1,7 +1,7 @@
 @layer reset, variables, base, components, utilities;
 @import "katex/dist/katex.min.css";
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Young+Serif&display=swap")
-layer(base);
+  layer(base);
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
 @import "./tokens/colors-light-bleu.css" layer(variables);

@@ -36,38 +36,38 @@ describe('Dermo Profile Routes', () => {
     it('should create dermo profile on first patch', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const res = await authPatch(app, '/profile/dermo', token, {
-        skinTypes: ['dry', 'sensitive'],
+        skinTypes: ['peau-seche', 'peau-sensible'],
         fitzpatrickType: 2,
-        skinConcerns: ['rosacea', 'dehydration'],
+        skinConcerns: ['rosacee', 'deshydratation'],
         privateNotes: 'Reacts to fragrances',
       })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.data.skinTypes).toEqual(['dry', 'sensitive'])
+      expect(data.data.skinTypes).toEqual(['peau-seche', 'peau-sensible'])
       expect(data.data.fitzpatrickType).toBe(2)
-      expect(data.data.skinConcerns).toEqual(['rosacea', 'dehydration'])
+      expect(data.data.skinConcerns).toEqual(['rosacee', 'deshydratation'])
       expect(data.data.privateNotes).toBe('Reacts to fragrances')
     })
 
     it('should persist dermo profile across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPatch(app, '/profile/dermo', token, { skinTypes: ['oily'] })
+      await authPatch(app, '/profile/dermo', token, { skinTypes: ['peau-grasse'] })
       const res = await authGet(app, '/profile/dermo', token)
       const data = await res.json()
-      expect(data.data.skinTypes).toEqual(['oily'])
+      expect(data.data.skinTypes).toEqual(['peau-grasse'])
     })
 
     it('should update only provided fields on subsequent patch', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       await authPatch(app, '/profile/dermo', token, {
-        skinTypes: ['dry'],
-        skinConcerns: ['acne'],
+        skinTypes: ['peau-seche'],
+        skinConcerns: ['anti-acne'],
       })
       await authPatch(app, '/profile/dermo', token, { fitzpatrickType: 3 })
       const res = await authGet(app, '/profile/dermo', token)
       const data = await res.json()
-      expect(data.data.skinTypes).toEqual(['dry'])
-      expect(data.data.skinConcerns).toEqual(['acne'])
+      expect(data.data.skinTypes).toEqual(['peau-seche'])
+      expect(data.data.skinConcerns).toEqual(['anti-acne'])
       expect(data.data.fitzpatrickType).toBe(3)
     })
 
@@ -116,12 +116,12 @@ describe('Dermo Profile Routes', () => {
     it('should not leak dermo data between users', async () => {
       const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
-      await authPatch(app, '/profile/dermo', tokenToto, { skinTypes: ['dry'] })
-      await authPatch(app, '/profile/dermo', tokenAlice, { skinTypes: ['oily'] })
+      await authPatch(app, '/profile/dermo', tokenToto, { skinTypes: ['peau-seche'] })
+      await authPatch(app, '/profile/dermo', tokenAlice, { skinTypes: ['peau-grasse'] })
       const resToto = await authGet(app, '/profile/dermo', tokenToto)
       const resAlice = await authGet(app, '/profile/dermo', tokenAlice)
-      expect((await resToto.json()).data.skinTypes).toEqual(['dry'])
-      expect((await resAlice.json()).data.skinTypes).toEqual(['oily'])
+      expect((await resToto.json()).data.skinTypes).toEqual(['peau-seche'])
+      expect((await resAlice.json()).data.skinTypes).toEqual(['peau-grasse'])
     })
 
     it('should reject unauthenticated request', async () => {
