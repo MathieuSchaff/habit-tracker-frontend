@@ -1,6 +1,7 @@
 import { ChevronDown, X } from 'lucide-react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import { useFlipPlacement } from '@/component/Search/useFlipPlacement'
 import type { FilterOption } from '../types'
 
 import './SearchSelect.css'
@@ -109,64 +110,7 @@ export function SearchSelect({
     [isOpen, activeIndex, filtered, onToggle]
   )
 
-  // when the dropdown opens, scroll the input toward the top of the
-  // scrollable area so the list below has enough room to be visible
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' })
-    }
-  }, [isOpen])
-
-  // the dropdown uses position:fixed to escape overflow:hidden ancestors.
-  // we check if there is enough space below the input — if not, we flip
-  // the dropdown above so the user can actually see the options.
-  useEffect(() => {
-    if (!isOpen || !dropdownRef.current || !clickOutsideContainer.current) return
-
-    const GAP = 4
-
-    const updatePosition = () => {
-      const wrapper = clickOutsideContainer.current
-      const dropdown = dropdownRef.current
-      if (!wrapper || !dropdown) return
-
-      const rect = wrapper.getBoundingClientRect()
-      const dropdownHeight = dropdown.offsetHeight
-      const spaceBelow = window.innerHeight - rect.bottom - GAP
-      const spaceAbove = rect.top - GAP
-
-      // flip above when not enough room below and more room above
-      const placeAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
-
-      dropdown.style.left = `${rect.left}px`
-      dropdown.style.width = `${rect.width}px`
-
-      // cap the dropdown so it doesn't take over the whole screen
-      const MAX_HEIGHT = window.innerWidth >= 640 ? 240 : 200
-
-      if (placeAbove) {
-        dropdown.style.top = 'auto'
-        dropdown.style.bottom = `${window.innerHeight - rect.top + GAP}px`
-        dropdown.style.maxHeight = `${Math.min(spaceAbove, MAX_HEIGHT)}px`
-      } else {
-        dropdown.style.top = `${rect.bottom + GAP}px`
-        dropdown.style.bottom = 'auto'
-        dropdown.style.maxHeight = `${Math.min(spaceBelow, MAX_HEIGHT)}px`
-      }
-    }
-
-    updatePosition()
-
-    // recalc on scroll in case the filter body scrolls while dropdown is open
-    const scrollable = clickOutsideContainer.current.closest('.filter-drawer__body')
-    scrollable?.addEventListener('scroll', updatePosition)
-    window.addEventListener('resize', updatePosition)
-
-    return () => {
-      scrollable?.removeEventListener('scroll', updatePosition)
-      window.removeEventListener('resize', updatePosition)
-    }
-  }, [isOpen])
+  useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen)
 
   // close the dropdown when clicking outside
   useEffect(() => {

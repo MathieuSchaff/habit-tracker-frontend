@@ -4,7 +4,12 @@ import type {
   UpdateIngredientRouteInput,
 } from '@habit-tracker/shared'
 
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  infiniteQueryOptions,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import { api } from '../api'
 
@@ -113,6 +118,23 @@ export const ingredientQueries = {
         const json = await res.json()
         return json.data
       },
+      enabled: query.length >= 2,
+    }),
+
+  // Wraps the single-page response so consumers using the unified infinite
+  // SearchCombobox interface (e.g. IngredientsPage) can plug in. Backend has
+  // no pagination on ingredient search yet — hasMore is always false.
+  searchInfinite: (query: string) =>
+    infiniteQueryOptions({
+      queryKey: [...ingredientKeys.all, 'search-infinite', query] as const,
+      queryFn: async () => {
+        const res = await api.ingredients.search.$get({ query: { q: query } })
+        if (!res.ok) throw new Error('Search failed')
+        const json = await res.json()
+        return { items: json.data, hasMore: false, nextOffset: 0 }
+      },
+      initialPageParam: 0 as number,
+      getNextPageParam: (): number | undefined => undefined,
       enabled: query.length >= 2,
     }),
 
