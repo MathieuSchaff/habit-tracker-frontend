@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
@@ -30,9 +30,14 @@ export function BrandCombobox({
   const [showDropdown, setShowDropdown] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  // Tracks the latest value synchronously so handleBlur doesn't read a stale
+  // closure when Tab autocompletes (handleSelect runs, then native blur fires
+  // before React re-renders with the selected brand).
+  const latestValueRef = useRef(value)
 
   useEffect(() => {
     setInputValue(value)
+    latestValueRef.current = value
   }, [value])
 
   const { data: brands = [], isLoading } = useQuery(productQueries.brands())
@@ -43,6 +48,7 @@ export function BrandCombobox({
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value
+    latestValueRef.current = val
     setInputValue(val)
     setShowConfirm(false)
     setShowDropdown(val.length > 0)
@@ -51,6 +57,7 @@ export function BrandCombobox({
   }
 
   function handleSelect(brand: string) {
+    latestValueRef.current = brand
     setInputValue(brand)
     setShowDropdown(false)
     setShowConfirm(false)
@@ -67,14 +74,14 @@ export function BrandCombobox({
   }
 
   function handleBlur() {
-    // Small delay to let click on dropdown option complete before hiding it
-    setTimeout(() => {
-      setShowDropdown(false)
-      const trimmed = inputValue.trim()
-      if (trimmed && !isKnownBrand(trimmed)) {
-        setShowConfirm(true)
-      }
-    }, 200)
+    // Option clicks don't fire blur — ComboboxPrimitive preventDefaults their
+    // mousedown. Read from ref because Tab-autocomplete sets inputValue via
+    // handleSelect, but blur fires before React re-renders.
+    setShowDropdown(false)
+    const trimmed = latestValueRef.current.trim()
+    if (trimmed && !isKnownBrand(trimmed)) {
+      setShowConfirm(true)
+    }
   }
 
   function handleConfirmYes() {
