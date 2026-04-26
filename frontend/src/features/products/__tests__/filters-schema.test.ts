@@ -5,7 +5,7 @@ import { productsSearchDefaults, productsSearchSchema } from '../filters'
 describe('productsSearchSchema — defaults', () => {
   it('parses an empty object into sensible defaults', () => {
     const parsed = productsSearchSchema.parse({})
-    expect(parsed.sort).toBe('random')
+    expect(parsed.sort).toBe('newest')
     expect(parsed.profile_filter).toBe(false)
     expect(parsed.page).toBe(1)
     expect(parsed.priceMin).toBeUndefined()
@@ -14,7 +14,7 @@ describe('productsSearchSchema — defaults', () => {
 
   it('default values object matches the schema output on empty input', () => {
     expect(productsSearchDefaults.profile_filter).toBe(false)
-    expect(productsSearchDefaults.sort).toBe('random')
+    expect(productsSearchDefaults.sort).toBe('newest')
     expect(productsSearchDefaults.page).toBe(1)
   })
 })

@@ -15,7 +15,7 @@ export function isDiscoveryMode(args: {
   hasPriceRange: boolean
   sort: ProductSort
 }): boolean {
-  return !args.hasFilters && !args.hasPriceRange && args.sort === 'random'
+  return !args.hasFilters && !args.hasPriceRange && args.sort === 'newest'
 }
 
 export function buildProductsApiFilters(args: {
@@ -33,7 +33,13 @@ export function buildProductsApiFilters(args: {
   const avoidFor = args.avoidFor.length > 0 ? args.avoidFor : undefined
 
   if (isDiscoveryMode({ hasFilters: args.hasFilters, hasPriceRange, sort: args.sort })) {
-    return { category: args.category, sort: 'random', limit: 12, avoid_for: avoidFor }
+    return {
+      category: args.category,
+      sort: 'newest',
+      limit: 20,
+      page: args.page,
+      avoid_for: avoidFor,
+    }
   }
 
   const domainKeys = DOMAIN_PRODUCT_FILTER_CATEGORIES[args.category]
@@ -68,9 +74,10 @@ export function buildResetSearchParams<T extends Record<string, unknown>>(prev: 
   }
 }
 
-// On domain switch: reset the domain-specific filters and pagination.
-// Shared controls (sort, price, ingredient) carry over because they make
-// sense across all tabs.
+// On domain switch: reset domain-specific filters and pagination.
+// `kind` is reset (taxonomy is per-domain). `brand` and `ingredient` carry
+// over — many brands span domains (Avène, Bioderma…) and ingredients are
+// universally meaningful; an empty result is acceptable feedback.
 export function buildDomainSwitchSearch<T extends Record<string, unknown>>(
   prev: T,
   next: ProductDomainTab,
@@ -80,7 +87,6 @@ export function buildDomainSwitchSearch<T extends Record<string, unknown>>(
     ...prev,
     ...emptyTagFilters,
     category: next,
-    brand: [] as string[],
     kind: [] as string[],
     profile_filter: false,
     page: 1,

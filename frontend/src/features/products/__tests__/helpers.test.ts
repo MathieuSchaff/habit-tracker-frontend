@@ -33,16 +33,16 @@ describe('hasActivePriceRange', () => {
 })
 
 describe('isDiscoveryMode', () => {
-  it('is true when no filters + no price range + sort=random', () => {
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'random' })).toBe(true)
+  it('is true when no filters + no price range + sort=newest', () => {
+    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'newest' })).toBe(true)
   })
 
   it('is false when any filter is active', () => {
-    expect(isDiscoveryMode({ hasFilters: true, hasPriceRange: false, sort: 'random' })).toBe(false)
+    expect(isDiscoveryMode({ hasFilters: true, hasPriceRange: false, sort: 'newest' })).toBe(false)
   })
 
   it('is false when a price range is active', () => {
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: true, sort: 'random' })).toBe(false)
+    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: true, sort: 'newest' })).toBe(false)
   })
 
   it('is false when an explicit sort is set', () => {
@@ -50,6 +50,7 @@ describe('isDiscoveryMode', () => {
     expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'price_asc' })).toBe(
       false
     )
+    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'random' })).toBe(false)
   })
 })
 
@@ -60,11 +61,17 @@ describe('buildProductsApiFilters', () => {
       kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
-      sort: 'random',
+      sort: 'newest',
       page: 1,
       hasFilters: false,
     })
-    expect(out).toEqual({ category: 'skincare', sort: 'random', limit: 12, avoid_for: undefined })
+    expect(out).toEqual({
+      category: 'skincare',
+      sort: 'newest',
+      limit: 20,
+      page: 1,
+      avoid_for: undefined,
+    })
   })
 
   it('includes avoid_for in discovery mode when the profile has slugs', () => {
@@ -73,12 +80,12 @@ describe('buildProductsApiFilters', () => {
       kind: [],
       filters: emptyTagFilters(),
       avoidFor: ['peau-reactive'],
-      sort: 'random',
+      sort: 'newest',
       page: 1,
       hasFilters: false,
     })
     expect(out.avoid_for).toEqual(['peau-reactive'])
-    expect(out.limit).toBe(12)
+    expect(out.limit).toBe(20)
   })
 
   it('switches to paginated mode when filters are active', () => {
@@ -182,7 +189,7 @@ describe('buildProductsApiFilters', () => {
       kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
-      sort: 'random',
+      sort: 'newest',
       priceMin: 500,
       page: 1,
       hasFilters: false,
@@ -265,13 +272,13 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
       kind: ['shampoo'],
       filters: emptyTagFilters(),
       avoidFor: [],
-      sort: 'random',
+      sort: 'newest',
       page: 1,
       hasFilters: false,
     })
-    // Discovery payload only has category, sort, limit, avoid_for
+    // Discovery payload only has category, sort, limit, page, avoid_for
     expect(out.kind).toBeUndefined()
-    expect(out.limit).toBe(12)
+    expect(out.limit).toBe(20)
   })
 
   // avoidFor: [''] has length > 0 so it passes through — caller must sanitize
@@ -327,7 +334,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
       kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
-      sort: 'random',
+      sort: 'newest',
       priceMin: 5000,
       priceMax: 100,
       page: 1,
@@ -390,7 +397,7 @@ describe('buildDomainSwitchSearch', () => {
     goal: [], moment: [], restriction: [],
   }
 
-  it('switches category and resets tag filters', () => {
+  it('switches category and resets tag filters + kind', () => {
     const prev = {
       category: 'skincare' as const,
       skin_type: ['peau-grasse'],
@@ -410,18 +417,18 @@ describe('buildDomainSwitchSearch', () => {
     expect(next.category).toBe('haircare')
     expect(next.skin_type).toEqual([])
     expect(next.concern).toEqual([])
-    expect(next.brand).toEqual([])
     expect(next.kind).toEqual([])
     expect(next.profile_filter).toBe(false)
     expect(next.page).toBe(1)
   })
 
-  it('preserves sort, priceMin, priceMax, and ingredient', () => {
+  it('preserves sort, priceMin, priceMax, brand, and ingredient', () => {
     const prev = {
       category: 'skincare' as const,
       sort: 'price_desc' as const,
       priceMin: 500,
       priceMax: 2000,
+      brand: ['Avène'],
       ingredient: ['acide-hyaluronique'],
     }
 
@@ -430,6 +437,7 @@ describe('buildDomainSwitchSearch', () => {
     expect(next.sort).toBe('price_desc')
     expect(next.priceMin).toBe(500)
     expect(next.priceMax).toBe(2000)
+    expect(next.brand).toEqual(['Avène'])
     expect(next.ingredient).toEqual(['acide-hyaluronique'])
   })
 })
