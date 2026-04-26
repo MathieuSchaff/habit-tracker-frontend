@@ -1,10 +1,17 @@
-import type { ProductCategory, ProductUnit } from '@habit-tracker/shared'
-import { PRODUCT_CATEGORY_VALUES } from '@habit-tracker/shared'
+import type { ProductCategory } from '@habit-tracker/shared'
+import {
+  PRODUCT_CATEGORY_LABELS,
+  PRODUCT_CATEGORY_VALUES,
+  PRODUCT_KIND_LABELS,
+  PRODUCT_KINDS,
+  PRODUCT_UNIT_LABELS,
+  PRODUCT_UNITS,
+} from '@habit-tracker/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
@@ -12,6 +19,8 @@ import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
+import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
+import { IngredientSearch } from '@/features/products/components/IngredientSearch/IngredientSearch'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import {
   productQueries,
@@ -20,20 +29,18 @@ import {
   useRemoveProductIngredient,
   useUpdateProduct,
   useUpdateProductTags,
-} from '../../../../lib/queries/products'
-import { tagQueries } from '../../../../lib/queries/tags'
-import { BrandCombobox } from '../BrandCombobox/BrandCombobox'
-import { IngredientSearch } from '../IngredientSearch/IngredientSearch'
+} from '@/lib/queries/products'
+import { tagQueries } from '@/lib/queries/tags'
 import './ProductForm.css'
 
-const CATEGORY_LABELS: Record<ProductCategory, string> = {
-  skincare: 'Soin visage',
-  haircare: 'Cheveux',
-  dental: 'Dents',
-  solaire: 'Solaire',
-  complement: 'Compléments',
-  bodycare: 'Corps',
-}
+import {
+  emptyProductEditForm,
+  type ProductEditFormInput,
+  productEditFormSchema,
+  productEditFormToCreateInput,
+  productEditFormToUpdateInput,
+  productToEditForm,
+} from './ProductForm.schema'
 
 type ProductWithIngredients = {
   id: string
@@ -50,6 +57,7 @@ type ProductWithIngredients = {
   description: string | null
   notes: string | null
   url: string | null
+  imageUrl: string | null
   ingredients: Array<{
     ingredientId: string
     ingredientName: string
@@ -78,20 +86,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const addIngredient = useAddProductIngredient()
   const removeIngredient = useRemoveProductIngredient()
 
-  const [form, setForm] = useState({
-    name: product?.name ?? '',
-    brand: product?.brand ?? '',
-    category: (product?.category ?? 'skincare') as ProductCategory,
-    kind: product?.kind ?? '',
-    unit: product?.unit ?? '',
-    priceEuros: product?.priceCents != null ? (product.priceCents / 100).toFixed(2) : '',
-    totalAmount: product?.totalAmount != null ? String(product.totalAmount) : '',
-    amountUnit: product?.amountUnit ?? '',
-    inci: product?.inci ?? '',
-    description: product?.description ?? '',
-    notes: product?.notes ?? '',
-    url: product?.url ?? '',
-  })
+  const initialForm = useMemo<ProductEditFormInput>(
+    () => (mode === 'edit' ? productToEditForm(product) : emptyProductEditForm()),
+    [mode, product]
+  )
+  const [form, setForm] = useState<ProductEditFormInput>(initialForm)
 
   const { tags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } = useFormTags({
     initialTags,
@@ -129,24 +128,10 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     []
   )
 
-  const originalPriceEuros =
-    product?.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
-  const originalAmount = product?.totalAmount != null ? String(product.totalAmount) : ''
-
-  const isDirty =
-    form.name !== (product?.name ?? '') ||
-    form.brand !== (product?.brand ?? '') ||
-    form.category !== ((product?.category ?? 'skincare') as ProductCategory) ||
-    form.kind !== (product?.kind ?? '') ||
-    form.unit !== (product?.unit ?? '') ||
-    form.priceEuros !== originalPriceEuros ||
-    form.totalAmount !== originalAmount ||
-    form.amountUnit !== (product?.amountUnit ?? '') ||
-    form.inci !== (product?.inci ?? '') ||
-    form.description !== (product?.description ?? '') ||
-    form.notes !== (product?.notes ?? '') ||
-    form.url !== (product?.url ?? '') ||
-    isTagsDirty
+  const isFormDirty = (Object.keys(form) as Array<keyof ProductEditFormInput>).some(
+    (k) => form[k] !== initialForm[k]
+  )
+  const isDirty = isFormDirty || isTagsDirty
 
   const isSubmitDisabled =
     mode === 'create'
@@ -170,46 +155,17 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!form.name.trim()) {
-      setError('Le nom du produit est obligatoire.')
+    const parsed = productEditFormSchema.safeParse(form)
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Formulaire invalide.')
       return
-    }
-    if (!form.brand.trim()) {
-      setError('La marque est obligatoire.')
-      return
-    }
-    if (!form.kind.trim()) {
-      setError('La catégorie est obligatoire.')
-      return
-    }
-    if (!form.unit.trim()) {
-      setError("L'unité est obligatoire.")
-      return
-    }
-
-    // Backend expects cents
-    const parsedPrice = form.priceEuros.trim()
-      ? Math.round(parseFloat(form.priceEuros) * 100)
-      : undefined
-    const parsedAmount = form.totalAmount.trim() ? parseInt(form.totalAmount, 10) : undefined
-    const productData = {
-      name: form.name.trim(),
-      brand: form.brand.trim(),
-      category: form.category,
-      kind: form.kind.trim(),
-      unit: form.unit.trim() as ProductUnit,
-      priceCents: parsedPrice,
-      totalAmount: parsedAmount,
-      amountUnit: form.amountUnit.trim() || undefined,
-      inci: form.inci.trim() || undefined,
-      description: form.description.trim() || undefined,
-      notes: form.notes.trim() || undefined,
-      url: form.url.trim() || undefined,
     }
 
     try {
       if (mode === 'create') {
-        const newProduct = await createProduct.mutateAsync(productData)
+        const newProduct = await createProduct.mutateAsync(
+          productEditFormToCreateInput(parsed.data)
+        )
         if (tags.length > 0) {
           await updateTags.mutateAsync({
             productId: newProduct.id,
@@ -229,9 +185,21 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         onSuccess(newProduct.slug)
       } else {
         const [updated] = await Promise.all([
-          updateProduct.mutateAsync({ id: product?.id, data: productData }),
+          updateProduct.mutateAsync({
+            id: product.id,
+            data: productEditFormToUpdateInput(parsed.data, {
+              priceCents: product.priceCents,
+              totalAmount: product.totalAmount,
+              amountUnit: product.amountUnit,
+              inci: product.inci,
+              description: product.description,
+              notes: product.notes,
+              url: product.url,
+              imageUrl: product.imageUrl,
+            }),
+          }),
           updateTags.mutateAsync({
-            productId: product?.id,
+            productId: product.id,
             tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
           }),
         ])
@@ -285,9 +253,12 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
 
       <FormField label="Domaine" htmlFor="edit-category" required>
         <ChipGroup
-          options={PRODUCT_CATEGORY_VALUES.map((v) => ({ value: v, label: CATEGORY_LABELS[v] }))}
+          options={PRODUCT_CATEGORY_VALUES.map((v) => ({ value: v, label: PRODUCT_CATEGORY_LABELS[v]}))}
           selected={[form.category]}
-          onChange={([v]) => v && setForm((prev) => ({ ...prev, category: v as ProductCategory }))}
+          onChange={([v]) =>
+            v &&
+            setForm((prev) => ({ ...prev, category: v as ProductCategory, kind: '', unit: '' }))
+          }
           mode="exclusive"
           aria-label="Domaine du produit"
         />
@@ -316,25 +287,31 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         </FormField>
       </div>
 
-      <div className="product-edit-form__row">
-        <Input
-          label="Catégorie"
-          id="edit-kind"
-          required
-          value={form.kind}
-          onChange={handleChange('kind')}
-          placeholder="Ex : skincare, complément, huile…"
+      <FormField label="Type de produit" htmlFor="edit-kind" required>
+        <ChipGroup
+          options={Object.values(PRODUCT_KINDS[form.category] ?? {}).map((v) => ({
+            value: v as string,
+            label: PRODUCT_KIND_LABELS[v as keyof typeof PRODUCT_KIND_LABELS] ?? (v as string),
+          }))}
+          selected={form.kind ? [form.kind] : []}
+          onChange={([v]) => setForm((prev) => ({ ...prev, kind: v ?? '' }))}
+          mode="exclusive"
+          aria-label="Type de produit"
         />
+      </FormField>
 
-        <Input
-          label="Unité"
-          id="edit-unit"
-          required
-          value={form.unit}
-          onChange={handleChange('unit')}
-          placeholder="Ex : ml, gélule, goutte…"
+      <FormField label="Conditionnement" htmlFor="edit-unit" required>
+        <ChipGroup
+          options={Object.values(PRODUCT_UNITS[form.category] ?? {}).map((v) => ({
+            value: v as string,
+            label: PRODUCT_UNIT_LABELS[v as keyof typeof PRODUCT_UNIT_LABELS] ?? (v as string),
+          }))}
+          selected={form.unit ? [form.unit] : []}
+          onChange={([v]) => setForm((prev) => ({ ...prev, unit: v ?? '' }))}
+          mode="exclusive"
+          aria-label="Conditionnement du produit"
         />
-      </div>
+      </FormField>
 
       <div className="product-edit-form__row">
         <fieldset className="form-field">
@@ -379,6 +356,14 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           type="url"
           value={form.url}
           onChange={handleChange('url')}
+          placeholder="https://…"
+        />
+        <Input
+          label="Image du produit"
+          id="edit-image-url"
+          type="url"
+          value={form.imageUrl}
+          onChange={handleChange('imageUrl')}
           placeholder="https://…"
         />
       </div>

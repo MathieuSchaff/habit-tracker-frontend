@@ -17,6 +17,15 @@ export const PRODUCT_CATEGORY_VALUES = Object.values(PRODUCT_CATEGORIES) as [
   ...ProductCategory[],
 ]
 
+export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
+  skincare: 'Soin visage',
+  haircare: 'Cheveux',
+  dental: 'Dents',
+  solaire: 'Solaire',
+  complement: 'Compléments',
+  bodycare: 'Corps',
+}
+
 // Product Kinds per Category
 
 export const PRODUCT_KINDS = {
