@@ -59,6 +59,61 @@ test.describe('Products page', () => {
     await expect(page).toHaveURL(/\/products\/[^/]+/)
   })
 
+  test('search ingredient footer click navigates to filtered list', async ({ page }) => {
+    const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
+    await search.fill('vitamine c')
+
+    const entry = page.getByRole('option', { name: /voir tous les produits avec vitamine c/i }).first()
+    await expect(entry).toBeVisible({ timeout: 10_000 })
+    await entry.click()
+
+    await expect(page).toHaveURL(/ingredient=.*vitamin-c/)
+    await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
+  })
+
+  test('search Enter on ingredient match navigates to filtered list', async ({ page }) => {
+    const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
+    await search.fill('niacinamide')
+
+    // Wait for option (proves debounced match logic ran) before pressing Enter.
+    await expect(
+      page.getByRole('option', { name: /voir tous les produits avec niacinamide/i }).first()
+    ).toBeVisible({ timeout: 10_000 })
+    await search.press('Enter')
+
+    await expect(page).toHaveURL(/ingredient=.*niacinamide/)
+    await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
+  })
+
+  test('search brand footer click navigates to filtered list', async ({ page }) => {
+    const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
+    await search.fill('avène')
+
+    const entry = page.getByRole('option', { name: /voir tous les produits avène/i })
+    await expect(entry).toBeVisible({ timeout: 10_000 })
+    await entry.click()
+
+    // "Avène" is URL-encoded as "Av%C3%A8ne" by the default TanStack Router serializer.
+    await expect(page).toHaveURL(/brand=.*Av%C3%A8ne/)
+    await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
+  })
+
+  test('search free-text fallback (D3) navigates to ?q= filtered list', async ({ page }) => {
+    const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
+    await search.fill('matifiant')
+
+    // No brand/ingredient match → fallback option rendered.
+    const entry = page.getByRole('option', { name: /voir tous les résultats pour "matifiant"/i })
+    await expect(entry).toBeVisible({ timeout: 10_000 })
+    await entry.click()
+
+    await expect(page).toHaveURL(/[?&]q=matifiant/)
+    await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
+
+    // Active filter chip surfaces the live query.
+    await expect(page.getByRole('button', { name: /Retirer le filtre.*matifiant/i })).toBeVisible()
+  })
+
   test('filter drawer opens, kind chip toggles, applies filter and active chip removes it', async ({
     page,
   }) => {

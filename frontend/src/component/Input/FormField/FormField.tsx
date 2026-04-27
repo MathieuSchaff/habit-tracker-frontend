@@ -1,9 +1,9 @@
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from 'react'
 import './FormField.css'
 
 type FormFieldProps = {
   label: string
-  htmlFor: string
+  htmlFor?: string
   required?: boolean
   hint?: string
   error?: string | null
@@ -11,8 +11,10 @@ type FormFieldProps = {
 }
 
 export function FormField({ label, htmlFor, required, hint, error, children }: FormFieldProps) {
-  const hintId = hint ? `${htmlFor}-hint` : undefined
-  const errorId = error ? `${htmlFor}-error` : undefined
+  const fallbackId = useId()
+  const baseId = htmlFor ?? fallbackId
+  const hintId = hint ? `${baseId}-hint` : undefined
+  const errorId = error ? `${baseId}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
   // Inject aria-describedby into the first child element
@@ -27,17 +29,29 @@ export function FormField({ label, htmlFor, required, hint, error, children }: F
         )
       : children
 
+  const labelContent = (
+    <>
+      {label}
+      {required && (
+        <span aria-hidden="true" className="form-field__required">
+          *
+        </span>
+      )}
+      {required && <span className="sr-only">(requis)</span>}
+    </>
+  )
+
   return (
     <div className="form-field">
-      <label className="form-field__label" htmlFor={htmlFor}>
-        {label}
-        {required && (
-          <span aria-hidden="true" className="form-field__required">
-            *
-          </span>
-        )}
-        {required && <span className="sr-only">(requis)</span>}
-      </label>
+      {htmlFor ? (
+        <label className="form-field__label" htmlFor={htmlFor}>
+          {labelContent}
+        </label>
+      ) : (
+        <span className="form-field__label" aria-hidden="true">
+          {labelContent}
+        </span>
+      )}
       {enhancedChildren}
       {hint && !error && (
         <span id={hintId} className="form-field__hint">

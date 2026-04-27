@@ -24,12 +24,11 @@ export function PageHeader({
       <div className="page-header__info">
         <h2 className="page-header__title">
           {title}
-          {isLoading && (
-            <>
-              <span className="page-header__loader" aria-hidden="true" />
-              <span className="sr-only">Chargement en cours</span>
-            </>
-          )}
+          <span
+            className={clsx('page-header__loader', isLoading && 'page-header__loader--visible')}
+            aria-hidden="true"
+          />
+          {isLoading && <span className="sr-only">Chargement en cours</span>}
         </h2>
         {meta && <div className="page-header__meta">{meta}</div>}
       </div>

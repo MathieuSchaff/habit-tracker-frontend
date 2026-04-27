@@ -73,16 +73,33 @@ describe('requireAuth', () => {
     }
   })
 
-  it("does NOT redirect when refresh is in 'cooldown' (transient backoff)", async () => {
-    // No token + cooldown: we'd normally try to refresh, but the backoff window is active.
-    // We let the user stay rather than logging them out on what may be a network blip.
+  it("redirects when no token and refresh is in 'cooldown'", async () => {
+    mockSilentRefresh.mockResolvedValue('cooldown')
+
+    try {
+      await requireAuth({ queryClient, pathname: '/dashboard', accessToken: null })
+      expect.unreachable('should have thrown redirect')
+    } catch {
+      expect(useAuthStore.getState().accessToken).toBeNull()
+    }
+  })
+
+  it("does NOT redirect when expired token and refresh is in 'cooldown'", async () => {
+    // Expired token = user had a session; cooldown = possible network blip, be lenient
+    const expiredToken = `h.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }))}.s`
+    useAuthStore.getState().setAuth(expiredToken, {
+      id: 'u1',
+      email: 'a@b.com',
+      emailVerified: true,
+      role: 'user',
+      isDemo: false,
+    } as any)
     mockSilentRefresh.mockResolvedValue('cooldown')
 
     await expect(
-      requireAuth({ queryClient, pathname: '/dashboard', accessToken: null })
+      requireAuth({ queryClient, pathname: '/dashboard', accessToken: expiredToken })
     ).resolves.toBeUndefined()
-    // Store untouched — no clearAuth.
-    expect(useAuthStore.getState().accessToken).toBeNull()
+    expect(useAuthStore.getState().accessToken).toBe(expiredToken)
   })
 
   it('attempts silent refresh when token looks valid but server rejects session', async () => {

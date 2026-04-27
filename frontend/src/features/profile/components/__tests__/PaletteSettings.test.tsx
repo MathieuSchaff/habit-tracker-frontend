@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useThemeStore } from '../../../../store/theme'
@@ -53,9 +53,10 @@ describe('PreferenceSettings — palette section', () => {
   it('marks Bleu as active when variant is bleu', async () => {
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
-    expect(screen.getByRole('radio', { name: /bleu/i })).toBeChecked()
+    const paletteGroup = screen.getByRole('radiogroup', { name: /palette/i })
+    expect(within(paletteGroup).getByRole('radio', { name: /bleu/i })).toBeChecked()
 
-    const others = screen.getAllByRole('radio', { name: /^(?!bleu)/i })
+    const others = within(paletteGroup).getAllByRole('radio', { name: /^(?!bleu)/i })
     for (const s of others) expect(s).not.toBeChecked()
   })
 

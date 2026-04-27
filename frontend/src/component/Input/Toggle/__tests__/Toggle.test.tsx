@@ -30,14 +30,14 @@ describe('Toggle — rendering', () => {
 
   it('renders a hidden checkbox input', () => {
     render(<Toggle label="Profil public" checked={false} onChange={vi.fn()} />)
-    const input = screen.getByRole('checkbox', { hidden: true })
+    const input = screen.getByRole('switch', { hidden: true })
     expect(input).toBeInTheDocument()
     expect(input).not.toBeChecked()
   })
 
   it('reflects checked state', () => {
     render(<Toggle label="Profil public" checked={true} onChange={vi.fn()} />)
-    expect(screen.getByRole('checkbox', { hidden: true })).toBeChecked()
+    expect(screen.getByRole('switch', { hidden: true })).toBeChecked()
   })
 })
 
@@ -45,7 +45,7 @@ describe('Toggle — interaction', () => {
   it('calls onChange with true when toggled on', () => {
     const handleChange = vi.fn()
     render(<Toggle label="Profil public" checked={false} onChange={handleChange} />)
-    fireEvent.click(screen.getByRole('checkbox', { hidden: true }))
+    fireEvent.click(screen.getByRole('switch', { hidden: true }))
     expect(handleChange).toHaveBeenCalledOnce()
     expect(handleChange).toHaveBeenCalledWith(true)
   })
@@ -53,14 +53,14 @@ describe('Toggle — interaction', () => {
   it('calls onChange with false when toggled off', () => {
     const handleChange = vi.fn()
     render(<Toggle label="Profil public" checked={true} onChange={handleChange} />)
-    fireEvent.click(screen.getByRole('checkbox', { hidden: true }))
+    fireEvent.click(screen.getByRole('switch', { hidden: true }))
     expect(handleChange).toHaveBeenCalledWith(false)
   })
 
   it('does not call onChange when disabled', () => {
     const handleChange = vi.fn()
     render(<Toggle label="Profil public" checked={false} onChange={handleChange} disabled />)
-    fireEvent.click(screen.getByRole('checkbox', { hidden: true }))
+    fireEvent.click(screen.getByRole('switch', { hidden: true }))
     expect(handleChange).not.toHaveBeenCalled()
   })
 })

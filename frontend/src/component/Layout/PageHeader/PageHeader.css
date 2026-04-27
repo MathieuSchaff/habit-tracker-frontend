@@ -58,6 +58,11 @@
   background-color: var(--color-primary);
   border-radius: 50%;
   display: inline-block;
+  visibility: hidden;
+}
+
+.page-header__loader--visible {
+  visibility: visible;
   animation: pulse-header 1.5s infinite ease-in-out;
 }
 

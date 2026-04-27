@@ -30,7 +30,11 @@ export async function requireAuth({
 
   if (!accessToken || store.isTokenExpired()) {
     const result = await silentRefresh(queryClient)
-    if (result === 'failed') clearAndRedirect(store, queryClient, pathname)
+    // cooldown with no token = never had a session, redirect; with an expired token = possible
+    // network blip, let them stay and recover via the 401 interceptor
+    if (result === 'failed' || (result === 'cooldown' && !accessToken)) {
+      clearAndRedirect(store, queryClient, pathname)
+    }
     return
   }
 
