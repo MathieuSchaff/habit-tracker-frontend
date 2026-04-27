@@ -1,15 +1,16 @@
-import { Resend } from 'resend'
+import { BrevoClient } from '@getbrevo/brevo'
 
 import { logger } from '../../lib/logger'
 
 export async function sendVerificationEmail(to: string, verificationUrl: string): Promise<void> {
-  const resend = new Resend(Bun.env.RESEND_API_KEY)
+  const client = new BrevoClient({ apiKey: Bun.env.BREVO_API_KEY ?? '' })
+
   try {
-    await resend.emails.send({
-      from: 'Aurore <noreply@votre-domaine.com>',
-      to,
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: 'Aurore', email: 'noreply@votre-domaine.com' },
+      to: [{ email: to }],
       subject: 'Confirmez votre adresse email — Aurore',
-      html: `
+      htmlContent: `
         <p>Bonjour,</p>
         <p>Cliquez sur le lien ci-dessous pour confirmer votre adresse email :</p>
         <p><a href="${verificationUrl}">Vérifier mon email</a></p>
