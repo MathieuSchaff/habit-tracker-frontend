@@ -2,13 +2,14 @@ import { z } from 'zod'
 
 import type { HttpStatus } from '../core'
 import { HTTP_STATUS } from '../core'
+import { PRODUCT_CONCENTRATION_UNIT_VALUES } from './units'
 
 // SCHEMAS
 
 export const createProductIngredientSchema = z.object({
   ingredientId: z.uuid(),
   concentrationValue: z.number().min(0).optional(),
-  concentrationUnit: z.enum(['%', 'IU', 'mg', 'mcg', 'mg/mL']).optional(),
+  concentrationUnit: z.enum(PRODUCT_CONCENTRATION_UNIT_VALUES).optional(),
   concentrationPer: z.string().min(1).max(50).optional(),
   notes: z.string().max(500).optional(),
 })

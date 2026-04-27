@@ -24,6 +24,7 @@ export function ProductEditPage() {
       </PageTopActions>
 
       <ProductForm
+        key={product.id}
         mode="edit"
         product={product}
         initialTags={currentTags.map((t) => ({

@@ -74,6 +74,7 @@ export const productsSearchSchema = baseSchema.extend({
   sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('newest'),
   priceMin: z.number().int().min(0).optional(),
   priceMax: z.number().int().min(0).optional(),
+  q: z.string().trim().min(1).max(100).optional(),
 })
 
 export const productsSearchDefaults = {

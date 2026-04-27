@@ -31,6 +31,7 @@ export const productErrorMapping = {
   product_already_exists: HTTP_STATUS.CONFLICT,
   unauthorized_access: HTTP_STATUS.FORBIDDEN,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  tag_domain_mismatch: HTTP_STATUS.BAD_REQUEST,
 } as const satisfies Record<ProductErrorCode, HttpStatus>
 
 export type AllProductTagCategory =

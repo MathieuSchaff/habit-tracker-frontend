@@ -2,6 +2,7 @@ import type {
   CreateProductInput,
   ListProductsFilters,
   ProductKind,
+  ProductSearchPage,
   ProductSearchResult,
   ProductUnit,
   UpdateProductInput,
@@ -340,6 +341,15 @@ export async function listProducts(
     conditions.push(lte(products.priceCents, filters.priceMax))
   }
 
+  // Free-text fallback: ILIKE on name OR brand. Used when the header search
+  // matched neither a known brand nor a known ingredient.
+  if (filters.q) {
+    const escaped = escapeLike(filters.q)
+    conditions.push(
+      or(ilike(products.name, `%${escaped}%`), ilike(products.brand, `%${escaped}%`)) as SQL
+    )
+  }
+
   // avoid_for is computed post-fetch as per-product profileMatches (badge UX)
   // rather than excluding rows — keeps the catalog visible while flagging risks.
   const avoidSlugs = filters.avoid_for ? filters.avoid_for.split(',').filter(Boolean) : []
@@ -519,14 +529,16 @@ export async function findSimilarProducts(
     .orderBy(sql`similarity(lower(${products.name}), lower(${trimmedName})) DESC`, products.name)
 }
 
-// Simple search by name or brand
+// Simple search by name or brand. Paginates via offset; fetches limit+1 rows
+// to detect whether more pages remain without a separate COUNT(*) query.
 export async function searchProducts(
-  filters: { q: string; limit?: number },
+  filters: { q: string; limit?: number; offset?: number },
   database: Database = db
-): Promise<ProductSearchResult[]> {
+): Promise<ProductSearchPage> {
   const limit = filters.limit ?? 8
+  const offset = filters.offset ?? 0
   const q = filters.q.trim()
-  return database
+  const rows = await database
     .select({
       id: products.id,
       name: products.name,
@@ -543,7 +555,8 @@ export async function searchProducts(
         sql`similarity(lower(${products.brand}), lower(${q})) > 0.3`
       )
     )
-    .limit(limit)
+    .limit(limit + 1)
+    .offset(offset)
     .orderBy(
       sql`GREATEST(
               similarity(lower(${products.name}), lower(${q})),
@@ -551,4 +564,7 @@ export async function searchProducts(
             ) DESC`,
       products.name
     )
+  const hasMore = rows.length > limit
+  const items = hasMore ? rows.slice(0, limit) : rows
+  return { items, hasMore, nextOffset: offset + limit }
 }

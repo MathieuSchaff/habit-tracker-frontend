@@ -15,6 +15,12 @@ export type ProductSearchResult = {
   slug: string
 }
 
+export type ProductSearchPage = {
+  items: ProductSearchResult[]
+  hasMore: boolean
+  nextOffset: number
+}
+
 export type ProductErrorCode =
   | 'product_not_found'
   | 'product_creation_failed'
@@ -23,6 +29,7 @@ export type ProductErrorCode =
   | 'product_already_exists'
   | 'unauthorized_access'
   | 'database_error'
+  | 'tag_domain_mismatch'
 
 export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>

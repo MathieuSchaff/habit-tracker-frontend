@@ -1,4 +1,9 @@
-import { createProductIngredientSchema, HTTP_STATUS, ok } from '@habit-tracker/shared'
+import {
+  createProductIngredientSchema,
+  HTTP_STATUS,
+  ok,
+  PRODUCT_CONCENTRATION_UNIT_VALUES,
+} from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
@@ -23,7 +28,7 @@ const ingredientLinkParams = z.object({ productId: z.uuid(), ingredientId: z.uui
 const updateProductIngredientSchema = z
   .object({
     concentrationValue: z.number().min(0).nullable().optional(),
-    concentrationUnit: z.enum(['%', 'IU', 'mg', 'mcg', 'mg/mL']).nullable().optional(),
+    concentrationUnit: z.enum(PRODUCT_CONCENTRATION_UNIT_VALUES).nullable().optional(),
     concentrationPer: z.string().min(1).max(50).nullable().optional(),
     notes: z.string().max(500).nullable().optional(),
   })

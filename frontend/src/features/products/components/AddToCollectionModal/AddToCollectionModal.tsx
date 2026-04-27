@@ -25,20 +25,24 @@ interface AddToCollectionModalProps {
   onSuccess?: () => void
 }
 
-// 'archived' is excluded: users cannot directly add a product as archived
 const STATUS_OPTIONS: { value: UserProductStatus; label: string }[] = [
   { value: 'in_stock', label: 'En stock' },
   { value: 'wishlist', label: 'Liste de souhaits' },
   { value: 'watched', label: 'Surveillé' },
   { value: 'holy_grail', label: 'Saint Graal' },
+  { value: 'archived', label: 'Archivé' },
   { value: 'avoided', label: 'Évité' },
 ]
+
+// statuses where the user has owned the product → purchase log is meaningful
+const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'holy_grail', 'archived', 'avoided']
 
 export function AddToCollectionModal({ product, onClose, onSuccess }: AddToCollectionModalProps) {
   const today = new Date().toISOString().split('T')[0]
   const defaultPrice = product.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
 
   const [step, setStep] = useState<'status' | 'purchase'>('status')
+  const [selectedStatus, setSelectedStatus] = useState<UserProductStatus | null>(null)
   const [price, setPrice] = useState(defaultPrice)
   const [purchasedAt, setPurchasedAt] = useState(today)
 
@@ -49,7 +53,8 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
   const isError = addUserProduct.isError || addPurchase.isError
 
   const handleStatusSelect = async (status: UserProductStatus) => {
-    if (status === 'in_stock') {
+    if (OWNED_STATUSES.includes(status)) {
+      setSelectedStatus(status)
       setStep('purchase')
       return
     }
@@ -62,15 +67,27 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
     }
   }
 
+  const handleSkipPurchase = async () => {
+    if (!selectedStatus) return
+    try {
+      await addUserProduct.mutateAsync({ productId: product.id, status: selectedStatus })
+      onSuccess?.()
+      onClose()
+    } catch {
+      // error handled via mutation state
+    }
+  }
+
   const handlePurchaseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedStatus) return
     const pricePaidCents = price !== '' ? Math.round(parseFloat(price) * 100) : undefined
     try {
       let userProductId = product.userProductId
       if (!userProductId) {
         const created = await addUserProduct.mutateAsync({
           productId: product.id,
-          status: 'in_stock',
+          status: selectedStatus,
         })
         userProductId = created.id
       }
@@ -161,6 +178,15 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
             >
               <ArrowLeft size={14} aria-hidden="true" />
               Retour
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSkipPurchase}
+              disabled={isPending}
+            >
+              Plus tard
             </Button>
             <Button type="submit" variant="primary" loading={isPending}>
               Ajouter

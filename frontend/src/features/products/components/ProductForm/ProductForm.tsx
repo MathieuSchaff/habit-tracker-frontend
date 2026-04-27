@@ -1,7 +1,13 @@
-import type { ProductCategory } from '@habit-tracker/shared'
+import type { ProductCategory, ProductConcentrationUnit } from '@habit-tracker/shared'
 import {
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  PRODUCT_AMOUNT_UNIT_LABELS,
+  PRODUCT_AMOUNT_UNITS,
   PRODUCT_CATEGORY_LABELS,
+  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
   PRODUCT_CATEGORY_VALUES,
+  PRODUCT_CONCENTRATION_UNIT_LABELS,
+  PRODUCT_CONCENTRATION_UNIT_VALUES,
   PRODUCT_KIND_LABELS,
   PRODUCT_KINDS,
   PRODUCT_UNIT_LABELS,
@@ -28,6 +34,7 @@ import {
   useCreateProduct,
   useRemoveProductIngredient,
   useUpdateProduct,
+  useUpdateProductIngredient,
   useUpdateProductTags,
 } from '@/lib/queries/products'
 import { tagQueries } from '@/lib/queries/tags'
@@ -62,7 +69,87 @@ type ProductWithIngredients = {
     ingredientId: string
     ingredientName: string
     concentrationValue: string | null
+    concentrationUnit: string | null
   }>
+}
+
+type PendingIngredient = {
+  ingredientId: string
+  ingredientName: string
+  concentrationValue: string
+  concentrationUnit: ProductConcentrationUnit | ''
+}
+
+const CONCENTRATION_UNIT_OPTIONS = PRODUCT_CONCENTRATION_UNIT_VALUES.map((v) => ({
+  value: v,
+  label: PRODUCT_CONCENTRATION_UNIT_LABELS[v],
+}))
+
+type IngredientRowProps = {
+  ingredientId: string
+  ingredientName: string
+  initialValue: string
+  initialUnit: ProductConcentrationUnit | ''
+  onPersist: (next: { value: string; unit: ProductConcentrationUnit | '' }) => void
+  onRemove: () => void
+  removing: boolean
+  updating: boolean
+}
+
+function IngredientRow({
+  ingredientName,
+  initialValue,
+  initialUnit,
+  onPersist,
+  onRemove,
+  removing,
+  updating,
+}: IngredientRowProps) {
+  const [value, setValue] = useState(initialValue)
+  const [unit, setUnit] = useState<ProductConcentrationUnit | ''>(initialUnit)
+
+  return (
+    <div className="product-edit-ingredient">
+      <span className="product-edit-ingredient__name">{ingredientName}</span>
+      <div className="product-edit-ingredient__concentration">
+        <div className="product-edit-ingredient__value">
+          <Input
+            type="number"
+            min={0}
+            step={0.01}
+            placeholder="Dose"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={() => {
+              if (value !== initialValue) onPersist({ value, unit })
+            }}
+            aria-label={`Concentration de ${ingredientName}`}
+            hideRequired
+          />
+        </div>
+        <ChipGroup
+          options={CONCENTRATION_UNIT_OPTIONS}
+          selected={unit ? [unit] : []}
+          onChange={([next]) => {
+            const nextUnit = (next ?? '') as ProductConcentrationUnit | ''
+            setUnit(nextUnit)
+            onPersist({ value, unit: nextUnit })
+          }}
+          mode="exclusive"
+          aria-label={`Unité pour ${ingredientName}`}
+        />
+      </div>
+      <button
+        type="button"
+        className="product-edit-ingredient__remove"
+        aria-label={`Retirer ${ingredientName}`}
+        onClick={onRemove}
+        disabled={removing || updating}
+      >
+        <Trash2 size={14} aria-hidden="true" />
+      </button>
+    </div>
+  )
 }
 
 type ProductFormProps =
@@ -85,6 +172,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const updateTags = useUpdateProductTags()
   const addIngredient = useAddProductIngredient()
   const removeIngredient = useRemoveProductIngredient()
+  const updateIngredient = useUpdateProductIngredient()
 
   const initialForm = useMemo<ProductEditFormInput>(
     () => (mode === 'edit' ? productToEditForm(product) : emptyProductEditForm()),
@@ -92,15 +180,24 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   )
   const [form, setForm] = useState<ProductEditFormInput>(initialForm)
 
-  const { tags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } = useFormTags({
-    initialTags,
-    allTags,
-  })
+  const validTagTypes = useMemo(() => {
+    const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[form.category]
+    return new Set<string>(DOMAIN_PRODUCT_FILTER_CATEGORIES[domain])
+  }, [form.category])
+
+  const domainTags = useMemo(
+    () => allTags?.filter((t) => t.category != null && validTagTypes.has(t.category)),
+    [allTags, validTagTypes]
+  )
+
+  const { tags, setTags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } =
+    useFormTags({
+      initialTags,
+      allTags: domainTags,
+    })
 
   const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit')
-  const [pendingIngredients, setPendingIngredients] = useState<
-    Array<{ ingredientId: string; ingredientName: string }>
-  >([])
+  const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const [debouncedName, setDebouncedName] = useState('')
@@ -169,17 +266,24 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         if (tags.length > 0) {
           await updateTags.mutateAsync({
             productId: newProduct.id,
+            slug: newProduct.slug,
             tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
           })
         }
         if (pendingIngredients.length > 0) {
           await Promise.all(
-            pendingIngredients.map((i) =>
-              addIngredient.mutateAsync({
+            pendingIngredients.map((i) => {
+              const value = i.concentrationValue.trim()
+              const parsedValue = value === '' ? undefined : parseFloat(value)
+              return addIngredient.mutateAsync({
                 productId: newProduct.id,
+                slug: newProduct.slug,
                 ingredientId: i.ingredientId,
+                concentrationValue:
+                  parsedValue != null && !Number.isNaN(parsedValue) ? parsedValue : undefined,
+                concentrationUnit: i.concentrationUnit === '' ? undefined : i.concentrationUnit,
               })
-            )
+            })
           )
         }
         onSuccess(newProduct.slug)
@@ -200,6 +304,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           }),
           updateTags.mutateAsync({
             productId: product.id,
+            slug: product.slug,
             tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
           }),
         ])
@@ -216,7 +321,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
 
   function handleRemoveIngredient(ingredientId: string) {
     if (mode === 'edit') {
-      removeIngredient.mutate({ productId: product.id, ingredientId })
+      removeIngredient.mutate({ productId: product.id, slug: product.slug, ingredientId })
     } else {
       setPendingIngredients((prev) => prev.filter((i) => i.ingredientId !== ingredientId))
     }
@@ -251,14 +356,26 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         </div>
       )}
 
-      <FormField label="Domaine" htmlFor="edit-category" required>
+      <FormField label="Domaine" required>
         <ChipGroup
-          options={PRODUCT_CATEGORY_VALUES.map((v) => ({ value: v, label: PRODUCT_CATEGORY_LABELS[v]}))}
+          options={PRODUCT_CATEGORY_VALUES.map((v) => ({
+            value: v,
+            label: PRODUCT_CATEGORY_LABELS[v],
+          }))}
           selected={[form.category]}
-          onChange={([v]) =>
-            v &&
-            setForm((prev) => ({ ...prev, category: v as ProductCategory, kind: '', unit: '' }))
-          }
+          onChange={([v]) => {
+            if (!v) return
+            const next = v as ProductCategory
+            setForm((prev) => ({ ...prev, category: next, kind: '', unit: '', amountUnit: '' }))
+            const nextDomain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[next]
+            const nextValid = new Set<string>(DOMAIN_PRODUCT_FILTER_CATEGORIES[nextDomain])
+            setTags((prev) =>
+              prev.filter((t) => {
+                const meta = allTags?.find((at) => at.id === t.tagId)
+                return meta?.category != null && nextValid.has(meta.category)
+              })
+            )
+          }}
           mode="exclusive"
           aria-label="Domaine du produit"
         />
@@ -287,7 +404,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         </FormField>
       </div>
 
-      <FormField label="Type de produit" htmlFor="edit-kind" required>
+      <FormField label="Type de produit" required>
         <ChipGroup
           options={Object.values(PRODUCT_KINDS[form.category] ?? {}).map((v) => ({
             value: v as string,
@@ -300,7 +417,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         />
       </FormField>
 
-      <FormField label="Conditionnement" htmlFor="edit-unit" required>
+      <FormField label="Conditionnement" required>
         <ChipGroup
           options={Object.values(PRODUCT_UNITS[form.category] ?? {}).map((v) => ({
             value: v as string,
@@ -326,12 +443,14 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               placeholder="Ex : 30"
               aria-label="Quantité"
             />
-            <Input
-              id="edit-amount-unit"
-              className="product-edit-form__input--short"
-              value={form.amountUnit}
-              onChange={handleChange('amountUnit')}
-              placeholder="ml, g…"
+            <ChipGroup
+              options={PRODUCT_AMOUNT_UNITS[form.category].map((v) => ({
+                value: v,
+                label: PRODUCT_AMOUNT_UNIT_LABELS[v],
+              }))}
+              selected={form.amountUnit ? [form.amountUnit] : []}
+              onChange={([v]) => setForm((prev) => ({ ...prev, amountUnit: v ?? '' }))}
+              mode="exclusive"
               aria-label="Unité de contenance"
             />
           </div>
@@ -421,18 +540,48 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             </p>
           )}
           {ingredientItems.map((ing) => (
-            <div key={ing.ingredientId} className="product-edit-ingredient">
-              <span className="product-edit-ingredient__name">{ing.ingredientName}</span>
-              <button
-                type="button"
-                className="product-edit-ingredient__remove"
-                aria-label={`Retirer ${ing.ingredientName}`}
-                onClick={() => handleRemoveIngredient(ing.ingredientId)}
-                disabled={mode === 'edit' && removeIngredient.isPending}
-              >
-                <Trash2 size={14} aria-hidden="true" />
-              </button>
-            </div>
+            <IngredientRow
+              key={ing.ingredientId}
+              ingredientId={ing.ingredientId}
+              ingredientName={ing.ingredientName}
+              initialValue={
+                mode === 'edit'
+                  ? ((ing as ProductWithIngredients['ingredients'][number]).concentrationValue ??
+                    '')
+                  : (ing as PendingIngredient).concentrationValue
+              }
+              initialUnit={
+                mode === 'edit'
+                  ? (((ing as ProductWithIngredients['ingredients'][number]).concentrationUnit ??
+                      '') as ProductConcentrationUnit | '')
+                  : (ing as PendingIngredient).concentrationUnit
+              }
+              onPersist={({ value, unit }) => {
+                if (mode === 'edit') {
+                  const trimmed = value.trim()
+                  const parsed = trimmed === '' ? null : parseFloat(trimmed)
+                  if (parsed !== null && Number.isNaN(parsed)) return
+                  updateIngredient.mutate({
+                    productId: product.id,
+                    slug: product.slug,
+                    ingredientId: ing.ingredientId,
+                    concentrationValue: parsed,
+                    concentrationUnit: unit === '' ? null : unit,
+                  })
+                } else {
+                  setPendingIngredients((prev) =>
+                    prev.map((p) =>
+                      p.ingredientId === ing.ingredientId
+                        ? { ...p, concentrationValue: value, concentrationUnit: unit }
+                        : p
+                    )
+                  )
+                }
+              }}
+              onRemove={() => handleRemoveIngredient(ing.ingredientId)}
+              removing={mode === 'edit' && removeIngredient.isPending}
+              updating={mode === 'edit' && updateIngredient.isPending}
+            />
           ))}
         </div>
 
@@ -440,9 +589,12 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           existingIds={ingredientItems.map((i) => i.ingredientId)}
           onAdd={(ingredientId, ingredientName) => {
             if (mode === 'edit') {
-              addIngredient.mutate({ productId: product?.id, ingredientId })
+              addIngredient.mutate({ productId: product.id, slug: product.slug, ingredientId })
             } else {
-              setPendingIngredients((prev) => [...prev, { ingredientId, ingredientName }])
+              setPendingIngredients((prev) => [
+                ...prev,
+                { ingredientId, ingredientName, concentrationValue: '', concentrationUnit: '' },
+              ])
             }
           }}
         />

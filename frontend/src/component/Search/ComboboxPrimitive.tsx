@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useRef } from 'react'
+import { type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
 
 import { useFlipPlacement } from './useFlipPlacement'
 import './ComboboxPrimitive.css'
@@ -8,8 +8,24 @@ export interface ComboboxAriaProps {
   activeDescendant: string | undefined
 }
 
+// Grouped suggestion entries rendered below the main `items` list. Each entry
+// is self-contained (own render + onSelect) so the Primitive stays agnostic
+// about the section's domain (ingredients, brands, free-text fallback…).
+export interface ComboboxSectionItem {
+  id: string | number
+  render: ReactNode
+  onSelect: () => void
+}
+
+export interface ComboboxSection {
+  id: string
+  label: string
+  items: ComboboxSectionItem[]
+}
+
 interface ComboboxPrimitiveProps<T> {
   items: T[]
+  sections?: ComboboxSection[]
   isOpen: boolean
   onClose: () => void
   onSelect: (item: T) => void
@@ -33,6 +49,7 @@ interface ComboboxPrimitiveProps<T> {
 // follows the WAI-ARIA Combobox pattern (Listbox version) for keyboard navigation and accessibility
 export function ComboboxPrimitive<T>({
   items,
+  sections,
   isOpen,
   onClose,
   onSelect,
@@ -56,9 +73,14 @@ export function ComboboxPrimitive<T>({
   const itemsRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
+  // Flat list of all interactive entries (main items + every section's items)
+  // gives a single index space for keyboard navigation across the whole dropdown.
+  const sectionEntries = useMemo(() => (sections ?? []).flatMap((s) => s.items), [sections])
+  const totalEntries = items.length + sectionEntries.length
+
   // items.length is a deps trigger: dropdown height changes as results stream
   // in (async queries), and we want the flip recalculated when content shifts.
-  useFlipPlacement(containerRef, dropdownRef, isOpen, [items.length])
+  useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -106,16 +128,26 @@ export function ComboboxPrimitive<T>({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setHighlightedIndex(highlightedIndex < items.length - 1 ? highlightedIndex + 1 : 0)
+        setHighlightedIndex(highlightedIndex < totalEntries - 1 ? highlightedIndex + 1 : 0)
         break
       case 'ArrowUp':
         e.preventDefault()
-        setHighlightedIndex(highlightedIndex > 0 ? highlightedIndex - 1 : items.length - 1)
+        setHighlightedIndex(highlightedIndex > 0 ? highlightedIndex - 1 : totalEntries - 1)
         break
       case 'Enter':
-        if (highlightedIndex >= 0 && items[highlightedIndex]) {
-          e.preventDefault()
-          onSelect(items[highlightedIndex])
+        if (highlightedIndex >= 0) {
+          // Indices < items.length point at the main list; indices beyond walk
+          // through each section's items in order (see sectionEntries above).
+          if (highlightedIndex < items.length && items[highlightedIndex]) {
+            e.preventDefault()
+            onSelect(items[highlightedIndex])
+          } else {
+            const sectionEntry = sectionEntries[highlightedIndex - items.length]
+            if (sectionEntry) {
+              e.preventDefault()
+              sectionEntry.onSelect()
+            }
+          }
         }
         break
       case 'Escape':
@@ -165,9 +197,6 @@ export function ComboboxPrimitive<T>({
                     </div>
                   )
                 })}
-                {items.length === 0 && !footer && inputValue.trim() !== '' && (
-                  <output className="combobox-primitive__empty">{emptyMessage}</output>
-                )}
                 {hasMore && (
                   <div
                     ref={sentinelRef}
@@ -179,6 +208,47 @@ export function ComboboxPrimitive<T>({
                     )}
                   </div>
                 )}
+                {sections?.map((section, sIdx) => {
+                  // Each section's first global index = main count + sum of prior section sizes.
+                  let baseIdx = items.length
+                  for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
+                  const labelId = `${listboxId}-section-${section.id}`
+                  return (
+                    // biome-ignore lint/a11y/useSemanticElements: ARIA listbox group pattern needs role=group; <fieldset> is form-only
+                    <div
+                      key={section.id}
+                      role="group"
+                      aria-labelledby={labelId}
+                      className="combobox-primitive__section"
+                    >
+                      <div id={labelId} className="combobox-primitive__section-label">
+                        {section.label}
+                      </div>
+                      {section.items.map((entry, i) => {
+                        const globalIdx = baseIdx + i
+                        const isActive = globalIdx === highlightedIndex
+                        return (
+                          // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
+                          <div
+                            key={entry.id}
+                            id={`${listboxId}-option-${globalIdx}`}
+                            role="option"
+                            aria-selected={isActive}
+                            className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => entry.onSelect()}
+                            tabIndex={-1}
+                          >
+                            {entry.render}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+                {totalEntries === 0 && !footer && inputValue.trim() !== '' && (
+                  <output className="combobox-primitive__empty">{emptyMessage}</output>
+                )}
               </div>
               {footer && <div className="combobox-primitive__footer">{footer}</div>}
             </>
@@ -187,7 +257,7 @@ export function ComboboxPrimitive<T>({
       )}
 
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {isOpen ? `${items.length} résultats disponibles. Utilisez les flèches pour naviguer.` : ''}
+        {isOpen ? `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.` : ''}
       </span>
     </div>
   )
