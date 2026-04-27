@@ -258,7 +258,7 @@ export function IngredientForm({
         </div>
       )}
 
-      <FormField label="Type" htmlFor="ingredient-type">
+      <FormField label="Type">
         <ChipGroup
           options={INGREDIENT_TYPE_VALUES.map((v) => ({
             value: v,
@@ -314,7 +314,7 @@ export function IngredientForm({
         )}
       </FormField>
 
-      <FormField label="Tags" htmlFor="tags">
+      <FormField label="Tags">
         <TagManager
           tags={tags}
           availableTags={availableTags}

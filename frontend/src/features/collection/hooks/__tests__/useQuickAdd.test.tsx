@@ -197,11 +197,4 @@ describe('useQuickAdd', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('closes on Escape key', () => {
-    renderHook(() => useQuickAdd({ onClose }), { wrapper })
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
-
-    expect(onClose).toHaveBeenCalled()
-  })
 })

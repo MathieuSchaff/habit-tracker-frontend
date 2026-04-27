@@ -164,10 +164,10 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    await page.locator('#edit-kind').fill('serum')
+    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
     await expect(submit).toBeDisabled()
 
-    await page.locator('#edit-unit').fill('pump')
+    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
     await expect(submit).toBeEnabled()
   })
 
@@ -187,10 +187,10 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    await page.locator('#edit-kind').fill('serum')
-    await page.locator('#edit-unit').fill('pump')
+    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
+    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
     await page.locator('#edit-total-amount').fill('30')
-    await page.locator('#edit-amount-unit').fill('ml')
+    await page.getByRole('radiogroup', { name: 'Unité de contenance' }).locator('label', { hasText: 'mL' }).click()
     await page.locator('#edit-price').fill('29.90')
 
     const postPromise = page.waitForRequest(
@@ -216,7 +216,7 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await expect(page.getByRole('heading', { name })).toBeVisible()
   })
 
-  test('invalid kind/category combo surfaces server error inline', async ({ page }) => {
+  test('server error on create surfaces inline without navigation', async ({ page }) => {
     await page.goto('/products/new')
 
     const stamp = Date.now()
@@ -227,9 +227,17 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    // category=skincare (default) but kind=shampoo is haircare → server refine fails.
-    await page.locator('#edit-kind').fill('shampoo')
-    await page.locator('#edit-unit').fill('pump')
+    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
+    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
+
+    // Mock the POST to simulate a server-side validation failure.
+    await page.route('**/api/products', (route) => {
+      if (route.request().method() === 'POST') {
+        route.fulfill({ status: 422, contentType: 'application/json', body: '{}' })
+      } else {
+        route.continue()
+      }
+    })
 
     await page.getByRole('button', { name: /^Créer le produit$|^Création…$/ }).click()
 

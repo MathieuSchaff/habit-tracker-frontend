@@ -39,8 +39,12 @@ test.describe('Product detail — Modifier', () => {
     await expect(page).toHaveURL(new RegExp(`/products/${slug}/edit$`))
     await expect(page.locator('#edit-name')).toHaveValue(productName)
     await expect(page.locator('#product-form-brand')).not.toHaveValue('')
-    await expect(page.locator('#edit-kind')).not.toHaveValue('')
-    await expect(page.locator('#edit-unit')).not.toHaveValue('')
+    await expect(
+      page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label.chip--active')
+    ).toBeVisible()
+    await expect(
+      page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label.chip--active')
+    ).toBeVisible()
   })
 
   test('editing notes PATCHes /api/products/:id and detail shows the new value', async ({
