@@ -224,5 +224,64 @@ describe('Product Tags Routes', () => {
 
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
+
+    it('should reject a tag whose category does not belong to the product domain', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
+      const { data: product } = await productRes.json()
+
+      const tagRes = await authPost(app, '/tags', token, {
+        name: 'Cheveux bouclés',
+        category: 'hair_type',
+      })
+      const { data: tag } = await tagRes.json()
+
+      const res = await authPut(app, `/products/${product.id}/tags`, token, {
+        tags: [{ tagId: tag.id }],
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const body = await res.json()
+      expect(body.success).toBe(false)
+      expect(body.error).toBe('tag_domain_mismatch')
+      expect(body.details.domain).toBe('skincare')
+      expect(body.details.invalidTags).toEqual([{ slug: 'cheveux-boucles', tagType: 'hair_type' }])
+    })
+
+    it('should reject the whole batch when one tag mismatches and preserve existing links', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
+      const { data: product } = await productRes.json()
+
+      const seedRes = await authPost(app, '/tags', token, {
+        name: 'Hydratation',
+        category: 'concern',
+      })
+      const { data: seedTag } = await seedRes.json()
+      await authPut(app, `/products/${product.id}/tags`, token, {
+        tags: [{ tagId: seedTag.id }],
+      })
+
+      const validRes = await authPost(app, '/tags', token, {
+        name: 'Anti-âge',
+        category: 'concern',
+      })
+      const { data: validTag } = await validRes.json()
+      const invalidRes = await authPost(app, '/tags', token, {
+        name: 'Cheveux fins',
+        category: 'hair_type',
+      })
+      const { data: invalidTag } = await invalidRes.json()
+
+      const res = await authPut(app, `/products/${product.id}/tags`, token, {
+        tags: [{ tagId: validTag.id }, { tagId: invalidTag.id }],
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const getRes = await app.request(`/products/${product.id}/tags`)
+      const getData = await getRes.json()
+      expect(getData.data).toHaveLength(1)
+      expect(getData.data[0].productTagId).toBe(seedTag.id)
+    })
   })
 })

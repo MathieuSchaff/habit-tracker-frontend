@@ -17,6 +17,14 @@ export const PRODUCT_DOMAIN_TAB_META: Record<ProductDomainTab, { label: string; 
   complement: { label: 'Compléments', order: 4 },
 }
 
+// Inverse of PRODUCT_DOMAIN_DB_CATEGORIES — many-to-one (category → tab).
+export const PRODUCT_CATEGORY_TO_DOMAIN_TAB: Record<ProductCategory, ProductDomainTab> =
+  Object.fromEntries(
+    Object.entries(PRODUCT_DOMAIN_DB_CATEGORIES).flatMap(([tab, cats]) =>
+      cats.map((c) => [c, tab as ProductDomainTab])
+    )
+  ) as Record<ProductCategory, ProductDomainTab>
+
 // Exhaustiveness guard: fails to compile if any ProductCategory value is not
 // routed to a tab bucket. Added when adding a new DB category — route it here,
 // or this check fails.

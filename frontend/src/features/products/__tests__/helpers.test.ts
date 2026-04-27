@@ -33,24 +33,45 @@ describe('hasActivePriceRange', () => {
 })
 
 describe('isDiscoveryMode', () => {
-  it('is true when no filters + no price range + sort=newest', () => {
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'newest' })).toBe(true)
+  it('is true when no filters + no price range + no query + sort=newest', () => {
+    expect(
+      isDiscoveryMode({ hasFilters: false, hasPriceRange: false, hasQuery: false, sort: 'newest' })
+    ).toBe(true)
   })
 
   it('is false when any filter is active', () => {
-    expect(isDiscoveryMode({ hasFilters: true, hasPriceRange: false, sort: 'newest' })).toBe(false)
+    expect(
+      isDiscoveryMode({ hasFilters: true, hasPriceRange: false, hasQuery: false, sort: 'newest' })
+    ).toBe(false)
   })
 
   it('is false when a price range is active', () => {
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: true, sort: 'newest' })).toBe(false)
+    expect(
+      isDiscoveryMode({ hasFilters: false, hasPriceRange: true, hasQuery: false, sort: 'newest' })
+    ).toBe(false)
+  })
+
+  it('is false when a free-text query is active', () => {
+    expect(
+      isDiscoveryMode({ hasFilters: false, hasPriceRange: false, hasQuery: true, sort: 'newest' })
+    ).toBe(false)
   })
 
   it('is false when an explicit sort is set', () => {
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'name' })).toBe(false)
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'price_asc' })).toBe(
-      false
-    )
-    expect(isDiscoveryMode({ hasFilters: false, hasPriceRange: false, sort: 'random' })).toBe(false)
+    expect(
+      isDiscoveryMode({ hasFilters: false, hasPriceRange: false, hasQuery: false, sort: 'name' })
+    ).toBe(false)
+    expect(
+      isDiscoveryMode({
+        hasFilters: false,
+        hasPriceRange: false,
+        hasQuery: false,
+        sort: 'price_asc',
+      })
+    ).toBe(false)
+    expect(
+      isDiscoveryMode({ hasFilters: false, hasPriceRange: false, hasQuery: false, sort: 'random' })
+    ).toBe(false)
   })
 })
 
@@ -156,6 +177,50 @@ describe('buildProductsApiFilters', () => {
     expect(out.kind).toEqual(['shampoo', 'conditioner'])
   })
 
+  it('forwards brand when set (was silently dropped — bug 7)', () => {
+    const filters = emptyTagFilters()
+    filters.brand = ['avene', 'bioderma']
+    const out = buildProductsApiFilters({
+      category: 'skincare',
+      kind: [],
+      filters,
+      avoidFor: [],
+      sort: 'name',
+      page: 1,
+      hasFilters: true,
+    })
+    expect(out.brand).toEqual(['avene', 'bioderma'])
+  })
+
+  it('forwards ingredient when set (was silently dropped — bug 7)', () => {
+    const filters = emptyTagFilters()
+    filters.ingredient = ['niacinamide']
+    const out = buildProductsApiFilters({
+      category: 'skincare',
+      kind: [],
+      filters,
+      avoidFor: [],
+      sort: 'name',
+      page: 1,
+      hasFilters: true,
+    })
+    expect(out.ingredient).toEqual(['niacinamide'])
+  })
+
+  it('omits brand and ingredient when arrays are empty', () => {
+    const out = buildProductsApiFilters({
+      category: 'skincare',
+      kind: [],
+      filters: emptyTagFilters(),
+      avoidFor: [],
+      sort: 'name',
+      page: 1,
+      hasFilters: true,
+    })
+    expect(out.brand).toBeUndefined()
+    expect(out.ingredient).toBeUndefined()
+  })
+
   it('omits kind when array is empty', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -196,6 +261,35 @@ describe('buildProductsApiFilters', () => {
     })
     expect(out.limit).toBe(20)
     expect(out.priceMin).toBe(500)
+  })
+
+  it('forwards q when set (D3 free-text fallback)', () => {
+    const out = buildProductsApiFilters({
+      category: 'skincare',
+      kind: [],
+      filters: emptyTagFilters(),
+      avoidFor: [],
+      sort: 'name',
+      q: 'matifiant',
+      page: 1,
+      hasFilters: true,
+    })
+    expect(out.q).toBe('matifiant')
+  })
+
+  it('switches out of discovery when only q is set', () => {
+    const out = buildProductsApiFilters({
+      category: 'skincare',
+      kind: [],
+      filters: emptyTagFilters(),
+      avoidFor: [],
+      sort: 'newest',
+      q: 'matifiant',
+      page: 1,
+      hasFilters: false,
+    })
+    expect(out.limit).toBe(20)
+    expect(out.q).toBe('matifiant')
   })
 })
 

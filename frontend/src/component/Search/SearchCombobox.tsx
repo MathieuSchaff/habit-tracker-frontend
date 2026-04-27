@@ -5,9 +5,13 @@ import {
   useInfiniteQuery,
 } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { ComboboxPrimitive } from './ComboboxPrimitive'
+import {
+  ComboboxPrimitive,
+  type ComboboxSection,
+  type ComboboxSectionItem,
+} from './ComboboxPrimitive'
 import './SearchCombobox.css'
 
 export interface SearchComboboxResult {
@@ -15,13 +19,6 @@ export interface SearchComboboxResult {
   slug: string
   label: string
   sublabel?: string
-}
-
-export interface SearchComboboxExtraEntry {
-  id: string
-  label: string
-  icon?: ReactNode
-  onSelect: () => void
 }
 
 // Pages are uniform across consumers; backends without real pagination wrap
@@ -45,9 +42,11 @@ interface SearchComboboxProps<TItem, TQueryKey extends QueryKey> {
   // NoInfer keeps inference anchored to queryFn — TItem flows from there.
   toResult: (item: NoInfer<TItem>) => SearchComboboxResult
   onSelect: (slug: string, result: SearchComboboxResult) => void
-  // Optional shortcut entries rendered at the bottom of the dropdown.
-  // Use case: "see all results for X" when query matches a known facet (brand, etc.).
-  extraEntries?: (debouncedQuery: string) => SearchComboboxExtraEntry[]
+  // Optional grouped suggestions rendered below the main results list.
+  // Each section has a header label and self-contained items (own onSelect).
+  // Use cases: "see all products with X" facet shortcuts, "see all results
+  // for X" free-text fallback. Empty sections are filtered out before render.
+  sections?: (debouncedQuery: string) => ComboboxSection[]
   placeholder?: string
   label: string
   minChars?: number
@@ -58,7 +57,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   queryFn,
   toResult,
   onSelect,
-  extraEntries,
+  sections,
   placeholder = 'Rechercher...',
   label,
   minChars = 2,
@@ -74,10 +73,12 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     return () => clearTimeout(timer)
   }, [query, debounce])
 
-  const { data, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
-    ...queryFn(debouncedQuery),
-    enabled: debouncedQuery.length >= minChars,
-  })
+  const { data, isFetching, isPlaceholderData, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      ...queryFn(debouncedQuery),
+      enabled: debouncedQuery.length >= minChars,
+      placeholderData: (prev) => prev,
+    })
 
   const rawResults = data?.pages.flatMap((p) => p.items) ?? []
   const results = rawResults.map(toResult)
@@ -89,14 +90,25 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     onSelect(result.slug, result)
   }
 
-  const extras = extraEntries?.(debouncedQuery) ?? []
-
-  function handleExtraSelect(entry: SearchComboboxExtraEntry) {
+  function handleSectionSelect(entry: ComboboxSectionItem) {
     setQuery('')
     setIsOpen(false)
     setHighlightedIndex(-1)
     entry.onSelect()
   }
+
+  // Drop sections with no matches — avoids orphan headers in the dropdown.
+  // Wrap each item's onSelect to clear input and close dropdown after selection;
+  // the caller's onSelect (e.g. navigate) only handles navigation, not UI cleanup.
+  const visibleSections = (sections?.(debouncedQuery) ?? [])
+    .filter((s) => s.items.length > 0)
+    .map((s) => ({
+      ...s,
+      items: s.items.map((item) => ({
+        ...item,
+        onSelect: () => handleSectionSelect(item),
+      })),
+    }))
 
   const showDropdown = isOpen && debouncedQuery.length >= minChars
 
@@ -105,11 +117,24 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setIsOpen(false)
       setHighlightedIndex(-1)
     }
+    if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown) {
+      // Enter with no item highlighted: trigger the first visible section entry.
+      // Sections are ordered by specificity — ingredients first, brands second,
+      // free-text fallback last. Example: typing "vita" with an ingredient match
+      // navigates to ?ingredient=vitamine-c, not ?q=vita.
+      // Does nothing when no sections match.
+      const firstEntry = visibleSections[0]?.items[0]
+      if (firstEntry) {
+        e.preventDefault()
+        firstEntry.onSelect()
+      }
+    }
   }
 
   return (
     <ComboboxPrimitive
       items={results}
+      sections={visibleSections}
       isOpen={showDropdown}
       onClose={() => {
         setIsOpen(false)
@@ -120,7 +145,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setHighlightedIndex={setHighlightedIndex}
       inputValue={debouncedQuery}
       onKeyDown={handleKeyDown}
-      isLoading={isFetching && !isFetchingNextPage}
+      isLoading={isFetching && !isFetchingNextPage && !isPlaceholderData}
       isLoadingMore={isFetchingNextPage}
       hasMore={!!hasNextPage}
       onLoadMore={() => {
@@ -133,22 +158,6 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
           {item.sublabel && <span className="search-combobox__sublabel">{item.sublabel}</span>}
         </>
       )}
-      footer={
-        extras.length > 0
-          ? extras.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                className="search-combobox__extra"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleExtraSelect(entry)}
-              >
-                {entry.icon}
-                <span>{entry.label}</span>
-              </button>
-            ))
-          : null
-      }
     >
       {({ listboxId, activeDescendant }) => (
         <div className="search-combobox__input-wrap">

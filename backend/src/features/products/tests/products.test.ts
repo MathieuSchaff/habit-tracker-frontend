@@ -143,6 +143,28 @@ describe('Product Service', () => {
       expect(result.total).toBe(1)
     })
 
+    describe('q (free-text)', () => {
+      it('should match products whose name contains q (case-insensitive)', async () => {
+        await makeProduct('Sérum Matifiant', 'BrandA')
+        await makeProduct('Crème hydratante', 'BrandB')
+        const result = await listProducts({ category: 'skincare', q: 'matifi' }, testDb)
+        expect(result.items.map((p) => p.name)).toEqual(['Sérum Matifiant'])
+      })
+
+      it('should match products whose brand contains q', async () => {
+        await makeProduct('Crème jour', 'Matifico')
+        await makeProduct('Crème nuit', 'OtherBrand')
+        const result = await listProducts({ category: 'skincare', q: 'matifi' }, testDb)
+        expect(result.items.map((p) => p.name)).toEqual(['Crème jour'])
+      })
+
+      it('should return empty when q matches nothing', async () => {
+        await makeProduct('Sérum', 'Brand')
+        const result = await listProducts({ category: 'skincare', q: 'xyzqwerty' }, testDb)
+        expect(result.items).toHaveLength(0)
+      })
+    })
+
     describe('price range', () => {
       it('should filter by priceMin', async () => {
         await makeProduct('Pas cher', 'A', 'serum', 'pump', { priceCents: 500 })
@@ -501,9 +523,10 @@ describe('Product Service', () => {
   describe('searchProducts', () => {
     it('should return products matching by name', async () => {
       await makeProduct('Niacinamide 10%', 'The Ordinary')
-      const results = await searchProducts({ q: 'niacin' }, testDb)
-      expect(results).toHaveLength(1)
-      expect(results[0]?.name).toBe('Niacinamide 10%')
+      const result = await searchProducts({ q: 'niacin' }, testDb)
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0]?.name).toBe('Niacinamide 10%')
+      expect(result.hasMore).toBe(false)
     })
 
     it('should prioritize exact match over prefix (pg_trgm)', async () => {
@@ -511,10 +534,24 @@ describe('Product Service', () => {
       await makeProduct('Zinc', 'Solgar')
       await makeProduct('Zinc Bisglycinate', 'Brand')
 
-      const results = await searchProducts({ q: 'zinc' }, testDb)
-      expect(results[0]?.name).toBe('Zinc')
-      expect(results[1]?.name).toBe('Zinc PCA Sérum')
-      expect(results[2]?.name).toBe('Zinc Bisglycinate')
+      const result = await searchProducts({ q: 'zinc' }, testDb)
+      expect(result.items[0]?.name).toBe('Zinc')
+      expect(result.items[1]?.name).toBe('Zinc PCA Sérum')
+      expect(result.items[2]?.name).toBe('Zinc Bisglycinate')
+    })
+
+    it('should expose hasMore + nextOffset for pagination', async () => {
+      for (let i = 0; i < 5; i++) {
+        await makeProduct(`Vitamin C v${i}`, 'BrandX')
+      }
+      const page1 = await searchProducts({ q: 'vitamin', limit: 3, offset: 0 }, testDb)
+      expect(page1.items).toHaveLength(3)
+      expect(page1.hasMore).toBe(true)
+      expect(page1.nextOffset).toBe(3)
+
+      const page2 = await searchProducts({ q: 'vitamin', limit: 3, offset: 3 }, testDb)
+      expect(page2.items).toHaveLength(2)
+      expect(page2.hasMore).toBe(false)
     })
   })
 

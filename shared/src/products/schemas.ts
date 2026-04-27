@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { fieldChangeSchema } from '../core'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
-import { PRODUCT_UNIT_VALUES } from './units'
+import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
 
 export const createProductSchema = z
   .object({
@@ -15,7 +15,7 @@ export const createProductSchema = z
     inci: z.string().max(5000).optional(),
     description: z.string().max(5000).optional(),
     totalAmount: z.number().int().min(1).optional(),
-    amountUnit: z.string().min(1).max(50).optional(),
+    amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).optional(),
     url: z.url().max(2000).optional(),
     imageUrl: z.url().max(2000).optional(),
     notes: z.string().max(5000).optional(),
@@ -40,7 +40,7 @@ export const updateProductSchema = z
     inci: z.string().max(5000).nullable().optional(),
     description: z.string().max(5000).nullable().optional(),
     totalAmount: z.number().int().min(1).nullable().optional(),
-    amountUnit: z.string().min(1).max(50).nullable().optional(),
+    amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).nullable().optional(),
     url: z.url().max(2000).nullable().optional(),
     imageUrl: z.url().max(2000).nullable().optional(),
     notes: z.string().max(5000).nullable().optional(),
@@ -80,7 +80,7 @@ const editableProductFields = {
   inci: fieldChangeSchema(z.string()),
   description: fieldChangeSchema(z.string()),
   totalAmount: fieldChangeSchema(z.number().int()),
-  amountUnit: fieldChangeSchema(z.string()),
+  amountUnit: fieldChangeSchema(z.enum(PRODUCT_AMOUNT_UNIT_VALUES)),
   url: fieldChangeSchema(z.url()),
   imageUrl: fieldChangeSchema(z.url()),
   notes: fieldChangeSchema(z.string()),
@@ -98,6 +98,7 @@ export const productChangesSchema = z
 export const searchProductsQuery = z.object({
   q: z.string().trim().min(1).max(100),
   limit: z.coerce.number().int().min(1).max(20).default(8),
+  offset: z.coerce.number().int().min(0).default(0),
 })
 
 export const patentSchema = z.object({

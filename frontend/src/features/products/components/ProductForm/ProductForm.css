@@ -113,6 +113,24 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--text-primary);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.product-edit-ingredient__concentration {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.product-edit-ingredient__value {
+  width: 5rem;
+  flex: 0 0 auto;
+}
+
+.product-edit-ingredient__value .input-wrapper input {
+  width: 5rem;
 }
 
 .product-edit-ingredient__remove {

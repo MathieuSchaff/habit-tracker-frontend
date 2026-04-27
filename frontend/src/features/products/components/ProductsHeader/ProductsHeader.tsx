@@ -1,14 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { FlaskConical, Plus, SlidersHorizontal, Tag } from 'lucide-react'
+import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react'
 
 import { Button } from '@/component/Button/Button'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
-import { SearchCombobox, type SearchComboboxExtraEntry } from '@/component/Search/SearchCombobox'
+import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
+import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
 import { SortControl } from '@/features/products/components/SortControl/SortControl'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { type ProductSort, productQueries } from '@/lib/queries/products'
+
+// Sections cap: keep the dropdown scannable. Top N matches per facet by
+// alphabetical order — matches are rare enough that ranking has little payoff.
+const FACET_SECTION_LIMIT = 3
 
 type Props = {
   total: number
@@ -50,47 +55,83 @@ export function ProductsHeader({
               sublabel: item.brand,
             })}
             onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
-            extraEntries={(q) => {
+            sections={(q) => {
               const folded = foldText(q)
               if (folded.length < 2) return []
-              const entries: SearchComboboxExtraEntry[] = []
+              const trimmed = q.trim()
 
-              const brandMatch = brands.find((b) => foldText(b) === folded)
-              if (brandMatch) {
-                entries.push({
-                  id: `brand:${brandMatch}`,
-                  label: `Voir tous les produits ${brandMatch}`,
-                  icon: <Tag size={14} aria-hidden="true" />,
-                  onSelect: () =>
-                    navigate({
-                      to: '/products',
-                      search: (prev) => ({ ...prev, brand: [brandMatch], page: 1 }),
-                    }),
-                })
-              }
+              // Ingredient matches: name OR slug contains folded query (substring,
+              // accent-insensitive). Section ordered first because ingredient intent
+              // is the most specific facet (rétinol, niacinamide…).
+              const slugFolded = folded.replace(/\s+/g, '-')
+              const ingredientMatches = ingredients
+                .filter((i) => foldText(i.name).includes(folded) || i.slug.includes(slugFolded))
+                .slice(0, FACET_SECTION_LIMIT)
 
-              const slugified = folded.replace(/\s+/g, '-')
-              const ingredientMatch = ingredients.find(
-                (i) => foldText(i.name) === folded || i.slug === slugified
-              )
-              if (ingredientMatch) {
-                entries.push({
-                  id: `ingredient:${ingredientMatch.slug}`,
-                  label: `Voir tous les produits avec ${ingredientMatch.name}`,
-                  icon: <FlaskConical size={14} aria-hidden="true" />,
-                  onSelect: () =>
-                    navigate({
-                      to: '/products',
-                      search: (prev) => ({
-                        ...prev,
-                        ingredient: [ingredientMatch.slug],
-                        page: 1,
+              const brandMatches = brands
+                .filter((b) => foldText(b).includes(folded))
+                .slice(0, FACET_SECTION_LIMIT)
+
+              const sections: ComboboxSection[] = [
+                {
+                  id: 'ingredients',
+                  label: 'Ingrédients',
+                  items: ingredientMatches.map((i) => ({
+                    id: `ingredient:${i.slug}`,
+                    render: (
+                      <span className="search-combobox__section-entry">
+                        <FlaskConical size={14} aria-hidden="true" />
+                        <span>Voir tous les produits avec {i.name}</span>
+                      </span>
+                    ),
+                    onSelect: () =>
+                      navigate({
+                        to: '/products',
+                        search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
                       }),
-                    }),
-                })
-              }
+                  })),
+                },
+                {
+                  id: 'brands',
+                  label: 'Marques',
+                  items: brandMatches.map((b) => ({
+                    id: `brand:${b}`,
+                    render: (
+                      <span className="search-combobox__section-entry">
+                        <Tag size={14} aria-hidden="true" />
+                        <span>Voir tous les produits {b}</span>
+                      </span>
+                    ),
+                    onSelect: () =>
+                      navigate({
+                        to: '/products',
+                        search: (prev) => ({ ...prev, brand: [b], page: 1 }),
+                      }),
+                  })),
+                },
+                {
+                  id: 'fallback',
+                  label: 'Recherche',
+                  items: [
+                    {
+                      id: `query:${trimmed}`,
+                      render: (
+                        <span className="search-combobox__section-entry">
+                          <Search size={14} aria-hidden="true" />
+                          <span>Voir tous les résultats pour "{trimmed}"</span>
+                        </span>
+                      ),
+                      onSelect: () =>
+                        navigate({
+                          to: '/products',
+                          search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                        }),
+                    },
+                  ],
+                },
+              ]
 
-              return entries
+              return sections
             }}
           />
           <div className="list-header__actions-group">

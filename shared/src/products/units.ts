@@ -92,3 +92,64 @@ export const PRODUCT_UNIT_LABELS: Record<ProductUnit, string> = {
 export function getProductUnitLabel(unit: string): string {
   return PRODUCT_UNIT_LABELS[unit as ProductUnit] ?? unit
 }
+
+// Product Amount Units (contenance — measurement of totalAmount)
+
+import type { ProductCategory } from './kinds'
+
+export const PRODUCT_AMOUNT_UNIT_VALUES = [
+  'ml',
+  'g',
+  'oz',
+  'mg',
+  'capsule',
+  'tablet',
+  'gummy',
+  'sachet',
+  'ampoule',
+] as const
+
+export type ProductAmountUnit = (typeof PRODUCT_AMOUNT_UNIT_VALUES)[number]
+
+export const PRODUCT_AMOUNT_UNITS: Record<ProductCategory, readonly ProductAmountUnit[]> = {
+  skincare: ['ml', 'g', 'oz'],
+  solaire: ['ml', 'g'],
+  haircare: ['ml', 'g'],
+  bodycare: ['ml', 'g', 'oz'],
+  dental: ['ml', 'g'],
+  complement: ['capsule', 'tablet', 'gummy', 'sachet', 'ampoule', 'g', 'mg', 'ml'],
+}
+
+export const PRODUCT_AMOUNT_UNIT_LABELS: Record<ProductAmountUnit, string> = {
+  ml: 'mL',
+  g: 'g',
+  oz: 'oz',
+  mg: 'mg',
+  capsule: 'capsules',
+  tablet: 'comprimés',
+  gummy: 'gummies',
+  sachet: 'sachets',
+  ampoule: 'ampoules',
+}
+
+export function getProductAmountUnitLabel(unit: string): string {
+  return PRODUCT_AMOUNT_UNIT_LABELS[unit as ProductAmountUnit] ?? unit
+}
+
+// Concentration Units (active ingredient dose in a product)
+
+export const PRODUCT_CONCENTRATION_UNIT_VALUES = ['%', 'IU', 'mg', 'mcg', 'mg/mL'] as const
+
+export type ProductConcentrationUnit = (typeof PRODUCT_CONCENTRATION_UNIT_VALUES)[number]
+
+export const PRODUCT_CONCENTRATION_UNIT_LABELS: Record<ProductConcentrationUnit, string> = {
+  '%': '%',
+  IU: 'UI',
+  mg: 'mg',
+  mcg: 'µg',
+  'mg/mL': 'mg/mL',
+}
+
+export function getProductConcentrationUnitLabel(unit: string): string {
+  return PRODUCT_CONCENTRATION_UNIT_LABELS[unit as ProductConcentrationUnit] ?? unit
+}

@@ -1,6 +1,9 @@
 import {
   type CreateProductInput,
+  PRODUCT_AMOUNT_UNIT_VALUES,
   PRODUCT_CATEGORY_VALUES,
+  PRODUCT_UNIT_VALUES,
+  type ProductAmountUnit,
   type ProductUnit,
   type UpdateProductInput,
 } from '@habit-tracker/shared'
@@ -14,7 +17,13 @@ export const productEditFormSchema = z.object({
   brand: z.string().trim().min(1, 'La marque est obligatoire.').max(200),
   category: z.enum(PRODUCT_CATEGORY_VALUES),
   kind: z.string().trim().min(1, 'La catégorie est obligatoire.').max(100),
-  unit: z.string().trim().min(1, "L'unité est obligatoire.").max(50),
+  unit: z
+    .string()
+    .trim()
+    .min(1, "L'unité est obligatoire.")
+    .refine((v) => (PRODUCT_UNIT_VALUES as readonly string[]).includes(v), {
+      message: 'Unité invalide.',
+    }),
   priceEuros: z
     .string()
     .trim()
@@ -27,7 +36,12 @@ export const productEditFormSchema = z.object({
     .refine((v) => v === '' || (/^\d+$/.test(v) && parseInt(v, 10) >= 1), {
       message: 'Quantité invalide.',
     }),
-  amountUnit: z.string().trim().max(50),
+  amountUnit: z
+    .string()
+    .trim()
+    .refine((v) => v === '' || (PRODUCT_AMOUNT_UNIT_VALUES as readonly string[]).includes(v), {
+      message: 'Unité de contenance invalide.',
+    }),
   inci: z.string().max(5000),
   description: z.string().max(5000),
   notes: z.string().max(5000),
@@ -105,7 +119,7 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
     unit: form.unit.trim() as ProductUnit,
     priceCents: priceEuros === '' ? undefined : Math.round(parseFloat(priceEuros) * 100),
     totalAmount: totalAmount === '' ? undefined : parseInt(totalAmount, 10),
-    amountUnit: form.amountUnit.trim() || undefined,
+    amountUnit: form.amountUnit.trim() ? (form.amountUnit.trim() as ProductAmountUnit) : undefined,
     inci: form.inci.trim() || undefined,
     description: form.description.trim() || undefined,
     notes: form.notes.trim() || undefined,
@@ -154,7 +168,11 @@ export function productEditFormToUpdateInput(
       totalAmount === '' ? null : parseInt(totalAmount, 10),
       original.totalAmount
     ),
-    amountUnit: clearOrOmit(form.amountUnit.trim(), form.amountUnit.trim(), original.amountUnit),
+    amountUnit: clearOrOmit(
+      form.amountUnit.trim(),
+      form.amountUnit.trim() as ProductAmountUnit,
+      original.amountUnit
+    ),
     inci: clearOrOmit(form.inci.trim(), form.inci.trim(), original.inci),
     description: clearOrOmit(
       form.description.trim(),

@@ -34,6 +34,9 @@ const baseListProductsQuery = z.object({
   brand: z.string().optional(),
   ingredient: z.string().optional(),
   avoid_for: z.string().optional(),
+  // Free-text search across product name + brand. Used as a fallback intent
+  // when the header search query matches neither a brand nor an ingredient.
+  q: z.string().trim().min(1).max(100).optional(),
   priceMin: z.coerce.number().int().min(0).optional(),
   priceMax: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).default(1),

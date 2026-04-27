@@ -8,6 +8,7 @@ import type { AppEnv } from '../../../app-env'
 import { requireJwtAuth } from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import { listTagsByProduct, replaceProductTags } from '../../tags/tags.service'
+import { assertTagsMatchProductDomain } from './domain-validation'
 
 const productParams = z.object({ productId: z.uuid() })
 
@@ -36,6 +37,8 @@ export const productTagRoutes = productTagsApp
       const db = c.get('db')
       const { productId } = c.req.valid('param')
       const { tags } = c.req.valid('json')
+      const tagIds = tags.map((t) => (typeof t === 'string' ? t : t.tagId))
+      await assertTagsMatchProductDomain(db, productId, tagIds)
       const links = await replaceProductTags(db, productId, tags)
       return c.json(ok(links), HTTP_STATUS.OK)
     }

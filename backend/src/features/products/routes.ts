@@ -69,8 +69,8 @@ export const productRoutes = productsApp
   })
   .get('/search', zValidator('query', searchProductsQuery), async (c) => {
     const db = c.get('db')
-    const { q, limit } = c.req.valid('query')
-    const result = await searchProducts({ q, limit }, db)
+    const { q, limit, offset } = c.req.valid('query')
+    const result = await searchProducts({ q, limit, offset }, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
   .get('/', zValidator('query', listProductsQuery), async (c) => {

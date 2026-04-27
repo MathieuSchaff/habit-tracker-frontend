@@ -33,8 +33,15 @@ vi.mock('@/lib/queries/ingredients', () => ({
   ingredientQueries: {
     options: vi.fn(() => ({
       queryKey: ['ingredients-options'],
+      // 4 vitamins enable the top-3 cap test; 'vitamine c' (with space) still
+      // uniquely matches "Vitamine C" since the others fold to 'vitamine e/a/b3'.
       queryFn: () =>
-        Promise.resolve([{ id: 1, slug: 'vitamine-c', name: 'Vitamine C' }]),
+        Promise.resolve([
+          { id: 1, slug: 'vitamine-c', name: 'Vitamine C' },
+          { id: 2, slug: 'vitamine-e', name: 'Vitamine E' },
+          { id: 3, slug: 'vitamine-a', name: 'Vitamine A' },
+          { id: 4, slug: 'vitamine-b3', name: 'Vitamine B3' },
+        ]),
     })),
   },
 }))
@@ -81,12 +88,80 @@ describe('ProductsHeader — facet match footer', () => {
     })
   })
 
-  it('renders no footer entry when query matches nothing', async () => {
+  it('renders free-text fallback footer when query matches no facet (D3)', async () => {
     render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
-    await userEvent.type(input, 'xyzqwerty')
+    await userEvent.type(input, 'matifiant')
+    // Fallback uses "résultats", facet entries use "produits" — the negative
+    // assertion below excludes facet entries while the positive proves fallback ran.
+    await waitFor(() =>
+      expect(screen.getByText(/voir tous les résultats pour "matifiant"/i)).toBeInTheDocument()
+    )
+    expect(screen.queryByText(/voir tous les produits/i)).not.toBeInTheDocument()
+  })
+
+  it('renders fallback section alongside facet match (D4 multi-section)', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'vitamine c')
+    await waitFor(() => screen.getByText(/voir tous les produits avec vitamine c/i))
+    // D4 contract change vs D3: fallback is no longer mutex with facets — both
+    // surface so the user can pick "see all by name+brand" even when an ingredient matched.
+    expect(screen.getByText(/voir tous les résultats pour "vitamine c"/i)).toBeInTheDocument()
+  })
+
+  it('renders section header labels (D4)', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'vitamine c')
+    await waitFor(() => screen.getByText('Ingrédients'))
+    expect(screen.getByText('Recherche')).toBeInTheDocument()
+    // Brand section is empty for "vitamine c" → must be filtered out (no header rendered).
+    expect(screen.queryByText('Marques')).not.toBeInTheDocument()
+  })
+
+  it('caps ingredient section at FACET_SECTION_LIMIT (D4)', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    // 'vita' folds to substring of all 4 mocked vitamins → top 3 only.
+    await userEvent.type(input, 'vita')
+    await waitFor(() => screen.getByText('Ingrédients'))
+    const entries = screen.getAllByText(/voir tous les produits avec vitamine/i)
+    expect(entries).toHaveLength(3)
+  })
+
+  it('navigates to /products?q=… on fallback footer click (D3)', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'matifiant')
+    const entry = await screen.findByText(/voir tous les résultats pour "matifiant"/i)
+    await userEvent.click(entry)
+    expect(navigate).toHaveBeenCalledOnce()
+    const [call] = navigate.mock.calls
+    expect(call[0].to).toBe('/products')
+    const resolved = call[0].search({})
+    expect(resolved).toMatchObject({ q: 'matifiant', page: 1 })
+  })
+
+  it('navigates to /products?q=… on Enter when fallback is the only footer entry (D3)', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'matifiant')
+    await screen.findByText(/voir tous les résultats pour "matifiant"/i)
+    await userEvent.keyboard('{Enter}')
+    expect(navigate).toHaveBeenCalledOnce()
+    const [call] = navigate.mock.calls
+    expect(call[0].to).toBe('/products')
+    const resolved = call[0].search({})
+    expect(resolved).toMatchObject({ q: 'matifiant', page: 1 })
+  })
+
+  it('matches brand entry when typing without accents', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'avene')
     await waitFor(() => {
-      expect(screen.queryByText(/voir tous les produits/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/voir tous les produits avène/i)).toBeInTheDocument()
     })
   })
 
@@ -100,6 +175,19 @@ describe('ProductsHeader — facet match footer', () => {
     const [call] = navigate.mock.calls
     expect(call[0].to).toBe('/products')
     // search is a functional updater — verify it produces the expected shape
+    const resolved = call[0].search({})
+    expect(resolved).toMatchObject({ ingredient: ['vitamine-c'], page: 1 })
+  })
+
+  it('navigates to /products?ingredient=… on Enter when ingredient match is the only footer entry', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'vitamine c')
+    await screen.findByText(/voir tous les produits avec vitamine c/i)
+    await userEvent.keyboard('{Enter}')
+    expect(navigate).toHaveBeenCalledOnce()
+    const [call] = navigate.mock.calls
+    expect(call[0].to).toBe('/products')
     const resolved = call[0].search({})
     expect(resolved).toMatchObject({ ingredient: ['vitamine-c'], page: 1 })
   })
