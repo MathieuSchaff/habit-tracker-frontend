@@ -29,6 +29,34 @@ export function useProductsFilterGroups(
 
     return [
       ...(tagGroups as FilterGroupConfig<FilterKey>[]),
+      // Ingredient lives in essentials so dermo-informed users (the core
+      // audience) reach it without unfolding "Avancé". Closed by default
+      // because the async search is heavier than chip groups.
+      {
+        id: 'ingredient',
+        label: NON_TAG_FILTER_LABELS.ingredient,
+        defaultOpen: false,
+        tier: 'essential',
+        subFilters: [
+          {
+            key: 'ingredient',
+            label: NON_TAG_FILTER_LABELS.ingredient,
+            placeholder: NON_TAG_FILTER_PLACEHOLDERS.ingredient,
+            variant: 'async-search-select',
+            options: [],
+            loadOptionsQuery: (q: string) => ({
+              ...ingredientQueries.search(q),
+              select: (data: { slug: string; name: string }[]) =>
+                data.map((i) => ({ value: i.slug, label: i.name })),
+            }),
+            resolveValuesQuery: (slugs: string[]) => ({
+              ...ingredientQueries.bySlugs(slugs),
+              select: (data: { slug: string; name: string }[]) =>
+                data.map((i) => ({ value: i.slug, label: i.name })),
+            }),
+          },
+        ],
+      },
       {
         id: 'search',
         label: 'Recherche précise',
@@ -47,23 +75,6 @@ export function useProductsFilterGroups(
             placeholder: NON_TAG_FILTER_PLACEHOLDERS.brand,
             variant: 'search-select',
             options: filterOptions.brands.map((b) => ({ value: b, label: b })),
-          },
-          {
-            key: 'ingredient',
-            label: NON_TAG_FILTER_LABELS.ingredient,
-            placeholder: NON_TAG_FILTER_PLACEHOLDERS.ingredient,
-            variant: 'async-search-select',
-            options: [],
-            loadOptionsQuery: (q: string) => ({
-              ...ingredientQueries.search(q),
-              select: (data: { slug: string; name: string }[]) =>
-                data.map((i) => ({ value: i.slug, label: i.name })),
-            }),
-            resolveValuesQuery: (slugs: string[]) => ({
-              ...ingredientQueries.bySlugs(slugs),
-              select: (data: { slug: string; name: string }[]) =>
-                data.map((i) => ({ value: i.slug, label: i.name })),
-            }),
           },
         ],
       },

@@ -6,14 +6,14 @@ import {
 
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Package } from 'lucide-react'
-import { startTransition, useCallback, useState } from 'react'
+import { ChevronDown, Package, SlidersHorizontal } from 'lucide-react'
+import { type ReactNode, startTransition, useCallback, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { emptyFilters, type FilterValues } from '@/component/Filter'
-import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
+import type { TabOption } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
 import {
   type AddToCollectionTarget,
@@ -54,6 +54,7 @@ const DOMAIN_TAB_OPTIONS: TabOption<ProductDomainTab>[] = [...PRODUCT_DOMAIN_TAB
 
 export function ProductsPage() {
   const [isDrawerOpen, setDrawerOpen] = useState(false)
+  const [draftFilters, setDraftFilters] = useState<FilterValues<FilterKey> | null>(null)
   const [modalProduct, setModalProduct] = useState<AddToCollectionTarget | null>(null)
 
   const search = routeApi.useSearch()
@@ -72,9 +73,14 @@ export function ProductsPage() {
       ? [...(dermoProfile.skinTypes ?? []), ...dermoProfile.skinConcerns]
       : []
 
-  const filters: FilterValues<FilterKey> = Object.fromEntries(
-    FILTER_KEYS.map((k) => [k, search[k] ?? []])
-  ) as FilterValues<FilterKey>
+  // Stable ref across renders — passed to FilterDrawer as currentFilters.
+  // A fresh object every render would chain through the drawer's open-sync
+  // effect and feed back into setDraftFilters → "Maximum update depth".
+  const filters = useMemo<FilterValues<FilterKey>>(
+    () =>
+      Object.fromEntries(FILTER_KEYS.map((k) => [k, search[k] ?? []])) as FilterValues<FilterKey>,
+    [search]
+  )
 
   const { filterCount, activeTags, applyFilters, resetFilters, goToPage, toggleSingleFilter } =
     useListFilters({
@@ -117,6 +123,29 @@ export function ProductsPage() {
     placeholderData: (prev) => prev,
     staleTime,
   })
+
+  // Live count of products matching the user's in-flight drawer selection.
+  // Only enabled while the drawer is open so we don't fire phantom requests
+  // when the user isn't comparing options.
+  const previewApiFilters: ListProductsFilters = buildProductsApiFilters({
+    category,
+    kind: (draftFilters?.kind as string[] | undefined) ?? search.kind ?? [],
+    filters: draftFilters ?? filters,
+    avoidFor,
+    sort,
+    priceMin,
+    priceMax,
+    q,
+    page: 1,
+    hasFilters: true,
+  })
+  const { data: previewData } = useQuery({
+    ...productQueries.list(previewApiFilters),
+    enabled: isDrawerOpen,
+    placeholderData: (prev) => prev,
+    staleTime: 5 * 60 * 1000,
+  })
+  const previewCount = isDrawerOpen ? previewData?.total : undefined
 
   const filterGroups = useProductsFilterGroups(category, filterOptions)
   const extraChips = useProductsExtraChips({
@@ -170,28 +199,30 @@ export function ProductsPage() {
           onSortChange={handleSortChange}
           onOpenDrawer={() => setDrawerOpen(true)}
           effectiveFilterCount={effectiveFilterCount}
+          activeTab={category}
+          onTabChange={handleDomainChange}
+          tabOptions={DOMAIN_TAB_OPTIONS}
         />
 
-        <div className="products-page__tabs">
-          <Tabs
-            options={DOMAIN_TAB_OPTIONS}
-            activeTab={category}
-            onTabChange={handleDomainChange}
-            ariaLabel="Catégorie de produits"
+        <CollapsibleFiltersStrip
+          count={effectiveFilterCount}
+          onOpenDrawer={() => setDrawerOpen(true)}
+        >
+          <ProductsActiveBar
+            activeTags={activeTags}
+            filterGroups={filterGroups}
+            onRemoveTag={toggleSingleFilter}
+            onClearAll={handleReset}
+            extraChips={extraChips}
           />
-        </div>
-
-        <ProductsActiveBar
-          activeTags={activeTags}
-          filterGroups={filterGroups}
-          onRemoveTag={toggleSingleFilter}
-          onClearAll={handleReset}
-          extraChips={extraChips}
-        />
+        </CollapsibleFiltersStrip>
 
         <ProductsFilterDrawerContent
           open={isDrawerOpen}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            setDrawerOpen(false)
+            setDraftFilters(null)
+          }}
           groups={filterGroups}
           currentFilters={filters}
           initialFilters={EMPTY_FILTERS}
@@ -203,6 +234,8 @@ export function ProductsPage() {
           priceMin={priceMin}
           priceMax={priceMax}
           onPriceChange={handlePriceChange}
+          previewCount={previewCount}
+          onLocalFiltersChange={setDraftFilters}
         />
 
         <section
@@ -256,5 +289,53 @@ export function ProductsPage() {
         />
       )}
     </>
+  )
+}
+
+type CollapsibleFiltersStripProps = {
+  count: number
+  onOpenDrawer: () => void
+  children: ReactNode
+}
+
+function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: CollapsibleFiltersStripProps) {
+  // Start expanded — component only mounts when count > 0, so filters are visible
+  // on first appearance. User can collapse them if desired.
+  const [open, setOpen] = useState(true)
+  if (count === 0) return null
+  return (
+    <div className={`products-chips-collapsible${open ? ' products-chips-collapsible--open' : ''}`}>
+      <button
+        type="button"
+        className="products-chips-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={`${count} filtre${count > 1 ? 's' : ''} actif${count > 1 ? 's' : ''} — ${open ? 'masquer' : 'voir les filtres'}`}
+      >
+        <SlidersHorizontal size={13} className="products-chips-toggle__icon" aria-hidden="true" />
+        <span>
+          <strong>{count}</strong> filtre{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''}
+        </span>
+        <ChevronDown
+          size={13}
+          className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
+          aria-hidden="true"
+        />
+        <button
+          type="button"
+          className="products-chips-toggle__edit"
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpenDrawer()
+          }}
+          aria-label="Modifier les filtres"
+        >
+          Modifier
+        </button>
+      </button>
+      <div className="products-chips-body" aria-hidden={!open}>
+        <div className="products-chips-inner">{children}</div>
+      </div>
+    </div>
   )
 }

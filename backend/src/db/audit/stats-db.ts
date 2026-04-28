@@ -3,11 +3,11 @@ import { count, countDistinct, sql } from 'drizzle-orm'
 import { db } from '..'
 import {
   articles,
-  ingredientTagsDefs,
   ingredients,
+  ingredientTagsDefs,
   productIngredients,
-  productTagsDefs,
   products,
+  productTagsDefs,
   tagIngredients,
   tagProducts,
   userProducts,
@@ -93,15 +93,13 @@ async function ingredientStats() {
     .from(tagIngredients)
   row('with tags', `${withTags} / ${total}`)
 
-  const [{ avgPerProduct }] = await db
-    .select({ avgPerProduct: sql<string>`round(avg(cnt))` })
-    .from(
-      db
-        .select({ cnt: count().as('cnt') })
-        .from(productIngredients)
-        .groupBy(productIngredients.productId)
-        .as('sub'),
-    )
+  const [{ avgPerProduct }] = await db.select({ avgPerProduct: sql<string>`round(avg(cnt))` }).from(
+    db
+      .select({ cnt: count().as('cnt') })
+      .from(productIngredients)
+      .groupBy(productIngredients.productId)
+      .as('sub')
+  )
   row('avg per product', avgPerProduct ?? 'n/a')
 }
 
@@ -142,10 +140,7 @@ async function userStats() {
     .select({ active: count() })
     .from(users)
     .where(sql`deleted_at is null and is_demo = false`)
-  const [{ demo }] = await db
-    .select({ demo: count() })
-    .from(users)
-    .where(sql`is_demo = true`)
+  const [{ demo }] = await db.select({ demo: count() }).from(users).where(sql`is_demo = true`)
   row('total', total)
   row('active (non-demo, non-deleted)', active)
   row('demo', demo)

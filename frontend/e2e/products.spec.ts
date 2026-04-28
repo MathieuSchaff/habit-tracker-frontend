@@ -63,7 +63,9 @@ test.describe('Products page', () => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
     await search.fill('vitamine c')
 
-    const entry = page.getByRole('option', { name: /voir tous les produits avec vitamine c/i }).first()
+    const entry = page
+      .getByRole('option', { name: /voir tous les produits avec vitamine c/i })
+      .first()
     await expect(entry).toBeVisible({ timeout: 10_000 })
     await entry.click()
 

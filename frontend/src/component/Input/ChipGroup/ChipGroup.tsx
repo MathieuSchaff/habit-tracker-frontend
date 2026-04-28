@@ -22,7 +22,6 @@ type ChipGroupProps<T extends string> = {
   'aria-label'?: string
   'aria-describedby'?: string
   maxVisible?: number
-  chipTabIndex?: number
   onChipKeyDown?: (e: React.KeyboardEvent) => void
 }
 
@@ -38,7 +37,6 @@ export function ChipGroup<T extends string>({
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
   maxVisible,
-  chipTabIndex,
   onChipKeyDown,
 }: ChipGroupProps<T>) {
   const groupId = useId()
@@ -99,7 +97,6 @@ export function ChipGroup<T extends string>({
           checked={isSelected}
           disabled={isDisabled}
           onChange={() => handleClick(value)}
-          tabIndex={chipTabIndex}
           onKeyDown={onChipKeyDown}
         />
         {content}
@@ -117,7 +114,6 @@ export function ChipGroup<T extends string>({
         onClick={() => handleClick(value)}
         aria-pressed={isSelected}
         disabled={isDisabled}
-        tabIndex={chipTabIndex}
         onKeyDown={onChipKeyDown}
       >
         {content}
@@ -138,7 +134,6 @@ export function ChipGroup<T extends string>({
           type="button"
           className={clsx('chip', `chip--${size}`, 'chip--more')}
           onClick={() => setExpanded(true)}
-          tabIndex={chipTabIndex}
           aria-label={`Voir les ${options.length} options`}
         >
           Voir tout ({options.length})

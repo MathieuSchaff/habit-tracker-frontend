@@ -15,6 +15,7 @@
 
 .filter-drawer::backdrop {
   background: var(--overlay);
+  backdrop-filter: blur(2px);
 }
 
 .filter-drawer[open] {
@@ -27,30 +28,31 @@
   position: relative;
   width: 100%;
   max-width: 28rem;
-  max-height: 80dvh;
+  max-height: 88dvh;
   background: var(--bg-card);
-  border: 1px solid var(--border-default);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.25);
   border-bottom: none;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 -8px 32px oklch(from var(--color-primary) l c h / 0.18),
+    var(--shadow-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: drawer-slide-up var(--transition-base) ease;
 }
 
-/* Drag indicator: tactile cue on mobile bottom-sheet, neutral so the surface stays calm */
 .filter-drawer__panel::before {
   content: "";
   position: absolute;
   top: var(--space-2);
   left: 50%;
   translate: -50% 0;
-  width: 2.25rem;
+  width: 2.5rem;
   height: 0.25rem;
   border-radius: var(--radius-full);
-  background: var(--border-strong);
-  opacity: 0.6;
+  background: var(--color-primary);
+  opacity: 0.7;
   pointer-events: none;
 }
 
@@ -67,108 +69,263 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-5) var(--space-5) var(--space-4);
-  background: linear-gradient(to bottom, var(--color-primary-subtle), var(--bg-card));
-  border-bottom: 1px solid var(--border-default);
+  gap: var(--space-3);
+  padding: calc(var(--space-5) + var(--space-1)) var(--space-5) var(--space-4);
+  background:
+    linear-gradient(
+      135deg,
+      oklch(from var(--color-primary) l c h / 0.18) 0%,
+      oklch(from var(--color-accent) l c h / 0.12) 100%
+    ),
+    var(--bg-card);
+  border-bottom: 1px solid oklch(from var(--color-primary) l c h / 0.25);
   flex-shrink: 0;
+  position: relative;
+}
+
+.filter-drawer__header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  opacity: 0.6;
 }
 
 .filter-drawer__title {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
-  letter-spacing: -0.01em;
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-primary-deeper, var(--color-primary));
+  margin: 0;
 }
 
-/* Accent dot pairs with the primary title — gives the header a 2-color palette
-   instead of monochromatic primary */
 .filter-drawer__title::before {
   content: "";
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: var(--radius-full);
   background: var(--color-accent);
+  box-shadow: 0 0 0 3px oklch(from var(--color-accent) l c h / 0.18);
   flex-shrink: 0;
 }
 
+.filter-drawer__close {
+  color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+}
+
+.filter-drawer__close:hover {
+  color: var(--color-primary-text, var(--text-inverse));
+  background: var(--color-primary);
+}
+
+/* Body tinted with primary so white accordion shelves pop as cards */
 .filter-drawer__body {
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
-  background: var(--bg-card);
+  background:
+    radial-gradient(
+      ellipse at top,
+      oklch(from var(--color-primary) l c h / 0.1) 0%,
+      oklch(from var(--color-primary) l c h / 0.05) 60%,
+      transparent 100%
+    ),
+    var(--color-primary-light, oklch(from var(--color-primary) l c h / 0.06));
 }
 
 .filter-drawer__body::-webkit-scrollbar {
   display: none;
 }
 
-.filter-drawer__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.filter-drawer__body > fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+/* Toggle "Selon mon profil" is a direct child of body (it sits above
+   accordions as a global super-filter) — give it shelf styling. */
+.filter-drawer__body > .toggle {
+  background: var(--bg-card);
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-default);
-}
-
-.filter-drawer__group:last-child {
-  border-bottom: none;
-}
-
-.filter-drawer__footer {
-  flex-shrink: 0;
-  padding: var(--space-4) var(--space-5);
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-default);
-  display: flex;
-  gap: var(--space-3);
-}
-
-.filter-drawer__apply {
-  flex: 1;
-}
-
-.filter-drawer__group--nested {
-  border-bottom: none;
-  padding: var(--space-1) var(--space-5) var(--space-3);
+  border-bottom: 1px solid oklch(from var(--color-primary) l c h / 0.18);
+  margin: 0;
 }
 
 .filter-drawer__separator {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
 }
 
-.filter-drawer__separator::before,
 .filter-drawer__separator::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--border-default);
+  background: linear-gradient(90deg, var(--color-primary) 0%, transparent 100%);
+  opacity: 0.4;
 }
 
 .filter-drawer__separator-label {
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  color: var(--text-muted);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-text, var(--text-inverse));
+  background: var(--color-primary);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   white-space: nowrap;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.35);
+}
+
+.filter-drawer__footer {
+  flex-shrink: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-card);
+  border-top: 1px solid oklch(from var(--color-primary) l c h / 0.25);
+  display: flex;
+  gap: var(--space-3);
+  box-shadow: 0 -8px 20px oklch(from var(--color-primary) l c h / 0.1);
+  position: relative;
+}
+
+.filter-drawer__footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-primary) 100%);
+  opacity: 0.55;
+}
+
+.filter-drawer__apply {
+  flex: 1;
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.4);
+}
+
+/* Bigger drawer chips — sm (xs font) reads as cramped on a filter list */
+.filter-drawer__body .chip--sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* Drawer-scoped chip override: idle = white pill with primary outline,
+   keeps strong contrast against the tinted body and against active chips */
+.filter-drawer__body .chip:not(.chip--active) {
+  background: var(--bg-card);
+  border-color: oklch(from var(--color-primary) l c h / 0.5);
+  color: var(--color-primary-deeper, var(--color-primary));
+  font-weight: var(--font-semibold);
+  box-shadow: 0 1px 2px oklch(from var(--color-primary) l c h / 0.08);
+}
+
+.filter-drawer__body .chip:not(.chip--active):hover:not(:disabled) {
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.25);
+}
+
+/* Active chip in drawer (sm size): bolder than the default ring style
+   so selection reads instantly against idle white pills */
+.filter-drawer__body .chip--sm.chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text, var(--text-inverse));
+  box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.4);
+}
+
+.filter-drawer__body .chip--sm.chip--active:hover:not(:disabled) {
+  background: var(--color-primary-hover, var(--color-primary));
+  border-color: var(--color-primary-hover, var(--color-primary));
+  color: var(--color-primary-text, var(--text-inverse));
+  box-shadow: 0 6px 16px oklch(from var(--color-primary) l c h / 0.5);
+}
+
+/* Inputs (search-select, price range) get a subtle primary outline so
+   they don't disappear on the tinted body */
+.filter-drawer__body .search-select__input,
+.filter-drawer__body .input-wrapper input {
+  background: var(--bg-card);
+  border-color: oklch(from var(--color-primary) l c h / 0.35);
+}
+
+.filter-drawer__body .search-select__input:focus {
+  border-color: var(--color-primary);
+}
+
+/* Search-select wrappers (Marque, Ingrédient) live inside the accordion body
+   without padding by default — give them shelf-aligned spacing + breathing room. */
+.filter-drawer__body .filter-drawer__group--nested {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5) var(--space-4);
+}
+
+.filter-drawer__body .filter-drawer__group--nested + .filter-drawer__group--nested {
+  border-top: 1px dashed oklch(from var(--color-primary) l c h / 0.18);
+  padding-top: var(--space-4);
+}
+
+/* Beefier search-select input: bigger hit zone, search-icon prefix, focus glow */
+.filter-drawer__body .search-select__input {
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 1.25rem);
+  font-size: var(--text-sm);
+  border-width: 1.5px;
+  background-color: var(--bg-card);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' opacity='0.55'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>");
+  background-repeat: no-repeat;
+  background-position: var(--space-3) center;
+  background-size: 1rem;
+  box-shadow: 0 1px 2px oklch(from var(--color-primary) l c h / 0.06);
+  transition:
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
+}
+
+.filter-drawer__body .search-select__input:focus {
+  box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.15);
+}
+
+/* Selected chips above the input get a touch of breathing room */
+.filter-drawer__body .search-select__selected {
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+/* Empty state inside dropdown */
+.filter-drawer__body .search-select__empty {
+  padding: var(--space-3);
+  text-align: center;
+  color: var(--text-muted);
 }
 
 @media (min-width: 640px) {
   .filter-drawer[open] {
-    align-items: center;
+    align-items: stretch;
     justify-content: flex-end;
   }
 
   .filter-drawer__panel {
-    max-width: 22rem;
+    max-width: 24rem;
     max-height: 100dvh;
     height: 100%;
     border: 1px solid var(--border-default);
@@ -177,9 +334,12 @@
     animation: drawer-slide-left var(--transition-base) ease;
   }
 
-  /* Drag handle is mobile-only — the side panel doesn't need it */
   .filter-drawer__panel::before {
     display: none;
+  }
+
+  .filter-drawer__header {
+    padding: var(--space-6) var(--space-5) var(--space-4);
   }
 
   @keyframes drawer-slide-left {

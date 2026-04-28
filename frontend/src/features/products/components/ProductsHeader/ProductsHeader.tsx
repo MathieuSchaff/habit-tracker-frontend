@@ -1,12 +1,15 @@
+import type { ProductDomainTab } from '@habit-tracker/shared'
+
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
+import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { SortControl } from '@/features/products/components/SortControl/SortControl'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { type ProductSort, productQueries } from '@/lib/queries/products'
@@ -23,6 +26,9 @@ type Props = {
   onSortChange: (next: ProductSort) => void
   onOpenDrawer: () => void
   effectiveFilterCount: number
+  activeTab: ProductDomainTab
+  onTabChange: (next: ProductDomainTab) => void
+  tabOptions: TabOption<ProductDomainTab>[]
 }
 
 export function ProductsHeader({
@@ -33,109 +39,124 @@ export function ProductsHeader({
   onSortChange,
   onOpenDrawer,
   effectiveFilterCount,
+  activeTab,
+  onTabChange,
+  tabOptions,
 }: Props) {
   const navigate = useNavigate({ from: '/products/' })
   const { data: brands = [] } = useQuery(productQueries.brands())
   const { data: ingredients = [] } = useQuery(ingredientQueries.options())
 
+  const [scrolled, setScrolled] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver(([e]) => setScrolled(!e.isIntersecting), { threshold: 0 })
+    obs.observe(sentinel)
+    return () => obs.disconnect()
+  }, [])
+
+  const sections = (q: string): ComboboxSection[] => {
+    const folded = foldText(q)
+    if (folded.length < 2) return []
+    const trimmed = q.trim()
+    const slugFolded = folded.replace(/\s+/g, '-')
+
+    const ingredientMatches = ingredients
+      .filter((i) => foldText(i.name).includes(folded) || i.slug.includes(slugFolded))
+      .slice(0, FACET_SECTION_LIMIT)
+
+    const brandMatches = brands
+      .filter((b) => foldText(b).includes(folded))
+      .slice(0, FACET_SECTION_LIMIT)
+
+    return [
+      {
+        id: 'ingredients',
+        label: 'Ingrédients',
+        items: ingredientMatches.map((i) => ({
+          id: `ingredient:${i.slug}`,
+          render: (
+            <span className="search-combobox__section-entry">
+              <FlaskConical size={14} aria-hidden="true" />
+              <span>Voir tous les produits avec {i.name}</span>
+            </span>
+          ),
+          onSelect: () =>
+            navigate({
+              to: '/products',
+              search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
+            }),
+        })),
+      },
+      {
+        id: 'brands',
+        label: 'Marques',
+        items: brandMatches.map((b) => ({
+          id: `brand:${b}`,
+          render: (
+            <span className="search-combobox__section-entry">
+              <Tag size={14} aria-hidden="true" />
+              <span>Voir tous les produits {b}</span>
+            </span>
+          ),
+          onSelect: () =>
+            navigate({
+              to: '/products',
+              search: (prev) => ({ ...prev, brand: [b], page: 1 }),
+            }),
+        })),
+      },
+      {
+        id: 'fallback',
+        label: 'Recherche',
+        items: [
+          {
+            id: `query:${trimmed}`,
+            render: (
+              <span className="search-combobox__section-entry">
+                <Search size={14} aria-hidden="true" />
+                <span>Voir tous les résultats pour "{trimmed}"</span>
+              </span>
+            ),
+            onSelect: () =>
+              navigate({
+                to: '/products',
+                search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+              }),
+          },
+        ],
+      },
+    ]
+  }
+
   return (
-    <PageHeader
-      title="Produits"
-      isLoading={isPlaceholderData}
-      meta={hasFilters ? `${total} produit${total > 1 ? 's' : ''}` : 'Découverte'}
-      actions={
-        <>
-          <SearchCombobox
-            label="Rechercher un produit"
-            queryFn={productQueries.search}
-            toResult={(item) => ({
-              id: item.id,
-              slug: item.slug,
-              label: item.name,
-              sublabel: item.brand,
-            })}
-            onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
-            sections={(q) => {
-              const folded = foldText(q)
-              if (folded.length < 2) return []
-              const trimmed = q.trim()
+    <>
+      <div className="products-header__top">
+        <div className="products-header__top-inner">
+          <div className="products-header__title-block">
+            <h2 className="products-header__title">Produits</h2>
+            <span className="products-header__count" aria-busy={isPlaceholderData || undefined}>
+              <strong>{total}</strong>{' '}
+              {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
+            </span>
+          </div>
 
-              // Ingredient matches: name OR slug contains folded query (substring,
-              // accent-insensitive). Section ordered first because ingredient intent
-              // is the most specific facet (rétinol, niacinamide…).
-              const slugFolded = folded.replace(/\s+/g, '-')
-              const ingredientMatches = ingredients
-                .filter((i) => foldText(i.name).includes(folded) || i.slug.includes(slugFolded))
-                .slice(0, FACET_SECTION_LIMIT)
-
-              const brandMatches = brands
-                .filter((b) => foldText(b).includes(folded))
-                .slice(0, FACET_SECTION_LIMIT)
-
-              const sections: ComboboxSection[] = [
-                {
-                  id: 'ingredients',
-                  label: 'Ingrédients',
-                  items: ingredientMatches.map((i) => ({
-                    id: `ingredient:${i.slug}`,
-                    render: (
-                      <span className="search-combobox__section-entry">
-                        <FlaskConical size={14} aria-hidden="true" />
-                        <span>Voir tous les produits avec {i.name}</span>
-                      </span>
-                    ),
-                    onSelect: () =>
-                      navigate({
-                        to: '/products',
-                        search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
-                      }),
-                  })),
-                },
-                {
-                  id: 'brands',
-                  label: 'Marques',
-                  items: brandMatches.map((b) => ({
-                    id: `brand:${b}`,
-                    render: (
-                      <span className="search-combobox__section-entry">
-                        <Tag size={14} aria-hidden="true" />
-                        <span>Voir tous les produits {b}</span>
-                      </span>
-                    ),
-                    onSelect: () =>
-                      navigate({
-                        to: '/products',
-                        search: (prev) => ({ ...prev, brand: [b], page: 1 }),
-                      }),
-                  })),
-                },
-                {
-                  id: 'fallback',
-                  label: 'Recherche',
-                  items: [
-                    {
-                      id: `query:${trimmed}`,
-                      render: (
-                        <span className="search-combobox__section-entry">
-                          <Search size={14} aria-hidden="true" />
-                          <span>Voir tous les résultats pour "{trimmed}"</span>
-                        </span>
-                      ),
-                      onSelect: () =>
-                        navigate({
-                          to: '/products',
-                          search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
-                        }),
-                    },
-                  ],
-                },
-              ]
-
-              return sections
-            }}
-          />
-          <div className="list-header__actions-group">
-            <SortControl value={sort} onChange={onSortChange} />
+          <div className="products-header__tools">
+            <SortControl value={sort} onChange={onSortChange} compact />
+            <Button
+              to="/products/new"
+              variant="ghost"
+              size="md"
+              className="products-header__icon-btn"
+              aria-label="Créer un produit"
+              title="Créer un produit"
+            >
+              <Plus size={16} aria-hidden="true" />
+            </Button>
+            <span className="products-header__divider" aria-hidden="true" />
             <Button
               type="button"
               variant="primary"
@@ -156,13 +177,158 @@ export function ProductsHeader({
                 </span>
               )}
             </Button>
-            <Button to="/products/new" variant="primary" size="md" className="list-filter-btn">
-              <Plus size={14} aria-hidden="true" />
-              <span>Créer</span>
-            </Button>
           </div>
-        </>
-      }
-    />
+        </div>
+      </div>
+
+      <div className="products-header__toolbar">
+        <div className="products-header__toolbar-inner">
+          <Tabs
+            options={tabOptions}
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+            ariaLabel="Catégorie de produits"
+          />
+
+          <div className="products-header__search">
+            <SearchCombobox
+              label="Rechercher un produit"
+              queryFn={productQueries.search}
+              toResult={(item) => ({
+                id: item.id,
+                slug: item.slug,
+                label: item.name,
+                sublabel: item.brand,
+              })}
+              onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
+              sections={sections}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
+
+      <FloatingFilterButton
+        visible={scrolled}
+        count={effectiveFilterCount}
+        onClick={onOpenDrawer}
+      />
+    </>
+  )
+}
+
+type FloatingFilterButtonProps = {
+  visible: boolean
+  count: number
+  onClick: () => void
+}
+
+const FLOATING_FILTER_Y_KEY = 'products-floating-filter-y'
+// Distance px before pointer-down counts as drag (not click)
+const DRAG_THRESHOLD = 6
+// Pill is 56px tall, centered on viewport mid; halfH = 28
+const PILL_HALF_HEIGHT = 28
+// Visual buffer between pill edge and any obstacle (viewport / nav)
+const EDGE_BUFFER = 8
+
+function getBottomNavHeight() {
+  if (typeof document === 'undefined') return 0
+  const nav = document.querySelector<HTMLElement>('.bottom-nav')
+  // Mobile-only — desktop has no bottom-nav rendered
+  return nav?.getBoundingClientRect().height ?? 0
+}
+
+function clampY(value: number) {
+  if (typeof window === 'undefined') return value
+  const halfV = window.innerHeight / 2
+  const minY = -(halfV - PILL_HALF_HEIGHT - EDGE_BUFFER)
+  const maxY = halfV - PILL_HALF_HEIGHT - EDGE_BUFFER - getBottomNavHeight()
+  return Math.max(minY, Math.min(maxY, value))
+}
+
+function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonProps) {
+  const [y, setY] = useState(() => {
+    if (typeof window === 'undefined') return 0
+    const raw = window.localStorage.getItem(FLOATING_FILTER_Y_KEY)
+    const parsed = raw === null ? 0 : Number(raw)
+    return Number.isFinite(parsed) ? clampY(parsed) : 0
+  })
+  const [dragging, setDragging] = useState(false)
+  const dragRef = useRef<{ startClientY: number; startY: number; moved: boolean } | null>(null)
+  // Block the click that fires after a drag-pointerup so onClick only triggers on a true tap.
+  const suppressClickRef = useRef(false)
+
+  useEffect(() => {
+    const onResize = () => setY((cur) => clampY(cur))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!visible || e.button !== 0) return
+    dragRef.current = { startClientY: e.clientY, startY: y, moved: false }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current
+    if (!drag) return
+    const dy = e.clientY - drag.startClientY
+    if (!drag.moved && Math.abs(dy) >= DRAG_THRESHOLD) {
+      drag.moved = true
+      setDragging(true)
+    }
+    if (drag.moved) setY(clampY(drag.startY + dy))
+  }
+
+  const onPointerUp = () => {
+    const drag = dragRef.current
+    if (!drag) return
+    if (drag.moved) {
+      window.localStorage.setItem(FLOATING_FILTER_Y_KEY, String(y))
+      suppressClickRef.current = true
+      setDragging(false)
+    }
+    dragRef.current = null
+  }
+
+  const onPointerCancel = () => {
+    dragRef.current = null
+    setDragging(false)
+  }
+
+  const handleClick = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      return
+    }
+    onClick()
+  }
+
+  return (
+    <button
+      type="button"
+      className={`products-floating-filter${visible ? ' products-floating-filter--visible' : ''}${dragging ? ' products-floating-filter--dragging' : ''}`}
+      style={{ '--drag-y': `${y}px` } as React.CSSProperties}
+      aria-label={`Filtrer${count > 0 ? ` (${count} actif${count > 1 ? 's' : ''})` : ''}`}
+      aria-hidden={!visible}
+      tabIndex={visible ? 0 : -1}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onClick={handleClick}
+    >
+      <span className="products-floating-filter__icon-wrap">
+        <SlidersHorizontal size={18} aria-hidden="true" />
+        {count > 0 && (
+          <span className="products-floating-filter__count" aria-hidden="true">
+            {count}
+          </span>
+        )}
+      </span>
+      <span className="products-floating-filter__label">Filtrer</span>
+    </button>
   )
 }

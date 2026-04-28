@@ -43,7 +43,9 @@ test.describe('Product detail — Modifier', () => {
       page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label.chip--active')
     ).toBeVisible()
     await expect(
-      page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label.chip--active')
+      page
+        .getByRole('radiogroup', { name: 'Conditionnement du produit' })
+        .locator('label.chip--active')
     ).toBeVisible()
   })
 

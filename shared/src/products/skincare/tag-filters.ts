@@ -6,10 +6,36 @@ export const SKINCARE_PRODUCT_TAG_CATEGORY_META: Record<
   SkincareProductTagCategory,
   TagCategoryMeta
 > = {
-  skin_type: { label: 'Peau', placeholder: 'Tous types', tier: 'essential', order: 1 },
-  concern: { label: 'Problème', placeholder: 'Toutes', tier: 'essential', order: 2 },
-  skin_zone: { label: 'Zone', placeholder: 'Toutes', tier: 'essential', order: 3 },
-  product_type: { label: 'Type', placeholder: 'Tous', tier: 'essential', order: 4 },
+  skin_type: {
+    label: 'Peau',
+    placeholder: 'Tous types',
+    tier: 'essential',
+    order: 1,
+    defaultOpen: true,
+  },
+  concern: {
+    label: 'Problème',
+    placeholder: 'Toutes',
+    tier: 'essential',
+    order: 2,
+    defaultOpen: true,
+  },
+  // product_type before skin_zone — "type de produit" matches user intent
+  // ("je veux un sérum") more often than "zone" on the discovery flow.
+  product_type: {
+    label: 'Type',
+    placeholder: 'Tous',
+    tier: 'essential',
+    order: 3,
+    defaultOpen: false,
+  },
+  skin_zone: {
+    label: 'Zone',
+    placeholder: 'Toutes',
+    tier: 'essential',
+    order: 4,
+    defaultOpen: false,
+  },
   routine_step: { label: 'Étape', placeholder: 'Toutes', tier: 'advanced', order: 5 },
   skin_effect: { label: 'Rendu', placeholder: 'Tous', tier: 'advanced', order: 6 },
   product_label: { label: 'Label', placeholder: 'Tous', tier: 'advanced', order: 7 },

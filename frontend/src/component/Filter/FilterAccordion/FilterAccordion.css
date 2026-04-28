@@ -1,58 +1,59 @@
+/* Each accordion = a white "shelf" floating on the body's primary-tinted bg.
+   Built on native <details> — open/close is browser-owned, no React state. */
 .filter-accordion {
-  border-bottom: 1px solid var(--border-default);
-}
-
-.filter-accordion__heading {
-  margin: 0;
-  font: inherit;
-}
-
-/* "Essential" sections get a thin primary rail on the left rather than a tinted bg
-   so the surface stays neutral but the section still reads as prioritized */
-.filter-accordion--essential {
-  position: relative;
-}
-
-.filter-accordion--essential::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  background: var(--color-primary);
-  pointer-events: none;
+  background: var(--bg-card);
+  border-bottom: 1px solid oklch(from var(--color-primary) l c h / 0.18);
 }
 
 .filter-accordion__trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: var(--space-4) var(--space-5);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
   gap: var(--space-3);
-  transition: background var(--transition-fast) ease;
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+/* Suppress the default disclosure marker on every engine */
+.filter-accordion__trigger::-webkit-details-marker {
+  display: none;
+}
+.filter-accordion__trigger::marker {
+  content: "";
 }
 
 .filter-accordion__trigger:hover {
-  background: var(--bg-hover);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+}
+
+.filter-accordion__trigger:hover .filter-accordion__label {
+  color: var(--color-primary);
+}
+
+.filter-accordion[open] > .filter-accordion__trigger {
+  background: oklch(from var(--color-primary) l c h / 0.06);
+}
+
+.filter-accordion[open] > .filter-accordion__trigger .filter-accordion__label {
+  color: var(--color-primary-deeper, var(--color-primary));
 }
 
 .filter-accordion__trigger:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-focus, var(--color-primary));
   outline-offset: -2px;
 }
 
 .filter-accordion__label {
-  font-size: var(--text-xs);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  margin: 0;
+  transition: color var(--transition-fast) ease;
 }
 
 .filter-accordion__meta {
@@ -76,34 +77,22 @@
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   line-height: 1;
-  box-shadow: 0 1px 4px oklch(from var(--color-primary) l c h / 0.3);
+  box-shadow: 0 2px 6px oklch(from var(--color-primary) l c h / 0.4);
 }
 
 .filter-accordion__chevron {
-  color: var(--text-muted);
+  color: var(--color-primary);
   flex-shrink: 0;
+  transform: rotate(-90deg);
   transition: transform var(--transition-base) ease;
 }
 
+.filter-accordion[open] > .filter-accordion__trigger .filter-accordion__chevron {
+  transform: rotate(0);
+}
+
 .filter-accordion__body {
-  display: grid;
-  transition: grid-template-rows var(--transition-base) ease;
-}
-
-.filter-accordion__inner {
-  overflow: hidden;
-  min-height: 0;
-}
-
-.filter-accordion__inner fieldset {
-  border: none;
-  padding: 0;
-  margin: 0;
-  min-inline-size: 0;
-}
-
-.filter-accordion__chips {
-  padding: var(--space-1) var(--space-5) var(--space-4);
+  padding: var(--space-1) 0 var(--space-3);
 }
 
 .filter-subgroup .chip-group,
@@ -111,20 +100,19 @@
   padding: 0;
 }
 
-.filter-accordion__inner > .filter-subgroup {
-  padding: var(--space-1) var(--space-5) var(--space-3);
+.filter-accordion__body > .filter-subgroup,
+.filter-subgroups {
+  padding: 0 var(--space-5) var(--space-2);
 }
 
 .filter-subgroups {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-1) var(--space-5) var(--space-4);
 }
 
 .filter-subgroup {
   border: none;
-  padding: 0;
   margin: 0;
   min-inline-size: 0;
   display: flex;
@@ -132,25 +120,47 @@
   gap: var(--space-2);
 }
 
-/* Subgroup labels: subtle primary tint + 2px rail — structural cue without flooding bg */
+/* Subgroup labels: primary tint pill so structure reads at a glance */
 .filter-subgroup__label {
-  display: block;
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   color: var(--color-primary);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   padding: var(--space-1) var(--space-2);
-  margin-bottom: var(--space-1);
-  background: var(--color-primary-subtle);
+  margin: 0 0 var(--space-1);
+  background: oklch(from var(--color-primary) l c h / 0.1);
   border-left: 2px solid var(--color-primary);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
+/* Progressive enhancement: animate body height in browsers that support
+   interpolate-size + ::details-content. Older browsers snap open/close. */
+@supports (interpolate-size: allow-keywords) {
+  .filter-accordion {
+    interpolate-size: allow-keywords;
+  }
+
+  .filter-accordion::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--transition-base) ease,
+      content-visibility var(--transition-base) allow-discrete;
+  }
+
+  .filter-accordion[open]::details-content {
+    block-size: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .filter-accordion__chevron,
-  .filter-accordion__body {
+  .filter-accordion::details-content {
     transition: none;
   }
 }

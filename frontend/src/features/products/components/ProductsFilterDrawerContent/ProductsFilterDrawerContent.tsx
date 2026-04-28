@@ -1,7 +1,9 @@
 import { FilterDrawer, type FilterGroupConfig, type FilterValues } from '@/component/Filter'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
-import { PriceRangeFilter } from '@/features/products/components/PriceRangeFilter/PriceRangeFilter'
+import { PriceFilterAccordion } from '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion'
 import type { FilterKey } from '@/features/products/filters'
+
+import '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion.css'
 
 type Props = {
   open: boolean
@@ -17,6 +19,8 @@ type Props = {
   priceMin?: number
   priceMax?: number
   onPriceChange: (range: { min?: number; max?: number }) => void
+  previewCount?: number
+  onLocalFiltersChange?: (filters: FilterValues<FilterKey>) => void
 }
 
 export function ProductsFilterDrawerContent({
@@ -33,6 +37,8 @@ export function ProductsFilterDrawerContent({
   priceMin,
   priceMax,
   onPriceChange,
+  previewCount,
+  onLocalFiltersChange,
 }: Props) {
   return (
     <FilterDrawer
@@ -43,6 +49,11 @@ export function ProductsFilterDrawerContent({
       initialFilters={initialFilters}
       onApply={onApply}
       onReset={onReset}
+      previewCount={previewCount}
+      onLocalFiltersChange={onLocalFiltersChange}
+      essentialExtras={
+        <PriceFilterAccordion min={priceMin} max={priceMax} onChange={onPriceChange} />
+      }
     >
       {showProfileToggle && (
         <Toggle
@@ -53,7 +64,6 @@ export function ProductsFilterDrawerContent({
           size="sm"
         />
       )}
-      <PriceRangeFilter min={priceMin} max={priceMax} onChange={onPriceChange} />
     </FilterDrawer>
   )
 }

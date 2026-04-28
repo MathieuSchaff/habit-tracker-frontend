@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import { useFlipPlacement } from './useFlipPlacement'
 import './ComboboxPrimitive.css'
@@ -83,14 +84,24 @@ export function ComboboxPrimitive<T>({
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
   useEffect(() => {
+    if (!isOpen) return
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const inTrigger = containerRef.current?.contains(target)
+      // Dropdown is portaled — also exempt clicks on it from "outside".
+      const inDropdown = dropdownRef.current?.contains(target)
+      if (!inTrigger && !inDropdown) {
+        // Capture-phase intercept so an outside tap dismisses the dropdown
+        // without firing the underlying link/button (common on mobile where
+        // there's no Escape key — accidental navigation was the alternative).
+        e.preventDefault()
+        e.stopPropagation()
         onClose()
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onClose])
+    document.addEventListener('click', handleClickOutside, true)
+    return () => document.removeEventListener('click', handleClickOutside, true)
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (highlightedIndex >= 0 && isOpen) {
@@ -165,96 +176,98 @@ export function ComboboxPrimitive<T>({
     <div className="combobox-primitive" ref={containerRef} onKeyDown={handleKeyDown}>
       {children({ listboxId, activeDescendant })}
 
-      {isOpen && (
-        <div ref={dropdownRef} className="combobox-primitive__dropdown">
-          {isLoading ? (
-            <output className="combobox-primitive__status">Chargement...</output>
-          ) : (
-            <>
-              <div
-                id={listboxId}
-                ref={itemsRef}
-                role="listbox"
-                className="combobox-primitive__items"
-                aria-label="Suggestions"
-              >
-                {items.map((item, index) => {
-                  const isActive = index === highlightedIndex
-                  const key = keyExtractor ? keyExtractor(item, index) : index
-                  return (
-                    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
-                    <div
-                      key={key}
-                      id={`${listboxId}-option-${index}`}
-                      role="option"
-                      aria-selected={isActive}
-                      className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => onSelect(item)}
-                      tabIndex={-1}
-                    >
-                      {renderItem(item, index, isActive)}
-                    </div>
-                  )
-                })}
-                {hasMore && (
-                  <div
-                    ref={sentinelRef}
-                    className="combobox-primitive__sentinel"
-                    aria-hidden="true"
-                  >
-                    {isLoadingMore && (
-                      <output className="combobox-primitive__status">Chargement...</output>
-                    )}
-                  </div>
-                )}
-                {sections?.map((section, sIdx) => {
-                  // Each section's first global index = main count + sum of prior section sizes.
-                  let baseIdx = items.length
-                  for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
-                  const labelId = `${listboxId}-section-${section.id}`
-                  return (
-                    // biome-ignore lint/a11y/useSemanticElements: ARIA listbox group pattern needs role=group; <fieldset> is form-only
-                    <div
-                      key={section.id}
-                      role="group"
-                      aria-labelledby={labelId}
-                      className="combobox-primitive__section"
-                    >
-                      <div id={labelId} className="combobox-primitive__section-label">
-                        {section.label}
+      {isOpen &&
+        createPortal(
+          <div ref={dropdownRef} className="combobox-primitive__dropdown">
+            {isLoading ? (
+              <output className="combobox-primitive__status">Chargement...</output>
+            ) : (
+              <>
+                <div
+                  id={listboxId}
+                  ref={itemsRef}
+                  role="listbox"
+                  className="combobox-primitive__items"
+                  aria-label="Suggestions"
+                >
+                  {items.map((item, index) => {
+                    const isActive = index === highlightedIndex
+                    const key = keyExtractor ? keyExtractor(item, index) : index
+                    return (
+                      // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
+                      <div
+                        key={key}
+                        id={`${listboxId}-option-${index}`}
+                        role="option"
+                        aria-selected={isActive}
+                        className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onSelect(item)}
+                        tabIndex={-1}
+                      >
+                        {renderItem(item, index, isActive)}
                       </div>
-                      {section.items.map((entry, i) => {
-                        const globalIdx = baseIdx + i
-                        const isActive = globalIdx === highlightedIndex
-                        return (
-                          // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
-                          <div
-                            key={entry.id}
-                            id={`${listboxId}-option-${globalIdx}`}
-                            role="option"
-                            aria-selected={isActive}
-                            className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => entry.onSelect()}
-                            tabIndex={-1}
-                          >
-                            {entry.render}
-                          </div>
-                        )
-                      })}
+                    )
+                  })}
+                  {hasMore && (
+                    <div
+                      ref={sentinelRef}
+                      className="combobox-primitive__sentinel"
+                      aria-hidden="true"
+                    >
+                      {isLoadingMore && (
+                        <output className="combobox-primitive__status">Chargement...</output>
+                      )}
                     </div>
-                  )
-                })}
-                {totalEntries === 0 && !footer && inputValue.trim() !== '' && (
-                  <output className="combobox-primitive__empty">{emptyMessage}</output>
-                )}
-              </div>
-              {footer && <div className="combobox-primitive__footer">{footer}</div>}
-            </>
-          )}
-        </div>
-      )}
+                  )}
+                  {sections?.map((section, sIdx) => {
+                    // Each section's first global index = main count + sum of prior section sizes.
+                    let baseIdx = items.length
+                    for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
+                    const labelId = `${listboxId}-section-${section.id}`
+                    return (
+                      // biome-ignore lint/a11y/useSemanticElements: ARIA listbox group pattern needs role=group; <fieldset> is form-only
+                      <div
+                        key={section.id}
+                        role="group"
+                        aria-labelledby={labelId}
+                        className="combobox-primitive__section"
+                      >
+                        <div id={labelId} className="combobox-primitive__section-label">
+                          {section.label}
+                        </div>
+                        {section.items.map((entry, i) => {
+                          const globalIdx = baseIdx + i
+                          const isActive = globalIdx === highlightedIndex
+                          return (
+                            // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
+                            <div
+                              key={entry.id}
+                              id={`${listboxId}-option-${globalIdx}`}
+                              role="option"
+                              aria-selected={isActive}
+                              className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => entry.onSelect()}
+                              tabIndex={-1}
+                            >
+                              {entry.render}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
+                  {totalEntries === 0 && !footer && inputValue.trim() !== '' && (
+                    <output className="combobox-primitive__empty">{emptyMessage}</output>
+                  )}
+                </div>
+                {footer && <div className="combobox-primitive__footer">{footer}</div>}
+              </>
+            )}
+          </div>,
+          document.body
+        )}
 
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {isOpen ? `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.` : ''}

@@ -48,9 +48,11 @@ export const ThemeToggle = () => {
         aria-label="Changer le thème"
         onClick={handleTrigger}
       >
-        {isDark
-          ? <Moon size={16} strokeWidth={2} aria-hidden="true" />
-          : <Sun size={16} strokeWidth={2} aria-hidden="true" />}
+        {isDark ? (
+          <Moon size={16} strokeWidth={2} aria-hidden="true" />
+        ) : (
+          <Sun size={16} strokeWidth={2} aria-hidden="true" />
+        )}
         <span
           className="theme-toggle-trigger__dot"
           style={{ backgroundColor: currentVariant?.color }}
@@ -64,7 +66,10 @@ export const ThemeToggle = () => {
           type="button"
           className="theme-dropdown__btn"
           aria-pressed={!isDark}
-          onClick={() => { if (isDark) toggle(); close() }}
+          onClick={() => {
+            if (isDark) toggle()
+            close()
+          }}
         >
           <Sun size={14} strokeWidth={2} aria-hidden="true" />
           Clair
@@ -73,7 +78,10 @@ export const ThemeToggle = () => {
           type="button"
           className="theme-dropdown__btn"
           aria-pressed={isDark}
-          onClick={() => { if (!isDark) toggle(); close() }}
+          onClick={() => {
+            if (!isDark) toggle()
+            close()
+          }}
         >
           <Moon size={14} strokeWidth={2} aria-hidden="true" />
           Sombre
@@ -87,7 +95,10 @@ export const ThemeToggle = () => {
             type="button"
             className="theme-dropdown__btn"
             aria-pressed={variant === v.value}
-            onClick={() => { setVariant(v.value); close() }}
+            onClick={() => {
+              setVariant(v.value)
+              close()
+            }}
           >
             <span
               className="theme-dropdown__dot"

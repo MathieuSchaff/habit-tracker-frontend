@@ -76,6 +76,10 @@ export interface TagCategoryMeta {
   placeholder: string
   tier: FilterTier
   order: number
+  // Optional override: when undefined, the drawer falls back to
+  // (tier === 'essential'). Set explicitly to keep some essentials
+  // collapsed by default and reduce cognitive load on first open.
+  defaultOpen?: boolean
 }
 
 // Schemas

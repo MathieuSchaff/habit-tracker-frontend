@@ -64,6 +64,7 @@ describe('useListFilters', () => {
 
     expect(navigateMock).toHaveBeenCalledWith({
       search: expect.any(Function),
+      resetScroll: false,
     })
 
     const searchFn = navigateMock.mock.calls[0][0].search
@@ -85,6 +86,7 @@ describe('useListFilters', () => {
     expect(navigateMock).toHaveBeenCalledWith({
       search: expect.any(Function),
       replace: true,
+      resetScroll: false,
     })
 
     const searchFn = navigateMock.mock.calls[0][0].search
