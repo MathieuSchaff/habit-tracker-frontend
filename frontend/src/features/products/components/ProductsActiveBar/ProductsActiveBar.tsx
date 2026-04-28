@@ -1,3 +1,5 @@
+import { memo, useCallback } from 'react'
+
 import {
   ActiveFiltersBar,
   type ExtraChip,
@@ -14,21 +16,27 @@ type Props = {
   extraChips: ExtraChip[]
 }
 
-export function ProductsActiveBar({
+function ProductsActiveBarImpl({
   activeTags,
   filterGroups,
   onRemoveTag,
   onClearAll,
   extraChips,
 }: Props) {
+  const labelFor = useCallback(
+    (key: FilterKey, value: string) => getFilterLabel(filterGroups, key, value),
+    [filterGroups]
+  )
   return (
     <ActiveFiltersBar
       activeTags={activeTags}
       groupLabels={GROUP_LABELS}
-      getFilterLabel={(key, value) => getFilterLabel(filterGroups, key, value)}
+      getFilterLabel={labelFor}
       onRemoveTag={onRemoveTag}
       onClearAll={onClearAll}
       extraChips={extraChips}
     />
   )
 }
+
+export const ProductsActiveBar = memo(ProductsActiveBarImpl)

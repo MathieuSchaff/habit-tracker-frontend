@@ -68,10 +68,13 @@ export function ProductsPage() {
     enabled: !!user && profile_filter,
   })
 
-  const avoidFor =
-    profile_filter && dermoProfile
-      ? [...(dermoProfile.skinTypes ?? []), ...dermoProfile.skinConcerns]
-      : []
+  const avoidFor = useMemo(
+    () =>
+      profile_filter && dermoProfile
+        ? [...(dermoProfile.skinTypes ?? []), ...dermoProfile.skinConcerns]
+        : [],
+    [profile_filter, dermoProfile]
+  )
 
   // Stable ref across renders — passed to FilterDrawer as currentFilters.
   // A fresh object every render would chain through the drawer's open-sync
@@ -95,25 +98,29 @@ export function ProductsPage() {
   const effectiveFilterCount =
     filterCount + (profile_filter ? 1 : 0) + (hasPriceRange ? 1 : 0) + (q ? 1 : 0)
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     resetFilters()
     navigate({ search: buildResetSearchParams, replace: true })
-  }
+  }, [resetFilters, navigate])
 
   const { data: filterOptions } = useQuery(productQueries.filterOptions(category))
 
-  const apiFilters: ListProductsFilters = buildProductsApiFilters({
-    category,
-    kind: search.kind ?? [],
-    filters,
-    avoidFor,
-    sort,
-    priceMin,
-    priceMax,
-    q,
-    page,
-    hasFilters,
-  })
+  const apiFilters = useMemo<ListProductsFilters>(
+    () =>
+      buildProductsApiFilters({
+        category,
+        kind: search.kind ?? [],
+        filters,
+        avoidFor,
+        sort,
+        priceMin,
+        priceMax,
+        q,
+        page,
+        hasFilters,
+      }),
+    [category, search.kind, filters, avoidFor, sort, priceMin, priceMax, q, page, hasFilters]
+  )
 
   // Random sort: keep result stable across back-nav so order doesn't reshuffle
   // (random() is non-deterministic — without staleTime, refetch yields a new sequence).
@@ -127,18 +134,22 @@ export function ProductsPage() {
   // Live count of products matching the user's in-flight drawer selection.
   // Only enabled while the drawer is open so we don't fire phantom requests
   // when the user isn't comparing options.
-  const previewApiFilters: ListProductsFilters = buildProductsApiFilters({
-    category,
-    kind: (draftFilters?.kind as string[] | undefined) ?? search.kind ?? [],
-    filters: draftFilters ?? filters,
-    avoidFor,
-    sort,
-    priceMin,
-    priceMax,
-    q,
-    page: 1,
-    hasFilters: true,
-  })
+  const previewApiFilters = useMemo<ListProductsFilters>(
+    () =>
+      buildProductsApiFilters({
+        category,
+        kind: (draftFilters?.kind as string[] | undefined) ?? search.kind ?? [],
+        filters: draftFilters ?? filters,
+        avoidFor,
+        sort,
+        priceMin,
+        priceMax,
+        q,
+        page: 1,
+        hasFilters: true,
+      }),
+    [category, draftFilters, search.kind, filters, avoidFor, sort, priceMin, priceMax, q]
+  )
   const { data: previewData } = useQuery({
     ...productQueries.list(previewApiFilters),
     enabled: isDrawerOpen,
@@ -160,33 +171,52 @@ export function ProductsPage() {
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / 20)
 
-  const handleSortChange = (next: ProductSort) => {
-    navigate({ search: (prev) => ({ ...prev, sort: next, page: 1 }), replace: true })
-  }
+  const handleSortChange = useCallback(
+    (next: ProductSort) => {
+      navigate({ search: (prev) => ({ ...prev, sort: next, page: 1 }), replace: true })
+    },
+    [navigate]
+  )
 
-  const handlePriceChange = ({ min, max }: { min?: number; max?: number }) => {
-    navigate({
-      search: (prev) => ({ ...prev, priceMin: min, priceMax: max, page: 1 }),
-      replace: true,
-    })
-  }
-
-  const handleProfileFilterChange = (checked: boolean) => {
-    navigate({ search: (prev) => ({ ...prev, profile_filter: checked, page: 1 }) })
-  }
-
-  const handleDomainChange = (next: ProductDomainTab) => {
-    startTransition(() => {
+  const handlePriceChange = useCallback(
+    ({ min, max }: { min?: number; max?: number }) => {
       navigate({
-        search: (prev) => buildDomainSwitchSearch(prev, next, EMPTY_TAG_FILTERS),
+        search: (prev) => ({ ...prev, priceMin: min, priceMax: max, page: 1 }),
         replace: true,
       })
-    })
-  }
+    },
+    [navigate]
+  )
+
+  const handleProfileFilterChange = useCallback(
+    (checked: boolean) => {
+      navigate({ search: (prev) => ({ ...prev, profile_filter: checked, page: 1 }) })
+    },
+    [navigate]
+  )
+
+  const handleDomainChange = useCallback(
+    (next: ProductDomainTab) => {
+      startTransition(() => {
+        navigate({
+          search: (prev) => buildDomainSwitchSearch(prev, next, EMPTY_TAG_FILTERS),
+          replace: true,
+        })
+      })
+    },
+    [navigate]
+  )
 
   const handleAddProduct = useCallback((target: AddToCollectionTarget) => {
     setModalProduct(target)
   }, [])
+
+  const handleOpenDrawer = useCallback(() => setDrawerOpen(true), [])
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    setDraftFilters(null)
+  }, [])
+  const handleCloseModal = useCallback(() => setModalProduct(null), [])
 
   return (
     <>
@@ -197,17 +227,14 @@ export function ProductsPage() {
           isPlaceholderData={isPlaceholderData}
           sort={sort}
           onSortChange={handleSortChange}
-          onOpenDrawer={() => setDrawerOpen(true)}
+          onOpenDrawer={handleOpenDrawer}
           effectiveFilterCount={effectiveFilterCount}
           activeTab={category}
           onTabChange={handleDomainChange}
           tabOptions={DOMAIN_TAB_OPTIONS}
         />
 
-        <CollapsibleFiltersStrip
-          count={effectiveFilterCount}
-          onOpenDrawer={() => setDrawerOpen(true)}
-        >
+        <CollapsibleFiltersStrip count={effectiveFilterCount} onOpenDrawer={handleOpenDrawer}>
           <ProductsActiveBar
             activeTags={activeTags}
             filterGroups={filterGroups}
@@ -219,10 +246,7 @@ export function ProductsPage() {
 
         <ProductsFilterDrawerContent
           open={isDrawerOpen}
-          onClose={() => {
-            setDrawerOpen(false)
-            setDraftFilters(null)
-          }}
+          onClose={handleCloseDrawer}
           groups={filterGroups}
           currentFilters={filters}
           initialFilters={EMPTY_FILTERS}
@@ -284,8 +308,8 @@ export function ProductsPage() {
       {modalProduct && (
         <AddToCollectionModal
           product={modalProduct}
-          onClose={() => setModalProduct(null)}
-          onSuccess={() => setModalProduct(null)}
+          onClose={handleCloseModal}
+          onSuccess={handleCloseModal}
         />
       )}
     </>

@@ -1,12 +1,15 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { ExternalLink, FlaskConical } from 'lucide-react'
-import { useMemo } from 'react'
+import { Check, Copy, ExternalLink, FlaskConical } from 'lucide-react'
+import { useCallback, useMemo } from 'react'
 import Markdown from 'react-markdown'
 
+import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
@@ -26,10 +29,34 @@ function formatConcentration(
   return result
 }
 
+function profileLabel(slug: string): string {
+  return (
+    SKIN_TYPE_LABELS[slug as keyof typeof SKIN_TYPE_LABELS] ??
+    SKIN_CONCERN_LABELS[slug as keyof typeof SKIN_CONCERN_LABELS] ??
+    slug
+  )
+}
+
 export function ProductInfoTab() {
   const { slug } = route.useParams()
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const hasIngredients = product.ingredients && product.ingredients.length > 0
+  const { copied, copy } = useCopyToClipboard()
+
+  const handleCopyIngredients = useCallback(() => {
+    if (!product.ingredients?.length) return
+    const text = product.ingredients
+      .map((ing) => {
+        const conc = formatConcentration(
+          ing.concentrationValue,
+          ing.concentrationUnit,
+          ing.concentrationPer
+        )
+        return conc ? `${ing.ingredientName} (${conc})` : ing.ingredientName
+      })
+      .join(', ')
+    void copy(text)
+  }, [product.ingredients, copy])
 
   const user = useAuthStore((s) => s.user)
 
@@ -56,33 +83,24 @@ export function ProductInfoTab() {
     <>
       {warnings.length > 0 && (
         <FormMessage variant="warning">
-          Ce produit peut ne pas convenir à votre profil cutané.
+          <strong>Peut ne pas convenir à votre profil cutané.</strong>{' '}
+          <span>
+            Concerne :{' '}
+            {warnings.map((w, i) => (
+              <span key={w.tagSlug}>
+                {i > 0 && ', '}
+                {profileLabel(w.tagSlug)}
+              </span>
+            ))}
+            .
+          </span>
         </FormMessage>
       )}
-      <div className="product-section">
-        <SectionHeader title="Informations" variant="primary" />
-        <dl className="product-details">
-          {product.totalAmount != null && (
-            <div className="product-detail">
-              <dt className="product-detail__label">Contenance</dt>
-              <dd className="product-detail__value">
-                {product.totalAmount} {product.amountUnit ?? product.unit}
-              </dd>
-            </div>
-          )}
-          {product.inci && (
-            <div className="product-detail product-detail--full">
-              <dt className="product-detail__label">INCI</dt>
-              <dd className="product-detail__value product-detail__value--inci">{product.inci}</dd>
-            </div>
-          )}
-        </dl>
-      </div>
 
       {product.description && (
-        <div className="product-info-section">
+        <div className="product-section">
           <SectionHeader title="Description" variant="primary" />
-          <RichText className="product-notes">
+          <RichText className="product-description">
             <Markdown>{product.description}</Markdown>
           </RichText>
         </div>
@@ -90,7 +108,27 @@ export function ProductInfoTab() {
 
       {hasIngredients && (
         <div className="product-section">
-          <SectionHeader title="Ingrédients" count={product.ingredients.length} variant="primary" />
+          <SectionHeader title="Ingrédients" count={product.ingredients.length} variant="primary">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyIngredients}
+              aria-label="Copier la liste des ingrédients"
+              className="ingredient-copy"
+            >
+              {copied ? (
+                <>
+                  <Check size={14} aria-hidden="true" />
+                  <span>Copié</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={14} aria-hidden="true" />
+                  <span>Copier</span>
+                </>
+              )}
+            </Button>
+          </SectionHeader>
           <ul className="ingredient-list">
             {product.ingredients.map((ing) => {
               const concentration = formatConcentration(
@@ -130,18 +168,31 @@ export function ProductInfoTab() {
         </div>
       )}
 
+      {product.inci && (
+        <details className="product-section product-inci">
+          <summary className="product-inci__summary">Composition INCI complète</summary>
+          <p className="product-inci__body">{product.inci}</p>
+        </details>
+      )}
+
       {product.notes && (
-        <div className="product-section">
-          <SectionHeader title="Notes" variant="primary" />
-          <div className="product-notes">{product.notes}</div>
-        </div>
+        <aside
+          className="product-section product-notes-block"
+          aria-labelledby="product-notes-title"
+        >
+          <h3 id="product-notes-title" className="product-notes-block__title">
+            Notes
+          </h3>
+          <p className="product-notes-block__body">{product.notes}</p>
+        </aside>
       )}
 
       {product.url && (
-        <div className="product-section">
+        <div className="product-section product-section--cta">
           <a href={product.url} target="_blank" rel="noopener noreferrer" className="product-link">
             <ExternalLink size={16} aria-hidden="true" />
-            Voir le produit
+            <span>Voir le produit</span>
+            <span className="sr-only"> (nouvel onglet)</span>
           </a>
         </div>
       )}

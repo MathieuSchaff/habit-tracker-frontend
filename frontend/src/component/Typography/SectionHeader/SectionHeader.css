@@ -1,8 +1,14 @@
 .section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
 .section-header__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
   font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
@@ -12,6 +18,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+.section-header__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .section-header__title::after {

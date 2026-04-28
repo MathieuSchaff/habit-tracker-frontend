@@ -225,7 +225,16 @@ export async function updateProduct(
 
 export type ProductSummary = Pick<
   Product,
-  'id' | 'slug' | 'name' | 'brand' | 'kind' | 'unit' | 'priceCents' | 'totalAmount' | 'amountUnit'
+  | 'id'
+  | 'slug'
+  | 'name'
+  | 'brand'
+  | 'kind'
+  | 'unit'
+  | 'priceCents'
+  | 'totalAmount'
+  | 'amountUnit'
+  | 'imageUrl'
 > & {
   // Avoid-tag slugs matching the caller's profile (avoid_for). Empty when no
   // profile filter is active. Drives the "Éviter" badge on cards.
@@ -385,6 +394,7 @@ export async function listProducts(
         priceCents: products.priceCents,
         totalAmount: products.totalAmount,
         amountUnit: products.amountUnit,
+        imageUrl: products.imageUrl,
       })
       .from(products)
       .where(where)

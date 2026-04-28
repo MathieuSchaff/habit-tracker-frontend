@@ -17,7 +17,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
@@ -27,6 +27,7 @@ import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
 import { IngredientSearch } from '@/features/products/components/IngredientSearch/IngredientSearch'
+import { useDebounce } from '@/hooks/useDebounce'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import {
   productQueries,
@@ -200,16 +201,8 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  const [debouncedName, setDebouncedName] = useState('')
-  const [debouncedBrand, setDebouncedBrand] = useState('')
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedName(form.name.trim())
-      setDebouncedBrand(form.brand.trim())
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [form.name, form.brand])
+  const debouncedName = useDebounce(form.name.trim())
+  const debouncedBrand = useDebounce(form.brand.trim())
 
   const { data: similarProducts } = useQuery({
     ...productQueries.checkDuplicate(debouncedName, debouncedBrand),

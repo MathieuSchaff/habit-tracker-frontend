@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import { FilterDrawer, type FilterGroupConfig, type FilterValues } from '@/component/Filter'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { PriceFilterAccordion } from '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion'
@@ -23,7 +25,7 @@ type Props = {
   onLocalFiltersChange?: (filters: FilterValues<FilterKey>) => void
 }
 
-export function ProductsFilterDrawerContent({
+function ProductsFilterDrawerContentImpl({
   open,
   onClose,
   groups,
@@ -67,3 +69,5 @@ export function ProductsFilterDrawerContent({
     </FilterDrawer>
   )
 }
+
+export const ProductsFilterDrawerContent = memo(ProductsFilterDrawerContentImpl)

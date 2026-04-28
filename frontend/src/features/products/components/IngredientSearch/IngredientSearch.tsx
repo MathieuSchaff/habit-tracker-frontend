@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
 import { ingredientQueries } from '@/lib/queries/ingredients'
@@ -15,7 +15,11 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const { data: results } = useQuery(ingredientQueries.search(query))
 
-  const available = results?.filter((r) => !existingIds.includes(r.id)) ?? []
+  const available = useMemo(() => {
+    if (!results) return []
+    const taken = new Set(existingIds)
+    return results.filter((r) => !taken.has(r.id))
+  }, [results, existingIds])
 
   function handleSelect(ing: { id: string; name: string }) {
     onAdd(ing.id, ing.name)

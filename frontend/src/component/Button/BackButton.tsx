@@ -21,7 +21,7 @@ export function BackButton(props: BackButtonProps) {
       : { onClick: props.onClick }
 
   return (
-    <Button {...pillProps} className={className}>
+    <Button {...pillProps} variant="ghost" size="sm" className={className}>
       <ArrowLeft size={16} />
       {children}
     </Button>
