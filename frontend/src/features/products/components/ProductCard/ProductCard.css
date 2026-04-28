@@ -32,14 +32,6 @@
 }
 
 .list-card--product .list-card__icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-sm);
-  background: oklch(from var(--_kind-color) l c h / 0.1);
-  color: var(--_kind-color);
   flex-shrink: 0;
 }
 

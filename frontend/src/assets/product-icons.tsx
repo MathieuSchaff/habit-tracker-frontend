@@ -1,4 +1,4 @@
-import { Droplets, FlaskConical, Package, Pill, Sun } from 'lucide-react'
+import { FlaskConical, Package, Pill, Sun } from 'lucide-react'
 
 // Individual icon components
 
@@ -152,12 +152,16 @@ export function ProdSpfIcon({ size = 24 }: { size?: number }) {
 
 // Resolver
 
+// Specific unit shapes only — generic containers (bottle, stick, bar, pack,
+// sachet, cartridge) fall through to the kind map so the icon reflects what
+// the product *is*, not just its outer container.
 const UNIT_TO_ICON: Record<string, React.ElementType> = {
   pump: ProdPumpIcon,
   pompe: ProdPumpIcon,
   dropper: ProdDropperIcon,
   pipette: ProdDropperIcon,
   'compte-gouttes': ProdDropperIcon,
+  ampoule: ProdDropperIcon,
   jar: ProdCreamJarIcon,
   pot: ProdCreamJarIcon,
   crème: ProdCreamJarIcon,
@@ -167,20 +171,74 @@ const UNIT_TO_ICON: Record<string, React.ElementType> = {
   spray: ProdSprayIcon,
   brume: ProdSprayIcon,
   brumisateur: ProdSprayIcon,
+  aerosol: ProdSprayIcon,
   spf: ProdSpfIcon,
   sunscreen: ProdSpfIcon,
   solaire: ProdSpfIcon,
+  capsule: Pill,
+  tablet: Pill,
+  gummy: Pill,
+  powder: FlaskConical,
+  roller: ProdDropperIcon,
 }
 
 const KIND_FALLBACK: Record<string, React.ElementType> = {
+  // skincare
+  serum: ProdDropperIcon,
+  moisturizer: ProdCreamJarIcon,
+  cleanser: ProdTubeIcon,
+  toner: ProdSprayIcon,
+  exfoliant: ProdTubeIcon,
+  'eye-cream': ProdDropperIcon,
+  mask: ProdCreamJarIcon,
+  mist: ProdSprayIcon,
+  essence: ProdSprayIcon,
+  'spot-treatment': ProdDropperIcon,
+  'lip-care': ProdTubeIcon,
+  balm: ProdCreamJarIcon,
+  oil: ProdDropperIcon,
+  primer: ProdPumpIcon,
+  patch: Package,
+  // solaire
+  sunscreen: ProdSpfIcon,
+  'after-sun': ProdSpfIcon,
+  'self-tanner': ProdSpfIcon,
+  // complement
+  gelule: Pill,
+  capsule: Pill,
+  ampoule: ProdDropperIcon,
+  poudre: FlaskConical,
+  sirop: FlaskConical,
+  gummy: Pill,
+  huile: ProdDropperIcon,
+  // haircare
+  shampoo: ProdTubeIcon,
+  conditioner: ProdTubeIcon,
+  'hair-mask': ProdCreamJarIcon,
+  'hair-serum': ProdDropperIcon,
+  'hair-oil': ProdDropperIcon,
+  styling: ProdSprayIcon,
+  // bodycare
+  'body-lotion': ProdTubeIcon,
+  'body-oil': ProdDropperIcon,
+  'body-scrub': ProdCreamJarIcon,
+  'body-wash': ProdTubeIcon,
+  deodorant: ProdSprayIcon,
+  'hand-cream': ProdTubeIcon,
+  'foot-cream': ProdTubeIcon,
+  // dental
+  toothpaste: ProdTubeIcon,
+  mouthwash: ProdSprayIcon,
+  'teeth-whitening': ProdTubeIcon,
+  floss: Package,
+  // legacy/aliases
   skincare: FlaskConical,
   complément: Pill,
   complement: Pill,
-  huile: Droplets,
   vitamine: Sun,
 }
 
-// priority: unit match → kind fallback → Package
+// priority: specific unit shape → kind archetype → Package
 export function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
   const normalizedUnit = unit?.toLowerCase().trim()
   if (normalizedUnit && UNIT_TO_ICON[normalizedUnit]) {

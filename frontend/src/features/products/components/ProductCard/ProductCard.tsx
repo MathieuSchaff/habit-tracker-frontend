@@ -4,10 +4,10 @@ import { Link } from '@tanstack/react-router'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { memo, useCallback } from 'react'
 
-import { ProductIcon } from '@/assets/product-icons'
 import { Button } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
+import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import type { ProductListItem } from '@/lib/queries/products'
 
 import './ProductCard.css'
@@ -87,9 +87,14 @@ function ProductCardImpl({ product, onAdd }: Props) {
                 </span>
               )}
             </div>
-            <div className="list-card__icon-wrap" aria-hidden="true">
-              <ProductIcon unit={product.unit} kind={product.kind} size={18} />
-            </div>
+            <ProductImage
+              slug={product.slug}
+              kind={product.kind}
+              unit={product.unit}
+              imageUrl={product.imageUrl}
+              size={48}
+              className="list-card__icon-wrap"
+            />
           </div>
           <span className="list-card__brand">{product.brand}</span>
           <Card.Title

@@ -3,7 +3,7 @@ import type { ProductDomainTab } from '@habit-tracker/shared'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
@@ -31,7 +31,7 @@ type Props = {
   tabOptions: TabOption<ProductDomainTab>[]
 }
 
-export function ProductsHeader({
+function ProductsHeaderImpl({
   total,
   hasFilters,
   isPlaceholderData,
@@ -217,6 +217,8 @@ export function ProductsHeader({
     </>
   )
 }
+
+export const ProductsHeader = memo(ProductsHeaderImpl)
 
 type FloatingFilterButtonProps = {
   visible: boolean

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
@@ -42,7 +42,10 @@ export function BrandCombobox({
 
   const { data: brands = [], isLoading } = useQuery(productQueries.brands())
 
-  const filtered = brands.filter((b) => b.toLowerCase().includes(inputValue.toLowerCase()))
+  const filtered = useMemo(() => {
+    const needle = inputValue.toLowerCase()
+    return brands.filter((b) => b.toLowerCase().includes(needle))
+  }, [brands, inputValue])
 
   const isKnownBrand = (val: string) => brands.some((b) => b.toLowerCase() === val.toLowerCase())
 
