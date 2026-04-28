@@ -42,7 +42,6 @@ describe('SubGroupedChips — rendering', () => {
         })}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -65,7 +64,6 @@ describe('SubGroupedChips — rendering', () => {
         })}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -80,7 +78,6 @@ describe('SubGroupedChips — rendering', () => {
         field={{ ...makeField(), subGroups: undefined }}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -99,7 +96,6 @@ describe('SubGroupedChips — maxVisible', () => {
         })}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -121,7 +117,6 @@ describe('SubGroupedChips — maxVisible', () => {
         })}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -142,7 +137,6 @@ describe('SubGroupedChips — toggle', () => {
         field={makeField()}
         selected={[]}
         onToggle={onToggle}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -158,7 +152,6 @@ describe('SubGroupedChips — toggle', () => {
         field={makeField()}
         selected={['a', 'c']}
         onToggle={onToggle}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -175,7 +168,6 @@ describe('SubGroupedChips — toggle', () => {
         })}
         selected={['e']}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={() => {}}
       />
     )
@@ -197,7 +189,6 @@ describe('SubGroupedChips — escape handler', () => {
         field={makeField()}
         selected={[]}
         onToggle={vi.fn()}
-        isAccordionOpen
         escapeHandler={escapeHandler}
       />
     )
@@ -207,33 +198,5 @@ describe('SubGroupedChips — escape handler', () => {
 
     expect(escapeHandler).toHaveBeenCalledTimes(1)
     expect(escapeHandler.mock.calls[0][0].key).toBe('Escape')
-  })
-})
-
-describe('SubGroupedChips — chipTabIndex follows accordion open state', () => {
-  it('chips are tabbable when the accordion is open', () => {
-    render(
-      <SubGroupedChips
-        field={makeField()}
-        selected={[]}
-        onToggle={vi.fn()}
-        isAccordionOpen
-        escapeHandler={() => {}}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute('tabindex', '0')
-  })
-
-  it('chips are removed from the tab order when the accordion is closed', () => {
-    render(
-      <SubGroupedChips
-        field={makeField()}
-        selected={[]}
-        onToggle={vi.fn()}
-        isAccordionOpen={false}
-        escapeHandler={() => {}}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute('tabindex', '-1')
   })
 })

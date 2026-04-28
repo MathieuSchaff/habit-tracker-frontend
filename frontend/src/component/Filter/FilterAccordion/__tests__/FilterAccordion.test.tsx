@@ -231,50 +231,45 @@ describe('FilterAccordion — variant routing', () => {
 
 describe('FilterAccordion — header behavior', () => {
   it('expands at mount when defaultOpen=true', () => {
-    renderAccordion(
+    const { container } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: true })}
         localFilters={emptyFilters}
         onToggle={vi.fn()}
       />
     )
-    expect(screen.getByRole('button', { name: /Concern/ })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
+    expect((container.querySelector('details') as HTMLDetailsElement).open).toBe(true)
   })
 
   it('expands at mount when defaultOpen=false but a sub-filter has selections', () => {
-    renderAccordion(
+    const { container } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: false })}
         localFilters={{ ...emptyFilters, concern: ['acne'] }}
         onToggle={vi.fn()}
       />
     )
-    expect(screen.getByRole('button', { name: /Concern/ })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
+    expect((container.querySelector('details') as HTMLDetailsElement).open).toBe(true)
   })
 
   it('toggles open/closed on header click', async () => {
     const user = userEvent.setup()
-    renderAccordion(
+    const { container } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: false })}
         localFilters={emptyFilters}
         onToggle={vi.fn()}
       />
     )
-    const trigger = screen.getByRole('button', { name: /Concern/ })
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    const details = container.querySelector('details') as HTMLDetailsElement
+    const trigger = container.querySelector('summary') as HTMLElement
+    expect(details.open).toBe(false)
 
     await user.click(trigger)
-    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(details.open).toBe(true)
 
     await user.click(trigger)
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(details.open).toBe(false)
   })
 
   it('shows a count badge when selections exist', () => {
@@ -320,27 +315,28 @@ describe('FilterAccordion — header behavior', () => {
 describe('FilterAccordion — escape propagation', () => {
   it('Escape on a chip closes the accordion and refocuses the trigger', async () => {
     const user = userEvent.setup()
-    renderAccordion(
+    const { container } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: true })}
         localFilters={emptyFilters}
         onToggle={vi.fn()}
       />
     )
-    const trigger = screen.getByRole('button', { name: /Concern/ })
-    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    const details = container.querySelector('details') as HTMLDetailsElement
+    const trigger = container.querySelector('summary') as HTMLElement
+    expect(details.open).toBe(true)
 
     const acne = screen.getByRole('button', { name: 'Acné' })
     acne.focus()
     await user.keyboard('{Escape}')
 
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(details.open).toBe(false)
     expect(document.activeElement).toBe(trigger)
   })
 })
 
-describe('FilterAccordion — body inertness', () => {
-  it('marks the body inert and aria-hidden when collapsed', () => {
+describe('FilterAccordion — open state', () => {
+  it('renders a closed <details> when defaultOpen=false and no selections', () => {
     const { container } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: false })}
@@ -348,23 +344,8 @@ describe('FilterAccordion — body inertness', () => {
         onToggle={vi.fn()}
       />
     )
-    const body = container.querySelector('.filter-accordion__body') as HTMLElement
-    expect(body).toBeTruthy()
-    expect(body).toHaveAttribute('aria-hidden', 'true')
-    expect(body.hasAttribute('inert')).toBe(true)
-  })
-
-  it('removes inert and aria-hidden=false when expanded', () => {
-    const { container } = renderAccordion(
-      <FilterAccordion
-        group={makeGroup({ defaultOpen: true })}
-        localFilters={emptyFilters}
-        onToggle={vi.fn()}
-      />
-    )
-    const body = container.querySelector('.filter-accordion__body') as HTMLElement
-    expect(body).toHaveAttribute('aria-hidden', 'false')
-    expect(body.hasAttribute('inert')).toBe(false)
+    const details = container.querySelector('details') as HTMLDetailsElement
+    expect(details.open).toBe(false)
   })
 })
 

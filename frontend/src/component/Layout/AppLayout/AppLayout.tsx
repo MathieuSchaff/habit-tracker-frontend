@@ -3,6 +3,7 @@ import { Toaster, toast } from 'sonner'
 
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
+import { BackToTopButton } from '../../BackToTopButton/BackToTopButton'
 import { Button } from '../../Button/Button'
 import { BottomNav } from '../../Header/BottomNav/BottomNav'
 import { Header } from '../../Header/Header'
@@ -50,6 +51,7 @@ export const AppLayout = () => {
         <Outlet />
       </main>
       <BottomNav />
+      <BackToTopButton />
       <Toaster position="top-center" richColors />
     </div>
   )

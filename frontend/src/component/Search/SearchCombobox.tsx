@@ -4,8 +4,8 @@ import {
   type UseInfiniteQueryOptions,
   useInfiniteQuery,
 } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Search, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   ComboboxPrimitive,
@@ -67,6 +67,13 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function clearAndClose() {
+    setQuery('')
+    setIsOpen(false)
+    setHighlightedIndex(-1)
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), debounce)
@@ -163,6 +170,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
         <div className="search-combobox__input-wrap">
           <Search size={15} className="search-combobox__icon" aria-hidden="true" />
           <input
+            ref={inputRef}
             type="text"
             role="combobox"
             className="search-combobox__input"
@@ -181,6 +189,19 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
             aria-activedescendant={activeDescendant}
             aria-autocomplete="list"
           />
+          {query.length > 0 && (
+            <button
+              type="button"
+              className="search-combobox__clear"
+              onClick={() => {
+                clearAndClose()
+                inputRef.current?.focus()
+              }}
+              aria-label="Effacer la recherche"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          )}
         </div>
       )}
     </ComboboxPrimitive>

@@ -17,6 +17,15 @@ type FilterDrawerProps<T extends string> = {
   onReset: () => void
   initialFilters: FilterValues<T>
   children?: React.ReactNode
+  // Rendered after the essential accordions, before the "Avancé" separator.
+  // Used for non-tag essentials (e.g. price range) so they sit inside the
+  // essential block instead of floating above the whole list.
+  essentialExtras?: React.ReactNode
+  // Live count of products matching the in-flight selection, displayed on
+  // the Apply button. Parent owns the query — drawer just renders.
+  previewCount?: number
+  // Emitted on every local change so the parent can drive a preview query.
+  onLocalFiltersChange?: (filters: FilterValues<T>) => void
 }
 
 export function FilterDrawer<T extends string>({
@@ -28,10 +37,18 @@ export function FilterDrawer<T extends string>({
   onReset,
   initialFilters,
   children,
+  essentialExtras,
+  previewCount,
+  onLocalFiltersChange,
 }: FilterDrawerProps<T>) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [localFilters, setLocalFilters] = useState<FilterValues<T>>(currentFilters)
   const previousFocusRef = useRef<HTMLElement | null>(null)
+
+  // Stable ref so commitLocal can call the latest callback without
+  // re-creating itself every render.
+  const onLocalFiltersChangeRef = useRef(onLocalFiltersChange)
+  onLocalFiltersChangeRef.current = onLocalFiltersChange
 
   useScrollLock(open)
 
@@ -60,14 +77,18 @@ export function FilterDrawer<T extends string>({
     }
   }, [open])
 
+  // Emit on user action instead of via effect on localFilters: an effect
+  // would call setDraftFilters in the parent, which re-renders and ships a
+  // new currentFilters ref back, triggering Maximum update depth.
+  const commitLocal = (next: FilterValues<T>) => {
+    setLocalFilters(next)
+    onLocalFiltersChangeRef.current?.(next)
+  }
+
   const handleToggle = (key: T, value: string) => {
-    setLocalFilters((prev) => {
-      const current = prev[key] ?? []
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value]
-      return { ...prev, [key]: next }
-    })
+    const current = localFilters[key] ?? []
+    const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value]
+    commitLocal({ ...localFilters, [key]: next })
   }
 
   const handleCancel = (e: React.UIEvent<HTMLDialogElement>) => {
@@ -144,6 +165,7 @@ export function FilterDrawer<T extends string>({
               onToggle={handleToggle}
             />
           ))}
+          {essentialExtras}
 
           {advancedGroups.length > 0 && (
             <fieldset aria-label="Filtres avancés">
@@ -166,9 +188,9 @@ export function FilterDrawer<T extends string>({
         <div className="filter-drawer__footer">
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             onClick={() => {
-              setLocalFilters(initialFilters)
+              commitLocal(initialFilters)
               onReset()
             }}
             aria-label="Réinitialiser tous les filtres"
@@ -177,12 +199,14 @@ export function FilterDrawer<T extends string>({
           </Button>
           <Button
             variant="primary"
-            size="sm"
+            size="md"
             className="filter-drawer__apply"
             onClick={handleClose}
             aria-label="Appliquer les filtres sélectionnés"
           >
-            Appliquer
+            {previewCount === undefined
+              ? 'Appliquer'
+              : `Voir ${previewCount} produit${previewCount > 1 ? 's' : ''}`}
           </Button>
         </div>
       </div>

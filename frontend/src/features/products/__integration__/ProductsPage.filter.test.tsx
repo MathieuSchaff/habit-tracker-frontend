@@ -17,6 +17,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { Route as ProductsIndexRouteImport } from '@/routes/products/index'
 import { useAuthStore } from '@/store/auth'
+import { server } from '@/test/msw/server'
 
 function makeClient() {
   return new QueryClient({
@@ -154,5 +155,123 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     await waitFor(() => {
       expect(screen.getByText(/Hydrating Cleanser/)).toBeInTheDocument()
     })
+  })
+})
+
+// Coverage for filter-drawer.md §6 (live preview count) — gated, draft-driven,
+// converging on apply. Pins three behaviors the audit flagged as untested:
+// (1) the apply button reflects an in-flight count, (2) the parent clears
+// `draftFilters` on close so a reopen doesn't echo a stale draft, and
+// (3) preview/main share a queryKey on apply so the grid hits cache instead
+// of round-tripping again.
+describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => {
+  it('updates the apply button text live as the user toggles chips in the drawer', async () => {
+    const user = userEvent.setup()
+    renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    const dialog = await screen.findByRole('dialog')
+    const applyBtn = within(dialog).getByRole('button', {
+      name: /Appliquer les filtres sélectionnés/i,
+    })
+
+    // Drawer just opened, no draft yet → preview equals main count (2 fixtures).
+    await waitFor(() => {
+      expect(applyBtn).toHaveTextContent(/Voir 2 produits/)
+    })
+
+    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+
+    // Only one fixture carries `anti-acne`, so the live count drops to 1.
+    await waitFor(() => {
+      expect(applyBtn).toHaveTextContent(/Voir 1 produit\b/)
+    })
+
+    // Toggling the chip back off restores the unfiltered count without a re-apply.
+    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+    await waitFor(() => {
+      expect(applyBtn).toHaveTextContent(/Voir 2 produits/)
+    })
+  })
+
+  it('does not echo a stale draft after the drawer is reopened', async () => {
+    const user = userEvent.setup()
+    renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    // Open → narrow to anti-acne → apply (URL = anti-acne, draft cleared).
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    let dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+    await waitFor(() => {
+      expect(
+        within(dialog).getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+      ).toHaveTextContent(/Voir 1 produit\b/)
+    })
+    await user.click(
+      within(dialog).getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+    )
+    await waitFor(() => {
+      expect(screen.queryByText(/Hydrating Cleanser/)).not.toBeInTheDocument()
+    })
+
+    // Reopen — preview must reflect the URL (1), not the previously-drafted state.
+    // If `setDraftFilters(null)` regressed, the preview key could differ from the
+    // main key on first paint and the cache hit on apply (next test) would break.
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    dialog = await screen.findByRole('dialog')
+    await waitFor(() => {
+      expect(
+        within(dialog).getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+      ).toHaveTextContent(/Voir 1 produit\b/)
+    })
+  })
+
+  it('reuses preview cache on apply — no extra fetch when keys converge', async () => {
+    const user = userEvent.setup()
+    renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    // Tally only requests carrying `anti-acne` so the unfiltered initial fetch
+    // doesn't pollute the count. MSW's request:start is global; remove the
+    // listener in finally to avoid leaking into sibling tests.
+    const filteredRequests: string[] = []
+    const onRequest: Parameters<typeof server.events.on<'request:start'>>[1] = ({ request }) => {
+      const u = request.url
+      if (u.includes('/api/products') && u.includes('anti-acne')) {
+        filteredRequests.push(u)
+      }
+    }
+    server.events.on('request:start', onRequest)
+
+    try {
+      await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+      const dialog = await screen.findByRole('dialog')
+      const applyBtn = within(dialog).getByRole('button', {
+        name: /Appliquer les filtres sélectionnés/i,
+      })
+
+      await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+
+      // Preview must land before we click apply, otherwise a race could legitimately
+      // fire a second fetch from the main grid query and obscure the cache-hit signal.
+      await waitFor(() => {
+        expect(applyBtn).toHaveTextContent(/Voir 1 produit\b/)
+      })
+      expect(filteredRequests.length).toBe(1)
+
+      await user.click(applyBtn)
+
+      // Drawer closes + URL flips to anti-acne. Main grid useQuery now points at
+      // the same key the preview already populated — should resolve from cache.
+      await waitFor(() => {
+        expect(screen.queryByText(/Hydrating Cleanser/)).not.toBeInTheDocument()
+      })
+      expect(screen.getByText(/Niacinamide 10% \+ Zinc 1%/)).toBeInTheDocument()
+      expect(filteredRequests.length).toBe(1)
+    } finally {
+      server.events.removeListener('request:start', onRequest)
+    }
   })
 })

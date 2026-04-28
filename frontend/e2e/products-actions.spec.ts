@@ -164,10 +164,16 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
+    await page
+      .getByRole('radiogroup', { name: 'Type de produit' })
+      .locator('label', { hasText: 'Sérum' })
+      .click()
     await expect(submit).toBeDisabled()
 
-    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
+    await page
+      .getByRole('radiogroup', { name: 'Conditionnement du produit' })
+      .locator('label', { hasText: 'Pompe' })
+      .click()
     await expect(submit).toBeEnabled()
   })
 
@@ -187,10 +193,19 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
-    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
+    await page
+      .getByRole('radiogroup', { name: 'Type de produit' })
+      .locator('label', { hasText: 'Sérum' })
+      .click()
+    await page
+      .getByRole('radiogroup', { name: 'Conditionnement du produit' })
+      .locator('label', { hasText: 'Pompe' })
+      .click()
     await page.locator('#edit-total-amount').fill('30')
-    await page.getByRole('radiogroup', { name: 'Unité de contenance' }).locator('label', { hasText: 'mL' }).click()
+    await page
+      .getByRole('radiogroup', { name: 'Unité de contenance' })
+      .locator('label', { hasText: 'mL' })
+      .click()
     await page.locator('#edit-price').fill('29.90')
 
     const postPromise = page.waitForRequest(
@@ -227,8 +242,14 @@ test.describe('Products page — "Créer" → /products/new', () => {
     await brandInput.blur()
     await page.getByRole('button', { name: 'Oui', exact: true }).click()
 
-    await page.getByRole('radiogroup', { name: 'Type de produit' }).locator('label', { hasText: 'Sérum' }).click()
-    await page.getByRole('radiogroup', { name: 'Conditionnement du produit' }).locator('label', { hasText: 'Pompe' }).click()
+    await page
+      .getByRole('radiogroup', { name: 'Type de produit' })
+      .locator('label', { hasText: 'Sérum' })
+      .click()
+    await page
+      .getByRole('radiogroup', { name: 'Conditionnement du produit' })
+      .locator('label', { hasText: 'Pompe' })
+      .click()
 
     // Mock the POST to simulate a server-side validation failure.
     await page.route('**/api/products', (route) => {

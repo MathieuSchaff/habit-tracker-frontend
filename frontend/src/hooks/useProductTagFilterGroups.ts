@@ -54,7 +54,7 @@ export function useProductTagFilterGroups(
       return {
         id: cat,
         label: catMeta.label,
-        defaultOpen: catMeta.tier === 'essential',
+        defaultOpen: catMeta.defaultOpen ?? catMeta.tier === 'essential',
         tier: catMeta.tier,
         subFilters: [
           {

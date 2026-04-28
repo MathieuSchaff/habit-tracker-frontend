@@ -63,6 +63,12 @@ const baseProps = {
   onSortChange: vi.fn(),
   onOpenDrawer: vi.fn(),
   effectiveFilterCount: 0,
+  activeTab: 'skincare' as const,
+  onTabChange: vi.fn(),
+  tabOptions: [
+    { id: 'skincare' as const, label: 'Soin visage' },
+    { id: 'haircare' as const, label: 'Cheveux' },
+  ],
 }
 
 describe('ProductsHeader — facet match footer', () => {

@@ -6,7 +6,7 @@
 
 .search-combobox__icon {
   position: absolute;
-  left: var(--space-3);
+  left: var(--space-4);
   color: var(--text-muted);
   pointer-events: none;
   flex-shrink: 0;
@@ -14,9 +14,10 @@
 
 .search-combobox__input {
   width: 100%;
-  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + 15px + var(--space-2));
-  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
-  border-radius: var(--radius-md);
+  padding: var(--space-2) calc(var(--space-4) + 14px + var(--space-2)) var(--space-2)
+    calc(var(--space-4) + 15px + var(--space-2));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
   background: var(--bg-card);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -46,6 +47,37 @@
 .search-combobox__sublabel {
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+
+.search-combobox__clear {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast) ease,
+    background var(--transition-fast) ease;
+}
+
+.search-combobox__clear:hover {
+  color: var(--text-primary);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+}
+
+.search-combobox__clear:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .search-combobox__section-entry {

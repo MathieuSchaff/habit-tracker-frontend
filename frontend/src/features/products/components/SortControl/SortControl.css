@@ -6,3 +6,9 @@
   color: var(--color-accent);
   flex-shrink: 0;
 }
+
+.sort-control__trigger--compact {
+  width: 38px;
+  padding: 0;
+  min-height: 38px;
+}

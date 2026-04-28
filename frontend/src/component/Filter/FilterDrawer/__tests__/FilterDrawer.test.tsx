@@ -397,3 +397,96 @@ describe('FilterDrawer — async child does not block the drawer', () => {
     client.clear()
   })
 })
+
+// Regression guards for the "Maximum update depth" feedback loop documented
+// in filter-drawer.md §5.2. The bug was a useEffect that emitted localFilters
+// upward on every change — paired with an unmemoised parent `currentFilters`,
+// it ping-ponged renders forever. Fix moved the emit to user-action paths
+// (`commitLocal`). These tests pin that contract: opening the drawer must not
+// emit; toggling emits exactly once; a fresh-but-equal `currentFilters` ref
+// from the parent must not bubble back up.
+describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
+  it('does not call onLocalFiltersChange just by opening', () => {
+    const onChange = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        onLocalFiltersChange={onChange}
+      />
+    )
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('emits exactly once per chip toggle (no effect-driven duplicate)', () => {
+    const onChange = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        onLocalFiltersChange={onChange}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange.mock.calls[0]?.[0]).toEqual({ concern: ['acne'], skin_type: [] })
+  })
+
+  it('emits exactly once even when the parent ships a fresh currentFilters ref each render', () => {
+    // Reproduces the unmemoised-parent shape that triggered the loop. Build a
+    // brand-new `currentFilters` object on every rerender; the drawer must not
+    // re-emit just because the ref changed.
+    const onChange = vi.fn()
+    const renderWithFreshRef = () => (
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={{ concern: [], skin_type: [] }}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        onLocalFiltersChange={onChange}
+      />
+    )
+    const { rerender } = render(renderWithFreshRef())
+    rerender(renderWithFreshRef())
+    rerender(renderWithFreshRef())
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('does not log "Maximum update depth" on open or repeated toggles', () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        onLocalFiltersChange={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Anti-âge/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+
+    const offending = errSpy.mock.calls.find((args) =>
+      args.some((arg) => typeof arg === 'string' && arg.includes('Maximum update depth'))
+    )
+    expect(offending).toBeUndefined()
+    errSpy.mockRestore()
+  })
+})

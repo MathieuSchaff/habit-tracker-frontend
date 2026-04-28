@@ -19,24 +19,38 @@ const SORT_OPTIONS: SortOption[] = [
 type Props = {
   value: ProductSort
   onChange: (sort: ProductSort) => void
+  compact?: boolean
 }
 
-export function SortControl({ value, onChange }: Props) {
+export function SortControl({ value, onChange, compact = false }: Props) {
   const current = SORT_OPTIONS.find((o) => o.value === value) ?? SORT_OPTIONS[0]
 
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger>
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          className="list-filter-btn sort-control__trigger"
-          aria-label={`Tri : ${current?.label}`}
-        >
-          <ArrowDownUp size={14} aria-hidden="true" />
-          <span>{current?.label}</span>
-        </Button>
+        {compact ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="md"
+            className="sort-control__trigger sort-control__trigger--compact"
+            aria-label={`Trier · ${current?.label}`}
+            title={`Trier · ${current?.label}`}
+          >
+            <ArrowDownUp size={16} aria-hidden="true" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            className="list-filter-btn sort-control__trigger"
+            aria-label={`Tri : ${current?.label}`}
+          >
+            <ArrowDownUp size={14} aria-hidden="true" />
+            <span>{current?.label}</span>
+          </Button>
+        )}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" ariaLabel="Options de tri">
         {SORT_OPTIONS.map((opt, i) => (

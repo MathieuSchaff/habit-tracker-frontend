@@ -1,7 +1,7 @@
 .button.google-btn {
   gap: var(--space-3);
   border: none;
-  background: var(--bg-surface);
+  background: var(--bg-card);
   color: var(--text-primary);
   box-shadow: inset 0 0 0 2px oklch(from var(--color-primary) l c h / 0.2);
   transition:
