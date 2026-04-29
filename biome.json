@@ -12,6 +12,7 @@
       "!**/*.gen.ts",
       "!backend/src/**/*.js",
       "!**/drizzle.backup",
+      "!backend/src/db/seed/output",
       "!**/*.test.ts",
       "!**/*.test.tsx",
       "!**/__tests__"
