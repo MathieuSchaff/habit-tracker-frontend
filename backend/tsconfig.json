@@ -32,7 +32,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/**/*.test.ts" // Exclut tous les fichiers .test.ts
+    "src/**/*.test.ts", // Exclut tous les fichiers .test.ts
+    "src/db/seed/output/seeds" // Entrées scrapper brutes (gitignored, références UnifiedProductSeed sans import)
   ], // Ignore les dépendances et les fichiers déjà compilés
 
   /* References doit être à la racine du JSON */

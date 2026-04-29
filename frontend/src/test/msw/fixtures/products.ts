@@ -10,7 +10,9 @@ export type ProductListItem = {
   priceCents: number | null
   totalAmount: number | null
   amountUnit: string
+  imageUrl: string | null
   profileMatches: string[]
+  tags: { slug: string; tagType: string; relevance: 'primary' | 'secondary' }[]
 }
 
 // Tag-by-product map kept alongside the list so the products handler can
@@ -39,7 +41,12 @@ export const PRODUCTS: ProductListItem[] = [
     priceCents: 1299,
     totalAmount: 236,
     amountUnit: 'ml',
+    imageUrl: null,
     profileMatches: [],
+    tags: [
+      { slug: 'barriere-cutanee', tagType: 'concern', relevance: 'primary' },
+      { slug: 'peau-seche', tagType: 'skin_type', relevance: 'primary' },
+    ],
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
@@ -51,7 +58,12 @@ export const PRODUCTS: ProductListItem[] = [
     priceCents: 699,
     totalAmount: 30,
     amountUnit: 'ml',
+    imageUrl: null,
     profileMatches: [],
+    tags: [
+      { slug: 'anti-acne', tagType: 'concern', relevance: 'primary' },
+      { slug: 'pores-dilates', tagType: 'concern', relevance: 'secondary' },
+    ],
   },
 ]
 

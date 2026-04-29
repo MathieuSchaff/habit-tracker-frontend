@@ -298,6 +298,8 @@ describe('Product Routes', () => {
       expect(item).toHaveProperty('kind')
       expect(item).toHaveProperty('unit')
       expect(item).toHaveProperty('priceCents')
+      expect(item).toHaveProperty('profileMatches')
+      expect(item).toHaveProperty('tags')
       expect(item).not.toHaveProperty('description')
       expect(item).not.toHaveProperty('inci')
     })

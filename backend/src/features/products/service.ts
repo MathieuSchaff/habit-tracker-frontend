@@ -27,6 +27,7 @@ import {
   ilike,
   inArray,
   lte,
+  ne,
   or,
   type SQL,
   sql,
@@ -239,6 +240,9 @@ export type ProductSummary = Pick<
   // Avoid-tag slugs matching the caller's profile (avoid_for). Empty when no
   // profile filter is active. Drives the "Éviter" badge on cards.
   profileMatches: string[]
+  // Positive tags (relevance != 'avoid'). Card filters relevance='primary' to
+  // show top 3 chips; tagType drives chip styling (concern/skin_type/label).
+  tags: { slug: string; tagType: string; relevance: 'primary' | 'secondary' }[]
 }
 export type ProductsPage = {
   items: ProductSummary[]
@@ -407,31 +411,60 @@ export async function listProducts(
   const total = countResult[0]?.total ?? 0
 
   const matchesByProduct = new Map<string, string[]>()
-  if (avoidSlugs.length > 0 && items.length > 0) {
-    const rows = await database
-      .select({ productId: tagProducts.productId, slug: productTagsDefs.slug })
-      .from(tagProducts)
-      .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-      .where(
-        and(
-          inArray(
-            tagProducts.productId,
-            items.map((i) => i.id)
-          ),
-          inArray(productTagsDefs.slug, avoidSlugs),
-          eq(tagProducts.relevance, 'avoid')
-        )
-      )
-    for (const row of rows) {
+  const tagsByProduct = new Map<string, ProductSummary['tags']>()
+
+  if (items.length > 0) {
+    const itemIds = items.map((i) => i.id)
+
+    const [avoidRows, positiveTagRows] = await Promise.all([
+      avoidSlugs.length > 0
+        ? database
+            .select({ productId: tagProducts.productId, slug: productTagsDefs.slug })
+            .from(tagProducts)
+            .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+            .where(
+              and(
+                inArray(tagProducts.productId, itemIds),
+                inArray(productTagsDefs.slug, avoidSlugs),
+                eq(tagProducts.relevance, 'avoid')
+              )
+            )
+        : Promise.resolve([] as { productId: string; slug: string }[]),
+      // Positive tags only (relevance != 'avoid') drive card chips. Avoid is
+      // already handled by profileMatches above and would otherwise duplicate.
+      database
+        .select({
+          productId: tagProducts.productId,
+          slug: productTagsDefs.slug,
+          tagType: productTagsDefs.tagType,
+          relevance: tagProducts.relevance,
+        })
+        .from(tagProducts)
+        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .where(and(inArray(tagProducts.productId, itemIds), ne(tagProducts.relevance, 'avoid'))),
+    ])
+
+    for (const row of avoidRows) {
       const list = matchesByProduct.get(row.productId) ?? []
       list.push(row.slug)
       matchesByProduct.set(row.productId, list)
+    }
+
+    for (const row of positiveTagRows) {
+      const list = tagsByProduct.get(row.productId) ?? []
+      list.push({
+        slug: row.slug,
+        tagType: row.tagType,
+        relevance: row.relevance as 'primary' | 'secondary',
+      })
+      tagsByProduct.set(row.productId, list)
     }
   }
 
   const itemsWithMatches: ProductSummary[] = items.map((i) => ({
     ...i,
     profileMatches: matchesByProduct.get(i.id) ?? [],
+    tags: tagsByProduct.get(i.id) ?? [],
   }))
 
   return { items: itemsWithMatches, total, page, limit }
