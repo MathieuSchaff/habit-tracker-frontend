@@ -94,7 +94,7 @@ export function ProductLayout() {
           kind={product.kind}
           unit={product.unit}
           imageUrl={product.imageUrl}
-          size={96}
+          size={160}
           className="product-hero__image"
         />
         <div className="product-hero__info">
