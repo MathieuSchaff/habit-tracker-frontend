@@ -1,6 +1,7 @@
 import { db } from '../..'
 import type { DB } from '../../index'
 import {
+  articles,
   ingredients,
   ingredientTagsDefs,
   productIngredients,
@@ -8,6 +9,8 @@ import {
   productTagsDefs,
   tagIngredients,
   tagProducts,
+  userProductReviews,
+  userProducts,
 } from '../../schema'
 import type { ProductTagGroups } from './batch'
 
@@ -21,16 +24,19 @@ export function flattenTagGroups(
   ])
 }
 
-export async function cleanDatabase() {
+export async function cleanDatabase(tx: DB = db) {
   console.log('🧹 Nettoyage de la base de données...')
   // Order matters: junction tables before owners (FK constraints)
-  await db.delete(tagProducts)
-  await db.delete(productIngredients)
-  await db.delete(tagIngredients)
-  await db.delete(products)
-  await db.delete(ingredients)
-  await db.delete(productTagsDefs)
-  await db.delete(ingredientTagsDefs)
+  await tx.delete(articles)
+  await tx.delete(userProductReviews)
+  await tx.delete(userProducts)
+  await tx.delete(tagProducts)
+  await tx.delete(productIngredients)
+  await tx.delete(tagIngredients)
+  await tx.delete(products)
+  await tx.delete(ingredients)
+  await tx.delete(productTagsDefs)
+  await tx.delete(ingredientTagsDefs)
   console.log('✅ Base nettoyée\n')
 }
 
