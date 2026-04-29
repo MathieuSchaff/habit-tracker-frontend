@@ -80,6 +80,7 @@ frontend/.tanstack/tmp/
 scripts/*
 
 # =========================
+backend/src/db/seed/output/
 
 # Test results (generated in CI)
 **/test-results/

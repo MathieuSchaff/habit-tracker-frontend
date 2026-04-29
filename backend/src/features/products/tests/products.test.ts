@@ -488,6 +488,58 @@ describe('Product Service', () => {
       })
     })
 
+    describe('tags aggregation', () => {
+      it('exposes positive tags as { slug, tagType, relevance } entries', async () => {
+        const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
+        const oily = await createProductTag(testDb, { name: 'Grasse', category: 'skin_type' })
+        const vegan = await createProductTag(testDb, { name: 'Vegan', category: 'product_label' })
+        const product = await makeProduct('Sérum complet', 'A')
+        await replaceProductTags(testDb, product.id, [
+          { tagId: acne.id, relevance: 'primary' },
+          { tagId: oily.id, relevance: 'primary' },
+          { tagId: vegan.id, relevance: 'secondary' },
+        ])
+
+        const result = await listProducts({ category: 'skincare' }, testDb)
+        const tags = result.items[0]?.tags ?? []
+        expect(tags).toContainEqual({
+          slug: acne.slug,
+          tagType: 'concern',
+          relevance: 'primary',
+        })
+        expect(tags).toContainEqual({
+          slug: oily.slug,
+          tagType: 'skin_type',
+          relevance: 'primary',
+        })
+        expect(tags).toContainEqual({
+          slug: vegan.slug,
+          tagType: 'product_label',
+          relevance: 'secondary',
+        })
+      })
+
+      it('excludes avoid-relevance tags from the tags array', async () => {
+        const reactive = await createProductTag(testDb, {
+          name: 'Réactive',
+          category: 'skin_type',
+        })
+        const product = await makeProduct('Rétinol', 'A')
+        await replaceProductTags(testDb, product.id, [
+          { tagId: reactive.id, relevance: 'avoid' },
+        ])
+
+        const result = await listProducts({ category: 'skincare' }, testDb)
+        expect(result.items[0]?.tags).toEqual([])
+      })
+
+      it('returns empty tags array for products without any tags', async () => {
+        await makeProduct('Sans tag', 'A')
+        const result = await listProducts({ category: 'skincare' }, testDb)
+        expect(result.items[0]?.tags).toEqual([])
+      })
+    })
+
     describe('pagination', () => {
       it('should respect the limit param', async () => {
         for (let i = 0; i < 5; i++) {
