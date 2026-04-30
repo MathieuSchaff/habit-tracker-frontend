@@ -1,0 +1,1 @@
+export { productComparisonRoutes } from './routes'

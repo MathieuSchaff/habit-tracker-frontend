@@ -35,8 +35,11 @@ import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
 import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
 import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
+import { Route as AuthenticatedProductsCompareIndexRouteImport } from './routes/_authenticated/products/compare/index'
 import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
 import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug/discussions/$threadId'
+import { Route as AuthenticatedProductsCompareNewRouteImport } from './routes/_authenticated/products/compare/new'
+import { Route as AuthenticatedProductsCompareIdRouteImport } from './routes/_authenticated/products/compare/$id'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -171,6 +174,12 @@ const IngredientsSlugDiscussionsIndexRoute =
     path: '/discussions/',
     getParentRoute: () => IngredientsSlugRoute,
   } as any)
+const AuthenticatedProductsCompareIndexRoute =
+  AuthenticatedProductsCompareIndexRouteImport.update({
+    id: '/products/compare/',
+    path: '/products/compare/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ProductsSlugDiscussionsThreadIdRoute =
   ProductsSlugDiscussionsThreadIdRouteImport.update({
     id: '/discussions/$threadId',
@@ -182,6 +191,18 @@ const IngredientsSlugDiscussionsThreadIdRoute =
     id: '/discussions/$threadId',
     path: '/discussions/$threadId',
     getParentRoute: () => IngredientsSlugRoute,
+  } as any)
+const AuthenticatedProductsCompareNewRoute =
+  AuthenticatedProductsCompareNewRouteImport.update({
+    id: '/products/compare/new',
+    path: '/products/compare/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedProductsCompareIdRoute =
+  AuthenticatedProductsCompareIdRouteImport.update({
+    id: '/products/compare/$id',
+    path: '/products/compare/$id',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -208,8 +229,11 @@ export interface FileRoutesByFullPath {
   '/blog/$category/': typeof BlogCategoryIndexRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
+  '/products/compare/$id': typeof AuthenticatedProductsCompareIdRoute
+  '/products/compare/new': typeof AuthenticatedProductsCompareNewRoute
   '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
   '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/products/compare/': typeof AuthenticatedProductsCompareIndexRoute
   '/ingredients/$slug/discussions/': typeof IngredientsSlugDiscussionsIndexRoute
   '/products/$slug/discussions/': typeof ProductsSlugDiscussionsIndexRoute
 }
@@ -235,8 +259,11 @@ export interface FileRoutesByTo {
   '/blog/$category': typeof BlogCategoryIndexRoute
   '/ingredients/$slug': typeof IngredientsSlugIndexRoute
   '/products/$slug': typeof ProductsSlugIndexRoute
+  '/products/compare/$id': typeof AuthenticatedProductsCompareIdRoute
+  '/products/compare/new': typeof AuthenticatedProductsCompareNewRoute
   '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
   '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/products/compare': typeof AuthenticatedProductsCompareIndexRoute
   '/ingredients/$slug/discussions': typeof IngredientsSlugDiscussionsIndexRoute
   '/products/$slug/discussions': typeof ProductsSlugDiscussionsIndexRoute
 }
@@ -266,8 +293,11 @@ export interface FileRoutesById {
   '/blog/$category/': typeof BlogCategoryIndexRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
+  '/_authenticated/products/compare/$id': typeof AuthenticatedProductsCompareIdRoute
+  '/_authenticated/products/compare/new': typeof AuthenticatedProductsCompareNewRoute
   '/ingredients/$slug/discussions/$threadId': typeof IngredientsSlugDiscussionsThreadIdRoute
   '/products/$slug/discussions/$threadId': typeof ProductsSlugDiscussionsThreadIdRoute
+  '/_authenticated/products/compare/': typeof AuthenticatedProductsCompareIndexRoute
   '/ingredients/$slug/discussions/': typeof IngredientsSlugDiscussionsIndexRoute
   '/products/$slug/discussions/': typeof ProductsSlugDiscussionsIndexRoute
 }
@@ -297,8 +327,11 @@ export interface FileRouteTypes {
     | '/blog/$category/'
     | '/ingredients/$slug/'
     | '/products/$slug/'
+    | '/products/compare/$id'
+    | '/products/compare/new'
     | '/ingredients/$slug/discussions/$threadId'
     | '/products/$slug/discussions/$threadId'
+    | '/products/compare/'
     | '/ingredients/$slug/discussions/'
     | '/products/$slug/discussions/'
   fileRoutesByTo: FileRoutesByTo
@@ -324,8 +357,11 @@ export interface FileRouteTypes {
     | '/blog/$category'
     | '/ingredients/$slug'
     | '/products/$slug'
+    | '/products/compare/$id'
+    | '/products/compare/new'
     | '/ingredients/$slug/discussions/$threadId'
     | '/products/$slug/discussions/$threadId'
+    | '/products/compare'
     | '/ingredients/$slug/discussions'
     | '/products/$slug/discussions'
   id:
@@ -354,8 +390,11 @@ export interface FileRouteTypes {
     | '/blog/$category/'
     | '/ingredients/$slug/'
     | '/products/$slug/'
+    | '/_authenticated/products/compare/$id'
+    | '/_authenticated/products/compare/new'
     | '/ingredients/$slug/discussions/$threadId'
     | '/products/$slug/discussions/$threadId'
+    | '/_authenticated/products/compare/'
     | '/ingredients/$slug/discussions/'
     | '/products/$slug/discussions/'
   fileRoutesById: FileRoutesById
@@ -564,6 +603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IngredientsSlugDiscussionsIndexRouteImport
       parentRoute: typeof IngredientsSlugRoute
     }
+    '/_authenticated/products/compare/': {
+      id: '/_authenticated/products/compare/'
+      path: '/products/compare'
+      fullPath: '/products/compare/'
+      preLoaderRoute: typeof AuthenticatedProductsCompareIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/products/$slug/discussions/$threadId': {
       id: '/products/$slug/discussions/$threadId'
       path: '/discussions/$threadId'
@@ -578,6 +624,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IngredientsSlugDiscussionsThreadIdRouteImport
       parentRoute: typeof IngredientsSlugRoute
     }
+    '/_authenticated/products/compare/new': {
+      id: '/_authenticated/products/compare/new'
+      path: '/products/compare/new'
+      fullPath: '/products/compare/new'
+      preLoaderRoute: typeof AuthenticatedProductsCompareNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/products/compare/$id': {
+      id: '/_authenticated/products/compare/$id'
+      path: '/products/compare/$id'
+      fullPath: '/products/compare/$id'
+      preLoaderRoute: typeof AuthenticatedProductsCompareIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -587,6 +647,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedIngredientsNewRoute: typeof AuthenticatedIngredientsNewRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
+  AuthenticatedProductsCompareIdRoute: typeof AuthenticatedProductsCompareIdRoute
+  AuthenticatedProductsCompareNewRoute: typeof AuthenticatedProductsCompareNewRoute
+  AuthenticatedProductsCompareIndexRoute: typeof AuthenticatedProductsCompareIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -595,6 +658,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedIngredientsNewRoute: AuthenticatedIngredientsNewRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
+  AuthenticatedProductsCompareIdRoute: AuthenticatedProductsCompareIdRoute,
+  AuthenticatedProductsCompareNewRoute: AuthenticatedProductsCompareNewRoute,
+  AuthenticatedProductsCompareIndexRoute:
+    AuthenticatedProductsCompareIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

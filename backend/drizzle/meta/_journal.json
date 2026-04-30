@@ -232,6 +232,13 @@
       "when": 1777131698357,
       "tag": "0032_parched_wiccan",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1777517061296,
+      "tag": "0033_red_santa_claus",
+      "breakpoints": true
     }
   ]
 }
