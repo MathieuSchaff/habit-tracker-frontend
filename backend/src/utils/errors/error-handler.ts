@@ -8,6 +8,7 @@ import {
   HTTP_STATUS,
   type HttpStatus,
   ingredientErrorMapping,
+  productComparisonErrorMapping,
   productErrorMapping,
   productIngredientErrorMapping,
   purchaseErrorMapping,
@@ -32,6 +33,7 @@ interface HttpError extends Error {
 const errorMappingRegistry = new Map<string, Record<string, HttpStatus>>([
   ['AuthError', authErrorMapping as Record<string, HttpStatus>],
   ['ProductError', productErrorMapping as Record<string, HttpStatus>],
+  ['ProductComparisonError', productComparisonErrorMapping as Record<string, HttpStatus>],
   ['IngredientError', ingredientErrorMapping as Record<string, HttpStatus>],
   ['ProductIngredientError', productIngredientErrorMapping as Record<string, HttpStatus>],
   ['PurchaseError', purchaseErrorMapping as Record<string, HttpStatus>],
