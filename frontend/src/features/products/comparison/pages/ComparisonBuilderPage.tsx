@@ -1,7 +1,5 @@
-import {
-  COMPARISON_MAX_PRODUCTS,
-  COMPARISON_MIN_PRODUCTS,
-} from '@habit-tracker/shared'
+import { COMPARISON_MAX_PRODUCTS, COMPARISON_MIN_PRODUCTS } from '@habit-tracker/shared'
+
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -49,9 +47,7 @@ function NewComparisonBuilder() {
         canSave={productIds.length >= COMPARISON_MIN_PRODUCTS}
       />
       {create.error && (
-        <FormMessage variant="error">
-          Impossible de créer la comparaison. Réessayez.
-        </FormMessage>
+        <FormMessage variant="error">Impossible de créer la comparaison. Réessayez.</FormMessage>
       )}
       <ProductPicker selectedIds={productIds} onChange={setProductIds} />
       <EmptyComparisonState count={productIds.length} />

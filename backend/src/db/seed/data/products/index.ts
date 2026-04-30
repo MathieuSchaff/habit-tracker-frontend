@@ -56,7 +56,6 @@ import { DR_THEISS_SEED } from './haircare/drTheiss/drTheiss.seed'
 import { DUCRAY_HAIRCARE_SEED } from './haircare/ducray/ducray.seed'
 import { ESSENCE_SEED } from './haircare/essence/essence.seed'
 import { EYE_CARE_SEED } from './haircare/eyeCare/eyeCare.seed'
-import { FLORAME_SEED } from './haircare/florame/florame.seed'
 import { FLORAME_BODYCARE_SEED } from './haircare/florame/florame-bodycare.seed'
 import { HERBATINT_SEED } from './haircare/herbatint/herbatint.seed'
 import { ITEM_SEED } from './haircare/item/item.seed'
@@ -82,7 +81,6 @@ import { NUXE_SEED } from './haircare/nuxe/nuxe.seed'
 import { OLAPLEX_SEED } from './haircare/olaplex/olaplex.seed'
 import { PETROLE_HAHN_SEED } from './haircare/petroleHahn/petroleHahn.seed'
 import { PHYTO_SEED } from './haircare/phyto/phyto.seed'
-import { PHYTO_SOLAIRE_SEED } from './haircare/phyto/phyto-solaire.seed'
 import { POUXIT_SEED } from './haircare/pouxit/pouxit.seed'
 import { PRANAROM_SEED } from './haircare/pranarom/pranarom.seed'
 import { PURESSENTIEL_SEED } from './haircare/puressentiel/puressentiel.seed'
@@ -159,10 +157,7 @@ import { LAB_BIARRITZ_SEED } from './skincare/labBiarritz/labBiarritz.seed'
 import { LA_ROCHE_POSAY_SEED } from './skincare/laRochePosay/laRochePosay.seed'
 import { LA_ROCHE_POSAY_HAIRCARE_SEED } from './skincare/laRochePosay/laRochePosay-haircare.seed'
 import { LA_ROS_E_SEED } from './skincare/laRosee/laRosee.seed'
-import {
-  LA_ROSEE_DENTAL_SEED as LA_ROSEE_DENTAL_SKINCARE_2_SEED,
-  LA_ROSEE_DENTAL_SEED as LA_ROSEE_DENTAL_SKINCARE_SEED,
-} from './skincare/laRosee/laRosee-dental.seed'
+import { LA_ROSEE_DENTAL_SEED as LA_ROSEE_DENTAL_SKINCARE_SEED } from './skincare/laRosee/laRosee-dental.seed'
 import { LA_ROSEE_HAIRCARE_SEED as LA_ROSEE_HAIRCARE_SKINCARE_SEED } from './skincare/laRosee/laRosee-haircare.seed'
 import { LE_COMPTOIR_DU_BAIN_SEED } from './skincare/leComptoirDuBain/leComptoirDuBain.seed'
 import { LIERAC_SEED } from './skincare/lierac/lierac.seed'
@@ -178,7 +173,6 @@ import { MUSC_INTIME_SEED } from './skincare/muscIntime/muscIntime.seed'
 import { MUSTELA_SEED } from './skincare/mustela/mustela.seed'
 import { MUSTELA_HAIRCARE_SEED } from './skincare/mustela/mustela-haircare.seed'
 import { NEUTRADERM_SEED as NEUTRADERM_SKINCARE_SEED } from './skincare/neutraderm/neutraderm.seed'
-import { NEUTRADERM_HAIRCARE_SEED } from './skincare/neutraderm/neutraderm-haircare.seed'
 import { NINE_LESS_SEED } from './skincare/nineLess/nineLess.seed'
 import { NIOD_SEED } from './skincare/niod/niod.seed'
 import { NOOANCE_SEED } from './skincare/nooance/nooance.seed'
@@ -223,6 +217,8 @@ import { VICHY_LABORATORIES_HAIRCARE_SEED } from './skincare/vichy-laboratories/
 import { VICHY_HOMME_SEED } from './skincare/vichyHomme/vichyHomme.seed'
 import { VT_SEED } from './skincare/vt/vt.seed'
 import { WELEDA_SEED } from './skincare/weleda/weleda.seed'
+// Supplement imports
+import { NUTRIPURE_SEED } from './supplement/nutripure/nutripure.seed'
 
 // Aggregation
 
@@ -327,7 +323,6 @@ const allUnified: UnifiedProductSeed[] = [
   ...DUCRAY_HAIRCARE_SEED,
   ...ESSENCE_SEED,
   ...EYE_CARE_SEED,
-  ...FLORAME_SEED,
   ...HERBATINT_SEED,
   ...ITEM_SEED,
   ...JALDES_SEED,
@@ -419,7 +414,6 @@ const allUnified: UnifiedProductSeed[] = [
   ...VICHY_HOMME_SEED,
   ...AVRIL_DENTAL_SEED,
   ...LA_ROSEE_DENTAL_SKINCARE_SEED,
-  ...LA_ROSEE_DENTAL_SKINCARE_2_SEED,
   ...RESPIRE_DENTAL_SEED,
   ...SANOGYL_SEED,
   ...ACM_HAIRCARE_SEED,
@@ -428,7 +422,6 @@ const allUnified: UnifiedProductSeed[] = [
   ...LA_ROCHE_POSAY_HAIRCARE_SEED,
   ...LA_ROSEE_HAIRCARE_SKINCARE_SEED,
   ...MUSTELA_HAIRCARE_SEED,
-  ...NEUTRADERM_HAIRCARE_SEED,
   ...RESPIRE_HAIRCARE_SEED,
   ...SEBAMED_SEED,
   ...VICHY_LABORATORIES_HAIRCARE_SEED,
@@ -438,7 +431,7 @@ const allUnified: UnifiedProductSeed[] = [
   ...NOVEXPERT_SEED,
   ...ELMEX_SOLAIRE_SEED,
   ...LES_SECRETS_DE_LOLY_SOLAIRE_SEED,
-  ...PHYTO_SOLAIRE_SEED,
+  ...NUTRIPURE_SEED,
 ]
 
 // Derived exports (previously split across 4 files)
