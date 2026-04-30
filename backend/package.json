@@ -41,6 +41,7 @@
     "@habit-tracker/shared": "workspace:*",
     "@hono/zod-validator": "^0.7.6",
     "@sindresorhus/slugify": "^3.0.0",
+    "algo-derm": "file:../../algo-derm",
     "arctic": "^3.7.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
