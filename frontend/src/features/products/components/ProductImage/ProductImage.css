@@ -18,6 +18,5 @@
 }
 
 .product-image--icon {
-  background: var(--bg-card);
-  color: var(--text-muted);
+  color: oklch(45% 0.02 250);
 }

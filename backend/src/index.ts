@@ -20,6 +20,7 @@ import { productsFeature } from './features/products'
 import { profileRoute } from './features/profile'
 import { tagRoutes } from './features/tags/routes'
 import { taskRoutes } from './features/tasks/routes'
+import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
 import { logger } from './lib/logger'
 import { globalErrorHandler } from './utils/errors/error-handler'
@@ -74,6 +75,7 @@ const routes = app
   .route('/api/tags', tagRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
+  .route('/api/uploads', uploadsRoutes)
   .route('/api/errors', errorsRoute)
   .route('/api/articles', articleRoutes)
 

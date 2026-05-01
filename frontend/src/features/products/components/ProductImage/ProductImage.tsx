@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 
 import { ProductIcon } from '@/assets/product-icons'
-import { getMockProductImage } from '@/features/products/getMockProductImage'
 import './ProductImage.css'
 
 type Props = {
-  slug: string
   kind: string
   unit: string | null
   imageUrl?: string | null
@@ -13,18 +11,15 @@ type Props = {
   className?: string
 }
 
-// Fallback chain: real imageUrl → deterministic mock → kind icon.
-// Each step is tried in order; failures advance to the next.
-type Stage = 'real' | 'mock' | 'icon'
+type Stage = 'real' | 'icon'
 
 function initialStage(imageUrl?: string | null): Stage {
-  return imageUrl?.trim() ? 'real' : 'mock'
+  return imageUrl?.trim() ? 'real' : 'icon'
 }
 
-export function ProductImage({ slug, kind, unit, imageUrl, size = 48, className }: Props) {
+export function ProductImage({ kind, unit, imageUrl, size = 48, className }: Props) {
   const [stage, setStage] = useState<Stage>(() => initialStage(imageUrl))
 
-  // Reset chain when slug or imageUrl changes (different product card recycled).
   useEffect(() => {
     setStage(initialStage(imageUrl))
   }, [imageUrl])
@@ -41,8 +36,6 @@ export function ProductImage({ slug, kind, unit, imageUrl, size = 48, className 
     )
   }
 
-  const src = stage === 'real' ? imageUrl?.trim() : getMockProductImage(slug)
-
   return (
     <div
       className={`product-image ${className ?? ''}`}
@@ -50,11 +43,11 @@ export function ProductImage({ slug, kind, unit, imageUrl, size = 48, className 
       aria-hidden="true"
     >
       <img
-        src={src}
+        src={imageUrl?.trim()}
         alt=""
         loading="lazy"
         decoding="async"
-        onError={() => setStage(stage === 'real' ? 'mock' : 'icon')}
+        onError={() => setStage('icon')}
         className="product-image__img"
       />
     </div>

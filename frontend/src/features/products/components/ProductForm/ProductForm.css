@@ -160,6 +160,12 @@
   cursor: not-allowed;
 }
 
+.product-form__upload-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
 @media (max-width: 640px) {
   .product-edit-form {
     padding: var(--space-4);

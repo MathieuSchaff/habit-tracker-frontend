@@ -90,7 +90,6 @@ export function ProductLayout() {
 
       <div className="product-hero">
         <ProductImage
-          slug={slug}
           kind={product.kind}
           unit={product.unit}
           imageUrl={product.imageUrl}
