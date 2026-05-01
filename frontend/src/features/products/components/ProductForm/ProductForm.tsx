@@ -14,13 +14,14 @@ import {
   PRODUCT_UNITS,
 } from '@habit-tracker/shared'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { ImageUpload } from '@/component/ImageUpload'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
@@ -167,6 +168,7 @@ type ProductFormProps =
       onSuccess: (slug: string) => void
     }
 export function ProductForm({ mode, product, initialTags = [], onSuccess }: ProductFormProps) {
+  const queryClient = useQueryClient()
   const { data: allTags } = useQuery(tagQueries.list())
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
@@ -470,14 +472,27 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           onChange={handleChange('url')}
           placeholder="https://…"
         />
-        <Input
-          label="Image du produit"
-          id="edit-image-url"
-          type="url"
-          value={form.imageUrl}
-          onChange={handleChange('imageUrl')}
-          placeholder="https://…"
-        />
+        {mode === 'edit' ? (
+          <FormField label="Image du produit">
+            <ImageUpload
+              shape="square"
+              outputSize={1200}
+              endpoint={`/api/uploads/product/${product.slug}`}
+              currentImageUrl={form.imageUrl}
+              alt={`Image de ${form.name || product.name || 'produit'}`}
+              onSuccess={(url) => {
+                setForm((prev) => ({ ...prev, imageUrl: url }))
+                queryClient.invalidateQueries({ queryKey: ['products'] })
+              }}
+            />
+          </FormField>
+        ) : (
+          <FormField label="Image du produit">
+            <p className="product-form__upload-hint">
+              Image disponible après la création du produit.
+            </p>
+          </FormField>
+        )}
       </div>
 
       <FormField label="INCI" htmlFor="edit-inci">

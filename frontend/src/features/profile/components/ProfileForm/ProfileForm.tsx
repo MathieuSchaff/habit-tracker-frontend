@@ -1,9 +1,11 @@
 import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
 import { BIO_MAX_LENGTH, USERNAME_MAX_LENGTH } from '@habit-tracker/shared'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { ImageUpload } from '@/component/ImageUpload'
 import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
@@ -25,11 +27,11 @@ export const ProfileForm = ({
   isPending,
   error,
 }: ProfileFormProps) => {
+  const queryClient = useQueryClient()
   const [username, setUsername] = useState(profile.username ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '')
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? null)
   const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
-  const [avatarError, setAvatarError] = useState(false)
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
@@ -38,7 +40,6 @@ export const ProfileForm = ({
 
     if (username !== (profile.username ?? '')) data.username = username
     if (bio !== (profile.bio ?? '')) data.bio = bio
-    if (avatarUrl !== (profile.avatarUrl ?? '')) data.avatarUrl = avatarUrl
     if (JSON.stringify(links) !== JSON.stringify(profile.links ?? [])) data.links = links
 
     if (Object.keys(data).length === 0) {
@@ -73,24 +74,18 @@ export const ProfileForm = ({
       />
 
       <div className="profile-form__avatar-group">
-        <Input
-          label="URL de l'avatar"
-          type="url"
-          value={avatarUrl}
-          onChange={(e) => {
-            setAvatarUrl(e.target.value)
-            setAvatarError(false)
+        <span className="profile-form__avatar-label">Avatar</span>
+        <ImageUpload
+          shape="round"
+          outputSize={1024}
+          endpoint="/api/uploads/avatar"
+          currentImageUrl={avatarUrl}
+          alt={`Avatar de ${profile.username ?? 'utilisateur'}`}
+          onSuccess={(url) => {
+            setAvatarUrl(url)
+            queryClient.invalidateQueries({ queryKey: ['profile', 'me'] })
           }}
-          placeholder="https://exemple.com/avatar.jpg"
-          disabled={isPending}
-          className="profile-form__avatar-input"
-          error={avatarError ? 'Image introuvable à cette URL' : undefined}
         />
-        {avatarUrl && !avatarError && (
-          <div className="profile-form__avatar-preview">
-            <img src={avatarUrl} alt="Aperçu" onError={() => setAvatarError(true)} />
-          </div>
-        )}
       </div>
 
       <div className="profile-form__links-group">

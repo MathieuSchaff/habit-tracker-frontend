@@ -13,6 +13,10 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_REDIRECT_URI: z.url(),
+  BUNNY_STORAGE_ZONE: z.string(),
+  BUNNY_STORAGE_HOSTNAME: z.string().default('storage.bunnycdn.com'),
+  BUNNY_STORAGE_PASSWORD: z.string(),
+  IMAGE_CDN_BASE: z.url(),
 })
 
 export type Env = z.infer<typeof envSchema>

@@ -58,3 +58,18 @@ export function authDelete(app: Hono<AppEnv>, path: string, token: string) {
     headers: { Authorization: `Bearer ${token}` },
   })
 }
+
+export function authPostMultipart(
+  app: Hono<AppEnv>,
+  path: string,
+  token: string,
+  fields: Record<string, Blob | string>
+) {
+  const form = new FormData()
+  for (const [k, v] of Object.entries(fields)) form.append(k, v)
+  return app.request(path, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  })
+}

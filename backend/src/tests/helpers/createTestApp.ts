@@ -33,6 +33,7 @@ export async function createTestApp() {
     '../../features/discussions/ingredient-discussion-routes'
   )
   const { articleRoutes } = await import('../../features/blog/routes')
+  const { uploadsRoutes } = await import('../../features/uploads/routes')
 
   app.use('*', async (c, next) => {
     c.set('db', testDb)
@@ -63,6 +64,7 @@ export async function createTestApp() {
     .route('/user-products', userProductRoutes)
     .route('/errors', errorsRoute)
     .route('/articles', articleRoutes)
+    .route('/api/uploads', uploadsRoutes)
 
   return app
 }

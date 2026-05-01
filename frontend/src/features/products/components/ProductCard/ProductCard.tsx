@@ -128,7 +128,6 @@ function ProductCardImpl({ product, onAdd }: Props) {
       <div className="list-card__inner">
         <Link to="/products/$slug" params={{ slug: product.slug }} className="list-card__header">
           <ProductImage
-            slug={product.slug}
             kind={product.kind}
             unit={product.unit}
             imageUrl={product.imageUrl}
