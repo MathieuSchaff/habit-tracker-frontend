@@ -1,0 +1,3 @@
+ALTER TABLE "refresh_tokens" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "refresh_tokens_tenant_isolation" ON "refresh_tokens" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("refresh_tokens"."user_id" = (SELECT auth.uid())) WITH CHECK ("refresh_tokens"."user_id" = (SELECT auth.uid()));--> statement-breakpoint
+CREATE POLICY "refresh_tokens_admin_bypass" ON "refresh_tokens" AS PERMISSIVE FOR ALL TO "app_runtime" USING ((SELECT auth.role()) = 'admin') WITH CHECK ((SELECT auth.role()) = 'admin');

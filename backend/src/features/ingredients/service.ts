@@ -1,7 +1,5 @@
 import type {
   CreateIngredientInput,
-  FieldChange,
-  IngredientChanges,
   IngredientType,
   SkincareIngredientFilterOptions,
   SkincareIngredientSearchFilters,
@@ -9,7 +7,6 @@ import type {
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
-  ingredientChangesSchema,
   type SkincareIngredientTagCategory,
   skincareIngredientFilterCategories,
   updateIngredientSchema,
@@ -22,6 +19,7 @@ import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
 import { ingredientTagsDefs, tagIngredients } from '../../db/schema/tags/tags'
 import { areEqual, escapeLike, isUniqueViolation } from '../../lib/helpers'
+import { buildChanges, ingredientEditConfig, logEdit } from '../../lib/logs'
 import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
 
@@ -29,9 +27,8 @@ import { IngredientError } from './ingredients-error'
 // They are reserved for the system, like the ID or the creation date.
 const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 
-// I don't want to track these ones in the history log because they are not useful or
-// they change automatically, like the slug.
-const AUDIT_EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt', 'slug', 'updatedAt'])
+// Fields tracked in the audit log. Mirrors `ingredientChangesSchema` in shared/.
+const TRACKED_FIELDS = ['name', 'description', 'content', 'type', 'category'] as const
 
 export async function listIngredients(database: DB, filters: SkincareIngredientSearchFilters) {
   const conditions: SQL[] = []
@@ -240,35 +237,13 @@ export async function updateIngredient(
       throw new IngredientError('ingredient_update_failed')
     }
 
-    // Now I compare the old and the new ingredient to see what really changed.
-    const changes: IngredientChanges = {}
+    const changes = buildChanges(oldIngredient, newIngredient, TRACKED_FIELDS)
 
-    for (const key in data) {
-      if (AUDIT_EXCLUDED_KEYS.has(key)) continue
-
-      const k = key as keyof IngredientChanges
-      const oldVal = oldIngredient[k]
-      const newVal = newIngredient[k]
-
-      if (!areEqual(oldVal, newVal)) {
-        ;(changes as Record<string, FieldChange<unknown>>)[k] = {
-          old: oldVal ?? null,
-          new: newVal ?? null,
-        }
-      }
-    }
-
-    // If nothing changed in the audited fields, I don't need to log anything.
-    if (Object.keys(changes).length === 0) return newIngredient
-
-    const parsed = ingredientChangesSchema.parse(changes)
-
-    // I save the history of changes here so we can see who did what later.
-    await database.insert(ingredientEdits).values({
-      ingredientId: id,
+    await logEdit(database, ingredientEditConfig, {
+      entityId: id,
       editedBy: userId,
       summary: summary ?? null,
-      changes: parsed,
+      changes,
     })
 
     return newIngredient

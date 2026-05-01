@@ -1,3 +1,8 @@
+-- HAND-WRITTEN MIGRATION — drizzle-kit does NOT track FORCE RLS.
+-- Drizzle's TS schema has no .forceRLS() helper, so `drizzle-kit push` would
+-- silently leave tables un-FORCED if it ever ran against a fresh DB.
+-- Keep `make db-migrate` (which replays this file) canonical. Never use
+-- `make db-push`. To change FORCE state, write a new --custom migration.
 ALTER TABLE "tasks" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "subtasks" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "habits" FORCE ROW LEVEL SECURITY;--> statement-breakpoint

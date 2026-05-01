@@ -5,14 +5,13 @@ import {
   index,
   integer,
   pgEnum,
-  pgPolicy,
-  pgRole,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { fkTenantPolicies, tenantPolicies } from '../_policies'
 import { users } from '../auth/users'
 
 export const taskEnergyEnum = pgEnum('task_energy', ['low', 'medium', 'high'])
@@ -41,21 +40,7 @@ export const tasks = pgTable(
   (t) => [
     index('tasks_user_status_idx').on(t.userId, t.status, t.createdAt),
     index('tasks_user_done_idx').on(t.userId, t.doneAt),
-    // Subquery form enables initPlan caching — faster on repeated row evaluations.
-    pgPolicy('tasks_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-    }),
-    pgPolicy('tasks_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+    ...tenantPolicies('tasks', t.userId),
   ]
 ).enableRLS()
 
@@ -73,29 +58,14 @@ export const subtasks = pgTable(
   },
   (t) => [
     index('subtasks_task_order_idx').on(t.taskId, t.order),
-    // Explicit user_id check keeps policy correct for owner role (bypasses RLS until FORCE RLS in T7).
-    pgPolicy('subtasks_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`EXISTS (
+    ...fkTenantPolicies(
+      'subtasks',
+      sql`EXISTS (
         SELECT 1 FROM ${tasks} p
         WHERE p.id = ${t.taskId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-      withCheck: sql`EXISTS (
-        SELECT 1 FROM ${tasks} p
-        WHERE p.id = ${t.taskId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-    }),
-    pgPolicy('subtasks_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+          AND p.user_id = (SELECT auth.uid())
+      )`
+    ),
   ]
 ).enableRLS()
 

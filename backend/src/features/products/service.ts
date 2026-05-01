@@ -212,7 +212,12 @@ export async function updateProduct(
     }
   }
 
-  const changes = buildChanges(row, TRACKED_FIELDS, newProduct)
+  const oldProduct: Record<string, unknown> = {}
+  for (const f of TRACKED_FIELDS) {
+    oldProduct[f] = row[`old_${f}`]
+  }
+
+  const changes = buildChanges(oldProduct, newProduct, TRACKED_FIELDS)
 
   await logEdit(database, productEditConfig, {
     entityId: id,

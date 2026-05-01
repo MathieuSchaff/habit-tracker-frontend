@@ -28,7 +28,7 @@ export const uploadsRoutes = app
     const db = c.get('db')
     const userId = c.get('userId')
     const body = await c.req.parseBody()
-    const file = body['image']
+    const file = body.image
     if (!(file instanceof File)) {
       return c.json(err('upload_invalid_format'), HTTP_STATUS.BAD_REQUEST)
     }
@@ -44,7 +44,7 @@ export const uploadsRoutes = app
     const db = c.get('db')
     const slug = c.req.param('slug')
     const body = await c.req.parseBody()
-    const file = body['image']
+    const file = body.image
     if (!(file instanceof File)) {
       return c.json(err('upload_invalid_format'), HTTP_STATUS.BAD_REQUEST)
     }

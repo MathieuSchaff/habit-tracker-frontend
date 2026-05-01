@@ -11,7 +11,7 @@ import {
   tagIngredients,
   tagProducts,
   userProducts,
-  users,
+  usersSafe,
 } from '../schema'
 
 // helpers
@@ -135,12 +135,12 @@ async function tagStats() {
 async function userStats() {
   section('Users')
 
-  const [{ total }] = await db.select({ total: count() }).from(users)
+  const [{ total }] = await db.select({ total: count() }).from(usersSafe)
   const [{ active }] = await db
     .select({ active: count() })
-    .from(users)
+    .from(usersSafe)
     .where(sql`deleted_at is null and is_demo = false`)
-  const [{ demo }] = await db.select({ demo: count() }).from(users).where(sql`is_demo = true`)
+  const [{ demo }] = await db.select({ demo: count() }).from(usersSafe).where(sql`is_demo = true`)
   row('total', total)
   row('active (non-demo, non-deleted)', active)
   row('demo', demo)
