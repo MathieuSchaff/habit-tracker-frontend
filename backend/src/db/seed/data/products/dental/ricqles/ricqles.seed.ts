@@ -15,8 +15,7 @@ export const RICQLES_SEED: UnifiedProductSeed[] = [
     notes: '',
     inci: '',
     url: 'https://www.atida.fr/ricqles-cure-dents-40-unites.html',
-    imageUrl:
-      'https://assets.atida.com/transform/02eee30c-08c5-4d44-a4aa-3ffd1e9f4efa/Ricqles-Cure-Dents-40-unites?io=transform:extend,width:600,height:600',
+    imageUrl: 'https://aurore-cdn.b-cdn.net/products/ricqles-cure-dents-40-unites-245060.webp',
     tags: {
       primary: [TAG_SLUGS.FIL_DENTAIRE],
       secondary: [],
