@@ -8,7 +8,7 @@ import {
 
 import type { ZodType } from 'zod'
 
-import type { db } from '../db'
+import type { DB } from '../db'
 import { ingredientEdits, productEdits } from '../db/schema'
 import { areEqual } from './helpers'
 
@@ -19,17 +19,16 @@ interface EditTableConfig<TChanges> {
 }
 
 export function buildChanges(
-  row: Record<string, unknown>,
-  trackedFields: readonly string[],
-  newEntity: Record<string, unknown>
+  oldEntity: Record<string, unknown>,
+  newEntity: Record<string, unknown>,
+  trackedFields: readonly string[]
 ): Record<string, FieldChange<unknown>> {
   const changes: Record<string, FieldChange<unknown>> = {}
 
   for (const key of trackedFields) {
-    // I use the old_ prefix because the SQL result gives columns with this name.
-    let oldVal = row[`old_${key}`]
+    let oldVal = oldEntity[key]
 
-    // If it's an empty object, I prefer to say it is null to be simple.
+    // Treat empty object as null so the diff stays simple.
     if (
       oldVal == null ||
       (typeof oldVal === 'object' && oldVal !== null && Object.keys(oldVal).length === 0)
@@ -48,7 +47,7 @@ export function buildChanges(
 }
 
 export async function logEdit(
-  database: typeof db,
+  database: DB,
   config: EditTableConfig<unknown>,
   params: {
     entityId: string

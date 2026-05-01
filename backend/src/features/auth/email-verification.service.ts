@@ -5,7 +5,7 @@ import { err, ok } from '@habit-tracker/shared'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
-import { emailVerifications, users } from '../../db/schema'
+import { emailVerifications, users, usersSafe } from '../../db/schema'
 
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000
 
@@ -63,9 +63,9 @@ export async function verifyEmailToken(db: DB, rawToken: string) {
 
   // Check if user already verified their email from another request
   const [userRow] = await db
-    .select({ emailVerifiedAt: users.emailVerifiedAt })
-    .from(users)
-    .where(eq(users.id, row.userId))
+    .select({ emailVerifiedAt: usersSafe.emailVerifiedAt })
+    .from(usersSafe)
+    .where(eq(usersSafe.id, row.userId))
     .limit(1)
 
   if (userRow?.emailVerifiedAt !== null) {
@@ -90,9 +90,9 @@ export async function verifyEmailToken(db: DB, rawToken: string) {
 
 export async function hasVerifiedEmail(db: DB, userId: string): Promise<boolean> {
   const [row] = await db
-    .select({ emailVerifiedAt: users.emailVerifiedAt })
-    .from(users)
-    .where(eq(users.id, userId))
+    .select({ emailVerifiedAt: usersSafe.emailVerifiedAt })
+    .from(usersSafe)
+    .where(eq(usersSafe.id, userId))
     .limit(1)
   return row?.emailVerifiedAt !== null && row?.emailVerifiedAt !== undefined
 }

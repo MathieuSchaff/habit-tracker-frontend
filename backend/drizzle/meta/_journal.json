@@ -239,6 +239,76 @@
       "when": 1777517061296,
       "tag": "0033_red_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1777604467011,
+      "tag": "0034_acoustic_riptide",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1777604728216,
+      "tag": "0035_auth_uid_nullif",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1777604793951,
+      "tag": "0036_lively_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1777608236109,
+      "tag": "0037_dev_readonly_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1777700000000,
+      "tag": "0038_users_safe_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1777700100000,
+      "tag": "0039_auth_security_definer_fns",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1777612168832,
+      "tag": "0040_refresh_tokens_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1777612200000,
+      "tag": "0041_refresh_tokens_security_definer",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1777612830665,
+      "tag": "0042_minor_oracle",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1777614466404,
+      "tag": "0043_tearful_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

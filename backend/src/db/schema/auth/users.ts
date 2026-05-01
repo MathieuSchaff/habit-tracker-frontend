@@ -9,14 +9,17 @@ import {
   jsonb,
   pgEnum,
   pgPolicy,
-  pgRole,
   pgTable,
+  pgView,
   text,
   timestamp,
   uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core'
+
+import { tenantPolicies } from '../_policies'
+import { appRuntimeRole } from '../_roles'
 
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 
@@ -76,22 +79,22 @@ export const profiles = pgTable(
     pgPolicy('profiles_tenant_isolation', {
       as: 'permissive',
       for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT NULLIF(current_setting('app.user_id', true), '')::uuid)`,
+      to: appRuntimeRole,
+      using: sql`${t.userId} = (SELECT auth.uid())`,
+      withCheck: sql`${t.userId} = (SELECT auth.uid())`,
     }),
     pgPolicy('profiles_select_public', {
       as: 'permissive',
       for: 'select',
-      to: pgRole('app_runtime').existing(),
+      to: appRuntimeRole,
       using: sql`${t.profilePublic}`,
     }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',
       for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
+      to: appRuntimeRole,
+      using: sql`(SELECT auth.role()) = 'admin'`,
+      withCheck: sql`(SELECT auth.role()) = 'admin'`,
     }),
   ]
 ).enableRLS()
@@ -113,20 +116,8 @@ export const userDermoProfiles = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [
-    pgPolicy('user_dermo_profiles_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-    }),
-    pgPolicy('user_dermo_profiles_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+    check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),
+    ...tenantPolicies('user_dermo_profiles', t.userId),
   ]
 ).enableRLS()
 
@@ -157,10 +148,31 @@ export const refreshTokens = pgTable(
     index('refresh_tokens_expires_revoked_idx').on(t.expiresAt, t.revokedAt),
     check('revoked_after_created', sql`${t.revokedAt} IS NULL OR ${t.revokedAt} >= ${t.createdAt}`),
     check('expires_in_future', sql`${t.expiresAt} > ${t.createdAt}`),
+    // Pre-identity lookup (refresh flow before bindRlsContext is set) goes
+    // through auth.find_active_refresh_token (SECURITY DEFINER, see 0041).
+    // All other reads/writes are gated by these policies.
+    ...tenantPolicies('refresh_tokens', t.userId),
   ]
-)
+).enableRLS()
+
+// Safe projection of `users` exposed to app_runtime — excludes password_hash
+// and google_sub. Created by migration 0038 (hand-written, .existing() so
+// drizzle-kit doesn't try to manage it). Use this for any read that doesn't
+// strictly need the secret columns.
+export const usersSafe = pgView('users_safe', {
+  id: uuid('id').notNull(),
+  email: varchar('email', { length: 320 }).notNull(),
+  role: userRoleEnum('role').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  isDemo: boolean('is_demo').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+}).existing()
 
 export type UserDermoProfileRow = typeof userDermoProfiles.$inferSelect
 export type User = typeof users.$inferSelect
 export type UserInsert = typeof users.$inferInsert
+export type UserSafe = typeof usersSafe.$inferSelect
 export type Profile = typeof profiles.$inferSelect

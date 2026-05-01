@@ -9,7 +9,7 @@ import { users } from '../../db/schema'
 import { getGoogleInstance } from '../../lib/artic'
 import { logger } from '../../lib/logger'
 import { type AuthContext, createTokenPair } from './service'
-import { createProfile, createUser, getUser, toPublicUser } from './user.utils'
+import { createProfile, createUser, getUser, getUserByGoogleSub, toPublicUser } from './user.utils'
 
 export function getGoogleAuthUrl(): { url: string; state: string; codeVerifier: string } {
   const state = generateState()
@@ -36,11 +36,7 @@ export async function handleGoogleCallback(
     const { sub: googleSub, email, picture } = claims
 
     // Check if user already exists via Google account
-    const [existingByGoogle] = await ctx.db
-      .select()
-      .from(users)
-      .where(eq(users.googleSub, googleSub))
-      .limit(1)
+    const existingByGoogle = await getUserByGoogleSub(ctx.db, googleSub)
 
     if (existingByGoogle) {
       const tokenPair = await createTokenPair(ctx, existingByGoogle.id, existingByGoogle.role)

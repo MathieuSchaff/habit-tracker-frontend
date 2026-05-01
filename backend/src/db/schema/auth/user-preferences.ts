@@ -1,17 +1,9 @@
 import type { CriteriaWeights } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
-import {
-  boolean,
-  jsonb,
-  pgEnum,
-  pgPolicy,
-  pgRole,
-  pgTable,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
 
+import { tenantPolicies } from '../_policies'
 import { users } from './users'
 
 export const displayScaleEnum = pgEnum('display_scale', [
@@ -40,22 +32,7 @@ export const userPreferences = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [
-    pgPolicy('user_preferences_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-    }),
-    pgPolicy('user_preferences_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
-  ]
+  (t) => [...tenantPolicies('user_preferences', t.userId)]
 ).enableRLS()
 
 export type UserPreferencesRow = typeof userPreferences.$inferSelect

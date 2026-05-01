@@ -195,7 +195,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     await cleanupUserRefreshTokens(ctx.db, payload.sub)
 
     const tokens = await createTokenPair(ctx, payload.sub, user.role)
-    await revokeRefreshToken(ctx.db, payload.jti)
+    await revokeRefreshToken(ctx.db, payload.jti, payload.sub)
 
     return ok({
       user,
@@ -210,7 +210,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
 export async function logout(ctx: AuthContext, rawRefreshToken: string): Promise<LogoutResult> {
   try {
     const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
-    if (payload) await revokeRefreshToken(ctx.db, payload.jti)
+    if (payload) await revokeRefreshToken(ctx.db, payload.jti, payload.sub)
     return ok(null)
   } catch {
     logger.error('Logout failed')

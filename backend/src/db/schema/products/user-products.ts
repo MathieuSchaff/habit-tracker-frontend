@@ -2,11 +2,10 @@ import { repurchaseFlag, userProductStatus } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
+  check,
   index,
   integer,
   pgEnum,
-  pgPolicy,
-  pgRole,
   pgTable,
   text,
   timestamp,
@@ -14,6 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { fkTenantPolicies, tenantPolicies } from '../_policies'
 import { users } from '../auth/users'
 import { products } from './products'
 
@@ -44,20 +44,8 @@ export const userProducts = pgTable(
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
     index('user_products_status_idx').on(t.status),
-    pgPolicy('user_products_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-      withCheck: sql`${t.userId} = (SELECT current_setting('app.user_id', true)::uuid)`,
-    }),
-    pgPolicy('user_products_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+    check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 5`),
+    ...tenantPolicies('user_products', t.userId),
   ]
 ).enableRLS()
 
@@ -84,29 +72,20 @@ export const userProductReviews = pgTable(
   },
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),
-    // Explicit user_id check keeps policy correct for owner role (bypasses RLS until FORCE RLS in T7).
-    pgPolicy('user_product_reviews_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`EXISTS (
+    check('upr_tolerance_range', sql`${t.tolerance} BETWEEN 1 AND 5`),
+    check('upr_efficacy_range', sql`${t.efficacy} BETWEEN 1 AND 5`),
+    check('upr_sensoriality_range', sql`${t.sensoriality} BETWEEN 1 AND 5`),
+    check('upr_stability_range', sql`${t.stability} BETWEEN 1 AND 5`),
+    check('upr_mixability_range', sql`${t.mixability} BETWEEN 1 AND 5`),
+    check('upr_value_for_money_range', sql`${t.valueForMoney} BETWEEN 1 AND 5`),
+    ...fkTenantPolicies(
+      'user_product_reviews',
+      sql`EXISTS (
         SELECT 1 FROM ${userProducts} p
         WHERE p.id = ${t.userProductId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-      withCheck: sql`EXISTS (
-        SELECT 1 FROM ${userProducts} p
-        WHERE p.id = ${t.userProductId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-    }),
-    pgPolicy('user_product_reviews_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+          AND p.user_id = (SELECT auth.uid())
+      )`
+    ),
   ]
 ).enableRLS()
 

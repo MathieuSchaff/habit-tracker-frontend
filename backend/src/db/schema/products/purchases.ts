@@ -1,15 +1,7 @@
 import { sql } from 'drizzle-orm'
-import {
-  date,
-  index,
-  integer,
-  pgPolicy,
-  pgRole,
-  pgTable,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { check, date, index, integer, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
 
+import { fkTenantPolicies } from '../_policies'
 import { userProducts } from './user-products'
 
 export const purchases = pgTable(
@@ -29,29 +21,22 @@ export const purchases = pgTable(
   (t) => [
     index('purchases_user_product_idx').on(t.userProductId),
     index('purchases_user_product_purchased_idx').on(t.userProductId, t.purchasedAt),
-    // Explicit user_id check keeps policy correct for owner role (bypasses RLS until FORCE RLS in T7).
-    pgPolicy('purchases_tenant_isolation', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`EXISTS (
+    check(
+      'purchases_opened_after_purchased',
+      sql`${t.openedAt} IS NULL OR ${t.openedAt} >= ${t.purchasedAt}`
+    ),
+    check(
+      'purchases_finished_after_max',
+      sql`${t.finishedAt} IS NULL OR ${t.finishedAt} >= COALESCE(${t.openedAt}, ${t.purchasedAt})`
+    ),
+    ...fkTenantPolicies(
+      'purchases',
+      sql`EXISTS (
         SELECT 1 FROM ${userProducts} p
         WHERE p.id = ${t.userProductId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-      withCheck: sql`EXISTS (
-        SELECT 1 FROM ${userProducts} p
-        WHERE p.id = ${t.userProductId}
-          AND p.user_id = (SELECT current_setting('app.user_id', true)::uuid)
-      )`,
-    }),
-    pgPolicy('purchases_admin_bypass', {
-      as: 'permissive',
-      for: 'all',
-      to: pgRole('app_runtime').existing(),
-      using: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-      withCheck: sql`(SELECT current_setting('app.role', true)) = 'admin'`,
-    }),
+          AND p.user_id = (SELECT auth.uid())
+      )`
+    ),
   ]
 ).enableRLS()
 

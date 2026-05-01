@@ -21,7 +21,7 @@ import { csrf } from 'hono/csrf'
 
 import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
-import { users } from '../../db/schema'
+import { usersSafe } from '../../db/schema'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
@@ -203,9 +203,9 @@ export const jwtAuthRoutes = app
     const userId = c.get('userId')
     const db = c.get('db')
     const [user] = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, userId))
+      .select({ role: usersSafe.role })
+      .from(usersSafe)
+      .where(eq(usersSafe.id, userId))
       .limit(1)
 
     return c.json(
@@ -240,9 +240,9 @@ export const jwtAuthRoutes = app
     }
 
     const [user] = await ctx.db
-      .select({ emailVerifiedAt: users.emailVerifiedAt, email: users.email })
-      .from(users)
-      .where(eq(users.id, userId))
+      .select({ emailVerifiedAt: usersSafe.emailVerifiedAt, email: usersSafe.email })
+      .from(usersSafe)
+      .where(eq(usersSafe.id, userId))
       .limit(1)
 
     if (!user || user.emailVerifiedAt !== null) {

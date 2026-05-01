@@ -9,8 +9,10 @@ export const discussionThreads = pgTable(
   'discussion_threads',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }),
-    ingredientId: uuid('ingredient_id').references(() => ingredients.id, { onDelete: 'cascade' }),
+    // RESTRICT, not CASCADE: deleting an entity with active discussions must be
+    // an explicit admin decision, not a side-effect of a creator self-delete.
+    productId: uuid('product_id').references(() => products.id, { onDelete: 'restrict' }),
+    ingredientId: uuid('ingredient_id').references(() => ingredients.id, { onDelete: 'restrict' }),
     // null when account is deleted (soft-delete anonymization, no cascade)
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
     title: text('title').notNull(),

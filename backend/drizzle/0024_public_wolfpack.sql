@@ -1,3 +1,8 @@
+-- HAND-WRITTEN MIGRATION — drizzle-kit does NOT track SQL functions.
+-- The schema/functions below live only in this file and must be carried
+-- forward via `make db-migrate`. `drizzle-kit push` (make db-push) would
+-- not recreate them on a fresh DB. To alter the function body, write a
+-- new --custom migration with CREATE OR REPLACE (see 0035 for example).
 CREATE SCHEMA "auth";
 
 
