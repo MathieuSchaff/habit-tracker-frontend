@@ -1,9 +1,10 @@
 import { BrevoClient } from '@getbrevo/brevo'
 
+import { env } from '../../config/env'
 import { logger } from '../../lib/logger'
 
 export async function sendVerificationEmail(to: string, verificationUrl: string): Promise<void> {
-  const client = new BrevoClient({ apiKey: Bun.env.BREVO_API_KEY ?? '' })
+  const client = new BrevoClient({ apiKey: env.BREVO_API_KEY })
 
   try {
     await client.transactionalEmails.sendTransacEmail({

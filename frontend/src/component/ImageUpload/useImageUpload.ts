@@ -76,66 +76,74 @@ export function useImageUpload(opts: UseImageUploadOptions) {
     setState({ phase: 'idle' })
   }, [state])
 
-  async function compress(image: HTMLImageElement, area: CropArea): Promise<Blob> {
-    const canvas = document.createElement('canvas')
-    canvas.width = opts.outputSize
-    canvas.height = opts.outputSize
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('canvas context unavailable')
-    ctx.drawImage(
-      image,
-      area.x,
-      area.y,
-      area.size,
-      area.size,
-      0,
-      0,
-      opts.outputSize,
-      opts.outputSize
-    )
-
-    for (const quality of [0.85, 0.7, 0.5]) {
-      const blob = await new Promise<Blob | null>((res) =>
-        canvas.toBlob((b) => res(b), 'image/webp', quality)
+  const compress = useCallback(
+    async (image: HTMLImageElement, area: CropArea): Promise<Blob> => {
+      const canvas = document.createElement('canvas')
+      canvas.width = opts.outputSize
+      canvas.height = opts.outputSize
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('canvas context unavailable')
+      ctx.drawImage(
+        image,
+        area.x,
+        area.y,
+        area.size,
+        area.size,
+        0,
+        0,
+        opts.outputSize,
+        opts.outputSize
       )
-      if (!blob) continue
-      if (blob.size <= maxOutputBytes) return blob
-    }
-    throw Object.assign(new Error('compress_too_large'), { code: 'compress_too_large' })
-  }
 
-  function uploadXhr(blob: Blob): Promise<{ url: string }> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      const form = new FormData()
-      form.append('image', blob, 'image.webp')
-      xhr.upload.onprogress = (ev) => {
-        if (ev.total > 0) {
-          const progress = Math.round((ev.loaded / ev.total) * 100)
-          setState({ phase: 'uploading', progress })
-        }
+      for (const quality of [0.85, 0.7, 0.5]) {
+        const blob = await new Promise<Blob | null>((res) =>
+          canvas.toBlob((b) => res(b), 'image/webp', quality)
+        )
+        if (!blob) continue
+        if (blob.size <= maxOutputBytes) return blob
       }
-      xhr.onload = () => {
-        try {
-          const body = JSON.parse(xhr.responseText) as
-            | { success: true; data: { url: string } }
-            | { success: false; error: string }
-          if (xhr.status >= 200 && xhr.status < 300 && body.success) {
-            resolve(body.data)
-          } else {
-            const code = (body as { error?: string }).error ?? 'unknown'
-            reject(Object.assign(new Error(code), { code }))
+      throw Object.assign(new Error('compress_too_large'), { code: 'compress_too_large' })
+    },
+    [opts.outputSize, maxOutputBytes]
+  )
+
+  const uploadXhr = useCallback(
+    (blob: Blob): Promise<{ url: string }> => {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        const form = new FormData()
+        form.append('image', blob, 'image.webp')
+        xhr.upload.onprogress = (ev) => {
+          if (ev.total > 0) {
+            const progress = Math.round((ev.loaded / ev.total) * 100)
+            setState({ phase: 'uploading', progress })
           }
-        } catch {
-          reject(Object.assign(new Error('unknown'), { code: 'unknown' }))
         }
-      }
-      xhr.onerror = () =>
-        reject(Object.assign(new Error('upload_storage_failed'), { code: 'upload_storage_failed' }))
-      xhr.open('POST', opts.endpoint)
-      xhr.send(form)
-    })
-  }
+        xhr.onload = () => {
+          try {
+            const body = JSON.parse(xhr.responseText) as
+              | { success: true; data: { url: string } }
+              | { success: false; error: string }
+            if (xhr.status >= 200 && xhr.status < 300 && body.success) {
+              resolve(body.data)
+            } else {
+              const code = (body as { error?: string }).error ?? 'unknown'
+              reject(Object.assign(new Error(code), { code }))
+            }
+          } catch {
+            reject(Object.assign(new Error('unknown'), { code: 'unknown' }))
+          }
+        }
+        xhr.onerror = () =>
+          reject(
+            Object.assign(new Error('upload_storage_failed'), { code: 'upload_storage_failed' })
+          )
+        xhr.open('POST', opts.endpoint)
+        xhr.send(form)
+      })
+    },
+    [opts.endpoint]
+  )
 
   const confirmCrop = useCallback(
     async (area: CropArea): Promise<{ url: string }> => {
@@ -163,8 +171,7 @@ export function useImageUpload(opts: UseImageUploadOptions) {
         if (sourceUrlToRevoke) URL.revokeObjectURL(sourceUrlToRevoke)
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state, opts.endpoint, opts.outputSize, maxOutputBytes]
+    [state, compress, uploadXhr]
   )
 
   const __setSourceForTest = (img: HTMLImageElement) => {

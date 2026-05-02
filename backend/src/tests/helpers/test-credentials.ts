@@ -29,6 +29,13 @@ export const TEST_CREDENTIALS = {
     videMotDePasse: unsafePassword(''),
   },
 
+  admin: {
+    email: unsafeEmail('admin@exemple.fr'),
+    rawEmail: 'admin@exemple.fr',
+    password: unsafePassword('Admin123!super'),
+    rawPassword: 'Admin123!super',
+  },
+
   // Un autre utilisateur classique (pour les tests avec plusieurs comptes)
   alice: {
     email: unsafeEmail('alice.dupont@gmail.fr'),
