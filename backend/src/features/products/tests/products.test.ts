@@ -329,8 +329,8 @@ describe('Product Service', () => {
         'routine_step_v2',
         'routine_moment',
         'skin_effect',
-        'product_label',
-        'shared_label',
+        'sensation',
+        'product_characteristic',
       ] as const
 
       for (const tagType of TAG_CATEGORIES) {
@@ -494,7 +494,10 @@ describe('Product Service', () => {
       it('exposes positive tags as { slug, tagType, relevance } entries', async () => {
         const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
         const oily = await createProductTag(testDb, { name: 'Grasse', category: 'skin_type' })
-        const vegan = await createProductTag(testDb, { name: 'Vegan', category: 'product_label' })
+        const vegan = await createProductTag(testDb, {
+          name: 'Vegan',
+          category: 'product_characteristic',
+        })
         const product = await makeProduct('Sérum complet', 'A')
         await replaceProductTags(testDb, product.id, [
           { tagId: acne.id, relevance: 'primary' },
@@ -516,7 +519,7 @@ describe('Product Service', () => {
         })
         expect(tags).toContainEqual({
           slug: vegan.slug,
-          tagType: 'product_label',
+          tagType: 'product_characteristic',
           relevance: 'secondary',
         })
       })

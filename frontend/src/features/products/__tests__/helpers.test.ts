@@ -485,7 +485,7 @@ describe('buildDomainSwitchSearch', () => {
   // All domain tag keys — so domain switch resets every tag regardless of domain
   const EMPTY_TAGS: Record<string, string[]> = {
     skin_type: [], concern: [], skin_zone: [], product_type: [], routine_step: [],
-    skin_effect: [], product_label: [], shared_label: [],
+    skin_effect: [], sensation: [], product_characteristic: [], product_label: [],
     hair_type: [], hair_effect: [],
     age_group: [], dental_effect: [],
     goal: [], moment: [], restriction: [],
