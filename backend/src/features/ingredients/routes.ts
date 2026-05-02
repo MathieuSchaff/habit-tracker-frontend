@@ -125,8 +125,9 @@ export const ingredientRoutes = ingredientsApp
   )
   .delete('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
+    const role = c.get('userRole')
     const { id } = c.req.valid('param')
-    await deleteIngredient(db, id)
+    await deleteIngredient(db, role, id)
     return c.body(null, 204)
   })
 

@@ -5,6 +5,7 @@ import {
   getProductTagsByCategory,
   HAIRCARE_PRODUCT_TAG_CATEGORY_META,
   type ProductDomainTab,
+  SKINCARE_PRODUCT_CONCERN_GROUPS,
   SKINCARE_PRODUCT_TAG_CATEGORY_META,
   SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
   type TagCategoryMeta,
@@ -12,7 +13,18 @@ import {
 
 import { useMemo } from 'react'
 
-import type { FilterGroupConfig, FilterOption } from '@/component/Filter'
+import type { FilterGroupConfig, FilterOption, FilterSubGroup } from '@/component/Filter'
+
+const SKINCARE_CONCERN_SUBGROUPS: FilterSubGroup[] = [
+  {
+    label: 'Problèmes fonctionnels',
+    slugs: [...SKINCARE_PRODUCT_CONCERN_GROUPS.functional],
+  },
+  {
+    label: 'Objectifs esthétiques',
+    slugs: [...SKINCARE_PRODUCT_CONCERN_GROUPS.aesthetic],
+  },
+]
 
 const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>> = {
   skincare: SKINCARE_PRODUCT_TAG_CATEGORY_META,
@@ -51,6 +63,9 @@ export function useProductTagFilterGroups(
         })
         .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
 
+      const subGroups =
+        domain === 'skincare' && cat === 'concern' ? SKINCARE_CONCERN_SUBGROUPS : undefined
+
       return {
         id: cat,
         label: catMeta.label,
@@ -62,6 +77,7 @@ export function useProductTagFilterGroups(
             label: catMeta.label,
             placeholder: catMeta.placeholder,
             options,
+            subGroups,
           },
         ],
       }

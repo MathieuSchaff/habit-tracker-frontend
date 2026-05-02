@@ -40,7 +40,7 @@ describe('buildListProductsQuery — array filters', () => {
       shared_label: ['non-comedogene'],
       routine_step: ['matin'],
       ingredient: ['niacinamide'],
-      avoid_for: ['peau-reactive'],
+      avoid_for: ['peau-sensible'],
     })
     expect(q).toEqual({
       brand: 'A',
@@ -53,7 +53,7 @@ describe('buildListProductsQuery — array filters', () => {
       shared_label: 'non-comedogene',
       routine_step: 'matin',
       ingredient: 'niacinamide',
-      avoid_for: 'peau-reactive',
+      avoid_for: 'peau-sensible',
     })
   })
 
@@ -211,8 +211,8 @@ describe('buildListProductsQuery — adversarial / edge-case inputs', () => {
 
   // avoid_for with multiple values — serialized like any other array
   it('serializes multiple avoid_for slugs as CSV', () => {
-    const q = buildListProductsQuery({ avoid_for: ['peau-reactive', 'comedogene'] })
-    expect(q.avoid_for).toBe('peau-reactive,comedogene')
+    const q = buildListProductsQuery({ avoid_for: ['peau-sensible', 'comedogene'] })
+    expect(q.avoid_for).toBe('peau-sensible,comedogene')
   })
 
   // Unknown extra properties on filters object are silently ignored

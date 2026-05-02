@@ -11,6 +11,7 @@ import {
   authPatch,
   authPost,
   setupAndLogin,
+  setupAndLoginAdmin,
 } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
@@ -51,7 +52,7 @@ describe('Product Routes', () => {
         ...VALID_PRODUCT,
         description: 'Antioxydant puissant',
         totalAmount: 60,
-        amountUnit: 'gélules',
+        amountUnit: 'capsule',
         priceCents: 1500,
         notes: 'À prendre le matin',
       })
@@ -60,7 +61,7 @@ describe('Product Routes', () => {
       const data = await res.json()
       expect(data.data.description).toBe('Antioxydant puissant')
       expect(data.data.totalAmount).toBe(60)
-      expect(data.data.amountUnit).toBe('gélules')
+      expect(data.data.amountUnit).toBe('capsule')
       expect(data.data.priceCents).toBe(1500)
       expect(data.data.notes).toBe('À prendre le matin')
     })
@@ -401,24 +402,10 @@ describe('Product Routes', () => {
       expect(data.success).toBe(true)
       expect(data.data).toHaveProperty('kinds')
       expect(data.data).toHaveProperty('brands')
-      expect(data.data).toHaveProperty('tags')
+      expect(data.data).toHaveProperty('tagCounts')
       expect(data.data.kinds).toEqual([])
       expect(data.data.brands).toEqual([])
-    })
-
-    it('should return tag categories in the structure', async () => {
-      const res = await app.request('/products/filter-options')
-
-      const data = await res.json()
-      const tags = data.data.tags
-      expect(tags).toHaveProperty('routine_step')
-      expect(tags).toHaveProperty('skin_type')
-      expect(tags).toHaveProperty('skin_zone')
-      expect(tags).toHaveProperty('product_type')
-      expect(tags).toHaveProperty('concern')
-      expect(tags).toHaveProperty('skin_effect')
-      expect(tags).toHaveProperty('product_label')
-      expect(tags).toHaveProperty('shared_label')
+      expect(data.data.tagCounts).toEqual({})
     })
 
     it('should return populated kinds and brands after creating products', async () => {
@@ -554,7 +541,7 @@ describe('Product Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
-      expect(data.data).toEqual([])
+      expect(data.data.items).toEqual([])
     })
 
     it('should return products matching by name', async () => {
@@ -571,8 +558,8 @@ describe('Product Routes', () => {
       const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}`)
 
       const data = await res.json()
-      expect(data.data).toHaveLength(1)
-      expect(data.data[0].name).toBe('Vitamine C')
+      expect(data.data.items).toHaveLength(1)
+      expect(data.data.items[0].name).toBe('Vitamine C')
     })
 
     it('should return products matching by brand', async () => {
@@ -589,8 +576,8 @@ describe('Product Routes', () => {
       const res = await app.request('/products/search?q=CeraVe')
 
       const data = await res.json()
-      expect(data.data).toHaveLength(1)
-      expect(data.data[0].brand).toBe('CeraVe')
+      expect(data.data.items).toHaveLength(1)
+      expect(data.data.items[0].brand).toBe('CeraVe')
     })
 
     it('should be case-insensitive', async () => {
@@ -600,7 +587,7 @@ describe('Product Routes', () => {
       const res = await app.request('/products/search?q=VITAMINE')
 
       const data = await res.json()
-      expect(data.data).toHaveLength(1)
+      expect(data.data.items).toHaveLength(1)
     })
 
     it('should return 400 when q is missing', async () => {
@@ -630,7 +617,7 @@ describe('Product Routes', () => {
       const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}&limit=2`)
 
       const data = await res.json()
-      expect(data.data).toHaveLength(2)
+      expect(data.data.items).toHaveLength(2)
     })
 
     it('should return the correct shape (id, name, brand, kind, slug)', async () => {
@@ -640,8 +627,8 @@ describe('Product Routes', () => {
       const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}`)
 
       const data = await res.json()
-      expect(data.data).toHaveLength(1)
-      const item = data.data[0]
+      expect(data.data.items).toHaveLength(1)
+      const item = data.data.items[0]
       expect(item).toHaveProperty('id')
       expect(item).toHaveProperty('name')
       expect(item).toHaveProperty('brand')
@@ -758,33 +745,36 @@ describe('Product Routes', () => {
 
   describe('DELETE /products/:id', () => {
     it('should delete the product and return null data', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
+      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
       const { data: created } = await createRes.json()
 
-      const res = await authDelete(app, `/products/${created.id}`, token)
+      const res = await authDelete(app, `/products/${created.id}`, adminToken)
 
       expect(res.status).toBe(HTTP_STATUS.NO_CONTENT)
     })
 
     it('should make the product unreachable by slug after deletion', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
+      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
       const { data: created } = await createRes.json()
 
-      await authDelete(app, `/products/${created.id}`, token)
+      await authDelete(app, `/products/${created.id}`, adminToken)
 
       const res = await app.request(`/products/${created.slug}`)
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
 
     it('should not affect other products when deleting one', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await authPost(app, '/products', token, VALID_PRODUCT)
-      const r2 = await authPost(app, '/products', token, {
+      const r1 = await authPost(app, '/products', userToken, VALID_PRODUCT)
+      const r2 = await authPost(app, '/products', userToken, {
         name: 'Magnésium',
         brand: 'Solgar',
         category: 'complement',
@@ -795,16 +785,30 @@ describe('Product Routes', () => {
       const { data: p1 } = await r1.json()
       const { data: p2 } = await r2.json()
 
-      await authDelete(app, `/products/${p1.id}`, token)
+      await authDelete(app, `/products/${p1.id}`, adminToken)
 
       const res = await app.request(`/products/${p2.slug}`)
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 
-    it('should return 404 for unknown id (product_not_found)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+    it('should return 403 for non-admin user (unauthorized_access)', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authDelete(app, `/products/${crypto.randomUUID()}`, token)
+      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
+      const { data: created } = await createRes.json()
+
+      const res = await authDelete(app, `/products/${created.id}`, userToken)
+
+      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error).toBe('unauthorized_access')
+    })
+
+    it('should return 404 for unknown id (product_not_found)', async () => {
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+
+      const res = await authDelete(app, `/products/${crypto.randomUUID()}`, adminToken)
 
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
       const data = await res.json()

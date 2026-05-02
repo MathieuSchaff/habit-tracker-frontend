@@ -177,7 +177,7 @@ describe('Ingredient Service', () => {
   describe('deleteIngredient', () => {
     it('should permanently remove the ingredient', async () => {
       const created = await makeIngredient('Rétinol')
-      await deleteIngredient(testDb, created.id)
+      await deleteIngredient(testDb, 'admin', created.id)
       expect(getIngredientById(testDb, created.id)).rejects.toThrow(IngredientError)
     })
 
@@ -185,7 +185,7 @@ describe('Ingredient Service', () => {
       const i1 = await makeIngredient('Ingrédient A')
       const i2 = await makeIngredient('Ingrédient B')
 
-      await deleteIngredient(testDb, i1.id)
+      await deleteIngredient(testDb, 'admin', i1.id)
       const fetched = await getIngredientById(testDb, i2.id)
       expect(fetched.id).toBe(i2.id)
     })

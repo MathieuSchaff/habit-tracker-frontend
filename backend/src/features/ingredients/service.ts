@@ -254,7 +254,9 @@ export async function updateIngredient(
   }
 }
 
-export async function deleteIngredient(database: DB, id: string) {
+export async function deleteIngredient(database: DB, role: 'user' | 'admin', id: string) {
+  if (role !== 'admin') throw new IngredientError('unauthorized_access')
+
   const rows = await database
     .delete(ingredients)
     .where(eq(ingredients.id, id))

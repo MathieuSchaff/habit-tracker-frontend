@@ -4,10 +4,7 @@ export const SKIN_TYPE_LABELS: Record<SkinType, string> = {
   'peau-seche': 'Sèche',
   'peau-mixte': 'Mixte',
   'peau-grasse': 'Grasse',
-  'peau-reactive': 'Réactive',
   'peau-normale': 'Normale',
-  'peau-atopique': 'Atopique',
-  'peau-rugueuse': 'Rugueuse',
   'peau-sensible': 'Sensible',
 }
 

@@ -28,6 +28,7 @@ import {
   inArray,
   lte,
   ne,
+  notExists,
   or,
   type SQL,
   sql,
@@ -322,12 +323,37 @@ export async function listProducts(
         )
     )
 
+  // routine_moment "matin"/"soir" filters also match products with no moment
+  // tag at all (= universal, usable any moment per UX intent). Restrictive
+  // moments (hebdomadaire, usage-localise, crise) keep strict EXISTS only.
+  const ROUTINE_MOMENT_UNIVERSAL = new Set(['moment-matin', 'moment-soir'])
+  const routineMomentFilterCondition = (raw: string): SQL => {
+    const slugs = raw.split(',').map((s) => s.trim())
+    const includesUniversal = slugs.some((s) => ROUTINE_MOMENT_UNIVERSAL.has(s))
+    const strict = tagFilterCondition(raw, 'routine_moment')
+    if (!includesUniversal) return strict
+    const noMomentTag = notExists(
+      database
+        .select({ one: sql`1` })
+        .from(tagProducts)
+        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .where(
+          and(eq(tagProducts.productId, products.id), eq(productTagsDefs.tagType, 'routine_moment'))
+        )
+    )
+    return or(strict, noMomentTag) as SQL
+  }
+
   // Tag filters dispatched per domain — categories come from the shared taxonomy
   // (single source of truth: shared/src/products/{domain}/tag-taxonomy.ts).
   if (filters.category === 'skincare') {
     for (const tagType of SKINCARE_PRODUCT_TAG_CATEGORIES) {
       const value = filters[tagType]
       if (!value) continue
+      if (tagType === 'routine_moment') {
+        conditions.push(routineMomentFilterCondition(value))
+        continue
+      }
       conditions.push(tagFilterCondition(value, tagType))
     }
   } else if (filters.category === 'haircare') {
@@ -531,13 +557,14 @@ export async function getDistinctBrands(database: Database = db): Promise<string
 }
 
 export async function deleteProduct(
-  userId: string,
+  role: 'user' | 'admin',
   id: string,
   database: Database = db
 ): Promise<void> {
+  if (role !== 'admin') throw new ProductError('unauthorized_access')
+
   const product = await database.query.products.findFirst({ where: eq(products.id, id) })
   if (!product) throw new ProductError('product_not_found')
-  if (product.createdBy !== userId) throw new ProductError('unauthorized_access')
 
   await database.delete(products).where(eq(products.id, id))
 }

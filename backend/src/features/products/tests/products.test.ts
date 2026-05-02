@@ -115,7 +115,7 @@ describe('Product Service', () => {
   describe('deleteProduct', () => {
     it('should permanently remove the product', async () => {
       const created = await makeProduct('Sélénium', 'Solgar')
-      await deleteProduct(user.id, created.id, testDb)
+      await deleteProduct('admin', created.id, testDb)
       expect(getProductById(created.id, testDb)).rejects.toThrow(ProductError)
     })
   })
@@ -324,8 +324,10 @@ describe('Product Service', () => {
         'skin_type',
         'concern',
         'skin_zone',
-        'product_type',
-        'routine_step',
+        'product_type_v2',
+        'texture',
+        'routine_step_v2',
+        'routine_moment',
         'skin_effect',
         'product_label',
         'shared_label',

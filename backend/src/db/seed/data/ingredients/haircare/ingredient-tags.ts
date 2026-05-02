@@ -41,27 +41,27 @@ export const haircareTagMap: IngredientTagMap = {
   // Dual-domain skincare+haircare — slugs skincare (dedup skincare-first)
   [INGREDIENT_SLUGS.TETRASODIUM_EDTA]: {
     primary: [TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.HYDROXYETHYLCELLULOSE]: {
     primary: [TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.HYDROXYPROPYL_METHYLCELLULOSE]: {
     primary: [TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.SCLEROTIUM_GUM]: {
     primary: [TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.BEHENYL_ALCOHOL]: {
     primary: [TAG_SLUGS.EMOLLIENT, TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_SECHE, TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [TAG_SLUGS.PEAU_SECHE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.DIMETHICONOL]: {
@@ -71,12 +71,12 @@ export const haircareTagMap: IngredientTagMap = {
   },
   [INGREDIENT_SLUGS.CYCLOPENTASILOXANE]: {
     primary: [TAG_SLUGS.EXCIPIENT, TAG_SLUGS.EMOLLIENT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.PHENYL_TRIMETHICONE]: {
     primary: [TAG_SLUGS.EMOLLIENT, TAG_SLUGS.ECLAT],
-    secondary: [TAG_SLUGS.PEAU_TOUS_TYPES],
+    secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.PIROCTONE_OLAMINE]: {
@@ -91,7 +91,7 @@ export const haircareTagMap: IngredientTagMap = {
   },
   [INGREDIENT_SLUGS.DECYL_GLUCOSIDE]: {
     primary: [TAG_SLUGS.TENSIOACTIF],
-    secondary: [TAG_SLUGS.PEAU_ATOPIQUE],
+    secondary: [TAG_SLUGS.PEAU_SECHE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.SODIUM_COCOYL_ISETHIONATE]: {
