@@ -32,7 +32,11 @@ backups/
 *.sql
 !backend/drizzle/**/*.sql
 !backend/drizzle-init/**/*.sql
+!backend/src/db/snapshot/*.sql
 backend/src/db/seed/products/otherData.csv
+
+# Skincare seed: archived locally, snapshot is source of truth
+backend/src/db/seed/data/products/skincare/
 
 # =========================
 # IDE

@@ -56,7 +56,6 @@ export const SUPPLEMENT_PRODUCT_TAG_SLUGS = {
   SPRAY_SUBLINGUAL: 'spray-sublingual',
 
   // Product labels
-  VEGAN: 'vegan',
   SANS_GLUTEN: 'sans-gluten',
   SANS_LACTOSE: 'sans-lactose',
   BIO: 'bio',

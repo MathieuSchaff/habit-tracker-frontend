@@ -91,12 +91,7 @@ export const HAIRCARE_PRODUCT_TAG_SLUGS = {
   // Product labels
   SANS_SULFATES: 'sans-sulfates',
   SANS_SILICONES: 'sans-silicones',
-  SANS_PARFUM: 'sans-parfum',
   CGM_FRIENDLY: 'cgm-friendly',
-  VEGAN: 'vegan',
-  CRUELTY_FREE: 'cruelty-free',
-  BIO_NATUREL: 'bio-naturel',
-  HYPOALLERGENIQUE: 'hypoallergenique',
 } as const
 
 export type HaircareProductTagSlug =

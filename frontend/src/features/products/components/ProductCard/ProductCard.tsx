@@ -64,7 +64,7 @@ const TAG_VARIANT: Record<string, string> = {
   age_group: 'audience',
   restriction: 'audience',
   product_label: 'label',
-  shared_label: 'label',
+  product_characteristic: 'label',
 }
 
 function tagVariant(tagType: string): string {

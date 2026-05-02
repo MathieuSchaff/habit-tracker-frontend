@@ -1,8 +1,8 @@
 // Skincare Product Tag Slugs
 // Tags applicable to skincare products.
 // Categories: concern, skin_type, skin_zone, product_type_v2, texture,
-//             routine_step_v2, routine_moment, skin_effect, product_label,
-//             shared_label.
+//             routine_step_v2, routine_moment, skin_effect, sensation,
+//             product_label, shared_label.
 
 export const SKINCARE_PRODUCT_TAG_SLUGS = {
   // Concerns
@@ -79,13 +79,11 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   MOMENT_USAGE_LOCALISE: 'moment-usage-localise',
   MOMENT_CRISE: 'moment-crise',
 
-  // Skin effects
+  // Skin effects (what the formula does)
   OCCLUSIF: 'occlusif',
   REPULPANT: 'repulpant',
   MATIFIANT: 'matifiant',
   PROTECTION_CUTANEE: 'protection-cutanee',
-  TEXTURE_RICHE: 'texture-riche',
-  TEXTURE_LEGERE: 'texture-legere',
   ANTI_OXYDANT: 'anti-oxydant',
   APAISANT: 'apaisant',
   SEBO_REGULATEUR: 'sebo-regulateur',
@@ -93,6 +91,14 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   PURIFIANT: 'purifiant',
   PREBIOTIQUE: 'prebiotique',
   KERATOLYTIQUE: 'keratolytique',
+
+  // Sensations (how the formula feels)
+  TEXTURE_RICHE: 'texture-riche',
+  TEXTURE_LEGERE: 'texture-legere',
+  NON_GRAS: 'non-gras',
+  FINI_MAT: 'fini-mat',
+  FINI_GLOWY: 'fini-glowy',
+  ABSORPTION_RAPIDE: 'absorption-rapide',
 
   // Product labels
   SANS_PARFUM: 'sans-parfum',

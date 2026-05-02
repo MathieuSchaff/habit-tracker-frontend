@@ -1,4 +1,4 @@
-import { getProductKindLabel, type ProductDomainTab } from '@habit-tracker/shared'
+import type { ProductDomainTab } from '@habit-tracker/shared'
 
 import { useMemo } from 'react'
 
@@ -63,12 +63,6 @@ export function useProductsFilterGroups(
         defaultOpen: false,
         tier: 'advanced',
         subFilters: [
-          {
-            key: 'kind' as FilterKey,
-            label: NON_TAG_FILTER_LABELS.kind,
-            placeholder: NON_TAG_FILTER_PLACEHOLDERS.kind,
-            options: filterOptions.kinds.map((k) => ({ value: k, label: getProductKindLabel(k) })),
-          },
           {
             key: 'brand',
             label: NON_TAG_FILTER_LABELS.brand,

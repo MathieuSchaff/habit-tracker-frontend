@@ -55,8 +55,8 @@ export const skincareListProductsQuery = baseListProductsQuery.extend({
   texture: z.string().optional(),
   skin_zone: z.string().optional(),
   skin_effect: z.string().optional(),
-  product_label: z.string().optional(),
-  shared_label: z.string().optional(),
+  sensation: z.string().optional(),
+  product_characteristic: z.string().optional(),
 })
 
 export const haircareListProductsQuery = baseListProductsQuery.extend({

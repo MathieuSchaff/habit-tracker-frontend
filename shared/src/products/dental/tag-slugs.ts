@@ -49,7 +49,6 @@ export const DENTAL_PRODUCT_TAG_SLUGS = {
   SANS_FLUOR: 'sans-fluor',
   SANS_SLS: 'sans-sls',
   SANS_EDULCORANTS_ARTIFICIELS: 'sans-edulcorants-artificiels',
-  VEGAN: 'vegan',
   BIO: 'bio',
 } as const
 

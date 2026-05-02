@@ -35,7 +35,7 @@ export const SKINCARE_PRODUCT_TAG_CATEGORY_META: Record<
     defaultOpen: false,
   },
   texture: {
-    label: 'Texture',
+    label: 'Forme - Galénique',
     placeholder: 'Toutes',
     tier: 'essential',
     order: 5,
@@ -50,11 +50,11 @@ export const SKINCARE_PRODUCT_TAG_CATEGORY_META: Record<
     defaultOpen: false,
   },
   routine_step_v2: { label: 'Étape', placeholder: 'Toutes', tier: 'advanced', order: 7 },
-  skin_effect: { label: 'Rendu', placeholder: 'Tous', tier: 'advanced', order: 8 },
-  product_label: { label: 'Label', placeholder: 'Tous', tier: 'advanced', order: 9 },
-  shared_label: {
-    label: 'Comédogénicité',
-    placeholder: 'Indifférent',
+  skin_effect: { label: 'Actions / Effets', placeholder: 'Tous', tier: 'advanced', order: 8 },
+  sensation: { label: 'Sensation', placeholder: 'Toutes', tier: 'advanced', order: 9 },
+  product_characteristic: {
+    label: 'Caractéristiques produit',
+    placeholder: 'Toutes',
     tier: 'advanced',
     order: 10,
   },

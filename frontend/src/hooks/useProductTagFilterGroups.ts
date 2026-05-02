@@ -5,6 +5,7 @@ import {
   getProductTagsByCategory,
   HAIRCARE_PRODUCT_TAG_CATEGORY_META,
   type ProductDomainTab,
+  SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS,
   SKINCARE_PRODUCT_CONCERN_GROUPS,
   SKINCARE_PRODUCT_TAG_CATEGORY_META,
   SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
@@ -23,6 +24,25 @@ const SKINCARE_CONCERN_SUBGROUPS: FilterSubGroup[] = [
   {
     label: 'Objectifs esthétiques',
     slugs: [...SKINCARE_PRODUCT_CONCERN_GROUPS.aesthetic],
+  },
+]
+
+const SKINCARE_CHARACTERISTIC_SUBGROUPS: FilterSubGroup[] = [
+  {
+    label: 'Tolérance & sécurité',
+    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.tolerance],
+  },
+  {
+    label: 'Éthique & durabilité',
+    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.ethique],
+  },
+  {
+    label: 'Technique',
+    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.technique],
+  },
+  {
+    label: 'Comédogénicité',
+    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.comedogenicite],
   },
 ]
 
@@ -64,7 +84,11 @@ export function useProductTagFilterGroups(
         .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
 
       const subGroups =
-        domain === 'skincare' && cat === 'concern' ? SKINCARE_CONCERN_SUBGROUPS : undefined
+        domain === 'skincare' && cat === 'concern'
+          ? SKINCARE_CONCERN_SUBGROUPS
+          : domain === 'skincare' && cat === 'product_characteristic'
+            ? SKINCARE_CHARACTERISTIC_SUBGROUPS
+            : undefined
 
       return {
         id: cat,
