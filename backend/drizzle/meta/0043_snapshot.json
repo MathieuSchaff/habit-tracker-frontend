@@ -84,12 +84,8 @@
           "name": "email_verifications_user_id_users_id_fk",
           "tableFrom": "email_verifications",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -193,12 +189,8 @@
           "name": "user_bans_user_id_users_id_fk",
           "tableFrom": "user_bans",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -206,12 +198,8 @@
           "name": "user_bans_banned_by_users_id_fk",
           "tableFrom": "user_bans",
           "tableTo": "users",
-          "columnsFrom": [
-            "banned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["banned_by"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -223,9 +211,7 @@
           "name": "user_bans_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"user_bans\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"user_bans\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -233,9 +219,7 @@
           "name": "user_bans_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -289,12 +273,8 @@
           "name": "user_preferences_user_id_users_id_fk",
           "tableFrom": "user_preferences",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -306,9 +286,7 @@
           "name": "user_preferences_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"user_preferences\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"user_preferences\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -316,9 +294,7 @@
           "name": "user_preferences_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -420,12 +396,8 @@
           "name": "profiles_user_id_users_id_fk",
           "tableFrom": "profiles",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -437,9 +409,7 @@
           "name": "profiles_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"profiles\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"profiles\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -447,18 +417,14 @@
           "name": "profiles_select_public",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"profiles\".\"profile_public\""
         },
         "profiles_admin_bypass": {
           "name": "profiles_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -613,12 +579,8 @@
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -630,9 +592,7 @@
           "name": "refresh_tokens_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"refresh_tokens\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"refresh_tokens\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -640,9 +600,7 @@
           "name": "refresh_tokens_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -715,12 +673,8 @@
           "name": "user_dermo_profiles_user_id_users_id_fk",
           "tableFrom": "user_dermo_profiles",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -732,9 +686,7 @@
           "name": "user_dermo_profiles_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"user_dermo_profiles\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"user_dermo_profiles\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -742,9 +694,7 @@
           "name": "user_dermo_profiles_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -1018,12 +968,8 @@
           "name": "articles_created_by_users_id_fk",
           "tableFrom": "articles",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1086,12 +1032,8 @@
           "name": "ingredient_dermo_profiles_ingredient_id_ingredients_id_fk",
           "tableFrom": "ingredient_dermo_profiles",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1187,12 +1129,8 @@
           "name": "ingredient_edits_ingredient_id_ingredients_id_fk",
           "tableFrom": "ingredient_edits",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1200,12 +1138,8 @@
           "name": "ingredient_edits_edited_by_users_id_fk",
           "tableFrom": "ingredient_edits",
           "tableTo": "users",
-          "columnsFrom": [
-            "edited_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["edited_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1383,12 +1317,8 @@
           "name": "ingredients_created_by_users_id_fk",
           "tableFrom": "ingredients",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1491,12 +1421,8 @@
           "name": "user_ingredient_analysis_score_user_id_users_id_fk",
           "tableFrom": "user_ingredient_analysis_score",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1504,12 +1430,8 @@
           "name": "user_ingredient_analysis_score_ingredient_id_ingredients_id_fk",
           "tableFrom": "user_ingredient_analysis_score",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1521,9 +1443,7 @@
           "name": "user_ingredient_analysis_score_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"user_ingredient_analysis_score\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"user_ingredient_analysis_score\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -1531,9 +1451,7 @@
           "name": "user_ingredient_analysis_score_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -1788,12 +1706,8 @@
           "name": "error_occurrences_group_id_error_groups_id_fk",
           "tableFrom": "error_occurrences",
           "tableTo": "error_groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1801,12 +1715,8 @@
           "name": "error_occurrences_user_id_users_id_fk",
           "tableFrom": "error_occurrences",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1862,12 +1772,8 @@
           "name": "product_comparison_items_comparison_id_product_comparisons_id_fk",
           "tableFrom": "product_comparison_items",
           "tableTo": "product_comparisons",
-          "columnsFrom": [
-            "comparison_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["comparison_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1875,12 +1781,8 @@
           "name": "product_comparison_items_product_id_products_id_fk",
           "tableFrom": "product_comparison_items",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1888,10 +1790,7 @@
       "compositePrimaryKeys": {
         "product_comparison_items_comparison_id_product_id_pk": {
           "name": "product_comparison_items_comparison_id_product_id_pk",
-          "columns": [
-            "comparison_id",
-            "product_id"
-          ]
+          "columns": ["comparison_id", "product_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1959,12 +1858,8 @@
           "name": "product_comparisons_user_id_users_id_fk",
           "tableFrom": "product_comparisons",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2049,12 +1944,8 @@
           "name": "discussion_replies_thread_id_discussion_threads_id_fk",
           "tableFrom": "discussion_replies",
           "tableTo": "discussion_threads",
-          "columnsFrom": [
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["thread_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2062,12 +1953,8 @@
           "name": "discussion_replies_author_id_users_id_fk",
           "tableFrom": "discussion_replies",
           "tableTo": "users",
-          "columnsFrom": [
-            "author_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2179,12 +2066,8 @@
           "name": "discussion_threads_product_id_products_id_fk",
           "tableFrom": "discussion_threads",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2192,12 +2075,8 @@
           "name": "discussion_threads_ingredient_id_ingredients_id_fk",
           "tableFrom": "discussion_threads",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2205,12 +2084,8 @@
           "name": "discussion_threads_author_id_users_id_fk",
           "tableFrom": "discussion_threads",
           "tableTo": "users",
-          "columnsFrom": [
-            "author_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2339,12 +2214,8 @@
           "name": "product_ingredients_product_id_products_id_fk",
           "tableFrom": "product_ingredients",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2352,12 +2223,8 @@
           "name": "product_ingredients_ingredient_id_ingredients_id_fk",
           "tableFrom": "product_ingredients",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2448,12 +2315,8 @@
           "name": "product_edits_product_id_products_id_fk",
           "tableFrom": "product_edits",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2461,12 +2324,8 @@
           "name": "product_edits_edited_by_users_id_fk",
           "tableFrom": "product_edits",
           "tableTo": "users",
-          "columnsFrom": [
-            "edited_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["edited_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2703,12 +2562,8 @@
           "name": "products_created_by_users_id_fk",
           "tableFrom": "products",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2817,12 +2672,8 @@
           "name": "purchases_user_product_id_user_products_id_fk",
           "tableFrom": "purchases",
           "tableTo": "user_products",
-          "columnsFrom": [
-            "user_product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2834,9 +2685,7 @@
           "name": "purchases_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "EXISTS (\n        SELECT 1 FROM \"user_products\" p\n        WHERE p.id = \"purchases\".\"user_product_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )",
           "withCheck": "EXISTS (\n        SELECT 1 FROM \"user_products\" p\n        WHERE p.id = \"purchases\".\"user_product_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )"
         },
@@ -2844,9 +2693,7 @@
           "name": "purchases_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -2959,12 +2806,8 @@
           "name": "user_product_reviews_user_product_id_user_products_id_fk",
           "tableFrom": "user_product_reviews",
           "tableTo": "user_products",
-          "columnsFrom": [
-            "user_product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2974,9 +2817,7 @@
         "user_product_reviews_user_product_id_unique": {
           "name": "user_product_reviews_user_product_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_product_id"
-          ]
+          "columns": ["user_product_id"]
         }
       },
       "policies": {
@@ -2984,9 +2825,7 @@
           "name": "user_product_reviews_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "EXISTS (\n        SELECT 1 FROM \"user_products\" p\n        WHERE p.id = \"user_product_reviews\".\"user_product_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )",
           "withCheck": "EXISTS (\n        SELECT 1 FROM \"user_products\" p\n        WHERE p.id = \"user_product_reviews\".\"user_product_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )"
         },
@@ -2994,9 +2833,7 @@
           "name": "user_product_reviews_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -3137,12 +2974,8 @@
           "name": "user_products_user_id_users_id_fk",
           "tableFrom": "user_products",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3150,12 +2983,8 @@
           "name": "user_products_product_id_products_id_fk",
           "tableFrom": "user_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3167,9 +2996,7 @@
           "name": "user_products_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"user_products\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"user_products\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -3177,9 +3004,7 @@
           "name": "user_products_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -3375,12 +3200,8 @@
           "name": "tag_ingredients_ingredient_tag_id_ingredient_tags_id_fk",
           "tableFrom": "tag_ingredients",
           "tableTo": "ingredient_tags",
-          "columnsFrom": [
-            "ingredient_tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3388,12 +3209,8 @@
           "name": "tag_ingredients_ingredient_id_ingredients_id_fk",
           "tableFrom": "tag_ingredients",
           "tableTo": "ingredients",
-          "columnsFrom": [
-            "ingredient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ingredient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3401,10 +3218,7 @@
       "compositePrimaryKeys": {
         "tag_ingredients_ingredient_tag_id_ingredient_id_pk": {
           "name": "tag_ingredients_ingredient_tag_id_ingredient_id_pk",
-          "columns": [
-            "ingredient_tag_id",
-            "ingredient_id"
-          ]
+          "columns": ["ingredient_tag_id", "ingredient_id"]
         }
       },
       "uniqueConstraints": {},
@@ -3443,12 +3257,8 @@
           "name": "tag_products_product_tag_id_product_tags_id_fk",
           "tableFrom": "tag_products",
           "tableTo": "product_tags",
-          "columnsFrom": [
-            "product_tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3456,12 +3266,8 @@
           "name": "tag_products_product_id_products_id_fk",
           "tableFrom": "tag_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3469,10 +3275,7 @@
       "compositePrimaryKeys": {
         "tag_products_product_tag_id_product_id_pk": {
           "name": "tag_products_product_tag_id_product_id_pk",
-          "columns": [
-            "product_tag_id",
-            "product_id"
-          ]
+          "columns": ["product_tag_id", "product_id"]
         }
       },
       "uniqueConstraints": {},
@@ -3552,12 +3355,8 @@
           "name": "subtasks_task_id_tasks_id_fk",
           "tableFrom": "subtasks",
           "tableTo": "tasks",
-          "columnsFrom": [
-            "task_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["task_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3569,9 +3368,7 @@
           "name": "subtasks_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "EXISTS (\n        SELECT 1 FROM \"tasks\" p\n        WHERE p.id = \"subtasks\".\"task_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )",
           "withCheck": "EXISTS (\n        SELECT 1 FROM \"tasks\" p\n        WHERE p.id = \"subtasks\".\"task_id\"\n          AND p.user_id = (SELECT auth.uid())\n      )"
         },
@@ -3579,9 +3376,7 @@
           "name": "subtasks_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -3715,12 +3510,8 @@
           "name": "tasks_user_id_users_id_fk",
           "tableFrom": "tasks",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3732,9 +3523,7 @@
           "name": "tasks_tenant_isolation",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "\"tasks\".\"user_id\" = (SELECT auth.uid())",
           "withCheck": "\"tasks\".\"user_id\" = (SELECT auth.uid())"
         },
@@ -3742,9 +3531,7 @@
           "name": "tasks_admin_bypass",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "app_runtime"
-          ],
+          "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
         }
@@ -3757,30 +3544,17 @@
     "public.ban_scope": {
       "name": "ban_scope",
       "schema": "public",
-      "values": [
-        "ingredient_edit",
-        "product_edit",
-        "product_create",
-        "global"
-      ]
+      "values": ["ingredient_edit", "product_edit", "product_create", "global"]
     },
     "public.display_scale": {
       "name": "display_scale",
       "schema": "public",
-      "values": [
-        "out_of_5",
-        "out_of_10",
-        "out_of_20",
-        "percentage"
-      ]
+      "values": ["out_of_5", "out_of_10", "out_of_20", "percentage"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "user",
-        "admin"
-      ]
+      "values": ["user", "admin"]
     },
     "public.blog_category": {
       "name": "blog_category",
@@ -3800,75 +3574,42 @@
     "public.irritation_potential": {
       "name": "irritation_potential",
       "schema": "public",
-      "values": [
-        "low",
-        "moderate",
-        "high"
-      ]
+      "values": ["low", "moderate", "high"]
     },
     "public.error_source": {
       "name": "error_source",
       "schema": "public",
-      "values": [
-        "backend",
-        "frontend"
-      ]
+      "values": ["backend", "frontend"]
     },
     "public.collaborator_role": {
       "name": "collaborator_role",
       "schema": "public",
-      "values": [
-        "editor"
-      ]
+      "values": ["editor"]
     },
     "public.repurchase_flag": {
       "name": "repurchase_flag",
       "schema": "public",
-      "values": [
-        "yes",
-        "no",
-        "unsure"
-      ]
+      "values": ["yes", "no", "unsure"]
     },
     "public.user_product_status": {
       "name": "user_product_status",
       "schema": "public",
-      "values": [
-        "in_stock",
-        "wishlist",
-        "watched",
-        "holy_grail",
-        "archived",
-        "avoided"
-      ]
+      "values": ["in_stock", "wishlist", "watched", "holy_grail", "archived", "avoided"]
     },
     "public.relevance": {
       "name": "relevance",
       "schema": "public",
-      "values": [
-        "primary",
-        "secondary",
-        "avoid"
-      ]
+      "values": ["primary", "secondary", "avoid"]
     },
     "public.task_energy": {
       "name": "task_energy",
       "schema": "public",
-      "values": [
-        "low",
-        "medium",
-        "high"
-      ]
+      "values": ["low", "medium", "high"]
     },
     "public.task_status": {
       "name": "task_status",
       "schema": "public",
-      "values": [
-        "inbox",
-        "active",
-        "done",
-        "snoozed"
-      ]
+      "values": ["inbox", "active", "done", "snoozed"]
     }
   },
   "schemas": {

@@ -1,8 +1,12 @@
 import type { Email, RawPassword } from '@habit-tracker/shared'
 
+import { eq } from 'drizzle-orm'
+
+import { users } from '../../db/schema'
 import { signup } from '../../features/auth/service'
 import { createCtx } from '../../features/auth/tests/auth-test.setup'
 import { getUser } from '../../features/auth/user.utils'
+import { testDb } from '../db.test.config'
 
 export async function createTestUser(
   email: string = 'toto@toto.com',
@@ -24,4 +28,13 @@ export async function createTestUser(
   }
 
   return result.data.user
+}
+
+export async function createTestAdminUser(
+  email: string = 'admin@toto.com',
+  password: string = 'Azerty123!'
+) {
+  const user = await createTestUser(email, password)
+  await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
+  return user
 }

@@ -8,7 +8,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   APP_DATABASE_URL: z.string(),
   POSTGRES_PASSWORD: z.string().optional(),
-  RESEND_API_KEY: z.string(),
+  BREVO_API_KEY: z.string(),
   FRONTEND_URL: z.url(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
