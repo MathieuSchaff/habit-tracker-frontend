@@ -35,12 +35,8 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   PEAU_SECHE: 'peau-seche',
   PEAU_MIXTE: 'peau-mixte',
   PEAU_GRASSE: 'peau-grasse',
-  PEAU_REACTIVE: 'peau-reactive',
   PEAU_SENSIBLE: 'peau-sensible',
   PEAU_NORMALE: 'peau-normale',
-  PEAU_ATOPIQUE: 'peau-atopique',
-  PEAU_RUGUEUSE: 'peau-rugueuse',
-  PEAU_TOUS_TYPES: 'tous-types',
 
   // Ingredient attributes
   ANTI_OXYDANT: 'anti-oxydant',

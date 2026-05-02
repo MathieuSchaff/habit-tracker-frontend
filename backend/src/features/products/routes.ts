@@ -112,8 +112,8 @@ export const productRoutes = productsApp
 
   .delete('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const role = c.get('userRole')
     const { id } = c.req.valid('param')
-    await deleteProduct(userId, id, db)
+    await deleteProduct(role, id, db)
     return c.body(null, 204)
   })

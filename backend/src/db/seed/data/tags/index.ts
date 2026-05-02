@@ -92,12 +92,8 @@ const INGREDIENT_TAG_LABELS: Record<string, string> = {
   'peau-seche': 'Peau sèche',
   'peau-mixte': 'Peau mixte',
   'peau-grasse': 'Peau grasse',
-  'peau-reactive': 'Peau réactive',
   'peau-sensible': 'Peau sensible',
   'peau-normale': 'Peau normale',
-  'peau-atopique': 'Peau atopique',
-  'peau-rugueuse': 'Peau rugueuse',
-  'tous-types': 'Tous types de peau',
 
   // Skin zones
   'zone-visage': 'Visage',

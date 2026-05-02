@@ -309,6 +309,20 @@
       "when": 1777614466404,
       "tag": "0043_tearful_smiling_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1777700000000,
+      "tag": "0044_drop_skincare_product_type_legacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1777700100000,
+      "tag": "0045_drop_skincare_routine_step_legacy",
+      "breakpoints": true
     }
   ]
 }

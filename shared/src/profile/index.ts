@@ -8,16 +8,12 @@ export const USERNAME_MAX_LENGTH = 32
 export const BIO_MAX_LENGTH = 500
 
 // These values are tag slugs from the `skin_type` category in the tags table.
-// They must stay in sync with seed-tags.ts. `tous-types` is excluded — it's a
-// product tag ("suitable for all"), not a valid user skin type.
+// They must stay in sync with seed-tags.ts.
 export const SKIN_TYPES = [
   'peau-seche',
   'peau-mixte',
   'peau-grasse',
-  'peau-reactive',
   'peau-normale',
-  'peau-atopique',
-  'peau-rugueuse',
   'peau-sensible',
 ] as const
 

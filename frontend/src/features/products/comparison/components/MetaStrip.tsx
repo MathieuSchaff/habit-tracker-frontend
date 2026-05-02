@@ -24,7 +24,9 @@ export function MetaStrip({ products }: Props) {
           <p>{mixed ? 'Prix non comparable' : formatPricePer(p)}</p>
           <ul>
             {p.tags
-              .filter((t) => ['product_type', 'routine_step', 'skin_type'].includes(t.tagType))
+              .filter((t) =>
+                ['product_type_v2', 'texture', 'routine_moment', 'skin_type'].includes(t.tagType)
+              )
               .map((t) => (
                 <li key={t.slug}>{t.slug}</li>
               ))}

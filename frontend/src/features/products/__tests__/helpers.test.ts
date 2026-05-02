@@ -100,12 +100,12 @@ describe('buildProductsApiFilters', () => {
       category: 'skincare',
       kind: [],
       filters: emptyTagFilters(),
-      avoidFor: ['peau-reactive'],
+      avoidFor: ['peau-sensible'],
       sort: 'newest',
       page: 1,
       hasFilters: false,
     })
-    expect(out.avoid_for).toEqual(['peau-reactive'])
+    expect(out.avoid_for).toEqual(['peau-sensible'])
     expect(out.limit).toBe(20)
   })
 
@@ -472,12 +472,12 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
       category: 'skincare',
       kind: [],
       filters: emptyTagFilters(),
-      avoidFor: ['peau-reactive', 'peau-reactive'],
+      avoidFor: ['peau-sensible', 'peau-sensible'],
       sort: 'name',
       page: 1,
       hasFilters: true,
     })
-    expect(out.avoid_for).toEqual(['peau-reactive', 'peau-reactive'])
+    expect(out.avoid_for).toEqual(['peau-sensible', 'peau-sensible'])
   })
 })
 

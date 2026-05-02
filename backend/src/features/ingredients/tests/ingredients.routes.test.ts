@@ -14,6 +14,7 @@ import {
   authPatch,
   authPost,
   setupAndLogin,
+  setupAndLoginAdmin,
 } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
@@ -368,48 +369,64 @@ describe('Ingredient Routes', () => {
 
   describe('DELETE /ingredients/:id', () => {
     it('should delete the ingredient and return null data', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
+      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
       const { data: created } = await createRes.json()
 
-      const res = await authDelete(app, `/ingredients/${created.id}`, token)
+      const res = await authDelete(app, `/ingredients/${created.id}`, adminToken)
 
       expect(res.status).toBe(204)
     })
 
     it('should make the ingredient unreachable by slug after deletion', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
+      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
       const { data: created } = await createRes.json()
 
-      await authDelete(app, `/ingredients/${created.id}`, token)
+      await authDelete(app, `/ingredients/${created.id}`, adminToken)
 
       const res = await app.request(`/ingredients/${created.slug}`)
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
 
     it('should not affect other ingredients when deleting one', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Niacinamide', type: 'skincare' })
+      const r1 = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
+      const r2 = await authPost(app, '/ingredients', userToken, { name: 'Niacinamide', type: 'skincare' })
 
       const { data: i1 } = await r1.json()
       const { data: i2 } = await r2.json()
 
-      await authDelete(app, `/ingredients/${i1.id}`, token)
+      await authDelete(app, `/ingredients/${i1.id}`, adminToken)
 
       const res = await app.request(`/ingredients/${i2.slug}`)
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 
+    it('should return 403 for non-admin user (unauthorized_access)', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+
+      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
+      const { data: created } = await createRes.json()
+
+      const res = await authDelete(app, `/ingredients/${created.id}`, userToken)
+
+      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+      const data = await res.json()
+      expect(data.error).toBe('unauthorized_access')
+    })
+
     it('should return 500 for unknown id (ingredient_delete_failed)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
       const fakeId = crypto.randomUUID()
 
-      const res = await authDelete(app, `/ingredients/${fakeId}`, token)
+      const res = await authDelete(app, `/ingredients/${fakeId}`, adminToken)
 
       expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       const data = await res.json()
