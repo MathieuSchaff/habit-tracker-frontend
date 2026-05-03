@@ -21,7 +21,7 @@ import {
   findSimilarProducts,
   getDistinctBrands,
   getFilterOptions,
-  getProductWithIngredientsBySlug,
+  getProductFullBySlug,
   listProducts,
   searchProducts,
   updateProduct,
@@ -92,7 +92,7 @@ export const productRoutes = productsApp
   .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
     const { slug } = c.req.valid('param')
-    const product = await getProductWithIngredientsBySlug(slug, db)
+    const product = await getProductFullBySlug(slug, db)
     return c.json(ok(product), HTTP_STATUS.OK)
   })
 

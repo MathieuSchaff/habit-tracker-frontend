@@ -41,6 +41,7 @@ import { type Product, products } from '../../db/schema/products'
 import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
+import { listTagsByProduct } from '../tags/tags.service'
 import { ProductError } from './product-error'
 import { listIngredientsByProduct } from './product-ingredients/product-ingredients.service'
 
@@ -115,13 +116,18 @@ export async function getProductBySlug(slug: string, database: Database = db) {
   return row
 }
 
-// I need the product but also the ingredients list in one time
-export async function getProductWithIngredientsBySlug(slug: string, database: Database = db) {
+// Full detail page payload: product + ingredients + tags. Single round-trip
+// so frontend Layout/Info/Edit/Sheet all share one cache entry.
+export async function getProductFullBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
-  const ingredients = await listIngredientsByProduct(database, product.id)
+  const [ingredients, tags] = await Promise.all([
+    listIngredientsByProduct(database, product.id),
+    listTagsByProduct(database, product.id),
+  ])
   return {
     ...product,
     ingredients,
+    tags,
   }
 }
 

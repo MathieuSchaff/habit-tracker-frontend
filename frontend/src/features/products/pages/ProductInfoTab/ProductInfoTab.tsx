@@ -1,8 +1,10 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { Check, Copy, ExternalLink, FlaskConical } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
-import Markdown from 'react-markdown'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
+
+// Defer ~50KB gzip — description block is below the fold on first paint.
+const Markdown = lazy(() => import('react-markdown'))
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
@@ -60,24 +62,19 @@ export function ProductInfoTab() {
 
   const user = useAuthStore((s) => s.user)
 
-  const { data: productTagsData } = useQuery({
-    ...productQueries.tags(product.id),
-    enabled: !!user,
-  })
-
   const { data: dermoProfile } = useQuery({
     ...profileQueries.dermo(),
     enabled: !!user,
   })
 
   const warnings = useMemo(() => {
-    if (!productTagsData || !dermoProfile) return []
+    if (!user || !dermoProfile) return []
     const profileSlugs = new Set<string>([
       ...(dermoProfile.skinTypes ?? []),
       ...dermoProfile.skinConcerns,
     ])
-    return productTagsData.filter((t) => t.relevance === 'avoid' && profileSlugs.has(t.tagSlug))
-  }, [productTagsData, dermoProfile])
+    return product.tags.filter((t) => t.relevance === 'avoid' && profileSlugs.has(t.tagSlug))
+  }, [user, dermoProfile, product.tags])
 
   return (
     <>
@@ -101,7 +98,9 @@ export function ProductInfoTab() {
         <div className="product-section">
           <SectionHeader title="Description" variant="primary" />
           <RichText className="product-description">
-            <Markdown>{product.description}</Markdown>
+            <Suspense fallback={<p>{product.description}</p>}>
+              <Markdown>{product.description}</Markdown>
+            </Suspense>
           </RichText>
         </div>
       )}

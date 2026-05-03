@@ -44,7 +44,7 @@ const routeApi = getRouteApi('/products/')
 
 // Only tag keys — omits brand/ingredient/kind — so domain switch resets tags
 // without clobbering ingredient (which buildDomainSwitchSearch preserves explicitly).
-const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS) as Record<string, string[]>
+const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS)
 
 const EMPTY_FILTERS = emptyFilters(FILTER_KEYS)
 
@@ -124,7 +124,7 @@ export function ProductsPage() {
 
   // Random sort: keep result stable across back-nav so order doesn't reshuffle
   // (random() is non-deterministic — without staleTime, refetch yields a new sequence).
-  const staleTime = sort === 'random' ? 5 * 60 * 1000 : hasFilters ? 5 * 60 * 1000 : 0
+  const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 0
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...productQueries.list(apiFilters),
     placeholderData: (prev) => prev,

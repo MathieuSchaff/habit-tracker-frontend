@@ -129,11 +129,11 @@ describe('ProductsHeader — facet match footer', () => {
   it('caps ingredient section at FACET_SECTION_LIMIT (D4)', async () => {
     render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
-    // 'vita' folds to substring of all 4 mocked vitamins → top 3 only.
+    // 'vita' folds to substring of all 4 mocked vitamins → top 2 only.
     await userEvent.type(input, 'vita')
     await waitFor(() => screen.getByText('Ingrédients'))
     const entries = screen.getAllByText(/voir tous les produits avec vitamine/i)
-    expect(entries).toHaveLength(3)
+    expect(entries).toHaveLength(2)
   })
 
   it('navigates to /products?q=… on fallback footer click (D3)', async () => {
@@ -185,12 +185,27 @@ describe('ProductsHeader — facet match footer', () => {
     expect(resolved).toMatchObject({ ingredient: ['vitamine-c'], page: 1 })
   })
 
-  it('navigates to /products?ingredient=… on Enter when ingredient match is the only footer entry', async () => {
+  it('Enter applies typed text as q even when a facet section matches (sections require explicit selection)', async () => {
     render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
     await userEvent.type(input, 'vitamine c')
     await screen.findByText(/voir tous les produits avec vitamine c/i)
     await userEvent.keyboard('{Enter}')
+    expect(navigate).toHaveBeenCalledOnce()
+    const [call] = navigate.mock.calls
+    expect(call[0].to).toBe('/products')
+    const resolved = call[0].search({})
+    expect(resolved).toMatchObject({ q: 'vitamine c', page: 1 })
+    expect(resolved).not.toMatchObject({ ingredient: ['vitamine-c'] })
+  })
+
+  it('ArrowDown + Enter on an ingredient section entry navigates to /products?ingredient=…', async () => {
+    render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
+    const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
+    await userEvent.type(input, 'vitamine c')
+    await screen.findByText(/voir tous les produits avec vitamine c/i)
+    // Sections are rendered first → idx 0 = ingredient entry.
+    await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(navigate).toHaveBeenCalledOnce()
     const [call] = navigate.mock.calls
     expect(call[0].to).toBe('/products')

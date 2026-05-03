@@ -207,30 +207,45 @@ describe('SearchCombobox — keyboard', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('Enter with no highlight triggers first section entry', async () => {
+  it('Enter with no highlight calls onSubmitQuery with debounced query', async () => {
     const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })
-    const sectionSelect = vi.fn()
+    const onSubmitQuery = vi.fn()
     render(
       <SearchCombobox
         label="Search"
         queryFn={queryFn}
         toResult={toResult}
         onSelect={vi.fn()}
-        sections={() => [
-          {
-            id: 'extras',
-            label: 'Extras',
-            items: [{ id: 'extra', render: <span>Voir tous</span>, onSelect: sectionSelect }],
-          },
-        ]}
+        onSubmitQuery={onSubmitQuery}
         debounce={0}
       />,
       { wrapper: makeWrapper() }
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
-    await waitFor(() => screen.getByText('Voir tous'))
+    await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
     await userEvent.keyboard('{Enter}')
-    expect(sectionSelect).toHaveBeenCalledOnce()
+    expect(onSubmitQuery).toHaveBeenCalledWith('ab')
+  })
+
+  it('Enter with no highlight does nothing when onSubmitQuery is not provided', async () => {
+    const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })
+    const onSelect = vi.fn()
+    render(
+      <SearchCombobox
+        label="Search"
+        queryFn={queryFn}
+        toResult={toResult}
+        onSelect={onSelect}
+        debounce={0}
+      />,
+      { wrapper: makeWrapper() }
+    )
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    await userEvent.type(input, 'ab')
+    await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
+    await userEvent.keyboard('{Enter}')
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(input).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('Enter with highlighted main item selects item, not section', async () => {
@@ -256,7 +271,8 @@ describe('SearchCombobox — keyboard', () => {
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
     await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
-    await userEvent.keyboard('{ArrowDown}{Enter}')
+    // Section entry sits at idx 0 (rendered first); main items follow at 1, 2.
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
     expect(onSelect).toHaveBeenCalledWith('item-a', expect.objectContaining({ slug: 'item-a' }))
     expect(sectionSelect).not.toHaveBeenCalled()
   })
@@ -360,7 +376,7 @@ describe('SearchCombobox — sections', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('keyboard nav reaches section items via ArrowDown after main items (D4)', async () => {
+  it('keyboard nav reaches section items first (sections rendered above results)', async () => {
     const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })
     const sectionSelect = vi.fn()
     render(
@@ -382,8 +398,8 @@ describe('SearchCombobox — sections', () => {
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
     await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
-    // ItemA (idx 0) → ItemB (idx 1) → Section entry (idx 2)
-    await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Enter}')
+    // Section entry (idx 0) → ItemA (idx 1) → ItemB (idx 2)
+    await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(sectionSelect).toHaveBeenCalledOnce()
   })
 })

@@ -42,11 +42,17 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-combobox__sublabel {
   font-size: var(--text-xs);
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-combobox__clear {

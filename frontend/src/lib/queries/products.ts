@@ -14,7 +14,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 
-import { TAG_FILTER_KEYS } from '@/features/products/filters'
+import { FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
 
 export type ProductSort = 'name' | 'random' | 'price_asc' | 'price_desc' | 'newest'
@@ -50,13 +50,10 @@ export function buildListProductsQuery(
 
   if (filters.category !== undefined) query.category = filters.category
 
-  for (const key of TAG_FILTER_KEYS) {
-    addParam(key, (filters as Record<string, string | string[] | undefined>)[key])
-  }
-
-  addParam('kind', filters.kind)
-  addParam('brand', filters.brand)
-  addParam('ingredient', filters.ingredient)
+  // Tag categories + brand/ingredient/kind share the same array-CSV serialization.
+  // avoid_for is profile-derived (not a user filter), kept separate.
+  const f = filters as Record<string, string | string[] | undefined>
+  for (const key of FILTER_KEYS) addParam(key, f[key])
   addParam('avoid_for', filters.avoid_for)
 
   if (filters.q !== undefined) query.q = filters.q
@@ -74,7 +71,6 @@ export const productKeys = {
   lists: () => [...productKeys.all, 'list'] as const,
   list: (filters: ListProductsFilters = {}) => [...productKeys.lists(), filters] as const,
   bySlug: (slug: string) => [...productKeys.all, slug] as const,
-  tags: (id: string) => [...productKeys.all, id, 'tags'] as const,
   ingredients: (id: string) => [...productKeys.all, id, 'ingredients'] as const,
 }
 
@@ -142,20 +138,25 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
-  checkDuplicate: (name: string, brand: string) =>
-    queryOptions({
-      queryKey: [...productKeys.all, 'check-duplicate', name, brand] as const,
+  checkDuplicate: (name: string, brand: string) => {
+    // Normalize so case/whitespace variants share a single cache entry —
+    // server already matches case-insensitively.
+    const n = name.trim().toLowerCase()
+    const b = brand.trim().toLowerCase()
+    return queryOptions({
+      queryKey: [...productKeys.all, 'check-duplicate', n, b] as const,
       queryFn: async () => {
         const res = await api.products['check-duplicate'].$get({
-          query: { name, brand },
+          query: { name: n, brand: b },
         })
         if (!res.ok) throw new Error('Failed to check duplicate')
         const json = await res.json()
         return json.data
       },
-      enabled: name.trim().length >= 2 && brand.trim().length >= 1,
+      enabled: n.length >= 2 && b.length >= 1,
       staleTime: 30 * 1000,
-    }),
+    })
+  },
 
   brands: () =>
     queryOptions({
@@ -167,18 +168,6 @@ export const productQueries = {
         return json.data as string[]
       },
       staleTime: 5 * 60 * 1000,
-    }),
-
-  tags: (id: string) =>
-    queryOptions({
-      queryKey: productKeys.tags(id),
-      queryFn: async () => {
-        const res = await api.products[':productId'].tags.$get({ param: { productId: id } })
-        if (!res.ok) throw new Error('Failed to fetch product tags')
-        const json = await res.json()
-        return json.data
-      },
-      enabled: !!id,
     }),
 
   ingredients: (id: string) =>
@@ -266,8 +255,7 @@ export function useUpdateProductTags() {
       if (!json.success) throw new Error('Failed to update product tags')
       return json.data
     },
-    onSuccess: (_, { productId, slug }) => {
-      qc.invalidateQueries({ queryKey: productKeys.tags(productId) })
+    onSuccess: (_, { slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
@@ -343,6 +331,10 @@ export function useUpdateProductIngredient() {
   })
 }
 
+type BySlugData = {
+  ingredients: Array<{ ingredientId: string }>
+} & Record<string, unknown>
+
 export function useRemoveProductIngredient() {
   const qc = useQueryClient()
   return useMutation({
@@ -359,7 +351,22 @@ export function useRemoveProductIngredient() {
       })
       if (!res.ok) throw new Error('Failed to remove product ingredient')
     },
-    onSuccess: (_, { productId, slug }) => {
+    // Optimistic remove: drop the row immediately so unrelated rows stay interactive.
+    onMutate: async ({ slug, ingredientId }) => {
+      await qc.cancelQueries({ queryKey: productKeys.bySlug(slug) })
+      const previous = qc.getQueryData<BySlugData>(productKeys.bySlug(slug))
+      if (previous) {
+        qc.setQueryData<BySlugData>(productKeys.bySlug(slug), {
+          ...previous,
+          ingredients: previous.ingredients.filter((i) => i.ingredientId !== ingredientId),
+        })
+      }
+      return { previous }
+    },
+    onError: (_err, { slug }, ctx) => {
+      if (ctx?.previous) qc.setQueryData(productKeys.bySlug(slug), ctx.previous)
+    },
+    onSettled: (_, __, { productId, slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
