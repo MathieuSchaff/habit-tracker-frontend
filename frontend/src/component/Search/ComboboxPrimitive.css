@@ -83,12 +83,25 @@
 
 .combobox-primitive__section {
   border-top: 1px solid var(--border-default);
-  margin-top: var(--space-1);
-  padding-top: var(--space-1);
+}
+
+.combobox-primitive__section:first-child {
+  border-top: 0;
+}
+
+/* Compact facet entries (sections sit above results — keep them dense
+   so the main list remains scannable without heavy scrolling). */
+.combobox-primitive__section .combobox-primitive__option {
+  padding: 6px var(--space-3);
+}
+
+/* Divider between section cluster (rendered first) and main results below */
+.combobox-primitive__section + .combobox-primitive__option {
+  border-top: 1px solid var(--border-default);
 }
 
 .combobox-primitive__section-label {
-  padding: var(--space-1) var(--space-3);
+  padding: 4px var(--space-3) 2px;
   font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;

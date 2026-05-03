@@ -47,6 +47,10 @@ interface SearchComboboxProps<TItem, TQueryKey extends QueryKey> {
   // Use cases: "see all products with X" facet shortcuts, "see all results
   // for X" free-text fallback. Empty sections are filtered out before render.
   sections?: (debouncedQuery: string) => ComboboxSection[]
+  // Free-text submit. Fired on Enter when no item is highlighted and the dropdown
+  // is open. Receives the debounced query (already passed minChars). Useful for
+  // applying typed text as a list-page `q` filter rather than navigating to a result.
+  onSubmitQuery?: (query: string) => void
   placeholder?: string
   label: string
   minChars?: number
@@ -58,6 +62,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   toResult,
   onSelect,
   sections,
+  onSubmitQuery,
   placeholder = 'Rechercher...',
   label,
   minChars = 2,
@@ -124,17 +129,12 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setIsOpen(false)
       setHighlightedIndex(-1)
     }
-    if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown) {
-      // Enter with no item highlighted: trigger the first visible section entry.
-      // Sections are ordered by specificity — ingredients first, brands second,
-      // free-text fallback last. Example: typing "vita" with an ingredient match
-      // navigates to ?ingredient=vitamine-c, not ?q=vita.
-      // Does nothing when no sections match.
-      const firstEntry = visibleSections[0]?.items[0]
-      if (firstEntry) {
-        e.preventDefault()
-        firstEntry.onSelect()
-      }
+    if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown && onSubmitQuery) {
+      // Enter with no item highlighted: submit the typed query as free text.
+      // Highlighted items still resolve to their facet/result via ComboboxPrimitive.
+      e.preventDefault()
+      onSubmitQuery(debouncedQuery)
+      clearAndClose()
     }
   }
 

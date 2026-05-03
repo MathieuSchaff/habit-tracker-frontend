@@ -147,16 +147,19 @@ export function ComboboxPrimitive<T>({
         break
       case 'Enter':
         if (highlightedIndex >= 0) {
-          // Indices < items.length point at the main list; indices beyond walk
-          // through each section's items in order (see sectionEntries above).
-          if (highlightedIndex < items.length && items[highlightedIndex]) {
-            e.preventDefault()
-            onSelect(items[highlightedIndex])
-          } else {
-            const sectionEntry = sectionEntries[highlightedIndex - items.length]
+          // Sections first in index space (0..sectionEntries.length-1), then main items.
+          // Section facets render above results, so keyboard order mirrors visual order.
+          if (highlightedIndex < sectionEntries.length) {
+            const sectionEntry = sectionEntries[highlightedIndex]
             if (sectionEntry) {
               e.preventDefault()
               sectionEntry.onSelect()
+            }
+          } else {
+            const itemIdx = highlightedIndex - sectionEntries.length
+            if (items[itemIdx]) {
+              e.preventDefault()
+              onSelect(items[itemIdx])
             }
           }
         }
@@ -190,39 +193,10 @@ export function ComboboxPrimitive<T>({
                   className="combobox-primitive__items"
                   aria-label="Suggestions"
                 >
-                  {items.map((item, index) => {
-                    const isActive = index === highlightedIndex
-                    const key = keyExtractor ? keyExtractor(item, index) : index
-                    return (
-                      // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
-                      <div
-                        key={key}
-                        id={`${listboxId}-option-${index}`}
-                        role="option"
-                        aria-selected={isActive}
-                        className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => onSelect(item)}
-                        tabIndex={-1}
-                      >
-                        {renderItem(item, index, isActive)}
-                      </div>
-                    )
-                  })}
-                  {hasMore && (
-                    <div
-                      ref={sentinelRef}
-                      className="combobox-primitive__sentinel"
-                      aria-hidden="true"
-                    >
-                      {isLoadingMore && (
-                        <output className="combobox-primitive__status">Chargement...</output>
-                      )}
-                    </div>
-                  )}
                   {sections?.map((section, sIdx) => {
-                    // Each section's first global index = main count + sum of prior section sizes.
-                    let baseIdx = items.length
+                    // Each section's first global index = sum of prior section sizes.
+                    // Sections precede main items in both render and keyboard order.
+                    let baseIdx = 0
                     for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
                     const labelId = `${listboxId}-section-${section.id}`
                     return (
@@ -258,6 +232,37 @@ export function ComboboxPrimitive<T>({
                       </div>
                     )
                   })}
+                  {items.map((item, index) => {
+                    const globalIdx = sectionEntries.length + index
+                    const isActive = globalIdx === highlightedIndex
+                    const key = keyExtractor ? keyExtractor(item, index) : index
+                    return (
+                      // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
+                      <div
+                        key={key}
+                        id={`${listboxId}-option-${globalIdx}`}
+                        role="option"
+                        aria-selected={isActive}
+                        className={`combobox-primitive__option ${isActive ? 'combobox-primitive__option--active' : ''}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => onSelect(item)}
+                        tabIndex={-1}
+                      >
+                        {renderItem(item, index, isActive)}
+                      </div>
+                    )
+                  })}
+                  {hasMore && (
+                    <div
+                      ref={sentinelRef}
+                      className="combobox-primitive__sentinel"
+                      aria-hidden="true"
+                    >
+                      {isLoadingMore && (
+                        <output className="combobox-primitive__status">Chargement...</output>
+                      )}
+                    </div>
+                  )}
                   {totalEntries === 0 && !footer && inputValue.trim() !== '' && (
                     <output className="combobox-primitive__empty">{emptyMessage}</output>
                   )}
@@ -275,3 +280,4 @@ export function ComboboxPrimitive<T>({
     </div>
   )
 }
+

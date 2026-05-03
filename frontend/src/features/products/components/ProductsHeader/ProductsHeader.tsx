@@ -16,7 +16,7 @@ import { type ProductSort, productQueries } from '@/lib/queries/products'
 
 // Sections cap: keep the dropdown scannable. Top N matches per facet by
 // alphabetical order — matches are rare enough that ranking has little payoff.
-const FACET_SECTION_LIMIT = 3
+const FACET_SECTION_LIMIT = 2
 
 type Props = {
   total: number
@@ -202,6 +202,14 @@ function ProductsHeaderImpl({
               })}
               onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
               sections={sections}
+              onSubmitQuery={(q) => {
+                const trimmed = q.trim()
+                if (trimmed.length === 0) return
+                navigate({
+                  to: '/products',
+                  search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                })
+              }}
             />
           </div>
         </div>

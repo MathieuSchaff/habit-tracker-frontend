@@ -43,9 +43,11 @@ export function ProductLayout() {
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const [showAddModal, setShowAddModal] = useState(false)
   const navigate = useNavigate()
-  const location = useRouterState({ select: (s) => s.location })
-
-  const isDiscussions = location.pathname.includes('/discussions')
+  // Narrow select: subscribe to a boolean, not the whole location object,
+  // so unrelated route-state churn (search params, etc.) won't re-render.
+  const isDiscussions = useRouterState({
+    select: (s) => s.location.pathname.includes('/discussions'),
+  })
   const activeTab: ProductTab = isDiscussions ? 'discussions' : 'infos'
 
   const priceFormatted =

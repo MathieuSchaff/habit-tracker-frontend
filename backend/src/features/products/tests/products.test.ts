@@ -18,7 +18,7 @@ import {
   getFilterOptions,
   getProductById,
   getProductBySlug,
-  getProductWithIngredientsBySlug,
+  getProductFullBySlug,
   listProducts,
   searchProducts,
   updateProduct,
@@ -703,15 +703,16 @@ describe('Product Service', () => {
     })
   })
 
-  describe('getProductWithIngredientsBySlug', () => {
-    it('should return product with its ingredients', async () => {
+  describe('getProductFullBySlug', () => {
+    it('should return product with its ingredients and tags', async () => {
       const product = await makeProduct('Sérum Complet', 'Brand')
       const niacin = await makeIngredient('Niacinamide')
       await addIngredientToProduct(testDb, { productId: product.id, ingredientId: niacin.id })
 
-      const result = await getProductWithIngredientsBySlug(product.slug, testDb)
+      const result = await getProductFullBySlug(product.slug, testDb)
       expect(result.ingredients).toHaveLength(1)
       expect(result.ingredients[0]?.ingredientName).toBe('Niacinamide')
+      expect(Array.isArray(result.tags)).toBe(true)
     })
   })
 })

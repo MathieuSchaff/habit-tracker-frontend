@@ -438,16 +438,20 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               placeholder="Ex : 30"
               aria-label="Quantité"
             />
-            <ChipGroup
-              options={PRODUCT_AMOUNT_UNITS[form.category].map((v) => ({
-                value: v,
-                label: PRODUCT_AMOUNT_UNIT_LABELS[v],
-              }))}
-              selected={form.amountUnit ? [form.amountUnit] : []}
-              onChange={([v]) => setForm((prev) => ({ ...prev, amountUnit: v ?? '' }))}
-              mode="exclusive"
+            <select
+              id="edit-amount-unit"
+              className="product-edit-form__select"
+              value={form.amountUnit}
+              onChange={(e) => setForm((prev) => ({ ...prev, amountUnit: e.target.value }))}
               aria-label="Unité de contenance"
-            />
+            >
+              <option value="">—</option>
+              {PRODUCT_AMOUNT_UNITS[form.category].map((v) => (
+                <option key={v} value={v}>
+                  {PRODUCT_AMOUNT_UNIT_LABELS[v]}
+                </option>
+              ))}
+            </select>
           </div>
         </fieldset>
 
@@ -485,6 +489,16 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                 queryClient.invalidateQueries({ queryKey: ['products'] })
               }}
             />
+            {form.imageUrl && (
+              <Input
+                id="edit-image-url"
+                value={form.imageUrl}
+                readOnly
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label="URL de l'image (lecture seule)"
+                hideRequired
+              />
+            )}
           </FormField>
         ) : (
           <FormField label="Image du produit">
@@ -587,7 +601,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
                 }
               }}
               onRemove={() => handleRemoveIngredient(ing.ingredientId)}
-              removing={mode === 'edit' && removeIngredient.isPending}
+              removing={
+                mode === 'edit' &&
+                removeIngredient.isPending &&
+                removeIngredient.variables?.ingredientId === ing.ingredientId
+              }
               updating={mode === 'edit' && updateIngredient.isPending}
             />
           ))}

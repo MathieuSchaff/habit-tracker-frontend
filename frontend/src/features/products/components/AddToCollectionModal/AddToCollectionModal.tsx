@@ -38,13 +38,12 @@ const STATUS_OPTIONS: { value: UserProductStatus; label: string }[] = [
 const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'holy_grail', 'archived', 'avoided']
 
 export function AddToCollectionModal({ product, onClose, onSuccess }: AddToCollectionModalProps) {
-  const today = new Date().toISOString().split('T')[0]
   const defaultPrice = product.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
 
   const [step, setStep] = useState<'status' | 'purchase'>('status')
   const [selectedStatus, setSelectedStatus] = useState<UserProductStatus | null>(null)
   const [price, setPrice] = useState(defaultPrice)
-  const [purchasedAt, setPurchasedAt] = useState(today)
+  const [purchasedAt, setPurchasedAt] = useState(() => new Date().toISOString().split('T')[0])
 
   const addUserProduct = useCreateUserProduct()
   const addPurchase = useAddPurchase()

@@ -15,7 +15,7 @@ const route = getRouteApi('/products/$slug_/edit')
 export function ProductEditPage() {
   const { slug } = route.useParams()
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
-  const { data: currentTags } = useSuspenseQuery(productQueries.tags(product.id))
+  const currentTags = product.tags
   const navigate = useNavigate()
   const isAdmin = useAuthStore((s) => s.isAdmin)
   const deleteProduct = useDeleteProduct()

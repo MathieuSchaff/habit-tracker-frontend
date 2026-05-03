@@ -32,10 +32,8 @@ export function PriceRangeFilter({ min, max, onChange }: Props) {
   // (e.g. reset button, external navigation).
   useEffect(() => {
     setMinInput(centsToEuros(min))
-  }, [min])
-  useEffect(() => {
     setMaxInput(centsToEuros(max))
-  }, [max])
+  }, [min, max])
 
   const commit = () => {
     const nextMin = eurosToCents(minInput)

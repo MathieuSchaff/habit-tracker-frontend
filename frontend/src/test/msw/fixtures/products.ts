@@ -20,7 +20,7 @@ export type ProductListItem = {
 // shared/src/products/skincare/tag-slugs.ts. Not part of the API response.
 export const PRODUCT_TAGS: Record<string, string[]> = {
   '11111111-1111-1111-1111-111111111111': ['barriere-cutanee', 'peau-seche'],
-  '22222222-2222-2222-2222-222222222222': ['anti-acne', 'pores-dilates'],
+  '22222222-2222-2222-2222-222222222222': ['acne-imperfections', 'pores-sebum'],
 }
 
 // Ingredient slugs per product — same purpose as PRODUCT_TAGS but for the
@@ -61,8 +61,8 @@ export const PRODUCTS: ProductListItem[] = [
     imageUrl: null,
     profileMatches: [],
     tags: [
-      { slug: 'anti-acne', tagType: 'concern', relevance: 'primary' },
-      { slug: 'pores-dilates', tagType: 'concern', relevance: 'secondary' },
+      { slug: 'acne-imperfections', tagType: 'concern', relevance: 'primary' },
+      { slug: 'pores-sebum', tagType: 'concern', relevance: 'secondary' },
     ],
   },
 ]

@@ -13,10 +13,12 @@ import {
 } from '@tanstack/react-router'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { Route as ProductsIndexRouteImport } from '@/routes/products/index'
 import { useAuthStore } from '@/store/auth'
+import { PRODUCT_FILTER_OPTIONS } from '@/test/msw/fixtures/products'
 import { server } from '@/test/msw/server'
 
 function makeClient() {
@@ -29,7 +31,7 @@ function makeClient() {
 }
 
 // TanStack Router's default search parser uses JSON.stringify per key, so an
-// array filter lands in the URL as e.g. `?concern=%5B%22anti-acne%22%5D`.
+// array filter lands in the URL as e.g. `?concern=%5B%22acne-imperfections%22%5D`.
 function buildUrl(path: string, search: Record<string, string[]> = {}): string {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(search)) {
@@ -51,12 +53,16 @@ function renderProducts(initialEntries: string[] = ['/products/']) {
     getParentRoute: () => rootRoute,
   })
   const routeTree = rootRoute.addChildren([productsRoute as never])
+  const queryClient = makeClient()
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries }),
     defaultPendingMs: 0,
+    context: {
+      queryClient,
+      auth: { isAuthenticated: false, accessToken: null },
+    },
   })
-  const queryClient = makeClient()
   return {
     router,
     queryClient,
@@ -106,12 +112,12 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     await user.click(screen.getByRole('button', { name: /Filtrer/i }))
     const dialog = await screen.findByRole('dialog')
 
-    const acneChip = await within(dialog).findByRole('button', { name: /Anti-acné/i })
+    const acneChip = await within(dialog).findByRole('button', { name: /Acné \/ Imperfections/i })
     await user.click(acneChip)
     await user.click(within(dialog).getByRole('button', { name: /^Appliquer/i }))
 
     await waitFor(() => {
-      expect(router.state.location.search).toMatchObject({ concern: ['anti-acne'] })
+      expect(router.state.location.search).toMatchObject({ concern: ['acne-imperfections'] })
     })
     await waitFor(() => {
       expect(screen.queryByText(/Hydrating Cleanser/)).not.toBeInTheDocument()
@@ -141,9 +147,9 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
 
   it('reset clears active filters from the URL', async () => {
     const user = userEvent.setup()
-    const { router } = renderProducts([buildUrl('/products/', { concern: ['anti-acne'] })])
+    const { router } = renderProducts([buildUrl('/products/', { concern: ['acne-imperfections'] })])
     await screen.findByText(/Niacinamide 10% \+ Zinc 1%/)
-    expect(router.state.location.search).toMatchObject({ concern: ['anti-acne'] })
+    expect(router.state.location.search).toMatchObject({ concern: ['acne-imperfections'] })
 
     // ActiveFiltersBar's clear button has aria-label "Retirer tous les filtres";
     // accessible name takes precedence over inner text in role queries.
@@ -154,6 +160,88 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     })
     await waitFor(() => {
       expect(screen.getByText(/Hydrating Cleanser/)).toBeInTheDocument()
+    })
+  })
+
+  it('async ingredient filter — type → click hit → apply pushes slug to URL', async () => {
+    const user = userEvent.setup()
+    const { router } = renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    const dialog = await screen.findByRole('dialog')
+
+    // Ingredient accordion ships closed (defaultOpen: false, async load is heavy);
+    // user must expand it explicitly. The summary's accessible name is the group label.
+    await user.click(within(dialog).getByText('Ingrédient', { selector: 'h3' }))
+
+    const combo = within(dialog).getByRole('combobox', { name: /Ingrédient/i })
+    await user.type(combo, 'nia')
+
+    // Two hits in the fixture (niacinamide + niacin-pca) — pick the canonical one.
+    const niacinamide = await within(dialog).findByRole('option', { name: 'Niacinamide' })
+    await user.click(niacinamide)
+
+    await user.click(within(dialog).getByRole('button', { name: /^Appliquer/i }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({ ingredient: ['niacinamide'] })
+    })
+    await waitFor(() => {
+      expect(screen.queryByText(/Hydrating Cleanser/)).not.toBeInTheDocument()
+    })
+    expect(screen.getByText(/Niacinamide 10% \+ Zinc 1%/)).toBeInTheDocument()
+  })
+
+  it('renders chips with count=0 as disabled and ignores click', async () => {
+    const user = userEvent.setup()
+    const { router } = renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    const dialog = await screen.findByRole('dialog')
+
+    // 'Rougeurs vasculaires' (slug rougeurs-vasculaires) lives under `concern`
+    // but no fixture product carries it, so tagCounts derives 0 → chip disabled.
+    const chip = await within(dialog).findByRole('button', { name: /Rougeurs vasculaires/i })
+    expect(chip).toBeDisabled()
+
+    await user.click(chip)
+    expect(chip).toHaveAttribute('aria-pressed', 'false')
+
+    // Apply with no toggle → URL stays clean, no `concern` key written.
+    await user.click(within(dialog).getByRole('button', { name: /^Appliquer/i }))
+    await waitFor(() => {
+      expect(router.state.location.search).not.toHaveProperty('concern')
+    })
+  })
+
+  it('switching to the Cheveux tab re-fetches filter options for that category', async () => {
+    // Tab switch should requery /api/products/filter-options with category=haircare
+    // so the drawer's chip set reflects the haircare taxonomy. Spy via server.use
+    // before user interaction; mount fires one initial skincare call we tally then ignore.
+    const calls: (string | null)[] = []
+    server.use(
+      http.get('*/api/products/filter-options', ({ request }) => {
+        calls.push(new URL(request.url).searchParams.get('category'))
+        return HttpResponse.json({ success: true, data: PRODUCT_FILTER_OPTIONS })
+      })
+    )
+
+    const user = userEvent.setup()
+    const { router } = renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+    await waitFor(() => {
+      expect(calls).toContain('skincare')
+    })
+
+    await user.click(screen.getByRole('tab', { name: /Cheveux/i }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({ category: 'haircare' })
+    })
+    await waitFor(() => {
+      expect(calls).toContain('haircare')
     })
   })
 })
@@ -181,15 +269,15 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
       expect(applyBtn).toHaveTextContent(/Voir 2 produits/)
     })
 
-    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+    await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
 
-    // Only one fixture carries `anti-acne`, so the live count drops to 1.
+    // Only one fixture carries `acne-imperfections`, so the live count drops to 1.
     await waitFor(() => {
       expect(applyBtn).toHaveTextContent(/Voir 1 produit\b/)
     })
 
     // Toggling the chip back off restores the unfiltered count without a re-apply.
-    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+    await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
     await waitFor(() => {
       expect(applyBtn).toHaveTextContent(/Voir 2 produits/)
     })
@@ -200,10 +288,10 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    // Open → narrow to anti-acne → apply (URL = anti-acne, draft cleared).
+    // Open → narrow to acne-imperfections → apply (URL set, draft cleared).
     await user.click(screen.getByRole('button', { name: /Filtrer/i }))
     let dialog = await screen.findByRole('dialog')
-    await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+    await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
     await waitFor(() => {
       expect(
         within(dialog).getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
@@ -233,13 +321,13 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    // Tally only requests carrying `anti-acne` so the unfiltered initial fetch
+    // Tally only requests carrying `acne-imperfections` so the unfiltered initial fetch
     // doesn't pollute the count. MSW's request:start is global; remove the
     // listener in finally to avoid leaking into sibling tests.
     const filteredRequests: string[] = []
     const onRequest: Parameters<typeof server.events.on<'request:start'>>[1] = ({ request }) => {
       const u = request.url
-      if (u.includes('/api/products') && u.includes('anti-acne')) {
+      if (u.includes('/api/products') && u.includes('acne-imperfections')) {
         filteredRequests.push(u)
       }
     }
@@ -252,7 +340,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
         name: /Appliquer les filtres sélectionnés/i,
       })
 
-      await user.click(within(dialog).getByRole('button', { name: /Anti-acné/i }))
+      await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
 
       // Preview must land before we click apply, otherwise a race could legitimately
       // fire a second fetch from the main grid query and obscure the cache-hit signal.
@@ -263,7 +351,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
 
       await user.click(applyBtn)
 
-      // Drawer closes + URL flips to anti-acne. Main grid useQuery now points at
+      // Drawer closes + URL flips to acne-imperfections. Main grid useQuery now points at
       // the same key the preview already populated — should resolve from cache.
       await waitFor(() => {
         expect(screen.queryByText(/Hydrating Cleanser/)).not.toBeInTheDocument()
