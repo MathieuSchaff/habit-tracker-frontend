@@ -14,6 +14,13 @@ import { z } from 'zod'
 // Validation messages are FR — they surface directly in the form.
 export const productEditFormSchema = z.object({
   name: z.string().trim().min(1, 'Le nom du produit est obligatoire.').max(200),
+  slug: z
+    .string()
+    .trim()
+    .max(100)
+    .refine((v) => v === '' || /^[a-z0-9-]+$/.test(v), {
+      message: 'Slug invalide : minuscules, chiffres et tirets uniquement.',
+    }),
   brand: z.string().trim().min(1, 'La marque est obligatoire.').max(200),
   category: z.enum(PRODUCT_CATEGORY_VALUES),
   kind: z.string().trim().min(1, 'La catégorie est obligatoire.').max(100),
@@ -56,6 +63,7 @@ export type ProductEditFormInput = z.infer<typeof productEditFormSchema>
 export function emptyProductEditForm(): ProductEditFormInput {
   return {
     name: '',
+    slug: '',
     brand: '',
     category: PRODUCT_CATEGORY_VALUES[0],
     kind: '',
@@ -75,6 +83,7 @@ export function emptyProductEditForm(): ProductEditFormInput {
 // Centralized here so adding a field touches one spot.
 type ProductEntitySnapshot = {
   name: string | null
+  slug: string | null
   brand: string | null
   category?: string | null
   kind: string | null
@@ -92,6 +101,7 @@ type ProductEntitySnapshot = {
 export function productToEditForm(p: ProductEntitySnapshot): ProductEditFormInput {
   return {
     name: p.name ?? '',
+    slug: p.slug ?? '',
     brand: p.brand ?? '',
     category: (p.category ?? PRODUCT_CATEGORY_VALUES[0]) as ProductEditFormInput['category'],
     kind: p.kind ?? '',
@@ -111,8 +121,10 @@ export function productToEditForm(p: ProductEntitySnapshot): ProductEditFormInpu
 export function productEditFormToCreateInput(form: ProductEditFormInput): CreateProductInput {
   const priceEuros = form.priceEuros.trim()
   const totalAmount = form.totalAmount.trim()
+  const slug = form.slug.trim()
   return {
     name: form.name.trim(),
+    slug: slug === '' ? undefined : slug,
     brand: form.brand.trim(),
     category: form.category,
     kind: form.kind.trim(),
@@ -132,6 +144,7 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
 // Empty on a nullable field that previously held a value → null (clear it).
 // Empty on a field that was already empty → undefined (omit, no-op).
 type ProductEditOriginal = {
+  slug: string
   priceCents: number | null
   totalAmount: number | null
   amountUnit: string | null
@@ -152,8 +165,12 @@ export function productEditFormToUpdateInput(
   }
   const priceEuros = form.priceEuros.trim()
   const totalAmount = form.totalAmount.trim()
+  // Send slug only when it actually changed — backend never auto-regenerates
+  // from name (Phase 7-2), so omitting keeps the URL stable.
+  const slug = form.slug.trim()
   return {
     name: form.name.trim(),
+    slug: slug !== '' && slug !== original.slug ? slug : undefined,
     brand: form.brand.trim(),
     category: form.category,
     kind: form.kind.trim(),

@@ -174,8 +174,10 @@ export async function updateProduct(
     }
   }
 
-  const slug = data.slug ?? (data.name ? slugify(data.name) : undefined)
-  if (slug !== undefined) data.slug = slug
+  // Slug is intentionally NOT regenerated from name on update — silent URL
+  // changes break bookmarks, SEO and the BunnyCDN image filename derived at
+  // upload time. Caller must pass `slug` explicitly to rename (Phase 7-2).
+  if (data.slug !== undefined) data.slug = slugify(data.slug)
 
   const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k))
 

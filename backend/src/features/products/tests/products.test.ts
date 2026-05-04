@@ -110,6 +110,32 @@ describe('Product Service', () => {
         .where(eq(productEdits.productId, created.id))
       expect(edits).toHaveLength(1)
     })
+
+    it('should NOT regenerate slug when only name changes (stable URL)', async () => {
+      const created = await makeProduct('Vitamine C', 'Generic')
+      const originalSlug = created.slug
+      const updated = await updateProduct(
+        user.id,
+        created.id,
+        { name: 'Vitamine C plus' },
+        undefined,
+        testDb
+      )
+      expect(updated.name).toBe('Vitamine C plus')
+      expect(updated.slug).toBe(originalSlug)
+    })
+
+    it('should slugify and update slug when explicitly provided', async () => {
+      const created = await makeProduct('Magnésium', 'Generic')
+      const updated = await updateProduct(
+        user.id,
+        created.id,
+        { slug: 'Magnésium Bisglycinate' },
+        undefined,
+        testDb
+      )
+      expect(updated.slug).toBe('magnesium-bisglycinate')
+    })
   })
 
   describe('deleteProduct', () => {

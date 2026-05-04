@@ -185,6 +185,25 @@
   color: var(--text-muted);
 }
 
+.product-edit-form__slug {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+}
+
+.product-edit-form__slug-label {
+  color: var(--text-muted);
+}
+
+.product-edit-form__slug-value {
+  font-family: var(--font-mono);
+  background: var(--bg-subtle, rgba(0, 0, 0, 0.04));
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
 @media (max-width: 640px) {
   .product-edit-form {
     padding: var(--space-4);
