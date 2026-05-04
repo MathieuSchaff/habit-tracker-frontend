@@ -19,7 +19,6 @@ import { CRINEX_SEED } from './dental/crinex/crinex.seed'
 import { DENTAL_CARE_PRODUCTS_SEED } from './dental/dentalCareProducts/dentalCareProducts.seed'
 import { ELGYDIUM_SEED } from './dental/elgydium/elgydium.seed'
 import { ELMEX_SEED } from './dental/elmex/elmex.seed'
-import { ELMEX_SOLAIRE_SEED } from './dental/elmex/elmex-solaire.seed'
 import { FLUOCARIL_SEED } from './dental/fluocaril/fluocaril.seed'
 import { GUM_SEED } from './dental/gum/gum.seed'
 import { HYALUGEL_SEED } from './dental/hyalugel/hyalugel.seed'
@@ -181,7 +180,6 @@ const allUnified: UnifiedProductSeed[] = [
   ...SANOGYL_SEED,
   ...SEBAMED_SEED,
   ...LES_SECRETS_DE_LOLY_SKINCARE_SEED,
-  ...ELMEX_SOLAIRE_SEED,
   ...LES_SECRETS_DE_LOLY_SOLAIRE_SEED,
   ...NUTRIPURE_SEED,
 ]

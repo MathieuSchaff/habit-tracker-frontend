@@ -52,10 +52,10 @@ export const Tabs = <T extends string>({
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [underline, setUnderline] = useState<{ left: number; width: number } | null>(null)
 
-  // Measure-based indicator for the underline variant (variable-width tabs).
+  // Measure-based indicator (both variants): keep indicator aligned with the
+  // active tab's actual box, since labels can have very different widths.
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when tab list changes
   useLayoutEffect(() => {
-    if (variant !== 'underline') return
     const btn = btnRefs.current[activeTab]
     const list = listRef.current
     if (!btn || !list) return
@@ -130,15 +130,15 @@ export const Tabs = <T extends string>({
         role="tablist"
         aria-label={ariaLabel}
         onKeyDown={handleKeyDown}
-        style={
-          {
-            '--active-index': Math.max(0, activeIndex),
-            '--tabs-count': options.length,
-            '--active-tab-color': activeColor,
-          } as CSSProperties
-        }
+        style={{ '--active-tab-color': activeColor } as CSSProperties}
       >
-        {variant === 'pill' && <div className="tabs-indicator" aria-hidden="true" />}
+        {variant === 'pill' && underline && (
+          <div
+            className="tabs-indicator"
+            aria-hidden="true"
+            style={{ transform: `translateX(${underline.left}px)`, width: underline.width }}
+          />
+        )}
 
         {options.map((option) => {
           const isActive = activeTab === option.id
