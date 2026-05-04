@@ -50,6 +50,7 @@ import {
   productEditFormToUpdateInput,
   productToEditForm,
 } from './ProductForm.schema'
+import { SlugEditModal } from './SlugEditModal'
 
 type ProductWithIngredients = {
   id: string
@@ -202,6 +203,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit')
   const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [slugModalOpen, setSlugModalOpen] = useState(false)
 
   const debouncedName = useDebounce(form.name.trim())
   const debouncedBrand = useDebounce(form.brand.trim())
@@ -287,6 +289,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           updateProduct.mutateAsync({
             id: product.id,
             data: productEditFormToUpdateInput(parsed.data, {
+              slug: product.slug,
               priceCents: product.priceCents,
               totalAmount: product.totalAmount,
               amountUnit: product.amountUnit,
@@ -303,6 +306,13 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
           }),
         ])
+        // Drop the stale bySlug cache entry when the slug actually changed,
+        // otherwise lingers as orphan with the new payload under the old key.
+        if (updated.slug !== product.slug) {
+          queryClient.removeQueries({
+            queryKey: productQueries.bySlug(product.slug).queryKey,
+          })
+        }
         onSuccess(updated.slug)
       }
     } catch (err) {
@@ -398,6 +408,16 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           />
         </FormField>
       </div>
+
+      {mode === 'edit' && (
+        <div className="product-edit-form__slug">
+          <span className="product-edit-form__slug-label">URL :</span>
+          <code className="product-edit-form__slug-value">/products/{form.slug}</code>
+          <Button type="button" variant="outline" size="sm" onClick={() => setSlugModalOpen(true)}>
+            Modifier le slug
+          </Button>
+        </div>
+      )}
 
       <FormField label="Type de produit" required>
         <ChipGroup
@@ -649,6 +669,18 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           {submitLabel}
         </Button>
       </div>
+
+      {slugModalOpen && mode === 'edit' && (
+        <SlugEditModal
+          currentSlug={form.slug}
+          productName={form.name}
+          onClose={() => setSlugModalOpen(false)}
+          onConfirm={(next) => {
+            setForm((prev) => ({ ...prev, slug: next }))
+            setSlugModalOpen(false)
+          }}
+        />
+      )}
     </form>
   )
 }

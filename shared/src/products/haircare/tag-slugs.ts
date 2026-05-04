@@ -26,6 +26,7 @@ export const HAIRCARE_PRODUCT_TAG_SLUGS = {
   JAUNISSEMENT_BLOND: 'jaunissement-blond',
   POROSITE_EXCESSIVE: 'porosite-excessive',
   POINTES_SECHES: 'pointes-seches',
+  POUX: 'poux',
 
   // Hair types
   LISSES: 'lisses',
