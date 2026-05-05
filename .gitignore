@@ -98,3 +98,9 @@ frontend/public/mock-products
 # Dev screenshots & scratch notes
 # =========================
 *.png
+
+# =========================
+# Manual image-fetcher scripts (one-shot maintenance, output goes to CDN)
+# =========================
+backend/src/db/seed/data/image-fetchers/
+backend/src/db/seed/scripts/fetch-images-*.ts

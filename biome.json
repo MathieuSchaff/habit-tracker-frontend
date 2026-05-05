@@ -13,6 +13,8 @@
       "!backend/src/**/*.js",
       "!**/drizzle.backup",
       "!backend/src/db/seed/output",
+      "!backend/src/db/seed/data/image-fetchers",
+      "!backend/src/db/seed/scripts/fetch-images-*.ts",
       "!**/*.test.ts",
       "!**/*.test.tsx",
       "!**/__tests__"
