@@ -164,7 +164,6 @@ export function FilterDrawer<T extends string>({
   const advancedGroups = groups.filter((g) => g.tier === 'advanced')
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is not focusable, keyboard handler would do nothing
     <dialog
       ref={dialogRef}
       className="filter-drawer"
