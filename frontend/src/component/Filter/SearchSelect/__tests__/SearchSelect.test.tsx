@@ -344,3 +344,64 @@ describe('SearchSelect — controlled selected (integration)', () => {
     expect(screen.getByRole('button', { name: /Retirer Retinol/i })).toBeInTheDocument()
   })
 })
+
+describe('SearchSelect — keyboard edge cases', () => {
+  it('clamps activeIndex at the last filtered option (no overflow)', async () => {
+    const user = userEvent.setup()
+    const tiny: FilterOption[] = [
+      { value: 'a', label: 'A' },
+      { value: 'b', label: 'B' },
+    ]
+    renderSelect(<SearchSelect {...baseProps} options={tiny} onToggle={vi.fn()} />)
+    const input = screen.getByRole('combobox')
+    input.focus()
+    // 6 ArrowDown on 2 options must not push activedescendant past option-1
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
+    expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
+  })
+
+  it('returns focus to the input after selecting an option via mouse', async () => {
+    const user = userEvent.setup()
+    renderSelect()
+    const input = screen.getByRole('combobox')
+    await user.type(input, 'nia')
+    await user.click(screen.getByRole('option', { name: 'Niacinamide' }))
+    expect(document.activeElement).toBe(input)
+  })
+
+  it('returns focus to the input after the dismiss button is clicked', async () => {
+    const user = userEvent.setup()
+    renderSelect()
+    const input = screen.getByRole('combobox')
+    await user.click(input)
+    const dismiss = screen.getByRole('button', { name: /Fermer la liste/i })
+    fireEvent.mouseDown(dismiss)
+    expect(document.activeElement).toBe(input)
+  })
+
+  it('Enter/Space on the dismiss button also closes the dropdown', async () => {
+    const user = userEvent.setup()
+    renderSelect()
+    const input = screen.getByRole('combobox')
+    await user.click(input)
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+
+    const dismiss = screen.getByRole('button', { name: /Fermer la liste/i })
+    fireEvent.keyDown(dismiss, { key: 'Enter' })
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+
+describe('SearchSelect — selected chip a11y', () => {
+  it('exposes a "Retirer X" aria-label on each selected chip', () => {
+    renderSelect(
+      <SearchSelect
+        {...baseProps}
+        selected={['retinol', 'glycerin']}
+        onToggle={vi.fn()}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Retirer Retinol/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Retirer Glycerin/i })).toBeInTheDocument()
+  })
+})

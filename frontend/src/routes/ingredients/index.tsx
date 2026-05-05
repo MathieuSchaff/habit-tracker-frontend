@@ -1,16 +1,13 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
 
-import { filterSearchSchema } from '@/component/Filter'
+import { ingredientsSearchDefaults, ingredientsSearchSchema } from '@/features/ingredients/filters'
 import { IngredientsPage } from '../../features/ingredients/components/IngredientsPage'
-import { FILTER_KEYS } from '../../features/ingredients/filters'
-
-const { schema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
 export const Route = createFileRoute('/ingredients/')({
-  validateSearch: zodValidator(schema),
+  validateSearch: zodValidator(ingredientsSearchSchema),
   search: {
-    middlewares: [stripSearchParams(defaultValues)],
+    middlewares: [stripSearchParams(ingredientsSearchDefaults)],
   },
   component: IngredientsPage,
 })

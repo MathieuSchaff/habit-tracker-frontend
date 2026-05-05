@@ -10,7 +10,6 @@ const VARIANTS: Array<{ value: Variant; label: string; color: string }> = [
   { value: 'terracota', label: 'Terra', color: 'oklch(52% 0.13 32)' },
   { value: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
   { value: 'ardoise', label: 'Ardoise', color: 'oklch(35% 0.12 240)' },
-  { value: 'vivid', label: 'Vivid', color: 'oklch(52% 0.22 145)' },
 ]
 
 export const ThemeToggle = () => {

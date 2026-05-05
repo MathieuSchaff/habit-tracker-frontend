@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 
 type Theme = 'light' | 'dark'
-export type Variant = 'bleu' | 'terracota' | 'foret' | 'ardoise' | 'vivid'
+export type Variant = 'bleu' | 'terracota' | 'foret' | 'ardoise'
 
-const VALID_VARIANTS: Variant[] = ['bleu', 'terracota', 'foret', 'ardoise', 'vivid']
+const VALID_VARIANTS: Variant[] = ['bleu', 'terracota', 'foret', 'ardoise']
 const DEFAULT_VARIANT: Variant = 'bleu'
 
 const STORAGE_KEY = 'theme-preference'

@@ -93,3 +93,8 @@ backend/src/db/seed/output/
 # Local mock product images (symlink to ../scrapper-para/output/images)
 # =========================
 frontend/public/mock-products
+
+# =========================
+# Dev screenshots & scratch notes
+# =========================
+*.png

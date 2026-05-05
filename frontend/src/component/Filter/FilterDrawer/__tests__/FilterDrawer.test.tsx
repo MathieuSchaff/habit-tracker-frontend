@@ -490,3 +490,243 @@ describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
     errSpy.mockRestore()
   })
 })
+
+// Native <dialog> already implies role="dialog" + aria-modal semantics, but
+// we also set aria-modal and aria-labelledby explicitly so screen readers in
+// jsdom-style environments report the title as the dialog name. These pin
+// the contract.
+describe('FilterDrawer — a11y attributes', () => {
+  it('exposes aria-modal=true on the dialog', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+  })
+
+  it('links aria-labelledby to the title heading id', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    const labelledBy = dialog.getAttribute('aria-labelledby')
+    expect(labelledBy).toBeTruthy()
+    const heading = document.getElementById(labelledBy as string)
+    expect(heading).not.toBeNull()
+    expect(heading?.tagName).toBe('H2')
+    expect(heading?.textContent).toBe('Filtres')
+  })
+
+  it('groups advanced accordions inside a fieldset labelled "Filtres avancés"', () => {
+    const advGroups: FilterGroupConfig<Key>[] = [
+      ...GROUPS,
+      {
+        id: 'skin_type',
+        label: 'Avancé',
+        defaultOpen: false,
+        tier: 'advanced',
+        subFilters: [
+          {
+            key: 'skin_type',
+            label: 'Avancé',
+            placeholder: '',
+            options: [{ value: 'peau-grasse', label: 'Grasse' }],
+          },
+        ],
+      },
+    ]
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={advGroups}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const advFieldset = screen.getByRole('group', { name: 'Filtres avancés' })
+    expect(advFieldset.tagName).toBe('FIELDSET')
+  })
+
+  it('does NOT render the advanced fieldset when no group has tier="advanced"', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    expect(screen.queryByRole('group', { name: 'Filtres avancés' })).not.toBeInTheDocument()
+  })
+})
+
+describe('FilterDrawer — Apply button label', () => {
+  it('reads "Appliquer" when previewCount is undefined', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const apply = screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+    expect(apply).toHaveTextContent('Appliquer')
+  })
+
+  it('reads "Voir 1 produit" (singular) when previewCount=1', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        previewCount={1}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
+      .toHaveTextContent('Voir 1 produit')
+  })
+
+  it('reads "Voir N produits" (plural) when previewCount > 1', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        previewCount={42}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
+      .toHaveTextContent('Voir 42 produits')
+  })
+
+  it('reads "Voir 0 produit" (singular) when previewCount=0', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+        previewCount={0}
+      />
+    )
+    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
+      .toHaveTextContent('Voir 0 produit')
+  })
+})
+
+// ArrowDown/ArrowUp move focus between accordion triggers, but only when the
+// trigger itself is focused — typing arrows inside a chip or input must not
+// hijack focus.
+describe('FilterDrawer — accordion trigger keyboard nav', () => {
+  it('ArrowDown moves focus from the first trigger to the second', async () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const triggers = document.querySelectorAll<HTMLElement>('.filter-accordion__trigger')
+    expect(triggers.length).toBe(2)
+    triggers[0].focus()
+    fireEvent.keyDown(triggers[0], { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(triggers[1])
+  })
+
+  it('ArrowUp from the first trigger wraps to the last', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const triggers = document.querySelectorAll<HTMLElement>('.filter-accordion__trigger')
+    triggers[0].focus()
+    fireEvent.keyDown(triggers[0], { key: 'ArrowUp' })
+    expect(document.activeElement).toBe(triggers[triggers.length - 1])
+  })
+
+  it('ArrowDown from the last trigger wraps to the first', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const triggers = document.querySelectorAll<HTMLElement>('.filter-accordion__trigger')
+    const last = triggers[triggers.length - 1]
+    last.focus()
+    fireEvent.keyDown(last, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(triggers[0])
+  })
+
+  it('does NOT hijack ArrowDown when focus is on a chip (only triggers move focus)', () => {
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={vi.fn()}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={vi.fn()}
+        onReset={vi.fn()}
+      />
+    )
+    const chip = screen.getByRole('button', { name: /Acné/i })
+    chip.focus()
+    fireEvent.keyDown(chip, { key: 'ArrowDown' })
+    // Focus stays on the chip — handleArrowNav guard ignores non-trigger targets.
+    expect(document.activeElement).toBe(chip)
+  })
+})

@@ -171,3 +171,63 @@ describe('ActiveFiltersBar — extras', () => {
     expect(screen.getByRole('button', { name: /Retirer le filtre P X/i })).toBeInTheDocument()
   })
 })
+
+describe('ActiveFiltersBar — keyboard activation', () => {
+  it('activates a pill via Enter (native button semantics)', async () => {
+    const onRemoveTag = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ActiveFiltersBar
+        activeTags={[{ key: 'concern', value: 'acne' }]}
+        groupLabels={groupLabels}
+        getFilterLabel={getFilterLabel}
+        onRemoveTag={onRemoveTag}
+        onClearAll={vi.fn()}
+      />
+    )
+    const pill = screen.getByRole('button', { name: /Retirer le filtre Acné/i })
+    pill.focus()
+    await user.keyboard('{Enter}')
+    expect(onRemoveTag).toHaveBeenCalledWith('concern', 'acne')
+  })
+
+  it('activates a pill via Space (native button semantics)', async () => {
+    const onRemoveTag = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <ActiveFiltersBar
+        activeTags={[{ key: 'concern', value: 'acne' }]}
+        groupLabels={groupLabels}
+        getFilterLabel={getFilterLabel}
+        onRemoveTag={onRemoveTag}
+        onClearAll={vi.fn()}
+      />
+    )
+    const pill = screen.getByRole('button', { name: /Retirer le filtre Acné/i })
+    pill.focus()
+    await user.keyboard(' ')
+    expect(onRemoveTag).toHaveBeenCalledWith('concern', 'acne')
+  })
+})
+
+describe('ActiveFiltersBar — DOM order', () => {
+  it('renders pills before extras, extras before "Tout effacer"', () => {
+    render(
+      <ActiveFiltersBar
+        activeTags={[{ key: 'concern', value: 'acne' }]}
+        groupLabels={groupLabels}
+        getFilterLabel={getFilterLabel}
+        onRemoveTag={vi.fn()}
+        onClearAll={vi.fn()}
+        extraChips={[{ id: 'price', prefix: 'Prix', label: '< 20€', onRemove: vi.fn() }]}
+      />
+    )
+    const buttons = screen.getAllByRole('button')
+    const labels = buttons.map((b) => b.getAttribute('aria-label') ?? '')
+    const tagIdx = labels.findIndex((l) => l.includes('Retirer le filtre Acné'))
+    const extraIdx = labels.findIndex((l) => l.includes('Retirer le filtre Prix'))
+    const clearIdx = labels.findIndex((l) => l.includes('Retirer tous les filtres'))
+    expect(tagIdx).toBeLessThan(extraIdx)
+    expect(extraIdx).toBeLessThan(clearIdx)
+  })
+})

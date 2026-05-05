@@ -1,19 +1,19 @@
 import type {
+  AllIngredientTagCategory,
   CreateIngredientInput,
+  IngredientFilterOptions,
   IngredientType,
-  SkincareIngredientFilterOptions,
-  SkincareIngredientSearchFilters,
+  ListIngredientsSearchFilters,
   UpdateIngredientInput,
 } from '@habit-tracker/shared'
 import {
   createIngredientSchema,
-  type SkincareIngredientTagCategory,
-  skincareIngredientFilterCategories,
+  DOMAIN_INGREDIENT_FILTER_CATEGORIES,
   updateIngredientSchema,
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
@@ -30,23 +30,32 @@ const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 // Fields tracked in the audit log. Mirrors `ingredientChangesSchema` in shared/.
 const TRACKED_FIELDS = ['name', 'description', 'content', 'type', 'category'] as const
 
-export async function listIngredients(database: DB, filters: SkincareIngredientSearchFilters) {
+// Tag axes accepted on `/api/ingredients`. Union of every domain's filter
+// categories — the same endpoint serves any selected ingredient_type.
+const TAG_AXES = [
+  'concern',
+  'skin_type',
+  'hair_type',
+  'age_group',
+  'goal',
+  'moment',
+  'restriction',
+  'ingredient_attribute',
+  'skin_effect',
+  'hair_effect',
+  'dental_effect',
+  'shared_label',
+] as const satisfies readonly (keyof ListIngredientsSearchFilters)[]
+
+export async function listIngredients(database: DB, filters: ListIngredientsSearchFilters) {
   const conditions: SQL[] = []
   const page = filters.page ?? 1
   const limit = filters.limit ?? 20
   const offset = (page - 1) * limit
 
-  // Filters arrive as comma-joined strings from the query params.
-  const concerns = filters.concern?.split(',').filter(Boolean) ?? []
-  const skinTypes = filters.skin_type?.split(',').filter(Boolean) ?? []
-  const ingredientAttributes = filters.ingredient_attribute?.split(',').filter(Boolean) ?? []
-  const skinEffects = filters.skin_effect?.split(',').filter(Boolean) ?? []
-  const sharedLabels = filters.shared_label?.split(',').filter(Boolean) ?? []
-  const ingredientTypes = filters.ingredient_type?.split(',').filter(Boolean) ?? []
-
-  // All tag filters share the same sub-query shape: "ingredient has at
-  // least one row in ingredient_tags whose tag slug is in this list".
-  // AND between groups, OR within a group.
+  // All tag filters share the same sub-query shape: "ingredient has at least
+  // one row in ingredient_tags whose tag slug is in this list". AND across
+  // axes, OR within an axis.
   const addTagGroup = (slugs: string[]) => {
     if (slugs.length === 0) return
     conditions.push(
@@ -61,12 +70,11 @@ export async function listIngredients(database: DB, filters: SkincareIngredientS
     )
   }
 
-  addTagGroup(concerns)
-  addTagGroup(skinTypes)
-  addTagGroup(ingredientAttributes)
-  addTagGroup(skinEffects)
-  addTagGroup(sharedLabels)
+  for (const axis of TAG_AXES) {
+    addTagGroup(filters[axis]?.split(',').filter(Boolean) ?? [])
+  }
 
+  const ingredientTypes = filters.ingredient_type?.split(',').filter(Boolean) ?? []
   if (ingredientTypes.length > 0) {
     conditions.push(inArray(ingredients.type, ingredientTypes as IngredientType[]))
   }
@@ -291,35 +299,46 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .limit(limit)
 }
 
-const INGREDIENT_FILTER_CATEGORIES = skincareIngredientFilterCategories()
+// All tag categories used by any domain — bounds the query so unrelated tag
+// types (if ever introduced) don't leak into the drawer.
+const ALL_FILTER_CATEGORIES = Array.from(
+  new Set(Object.values(DOMAIN_INGREDIENT_FILTER_CATEGORIES).flat())
+) as AllIngredientTagCategory[]
 
 export async function getIngredientFilterOptions(
-  database: DB
-): Promise<SkincareIngredientFilterOptions> {
-  const tagRows = await database
-    .selectDistinct({
-      name: ingredientTagsDefs.label,
+  database: DB,
+  domain?: IngredientType
+): Promise<IngredientFilterOptions> {
+  const ingredientScope = domain ? eq(ingredients.type, domain) : undefined
+
+  const rows = await database
+    .select({
       slug: ingredientTagsDefs.slug,
+      name: ingredientTagsDefs.label,
       category: ingredientTagsDefs.tagType,
+      count: count(tagIngredients.ingredientId),
     })
     .from(ingredientTagsDefs)
     .innerJoin(tagIngredients, eq(ingredientTagsDefs.id, tagIngredients.ingredientTagId))
-    .where(inArray(ingredientTagsDefs.tagType, INGREDIENT_FILTER_CATEGORIES))
+    .innerJoin(ingredients, eq(tagIngredients.ingredientId, ingredients.id))
+    .where(
+      ingredientScope
+        ? and(inArray(ingredientTagsDefs.tagType, ALL_FILTER_CATEGORIES), ingredientScope)
+        : inArray(ingredientTagsDefs.tagType, ALL_FILTER_CATEGORIES)
+    )
+    .groupBy(
+      ingredientTagsDefs.id,
+      ingredientTagsDefs.slug,
+      ingredientTagsDefs.label,
+      ingredientTagsDefs.tagType
+    )
     .orderBy(ingredientTagsDefs.tagType, ingredientTagsDefs.label)
 
-  const empty = Object.fromEntries(
-    INGREDIENT_FILTER_CATEGORIES.map((c) => [c, []])
-  ) as unknown as SkincareIngredientFilterOptions['tags']
+  const tags = rows
+    .filter((r): r is typeof r & { category: AllIngredientTagCategory } => r.category !== null)
+    .map((r) => ({ slug: r.slug, name: r.name, category: r.category, count: r.count }))
 
-  for (const tag of tagRows) {
-    if (!tag.category) continue
-    const bucket = tag.category as SkincareIngredientTagCategory
-    if (bucket in empty) {
-      empty[bucket].push({ name: tag.name, slug: tag.slug })
-    }
-  }
-
-  return { tags: empty }
+  return { tags }
 }
 
 // This list is very light, I use it just to fill the small select boxes.

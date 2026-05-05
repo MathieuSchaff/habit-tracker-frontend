@@ -36,15 +36,11 @@ describe('useProductTagFilterGroups', () => {
 
   it('applies labelOverrides on top of shared labels', () => {
     const { result } = renderHook(() =>
-      useProductTagFilterGroups(
-        'skincare',
-        {},
-        { 'barriere-cutanee-alteree': 'Peau sensibilisée' }
-      )
+      useProductTagFilterGroups('skincare', {}, { 'barriere-cutanee': 'Peau sensibilisée' })
     )
     const concern = result.current.find((g) => g.id === 'concern')
     const overridden = concern?.subFilters[0]?.options.find(
-      (o) => o.value === 'barriere-cutanee-alteree'
+      (o) => o.value === 'barriere-cutanee'
     )
     expect(overridden?.label).toBe('Peau sensibilisée')
   })
