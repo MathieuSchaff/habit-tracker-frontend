@@ -39,61 +39,18 @@
   gap: var(--space-4);
 }
 
-.product-edit-form__textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: var(--leading-relaxed);
-  color: var(--text-primary);
-  background: var(--bg-page);
-  resize: vertical;
-  min-height: 6rem;
-  transition:
-    border-color var(--transition-fast) ease,
-    box-shadow var(--transition-fast) ease;
-}
-
-.product-edit-form__textarea::placeholder {
-  color: var(--text-muted);
-}
-
-.product-edit-form__textarea:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px oklch(from var(--color-accent) l c h / 0.15);
-  outline: 2px solid transparent;
-}
-
 .product-edit-form__inline {
   display: flex;
   gap: var(--space-2);
+  align-items: stretch;
 }
 
-.product-edit-form__input--short {
-  max-width: 5rem;
-  flex-shrink: 0;
+.product-edit-form__inline .input-wrapper {
+  flex: 1 1 auto;
 }
 
-.product-edit-form__select {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  color: var(--text-primary);
-  background: var(--bg-page);
-  transition:
-    border-color var(--transition-fast) ease,
-    box-shadow var(--transition-fast) ease;
-}
-
-.product-edit-form__select:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px oklch(from var(--color-accent) l c h / 0.15);
-  outline: 2px solid transparent;
+.product-edit-form__amount-unit {
+  flex: 0 0 7rem;
 }
 
 .product-edit-form__actions {
@@ -136,47 +93,87 @@
   min-width: 0;
 }
 
-.product-edit-ingredient__concentration {
+.product-edit-ingredient__dose {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: stretch;
   flex: 0 0 auto;
+  border: var(--border-width) solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.product-edit-ingredient__value {
+.product-edit-ingredient__dose:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
+}
+
+.product-edit-ingredient__dose-input {
   width: 5rem;
-  flex: 0 0 auto;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  text-align: right;
+  -moz-appearance: textfield;
 }
 
-.product-edit-ingredient__value .input-wrapper input {
-  width: 5rem;
+.product-edit-ingredient__dose-input::-webkit-outer-spin-button,
+.product-edit-ingredient__dose-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.product-edit-ingredient__remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.product-edit-ingredient__dose-input::placeholder {
+  color: var(--text-muted);
+}
+
+.product-edit-ingredient__dose-input:focus {
+  outline: none;
+}
+
+.product-edit-ingredient__dose-unit {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-left: var(--border-width) solid var(--border-default);
+  background: oklch(from var(--color-primary) l c h / 0.05);
+  padding: var(--space-2) calc(var(--space-3) + 0.75rem) var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.75rem) 50%,
+    calc(100% - 0.4rem) 50%;
+  background-size:
+    0.35rem 0.35rem,
+    0.35rem 0.35rem;
+  background-repeat: no-repeat;
+}
+
+.product-edit-ingredient__dose-unit:focus {
+  outline: none;
+}
+
+.product-edit-ingredient__remove.button {
   width: 1.5rem;
   height: 1.5rem;
+  min-height: 0;
   padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-full);
   color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast) ease,
-    color var(--transition-fast) ease;
+  flex-shrink: 0;
 }
 
-.product-edit-ingredient__remove:hover {
+.product-edit-ingredient__remove.button:hover:not(:disabled) {
   background: var(--color-error-light);
   color: var(--color-error);
-}
-
-.product-edit-ingredient__remove:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .product-form__upload-hint {

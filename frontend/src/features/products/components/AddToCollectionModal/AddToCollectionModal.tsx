@@ -112,9 +112,9 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
             {product.name} · {product.brand}
           </p>
         </div>
-        <button type="button" className="inv-modal-close-btn" onClick={onClose} aria-label="Fermer">
-          <X size={18} />
-        </button>
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
+          <X size={18} aria-hidden="true" />
+        </Button>
       </div>
 
       {step === 'status' && (
@@ -126,15 +126,16 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
           )}
           <div className="inv-modal-status-grid">
             {STATUS_OPTIONS.map(({ value, label }) => (
-              <button
+              <Button
                 key={value}
                 type="button"
+                variant={value === 'in_stock' ? 'primary' : 'outline'}
                 className={`inv-modal-status-btn${value === 'in_stock' ? ' inv-modal-status-btn--in-stock' : ''}`}
                 onClick={() => handleStatusSelect(value)}
                 disabled={isPending}
               >
-                <span className="inv-modal-status-label">{label}</span>
-              </button>
+                {label}
+              </Button>
             ))}
           </div>
         </>

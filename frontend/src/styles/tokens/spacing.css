@@ -12,4 +12,7 @@
   --space-20: 5rem;
 
   --nav-height: 3.5rem;
+  --page-gutter: var(--space-4);
+  --nav-width-collapsed: 3.5rem;
+  --nav-width-open: 16rem;
 }

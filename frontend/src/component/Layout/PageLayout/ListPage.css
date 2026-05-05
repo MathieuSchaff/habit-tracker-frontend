@@ -151,15 +151,6 @@
   .list-header:has(.page-banner-component) {
     padding: 0;
   }
-  .list-header__title {
-    font-size: var(--text-xl);
-  }
-  .list-header__search {
-    max-width: 20rem;
-  }
-  .list-header__top {
-    flex-wrap: nowrap;
-  }
   .list-main {
     padding: var(--space-6);
   }

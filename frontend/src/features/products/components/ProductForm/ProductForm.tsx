@@ -1,6 +1,6 @@
 import type { ProductCategory, ProductConcentrationUnit } from '@habit-tracker/shared'
 import {
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  getProductTagCategory,
   PRODUCT_AMOUNT_UNIT_LABELS,
   PRODUCT_AMOUNT_UNITS,
   PRODUCT_CATEGORY_LABELS,
@@ -25,7 +25,9 @@ import { ImageUpload } from '@/component/ImageUpload'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
+import { Select } from '@/component/Input/Select/Select'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
 import { IngredientSearch } from '@/features/products/components/IngredientSearch/IngredientSearch'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -114,43 +116,49 @@ function IngredientRow({
   return (
     <div className="product-edit-ingredient">
       <span className="product-edit-ingredient__name">{ingredientName}</span>
-      <div className="product-edit-ingredient__concentration">
-        <div className="product-edit-ingredient__value">
-          <Input
-            type="number"
-            min={0}
-            step={0.01}
-            placeholder="Dose"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => {
-              if (value !== initialValue) onPersist({ value, unit })
-            }}
-            aria-label={`Concentration de ${ingredientName}`}
-            hideRequired
-          />
-        </div>
-        <ChipGroup
-          options={CONCENTRATION_UNIT_OPTIONS}
-          selected={unit ? [unit] : []}
-          onChange={([next]) => {
-            const nextUnit = (next ?? '') as ProductConcentrationUnit | ''
+      <div className="product-edit-ingredient__dose">
+        <input
+          className="product-edit-ingredient__dose-input"
+          type="number"
+          min={0}
+          step={0.01}
+          placeholder="—"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={() => {
+            if (value !== initialValue) onPersist({ value, unit })
+          }}
+          aria-label={`Dose de ${ingredientName}`}
+        />
+        <select
+          className="product-edit-ingredient__dose-unit"
+          value={unit}
+          onChange={(e) => {
+            const nextUnit = e.target.value as ProductConcentrationUnit | ''
             setUnit(nextUnit)
             onPersist({ value, unit: nextUnit })
           }}
-          mode="exclusive"
           aria-label={`Unité pour ${ingredientName}`}
-        />
+        >
+          <option value="">—</option>
+          {CONCENTRATION_UNIT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         className="product-edit-ingredient__remove"
         aria-label={`Retirer ${ingredientName}`}
         onClick={onRemove}
         disabled={removing || updating}
       >
         <Trash2 size={14} aria-hidden="true" />
-      </button>
+      </Button>
     </div>
   )
 }
@@ -184,14 +192,11 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
   )
   const [form, setForm] = useState<ProductEditFormInput>(initialForm)
 
-  const validTagTypes = useMemo(() => {
-    const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[form.category]
-    return new Set<string>(DOMAIN_PRODUCT_FILTER_CATEGORIES[domain])
-  }, [form.category])
+  const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[form.category]
 
   const domainTags = useMemo(
-    () => allTags?.filter((t) => t.category != null && validTagTypes.has(t.category)),
-    [allTags, validTagTypes]
+    () => allTags?.filter((t) => getProductTagCategory(t.slug, domain) !== undefined),
+    [allTags, domain]
   )
 
   const { tags, setTags, addTag, removeTag, updateRelevance, availableTags, isTagsDirty } =
@@ -373,11 +378,12 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             const next = v as ProductCategory
             setForm((prev) => ({ ...prev, category: next, kind: '', unit: '', amountUnit: '' }))
             const nextDomain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[next]
-            const nextValid = new Set<string>(DOMAIN_PRODUCT_FILTER_CATEGORIES[nextDomain])
             setTags((prev) =>
               prev.filter((t) => {
                 const meta = allTags?.find((at) => at.id === t.tagId)
-                return meta?.category != null && nextValid.has(meta.category)
+                return (
+                  meta?.slug != null && getProductTagCategory(meta.slug, nextDomain) !== undefined
+                )
               })
             )
           }}
@@ -458,20 +464,18 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               placeholder="Ex : 30"
               aria-label="Quantité"
             />
-            <select
+            <Select
               id="edit-amount-unit"
-              className="product-edit-form__select"
+              className="product-edit-form__amount-unit"
               value={form.amountUnit}
-              onChange={(e) => setForm((prev) => ({ ...prev, amountUnit: e.target.value }))}
+              onValueChange={(v) => setForm((prev) => ({ ...prev, amountUnit: v }))}
               aria-label="Unité de contenance"
-            >
-              <option value="">—</option>
-              {PRODUCT_AMOUNT_UNITS[form.category].map((v) => (
-                <option key={v} value={v}>
-                  {PRODUCT_AMOUNT_UNIT_LABELS[v]}
-                </option>
-              ))}
-            </select>
+              placeholder="—"
+              options={PRODUCT_AMOUNT_UNITS[form.category].map((v) => ({
+                value: v,
+                label: PRODUCT_AMOUNT_UNIT_LABELS[v],
+              }))}
+            />
           </div>
         </fieldset>
 
@@ -529,38 +533,33 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         )}
       </div>
 
-      <FormField label="INCI" htmlFor="edit-inci">
-        <textarea
-          id="edit-inci"
-          className="product-edit-form__textarea"
-          value={form.inci}
-          onChange={handleChange('inci')}
-          placeholder="Liste INCI des ingrédients…"
-          rows={4}
-        />
-      </FormField>
+      <Textarea
+        label="INCI"
+        id="edit-inci"
+        value={form.inci}
+        onChange={handleChange('inci')}
+        placeholder="Liste INCI des ingrédients…"
+        rows={4}
+      />
 
-      <FormField label="Description" htmlFor="edit-description" hint="Markdown supporté">
-        <textarea
-          id="edit-description"
-          className="product-edit-form__textarea"
-          value={form.description}
-          onChange={handleChange('description')}
-          placeholder="Description du produit (Markdown supporté)"
-          rows={5}
-        />
-      </FormField>
+      <Textarea
+        label="Description"
+        id="edit-description"
+        hint="Markdown supporté"
+        value={form.description}
+        onChange={handleChange('description')}
+        placeholder="Description du produit (Markdown supporté)"
+        rows={5}
+      />
 
-      <FormField label="Notes" htmlFor="edit-notes">
-        <textarea
-          id="edit-notes"
-          className="product-edit-form__textarea"
-          value={form.notes}
-          onChange={handleChange('notes')}
-          placeholder="Notes personnelles sur ce produit…"
-          rows={4}
-        />
-      </FormField>
+      <Textarea
+        label="Notes"
+        id="edit-notes"
+        value={form.notes}
+        onChange={handleChange('notes')}
+        placeholder="Notes personnelles sur ce produit…"
+        rows={4}
+      />
 
       <fieldset className="form-field">
         <legend className="form-field__label">Tags</legend>

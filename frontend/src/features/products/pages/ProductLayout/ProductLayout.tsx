@@ -3,7 +3,7 @@ import { getProductKindLabel } from '@habit-tracker/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { MessageSquare, Pencil, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { Badge, type BadgeVariant } from '@/component/DataDisplay/Badge/Badge'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
@@ -38,6 +38,11 @@ function getBadgeVariant(kind: string): BadgeVariant {
 
 type ProductTab = 'infos' | 'discussions'
 
+const TAB_OPTIONS: TabOption<ProductTab>[] = [
+  { id: 'infos', label: 'Infos' },
+  { id: 'discussions', label: 'Discussions', icon: <MessageSquare size={14} /> },
+]
+
 export function ProductLayout() {
   const { slug } = route.useParams()
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
@@ -55,18 +60,16 @@ export function ProductLayout() {
       ? eurFormatter.format(product.priceCents / 100)
       : null
 
-  const tabOptions: TabOption<ProductTab>[] = [
-    { id: 'infos', label: 'Infos' },
-    { id: 'discussions', label: 'Discussions', icon: <MessageSquare size={14} /> },
-  ]
-
-  function handleTabChange(id: ProductTab) {
-    if (id === 'infos') {
-      navigate({ to: '/products/$slug', params: { slug } })
-    } else {
-      navigate({ to: '/products/$slug/discussions', params: { slug } })
-    }
-  }
+  const handleTabChange = useCallback(
+    (id: ProductTab) => {
+      if (id === 'infos') {
+        navigate({ to: '/products/$slug', params: { slug } })
+      } else {
+        navigate({ to: '/products/$slug/discussions', params: { slug } })
+      }
+    },
+    [navigate, slug]
+  )
 
   return (
     <DetailPageLayout banner={true}>
@@ -125,7 +128,7 @@ export function ProductLayout() {
       </div>
 
       <Tabs
-        options={tabOptions}
+        options={TAB_OPTIONS}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="underline"

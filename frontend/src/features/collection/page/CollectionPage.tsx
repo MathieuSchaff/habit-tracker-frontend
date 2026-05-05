@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { BarChart3, History, Package } from 'lucide-react'
 import { useState } from 'react'
 
-import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
+import { ListPageLayout } from '@/component/Layout'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { userProductQueries } from '@/lib/queries/user-products'
 import { QuickAdd } from '../components/modals/QuickAdd/QuickAdd'
@@ -45,14 +45,14 @@ export const CollectionPage = () => {
     totalProducts > 0 ? `${totalProducts} ${totalProducts > 1 ? 'produits' : 'produit'}` : null
 
   return (
-    <div className="coll-page-wrapper">
-      <PageHeader title="Ma Collection" meta={headerMeta} />
+    <ListPageLayout>
+      <ListPageLayout.Header title="Ma Collection" meta={headerMeta} transparent centered />
 
       <div className="coll-tabs-wrapper">
         <Tabs options={tabOptions} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      <div className="coll-page-container">
+      <ListPageLayout.Body maxWidth="1200px" className="coll-page-container">
         {activeTab === 'collection' && (
           <CollectionTab userProducts={userProducts} onAddClick={() => setShowAddModal(true)} />
         )}
@@ -60,8 +60,8 @@ export const CollectionPage = () => {
         {activeTab === 'insights' && userProducts && <AnalysisTab userProducts={userProducts} />}
 
         {activeTab === 'history' && <HistoryTab userProducts={userProducts ?? []} />}
-      </div>
+      </ListPageLayout.Body>
       {showAddModal && <QuickAdd onClose={() => setShowAddModal(false)} />}
-    </div>
+    </ListPageLayout>
   )
 }

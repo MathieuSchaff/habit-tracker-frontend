@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
 import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
+import { useDebounce } from '@/hooks/useDebounce'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import './IngredientSearch.css'
 
@@ -13,7 +14,8 @@ type IngredientSearchProps = {
 export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) {
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const { data: results } = useQuery(ingredientQueries.search(query))
+  const debouncedQuery = useDebounce(query, 200)
+  const { data: results } = useQuery(ingredientQueries.search(debouncedQuery))
 
   const available = useMemo(() => {
     if (!results) return []

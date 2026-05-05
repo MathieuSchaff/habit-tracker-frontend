@@ -53,7 +53,7 @@ function ProductsFilterDrawerContentImpl({
       onReset={onReset}
       previewCount={previewCount}
       onLocalFiltersChange={onLocalFiltersChange}
-      essentialExtras={
+      advancedExtras={
         <PriceFilterAccordion min={priceMin} max={priceMax} onChange={onPriceChange} />
       }
     >

@@ -14,6 +14,8 @@ import { SortControl } from '@/features/products/components/SortControl/SortCont
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { type ProductSort, productQueries } from '@/lib/queries/products'
 
+import '@/component/Layout/PageLayout/ListPage.css'
+
 // Sections cap: keep the dropdown scannable. Top N matches per facet by
 // alphabetical order — matches are rare enough that ranking has little payoff.
 const FACET_SECTION_LIMIT = 2
@@ -156,7 +158,6 @@ function ProductsHeaderImpl({
             >
               <Plus size={16} aria-hidden="true" />
             </Button>
-            <span className="products-header__divider" aria-hidden="true" />
             <Button
               type="button"
               variant="primary"
@@ -242,27 +243,33 @@ const PILL_HALF_HEIGHT = 28
 // Visual buffer between pill edge and any obstacle (viewport / nav)
 const EDGE_BUFFER = 8
 
-function getBottomNavHeight() {
-  if (typeof document === 'undefined') return 0
-  const nav = document.querySelector<HTMLElement>('.bottom-nav')
+type Bounds = { minY: number; maxY: number }
+
+function computeBounds(): Bounds {
+  if (typeof window === 'undefined') return { minY: 0, maxY: 0 }
+  const halfV = window.innerHeight / 2
   // Mobile-only — desktop has no bottom-nav rendered
-  return nav?.getBoundingClientRect().height ?? 0
+  const nav = document.querySelector<HTMLElement>('.bottom-nav')
+  const navH = nav?.getBoundingClientRect().height ?? 0
+  return {
+    minY: -(halfV - PILL_HALF_HEIGHT - EDGE_BUFFER),
+    maxY: halfV - PILL_HALF_HEIGHT - EDGE_BUFFER - navH,
+  }
 }
 
-function clampY(value: number) {
-  if (typeof window === 'undefined') return value
-  const halfV = window.innerHeight / 2
-  const minY = -(halfV - PILL_HALF_HEIGHT - EDGE_BUFFER)
-  const maxY = halfV - PILL_HALF_HEIGHT - EDGE_BUFFER - getBottomNavHeight()
+function clamp(value: number, { minY, maxY }: Bounds): number {
   return Math.max(minY, Math.min(maxY, value))
 }
 
 function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonProps) {
+  // Bounds cached so pointer-move drag doesn't querySelector + getBoundingClientRect
+  // every tick. Refreshed on mount + resize only.
+  const boundsRef = useRef<Bounds>(computeBounds())
   const [y, setY] = useState(() => {
     if (typeof window === 'undefined') return 0
     const raw = window.localStorage.getItem(FLOATING_FILTER_Y_KEY)
     const parsed = raw === null ? 0 : Number(raw)
-    return Number.isFinite(parsed) ? clampY(parsed) : 0
+    return Number.isFinite(parsed) ? clamp(parsed, boundsRef.current) : 0
   })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ startClientY: number; startY: number; moved: boolean } | null>(null)
@@ -270,7 +277,10 @@ function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonP
   const suppressClickRef = useRef(false)
 
   useEffect(() => {
-    const onResize = () => setY((cur) => clampY(cur))
+    const onResize = () => {
+      boundsRef.current = computeBounds()
+      setY((cur) => clamp(cur, boundsRef.current))
+    }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
@@ -289,7 +299,7 @@ function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonP
       drag.moved = true
       setDragging(true)
     }
-    if (drag.moved) setY(clampY(drag.startY + dy))
+    if (drag.moved) setY(clamp(drag.startY + dy, boundsRef.current))
   }
 
   const onPointerUp = () => {

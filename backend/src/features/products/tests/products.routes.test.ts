@@ -645,6 +645,47 @@ describe('Product Routes', () => {
     })
   })
 
+  describe('GET /products/by-ids', () => {
+    it('should return products matching the requested ids in any order', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const a = await authPost(app, '/products', token, VALID_PRODUCT).then((r) => r.json())
+      const b = await authPost(app, '/products', token, {
+        name: 'Magnésium',
+        brand: 'Solgar',
+        category: 'complement',
+        kind: 'gelule',
+        unit: 'bottle',
+      }).then((r) => r.json())
+
+      const res = await app.request(`/products/by-ids?ids=${a.data.id},${b.data.id}`)
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      const ids = data.data.map((p: { id: string }) => p.id).sort()
+      expect(ids).toEqual([a.data.id, b.data.id].sort())
+      expect(data.data[0]).toHaveProperty('name')
+      expect(data.data[0]).toHaveProperty('brand')
+    })
+
+    it('should return 400 when ids is missing', async () => {
+      const res = await app.request('/products/by-ids')
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+
+    it('should return 400 when an id is not a uuid', async () => {
+      const res = await app.request('/products/by-ids?ids=not-a-uuid')
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+
+    it('should not require authentication', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const created = await authPost(app, '/products', token, VALID_PRODUCT).then((r) => r.json())
+
+      const res = await app.request(`/products/by-ids?ids=${created.data.id}`)
+      expect(res.status).toBe(HTTP_STATUS.OK)
+    })
+  })
+
   describe('PATCH /products/:id', () => {
     it('should update product fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)

@@ -138,6 +138,34 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
+  // Flat (non-infinite) variant for AsyncSearchSelect: one page is plenty for
+  // a typeahead, and the consumer needs queryOptions, not infiniteQueryOptions.
+  searchFlat: (q: string) =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'search-flat', q] as const,
+      queryFn: async () => {
+        const res = await api.products.search.$get({ query: { q, limit: '20', offset: '0' } })
+        if (!res.ok) throw new Error('Failed to search products')
+        const json = await res.json()
+        return json.data.items
+      },
+      enabled: q.length >= 2,
+      staleTime: 30 * 1000,
+    }),
+
+  byIds: (ids: string[]) =>
+    queryOptions({
+      queryKey: [...productKeys.all, 'by-ids', [...ids].sort().join(',')] as const,
+      queryFn: async () => {
+        const res = await api.products['by-ids'].$get({ query: { ids: ids.join(',') } })
+        if (!res.ok) throw new Error('Failed to fetch products by ids')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: ids.length > 0,
+      staleTime: 5 * 60 * 1000,
+    }),
+
   checkDuplicate: (name: string, brand: string) => {
     // Normalize so case/whitespace variants share a single cache entry —
     // server already matches case-insensitively.

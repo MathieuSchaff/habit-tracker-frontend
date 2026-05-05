@@ -1,48 +1,7 @@
-.coll-page-wrapper {
-  flex: 1;
-  animation: fadeIn 0.3s ease-out;
-  padding: 0 var(--space-4);
-}
-
-.coll-page-wrapper .page-header {
-  padding-left: 0;
-  padding-right: 0;
-  border-bottom: none;
-  background: transparent;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Centered title — no actions in the header anymore, Add lives in the toolbar */
-.coll-page-wrapper .page-header {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.coll-page-wrapper .page-header__info {
-  align-items: center;
-}
-
-.coll-page-wrapper .page-header__title {
-  justify-content: center;
-}
-
 .coll-tabs-wrapper {
   margin: var(--space-2) 0 0;
 }
 
 .coll-page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-4) 0 var(--space-8);
+  padding-bottom: var(--space-8);
 }

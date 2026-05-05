@@ -29,29 +29,6 @@
   margin-top: var(--space-1);
 }
 
-.inv-modal-close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  background: var(--bg-muted);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast) ease,
-    border-color var(--transition-fast) ease,
-    color var(--transition-fast) ease;
-}
-
-.inv-modal-close-btn:hover {
-  background: var(--color-error-light);
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-
 .inv-modal-form {
   display: flex;
   flex-direction: column;
@@ -82,48 +59,13 @@
   padding: var(--space-5);
 }
 
-.inv-modal-status-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.inv-modal-status-btn.button {
+  align-self: stretch;
+  width: 100%;
   justify-content: center;
-  gap: var(--space-2);
   padding: var(--space-4) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border-default);
-  background: var(--bg-card);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition:
-    border-color var(--transition-fast) ease,
-    background var(--transition-fast) ease,
-    color var(--transition-fast) ease;
-  text-align: center;
 }
 
-.inv-modal-status-btn:hover {
-  border-color: var(--color-primary);
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.inv-modal-status-btn--in-stock {
+.inv-modal-status-btn--in-stock.button {
   grid-column: 1 / -1;
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--text-inverse);
-}
-
-.inv-modal-status-btn--in-stock:hover {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-  color: var(--text-inverse);
-}
-
-.inv-modal-status-label {
-  font-size: var(--text-xs);
-  line-height: 1.3;
 }

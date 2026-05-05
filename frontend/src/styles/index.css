@@ -5,6 +5,7 @@
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
 @import "./tokens/colors-light-bleu.css" layer(variables);
+@import "./tokens/colors-palette-test.css" layer(variables);
 @import "./tokens/colors-light-terracota.css" layer(variables);
 @import "./tokens/colors-light-foret.css" layer(variables);
 @import "./tokens/colors-light-ardoise.css" layer(variables);
