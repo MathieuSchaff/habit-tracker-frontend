@@ -1,26 +1,8 @@
 html,
 body {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-primary) var(--bg-card);
+  scrollbar-width: none;
 }
 
-/* On Chrome, I make the scroll bar  square for the style */
 ::-webkit-scrollbar {
-  width: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-card);
-  border-left: 3px solid var(--color-primary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border: 3px solid var(--bg-card);
-  border-radius: 0;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-hover);
-  border-color: var(--bg-muted);
+  display: none;
 }

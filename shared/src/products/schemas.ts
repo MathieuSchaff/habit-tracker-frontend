@@ -101,6 +101,16 @@ export const searchProductsQuery = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 })
 
+// Comma-separated UUIDs in query string (kept GET-friendly so it can be used
+// as a TanStack Query key without serializing a body). Cap at 50 ids — covers
+// any realistic comparison/picker batch and keeps the URL bounded.
+export const productsByIdsQuery = z.object({
+  ids: z
+    .string()
+    .transform((s) => s.split(',').filter(Boolean))
+    .pipe(z.array(z.uuid()).min(1).max(50)),
+})
+
 export const patentSchema = z.object({
   name: z.string(), // 'Rosactiv 2.0'
   description: z

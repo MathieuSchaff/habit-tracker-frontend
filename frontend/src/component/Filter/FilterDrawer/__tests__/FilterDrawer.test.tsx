@@ -191,9 +191,35 @@ describe('FilterDrawer — extra children', () => {
 })
 
 describe('FilterDrawer — Escape key (native cancel)', () => {
-  it('applies + closes when Escape fires the dialog cancel event', () => {
+  it('closes WITHOUT applying when Escape fires the dialog cancel event', () => {
     const onApply = vi.fn()
     const onClose = vi.fn()
+    render(
+      <FilterDrawer
+        open={true}
+        onClose={onClose}
+        groups={GROUPS}
+        currentFilters={EMPTY}
+        initialFilters={EMPTY}
+        onApply={onApply}
+        onReset={vi.fn()}
+      />
+    )
+    // User stages a local change then escapes → draft must be discarded.
+    fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
+
+    const dialog = document.querySelector('dialog') as HTMLDialogElement
+    fireEvent(dialog, new Event('cancel', { bubbles: false, cancelable: true }))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onApply).not.toHaveBeenCalled()
+  })
+})
+
+describe('FilterDrawer — backdrop click', () => {
+  it('closes WITHOUT applying when the click target is the dialog itself (backdrop)', () => {
+    const onClose = vi.fn()
+    const onApply = vi.fn()
     render(
       <FilterDrawer
         open={true}
@@ -206,38 +232,10 @@ describe('FilterDrawer — Escape key (native cancel)', () => {
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
-
-    const dialog = document.querySelector('dialog') as HTMLDialogElement
-    // Native <dialog> turns Escape into a `cancel` event; the drawer
-    // intercepts it via onCancel and routes through handleClose.
-    fireEvent(dialog, new Event('cancel', { bubbles: false, cancelable: true }))
-
-    expect(onClose).toHaveBeenCalledTimes(1)
-    expect(onApply).toHaveBeenCalledTimes(1)
-    const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
-    expect(payload.concern).toEqual(['acne'])
-  })
-})
-
-describe('FilterDrawer — backdrop click', () => {
-  it('closes when the click target is the dialog itself (backdrop)', () => {
-    const onClose = vi.fn()
-    const onApply = vi.fn()
-    render(
-      <FilterDrawer
-        open={true}
-        onClose={onClose}
-        groups={GROUPS}
-        currentFilters={EMPTY}
-        initialFilters={EMPTY}
-        onApply={onApply}
-        onReset={vi.fn()}
-      />
-    )
     const dialog = document.querySelector('dialog') as HTMLDialogElement
     fireEvent.click(dialog)
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(onApply).toHaveBeenCalledTimes(1)
+    expect(onApply).not.toHaveBeenCalled()
   })
 
   it('does NOT close when the click bubbles up from inside the panel', () => {

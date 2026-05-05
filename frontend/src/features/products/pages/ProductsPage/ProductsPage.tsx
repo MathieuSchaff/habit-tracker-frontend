@@ -13,6 +13,7 @@ import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { emptyFilters, type FilterValues } from '@/component/Filter'
+import { ListPageLayout } from '@/component/Layout'
 import type { TabOption } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
 import {
@@ -35,8 +36,6 @@ import { useListFilters } from '@/hooks/useListFilters'
 import { type ListProductsFilters, type ProductSort, productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
-
-import '@/component/Layout/PageLayout/ListPage.css'
 import './ProductsPage.css'
 import '@/features/products/styles/kinds.css'
 
@@ -220,29 +219,31 @@ export function ProductsPage() {
 
   return (
     <>
-      <div className="list-page products-page">
-        <ProductsHeader
-          total={total}
-          hasFilters={hasFilters}
-          isPlaceholderData={isPlaceholderData}
-          sort={sort}
-          onSortChange={handleSortChange}
-          onOpenDrawer={handleOpenDrawer}
-          effectiveFilterCount={effectiveFilterCount}
-          activeTab={category}
-          onTabChange={handleDomainChange}
-          tabOptions={DOMAIN_TAB_OPTIONS}
-        />
-
-        <CollapsibleFiltersStrip count={effectiveFilterCount} onOpenDrawer={handleOpenDrawer}>
-          <ProductsActiveBar
-            activeTags={activeTags}
-            filterGroups={filterGroups}
-            onRemoveTag={toggleSingleFilter}
-            onClearAll={handleReset}
-            extraChips={extraChips}
+      <ListPageLayout className="products-page">
+        <ListPageLayout.Header fullBleed>
+          <ProductsHeader
+            total={total}
+            hasFilters={hasFilters}
+            isPlaceholderData={isPlaceholderData}
+            sort={sort}
+            onSortChange={handleSortChange}
+            onOpenDrawer={handleOpenDrawer}
+            effectiveFilterCount={effectiveFilterCount}
+            activeTab={category}
+            onTabChange={handleDomainChange}
+            tabOptions={DOMAIN_TAB_OPTIONS}
           />
-        </CollapsibleFiltersStrip>
+
+          <CollapsibleFiltersStrip count={effectiveFilterCount} onOpenDrawer={handleOpenDrawer}>
+            <ProductsActiveBar
+              activeTags={activeTags}
+              filterGroups={filterGroups}
+              onRemoveTag={toggleSingleFilter}
+              onClearAll={handleReset}
+              extraChips={extraChips}
+            />
+          </CollapsibleFiltersStrip>
+        </ListPageLayout.Header>
 
         <ProductsFilterDrawerContent
           open={isDrawerOpen}
@@ -262,10 +263,7 @@ export function ProductsPage() {
           onLocalFiltersChange={setDraftFilters}
         />
 
-        <section
-          className={`list-main${isPlaceholderData ? ' list-main--syncing' : ''}`}
-          aria-label="Liste des produits"
-        >
+        <ListPageLayout.Body maxWidth="72rem" isSyncing={isPlaceholderData}>
           {isLoading && !isPlaceholderData ? (
             <EmptyState icon={<Package size={24} />} subtitle="Chargement..." />
           ) : items.length === 0 ? (
@@ -303,8 +301,8 @@ export function ProductsPage() {
               )}
             </>
           )}
-        </section>
-      </div>
+        </ListPageLayout.Body>
+      </ListPageLayout>
       {modalProduct && (
         <AddToCollectionModal
           product={modalProduct}
@@ -329,34 +327,33 @@ function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: CollapsibleF
   if (count === 0) return null
   return (
     <div className={`products-chips-collapsible${open ? ' products-chips-collapsible--open' : ''}`}>
-      <button
-        type="button"
-        className="products-chips-toggle"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label={`${count} filtre${count > 1 ? 's' : ''} actif${count > 1 ? 's' : ''} — ${open ? 'masquer' : 'voir les filtres'}`}
-      >
-        <SlidersHorizontal size={13} className="products-chips-toggle__icon" aria-hidden="true" />
-        <span>
-          <strong>{count}</strong> filtre{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''}
-        </span>
-        <ChevronDown
-          size={13}
-          className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
-          aria-hidden="true"
-        />
+      <div className="products-chips-toggle-row">
+        <button
+          type="button"
+          className="products-chips-toggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={`${count} filtre${count > 1 ? 's' : ''} actif${count > 1 ? 's' : ''} — ${open ? 'masquer' : 'voir les filtres'}`}
+        >
+          <SlidersHorizontal size={13} className="products-chips-toggle__icon" aria-hidden="true" />
+          <span>
+            <strong>{count}</strong> filtre{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''}
+          </span>
+          <ChevronDown
+            size={13}
+            className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
         <button
           type="button"
           className="products-chips-toggle__edit"
-          onClick={(e) => {
-            e.stopPropagation()
-            onOpenDrawer()
-          }}
+          onClick={onOpenDrawer}
           aria-label="Modifier les filtres"
         >
           Modifier
         </button>
-      </button>
+      </div>
       <div className="products-chips-body" aria-hidden={!open}>
         <div className="products-chips-inner">{children}</div>
       </div>

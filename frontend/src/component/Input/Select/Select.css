@@ -1,0 +1,85 @@
+.select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.select-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.select-required {
+  margin-left: var(--space-1);
+  color: var(--color-error);
+}
+
+.select-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.select-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-wrapper select {
+  width: 100%;
+  padding: var(--space-3);
+  padding-right: calc(var(--space-3) + 1.25rem);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: var(--border-width) solid var(--border-default);
+  border-radius: var(--radius-md);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.select-chevron {
+  position: absolute;
+  right: var(--space-3);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.select-wrapper select:hover {
+  border-color: var(--border-strong);
+}
+
+.select-wrapper select:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
+  background: oklch(from var(--color-primary) l c h / 0.03);
+}
+
+.select-wrapper select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-wrapper select[data-error] {
+  border-color: var(--color-error);
+}
+
+.select-wrapper select[data-error]:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
+}
+
+.select-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-error);
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { ProductIcon } from '@/assets/product-icons'
 import './ProductImage.css'
@@ -11,20 +11,20 @@ type Props = {
   className?: string
 }
 
-type Stage = 'real' | 'icon'
-
-function initialStage(imageUrl?: string | null): Stage {
-  return imageUrl?.trim() ? 'real' : 'icon'
-}
-
 export function ProductImage({ kind, unit, imageUrl, size = 48, className }: Props) {
-  const [stage, setStage] = useState<Stage>(() => initialStage(imageUrl))
+  const trimmedUrl = imageUrl?.trim() || null
+  // Reset error state on URL change via the "adjusting state during render"
+  // pattern — avoids an extra effect tick that flickers icon→image→icon.
+  const [errorUrl, setErrorUrl] = useState<string | null>(null)
+  const [trackedUrl, setTrackedUrl] = useState<string | null>(trimmedUrl)
+  if (trackedUrl !== trimmedUrl) {
+    setTrackedUrl(trimmedUrl)
+    setErrorUrl(null)
+  }
 
-  useEffect(() => {
-    setStage(initialStage(imageUrl))
-  }, [imageUrl])
+  const showIcon = !trimmedUrl || errorUrl === trimmedUrl
 
-  if (stage === 'icon') {
+  if (showIcon) {
     return (
       <div
         className={`product-image product-image--icon ${className ?? ''}`}
@@ -43,11 +43,11 @@ export function ProductImage({ kind, unit, imageUrl, size = 48, className }: Pro
       aria-hidden="true"
     >
       <img
-        src={imageUrl?.trim()}
+        src={trimmedUrl ?? undefined}
         alt=""
         loading="lazy"
         decoding="async"
-        onError={() => setStage('icon')}
+        onError={() => setErrorUrl(trimmedUrl)}
         className="product-image__img"
       />
     </div>

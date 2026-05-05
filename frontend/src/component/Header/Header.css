@@ -13,11 +13,11 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 3.5rem;
+    width: var(--nav-width-collapsed);
     height: 100dvh;
     z-index: var(--z-nav, 100);
     background: var(--color-sidebar-bg);
-    border-right: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
+    box-shadow: 4px 0 12px oklch(0% 0 0 / 0.18);
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
@@ -95,19 +95,16 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 16rem;
+  width: var(--nav-width-open);
   height: 100dvh;
   z-index: var(--z-nav, 100);
   background: var(--color-sidebar-bg);
   box-shadow: 20px 0 60px oklch(0% 0 0 / 0.4);
-  border-right: 1px solid oklch(from var(--color-sidebar-bg) 40% 0.05 h);
   padding: 0 var(--space-1);
   overflow-y: auto;
 
   @media (--md) {
-    width: 16rem;
     box-shadow: none;
-    border-right-width: 1px;
   }
 
   .main-nav__header {

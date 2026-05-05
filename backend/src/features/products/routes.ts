@@ -4,6 +4,7 @@ import {
   listProductsQuery,
   ok,
   PRODUCT_DOMAIN_TABS,
+  productsByIdsQuery,
   searchProductsQuery,
   updateProductSchema,
 } from '@habit-tracker/shared'
@@ -22,6 +23,7 @@ import {
   getDistinctBrands,
   getFilterOptions,
   getProductFullBySlug,
+  getProductsByIds,
   listProducts,
   searchProducts,
   updateProduct,
@@ -72,6 +74,12 @@ export const productRoutes = productsApp
     const { q, limit, offset } = c.req.valid('query')
     const result = await searchProducts({ q, limit, offset }, db)
     return c.json(ok(result), HTTP_STATUS.OK)
+  })
+  .get('/by-ids', zValidator('query', productsByIdsQuery), async (c) => {
+    const db = c.get('db')
+    const { ids } = c.req.valid('query')
+    const items = await getProductsByIds(ids, db)
+    return c.json(ok(items), HTTP_STATUS.OK)
   })
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')

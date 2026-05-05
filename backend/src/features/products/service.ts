@@ -614,6 +614,17 @@ export async function findSimilarProducts(
 
 // Simple search by name or brand. Paginates via offset; fetches limit+1 rows
 // to detect whether more pages remain without a separate COUNT(*) query.
+export async function getProductsByIds(
+  ids: string[],
+  database: Database = db
+): Promise<{ id: string; name: string; brand: string }[]> {
+  if (ids.length === 0) return []
+  return database
+    .select({ id: products.id, name: products.name, brand: products.brand })
+    .from(products)
+    .where(inArray(products.id, ids))
+}
+
 export async function searchProducts(
   filters: { q: string; limit?: number; offset?: number },
   database: Database = db

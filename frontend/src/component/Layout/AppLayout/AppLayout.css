@@ -15,7 +15,7 @@
 
 @media (min-width: 768px) {
   .app-layout {
-    padding-left: var(--nav-collapsed, 3.05rem);
+    padding-left: var(--nav-width-collapsed);
     transition: padding-left 280ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }

@@ -18,9 +18,12 @@ type FilterDrawerProps<T extends string> = {
   initialFilters: FilterValues<T>
   children?: React.ReactNode
   // Rendered after the essential accordions, before the "Avancé" separator.
-  // Used for non-tag essentials (e.g. price range) so they sit inside the
-  // essential block instead of floating above the whole list.
+  // Used for non-tag essentials so they sit inside the essential block
+  // instead of floating above the whole list.
   essentialExtras?: React.ReactNode
+  // Rendered at the end of the advanced section (after all advanced
+  // accordions). Used for non-tag advanced controls (e.g. price range).
+  advancedExtras?: React.ReactNode
   // Live count of products matching the in-flight selection, displayed on
   // the Apply button. Parent owns the query — drawer just renders.
   previewCount?: number
@@ -38,6 +41,7 @@ export function FilterDrawer<T extends string>({
   initialFilters,
   children,
   essentialExtras,
+  advancedExtras,
   previewCount,
   onLocalFiltersChange,
 }: FilterDrawerProps<T>) {
@@ -59,7 +63,16 @@ export function FilterDrawer<T extends string>({
     }
   }, [open])
 
+  // Drawer model: drawer = staging, Apply = commit, X / Esc / backdrop = drop
+  // draft (no commit). Local filters are re-synced from currentFilters on
+  // next open via the open-sync effect, so a closed-then-reopened drawer
+  // shows the canonical state.
   const handleClose = useCallback(() => {
+    onClose()
+    setTimeout(() => previousFocusRef.current?.focus(), 0)
+  }, [onClose])
+
+  const handleApply = useCallback(() => {
     onApply(localFilters)
     onClose()
     setTimeout(() => previousFocusRef.current?.focus(), 0)
@@ -121,6 +134,31 @@ export function FilterDrawer<T extends string>({
     triggers[nextIndex]?.focus()
   }
 
+  // Native <dialog> + showModal() blocks focus from leaving the dialog but
+  // does NOT cycle Tab/Shift+Tab at the boundaries (Chromium escapes to body
+  // on Shift+Tab from first focusable / Tab from last). Wrap explicitly.
+  const FOCUSABLE_SELECTOR =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  const handleTabTrap = (e: React.KeyboardEvent<HTMLDialogElement>) => {
+    if (e.key !== 'Tab') return
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const focusables = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+      (el) => el.offsetParent !== null || el === document.activeElement
+    )
+    if (focusables.length === 0) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    const active = document.activeElement as HTMLElement | null
+    if (e.shiftKey && active === first) {
+      e.preventDefault()
+      last?.focus()
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault()
+      first?.focus()
+    }
+  }
+
   const titleId = useId()
   const essentialGroups = groups.filter((g) => g.tier === 'essential')
   const advancedGroups = groups.filter((g) => g.tier === 'advanced')
@@ -134,6 +172,7 @@ export function FilterDrawer<T extends string>({
       aria-modal="true"
       onClick={handleBackdropClick}
       onCancel={handleCancel}
+      onKeyDown={handleTabTrap}
     >
       <div className="filter-drawer__panel">
         <div className="filter-drawer__header">
@@ -167,7 +206,7 @@ export function FilterDrawer<T extends string>({
           ))}
           {essentialExtras}
 
-          {advancedGroups.length > 0 && (
+          {(advancedGroups.length > 0 || advancedExtras) && (
             <fieldset aria-label="Filtres avancés">
               <div className="filter-drawer__separator">
                 <span className="filter-drawer__separator-label">Avancé</span>
@@ -181,6 +220,7 @@ export function FilterDrawer<T extends string>({
                   onToggle={handleToggle}
                 />
               ))}
+              {advancedExtras}
             </fieldset>
           )}
         </form>
@@ -201,7 +241,7 @@ export function FilterDrawer<T extends string>({
             variant="primary"
             size="md"
             className="filter-drawer__apply"
-            onClick={handleClose}
+            onClick={handleApply}
             aria-label="Appliquer les filtres sélectionnés"
           >
             {previewCount === undefined
