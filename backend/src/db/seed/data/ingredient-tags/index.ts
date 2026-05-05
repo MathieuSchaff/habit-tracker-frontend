@@ -21,7 +21,7 @@
 //   ✅ shared_label  (COMEDOGENE, NON_COMEDOGENE)
 //   ✅ concern, skin_type
 //
-// Règle `avoid` (voir idee/tags/tags-associations.md) :
+// Règle `avoid` :
 //   ✅ uniquement skin_type ou concern.
 //   ❌ jamais d'attribut, de label, de product_type ni de routine_step.
 //   ⚠️  exception conventionnelle : `grossesse-compatible` (scope=product)
@@ -33,9 +33,6 @@
 //     ils vont en `secondary`, jamais en `avoid`.
 //   - La contre-indication clinique correspondante se traduit par
 //     `avoid: [peau-grasse, anti-acne]` sur l'ingrédient concerné.
-//
-// Documentation complète : idee/tags/tags.md (section 3) et
-// idee/tags/tags-associations.md.
 
 import { dentalTagMap } from '../ingredients/dental/ingredient-tags'
 import { haircareTagMap } from '../ingredients/haircare/ingredient-tags'

@@ -45,7 +45,7 @@ describe('Shared schemas ↔ seed tags integrity', () => {
   // (gelule, capsule, ampoule…) and are expected to line up 1:1 with
   // product_type tag slugs. The skincare/haircare/… groups use English
   // kinds (serum, moisturizer…) and deliberately do NOT have to match
-  // tag slugs — see idee/tags/products-tags.md §5.
+  // tag slugs.
   //
   // Past bug this catches: PRODUCT_KINDS.complement.GELULE was 'gélule'
   // (accented) while the tag was 'gelule' — the match was silently broken
@@ -80,9 +80,9 @@ describe('Shared schemas ↔ seed tags integrity', () => {
     })
   })
 
-  // Why: the rules in idee/tags/*.md forbid tagging an ingredient with a
-  // slug whose taxonomy scope is 'product' — those describe a finished
-  // product, not a molecule. And `avoid` on an ingredient accepts only
+  // Why: the scope rules forbid tagging an ingredient with a slug whose
+  // taxonomy scope is 'product' — those describe a finished product, not
+  // a molecule. And `avoid` on an ingredient accepts only
   // skin_type or concern slugs (+ 'grossesse-compatible' as a conventional
   // exception). The scope check is derived directly from SKINCARE_INGREDIENT_TAG_TAXONOMY
   // so adding a new tag can never silently drift.

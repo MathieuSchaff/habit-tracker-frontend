@@ -1,8 +1,9 @@
 import {
   createIngredientSchema,
   HTTP_STATUS,
+  INGREDIENT_TYPE_VALUES,
+  listIngredientsSearchSchema,
   ok,
-  skincareIngredientsSearchSchema,
   updateIngredientRouteSchema,
 } from '@habit-tracker/shared'
 
@@ -74,17 +75,22 @@ export const ingredientRoutes = ingredientsApp
     const results = await listIngredientsBySlugs(db, list)
     return c.json(ok(results), HTTP_STATUS.OK)
   })
-  .get('/filter-options', async (c) => {
-    const db = c.get('db')
-    const options = await getIngredientFilterOptions(db)
-    return c.json(ok(options), HTTP_STATUS.OK)
-  })
+  .get(
+    '/filter-options',
+    zValidator('query', z.object({ type: z.enum(INGREDIENT_TYPE_VALUES).optional() })),
+    async (c) => {
+      const db = c.get('db')
+      const { type } = c.req.valid('query')
+      const options = await getIngredientFilterOptions(db, type)
+      return c.json(ok(options), HTTP_STATUS.OK)
+    }
+  )
   .get('/options', async (c) => {
     const db = c.get('db')
     const items = await listAllIngredientOptions(db)
     return c.json(ok(items), HTTP_STATUS.OK)
   })
-  .get('/', zValidator('query', skincareIngredientsSearchSchema), async (c) => {
+  .get('/', zValidator('query', listIngredientsSearchSchema), async (c) => {
     const db = c.get('db')
     const query = c.req.valid('query')
     const { items, total } = await listIngredients(db, query)

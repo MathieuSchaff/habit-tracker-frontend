@@ -1,5 +1,7 @@
 import type {
+  AllIngredientTagCategory,
   CreateIngredientInput,
+  IngredientType,
   ReplaceIngredientTagsInput,
   UpdateIngredientRouteInput,
 } from '@habit-tracker/shared'
@@ -13,12 +15,10 @@ import {
 
 import { api } from '../api'
 
-export type ListIngredientsFilters = {
-  skin_type?: string[]
-  concern?: string[]
-  ingredient_attribute?: string[]
-  skin_effect?: string[]
-  shared_label?: string[]
+// Per-axis slug arrays + the active domain. The page builds this from URL
+// search params; the queryFn flattens it back to comma-joined query strings.
+export type ListIngredientsFilters = Partial<Record<AllIngredientTagCategory, string[]>> & {
+  type?: IngredientType
   sort?: 'name' | 'random'
   page?: number
   limit?: number
@@ -32,8 +32,24 @@ export const ingredientKeys = {
   products: (slug: string) => [...ingredientKeys.all, slug, 'products'] as const,
   tags: (id: string) => [...ingredientKeys.all, id, 'tags'] as const,
   options: () => [...ingredientKeys.all, 'options'] as const,
-  filterOptions: () => [...ingredientKeys.all, 'filter-options'] as const,
+  filterOptions: (type?: IngredientType) =>
+    [...ingredientKeys.all, 'filter-options', type ?? 'all'] as const,
 }
+
+const TAG_AXES: readonly AllIngredientTagCategory[] = [
+  'concern',
+  'skin_type',
+  'hair_type',
+  'age_group',
+  'goal',
+  'moment',
+  'restriction',
+  'ingredient_attribute',
+  'skin_effect',
+  'hair_effect',
+  'dental_effect',
+  'shared_label',
+]
 
 export const ingredientQueries = {
   all: () =>
@@ -54,12 +70,11 @@ export const ingredientQueries = {
       queryFn: async () => {
         const query: Record<string, string> = {}
 
-        if (filters.skin_type?.length) query.skin_type = filters.skin_type.join(',')
-        if (filters.concern?.length) query.concern = filters.concern.join(',')
-        if (filters.ingredient_attribute?.length)
-          query.ingredient_attribute = filters.ingredient_attribute.join(',')
-        if (filters.skin_effect?.length) query.skin_effect = filters.skin_effect.join(',')
-        if (filters.shared_label?.length) query.shared_label = filters.shared_label.join(',')
+        for (const axis of TAG_AXES) {
+          const values = filters[axis]
+          if (values?.length) query[axis] = values.join(',')
+        }
+        if (filters.type) query.ingredient_type = filters.type
         if (filters.sort !== undefined) query.sort = filters.sort
         if (filters.page) query.page = String(filters.page)
         if (filters.limit) query.limit = String(filters.limit)
@@ -166,11 +181,13 @@ export const ingredientQueries = {
       staleTime: 10 * 60 * 1000,
     }),
 
-  filterOptions: () =>
+  filterOptions: (type?: IngredientType) =>
     queryOptions({
-      queryKey: ingredientKeys.filterOptions(),
+      queryKey: ingredientKeys.filterOptions(type),
       queryFn: async () => {
-        const res = await api.ingredients['filter-options'].$get()
+        const res = await api.ingredients['filter-options'].$get({
+          query: type ? { type } : {},
+        })
         if (!res.ok) throw new Error('Failed to fetch ingredient filter options')
         const json = await res.json()
         return json.data

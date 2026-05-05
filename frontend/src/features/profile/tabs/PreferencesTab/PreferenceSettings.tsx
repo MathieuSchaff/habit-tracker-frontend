@@ -19,7 +19,6 @@ const PALETTE_SWATCHES: Array<{ variant: Variant; label: string; color: string }
   { variant: 'terracota', label: 'Terracota', color: 'oklch(52% 0.13 32)' },
   { variant: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
   { variant: 'ardoise', label: 'Ardoise', color: 'oklch(35% 0.12 240)' },
-  { variant: 'vivid', label: 'Vivid', color: 'oklch(52% 0.22 145)' },
 ]
 
 const criteriaLabels: Record<string, string> = {

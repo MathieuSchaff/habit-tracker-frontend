@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { useQuery } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -168,7 +168,7 @@ describe('CollectionPage', () => {
   it('permet de changer d\'onglet vers "Achats"', async () => {
     renderWithProviders(<CollectionPage />)
 
-    const historyTab = screen.getByRole('button', { name: /Achats/i })
+    const historyTab = screen.getByRole('tab', { name: /Achats/i })
     await userEvent.click(historyTab)
 
     expect(screen.getByText(/Aucun achat enregistré/i)).toBeInTheDocument()
@@ -204,16 +204,14 @@ describe('CollectionPage', () => {
   it("met à jour le ressenti et les critères d'évaluation", async () => {
     renderWithProviders(<CollectionPage />)
 
-    // Click on ShelfProductCard to expand the product
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')
-    if (!shelfCard) throw new Error('Product card not found')
-    await userEvent.click(shelfCard)
+    await screen.findByText('Super Serum')
+    const cardBody = screen.getByRole('button', {
+      name: /Voir les détails de Super Serum/i,
+    })
+    await userEvent.click(cardBody)
 
-    // Change sentiment to "😍" — find within the expanded card details
-    const sentimentBtns = screen.getAllByText('😍')
-    // The one inside the sentiment selector
-    const sentimentBtn = sentimentBtns.find((el) => el.closest('.pds-sentiment-btn'))
-    if (!sentimentBtn) throw new Error('Sentiment button not found')
+    // PDS opens — sentiment 5 button (😍, value === current 5 still triggers onChange(5))
+    const sentimentBtn = await screen.findByRole('button', { name: /Ressenti 5 sur 5/i })
     await userEvent.click(sentimentBtn)
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -222,10 +220,7 @@ describe('CollectionPage', () => {
       })
     )
 
-    // Rate a criterion (Stars)
-    // In ProductDetailSheet, criteria use star buttons
-    const starButtons = screen.getAllByLabelText(/Noter \d sur 5/)
-    // Click any star
+    const starButtons = screen.getAllByLabelText(/Noter .+ \d sur 5/)
     await userEvent.click(starButtons[0])
     expect(mockReview).toHaveBeenCalledWith(expect.any(Object))
   })
@@ -233,19 +228,20 @@ describe('CollectionPage', () => {
   it('permet de retirer un produit après confirmation', async () => {
     renderWithProviders(<CollectionPage />)
 
-    // Click on ShelfProductCard to expand
-    const shelfCard = (await screen.findByText('Super Serum')).closest('.prod-card')
-    if (!shelfCard) throw new Error('Product card not found')
-    await userEvent.click(shelfCard)
+    await screen.findByText('Super Serum')
+    const cardBody = screen.getByRole('button', {
+      name: /Voir les détails de Super Serum/i,
+    })
+    await userEvent.click(cardBody)
 
-    const deleteBtn = screen.getByRole('button', { name: /Retirer/i })
+    const deleteBtn = await screen.findByRole('button', {
+      name: /Retirer Super Serum de ma collection/i,
+    })
     await userEvent.click(deleteBtn)
 
-    // Click "Retirer" in the confirm dialog
-    const confirmBtns = screen.getAllByRole('button', { name: /Retirer/i })
-    const dialogConfirm = confirmBtns.find((btn) => btn.className.includes('dcd-confirm'))
-    if (!dialogConfirm) throw new Error('Delete confirmation button not found')
-    await userEvent.click(dialogConfirm)
+    const dialog = await screen.findByRole('alertdialog')
+    const confirmBtn = await within(dialog).findByRole('button', { name: /^Retirer$/ })
+    await userEvent.click(confirmBtn)
 
     expect(mockDelete).toHaveBeenCalledWith('up-1', expect.anything())
   })
@@ -258,11 +254,10 @@ describe('CollectionPage', () => {
 
     const brandSelect = screen.getByLabelText(/Marque/i)
     await userEvent.selectOptions(brandSelect, 'Nice Brand')
-    rerender(<CollectionPage />)
 
-    const closeButtons = screen.getAllByLabelText(/Fermer les filtres/i)
-    const closeBtn = closeButtons.find((btn) => btn.className.includes('coll-sheet-close'))
-    if (closeBtn) await userEvent.click(closeBtn)
+    const applyBtn = screen.getByRole('button', { name: /Appliquer les filtres/i })
+    await userEvent.click(applyBtn)
+    rerender(<CollectionPage />)
 
     expect(screen.getByText('Super Serum')).toBeInTheDocument()
     expect(screen.queryByText('Cool Cream')).not.toBeInTheDocument()

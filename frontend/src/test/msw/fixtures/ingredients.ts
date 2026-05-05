@@ -1,7 +1,7 @@
 import type {
+  IngredientFilterOptions,
   IngredientType,
   SkincareIngredientCategory,
-  SkincareIngredientFilterOptions,
 } from '@habit-tracker/shared'
 
 // Search-result shape (subset returned by /api/ingredients/search).
@@ -95,13 +95,7 @@ export const INGREDIENT_BY_SLUG: Record<string, IngredientBySlug> = Object.fromE
   INGREDIENTS.map((i) => [i.slug, { slug: i.slug, name: i.name }])
 )
 
-// Minimal filter-options stub; tag buckets empty by default.
-export const INGREDIENT_FILTER_OPTIONS: SkincareIngredientFilterOptions = {
-  tags: {
-    skin_type: [],
-    concern: [],
-    ingredient_attribute: [],
-    skin_effect: [],
-    shared_label: [],
-  } as SkincareIngredientFilterOptions['tags'],
+// Minimal filter-options stub; flat list, empty by default.
+export const INGREDIENT_FILTER_OPTIONS: IngredientFilterOptions = {
+  tags: [],
 }

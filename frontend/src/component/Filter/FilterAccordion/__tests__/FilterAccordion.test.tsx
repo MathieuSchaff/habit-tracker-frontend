@@ -383,3 +383,49 @@ describe('FilterAccordion — multi sub-filters', () => {
     expect(within(container).getByText('Type')).toBeInTheDocument()
   })
 })
+
+describe('FilterAccordion — a11y', () => {
+  it('summary aria-controls points to the body element id', () => {
+    const { container } = renderAccordion(
+      <FilterAccordion
+        group={makeGroup({ defaultOpen: true })}
+        localFilters={emptyFilters}
+        onToggle={vi.fn()}
+      />
+    )
+    const summary = container.querySelector('summary') as HTMLElement
+    const body = container.querySelector('.filter-accordion__body') as HTMLElement
+    const controls = summary.getAttribute('aria-controls')
+    expect(controls).toBeTruthy()
+    expect(body.id).toBe(controls)
+  })
+
+  it('renders an h3 inside the summary so screen-reader heading nav works', () => {
+    const { container } = renderAccordion(
+      <FilterAccordion
+        group={makeGroup({ defaultOpen: true })}
+        localFilters={emptyFilters}
+        onToggle={vi.fn()}
+      />
+    )
+    const summary = container.querySelector('summary') as HTMLElement
+    const heading = summary.querySelector('h3')
+    expect(heading).not.toBeNull()
+    expect(heading?.textContent).toBe('Concern')
+  })
+
+  it('chip reflects aria-pressed=true when its slug is in the selected list', () => {
+    renderAccordion(
+      <FilterAccordion
+        group={makeGroup({ defaultOpen: true })}
+        localFilters={{ ...emptyFilters, concern: ['acne'] }}
+        onToggle={vi.fn()}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'Acné' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Vieillissement' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+})
