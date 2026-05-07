@@ -55,6 +55,8 @@ export function SortControl({ value, onChange, compact = false }: Props) {
       <DropdownMenu.Content align="end" ariaLabel="Options de tri">
         {SORT_OPTIONS.map((opt, i) => (
           <DropdownMenu.Item key={opt.value} index={i} onSelect={() => onChange(opt.value)}>
+            {/* Raw <button>: DropdownMenu.Item clones role="menuitem" + dropdown-menu__item
+                styling onto its child. Wrapping in <Button> would shadow that opinion. */}
             <button type="button" className="sort-control__item">
               <span>{opt.label}</span>
               {opt.value === value && (

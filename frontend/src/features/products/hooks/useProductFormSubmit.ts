@@ -4,11 +4,16 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import {
+  PRODUCT_FORM_ERRORS,
+  type ProductFormField,
+} from '@/features/products/components/ProductForm/formErrors'
+import {
   type ProductEditFormInput,
   productEditFormSchema,
   productEditFormToCreateInput,
   productEditFormToUpdateInput,
 } from '@/features/products/components/ProductForm/ProductForm.schema'
+import { extractFormError } from '@/lib/helpers/apiError'
 import {
   type ProductDetail,
   productQueries,
@@ -55,6 +60,9 @@ export function useProductFormSubmit(args: Args) {
   const addIngredient = useAddProductIngredient()
 
   const [error, setError] = useState<string | null>(null)
+  const [fieldError, setFieldError] = useState<{ field: ProductFormField; message: string } | null>(
+    null
+  )
 
   const tagsPayload = (): TagPayload[] =>
     args.tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance }))
@@ -124,9 +132,9 @@ export function useProductFormSubmit(args: Args) {
           : await submitEdit(parsed.data, args.product)
       args.onSuccess(nextSlug)
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-      )
+      const { field, message } = extractFormError(err, PRODUCT_FORM_ERRORS)
+      setError(message)
+      setFieldError(field ? { field, message } : null)
     }
   }
 
@@ -145,7 +153,11 @@ export function useProductFormSubmit(args: Args) {
   return {
     handleSubmit,
     error,
-    clearError: () => setError(null),
+    fieldError,
+    clearError: () => {
+      setError(null)
+      setFieldError(null)
+    },
     isPending,
     submitLabel,
   }

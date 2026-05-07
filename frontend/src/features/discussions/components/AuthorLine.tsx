@@ -1,23 +1,19 @@
+import { formatInstant } from '@/lib/dates'
+
 interface AuthorLineProps {
   authorId: string | null
   authorName: string | null
-  createdAt: string | Date
+  createdAt: string
 }
 
 export function AuthorLine({ authorId, authorName, createdAt }: AuthorLineProps) {
   const displayName = authorId === null ? 'Utilisateur supprimé' : (authorName ?? 'Utilisateur')
-  const date = new Date(createdAt)
-  const formatted = date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
 
   return (
     <span className="author-line">
       <span className="author-line__name">{displayName}</span>
       <span>·</span>
-      <span>{formatted}</span>
+      <span>{formatInstant(createdAt, 'medium')}</span>
     </span>
   )
 }

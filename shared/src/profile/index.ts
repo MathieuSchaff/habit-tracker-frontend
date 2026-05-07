@@ -57,8 +57,8 @@ const profilePublicSchema = z.object({
   bio: z.string().max(BIO_MAX_LENGTH).nullable().optional(),
   avatarUrl: z.url().nullable().optional(),
   links: profileLinkSchema.array().optional().default([]),
-  createdAt: z.string().nullable().optional(),
-  updatedAt: z.string().nullable().optional(),
+  createdAt: z.iso.datetime().nullable().optional(),
+  updatedAt: z.iso.datetime().nullable().optional(),
 })
 
 /* Strict mode — rejects unknown fields. All fields optional (delta update). */
@@ -78,8 +78,8 @@ const userDermoProfileSchema = z.object({
   // no upper bound — user can select any combination of concerns from the list
   skinConcerns: z.array(z.enum(SKIN_CONCERNS)),
   privateNotes: z.string().max(2000).nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const userDermoProfileUpdateSchema = z
@@ -137,7 +137,7 @@ const userPreferencesSchema = z.object({
     mixability: 1,
     valueForMoney: 1,
   }),
-  updatedAt: z.date(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const updateUserPreferencesSchema = z.object({

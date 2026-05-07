@@ -28,12 +28,12 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   flex-shrink: 0;
   margin-bottom: 2px;
 }
 
 .links-editor__remove.button:hover:not(:disabled) {
   color: var(--color-error);
-  background: var(--color-error-subtle);
+  background: color-mix(in oklch, var(--color-error) 8%, transparent);
 }

@@ -48,7 +48,12 @@
   appearance: none;
   height: var(--space-6);
   background: transparent;
-  outline: none;
+}
+
+.pref-weight-slider:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .pref-weight-slider::-webkit-slider-runnable-track {
@@ -56,7 +61,9 @@
   background: var(--bg-muted);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-full);
-  transition: all var(--transition-base);
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
 }
 
 .pref-weight-slider::-webkit-slider-thumb {

@@ -11,12 +11,12 @@ export const purchases = pgTable(
     userProductId: uuid('user_product_id')
       .notNull()
       .references(() => userProducts.id, { onDelete: 'cascade' }),
-    purchasedAt: date('purchased_at').notNull(),
+    purchasedAt: date('purchased_at', { mode: 'string' }).notNull(),
     pricePaidCents: integer('price_paid_cents'),
-    openedAt: date('opened_at'),
-    finishedAt: date('finished_at'),
-    expiresAt: date('expires_at'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    openedAt: date('opened_at', { mode: 'string' }),
+    finishedAt: date('finished_at', { mode: 'string' }),
+    expiresAt: date('expires_at', { mode: 'string' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     index('purchases_user_product_idx').on(t.userProductId),

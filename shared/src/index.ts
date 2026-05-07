@@ -320,6 +320,10 @@ export {
   type CreateTaskInput,
   createSubtaskSchema,
   createTaskSchema,
+  type Subtask,
+  subtaskSchema,
+  type Task,
+  taskSchema,
   type UpdateSubtaskInput,
   type UpdateTaskInput,
   updateSubtaskSchema,
@@ -375,13 +379,7 @@ export type {
 } from './discussions'
 export type { PurchaseErrorCode } from './purchases'
 export type { TagErrorCode } from './tags'
-export type {
-  Subtask,
-  Task,
-  TaskEnergy,
-  TaskErrorCode,
-  TaskStatus,
-} from './tasks'
+export type { TaskEnergy, TaskErrorCode, TaskStatus } from './tasks'
 
 // Helpers (error mappings, constants, utilities)
 

@@ -135,6 +135,32 @@
   font-size: var(--text-xs);
 }
 
+.button.bare {
+  background: none;
+  color: inherit;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  min-height: 0;
+  gap: 0;
+  align-self: auto;
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: left;
+}
+
+.button.bare.sm,
+.button.bare.md,
+.button.bare.lg {
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 .button.accent {
   background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
   color: var(--color-primary-text);

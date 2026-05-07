@@ -27,10 +27,10 @@ export const userPreferences = pgTable(
         sql`'{"tolerance":1,"efficacy":1,"sensoriality":1,"stability":1,"mixability":1,"valueForMoney":1}'::jsonb`
       ),
     aiConsent: boolean('ai_consent').notNull().default(false),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [...tenantPolicies('user_preferences', t.userId)]
 ).enableRLS()

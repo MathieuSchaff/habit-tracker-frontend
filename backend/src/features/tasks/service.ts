@@ -1,27 +1,49 @@
 import type {
   CreateSubtaskInput,
   CreateTaskInput,
+  Subtask,
+  Task,
   UpdateSubtaskInput,
   UpdateTaskInput,
 } from '@habit-tracker/shared'
+import { taskSchema } from '@habit-tracker/shared'
 
 import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { Database } from '../../db/index'
 import {
-  type Subtask,
   type SubtaskInsert,
   subtasks,
-  type Task,
+  type Task as TaskRow,
   type TaskInsert,
   tasks,
 } from '../../db/schema/tasks/tasks'
+import {
+  calendarToInstant,
+  instantToCalendar,
+  normalizeInstant,
+  nowISO,
+  todayCalendarUTC,
+} from '../../utils/dates'
+import { devAssertSchema } from '../../utils/dev-validate'
 import { TaskError } from './task-error'
 
+// snoozedUntil column is `date` (YYYY-MM-DD); API exposes ISO datetime UTC.
+function toApiTask(row: TaskRow): Task {
+  const mapped: Task = {
+    ...row,
+    snoozedUntil: row.snoozedUntil ? calendarToInstant(row.snoozedUntil) : null,
+    doneAt: row.doneAt ? normalizeInstant(row.doneAt) : null,
+    createdAt: normalizeInstant(row.createdAt),
+    updatedAt: normalizeInstant(row.updatedAt),
+  }
+  return devAssertSchema(taskSchema, mapped, 'toApiTask')
+}
+
 export async function getActiveTasks(userId: string, database: Database = db): Promise<Task[]> {
-  const today = new Date().toISOString().split('T')[0]
-  return database
+  const today = todayCalendarUTC()
+  const rows = await database
     .select()
     .from(tasks)
     .where(
@@ -33,11 +55,12 @@ export async function getActiveTasks(userId: string, database: Database = db): P
       )
     )
     .orderBy(asc(tasks.createdAt))
+  return rows.map(toApiTask)
 }
 
 export async function getTodayTasks(userId: string, database: Database = db): Promise<Task[]> {
-  const today = new Date().toISOString().split('T')[0]
-  return database
+  const today = todayCalendarUTC()
+  const rows = await database
     .select()
     .from(tasks)
     .where(
@@ -48,6 +71,7 @@ export async function getTodayTasks(userId: string, database: Database = db): Pr
       )
     )
     .orderBy(asc(tasks.doneAt))
+  return rows.map(toApiTask)
 }
 
 export async function createTask(
@@ -65,7 +89,7 @@ export async function createTask(
     .returning()
 
   if (!task) throw new TaskError('task_creation_failed')
-  return task
+  return toApiTask(task)
 }
 
 export async function updateTask(
@@ -85,9 +109,11 @@ export async function updateTask(
   if (input.status !== undefined) {
     updateValues.status = input.status
     // If the user says it is done, I put the date of today.
-    if (input.status === 'done') updateValues.doneAt = new Date()
+    if (input.status === 'done') updateValues.doneAt = nowISO()
   }
-  if (input.snoozedUntil !== undefined) updateValues.snoozedUntil = input.snoozedUntil
+  if (input.snoozedUntil !== undefined) {
+    updateValues.snoozedUntil = input.snoozedUntil ? instantToCalendar(input.snoozedUntil) : null
+  }
   if (input.focusDurationMinutes !== undefined)
     updateValues.focusDurationMinutes = input.focusDurationMinutes
 
@@ -98,7 +124,7 @@ export async function updateTask(
     .returning()
 
   if (!updated) throw new TaskError('task_update_failed')
-  return updated
+  return toApiTask(updated)
 }
 
 export async function deleteTask(

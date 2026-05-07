@@ -66,6 +66,7 @@ export function useCreateArticle() {
       qc.setQueryData(articleKeys.bySlug(article.slug), article)
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
     },
+    meta: { errorMessage: "Création de l'article impossible." },
   })
 }
 
@@ -88,6 +89,7 @@ export function useUpdateArticle() {
       if (article.slug !== slug) qc.removeQueries({ queryKey: articleKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
     },
+    meta: { errorMessage: "Mise à jour de l'article impossible." },
   })
 }
 
@@ -102,5 +104,6 @@ export function useDeleteArticle() {
       qc.removeQueries({ queryKey: articleKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
     },
+    meta: { errorMessage: "Suppression de l'article impossible." },
   })
 }

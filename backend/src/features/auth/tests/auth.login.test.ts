@@ -315,7 +315,7 @@ describe('login', () => {
 
     await testDb
       .update(usersTable)
-      .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) })
+      .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() })
       .where(eq(usersTable.id, created.id))
 
     const result = await login(createCtx(), creds.email, creds.password)
@@ -333,8 +333,8 @@ describe('login', () => {
     await testDb
       .update(usersTable)
       .set({
-        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000),
-        emailVerifiedAt: new Date(),
+        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+        emailVerifiedAt: new Date().toISOString(),
       })
       .where(eq(usersTable.id, created.id))
 

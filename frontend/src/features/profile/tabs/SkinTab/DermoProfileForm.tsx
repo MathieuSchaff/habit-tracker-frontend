@@ -1,9 +1,9 @@
 import type { SkinConcern, SkinType, UserDermoProfileUpdateInput } from '@habit-tracker/shared'
 import { SKIN_CONCERNS, SKIN_TYPES } from '@habit-tracker/shared'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
@@ -18,23 +18,18 @@ type DermoProfileFormProps = {
 }
 
 export function DermoProfileForm({ onSave }: DermoProfileFormProps) {
-  const { data: dermo, isLoading } = useQuery(profileQueries.dermo())
+  const { data: dermo } = useSuspenseQuery(profileQueries.dermo())
   const updateMutation = useUpdateDermoProfile()
 
-  const [skinTypes, setSkinTypes] = useState<SkinType[]>([])
-  const [fitzpatrickType, setFitzpatrickType] = useState<number | null>(null)
-  const [skinConcerns, setSkinConcerns] = useState<SkinConcern[]>([])
-  const [privateNotes, setPrivateNotes] = useState('')
+  const [skinTypes, setSkinTypes] = useState<SkinType[]>((dermo?.skinTypes ?? []) as SkinType[])
+  const [fitzpatrickType, setFitzpatrickType] = useState<number | null>(
+    dermo?.fitzpatrickType ?? null
+  )
+  const [skinConcerns, setSkinConcerns] = useState<SkinConcern[]>(
+    (dermo?.skinConcerns ?? []) as SkinConcern[]
+  )
+  const [privateNotes, setPrivateNotes] = useState(dermo?.privateNotes ?? '')
   const [isDirty, setIsDirty] = useState(false)
-
-  useEffect(() => {
-    if (dermo) {
-      setSkinTypes((dermo.skinTypes ?? []) as SkinType[])
-      setFitzpatrickType(dermo.fitzpatrickType ?? null)
-      setSkinConcerns((dermo.skinConcerns ?? []) as SkinConcern[])
-      setPrivateNotes(dermo.privateNotes ?? '')
-    }
-  }, [dermo])
 
   const skinTypeOptions = SKIN_TYPES.map((t) => ({ value: t, label: SKIN_TYPE_LABELS[t] }))
   const skinConcernOptions = SKIN_CONCERNS.map((c) => ({ value: c, label: SKIN_CONCERN_LABELS[c] }))
@@ -53,8 +48,6 @@ export function DermoProfileForm({ onSave }: DermoProfileFormProps) {
       },
     })
   }
-
-  if (isLoading) return <output className="dermo-form__loading">Chargement...</output>
 
   return (
     <form

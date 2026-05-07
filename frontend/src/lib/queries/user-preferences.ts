@@ -38,5 +38,6 @@ export const useUpdateUserPreferences = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userPreferenceKeys.all })
     },
+    meta: { errorMessage: 'Mise à jour des préférences impossible.' },
   })
 }

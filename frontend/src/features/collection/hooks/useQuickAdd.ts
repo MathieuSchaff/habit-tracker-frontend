@@ -4,6 +4,8 @@ import type React from 'react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { fromDateInputValue, todayDateInputValue } from '@/lib/dates'
+import { reportError } from '@/lib/errorReporter'
 import { useCreateProduct } from '@/lib/queries/products'
 import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
@@ -22,7 +24,7 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
     slug: string
   } | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<UserProductStatus>('in_stock')
-  const [purchasedAt, setPurchasedAt] = useState(() => new Date().toISOString().split('T')[0])
+  const [purchasedAt, setPurchasedAt] = useState(() => todayDateInputValue())
   const [purchasePrice, setPurchasePrice] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
 
@@ -58,9 +60,9 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       await addPurchase.mutateAsync({
         userProductId: created.id,
         input: {
-          purchasedAt,
+          purchasedAt: fromDateInputValue(purchasedAt),
           pricePaidCents: purchasePrice ? Math.round(parseFloat(purchasePrice) * 100) : undefined,
-          expiresAt: expiresAt || undefined,
+          expiresAt: expiresAt ? fromDateInputValue(expiresAt) : undefined,
         },
       })
     }
@@ -73,7 +75,7 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       toast.success(`${selectedProduct.name} ajouté à votre collection !`)
       onClose()
     } catch (error) {
-      console.error('Failed to add product:', error)
+      reportError(error as Error, { flow: 'quick-add-existing' })
       toast.error("Impossible d'ajouter le produit à votre collection.")
     }
   }
@@ -92,7 +94,7 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       toast.success(`${newName} créé et ajouté à votre collection !`)
       onClose()
     } catch (error) {
-      console.error('Failed to create and add product:', error)
+      reportError(error as Error, { flow: 'quick-add-create' })
       toast.error("Impossible de créer ou d'ajouter le produit.")
     }
   }

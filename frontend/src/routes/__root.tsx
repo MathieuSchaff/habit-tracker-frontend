@@ -1,5 +1,5 @@
-import { createRootRouteWithContext } from '@tanstack/react-router'
-import { lazy, Suspense } from 'react'
+import { createRootRouteWithContext, useNavigate, useRouterState } from '@tanstack/react-router'
+import { lazy, Suspense, useEffect } from 'react'
 
 // Excluded from prod bundle — Vite resolves import.meta.env.DEV at build time
 const TanStackRouterDevtools = import.meta.env.DEV
@@ -10,6 +10,7 @@ const TanStackRouterDevtools = import.meta.env.DEV
     )
   : () => null
 
+import { AppErrorBoundary } from '../component/Feedback/app/AppErrorBoundary/AppErrorBoundary'
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
 import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
@@ -20,15 +21,38 @@ import { useAuthStore } from '../store/auth'
 
 function RootComponent() {
   useTokenRefresh()
+  useSessionExpiredRedirect()
   return (
-    <>
+    <AppErrorBoundary>
       <NavigationProgress />
       <AppLayout />
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>
-    </>
+    </AppErrorBoundary>
   )
+}
+
+// Listens for the sessionExpired flag flipped by authFetch when a 401-recovery
+// refresh fails. Clears local auth state, then redirects to /auth/login with
+// the current path so the user lands back where they were after re-login.
+function useSessionExpiredRedirect() {
+  const sessionExpired = useAuthStore((s) => s.sessionExpired)
+  const navigate = useNavigate()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  useEffect(() => {
+    if (!sessionExpired) return
+    // Already on auth flow — no redirect, just clear the flag.
+    if (pathname.startsWith('/auth/')) {
+      useAuthStore.getState().clearSessionExpired()
+      return
+    }
+    const store = useAuthStore.getState()
+    store.clearAuth()
+    store.clearSessionExpired()
+    navigate({ to: '/auth/login', search: { redirect: pathname } })
+  }, [sessionExpired, pathname, navigate])
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({

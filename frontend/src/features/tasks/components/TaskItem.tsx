@@ -27,7 +27,7 @@ export function TaskItem({ task }: TaskItemProps) {
 
   const updateTask = useUpdateTask()
   const deleteTask = useDeleteTask()
-  const { data: subtasks } = useQuery(taskQueries.subtasks(task.id))
+  const { data: subtasks, isError: subtasksError } = useQuery(taskQueries.subtasks(task.id))
   const createSubtask = useCreateSubtask()
   const updateSubtask = useUpdateSubtask()
   const deleteSubtask = useDeleteSubtask()
@@ -191,6 +191,11 @@ export function TaskItem({ task }: TaskItemProps) {
       {isExpanded && (
         <div id={`task-details-${task.id}`} className="task-item__details">
           <div className="subtasks-list">
+            {subtasksError && (
+              <p className="subtask-error" role="alert">
+                Sous-tâches indisponibles.
+              </p>
+            )}
             {subtasks?.map((subtask) => (
               <div key={subtask.id} className="subtask-item">
                 <Checkbox

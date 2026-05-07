@@ -21,9 +21,10 @@ export const userIngredientAnalysisScore = pgTable(
     isFavorite: boolean('is_favorite').default(false),
     updatedAt: timestamp('updated_at', {
       withTimezone: true,
+      mode: 'string',
     })
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     uniqueIndex('user_ing_intel_idx').on(t.userId, t.ingredientId),

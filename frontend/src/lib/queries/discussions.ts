@@ -59,6 +59,7 @@ export function useCreateThread(entityType: EntityType, slug: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: discussionKeys.threads(entityType, slug) })
     },
+    meta: { errorMessage: 'Création de la discussion impossible.' },
   })
 }
 
@@ -83,6 +84,7 @@ export function useCreateReply(entityType: EntityType, slug: string, threadId: s
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: discussionKeys.thread(entityType, slug, threadId) })
     },
+    meta: { errorMessage: 'Envoi de la réponse impossible.' },
   })
 }
 
@@ -103,6 +105,7 @@ export function useDeleteThread(entityType: EntityType, slug: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: discussionKeys.threads(entityType, slug) })
     },
+    meta: { errorMessage: 'Suppression de la discussion impossible.' },
   })
 }
 
@@ -123,5 +126,6 @@ export function useDeleteReply(entityType: EntityType, slug: string, threadId: s
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: discussionKeys.thread(entityType, slug, threadId) })
     },
+    meta: { errorMessage: 'Suppression de la réponse impossible.' },
   })
 }

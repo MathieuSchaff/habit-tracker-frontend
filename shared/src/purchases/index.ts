@@ -4,36 +4,39 @@ import { HTTP_STATUS, type HttpStatus } from '../core'
 
 // SCHEMAS
 
-const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format YYYY-MM-DD requis')
+// Calendar dates (purchasedAt, openedAt, finishedAt, expiresAt) travel as full
+// ISO datetime UTC strings on the wire. Backend boundary truncates to YYYY-MM-DD
+// for the underlying `date` column. Convention §dates-1 in CLAUDE.md.
+const instantSchema = z.iso.datetime()
 
 export const addPurchaseSchema = z.object({
-  purchasedAt: dateString,
+  purchasedAt: instantSchema,
   pricePaidCents: z.number().int().min(0).optional(),
-  expiresAt: dateString.optional(),
+  expiresAt: instantSchema.optional(),
 })
 
 export const openPurchaseSchema = z.object({
-  openedAt: dateString,
+  openedAt: instantSchema,
 })
 
 export const finishPurchaseSchema = z.object({
-  finishedAt: dateString,
+  finishedAt: instantSchema,
 })
 
 export const updatePurchaseSchema = z.object({
-  purchasedAt: dateString.optional(),
+  purchasedAt: instantSchema.optional(),
   pricePaidCents: z.number().int().min(0).nullable().optional(),
 })
 
 export const purchaseSchema = z.object({
   id: z.uuid(),
   userProductId: z.uuid(),
-  purchasedAt: z.string(),
+  purchasedAt: instantSchema,
   pricePaidCents: z.number().int().min(0).nullable(),
-  openedAt: z.string().nullable(),
-  finishedAt: z.string().nullable(),
-  expiresAt: z.string().nullable(),
-  createdAt: z.string(),
+  openedAt: instantSchema.nullable(),
+  finishedAt: instantSchema.nullable(),
+  expiresAt: instantSchema.nullable(),
+  createdAt: instantSchema,
 })
 
 // TYPES

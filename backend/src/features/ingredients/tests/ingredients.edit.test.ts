@@ -51,8 +51,8 @@ describe('updateIngredient — exhaustive', () => {
       expect(updated.content).toBe('## Wiki')
       expect(updated.category).toBe('actif')
       expect(updated.createdBy).toBe(user.id)
-      expect(updated.createdAt).toBeInstanceOf(Date)
-      expect(updated.updatedAt).toBeInstanceOf(Date)
+      expect(typeof updated.createdAt).toBe('string')
+      expect(typeof updated.updatedAt).toBe('string')
     })
 
     it('should return unchanged fields intact', async () => {
@@ -428,7 +428,7 @@ describe('updateIngredient — exhaustive', () => {
       await updateIngredient(testDb, user.id, created.id, { description: 'Timestamp check' })
 
       const edits = await listIngredientEdits(testDb, created.id)
-      expect(edits[0]?.createdAt).toBeInstanceOf(Date)
+      expect(typeof edits[0]?.createdAt).toBe('string')
     })
 
     it('should not create audit log when same value is set (no-op)', async () => {
@@ -546,7 +546,7 @@ describe('updateIngredient — exhaustive', () => {
         description: 'Changé pour timestamp',
       })
 
-      expect(updated.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime())
+      expect(new Date(updated.updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(originalUpdatedAt).getTime())
     })
 
     it('should not change createdAt after update', async () => {
@@ -556,7 +556,7 @@ describe('updateIngredient — exhaustive', () => {
         description: 'Modifié',
       })
 
-      expect(updated.createdAt.getTime()).toBe(created.createdAt.getTime())
+      expect(updated.createdAt).toBe(created.createdAt)
     })
   })
 })

@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError, throwIfNotOk } from '../helpers/apiError'
 
 // Per-axis slug arrays + the active domain. The page builds this from URL
 // search params; the queryFn flattens it back to comma-joined query strings.
@@ -202,15 +203,16 @@ export function useCreateIngredient() {
   return useMutation({
     mutationFn: async (data: CreateIngredientInput) => {
       const res = await api.ingredients.$post({ json: data })
-      if (!res.ok) throw new Error('Failed to create ingredient')
+      await throwIfNotOk(res, 'ingredient_creation_failed')
       const json = await res.json()
-      if (!json.success) throw new Error('Failed to create ingredient')
+      if (!json.success) throw new ApiError('ingredient_creation_failed', res.status)
       return json.data
     },
     onSuccess: (ingredient) => {
       qc.setQueryData(ingredientKeys.bySlug(ingredient.slug), ingredient)
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
     },
+    meta: { errorMessage: "Impossible de créer l'ingrédient." },
   })
 }
 
@@ -219,23 +221,18 @@ export function useUpdateIngredient() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateIngredientRouteInput }) => {
       const res = await api.ingredients[':id'].$patch({ param: { id }, json: data })
-
-      if (!res.ok) {
-        // We attach the HTTP status to the error so the caller can check for 409 (conflict) specifically
-        const body = await res.json().catch(() => null)
-        const error = new Error(body?.message ?? 'Failed to update ingredient')
-        ;(error as Error & { status: number }).status = res.status
-        throw error
-      }
-
+      // 409 (optimistic-lock conflict) is surfaced by IngredientForm via its
+      // status check on the thrown ApiError.
+      await throwIfNotOk(res, 'ingredient_update_failed')
       const json = await res.json()
-      if (!json.success) throw new Error('Failed to update ingredient')
+      if (!json.success) throw new ApiError('ingredient_update_failed', res.status)
       return json.data
     },
     onSuccess: (ingredient) => {
       qc.setQueryData(ingredientKeys.bySlug(ingredient.slug), ingredient)
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
     },
+    // 409 conflict surfaces inline in IngredientForm — keep silent here.
   })
 }
 
@@ -249,6 +246,7 @@ export function useDeleteIngredient() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
     },
+    meta: { errorMessage: "Impossible de supprimer l'ingrédient." },
   })
 }
 
@@ -274,5 +272,6 @@ export function useUpdateIngredientTags() {
     onSuccess: (_, { ingredientId }) => {
       qc.invalidateQueries({ queryKey: ingredientKeys.tags(ingredientId) })
     },
+    meta: { errorMessage: 'Impossible de mettre à jour les tags.' },
   })
 }

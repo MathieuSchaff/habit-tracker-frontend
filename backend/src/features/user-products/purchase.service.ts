@@ -2,15 +2,35 @@ import type {
   AddPurchaseInput,
   FinishPurchaseInput,
   OpenPurchaseInput,
+  Purchase,
   UpdatePurchaseInput,
 } from '@habit-tracker/shared'
+import { purchaseSchema } from '@habit-tracker/shared'
 
 import { and, desc, eq, isNull, not } from 'drizzle-orm'
 
 import type { DB } from '../../db'
-import { purchases } from '../../db/schema/products/purchases'
+import { type Purchase as PurchaseRow, purchases } from '../../db/schema/products/purchases'
 import { userProducts } from '../../db/schema/user-products'
+import { calendarToInstant, instantToCalendar, normalizeInstant } from '../../utils/dates'
+import { devAssertSchema } from '../../utils/dev-validate'
 import { PurchaseError } from './purchase-error'
+
+// Calendar columns store YYYY-MM-DD; API exposes ISO datetime UTC. Conversion
+// lives at this boundary so callers never deal with the DB format.
+function toApiPurchase(row: PurchaseRow): Purchase {
+  const mapped: Purchase = {
+    id: row.id,
+    userProductId: row.userProductId,
+    purchasedAt: calendarToInstant(row.purchasedAt),
+    pricePaidCents: row.pricePaidCents,
+    openedAt: row.openedAt ? calendarToInstant(row.openedAt) : null,
+    finishedAt: row.finishedAt ? calendarToInstant(row.finishedAt) : null,
+    expiresAt: row.expiresAt ? calendarToInstant(row.expiresAt) : null,
+    createdAt: normalizeInstant(row.createdAt),
+  }
+  return devAssertSchema(purchaseSchema, mapped, 'toApiPurchase')
+}
 
 async function verifyOwnership(userId: string, userProductId: string, db: DB) {
   const up = await db.query.userProducts.findFirst({
@@ -32,25 +52,26 @@ export async function addPurchase(
     .insert(purchases)
     .values({
       userProductId,
-      purchasedAt: input.purchasedAt,
+      purchasedAt: instantToCalendar(input.purchasedAt),
       pricePaidCents: input.pricePaidCents ?? null,
-      expiresAt: input.expiresAt ?? null,
+      expiresAt: input.expiresAt ? instantToCalendar(input.expiresAt) : null,
     })
     .returning()
 
   if (!result) {
     throw new PurchaseError('purchase_creation_failed')
   }
-  return result
+  return toApiPurchase(result)
 }
 
 export async function getPurchases(userId: string, userProductId: string, db: DB) {
   await verifyOwnership(userId, userProductId, db)
 
-  return db.query.purchases.findMany({
+  const rows = await db.query.purchases.findMany({
     where: eq(purchases.userProductId, userProductId),
     orderBy: desc(purchases.purchasedAt),
   })
+  return rows.map(toApiPurchase)
 }
 
 export async function openPurchase(
@@ -84,14 +105,14 @@ export async function openPurchase(
 
   const [result] = await db
     .update(purchases)
-    .set({ openedAt: input.openedAt })
+    .set({ openedAt: instantToCalendar(input.openedAt) })
     .where(eq(purchases.id, purchaseId))
     .returning()
 
   if (!result) {
     throw new PurchaseError('purchase_creation_failed')
   }
-  return result
+  return toApiPurchase(result)
 }
 
 export async function finishPurchase(
@@ -105,7 +126,7 @@ export async function finishPurchase(
   // find the open purchase and close it
   const [result] = await db
     .update(purchases)
-    .set({ finishedAt: input.finishedAt })
+    .set({ finishedAt: instantToCalendar(input.finishedAt) })
     .where(
       and(
         eq(purchases.userProductId, userProductId),
@@ -117,7 +138,7 @@ export async function finishPurchase(
 
   if (!result) throw new PurchaseError('no_active_purchase')
 
-  return result
+  return toApiPurchase(result)
 }
 
 export async function updatePurchase(
@@ -139,7 +160,9 @@ export async function updatePurchase(
   const [result] = await db
     .update(purchases)
     .set({
-      ...(input.purchasedAt !== undefined && { purchasedAt: input.purchasedAt }),
+      ...(input.purchasedAt !== undefined && {
+        purchasedAt: instantToCalendar(input.purchasedAt),
+      }),
       ...(input.pricePaidCents !== undefined && { pricePaidCents: input.pricePaidCents }),
     })
     .where(eq(purchases.id, purchaseId))
@@ -148,7 +171,7 @@ export async function updatePurchase(
   if (!result) {
     throw new PurchaseError('purchase_creation_failed')
   }
-  return result
+  return toApiPurchase(result)
 }
 
 export async function deletePurchase(userId: string, purchaseId: string, db: DB) {

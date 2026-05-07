@@ -45,8 +45,8 @@ export const ingredientResponseSchema = z.object({
   content: z.string(),
   type: ingredientTypeSchema,
   category: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const ingredientSearchResultSchema = z.object({
@@ -69,7 +69,7 @@ export const ingredientEditResponseSchema = z.object({
     })
   ),
   summary: z.string().nullable(),
-  createdAt: z.date(),
+  createdAt: z.iso.datetime(),
 })
 
 // partial because an edit can touch only some fields, but at least one is required
@@ -87,6 +87,6 @@ export const ingredientChangesSchema = z
   })
 
 export const updateIngredientRouteSchema = updateIngredientSchema.extend({
-  expectedUpdatedAt: z.coerce.date().optional(),
+  expectedUpdatedAt: z.iso.datetime().optional(),
   summary: z.string().max(500).optional(),
 })

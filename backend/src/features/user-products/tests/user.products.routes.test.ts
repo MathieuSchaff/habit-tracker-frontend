@@ -248,12 +248,12 @@ describe('User Products API', () => {
 
     it('adds a purchase', async () => {
       const res = await authPost(app, `/user-products/${upId}/purchases`, token, {
-        purchasedAt: '2026-03-01',
+        purchasedAt: '2026-03-01T00:00:00.000Z',
         pricePaidCents: 1200,
       })
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const json = await res.json()
-      expect(json.data.purchasedAt).toBe('2026-03-01')
+      expect(json.data.purchasedAt).toBe('2026-03-01T00:00:00.000Z')
       expect(json.data.pricePaidCents).toBe(1200)
       expect(json.data.openedAt).toBeNull()
       expect(json.data.finishedAt).toBeNull()
@@ -261,7 +261,7 @@ describe('User Products API', () => {
 
     it('opens a purchase', async () => {
       const addRes = await authPost(app, `/user-products/${upId}/purchases`, token, {
-        purchasedAt: '2026-03-01',
+        purchasedAt: '2026-03-01T00:00:00.000Z',
       })
       const purchase = (await addRes.json()).data
 
@@ -269,33 +269,33 @@ describe('User Products API', () => {
         app,
         `/user-products/${upId}/purchases/${purchase.id}/open`,
         token,
-        { openedAt: '2026-03-05' }
+        { openedAt: '2026-03-05T00:00:00.000Z' }
       )
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
-      expect(json.data.openedAt).toBe('2026-03-05')
+      expect(json.data.openedAt).toBe('2026-03-05T00:00:00.000Z')
     })
 
     it('finishes the active purchase', async () => {
       const addRes = await authPost(app, `/user-products/${upId}/purchases`, token, {
-        purchasedAt: '2026-03-01',
+        purchasedAt: '2026-03-01T00:00:00.000Z',
       })
       const purchase = (await addRes.json()).data
       await authPost(app, `/user-products/${upId}/purchases/${purchase.id}/open`, token, {
-        openedAt: '2026-03-05',
+        openedAt: '2026-03-05T00:00:00.000Z',
       })
 
       const res = await authPost(app, `/user-products/${upId}/purchases/finish`, token, {
-        finishedAt: '2026-03-20',
+        finishedAt: '2026-03-20T00:00:00.000Z',
       })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
-      expect(json.data.finishedAt).toBe('2026-03-20')
+      expect(json.data.finishedAt).toBe('2026-03-20T00:00:00.000Z')
     })
 
     it('updates a purchase', async () => {
       const addRes = await authPost(app, `/user-products/${upId}/purchases`, token, {
-        purchasedAt: '2026-03-01',
+        purchasedAt: '2026-03-01T00:00:00.000Z',
         pricePaidCents: 1000,
       })
       const purchase = (await addRes.json()).data
@@ -310,7 +310,7 @@ describe('User Products API', () => {
 
     it('deletes a purchase', async () => {
       const addRes = await authPost(app, `/user-products/${upId}/purchases`, token, {
-        purchasedAt: '2026-03-01',
+        purchasedAt: '2026-03-01T00:00:00.000Z',
       })
       const purchase = (await addRes.json()).data
 

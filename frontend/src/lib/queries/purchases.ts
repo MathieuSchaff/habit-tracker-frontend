@@ -79,6 +79,7 @@ export const useOpenPurchase = () => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    meta: { errorMessage: "Impossible d'entamer le flacon." },
   })
 }
 
@@ -104,6 +105,7 @@ export const useFinishPurchase = () => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    meta: { errorMessage: 'Impossible de terminer le flacon.' },
   })
 }
 
@@ -131,6 +133,7 @@ export const useUpdatePurchase = () => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    // Caller (AddPurchaseDialog) shows its own toast.
   })
 }
 
@@ -153,5 +156,6 @@ export const useDeletePurchase = () => {
       queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    meta: { errorMessage: 'Suppression de cet achat impossible.' },
   })
 }

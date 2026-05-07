@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Spinner } from '../../component/Feedback/ui/Spinner/Spinner'
 import { ProfileDashboard } from '../../features/profile/page/ProfileDashboard/ProfileDashboard'
 import { profileQueries } from '../../lib/queries/profile'
+import './profile.css'
 
 export const Route = createFileRoute('/_authenticated/profile')({
   loader: ({ context }) => context.queryClient.ensureQueryData(profileQueries.me()),

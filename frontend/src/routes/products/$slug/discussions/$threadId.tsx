@@ -1,5 +1,6 @@
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 
+import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { ThreadDetailPage } from '@/features/discussions/pages/ThreadDetailPage'
 import { ProductThreadSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
 import { discussionQueries } from '@/lib/queries/discussions'
@@ -26,5 +27,6 @@ export const Route = createFileRoute('/products/$slug/discussions/$threadId')({
       discussionQueries.thread('product', params.slug, params.threadId)
     ),
   pendingComponent: ProductThreadSkeleton,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
   component: ProductThreadDetailRoute,
 })

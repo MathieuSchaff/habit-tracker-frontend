@@ -5,7 +5,15 @@ import type { ReactNode } from 'react'
 import { Spinner } from '../Feedback/ui/Spinner/Spinner'
 
 type BaseProps = {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent' | 'default' | 'danger-ghost'
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'outline'
+    | 'ghost'
+    | 'accent'
+    | 'default'
+    | 'danger-ghost'
+    | 'bare'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   fullWidth?: boolean

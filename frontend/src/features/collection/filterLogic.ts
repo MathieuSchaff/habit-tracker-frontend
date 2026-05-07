@@ -1,5 +1,6 @@
 import type { DisplayScale } from '@habit-tracker/shared'
 
+import { compareInstant } from '@/lib/dates'
 import { type CriteriaWeights, calculateWeightedScore } from '@/lib/helpers/reviews'
 import type { UserProduct } from '@/lib/queries/user-products'
 import type { CollectionSearch } from '@/routes/_authenticated/collection'
@@ -57,7 +58,7 @@ export function sortProducts(
       case 'sentiment':
         return (b.sentiment || 0) - (a.sentiment || 0)
       case 'date':
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        return compareInstant(b.updatedAt, a.updatedAt)
       case 'price_asc':
         return (a.product.priceCents || 0) - (b.product.priceCents || 0)
       case 'price_desc':

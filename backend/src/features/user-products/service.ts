@@ -8,6 +8,7 @@ import { and, eq } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { userProductReviews, userProducts } from '../../db/schema/user-products'
+import { nowISO } from '../../utils/dates'
 import { UserProductError } from './user-product-error'
 
 export async function getUserProducts(userId: string, db: DB) {
@@ -100,7 +101,7 @@ export async function createUserProduct(userId: string, input: CreateUserProduct
         sentiment: input.sentiment,
         wouldRepurchase: input.wouldRepurchase,
         comment: input.comment,
-        updatedAt: new Date(),
+        updatedAt: nowISO(),
       },
     })
     .returning()
@@ -117,7 +118,7 @@ export async function updateUserProduct(
     .update(userProducts)
     .set({
       ...input,
-      updatedAt: new Date(),
+      updatedAt: nowISO(),
     })
     .where(and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)))
     .returning()
@@ -164,7 +165,7 @@ export async function upsertUserProductReview(
       target: userProductReviews.userProductId,
       set: {
         ...input,
-        updatedAt: new Date(),
+        updatedAt: nowISO(),
       },
     })
     .returning()

@@ -91,7 +91,7 @@ export type HashedPassword = string & { readonly __brand: 'HashedPassword' }
 export type UserPublic = {
   id: string
   email: string
-  createdAt: Date | string
+  createdAt: string
   emailVerified: boolean
   role: 'user' | 'admin'
   isDemo: boolean
@@ -164,7 +164,7 @@ export interface RefreshTokenPayload {
 export interface CreateRefreshTokenArgs {
   userId: string
   jti: string
-  expiresAt: Date
+  expiresAt: string
   ip?: string | null
   userAgent?: string | null
 }

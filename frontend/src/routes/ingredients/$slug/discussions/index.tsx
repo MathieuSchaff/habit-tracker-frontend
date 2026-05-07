@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, getRouteApi } from '@tanstack/react-router'
 
+import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { ThreadList } from '@/features/discussions/components/ThreadList'
 import { IngredientDiscussionSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
 import { discussionQueries } from '@/lib/queries/discussions'
@@ -28,5 +29,6 @@ export const Route = createFileRoute('/ingredients/$slug/discussions/')({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(discussionQueries.threads('ingredient', params.slug)),
   pendingComponent: () => <IngredientDiscussionSkeleton />,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,
   component: IngredientDiscussionIndex,
 })

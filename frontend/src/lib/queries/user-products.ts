@@ -65,6 +65,7 @@ export const useCreateUserProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    // Callers (useQuickAdd, AddToCollectionModal) drive their own toast.
   })
 }
 
@@ -104,6 +105,7 @@ export const useUpdateUserProduct = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    meta: { errorMessage: 'Modification impossible — réessaie plus tard.' },
   })
 }
 
@@ -117,6 +119,7 @@ export const useDeleteUserProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
+    meta: { errorMessage: 'Suppression impossible — réessaie plus tard.' },
   })
 }
 
@@ -136,5 +139,6 @@ export const useUpsertUserProductReview = () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
     },
+    meta: { errorMessage: 'Note non enregistrée — réessaie plus tard.' },
   })
 }

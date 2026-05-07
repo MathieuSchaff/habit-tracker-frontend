@@ -170,7 +170,7 @@ export async function updateIngredient(
   id: string,
   data: UpdateIngredientInput,
   summary?: string,
-  expectedUpdatedAt?: Date
+  expectedUpdatedAt?: string
 ) {
   updateIngredientSchema.parse(data)
 
@@ -219,7 +219,7 @@ export async function updateIngredient(
   // If after the check nothing changed, I just return the old ingredient.
   if (Object.keys(filteredData).length === 0) {
     // I also check if the updatedAt matches to be sure no one else changed it while I was working.
-    if (expectedUpdatedAt && oldIngredient.updatedAt.getTime() !== expectedUpdatedAt.getTime()) {
+    if (expectedUpdatedAt && oldIngredient.updatedAt !== expectedUpdatedAt) {
       throw new IngredientError('ingredient_update_conflict')
     }
     return oldIngredient

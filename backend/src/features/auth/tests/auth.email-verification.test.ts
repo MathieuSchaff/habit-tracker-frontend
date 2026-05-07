@@ -64,18 +64,18 @@ describe('email-verification.service', () => {
         TEST_CREDENTIALS.toto.rawEmail,
         TEST_CREDENTIALS.toto.rawPassword
       )
-      const before = new Date()
+      const before = Date.now()
       await createVerificationToken(testDb, user.id)
-      const after = new Date()
+      const after = Date.now()
 
       const [row] = await testDb
         .select()
         .from(emailVerifications)
         .where(and(eq(emailVerifications.userId, user.id), isNull(emailVerifications.usedAt)))
 
-      const expiry = row?.expiresAt.getTime()
-      expect(expiry).toBeGreaterThan(before.getTime() + 59 * 60 * 1000)
-      expect(expiry).toBeLessThanOrEqual(after.getTime() + 60 * 60 * 1000 + 1000)
+      const expiry = row?.expiresAt ? new Date(row.expiresAt).getTime() : undefined
+      expect(expiry).toBeGreaterThan(before + 59 * 60 * 1000)
+      expect(expiry).toBeLessThanOrEqual(after + 60 * 60 * 1000 + 1000)
     })
   })
 
@@ -140,7 +140,7 @@ describe('email-verification.service', () => {
 
       await testDb
         .update(emailVerifications)
-        .set({ expiresAt: new Date(Date.now() - 1000) })
+        .set({ expiresAt: new Date(Date.now() - 1000).toISOString() })
         .where(eq(emailVerifications.userId, user.id))
 
       const result = await verifyEmailToken(testDb, token)
@@ -159,7 +159,7 @@ describe('email-verification.service', () => {
 
       await testDb
         .update(usersTable)
-        .set({ emailVerifiedAt: new Date() })
+        .set({ emailVerifiedAt: new Date().toISOString() })
         .where(eq(usersTable.id, user.id))
 
       const result = await verifyEmailToken(testDb, token)
@@ -191,7 +191,7 @@ describe('email-verification.service', () => {
       )
       await testDb
         .update(usersTable)
-        .set({ emailVerifiedAt: new Date() })
+        .set({ emailVerifiedAt: new Date().toISOString() })
         .where(eq(usersTable.id, user.id))
       const result = await hasVerifiedEmail(testDb, user.id)
       expect(result).toBe(true)

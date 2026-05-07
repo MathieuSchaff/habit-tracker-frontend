@@ -11,8 +11,8 @@ import { validateWebpUpload } from './validate-image'
 const AVATAR_MAX_BYTES = 200_000
 const PRODUCT_MAX_BYTES = 500_000
 
-function appendCacheBust(url: string, updatedAt: Date): string {
-  return `${url}?v=${Math.floor(updatedAt.getTime() / 1000)}`
+function appendCacheBust(url: string, updatedAt: string): string {
+  return `${url}?v=${Math.floor(new Date(updatedAt).getTime() / 1000)}`
 }
 
 export async function uploadAvatar(
@@ -33,7 +33,7 @@ export async function uploadAvatar(
   const storedUrl = `${env.IMAGE_CDN_BASE}/${key}`
   const [row] = await db
     .update(profiles)
-    .set({ avatarUrl: storedUrl, updatedAt: new Date() })
+    .set({ avatarUrl: storedUrl })
     .where(eq(profiles.userId, userId))
     .returning({ avatarUrl: profiles.avatarUrl, updatedAt: profiles.updatedAt })
   if (!row?.avatarUrl) throw new UploadError('not_found')
@@ -58,7 +58,7 @@ export async function uploadProductImage(
   const storedUrl = `${env.IMAGE_CDN_BASE}/${key}`
   const [row] = await db
     .update(products)
-    .set({ imageUrl: storedUrl, updatedAt: new Date() })
+    .set({ imageUrl: storedUrl })
     .where(eq(products.slug, slug))
     .returning({ imageUrl: products.imageUrl, updatedAt: products.updatedAt })
   if (!row?.imageUrl) throw new UploadError('not_found')

@@ -238,7 +238,7 @@ describe('refresh', () => {
 
     await testDb
       .update(usersTable)
-      .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) })
+      .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() })
       .where(eq(usersTable.id, loginResult.data.user.id))
 
     const result = await refresh(

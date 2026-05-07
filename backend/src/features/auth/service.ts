@@ -19,6 +19,7 @@ import { bindRlsContext } from '../../db/rls'
 import { users } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
 import { logger } from '../../lib/logger'
+import { nowISO } from '../../utils/dates'
 import { seedDemoData } from './demo-seed'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken } from './email-verification.service'
@@ -135,8 +136,8 @@ export async function login(
     if (!user || !isValid) return err('invalid_credentials')
 
     if (!user.emailVerifiedAt) {
-      const graceExpired = user.createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)
-      if (graceExpired) return err('email_not_verified')
+      const graceCutoffMs = Date.now() - 24 * 60 * 60 * 1000
+      if (Date.parse(user.createdAt) < graceCutoffMs) return err('email_not_verified')
     }
 
     const tokens = await createTokenPair(ctx, user.id, user.role)
@@ -184,9 +185,8 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     }
 
     if (!user.emailVerified) {
-      const createdAt = user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt)
-      const graceExpired = createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)
-      if (graceExpired) return err('email_not_verified')
+      const graceCutoffMs = Date.now() - 24 * 60 * 60 * 1000
+      if (Date.parse(user.createdAt) < graceCutoffMs) return err('email_not_verified')
     }
     // Order matters: cleanup runs BEFORE createTokenPair, which is safe because
     // it only deletes expired or already-revoked tokens — not the active one
@@ -239,7 +239,7 @@ export async function changePassword(
 
     await ctx.db
       .update(users)
-      .set({ passwordHash: newPasswordHash, updatedAt: new Date() })
+      .set({ passwordHash: newPasswordHash, updatedAt: nowISO() })
       .where(eq(users.id, userId))
 
     return ok(null)
@@ -259,7 +259,7 @@ export async function createDemo(
       const created = await createUser(tx, {
         email,
         passwordHash: null,
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: nowISO(),
         isDemo: true,
       })
       // Set RLS context so all inserts in this transaction pass WITH CHECK on app_runtime.

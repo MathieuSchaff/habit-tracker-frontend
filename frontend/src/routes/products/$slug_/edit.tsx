@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { ProductInfoSkeleton } from '@/features/products/components/skeletons/ProductLayoutSkeleton/ProductLayoutSkeleton'
 import { ProductEditPage } from '@/features/products/pages/ProductEditPage/ProductEditPage'
 import { requireAuth } from '@/lib/auth/requireAuth'
@@ -18,5 +19,6 @@ export const Route = createFileRoute('/products/$slug_/edit')({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(productQueries.bySlug(params.slug)),
   pendingComponent: ProductInfoSkeleton,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
   component: ProductEditPage,
 })

@@ -830,7 +830,6 @@ export const skincareTagMap: IngredientTagMap = {
       TAG_SLUGS.PORES_DILATES,
       TAG_SLUGS.MICROBIOME,
       TAG_SLUGS.MATIFIANT,
-      TAG_SLUGS.AZELAIC_ACID,
     ],
     avoid: [TAG_SLUGS.PEAU_SENSIBLE, TAG_SLUGS.BARRIERE_CUTANEE_ALTEREE],
   },
@@ -855,7 +854,6 @@ export const skincareTagMap: IngredientTagMap = {
       TAG_SLUGS.PEAU_MIXTE,
       TAG_SLUGS.PEAU_GRASSE,
       TAG_SLUGS.PEAU_SENSIBLE,
-      TAG_SLUGS.NIACINAMIDE,
     ],
     avoid: [],
   },
@@ -869,7 +867,6 @@ export const skincareTagMap: IngredientTagMap = {
       TAG_SLUGS.ANTI_ACNE,
       TAG_SLUGS.POST_ACNE,
       TAG_SLUGS.ECLAT,
-      TAG_SLUGS.CENTELLA,
     ],
     avoid: [],
   },
@@ -884,7 +881,6 @@ export const skincareTagMap: IngredientTagMap = {
       TAG_SLUGS.ANTI_ROUGEURS,
       TAG_SLUGS.PHOTO_VIEILLISSEMENT,
       TAG_SLUGS.BIOMIMETIQUE,
-      TAG_SLUGS.CENTELLA,
     ],
     avoid: [],
   },
@@ -1054,7 +1050,6 @@ export const skincareTagMap: IngredientTagMap = {
       TAG_SLUGS.PHOTO_VIEILLISSEMENT,
       TAG_SLUGS.ANTI_OXYDANT,
       TAG_SLUGS.APAISANT,
-      TAG_SLUGS.RETINOL_ALTERNATIVES,
     ],
     avoid: [],
   },
@@ -1906,14 +1901,14 @@ export const skincareTagMap: IngredientTagMap = {
   // Asiatic Acid (Composant de la Centella Asiatica)
   [INGREDIENT_SLUGS.ASIATIC_ACID]: {
     primary: [TAG_SLUGS.REPARATEUR, TAG_SLUGS.ANTI_AGE],
-    secondary: [TAG_SLUGS.CICATRISATION, TAG_SLUGS.ANTI_OXYDANT, TAG_SLUGS.CENTELLA],
+    secondary: [TAG_SLUGS.CICATRISATION, TAG_SLUGS.ANTI_OXYDANT],
     avoid: [],
   },
 
   // Madecassic Acid (Composant de la Centella Asiatica - Apaisant)
   [INGREDIENT_SLUGS.MADECASSIC_ACID]: {
     primary: [TAG_SLUGS.APAISANT, TAG_SLUGS.REPARATEUR],
-    secondary: [TAG_SLUGS.ANTI_ROUGEURS, TAG_SLUGS.CICATRISATION, TAG_SLUGS.CENTELLA],
+    secondary: [TAG_SLUGS.ANTI_ROUGEURS, TAG_SLUGS.CICATRISATION],
     avoid: [],
   },
 
@@ -2318,7 +2313,7 @@ export const skincareTagMap: IngredientTagMap = {
   },
   [INGREDIENT_SLUGS.MADECASSOSIDE]: {
     primary: [TAG_SLUGS.APAISANT, TAG_SLUGS.CICATRISATION],
-    secondary: [TAG_SLUGS.ANTI_ROUGEURS, TAG_SLUGS.PEAU_SENSIBLE, TAG_SLUGS.CENTELLA],
+    secondary: [TAG_SLUGS.ANTI_ROUGEURS, TAG_SLUGS.PEAU_SENSIBLE],
     avoid: [],
   },
 

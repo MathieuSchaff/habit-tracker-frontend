@@ -13,8 +13,10 @@ import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
+import { extractFormError } from '@/lib/helpers/apiError'
 import { isHttpError } from '@/lib/helpers/isHttpError'
 import { useAuthStore } from '@/store/auth'
+import { INGREDIENT_FORM_ERRORS, type IngredientFormField } from './formErrors'
 import {
   ingredientQueries,
   useCreateIngredient,
@@ -105,6 +107,10 @@ export function IngredientForm({
   })
 
   const [error, setError] = useState<string | null>(null)
+  const [fieldError, setFieldError] = useState<{
+    field: IngredientFormField
+    message: string
+  } | null>(null)
   const [conflict, setConflict] = useState<ConflictState | null>(null)
 
   // after a conflict, we use the fresh updatedAt for the next save attempt
@@ -115,6 +121,7 @@ export function IngredientForm({
     (field: FormFieldKey) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }))
       setError(null)
+      setFieldError(null)
     },
     []
   )
@@ -177,7 +184,7 @@ export function IngredientForm({
               category: form.category.trim() || undefined,
               description: form.description.trim() || undefined,
               content: form.content.trim() || undefined,
-              expectedUpdatedAt: new Date(updatedAtOverride ?? ingredient.updatedAt),
+              expectedUpdatedAt: updatedAtOverride ?? ingredient.updatedAt,
             },
           }),
           updateTags.mutateAsync({
@@ -209,9 +216,9 @@ export function IngredientForm({
         setUpdatedAtOverride(fresh.updatedAt)
         setError(null)
       } else {
-        setError(
-          err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-        )
+        const { field, message } = extractFormError(err, INGREDIENT_FORM_ERRORS)
+        setError(message)
+        setFieldError(field ? { field, message } : null)
       }
     }
   }
@@ -236,7 +243,7 @@ export function IngredientForm({
 
   return (
     <form className="ingredient-edit-form" onSubmit={handleSubmit}>
-      {error && <FormMessage variant="error">{error}</FormMessage>}
+      {error && !fieldError && <FormMessage variant="error">{error}</FormMessage>}
 
       {conflict && (
         <div className="ingredient-edit-form__conflict-banner">
@@ -279,6 +286,7 @@ export function IngredientForm({
           onChange={handleChange('name')}
           placeholder="Nom de l'ingrédient"
           autoFocus
+          error={fieldError?.field === 'name' ? fieldError.message : undefined}
         />
         {hasFieldConflict('name') && (
           <DraftHint field="name" value={conflict?.draft.name ?? ''} onRestore={restoreField} />
@@ -292,6 +300,7 @@ export function IngredientForm({
             value={form.slug}
             onChange={handleChange('slug')}
             placeholder="Ex: mon-ingredient-slug"
+            error={fieldError?.field === 'slug' ? fieldError.message : undefined}
           />
           {hasFieldConflict('slug') && (
             <DraftHint field="slug" value={conflict?.draft.slug ?? ''} onRestore={restoreField} />

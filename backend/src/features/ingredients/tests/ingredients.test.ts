@@ -81,8 +81,8 @@ describe('Ingredient Service', () => {
 
     it('should store createdAt and updatedAt timestamps', async () => {
       const ingredient = await makeIngredient('Zinc')
-      expect(ingredient.createdAt).toBeInstanceOf(Date)
-      expect(ingredient.updatedAt).toBeInstanceOf(Date)
+      expect(typeof ingredient.createdAt).toBe('string')
+      expect(typeof ingredient.updatedAt).toBe('string')
     })
 
     it('should throw ingredient_already_exists for duplicate slug (admin)', async () => {

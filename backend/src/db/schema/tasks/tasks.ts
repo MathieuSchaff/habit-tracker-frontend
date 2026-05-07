@@ -28,14 +28,14 @@ export const tasks = pgTable(
     title: text('title').notNull(),
     energy: taskEnergyEnum('energy'),
     status: taskStatusEnum('status').notNull().default('inbox'),
-    snoozedUntil: date('snoozed_until'),
-    doneAt: timestamp('done_at', { withTimezone: true }),
+    snoozedUntil: date('snoozed_until', { mode: 'string' }),
+    doneAt: timestamp('done_at', { withTimezone: true, mode: 'string' }),
     focusDurationMinutes: integer('focus_duration_minutes'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     index('tasks_user_status_idx').on(t.userId, t.status, t.createdAt),
@@ -54,7 +54,7 @@ export const subtasks = pgTable(
     title: text('title').notNull(),
     completed: boolean('completed').notNull().default(false),
     order: integer('order').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     index('subtasks_task_order_idx').on(t.taskId, t.order),

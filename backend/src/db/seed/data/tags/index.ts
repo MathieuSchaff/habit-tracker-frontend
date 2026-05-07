@@ -460,10 +460,8 @@ const INGREDIENT_TAG_LABELS: Record<string, string> = {
 
   // Skincare actif class (pharmacological clusters)
   retinoids: 'Rétinoïdes',
-  'retinol-alternatives': 'Alternatives au rétinol',
   'vitamin-c': 'Vitamine C',
   'vitamin-e': 'Vitamine E',
-  niacinamide: 'Niacinamide',
   aha: 'AHA',
   bha: 'BHA',
   pha: 'PHA',
@@ -472,9 +470,7 @@ const INGREDIENT_TAG_LABELS: Record<string, string> = {
   'hyaluronic-acid': 'Acide hyaluronique',
   peptides: 'Peptides',
   polyphenols: 'Polyphénols',
-  centella: 'Centella asiatica',
   'tyrosinase-inhibitors': 'Inhibiteurs de tyrosinase',
-  'azelaic-acid': 'Acide azélaïque',
 }
 
 function labelForIngredient(slug: string): string {

@@ -35,11 +35,11 @@ export const userProducts = pgTable(
     sentiment: integer('sentiment'), // 1-5
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
@@ -64,11 +64,11 @@ export const userProductReviews = pgTable(
     mixability: integer('mixability'), // 1-5
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),

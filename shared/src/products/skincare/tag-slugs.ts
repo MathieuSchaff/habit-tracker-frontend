@@ -121,10 +121,8 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   // time from a product's INCI via algo-derm normalize + substring match
   // (see backend/src/db/seed/utils/actif-class-detection.ts).
   RETINOIDS: 'retinoids',
-  RETINOL_ALTERNATIVES: 'retinol-alternatives',
   VITAMIN_C: 'vitamin-c',
   VITAMIN_E: 'vitamin-e',
-  NIACINAMIDE: 'niacinamide',
   AHA: 'aha',
   BHA: 'bha',
   PHA: 'pha',
@@ -133,9 +131,7 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   HYALURONIC_ACID: 'hyaluronic-acid',
   PEPTIDES: 'peptides',
   POLYPHENOLS: 'polyphenols',
-  CENTELLA: 'centella',
   TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
-  AZELAIC_ACID: 'azelaic-acid',
 } as const
 
 export type SkincareProductTagSlug =

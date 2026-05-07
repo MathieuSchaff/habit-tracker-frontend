@@ -30,11 +30,11 @@ export const ingredients = pgTable(
     // "humectant", "emollient", "filtre-uv", "tensioactif", "excipient".
     // supplement → "vitamine", "mineral", "carotenoide", "plante", etc.
     category: text('category'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     uniqueIndex('ingredients_slug_unique').on(t.slug),
@@ -64,7 +64,7 @@ export const ingredientEdits = pgTable(
       .references(() => users.id),
     changes: jsonb('changes').notNull().$type<IngredientChanges>(),
     summary: text('summary'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     index('ingredient_edits_ingredient_idx').on(t.ingredientId),

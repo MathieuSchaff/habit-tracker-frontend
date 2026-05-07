@@ -49,7 +49,19 @@ export function ComparisonsListPage() {
                 </div>
               </Link>
               <div className="comparison-card__footer">
-                <Button onClick={() => del.mutate(c.id)} variant="ghost" size="sm">
+                <Button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Supprimer la comparaison « ${c.name ?? 'Sans nom'} » ? Cette action est irréversible.`
+                      )
+                    ) {
+                      del.mutate(c.id)
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                >
                   Supprimer
                 </Button>
               </div>

@@ -24,11 +24,6 @@ export function escapeLike(s: string): string {
   return s.replace(/[%_\\]/g, '\\$&')
 }
 
-/**
- * Normal comparison doesn't work well for Dates because they are objects.
- * I use this to check if two things are really the same.
- */
 export function areEqual(a: unknown, b: unknown): boolean {
-  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
   return a === b
 }

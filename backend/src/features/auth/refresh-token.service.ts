@@ -6,6 +6,7 @@ import type { DB } from '../../db/index'
 import { bindRlsContext } from '../../db/rls'
 import { refreshTokens } from '../../db/schema'
 import { logger } from '../../lib/logger'
+import { nowISO } from '../../utils/dates'
 import { hashJti } from './jwt.utils'
 
 type RefreshTokenRow = typeof refreshTokens.$inferSelect
@@ -19,12 +20,12 @@ function mapRefreshTokenRow(row: Record<string, unknown> | undefined): RefreshTo
     id: row.id as string,
     userId: row.user_id as string,
     jtiHash: row.jti_hash as string,
-    expiresAt: row.expires_at as Date,
-    revokedAt: (row.revoked_at as Date | null) ?? null,
-    lastUsedAt: (row.last_used_at as Date | null) ?? null,
+    expiresAt: row.expires_at as string,
+    revokedAt: (row.revoked_at as string | null) ?? null,
+    lastUsedAt: (row.last_used_at as string | null) ?? null,
     ip: (row.ip as string | null) ?? null,
     userAgent: (row.user_agent as string | null) ?? null,
-    createdAt: row.created_at as Date,
+    createdAt: row.created_at as string,
   }
 }
 
@@ -86,7 +87,7 @@ export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
 
 // Delete expired or revoked tokens from database (fire-and-forget cleanup after login)
 export async function cleanupUserRefreshTokens(db: DB, userId: string) {
-  const now = new Date()
+  const now = nowISO()
   await db.transaction(async (tx) => {
     await bindRlsContext(tx, userId)
     await tx

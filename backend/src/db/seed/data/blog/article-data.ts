@@ -17,7 +17,7 @@ export type ArticleInput = {
   content: string
   category: BlogCategory
   coverImageUrl?: string
-  publishedAt?: Date | null
+  publishedAt?: string | null
 }
 
 export const articleData: ArticleInput[] = [

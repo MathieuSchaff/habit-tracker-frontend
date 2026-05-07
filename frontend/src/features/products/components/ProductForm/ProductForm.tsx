@@ -171,7 +171,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           pendingIngredients,
           onSuccess,
         } as const)
-  const { handleSubmit, error, clearError, isPending, submitLabel } =
+  const { handleSubmit, error, fieldError, clearError, isPending, submitLabel } =
     useProductFormSubmit(submitArgs)
 
   const handleChange = useCallback(
@@ -239,7 +239,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         mode === 'create' ? 'Créer un produit' : `Modifier ${product?.name ?? 'le produit'}`
       }
     >
-      {error && <FormMessage variant="error">{error}</FormMessage>}
+      {error && !fieldError && <FormMessage variant="error">{error}</FormMessage>}
 
       {mode === 'create' && similarProducts && similarProducts.length > 0 && (
         <div className="product-edit-form__duplicate-warning" role="alert">
@@ -295,6 +295,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           onChange={handleChange('name')}
           placeholder="Nom du produit"
           autoFocus
+          error={fieldError?.field === 'name' ? fieldError.message : undefined}
         />
 
         <FormField label="Marque" htmlFor="product-form-brand" required>

@@ -49,11 +49,11 @@ export const products = pgTable(
     imageUrl: text('image_url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     index('products_kind_idx').on(t.kind),
@@ -79,7 +79,7 @@ export const productEdits = pgTable(
       .references(() => users.id),
     changes: jsonb('changes').notNull().$type<ProductChanges>(),
     summary: text('summary'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     index('product_edits_product_idx').on(t.productId),
