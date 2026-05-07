@@ -11,6 +11,15 @@ import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
 import { useDuplicateProductCheck } from './useDuplicateProductCheck'
 
+const FIRST_KIND = {
+  skincare: 'cleanser',
+  haircare: 'shampoo',
+  dental: 'toothpaste',
+  solaire: 'sunscreen',
+  complement: 'gelule',
+  bodycare: 'body-lotion',
+} as const satisfies Record<ProductCategory, string>
+
 interface UseQuickAddProps {
   onClose: () => void
 }
@@ -33,15 +42,6 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
   const [newCategory, setNewCategory] = useState<ProductCategory>('skincare')
   const [newUnit] = useState<ProductUnit>('pump')
   const [newBrandConfirmed, setNewBrandConfirmed] = useState(false)
-
-  const FIRST_KIND: Record<ProductCategory, string> = {
-    skincare: 'cleanser',
-    haircare: 'shampoo',
-    dental: 'toothpaste',
-    solaire: 'sunscreen',
-    complement: 'gelule',
-    bodycare: 'body-lotion',
-  }
 
   const createProduct = useCreateProduct()
   const addUserProduct = useCreateUserProduct()

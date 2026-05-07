@@ -29,10 +29,10 @@ describe('variant — initialization', () => {
     document.documentElement.removeAttribute('data-variant')
   })
 
-  it('defaults to bleu when localStorage is empty', async () => {
+  it('defaults to terracota when localStorage is empty', async () => {
     const { useThemeStore } = await import('../theme')
-    expect(useThemeStore.getState().variant).toBe('bleu')
-    expect(document.documentElement.getAttribute('data-variant')).toBe('bleu')
+    expect(useThemeStore.getState().variant).toBe('terracota')
+    expect(document.documentElement.getAttribute('data-variant')).toBe('terracota')
   })
 
   it('restores variant from localStorage on init', async () => {
@@ -42,11 +42,19 @@ describe('variant — initialization', () => {
     expect(document.documentElement.getAttribute('data-variant')).toBe('foret')
   })
 
-  it('falls back to bleu for invalid localStorage values', async () => {
+  it('falls back to terracota for invalid localStorage values', async () => {
     localStorage.setItem('variant', 'invalid-value')
     const { useThemeStore } = await import('../theme')
-    expect(useThemeStore.getState().variant).toBe('bleu')
-    expect(document.documentElement.getAttribute('data-variant')).toBe('bleu')
+    expect(useThemeStore.getState().variant).toBe('terracota')
+    expect(document.documentElement.getAttribute('data-variant')).toBe('terracota')
+  })
+
+  // Legacy 'bleu' variant retired; users with old localStorage value migrate silently
+  it('falls back to terracota when legacy "bleu" variant is stored', async () => {
+    localStorage.setItem('variant', 'bleu')
+    const { useThemeStore } = await import('../theme')
+    expect(useThemeStore.getState().variant).toBe('terracota')
+    expect(document.documentElement.getAttribute('data-variant')).toBe('terracota')
   })
 
   it('applies variant on init in dark mode too', async () => {

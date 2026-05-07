@@ -8,6 +8,24 @@ import type { CollectionSearch } from '@/routes/_authenticated/collection'
 
 const routeApi = getRouteApi('/_authenticated/collection')
 
+export type CollectionFilterValues = {
+  brand: string
+  kind: string
+  sentiment: number | 'all'
+  repurchase: 'yes' | 'no' | 'unsure' | 'all'
+  minNote: number
+  maxPrice: number | ''
+}
+
+export const DEFAULT_FILTERS: CollectionFilterValues = {
+  brand: 'all',
+  kind: 'all',
+  sentiment: 'all',
+  repurchase: 'all',
+  minNote: 0,
+  maxPrice: '',
+}
+
 type CollectionFilterUpdates = Partial<CollectionSearch> & { q?: string }
 
 type CollectionFilterContextValue = {
@@ -87,15 +105,7 @@ export function CollectionFilterProvider({
   )
 
   const resetFilters = useCallback(() => {
-    setFilter({
-      brand: 'all',
-      kind: 'all',
-      sentiment: 'all',
-      repurchase: 'all',
-      minNote: 0,
-      maxPrice: '',
-      q: '',
-    })
+    setFilter({ ...DEFAULT_FILTERS, q: '' })
   }, [setFilter])
 
   return (

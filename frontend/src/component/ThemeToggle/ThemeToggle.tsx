@@ -6,7 +6,6 @@ import { useThemeStore } from '../../store/theme'
 import './ThemeToggle.css'
 
 const VARIANTS: Array<{ value: Variant; label: string; color: string }> = [
-  { value: 'bleu', label: 'Bleu', color: 'oklch(55% 0.2 260)' },
   { value: 'terracota', label: 'Terra', color: 'oklch(52% 0.13 32)' },
   { value: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
   { value: 'ardoise', label: 'Ardoise', color: 'oklch(35% 0.12 240)' },
