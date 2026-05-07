@@ -20,7 +20,9 @@ export const productIngredients = pgTable(
     concentrationUnit: text('concentration_unit'), // "%", "IU", "mg", "mcg"
     concentrationPer: text('concentration_per'), // "goutte", "gélule", "mL"
     notes: text('notes'), // "forme liposomale", "encapsulé"
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('product_ingredients_unique').on(t.productId, t.ingredientId),

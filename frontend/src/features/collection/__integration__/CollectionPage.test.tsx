@@ -252,7 +252,7 @@ describe('CollectionPage', () => {
     const filterToggle = await screen.findByTitle(/Filtres avancés/i)
     await userEvent.click(filterToggle)
 
-    const brandSelect = screen.getByLabelText(/Marque/i)
+    const brandSelect = await screen.findByLabelText(/Marque/i)
     await userEvent.selectOptions(brandSelect, 'Nice Brand')
 
     const applyBtn = screen.getByRole('button', { name: /Appliquer les filtres/i })

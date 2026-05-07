@@ -40,10 +40,7 @@ export async function throwIfNotOk(res: Response, fallbackCode = 'http_error'): 
 // Maps backend error codes to user-facing messages, optionally targeting a form
 // field so the UI can highlight that input. Unmapped codes fall through to the
 // caller's generic fallback.
-export type FormErrorMap<F extends string = string> = Record<
-  string,
-  { field?: F; message: string }
->
+export type FormErrorMap<F extends string = string> = Record<string, { field?: F; message: string }>
 
 export function extractFormError<F extends string>(
   err: unknown,

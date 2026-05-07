@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-router'
 import { type RenderOptions, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
+import { Suspense } from 'react'
 
 import type { CriteriaWeights, ReviewCriteria } from '../lib/helpers/reviews'
 
@@ -39,7 +40,9 @@ export function renderWithProviders(
   const queryClient = options?.queryClient ?? createTestQueryClient()
   return render(ui, {
     wrapper: ({ children }) => (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={null}>{children}</Suspense>
+      </QueryClientProvider>
     ),
     ...options,
   })

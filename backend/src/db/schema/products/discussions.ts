@@ -17,7 +17,9 @@ export const discussionThreads = pgTable(
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     content: text('content').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('discussion_threads_product_idx').on(t.productId),
@@ -41,7 +43,9 @@ export const discussionReplies = pgTable(
     // null when account is deleted (soft-delete anonymization)
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
     content: text('content').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('discussion_replies_thread_idx').on(t.threadId),

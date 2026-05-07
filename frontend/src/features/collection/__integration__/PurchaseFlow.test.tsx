@@ -123,8 +123,8 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     const productBtn = await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
     await userEvent.click(productBtn)
 
-    // Click "Enregistrer un achat" in sheet
-    const addPurchaseBtn = screen.getByRole('button', { name: /Enregistrer un achat/i })
+    // Click "Enregistrer un achat" in sheet (lazy component — findByRole waits for resolve)
+    const addPurchaseBtn = await screen.findByRole('button', { name: /Enregistrer un achat/i })
     await userEvent.click(addPurchaseBtn)
 
     // Check if purchase form appears
@@ -137,7 +137,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     renderWithProviders(<CollectionPage />)
 
     await userEvent.click(await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i }))
-    await userEvent.click(screen.getByRole('button', { name: /Enregistrer un achat/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /Enregistrer un achat/i }))
 
     const priceInput = screen.getByLabelText(/Prix payé/i)
     await userEvent.type(priceInput, '22.50')
@@ -161,7 +161,7 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
 
     await userEvent.click(await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i }))
 
-    const statusButtons = screen.getAllByRole('button', { name: /En stock/i })
+    const statusButtons = await screen.findAllByRole('button', { name: /En stock/i })
     const inStockBtn = statusButtons.find((btn) => btn.className.includes('pds-status-chip'))
     if (!inStockBtn) throw new Error('In Stock status button not found')
     await userEvent.click(inStockBtn)

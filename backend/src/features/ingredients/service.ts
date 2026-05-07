@@ -20,8 +20,21 @@ import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingred
 import { ingredientTagsDefs, tagIngredients } from '../../db/schema/tags/tags'
 import { areEqual, escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, ingredientEditConfig, logEdit } from '../../lib/logs'
+import { normalizeInstant } from '../../utils/dates'
 import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
+
+function normalizeIngredient<T extends { createdAt: string; updatedAt: string }>(row: T): T {
+  return {
+    ...row,
+    createdAt: normalizeInstant(row.createdAt),
+    updatedAt: normalizeInstant(row.updatedAt),
+  }
+}
+
+function normalizeEdit<T extends { createdAt: string }>(row: T): T {
+  return { ...row, createdAt: normalizeInstant(row.createdAt) }
+}
 
 // I put these keys here because we must not let users change them.
 // They are reserved for the system, like the ID or the creation date.
@@ -133,7 +146,7 @@ export async function createIngredient(database: DB, userId: string, input: Crea
 
     if (!ingredient) throw new IngredientError('ingredient_creation_failed')
 
-    return ingredient
+    return normalizeIngredient(ingredient)
   } catch (e) {
     if (e instanceof IngredientError) throw e
     // If the database says "hey, this already exists", I catch it here.
@@ -150,7 +163,7 @@ export async function getIngredientById(database: DB, id: string) {
     .limit(1)
 
   if (!ingredient) throw new IngredientError('ingredient_not_found')
-  return ingredient
+  return normalizeIngredient(ingredient)
 }
 
 export async function getIngredientBySlug(database: DB, slug: string) {
@@ -161,7 +174,7 @@ export async function getIngredientBySlug(database: DB, slug: string) {
     .limit(1)
 
   if (!ingredient) throw new IngredientError('ingredient_not_found')
-  return ingredient
+  return normalizeIngredient(ingredient)
 }
 
 export async function updateIngredient(
@@ -222,7 +235,7 @@ export async function updateIngredient(
     if (expectedUpdatedAt && oldIngredient.updatedAt !== expectedUpdatedAt) {
       throw new IngredientError('ingredient_update_conflict')
     }
-    return oldIngredient
+    return oldIngredient // already normalized via getIngredientById
   }
 
   const whereConditions = [eq(ingredients.id, id)]
@@ -254,7 +267,7 @@ export async function updateIngredient(
       changes,
     })
 
-    return newIngredient
+    return normalizeIngredient(newIngredient)
   } catch (e) {
     if (e instanceof IngredientError) throw e
     if (isUniqueViolation(e)) throw new IngredientError('slug_already_exists')
@@ -274,11 +287,12 @@ export async function deleteIngredient(database: DB, role: 'user' | 'admin', id:
 }
 
 export async function listIngredientEdits(database: DB, ingredientId: string) {
-  return database
+  const rows = await database
     .select()
     .from(ingredientEdits)
     .where(eq(ingredientEdits.ingredientId, ingredientId))
     .orderBy(sql`${ingredientEdits.createdAt} DESC`)
+  return rows.map(normalizeEdit)
 }
 
 // I use a simple "ILIKE" search to find ingredients by their name or slug.

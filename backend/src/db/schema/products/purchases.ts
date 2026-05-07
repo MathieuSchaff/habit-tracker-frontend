@@ -16,7 +16,9 @@ export const purchases = pgTable(
     openedAt: date('opened_at', { mode: 'string' }),
     finishedAt: date('finished_at', { mode: 'string' }),
     expiresAt: date('expires_at', { mode: 'string' }),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('purchases_user_product_idx').on(t.userProductId),

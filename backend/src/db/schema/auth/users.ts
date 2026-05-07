@@ -35,7 +35,9 @@ export const users = pgTable(
     // Stable Google identifier (subject). Null if user never logged in with Google
     googleSub: text('google_sub'),
 
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
@@ -69,8 +71,12 @@ export const profiles = pgTable(
     bio: text('bio'),
     links: jsonb('links').$type<ProfileLink[]>().notNull().default(sql`'[]'::jsonb`),
     profilePublic: boolean('profile_public').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('profiles_username_ux').on(t.username),
@@ -109,7 +115,9 @@ export const userDermoProfiles = pgTable(
     fitzpatrickType: integer('fitzpatrick_type'),
     skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
     privateNotes: text('private_notes'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
@@ -134,7 +142,9 @@ export const refreshTokens = pgTable(
     lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'string' }),
     ip: varchar('ip', { length: 45 }),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),

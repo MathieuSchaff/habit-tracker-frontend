@@ -25,7 +25,9 @@ export const ingredientTagsDefs = pgTable(
     slug: text('slug').notNull(),
     label: text('label').notNull(),
     tagType: text('type').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('ingredient_tags_slug_unique').on(t.slug),
@@ -40,7 +42,9 @@ export const productTagsDefs = pgTable(
     slug: text('slug').notNull(),
     label: text('label').notNull(),
     tagType: text('type').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('product_tags_slug_unique').on(t.slug),

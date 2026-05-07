@@ -15,8 +15,8 @@ import type { Database } from '../../db/index'
 import {
   type SubtaskInsert,
   subtasks,
-  type Task as TaskRow,
   type TaskInsert,
+  type Task as TaskRow,
   tasks,
 } from '../../db/schema/tasks/tasks'
 import {
