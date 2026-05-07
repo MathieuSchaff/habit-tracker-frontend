@@ -62,7 +62,7 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   OCCLUSIF: 'occlusif',
   REPULPANT: 'repulpant',
   MATIFIANT: 'matifiant',
-  PROTECTION_CUTANEE: 'protection-cutanee',
+  EFFET_PROTECTEUR: 'effet-protecteur',
 
   // UV filter subtype — describes the filter nature of a sunscreen
   // molecule (chemical vs. mineral). Shared with product tags.

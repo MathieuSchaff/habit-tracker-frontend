@@ -183,4 +183,13 @@ Le **PEG-20 Glyceryl Triisostearate** est un agent émulsifiant de référence p
 * **Innocuité** : Largement utilisé et considéré comme sûr dans les produits rincés.
 `,
   },
+  {
+    name: 'Cocamidopropyl Hydroxysultaine',
+    slug: INGREDIENT_SLUGS.COCAMIDOPROPYL_HYDROXYSULTAINE,
+    type: 'skincare',
+    category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
+    description:
+      'Tensioactif amphotère doux dérivé de coco, mousse onctueuse, tolérance excellente, alternative au cocamidopropyl betaine.',
+    content: '',
+  },
 ]

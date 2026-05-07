@@ -16,7 +16,7 @@
 // Scope = 'both' : autorisés ici parce qu'ils décrivent AUSSI une
 // propriété intrinsèque de molécule :
 //   ✅ ingredient_attribute  (actif, humectant, filtre-uv, tensioactif…)
-//   ✅ skin_effect (OCCLUSIF, REPULPANT, MATIFIANT, PROTECTION_CUTANEE)
+//   ✅ skin_effect (OCCLUSIF, REPULPANT, MATIFIANT, EFFET_PROTECTEUR)
 //   ✅ product_label (FILTRES_CHIMIQUES, FILTRES_MINERAUX)
 //   ✅ shared_label  (COMEDOGENE, NON_COMEDOGENE)
 //   ✅ concern, skin_type

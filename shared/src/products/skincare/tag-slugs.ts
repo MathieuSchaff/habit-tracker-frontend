@@ -81,9 +81,10 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
 
   // Skin effects (what the formula does)
   OCCLUSIF: 'occlusif',
+  SEMI_OCCLUSIF: 'semi-occlusif',
   REPULPANT: 'repulpant',
   MATIFIANT: 'matifiant',
-  PROTECTION_CUTANEE: 'protection-cutanee',
+  EFFET_PROTECTEUR: 'effet-protecteur',
   ANTI_OXYDANT: 'anti-oxydant',
   APAISANT: 'apaisant',
   SEBO_REGULATEUR: 'sebo-regulateur',
@@ -102,10 +103,16 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
 
   // Product labels
   SANS_PARFUM: 'sans-parfum',
+  SANS_SULFATES: 'sans-sulfates',
+  SANS_SILICONES: 'sans-silicones',
+  SANS_HUILES_ESSENTIELLES: 'sans-huiles-essentielles',
+  SANS_HUILES_MINERALES: 'sans-huiles-minerales',
+  SANS_ALLERGENES_PARFUMANTS: 'sans-allergenes-parfumants',
   BIO_NATUREL: 'bio-naturel',
   VEGAN: 'vegan',
   CRUELTY_FREE: 'cruelty-free',
   HYPOALLERGENIQUE: 'hypoallergenique',
+  NON_IRRITANT: 'non-irritant',
   PIGMENTS_VERTS: 'pigments-verts',
   SANS_SAVON: 'sans-savon',
   FILTRES_CHIMIQUES: 'filtres-chimiques',

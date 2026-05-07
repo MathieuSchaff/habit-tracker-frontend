@@ -95,15 +95,31 @@
   }
 
   .underline-tabs.tabs-scrollable {
-    overflow-x: auto;
+    overflow-x: scroll;
     overflow-y: hidden;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-default) transparent;
     scroll-snap-type: x proximity;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .underline-tabs.tabs-scrollable:active {
+    cursor: grabbing;
   }
 
   .underline-tabs.tabs-scrollable::-webkit-scrollbar {
-    display: none;
+    height: 2px;
+  }
+
+  .underline-tabs.tabs-scrollable::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 3px;
+  }
+
+  .underline-tabs.tabs-scrollable::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .underline-tab {

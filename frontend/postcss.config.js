@@ -1,6 +1,6 @@
 import globalData from '@csstools/postcss-global-data'
-import customMedia from 'postcss-custom-media'
 import purgecss from '@fullhuman/postcss-purgecss'
+import customMedia from 'postcss-custom-media'
 
 const isProd = process.env.NODE_ENV === 'production'
 

@@ -40,9 +40,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) return 'react'
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/'))
+            return 'react'
           if (id.includes('node_modules/@tanstack/')) return 'tanstack'
-          if (id.includes('node_modules/zod/') || id.includes('node_modules/@hookform/') || id.includes('node_modules/react-hook-form/')) return 'forms'
+          if (
+            id.includes('node_modules/zod/') ||
+            id.includes('node_modules/@hookform/') ||
+            id.includes('node_modules/react-hook-form/')
+          )
+            return 'forms'
           // Keep markdown/katex out — they are lazy-loaded per route, don't force them into a shared chunk
           if (
             id.includes('node_modules/katex/') ||
@@ -53,7 +59,8 @@ export default defineConfig({
             id.includes('node_modules/mdast') ||
             id.includes('node_modules/hast') ||
             id.includes('node_modules/unified/')
-          ) return undefined
+          )
+            return undefined
           if (id.includes('node_modules/')) return 'vendor'
         },
       },
