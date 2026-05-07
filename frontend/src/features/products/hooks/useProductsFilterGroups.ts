@@ -18,6 +18,19 @@ type FilterOptions = {
   tagCounts: Record<string, number>
 }
 
+type IngredientLookupRow = { slug: string; name: string }
+const toIngredientOption = (i: IngredientLookupRow) => ({ value: i.slug, label: i.name })
+
+const loadIngredientOptions = (q: string) => ({
+  ...ingredientQueries.search(q),
+  select: (data: IngredientLookupRow[]) => data.map(toIngredientOption),
+})
+
+const resolveIngredientValues = (slugs: string[]) => ({
+  ...ingredientQueries.bySlugs(slugs),
+  select: (data: IngredientLookupRow[]) => data.map(toIngredientOption),
+})
+
 export function useProductsFilterGroups(
   category: ProductDomainTab,
   filterOptions: FilterOptions | undefined
@@ -44,16 +57,8 @@ export function useProductsFilterGroups(
             placeholder: NON_TAG_FILTER_PLACEHOLDERS.ingredient,
             variant: 'async-search-select',
             options: [],
-            loadOptionsQuery: (q: string) => ({
-              ...ingredientQueries.search(q),
-              select: (data: { slug: string; name: string }[]) =>
-                data.map((i) => ({ value: i.slug, label: i.name })),
-            }),
-            resolveValuesQuery: (slugs: string[]) => ({
-              ...ingredientQueries.bySlugs(slugs),
-              select: (data: { slug: string; name: string }[]) =>
-                data.map((i) => ({ value: i.slug, label: i.name })),
-            }),
+            loadOptionsQuery: loadIngredientOptions,
+            resolveValuesQuery: resolveIngredientValues,
           },
         ],
       },

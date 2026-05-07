@@ -136,7 +136,7 @@ export function ProductInfoTab() {
                 ing.concentrationPer
               )
               return (
-                <li key={ing.ingredientName} className="ingredient-item">
+                <li key={ing.ingredientSlug} className="ingredient-item">
                   <div className="ingredient-item__icon" aria-hidden="true">
                     <FlaskConical size={14} />
                   </div>

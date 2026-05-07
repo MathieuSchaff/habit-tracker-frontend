@@ -316,6 +316,42 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     })
   })
 
+  // Regression: drawer must wipe its draft when the parent ships a fresh
+  // currentFilters from a domain switch. Otherwise the user's skincare draft
+  // would bleed into haircare and the preview count would lie.
+  it('resyncs the drawer draft when the user switches domain tab while the drawer is open', async () => {
+    const user = userEvent.setup()
+    const { router } = renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    const dialog = await screen.findByRole('dialog')
+    const applyBtn = within(dialog).getByRole('button', {
+      name: /Appliquer les filtres sélectionnés/i,
+    })
+
+    await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
+    await waitFor(() => {
+      expect(applyBtn).toHaveTextContent(/Voir 1 produit\b/)
+    })
+
+    // Tab control sits in the page header outside the dialog DOM. jsdom doesn't
+    // enforce showModal's inertness so the click reaches the tab; the test pins
+    // the wiring (URL update + draft resync), not native modal behavior.
+    await user.click(screen.getByRole('tab', { name: /Cheveux/i }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({ category: 'haircare' })
+    })
+    expect(router.state.location.search).not.toHaveProperty('concern')
+
+    // Drawer remained open through the tab click. Preview must refetch with the
+    // freshly-empty filters → back to the unfiltered count (2 fixtures).
+    await waitFor(() => {
+      expect(applyBtn).toHaveTextContent(/Voir 2 produits/)
+    })
+  })
+
   it('reuses preview cache on apply — no extra fetch when keys converge', async () => {
     const user = userEvent.setup()
     renderProducts()

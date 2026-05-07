@@ -1,0 +1,50 @@
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
+import { type ReactNode, useState } from 'react'
+
+type Props = {
+  count: number
+  onOpenDrawer: () => void
+  children: ReactNode
+}
+
+// Start expanded — component only mounts when count > 0, so filters are visible
+// on first appearance. User can collapse them if desired.
+export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props) {
+  const [open, setOpen] = useState(true)
+  if (count === 0) return null
+  const plural = count > 1 ? 's' : ''
+  return (
+    <div className={`products-chips-collapsible${open ? ' products-chips-collapsible--open' : ''}`}>
+      <div className="products-chips-toggle-row">
+        <button
+          type="button"
+          className="products-chips-toggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={`${count} filtre${plural} actif${plural} — ${open ? 'masquer' : 'voir les filtres'}`}
+        >
+          <SlidersHorizontal size={13} className="products-chips-toggle__icon" aria-hidden="true" />
+          <span>
+            <strong>{count}</strong> filtre{plural} actif{plural}
+          </span>
+          <ChevronDown
+            size={13}
+            className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          className="products-chips-toggle__edit"
+          onClick={onOpenDrawer}
+          aria-label="Modifier les filtres"
+        >
+          Modifier
+        </button>
+      </div>
+      <div className="products-chips-body" aria-hidden={!open}>
+        <div className="products-chips-inner">{children}</div>
+      </div>
+    </div>
+  )
+}

@@ -4,9 +4,15 @@
   gap: var(--space-3);
 }
 
-@media (min-width: 640px) {
+@media (--sm) {
   .blog-list-skeleton__grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (--lg) {
+  .blog-list-skeleton__grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

@@ -46,7 +46,7 @@ span.uppercase,
   font-feature-settings:
     "onum" 1,
     "tnum" 1;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
 }
 
 p {

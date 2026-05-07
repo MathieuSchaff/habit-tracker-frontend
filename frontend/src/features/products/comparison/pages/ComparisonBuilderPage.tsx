@@ -14,6 +14,7 @@ import { ComparisonBody } from '../components/ComparisonBody'
 import { ComparisonHeader } from '../components/ComparisonHeader'
 import { EmptyComparisonState } from '../components/EmptyComparisonState'
 import { ProductPicker } from '../components/ProductPicker'
+import './ComparisonBuilderPage.css'
 
 type Props = { mode: 'new'; id?: never } | { mode: 'edit'; id: string }
 
@@ -49,8 +50,12 @@ function NewComparisonBuilder() {
       {create.error && (
         <FormMessage variant="error">Impossible de créer la comparaison. Réessayez.</FormMessage>
       )}
-      <ProductPicker selectedIds={productIds} onChange={setProductIds} />
-      <EmptyComparisonState count={productIds.length} />
+      <div className="comparison-builder-page">
+        <div className="comparison-builder-page__picker">
+          <ProductPicker selectedIds={productIds} onChange={setProductIds} />
+        </div>
+        <EmptyComparisonState count={productIds.length} />
+      </div>
     </section>
   )
 }
@@ -86,12 +91,19 @@ function EditComparisonBuilder({ id }: { id: string }) {
           Impossible d&apos;enregistrer la modification. Réessayez.
         </FormMessage>
       )}
-      <ProductPicker selectedIds={comparison.products.map((p) => p.id)} onChange={setProductIds} />
-      {comparison.products.length < COMPARISON_MIN_PRODUCTS ? (
-        <EmptyComparisonState count={comparison.products.length} />
-      ) : (
-        <ComparisonBody products={comparison.products} />
-      )}
+      <div className="comparison-builder-page">
+        <div className="comparison-builder-page__picker">
+          <ProductPicker
+            selectedIds={comparison.products.map((p) => p.id)}
+            onChange={setProductIds}
+          />
+        </div>
+        {comparison.products.length < COMPARISON_MIN_PRODUCTS ? (
+          <EmptyComparisonState count={comparison.products.length} />
+        ) : (
+          <ComparisonBody products={comparison.products} />
+        )}
+      </div>
     </section>
   )
 }

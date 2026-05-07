@@ -2,7 +2,7 @@
 // Tags applicable to skincare products.
 // Categories: concern, skin_type, skin_zone, product_type_v2, texture,
 //             routine_step_v2, routine_moment, skin_effect, sensation,
-//             product_label, shared_label.
+//             product_label, shared_label, actif_class.
 
 export const SKINCARE_PRODUCT_TAG_SLUGS = {
   // Concerns
@@ -115,6 +115,27 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   // Shared labels
   COMEDOGENE: 'comedogene',
   NON_COMEDOGENE: 'non-comedogene',
+
+  // Actif class (pharmacological clusters)
+  // Mirror of skincare ingredient actif_class slugs. Auto-derived at seed
+  // time from a product's INCI via algo-derm normalize + substring match
+  // (see backend/src/db/seed/utils/actif-class-detection.ts).
+  RETINOIDS: 'retinoids',
+  RETINOL_ALTERNATIVES: 'retinol-alternatives',
+  VITAMIN_C: 'vitamin-c',
+  VITAMIN_E: 'vitamin-e',
+  NIACINAMIDE: 'niacinamide',
+  AHA: 'aha',
+  BHA: 'bha',
+  PHA: 'pha',
+  ENZYMES_EXFOLIANTS: 'enzymes-exfoliants',
+  CERAMIDES: 'ceramides',
+  HYALURONIC_ACID: 'hyaluronic-acid',
+  PEPTIDES: 'peptides',
+  POLYPHENOLS: 'polyphenols',
+  CENTELLA: 'centella',
+  TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+  AZELAIC_ACID: 'azelaic-acid',
 } as const
 
 export type SkincareProductTagSlug =

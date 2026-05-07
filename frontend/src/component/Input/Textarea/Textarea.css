@@ -22,19 +22,19 @@
 
 .textarea-wrapper textarea {
   width: 100%;
-  padding: var(--space-3);
-  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   color: var(--text-primary);
-  background-color: var(--bg-card);
-  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
-  border-radius: var(--radius-md);
+  background-color: var(--bg-page);
+  border: var(--border-width) solid var(--border-default);
+  border-radius: var(--radius-lg);
   resize: vertical;
   min-height: 5rem;
-  line-height: 1.5;
+  line-height: var(--leading-relaxed, 1.5);
   transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
 }
 
 .textarea-wrapper textarea::placeholder {
@@ -47,9 +47,8 @@
 
 .textarea-wrapper textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.2);
-  background-color: oklch(from var(--color-primary) l c h / 0.03);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
 }
 
 .textarea-wrapper textarea:disabled {

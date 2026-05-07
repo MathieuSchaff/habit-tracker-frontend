@@ -5,7 +5,7 @@ import {
   useInfiniteQuery,
 } from '@tanstack/react-query'
 import { Search, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import {
   ComboboxPrimitive,
@@ -73,6 +73,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
+  const inputId = useId()
 
   function clearAndClose() {
     setQuery('')
@@ -171,6 +172,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
           <Search size={15} className="search-combobox__icon" aria-hidden="true" />
           <input
             ref={inputRef}
+            id={inputId}
             type="text"
             role="combobox"
             className="search-combobox__input"

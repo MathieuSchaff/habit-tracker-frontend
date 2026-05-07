@@ -1,6 +1,6 @@
 // Skincare Ingredient Tag Slugs
 // Tags applicable to skincare/haircare/dental ingredients.
-// Categories: concern, skin_type, ingredient_attribute, skin_effect, shared_label.
+// Categories: concern, skin_type, ingredient_attribute, skin_effect, shared_label, actif_class.
 
 export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   // Concerns
@@ -75,6 +75,27 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   // Contra-indication flag — used in `avoid:` arrays on retinoids and
   // other pregnancy-restricted actives.
   GROSSESSE_COMPATIBLE: 'grossesse-compatible',
+
+  // Actif class (pharmacological clusters)
+  // Group molecules that share a mechanism of action so routine rules
+  // (e.g. "max 1 retinoid", "redundant vitamin C variants") and UI
+  // filters can target the family rather than each member.
+  RETINOIDS: 'retinoids',
+  RETINOL_ALTERNATIVES: 'retinol-alternatives',
+  VITAMIN_C: 'vitamin-c',
+  VITAMIN_E: 'vitamin-e',
+  NIACINAMIDE: 'niacinamide',
+  AHA: 'aha',
+  BHA: 'bha',
+  PHA: 'pha',
+  ENZYMES_EXFOLIANTS: 'enzymes-exfoliants',
+  CERAMIDES: 'ceramides',
+  HYALURONIC_ACID: 'hyaluronic-acid',
+  PEPTIDES: 'peptides',
+  POLYPHENOLS: 'polyphenols',
+  CENTELLA: 'centella',
+  TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+  AZELAIC_ACID: 'azelaic-acid',
 } as const
 
 export type SkincareIngredientTagSlug =

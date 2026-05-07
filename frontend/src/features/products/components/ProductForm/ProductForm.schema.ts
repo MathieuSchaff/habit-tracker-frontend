@@ -10,6 +10,8 @@ import {
 
 import { z } from 'zod'
 
+import type { ProductDetail } from '@/lib/queries/products'
+
 // Form-state schema: every field is what the DOM holds (strings).
 // Validation messages are FR — they surface directly in the form.
 export const productEditFormSchema = z.object({
@@ -79,26 +81,10 @@ export function emptyProductEditForm(): ProductEditFormInput {
   }
 }
 
-// Mirror of the entity → form conversion used to seed the edit page.
-// Centralized here so adding a field touches one spot.
-type ProductEntitySnapshot = {
-  name: string | null
-  slug: string | null
-  brand: string | null
-  category?: string | null
-  kind: string | null
-  unit: string | null
-  priceCents: number | null
-  totalAmount: number | null
-  amountUnit: string | null
-  inci: string | null
-  description: string | null
-  notes: string | null
-  url: string | null
-  imageUrl: string | null
-}
-
-export function productToEditForm(p: ProductEntitySnapshot): ProductEditFormInput {
+// Entity → form conversion used to seed the edit page. Accepts the full
+// ProductDetail (extra fields ignored) so the form picks up new backend
+// columns without manual snapshot-type maintenance.
+export function productToEditForm(p: ProductDetail): ProductEditFormInput {
   return {
     name: p.name ?? '',
     slug: p.slug ?? '',
@@ -143,21 +129,9 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
 // Wire format for PATCH /api/products/:id.
 // Empty on a nullable field that previously held a value → null (clear it).
 // Empty on a field that was already empty → undefined (omit, no-op).
-type ProductEditOriginal = {
-  slug: string
-  priceCents: number | null
-  totalAmount: number | null
-  amountUnit: string | null
-  inci: string | null
-  description: string | null
-  notes: string | null
-  url: string | null
-  imageUrl: string | null
-}
-
 export function productEditFormToUpdateInput(
   form: ProductEditFormInput,
-  original: ProductEditOriginal
+  original: ProductDetail
 ): UpdateProductInput {
   const clearOrOmit = <T>(trimmed: string, value: T | null, originalValue: unknown) => {
     if (trimmed !== '') return value

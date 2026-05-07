@@ -1,6 +1,7 @@
 import type {
   AllIngredientTagCategory,
   CreateIngredientInput,
+  IngredientSort,
   IngredientType,
   ReplaceIngredientTagsInput,
   UpdateIngredientRouteInput,
@@ -19,7 +20,7 @@ import { api } from '../api'
 // search params; the queryFn flattens it back to comma-joined query strings.
 export type ListIngredientsFilters = Partial<Record<AllIngredientTagCategory, string[]>> & {
   type?: IngredientType
-  sort?: 'name' | 'random'
+  sort?: IngredientSort
   page?: number
   limit?: number
 }

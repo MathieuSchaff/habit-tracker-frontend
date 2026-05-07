@@ -3,7 +3,7 @@ import type { ProductDomainTab } from '@habit-tracker/shared'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
@@ -11,6 +11,7 @@ import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { SortControl } from '@/features/products/components/SortControl/SortControl'
+import { useDraggableY } from '@/hooks/useDraggableY'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { type ProductSort, productQueries } from '@/lib/queries/products'
 
@@ -60,87 +61,90 @@ function ProductsHeaderImpl({
     return () => obs.disconnect()
   }, [])
 
-  const sections = (q: string): ComboboxSection[] => {
-    const folded = foldText(q)
-    if (folded.length < 2) return []
-    const trimmed = q.trim()
-    const slugFolded = folded.replace(/\s+/g, '-')
+  const sections = useCallback(
+    (q: string): ComboboxSection[] => {
+      const folded = foldText(q)
+      if (folded.length < 2) return []
+      const trimmed = q.trim()
+      const slugFolded = folded.replace(/\s+/g, '-')
 
-    const ingredientMatches = ingredients
-      .filter((i) => foldText(i.name).includes(folded) || i.slug.includes(slugFolded))
-      .slice(0, FACET_SECTION_LIMIT)
+      const ingredientMatches = ingredients
+        .filter((i) => foldText(i.name).includes(folded) || i.slug.includes(slugFolded))
+        .slice(0, FACET_SECTION_LIMIT)
 
-    const brandMatches = brands
-      .filter((b) => foldText(b).includes(folded))
-      .slice(0, FACET_SECTION_LIMIT)
+      const brandMatches = brands
+        .filter((b) => foldText(b).includes(folded))
+        .slice(0, FACET_SECTION_LIMIT)
 
-    return [
-      {
-        id: 'ingredients',
-        label: 'Ingrédients',
-        items: ingredientMatches.map((i) => ({
-          id: `ingredient:${i.slug}`,
-          render: (
-            <span className="search-combobox__section-entry">
-              <FlaskConical size={14} aria-hidden="true" />
-              <span>Voir tous les produits avec {i.name}</span>
-            </span>
-          ),
-          onSelect: () =>
-            navigate({
-              to: '/products',
-              search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
-            }),
-        })),
-      },
-      {
-        id: 'brands',
-        label: 'Marques',
-        items: brandMatches.map((b) => ({
-          id: `brand:${b}`,
-          render: (
-            <span className="search-combobox__section-entry">
-              <Tag size={14} aria-hidden="true" />
-              <span>Voir tous les produits {b}</span>
-            </span>
-          ),
-          onSelect: () =>
-            navigate({
-              to: '/products',
-              search: (prev) => ({ ...prev, brand: [b], page: 1 }),
-            }),
-        })),
-      },
-      {
-        id: 'fallback',
-        label: 'Recherche',
-        items: [
-          {
-            id: `query:${trimmed}`,
+      return [
+        {
+          id: 'ingredients',
+          label: 'Ingrédients',
+          items: ingredientMatches.map((i) => ({
+            id: `ingredient:${i.slug}`,
             render: (
               <span className="search-combobox__section-entry">
-                <Search size={14} aria-hidden="true" />
-                <span>Voir tous les résultats pour "{trimmed}"</span>
+                <FlaskConical size={14} aria-hidden="true" />
+                <span>Voir tous les produits avec {i.name}</span>
               </span>
             ),
             onSelect: () =>
               navigate({
                 to: '/products',
-                search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
               }),
-          },
-        ],
-      },
-    ]
-  }
+          })),
+        },
+        {
+          id: 'brands',
+          label: 'Marques',
+          items: brandMatches.map((b) => ({
+            id: `brand:${b}`,
+            render: (
+              <span className="search-combobox__section-entry">
+                <Tag size={14} aria-hidden="true" />
+                <span>Voir tous les produits {b}</span>
+              </span>
+            ),
+            onSelect: () =>
+              navigate({
+                to: '/products',
+                search: (prev) => ({ ...prev, brand: [b], page: 1 }),
+              }),
+          })),
+        },
+        {
+          id: 'fallback',
+          label: 'Recherche',
+          items: [
+            {
+              id: `query:${trimmed}`,
+              render: (
+                <span className="search-combobox__section-entry">
+                  <Search size={14} aria-hidden="true" />
+                  <span>Voir tous les résultats pour "{trimmed}"</span>
+                </span>
+              ),
+              onSelect: () =>
+                navigate({
+                  to: '/products',
+                  search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                }),
+            },
+          ],
+        },
+      ]
+    },
+    [brands, ingredients, navigate]
+  )
 
   return (
     <>
       <div className="products-header__top">
         <div className="products-header__top-inner">
-          <div className="products-header__title-block">
-            <h2 className="products-header__title">Produits</h2>
-            <span className="products-header__count" aria-busy={isPlaceholderData || undefined}>
+          <div className="list-page-layout__header-info">
+            <h2 className="list-page-layout__title">Produits</h2>
+            <span className="list-page-layout__meta" aria-busy={isPlaceholderData || undefined}>
               <strong>{total}</strong>{' '}
               {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
             </span>
@@ -189,6 +193,7 @@ function ProductsHeaderImpl({
             activeTab={activeTab}
             onTabChange={onTabChange}
             ariaLabel="Catégorie de produits"
+            hasPanels={false}
           />
 
           <div className="products-header__search">
@@ -236,16 +241,12 @@ type FloatingFilterButtonProps = {
 }
 
 const FLOATING_FILTER_Y_KEY = 'products-floating-filter-y'
-// Distance px before pointer-down counts as drag (not click)
-const DRAG_THRESHOLD = 6
 // Pill is 56px tall, centered on viewport mid; halfH = 28
 const PILL_HALF_HEIGHT = 28
 // Visual buffer between pill edge and any obstacle (viewport / nav)
 const EDGE_BUFFER = 8
 
-type Bounds = { minY: number; maxY: number }
-
-function computeBounds(): Bounds {
+function computeFloatingFilterBounds() {
   if (typeof window === 'undefined') return { minY: 0, maxY: 0 }
   const halfV = window.innerHeight / 2
   // Mobile-only — desktop has no bottom-nav rendered
@@ -257,74 +258,12 @@ function computeBounds(): Bounds {
   }
 }
 
-function clamp(value: number, { minY, maxY }: Bounds): number {
-  return Math.max(minY, Math.min(maxY, value))
-}
-
 function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonProps) {
-  // Bounds cached so pointer-move drag doesn't querySelector + getBoundingClientRect
-  // every tick. Refreshed on mount + resize only.
-  const boundsRef = useRef<Bounds>(computeBounds())
-  const [y, setY] = useState(() => {
-    if (typeof window === 'undefined') return 0
-    const raw = window.localStorage.getItem(FLOATING_FILTER_Y_KEY)
-    const parsed = raw === null ? 0 : Number(raw)
-    return Number.isFinite(parsed) ? clamp(parsed, boundsRef.current) : 0
+  const { y, dragging, dragHandlers, withClickGuard } = useDraggableY({
+    storageKey: FLOATING_FILTER_Y_KEY,
+    computeBounds: computeFloatingFilterBounds,
+    enabled: visible,
   })
-  const [dragging, setDragging] = useState(false)
-  const dragRef = useRef<{ startClientY: number; startY: number; moved: boolean } | null>(null)
-  // Block the click that fires after a drag-pointerup so onClick only triggers on a true tap.
-  const suppressClickRef = useRef(false)
-
-  useEffect(() => {
-    const onResize = () => {
-      boundsRef.current = computeBounds()
-      setY((cur) => clamp(cur, boundsRef.current))
-    }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!visible || e.button !== 0) return
-    dragRef.current = { startClientY: e.clientY, startY: y, moved: false }
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-
-  const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const drag = dragRef.current
-    if (!drag) return
-    const dy = e.clientY - drag.startClientY
-    if (!drag.moved && Math.abs(dy) >= DRAG_THRESHOLD) {
-      drag.moved = true
-      setDragging(true)
-    }
-    if (drag.moved) setY(clamp(drag.startY + dy, boundsRef.current))
-  }
-
-  const onPointerUp = () => {
-    const drag = dragRef.current
-    if (!drag) return
-    if (drag.moved) {
-      window.localStorage.setItem(FLOATING_FILTER_Y_KEY, String(y))
-      suppressClickRef.current = true
-      setDragging(false)
-    }
-    dragRef.current = null
-  }
-
-  const onPointerCancel = () => {
-    dragRef.current = null
-    setDragging(false)
-  }
-
-  const handleClick = () => {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false
-      return
-    }
-    onClick()
-  }
 
   return (
     <button
@@ -334,11 +273,8 @@ function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonP
       aria-label={`Filtrer${count > 0 ? ` (${count} actif${count > 1 ? 's' : ''})` : ''}`}
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onClick={handleClick}
+      {...dragHandlers}
+      onClick={withClickGuard(onClick)}
     >
       <span className="products-floating-filter__icon-wrap">
         <SlidersHorizontal size={18} aria-hidden="true" />

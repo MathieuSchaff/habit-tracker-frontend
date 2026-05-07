@@ -3,8 +3,11 @@ import type {
   CreateProductInput,
   ProductConcentrationUnit,
   ProductDomainTab,
+  ProductSort,
   UpdateProductInput,
 } from '@habit-tracker/shared'
+
+export type { ProductSort }
 
 import {
   infiniteQueryOptions,
@@ -16,8 +19,6 @@ import {
 
 import { FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
-
-export type ProductSort = 'name' | 'random' | 'price_asc' | 'price_desc' | 'newest'
 
 // Pre-serialization shape: arrays allowed (buildListProductsQuery converts to CSV).
 // Kept local (not shared discriminated union) because Hono RPC expects Record<string,string>.
@@ -406,3 +407,9 @@ export function useProducts(filters: ListProductsFilters = {}) {
 }
 
 export type ProductListItem = NonNullable<ReturnType<typeof useProducts>['data']>['items'][number]
+
+// Single source of truth for the bySlug response shape. Inferred from the
+// query so adding a backend field surfaces here without manual type sync.
+export type ProductDetail = NonNullable<
+  Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.bySlug>['queryFn']>>>
+>

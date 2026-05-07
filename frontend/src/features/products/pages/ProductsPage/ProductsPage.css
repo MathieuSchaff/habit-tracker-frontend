@@ -22,29 +22,7 @@
   gap: var(--space-4);
 }
 
-.products-header__title-block {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.products-header__title {
-  font-family: var(--font-display);
-  font-size: 2.25rem;
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  color: var(--page-title-color, var(--color-primary));
-  margin: 0;
-  line-height: 1;
-}
-
 .products-header__count {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-feature-settings: "tnum" 1;
-  white-space: nowrap;
 }
 
 .products-header__count strong {

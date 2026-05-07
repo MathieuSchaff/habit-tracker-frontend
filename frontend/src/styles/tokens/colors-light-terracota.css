@@ -8,7 +8,6 @@
   --h-lavender: 305;
   --h-coral-soft: 25;
   --h-iron: 33.29;
-  /* --h-forest: 135.95; */
   --h-forest: 151.3708;
 
   --c-muted: 0.07;
@@ -26,17 +25,6 @@
   --mango-bright: oklch(82% 0.18 var(--h-mango));
   --text-inverse-warm: oklch(100% 0 0);
 
-  /* CTA: emerald green — testing oklch(73.98% 0.19736 151.3708) */
-  /* CANDIDAT RETENU: emerald-dark oklch(71.23% 0.1644 154.09) — j'aime bien,
-     mais il faudra adapter/changer l'orange secondary (mango) pour l'harmoniser */
-  /* NAVBAR CANDIDAT: vivid-tangerine oklch(73.19% 0.1858 52.98) — j'aime */
-  /* CARD FOOTER CANDIDAT: frozen-lake oklch(83% 0.111 226.72) — pas mal */
-  /* CARD FOOTER RETENU: powder-blue oklch(77.36% 0.0997 276.22) */
-  /* CARD FOOTER CANDIDAT: cool-sky oklch(70.67% 0.1626 246.71) — bien aussi mais bleu assez fort */
-  /* CARD FOOTER CANDIDAT (DARK MODE): steel-blue oklch(60.79% 0.1181 246.61) — trop foncé pour light, à tester en dark mode */
-  /* --color-primary: oklch(68% 0.24 145); */
-  /* --color-primary-hover: oklch(62% 0.26 145); */
-  /* --color-primary-dark: oklch(52% 0.22 145); */
   --color-primary: oklch(71.23% 0.1644 154.09);
   --color-primary-hover: oklch(63% 0.175 154.09);
   --color-primary-text: oklch(100% 0 0);

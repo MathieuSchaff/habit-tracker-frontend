@@ -66,10 +66,9 @@
 }
 
 .search-select__input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px oklch(from var(--color-primary) l c h / 0.15);
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
 }
 
 .search-select__dropdown {
