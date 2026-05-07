@@ -4,7 +4,9 @@ import { HTTP_STATUS, type HttpStatus } from '../core'
 
 // SCHEMAS
 
-const dateFormat = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format YYYY-MM-DD requis')
+// snoozedUntil is a calendar date but travels as ISO datetime UTC on the wire.
+// Backend boundary truncates to YYYY-MM-DD for the `date` column.
+const instantSchema = z.iso.datetime()
 
 export const createTaskSchema = z.object({
   title: z.string().min(1).max(500),
@@ -15,7 +17,7 @@ export const updateTaskSchema = z.object({
   title: z.string().min(1).max(500).optional(),
   energy: z.enum(['low', 'medium', 'high']).nullable().optional(),
   status: z.enum(['inbox', 'active', 'done', 'snoozed']).optional(),
-  snoozedUntil: dateFormat.nullable().optional(),
+  snoozedUntil: instantSchema.nullable().optional(),
   focusDurationMinutes: z.number().int().min(0).optional(),
 })
 
@@ -38,31 +40,34 @@ export type UpdateSubtaskInput = z.infer<typeof updateSubtaskSchema>
 export type TaskEnergy = 'low' | 'medium' | 'high'
 export type TaskStatus = 'inbox' | 'active' | 'done' | 'snoozed'
 
-// Entity Types
-// Types standalone mirroring the Drizzle schema.
-// Defined here (not imported from backend) to keep shared independent of ORM.
+// Entity schemas
+// Mirrors the Drizzle schema, but kept Zod here to keep shared independent of
+// the ORM. Used by backend devAssertSchema for response shape validation.
 
-export interface Task {
-  id: string
-  userId: string
-  title: string
-  energy: TaskEnergy | null
-  status: TaskStatus
-  snoozedUntil: string | null // date string YYYY-MM-DD
-  doneAt: string | null // ISO timestamp string
-  focusDurationMinutes: number | null
-  createdAt: string // ISO timestamp string
-  updatedAt: string // ISO timestamp string
-}
+export const taskSchema = z.object({
+  id: z.uuid(),
+  userId: z.uuid(),
+  title: z.string(),
+  energy: z.enum(['low', 'medium', 'high']).nullable(),
+  status: z.enum(['inbox', 'active', 'done', 'snoozed']),
+  snoozedUntil: instantSchema.nullable(),
+  doneAt: instantSchema.nullable(),
+  focusDurationMinutes: z.number().int().nullable(),
+  createdAt: instantSchema,
+  updatedAt: instantSchema,
+})
 
-export interface Subtask {
-  id: string
-  taskId: string
-  title: string
-  completed: boolean
-  order: number
-  createdAt: string
-}
+export const subtaskSchema = z.object({
+  id: z.uuid(),
+  taskId: z.uuid(),
+  title: z.string(),
+  completed: z.boolean(),
+  order: z.number().int(),
+  createdAt: instantSchema,
+})
+
+export type Task = z.infer<typeof taskSchema>
+export type Subtask = z.infer<typeof subtaskSchema>
 
 // Error Codes
 

@@ -36,7 +36,7 @@ export async function generateAccessToken(
 export async function generateRefreshToken(
   userId: string,
   secret: string
-): Promise<{ token: string; jti: string; expiresAt: Date }> {
+): Promise<{ token: string; jti: string; expiresAt: string }> {
   const now = Math.floor(Date.now() / 1000)
   const jti = Bun.randomUUIDv7()
 
@@ -54,7 +54,7 @@ export async function generateRefreshToken(
   return {
     token,
     jti,
-    expiresAt: new Date((now + JWT_CONFIG.refreshTokenExpiry) * 1000),
+    expiresAt: new Date((now + JWT_CONFIG.refreshTokenExpiry) * 1000).toISOString(),
   }
 }
 

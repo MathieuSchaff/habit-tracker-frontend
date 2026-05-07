@@ -2,11 +2,12 @@ import type { ProfileUpdateInput } from '@habit-tracker/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Calendar, Settings, UserCircle } from 'lucide-react'
-import { Suspense, useCallback, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
+import { formatInstant } from '@/lib/dates'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
 import { EditableSection } from '../../components/EditableSection/EditableSection'
 import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
@@ -17,11 +18,6 @@ import { ProfileStats } from '../../tabs/OverviewTab/ProfileStats'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 import { DermoProfileForm } from '../../tabs/SkinTab/DermoProfileForm'
 import './ProfileDashboard.css'
-
-const formatJoinDate = (date?: string | null): string => {
-  if (!date) return ''
-  return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(new Date(date))
-}
 
 type TabType = 'profile' | 'preferences' | 'account'
 type EditingSection = 'hero' | 'skin' | null
@@ -34,10 +30,6 @@ export const ProfileDashboard = () => {
   const [editingSection, setEditingSection] = useState<EditingSection>(null)
 
   const displayName = profile.username ?? 'Utilisateur'
-
-  const handleEditSection = useCallback((section: EditingSection) => {
-    setEditingSection(section)
-  }, [])
 
   const handleProfileUpdate = (data: ProfileUpdateInput) => {
     updateProfile.mutate(data, {
@@ -86,7 +78,7 @@ export const ProfileDashboard = () => {
             {profile.createdAt && (
               <p className="profile-hero__since">
                 <Calendar size={13} aria-hidden="true" />
-                <span>Membre depuis {formatJoinDate(profile.createdAt)}</span>
+                <span>Membre depuis {formatInstant(profile.createdAt, 'monthYear')}</span>
               </p>
             )}
           </div>
@@ -112,7 +104,7 @@ export const ProfileDashboard = () => {
           <EditableSection
             title="Mes informations"
             isEditing={editingSection === 'hero'}
-            onEdit={() => handleEditSection('hero')}
+            onEdit={() => setEditingSection('hero')}
             readContent={
               <div className="profile-info-read">
                 {profile.bio && <p className="profile-info-read__bio">{profile.bio}</p>}
@@ -157,7 +149,7 @@ export const ProfileDashboard = () => {
           <EditableSection
             title="Ma peau"
             isEditing={editingSection === 'skin'}
-            onEdit={() => handleEditSection('skin')}
+            onEdit={() => setEditingSection('skin')}
             readContent={
               dermo ? (
                 <SkinProfileRead dermo={dermo} />

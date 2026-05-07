@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
 import { FITZPATRICK_ITEMS, SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import './SkinProfileRead.css'
 
@@ -71,8 +72,9 @@ export function SkinProfileRead({ dermo }: SkinProfileReadProps) {
             <p className="skin-read__notes-text">{dermo.privateNotes}</p>
           </div>
           {(dermo.privateNotes?.length ?? 0) > 150 && (
-            <button
+            <Button
               type="button"
+              variant="bare"
               className="skin-read__notes-toggle"
               onClick={() => setNotesExpanded(!notesExpanded)}
               aria-expanded={notesExpanded}
@@ -85,7 +87,7 @@ export function SkinProfileRead({ dermo }: SkinProfileReadProps) {
                 )}
               />
               {notesExpanded ? 'Voir moins' : 'Voir plus'}
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -66,6 +66,7 @@ export function useCreateTask() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: taskKeys.list() })
     },
+    meta: { errorMessage: 'Tâche non créée — réessaie plus tard.' },
   })
 }
 
@@ -82,6 +83,7 @@ export function useUpdateTask() {
       qc.invalidateQueries({ queryKey: taskKeys.list() })
       qc.invalidateQueries({ queryKey: taskKeys.today() })
     },
+    meta: { errorMessage: 'Modification non enregistrée.' },
   })
 }
 
@@ -96,6 +98,7 @@ export function useDeleteTask() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: taskKeys.all })
     },
+    meta: { errorMessage: 'Suppression impossible.' },
   })
 }
 
@@ -111,6 +114,7 @@ export function useCreateSubtask() {
     onSuccess: (_, { taskId }) => {
       qc.invalidateQueries({ queryKey: taskKeys.subtasks(taskId) })
     },
+    meta: { errorMessage: 'Sous-tâche non créée.' },
   })
 }
 
@@ -137,6 +141,7 @@ export function useUpdateSubtask() {
     onSuccess: (_, { taskId }) => {
       qc.invalidateQueries({ queryKey: taskKeys.subtasks(taskId) })
     },
+    meta: { errorMessage: 'Modification non enregistrée.' },
   })
 }
 
@@ -153,5 +158,6 @@ export function useDeleteSubtask() {
     onSuccess: (_, { taskId }) => {
       qc.invalidateQueries({ queryKey: taskKeys.subtasks(taskId) })
     },
+    meta: { errorMessage: 'Suppression impossible.' },
   })
 }

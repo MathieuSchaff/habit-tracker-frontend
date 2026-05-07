@@ -26,7 +26,7 @@ function hashToken(rawToken: string): string {
 export async function createVerificationToken(db: DB, userId: string): Promise<string> {
   const rawToken = generateRawToken()
   const tokenHash = hashToken(rawToken)
-  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS)
+  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS).toISOString()
 
   // Mark all previous tokens as used so only one token is valid at a time
   await db
@@ -45,7 +45,6 @@ export async function createVerificationToken(db: DB, userId: string): Promise<s
 
 export async function verifyEmailToken(db: DB, rawToken: string) {
   const tokenHash = hashToken(rawToken)
-  const now = new Date()
 
   const [row] = await db
     .select()
@@ -57,7 +56,7 @@ export async function verifyEmailToken(db: DB, rawToken: string) {
     return err('invalid_token' as const)
   }
 
-  if (row.expiresAt < now) {
+  if (Date.parse(row.expiresAt) < Date.now()) {
     return err('token_expired' as const)
   }
 

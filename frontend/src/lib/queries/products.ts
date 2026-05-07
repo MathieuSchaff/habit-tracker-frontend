@@ -19,6 +19,7 @@ import {
 
 import { FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
+import { ApiError, throwIfNotOk } from '../helpers/apiError'
 
 // Pre-serialization shape: arrays allowed (buildListProductsQuery converts to CSV).
 // Kept local (not shared discriminated union) because Hono RPC expects Record<string,string>.
@@ -219,9 +220,9 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: async (data: CreateProductInput) => {
       const res = await api.products.$post({ json: data })
-      if (!res.ok) throw new Error('Failed to create product')
+      await throwIfNotOk(res, 'product_creation_failed')
       const json = await res.json()
-      if (!json.success) throw new Error('Failed to create product')
+      if (!json.success) throw new ApiError('product_creation_failed', res.status)
       return json.data
     },
     onSuccess: (product) => {
@@ -229,6 +230,7 @@ export function useCreateProduct() {
       qc.invalidateQueries({ queryKey: productKeys.lists() })
       qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
+    // Caller (useQuickAdd, AddToCollectionModal) toasts the contextual message.
   })
 }
 
@@ -237,15 +239,16 @@ export function useUpdateProduct() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateProductInput }) => {
       const res = await api.products[':id'].$patch({ param: { id }, json: data })
-      if (!res.ok) throw new Error('Failed to update product')
+      await throwIfNotOk(res, 'product_update_failed')
       const json = await res.json()
-      if (!json.success) throw new Error('Failed to update product')
+      if (!json.success) throw new ApiError('product_update_failed', res.status)
       return json.data
     },
     onSuccess: (product) => {
       qc.setQueryData(productKeys.bySlug(product.slug), product)
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
+    meta: { errorMessage: 'Modification du produit impossible.' },
   })
 }
 
@@ -261,6 +264,7 @@ export function useDeleteProduct() {
       qc.invalidateQueries({ queryKey: productKeys.lists() })
       qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
+    meta: { errorMessage: 'Suppression du produit impossible.' },
   })
 }
 
@@ -288,6 +292,7 @@ export function useUpdateProductTags() {
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
+    meta: { errorMessage: 'Mise à jour des tags impossible.' },
   })
 }
 
@@ -323,6 +328,7 @@ export function useAddProductIngredient() {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
+    meta: { errorMessage: "Ajout de l'ingrédient impossible." },
   })
 }
 
@@ -357,6 +363,7 @@ export function useUpdateProductIngredient() {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
+    meta: { errorMessage: "Mise à jour de l'ingrédient impossible." },
   })
 }
 
@@ -399,6 +406,7 @@ export function useRemoveProductIngredient() {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })
       qc.invalidateQueries({ queryKey: productKeys.bySlug(slug) })
     },
+    meta: { errorMessage: "Retrait de l'ingrédient impossible." },
   })
 }
 

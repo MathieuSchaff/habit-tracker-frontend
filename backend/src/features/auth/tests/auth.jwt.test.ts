@@ -49,7 +49,7 @@ describe('JWT Utils', () => {
       expect(payload.sub).toBe(userId)
       expect(payload.type).toBe('refresh')
       expect(payload.jti).toBe(jti)
-      expect(expiresAt.getTime()).toBeGreaterThan(Date.now())
+      expect(new Date(expiresAt).getTime()).toBeGreaterThan(Date.now())
     })
 
     it('should reject refresh token verified with wrong secret', async () => {

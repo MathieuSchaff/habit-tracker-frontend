@@ -97,7 +97,7 @@ describe('Product Ingredients Service', () => {
         notes: null,
       })
 
-      expect(link?.createdAt).toBeInstanceOf(Date)
+      expect(typeof link?.createdAt).toBe('string')
     })
   })
 

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
+import { Input } from '@/component/Input/Input'
 import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
 import { useDebounce } from '@/hooks/useDebounce'
 import { ingredientQueries } from '@/lib/queries/ingredients'
@@ -54,10 +55,9 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
       )}
     >
       {({ listboxId, activeDescendant }) => (
-        <input
+        <Input
           type="text"
           role="combobox"
-          className="ingredient-search__input"
           placeholder="Rechercher un ingrédient à ajouter…"
           aria-label="Rechercher un ingrédient"
           value={query}

@@ -2,6 +2,7 @@ import { BLOG_CATEGORY_VALUES } from '@habit-tracker/shared'
 
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
 
+import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { BlogArticlePage } from '@/features/blog/components/BlogArticlePage'
 import { BlogArticleSkeleton } from '@/features/blog/components/skeletons/BlogSkeletons'
 import { articleQueries } from '@/lib/queries/articles'
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/blog/$category/$slug')({
   },
   component: BlogArticleRoute,
   pendingComponent: BlogArticleSkeleton,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
 })
 
 function BlogArticleRoute() {

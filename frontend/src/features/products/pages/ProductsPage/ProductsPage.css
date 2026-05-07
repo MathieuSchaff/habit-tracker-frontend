@@ -102,31 +102,24 @@
   background: oklch(from var(--color-primary) l c h / 0.06);
 }
 
-.products-chips-toggle {
+.button.bare.products-chips-toggle {
   flex: 1 1 auto;
-  display: flex;
-  align-items: center;
   gap: 8px;
   padding: 8px var(--space-6);
-  background: transparent;
-  border: 0;
-  font-family: var(--font-sans);
   font-size: 12px;
   color: var(--text-secondary);
   font-weight: 600;
-  text-align: left;
-  cursor: pointer;
   transition:
     background var(--transition-fast) ease,
     color var(--transition-fast) ease;
 }
 
-.products-chips-toggle strong {
+.button.bare.products-chips-toggle strong {
   color: var(--text-primary);
   font-weight: 700;
 }
 
-.products-chips-toggle:hover {
+.button.bare.products-chips-toggle:hover:not(:disabled) {
   color: var(--text-primary);
 }
 
@@ -144,24 +137,19 @@
   transform: rotate(180deg);
 }
 
-.products-chips-toggle__edit {
+.button.bare.products-chips-toggle__edit {
   flex: 0 0 auto;
-  display: inline-flex;
   align-items: center;
   margin-right: var(--space-6);
-  background: transparent;
-  border: 0;
-  font-family: var(--font-sans);
   font-size: 12px;
   color: var(--color-primary);
   font-weight: 600;
-  cursor: pointer;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   transition: background var(--transition-fast) ease;
 }
 
-.products-chips-toggle__edit:hover {
+.button.bare.products-chips-toggle__edit:hover:not(:disabled) {
   color: var(--color-primary);
   text-decoration: underline;
 }
@@ -307,11 +295,11 @@
     min-width: 0;
   }
 
-  .products-chips-toggle {
+  .button.bare.products-chips-toggle {
     padding: 8px var(--space-4);
   }
 
-  .products-chips-toggle__edit {
+  .button.bare.products-chips-toggle__edit {
     margin-right: var(--space-4);
   }
 

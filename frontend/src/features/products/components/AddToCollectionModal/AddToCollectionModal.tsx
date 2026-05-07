@@ -7,6 +7,7 @@ import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
+import { fromDateInputValue, todayDateInputValue } from '@/lib/dates'
 import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
 import './AddToCollectionModal.css'
@@ -43,7 +44,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
   const [step, setStep] = useState<'status' | 'purchase'>('status')
   const [selectedStatus, setSelectedStatus] = useState<UserProductStatus | null>(null)
   const [price, setPrice] = useState(defaultPrice)
-  const [purchasedAt, setPurchasedAt] = useState(() => new Date().toISOString().split('T')[0])
+  const [purchasedAt, setPurchasedAt] = useState(() => todayDateInputValue())
 
   const addUserProduct = useCreateUserProduct()
   const addPurchase = useAddPurchase()
@@ -92,7 +93,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
       }
       await addPurchase.mutateAsync({
         userProductId,
-        input: { purchasedAt, pricePaidCents },
+        input: { purchasedAt: fromDateInputValue(purchasedAt), pricePaidCents },
       })
       onSuccess?.()
       onClose()

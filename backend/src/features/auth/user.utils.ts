@@ -21,13 +21,13 @@ function mapUserRow(row: Record<string, unknown> | undefined): User | null {
     email: row.email as string,
     passwordHash: row.password_hash as HashedPassword | null,
     googleSub: row.google_sub as string | null,
-    createdAt: row.created_at as Date,
-    updatedAt: row.updated_at as Date,
-    emailVerifiedAt: (row.email_verified_at as Date | null) ?? null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+    emailVerifiedAt: (row.email_verified_at as string | null) ?? null,
     role: row.role as User['role'],
-    deletedAt: (row.deleted_at as Date | null) ?? null,
+    deletedAt: (row.deleted_at as string | null) ?? null,
     isDemo: row.is_demo as boolean,
-    expiresAt: (row.expires_at as Date | null) ?? null,
+    expiresAt: (row.expires_at as string | null) ?? null,
   }
 }
 
@@ -99,7 +99,7 @@ export async function createUser(
   userData: {
     email: Email
     passwordHash: HashedPassword | null
-    emailVerifiedAt?: Date | null
+    emailVerifiedAt?: string | null
     isDemo?: boolean
   }
 ) {

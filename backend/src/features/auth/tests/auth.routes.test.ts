@@ -744,7 +744,7 @@ describe('Auth Routes (browser)', () => {
 
       await testDb
         .update(emailVerifications)
-        .set({ expiresAt: new Date(Date.now() - 1000) })
+        .set({ expiresAt: new Date(Date.now() - 1000).toISOString() })
         .where(eq(emailVerifications.userId, user.id))
 
       const res = await jsonPost(app, '/auth/verify-email', { token })
@@ -780,7 +780,7 @@ describe('Auth Routes (browser)', () => {
 
       await testDb
         .update(usersTable)
-        .set({ emailVerifiedAt: new Date() })
+        .set({ emailVerifiedAt: new Date().toISOString() })
         .where(eq(usersTable.id, user.id))
 
       const res = await app.request('/auth/resend-verification', {
@@ -829,7 +829,7 @@ describe('Auth Routes (browser)', () => {
 
       await testDb
         .update(usersTable)
-        .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) })
+        .set({ createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString() })
         .where(eq(usersTable.id, user.id))
 
       const res = await jsonPost(app, '/auth/login', {

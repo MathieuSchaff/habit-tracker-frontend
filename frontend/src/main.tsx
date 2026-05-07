@@ -4,6 +4,7 @@ import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { navItems } from './component/Header/NavItem/NavItem'
+import { reportError } from './lib/errorReporter'
 import { queryClient } from './lib/queryClient'
 import { routeTree } from './routeTree.gen'
 import { useAuthStore } from './store/auth'
@@ -131,6 +132,18 @@ function InnerApp() {
     />
   )
 }
+
+// Catches promise rejections that escape every other handler (effect bodies,
+// fire-and-forget calls). Never surface to the user — react-query already toasts
+// what users care about; this is the safety net for our backend logs.
+window.addEventListener('unhandledrejection', (e) => {
+  const err = e.reason instanceof Error ? e.reason : new Error(String(e.reason))
+  reportError(err, { source: 'unhandledrejection' })
+})
+window.addEventListener('error', (e) => {
+  if (!e.error) return
+  reportError(e.error as Error, { source: 'window.error' })
+})
 
 // biome-ignore lint: root will be here
 const rootElement = document.getElementById('root')!

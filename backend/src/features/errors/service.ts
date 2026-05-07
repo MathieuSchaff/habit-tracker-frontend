@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm'
 
 import type { Database } from '../../db/index'
 import { errorGroups, errorOccurrences } from '../../db/schema'
+import { nowISO } from '../../utils/dates'
 
 export interface TrackErrorInput {
   source: 'backend' | 'frontend'
@@ -25,6 +26,7 @@ export async function trackError(db: Database, input: TrackErrorInput): Promise<
   const { source, message, stack, context, userId } = input
   const fingerprint = computeFingerprint(source, message, stack)
 
+  const now = nowISO()
   const [group] = await db
     .insert(errorGroups)
     .values({
@@ -34,8 +36,8 @@ export async function trackError(db: Database, input: TrackErrorInput): Promise<
       stack: stack ?? null,
       context: context ?? null,
       count: 1,
-      firstSeenAt: new Date(),
-      lastSeenAt: new Date(),
+      firstSeenAt: now,
+      lastSeenAt: now,
     })
     .onConflictDoUpdate({
       target: errorGroups.fingerprint,
@@ -51,6 +53,6 @@ export async function trackError(db: Database, input: TrackErrorInput): Promise<
   await db.insert(errorOccurrences).values({
     groupId: group.id,
     userId: userId ?? null,
-    occurredAt: new Date(),
+    occurredAt: now,
   })
 }

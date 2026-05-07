@@ -35,16 +35,16 @@ export const users = pgTable(
     // Stable Google identifier (subject). Null if user never logged in with Google
     googleSub: text('google_sub'),
 
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
-    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+      .$onUpdate(() => new Date().toISOString()),
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true, mode: 'string' }),
     role: userRoleEnum('role').notNull().default('user'),
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
     isDemo: boolean('is_demo').notNull().default(false),
-    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
   },
   (t) => [
     // Case-insensitive unique email, only for active accounts
@@ -69,8 +69,8 @@ export const profiles = pgTable(
     bio: text('bio'),
     links: jsonb('links').$type<ProfileLink[]>().notNull().default(sql`'[]'::jsonb`),
     profilePublic: boolean('profile_public').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('profiles_username_ux').on(t.username),
@@ -109,11 +109,11 @@ export const userDermoProfiles = pgTable(
     fitzpatrickType: integer('fitzpatrick_type'),
     skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
     privateNotes: text('private_notes'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date().toISOString()),
   },
   (t) => [
     check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),
@@ -129,12 +129,12 @@ export const refreshTokens = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     jtiHash: text('jti_hash').notNull(),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-    revokedAt: timestamp('revoked_at', { withTimezone: true }),
-    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true, mode: 'string' }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true, mode: 'string' }),
     ip: varchar('ip', { length: 45 }),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('refresh_tokens_jti_hash_ux').on(t.jtiHash),
@@ -163,12 +163,12 @@ export const usersSafe = pgView('users_safe', {
   id: uuid('id').notNull(),
   email: varchar('email', { length: 320 }).notNull(),
   role: userRoleEnum('role').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
-  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
+  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true, mode: 'string' }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
   isDemo: boolean('is_demo').notNull(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
 }).existing()
 
 export type UserDermoProfileRow = typeof userDermoProfiles.$inferSelect

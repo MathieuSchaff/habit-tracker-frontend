@@ -26,6 +26,7 @@ export const profileQueries = {
       queryFn: async () => {
         const res = await api.profile.stats.$get()
         const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
       },
       staleTime: 1000 * 60 * 5,
@@ -36,6 +37,7 @@ export const profileQueries = {
       queryFn: async () => {
         const res = await api.profile.dermo.$get()
         const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
       },
       staleTime: 1000 * 60 * 5,
@@ -55,6 +57,7 @@ export const useUpdateProfile = () => {
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', 'me'], data)
     },
+    meta: { errorMessage: 'Mise à jour du profil impossible.' },
   })
 }
 
@@ -63,6 +66,7 @@ export const useDeleteUser = () => {
     mutationFn: async () => {
       await api.profile.deleteUser.$delete()
     },
+    meta: { errorMessage: 'Suppression du compte impossible.' },
   })
 }
 
@@ -78,6 +82,7 @@ export const useUpdateDermoProfile = () => {
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', 'dermo'], data)
     },
+    meta: { errorMessage: 'Mise à jour du profil dermo impossible.' },
   })
 }
 
@@ -108,5 +113,6 @@ export const useUpdatePrivacySettings = () => {
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', 'privacy'], data)
     },
+    meta: { errorMessage: 'Mise à jour de la confidentialité impossible.' },
   })
 }

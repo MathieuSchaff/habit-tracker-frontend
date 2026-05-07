@@ -52,7 +52,7 @@ describe('Tasks API', () => {
     it('excludes snoozed tasks with future snoozedUntil', async () => {
       const createRes = await authPost(app, '/tasks', token, { title: 'Snoozée future' })
       const task = (await createRes.json()).data
-      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+      const tomorrow = new Date(Date.now() + 86400000).toISOString()
 
       await authPatch(app, `/tasks/${task.id}`, token, {
         status: 'snoozed',
@@ -112,7 +112,9 @@ describe('Tasks API', () => {
     it('snoozes a task', async () => {
       const createRes = await authPost(app, '/tasks', token, { title: 'Snoozée' })
       const task = (await createRes.json()).data
-      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+      // Calendar columns truncate to UTC midnight on the wire.
+      const tomorrowDate = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+      const tomorrow = `${tomorrowDate}T00:00:00.000Z`
 
       const res = await authPatch(app, `/tasks/${task.id}`, token, {
         status: 'snoozed',

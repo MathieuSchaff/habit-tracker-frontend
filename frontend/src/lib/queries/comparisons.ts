@@ -45,6 +45,7 @@ export const useCreateComparison = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: comparisonKeys.list() })
     },
+    meta: { errorMessage: 'Création de la comparaison impossible.' },
   })
 }
 
@@ -64,6 +65,7 @@ export const useUpdateComparison = () => {
       qc.invalidateQueries({ queryKey: comparisonKeys.detail(id) })
       qc.invalidateQueries({ queryKey: comparisonKeys.list() })
     },
+    meta: { errorMessage: 'Mise à jour de la comparaison impossible.' },
   })
 }
 
@@ -77,5 +79,6 @@ export const useDeleteComparison = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: comparisonKeys.all })
     },
+    meta: { errorMessage: 'Suppression de la comparaison impossible.' },
   })
 }

@@ -13,10 +13,15 @@ interface AuthStore {
   // Latch flipped after the first silent-refresh probe at boot, so subsequent navigations
   // don't re-fire /auth/refresh on every click when the user has no session cookie.
   bootRefreshAttempted: boolean
+  // Set when authFetch's 401-recovery silent refresh fails after the user had a live
+  // session. RootComponent watches this and redirects to /auth/login.
+  sessionExpired: boolean
 
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
   markBootRefreshAttempted: () => void
+  markSessionExpired: () => void
+  clearSessionExpired: () => void
   isTokenExpired: () => boolean
 }
 
@@ -42,6 +47,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isAdmin: false,
   isDemo: false,
   bootRefreshAttempted: false,
+  sessionExpired: false,
 
   setAuth: (token, user) =>
     set({
@@ -53,6 +59,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       isAdmin: user.role === 'admin',
       isDemo: user.isDemo ?? false,
       bootRefreshAttempted: true,
+      sessionExpired: false,
     }),
 
   // After logout we know there's no session — keep the latch on to avoid re-probing.
@@ -69,6 +76,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }),
 
   markBootRefreshAttempted: () => set({ bootRefreshAttempted: true }),
+  markSessionExpired: () => set({ sessionExpired: true }),
+  clearSessionExpired: () => set({ sessionExpired: false }),
 
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt

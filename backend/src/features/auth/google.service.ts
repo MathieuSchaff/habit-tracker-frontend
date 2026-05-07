@@ -8,6 +8,7 @@ import { bindRlsContext } from '../../db/rls'
 import { users } from '../../db/schema'
 import { getGoogleInstance } from '../../lib/artic'
 import { logger } from '../../lib/logger'
+import { nowISO } from '../../utils/dates'
 import { type AuthContext, createTokenPair } from './service'
 import { createProfile, createUser, getUser, getUserByGoogleSub, toPublicUser } from './user.utils'
 
@@ -57,7 +58,7 @@ export async function handleGoogleCallback(
       const newUser = await createUser(tx, {
         email: emailSchema.parse(email),
         passwordHash: null,
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: nowISO(),
       })
       await tx.update(users).set({ googleSub }).where(eq(users.id, newUser.id))
       // Set RLS context so the profiles insert passes WITH CHECK on app_runtime.

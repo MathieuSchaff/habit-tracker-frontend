@@ -2,6 +2,7 @@ import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
 
 import { useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
 import { computeCommon, computeSpecifics } from '../helpers/aggregations'
 import './DiffSection.css'
 
@@ -78,13 +79,13 @@ export function DiffSection({ products }: Props) {
               )}
 
               {hidden > 0 && (
-                <button
-                  type="button"
+                <Button
+                  variant="bare"
                   className="diff-section__more"
                   onClick={() => toggleExpand(p.id)}
                 >
                   {isExpanded ? 'Voir moins' : `+ ${hidden} autres`}
-                </button>
+                </Button>
               )}
             </div>
           )

@@ -27,9 +27,16 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
   const res = await fetch(input, init)
   if (res.status !== 401 || isRefreshEndpoint(input)) return res
 
+  const hadSession = useAuthStore.getState().accessToken != null
+
   // silentRefresh dedupes concurrent calls internally, so parallel 401s share one refresh.
   const result = await silentRefresh(queryClient)
-  if (result !== 'ok') return res
+  if (result !== 'ok') {
+    // Only flag as expired if the user actually had a token — boot probes on
+    // anonymous browsers also land here and shouldn't trigger a login redirect.
+    if (result === 'failed' && hadSession) useAuthStore.getState().markSessionExpired()
+    return res
+  }
 
   const token = useAuthStore.getState().accessToken
   return fetch(input, withAuthHeader(init, token))

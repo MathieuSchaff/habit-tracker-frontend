@@ -81,10 +81,8 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   // (e.g. "max 1 retinoid", "redundant vitamin C variants") and UI
   // filters can target the family rather than each member.
   RETINOIDS: 'retinoids',
-  RETINOL_ALTERNATIVES: 'retinol-alternatives',
   VITAMIN_C: 'vitamin-c',
   VITAMIN_E: 'vitamin-e',
-  NIACINAMIDE: 'niacinamide',
   AHA: 'aha',
   BHA: 'bha',
   PHA: 'pha',
@@ -93,9 +91,7 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   HYALURONIC_ACID: 'hyaluronic-acid',
   PEPTIDES: 'peptides',
   POLYPHENOLS: 'polyphenols',
-  CENTELLA: 'centella',
   TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
-  AZELAIC_ACID: 'azelaic-acid',
 } as const
 
 export type SkincareIngredientTagSlug =

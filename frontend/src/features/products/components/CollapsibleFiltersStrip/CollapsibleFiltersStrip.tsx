@@ -1,6 +1,8 @@
 import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 
+import { Button } from '@/component/Button/Button'
+
 type Props = {
   count: number
   onOpenDrawer: () => void
@@ -16,8 +18,8 @@ export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props
   return (
     <div className={`products-chips-collapsible${open ? ' products-chips-collapsible--open' : ''}`}>
       <div className="products-chips-toggle-row">
-        <button
-          type="button"
+        <Button
+          variant="bare"
           className="products-chips-toggle"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
@@ -32,17 +34,17 @@ export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props
             className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
             aria-hidden="true"
           />
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="bare"
           className="products-chips-toggle__edit"
           onClick={onOpenDrawer}
           aria-label="Modifier les filtres"
         >
           Modifier
-        </button>
+        </Button>
       </div>
-      <div className="products-chips-body" aria-hidden={!open}>
+      <div className="products-chips-body" inert={!open}>
         <div className="products-chips-inner">{children}</div>
       </div>
     </div>

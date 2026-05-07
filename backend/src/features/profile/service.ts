@@ -23,6 +23,7 @@ import {
   userDermoProfiles,
   users,
 } from '../../db/schema/users'
+import { nowISO } from '../../utils/dates'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
@@ -42,8 +43,8 @@ export function toProfilePublic(profile: Profile): ProfilePublic {
     bio: profile.bio,
     avatarUrl: profile.avatarUrl,
     links: profile.links,
-    createdAt: profile.createdAt.toISOString(),
-    updatedAt: profile.updatedAt.toISOString(),
+    createdAt: profile.createdAt,
+    updatedAt: profile.updatedAt,
   }
 }
 
@@ -60,7 +61,7 @@ export async function updateProfile(
 ): Promise<ProfilePublic | null> {
   const [profile] = await db
     .update(profiles)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: nowISO() })
     .where(eq(profiles.userId, userId))
     .returning()
   return profile ? toProfilePublic(profile) : null
@@ -73,8 +74,8 @@ function toDermoProfile(row: UserDermoProfileRow): UserDermoProfile {
     fitzpatrickType: row.fitzpatrickType,
     skinConcerns: (row.skinConcerns ?? []) as UserDermoProfile['skinConcerns'],
     privateNotes: row.privateNotes,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   }
 }
 
@@ -109,7 +110,7 @@ export async function upsertDermoProfile(
         ...(data.fitzpatrickType !== undefined ? { fitzpatrickType: data.fitzpatrickType } : {}),
         ...(data.skinConcerns !== undefined ? { skinConcerns: data.skinConcerns } : {}),
         ...(data.privateNotes !== undefined ? { privateNotes: data.privateNotes } : {}),
-        updatedAt: new Date(),
+        updatedAt: nowISO(),
       },
     })
     .returning()
@@ -128,14 +129,14 @@ export async function getUserPreferences(db: DB, userId: string) {
     return {
       displayScale: DEFAULT_DISPLAY_SCALE,
       criteriaWeights: DEFAULT_CRITERIA_WEIGHTS,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowISO(),
     }
   }
 
   return {
     displayScale: row.displayScale,
     criteriaWeights: row.criteriaWeights,
-    updatedAt: row.updatedAt.toISOString(),
+    updatedAt: row.updatedAt,
   }
 }
 
@@ -168,7 +169,7 @@ export async function updateUserPreferences(
       set: {
         ...(data.displayScale ? { displayScale: data.displayScale } : {}),
         criteriaWeights: mergedWeights,
-        updatedAt: new Date(),
+        updatedAt: nowISO(),
       },
     })
     .returning()
@@ -176,7 +177,7 @@ export async function updateUserPreferences(
   return {
     displayScale: row.displayScale,
     criteriaWeights: row.criteriaWeights,
-    updatedAt: row.updatedAt.toISOString(),
+    updatedAt: row.updatedAt,
   }
 }
 
@@ -228,7 +229,7 @@ export async function updatePrivacySettings(
   if (data.profilePublic !== undefined) {
     const [updated] = await db
       .update(profiles)
-      .set({ profilePublic: data.profilePublic, updatedAt: new Date() })
+      .set({ profilePublic: data.profilePublic, updatedAt: nowISO() })
       .where(eq(profiles.userId, userId))
       .returning({ profilePublic: profiles.profilePublic })
 
@@ -259,7 +260,7 @@ export async function updatePrivacySettings(
       })
       .onConflictDoUpdate({
         target: userPreferences.userId,
-        set: { aiConsent: data.aiConsent, updatedAt: new Date() },
+        set: { aiConsent: data.aiConsent, updatedAt: nowISO() },
       })
 
     aiConsent = data.aiConsent

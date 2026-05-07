@@ -85,6 +85,7 @@ scripts/*
 
 # =========================
 backend/src/db/seed/output/
+backend/tmp/
 
 # Test results (generated in CI)
 **/test-results/

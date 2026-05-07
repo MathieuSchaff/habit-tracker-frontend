@@ -141,7 +141,7 @@ export const AccountSettings = () => {
               Supprimer mon compte
             </Button>
           ) : (
-            <div className="delete-confirm" role="alert">
+            <output className="delete-confirm">
               <p className="delete-confirm-text">
                 Cette action est irréversible. Toutes vos données seront supprimées.
               </p>
@@ -171,7 +171,7 @@ export const AccountSettings = () => {
                   {deleteUser.isPending ? 'Suppression…' : 'Confirmer la suppression'}
                 </Button>
               </div>
-            </div>
+            </output>
           )}
         </div>
       </SettingsSection>

@@ -1,4 +1,4 @@
-import { addDays, format, subDays, subMonths } from 'date-fns'
+import { addDays, subDays, subMonths } from 'date-fns'
 
 import type { Database } from '../../db/index'
 import { listProducts } from '../products/service'
@@ -6,7 +6,9 @@ import { createSubtask, createTask, updateTask } from '../tasks/service'
 import { addPurchase, finishPurchase, openPurchase } from '../user-products/purchase.service'
 import { createUserProduct, upsertUserProductReview } from '../user-products/service'
 
-const d = (date: Date) => format(date, 'yyyy-MM-dd')
+// API contract is ISO datetime UTC for every wire date — including calendar dates
+// (purchasedAt, openedAt, snoozedUntil…). Backend boundary truncates to YYYY-MM-DD.
+const d = (date: Date) => date.toISOString()
 
 export async function seedDemoData(userId: string, db: Database) {
   console.log(`🌱 Seeding demo data for user ${userId}...`)

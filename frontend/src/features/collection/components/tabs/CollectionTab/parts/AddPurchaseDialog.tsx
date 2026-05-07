@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { Input } from '@/component/Input/Input'
+import { fromDateInputValue, toDateInputValue, todayDateInputValue } from '@/lib/dates'
 import { useAddPurchase, useUpdatePurchase } from '@/lib/queries/purchases'
 
 import './AddPurchaseDialog.css'
@@ -27,7 +28,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
   const updatePurchaseMutation = useUpdatePurchase()
 
   const [purchaseDate, setPurchaseDate] = useState(
-    () => purchase?.purchasedAt.split('T')[0] ?? new Date().toISOString().split('T')[0]
+    () => toDateInputValue(purchase?.purchasedAt) || todayDateInputValue()
   )
   const [purchasePrice, setPurchasePrice] = useState(() =>
     purchase?.pricePaidCents != null ? (purchase.pricePaidCents / 100).toFixed(2) : ''
@@ -46,7 +47,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
         {
           userProductId,
           purchaseId: purchase.id,
-          input: { purchasedAt: purchaseDate, pricePaidCents },
+          input: { purchasedAt: fromDateInputValue(purchaseDate), pricePaidCents },
         },
         {
           onSuccess: () => {
@@ -63,7 +64,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
         {
           userProductId,
           input: {
-            purchasedAt: purchaseDate,
+            purchasedAt: fromDateInputValue(purchaseDate),
             pricePaidCents: pricePaidCents ?? undefined,
           },
         },

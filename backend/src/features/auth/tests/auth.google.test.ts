@@ -65,7 +65,7 @@ describe('handleGoogleCallback', () => {
         email: 'googleuser@example.com',
         googleSub: 'google-sub-abc123',
         passwordHash: null,
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: new Date().toISOString(),
       })
       .returning()
     await testDb.insert(profiles).values({ userId: existingUser.id })
@@ -86,7 +86,7 @@ describe('handleGoogleCallback', () => {
         email: 'googleuser@example.com',
         googleSub: 'google-sub-abc123',
         passwordHash: null,
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: new Date().toISOString(),
       })
       .returning()
     await testDb.insert(profiles).values({ userId: existingUser.id })

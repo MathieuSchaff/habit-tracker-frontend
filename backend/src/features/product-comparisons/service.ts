@@ -61,7 +61,7 @@ export async function createComparison(
       id: comparison.id,
       name: comparison.name,
       productCount: ids.length,
-      createdAt: comparison.createdAt.toISOString(),
+      createdAt: comparison.createdAt,
     }
   })
 }
@@ -93,7 +93,7 @@ export async function getEnrichedComparison(
     return {
       id: comparison.id,
       name: comparison.name,
-      createdAt: comparison.createdAt.toISOString(),
+      createdAt: comparison.createdAt,
       products: [],
     }
   }
@@ -200,7 +200,7 @@ export async function getEnrichedComparison(
   return {
     id: comparison.id,
     name: comparison.name,
-    createdAt: comparison.createdAt.toISOString(),
+    createdAt: comparison.createdAt,
     products: enrichedProducts,
   }
 }
@@ -268,7 +268,7 @@ export async function listComparisons(
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
-    createdAt: r.createdAt.toISOString(),
+    createdAt: r.createdAt,
     productCount: Number(r.productCount),
   }))
 }
