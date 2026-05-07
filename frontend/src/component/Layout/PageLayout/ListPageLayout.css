@@ -18,8 +18,6 @@
   }
 }
 
-/* Header */
-
 .list-page-layout__header {
   display: flex;
   flex-direction: column;
@@ -69,10 +67,10 @@
 
 .list-page-layout__meta {
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--text-muted);
   font-weight: 600;
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
 }
 
 .list-page-layout__actions {
@@ -102,6 +100,9 @@
 }
 
 @media (--md) {
+  .list-page-layout__header--centered {
+    text-align: initial;
+  }
   .list-page-layout__header:not(.list-page-layout__header--full-bleed) {
     flex-direction: row;
     align-items: flex-end;

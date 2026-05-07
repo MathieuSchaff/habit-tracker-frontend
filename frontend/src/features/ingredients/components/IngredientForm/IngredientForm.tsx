@@ -11,6 +11,7 @@ import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import { isHttpError } from '@/lib/helpers/isHttpError'
 import { useAuthStore } from '@/store/auth'
@@ -324,41 +325,35 @@ export function IngredientForm({
         />
       </FormField>
 
-      <FormField label="Description" htmlFor="ingredient-description" hint="Markdown supporté">
-        <textarea
-          id="ingredient-description"
-          className="ingredient-edit-form__textarea"
-          value={form.description}
-          onChange={handleChange('description')}
-          placeholder="Description de l'ingrédient (Markdown supporté)"
-          rows={5}
+      <Textarea
+        label="Description"
+        id="ingredient-description"
+        hint="Markdown supporté"
+        value={form.description}
+        onChange={handleChange('description')}
+        placeholder="Description de l'ingrédient (Markdown supporté)"
+        rows={5}
+      />
+      {hasFieldConflict('description') && (
+        <DraftHint
+          field="description"
+          value={conflict?.draft.description ?? ''}
+          onRestore={restoreField}
         />
-        {hasFieldConflict('description') && (
-          <DraftHint
-            field="description"
-            value={conflict?.draft.description ?? ''}
-            onRestore={restoreField}
-          />
-        )}
-      </FormField>
+      )}
 
-      <FormField label="Contenu" htmlFor="ingredient-content" hint="Markdown supporté">
-        <textarea
-          id="ingredient-content"
-          className="ingredient-edit-form__textarea"
-          value={form.content}
-          onChange={handleChange('content')}
-          placeholder="Contenu détaillé (Markdown supporté)"
-          rows={8}
-        />
-        {hasFieldConflict('content') && (
-          <DraftHint
-            field="content"
-            value={conflict?.draft.content ?? ''}
-            onRestore={restoreField}
-          />
-        )}
-      </FormField>
+      <Textarea
+        label="Contenu"
+        id="ingredient-content"
+        hint="Markdown supporté"
+        value={form.content}
+        onChange={handleChange('content')}
+        placeholder="Contenu détaillé (Markdown supporté)"
+        rows={8}
+      />
+      {hasFieldConflict('content') && (
+        <DraftHint field="content" value={conflict?.draft.content ?? ''} onRestore={restoreField} />
+      )}
 
       <div className="ingredient-edit-form__actions">
         {mode === 'edit' ? (

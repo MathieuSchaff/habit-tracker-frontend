@@ -104,3 +104,6 @@ frontend/public/mock-products
 # =========================
 backend/src/db/seed/data/image-fetchers/
 backend/src/db/seed/scripts/fetch-images-*.ts
+
+# Obsidian POC
+/docs2/

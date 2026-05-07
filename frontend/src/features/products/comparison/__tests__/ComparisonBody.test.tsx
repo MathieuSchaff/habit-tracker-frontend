@@ -35,14 +35,18 @@ describe('ComparisonBody', () => {
     const b = make('b', [ing('water'), ing('niacinamide', ['active'])])
     render(<ComparisonBody products={[a, b]} />)
     expect(screen.getByText('Actifs partagés')).toBeDefined()
-    expect(screen.getByText('niacinamide')).toBeDefined()
+    // niacinamide renders both as a shared-active pill and in the common
+    // ingredients section, so multiple matches are expected.
+    expect(screen.getAllByText('niacinamide').length).toBeGreaterThan(0)
   })
 
   it('shows alerts with present-in count', () => {
     const a = make('a', [ing('parfum', ['alert'])])
     const b = make('b', [ing('water')])
     render(<ComparisonBody products={[a, b]} />)
-    expect(screen.getByText(/présent dans 1\/2/)).toBeDefined()
+    // Alert pill renders the count inline as "(1/2)" — text node split between
+    // the inci name span and the detail span, so match the parenthetical only.
+    expect(screen.getByText(/\(1\/2\)/)).toBeDefined()
   })
 
   it('flags mixed-unit prices as not comparable', () => {

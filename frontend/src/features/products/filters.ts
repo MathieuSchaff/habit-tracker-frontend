@@ -1,12 +1,17 @@
 import {
   type AllProductTagCategory,
   DENTAL_PRODUCT_TAG_CATEGORY_META,
+  DENTAL_PRODUCT_TAG_TAXONOMY,
   DOMAIN_PRODUCT_FILTER_CATEGORIES,
   HAIRCARE_PRODUCT_TAG_CATEGORY_META,
+  HAIRCARE_PRODUCT_TAG_TAXONOMY,
   PRODUCT_DOMAIN_TABS,
   type ProductDomainTab,
+  productSortEnum,
   SKINCARE_PRODUCT_TAG_CATEGORY_META,
+  SKINCARE_PRODUCT_TAG_TAXONOMY,
   SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
+  SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
   type TagCategoryMeta,
 } from '@habit-tracker/shared'
 
@@ -65,13 +70,34 @@ export const LABEL_OVERRIDES: Record<string, string> = {
   'barriere-cutanee-alteree': 'Peau sensibilisée',
 }
 
+// Merged tag-slug → label lookup across all 4 domain taxonomies. Slugs are effectively
+// unique; when they overlap (e.g. peau-grasse exists in skincare + haircare) labels match.
+const ALL_TAG_LABELS: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(SKINCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
+  ),
+  ...Object.fromEntries(
+    Object.entries(HAIRCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
+  ),
+  ...Object.fromEntries(
+    Object.entries(DENTAL_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
+  ),
+  ...Object.fromEntries(
+    Object.entries(SUPPLEMENT_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
+  ),
+}
+
+export function tagLabel(slug: string): string {
+  return LABEL_OVERRIDES[slug] ?? ALL_TAG_LABELS[slug] ?? slug
+}
+
 const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
 export const productsSearchSchema = baseSchema.extend({
   category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
   kind: z.array(z.string()).default([]),
   profile_filter: z.boolean().default(false),
-  sort: z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest']).default('newest'),
+  sort: productSortEnum.default('newest'),
   priceMin: z.number().int().min(0).optional(),
   priceMax: z.number().int().min(0).optional(),
   q: z.string().trim().min(1).max(100).optional(),

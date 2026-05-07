@@ -82,6 +82,10 @@ export function getIngredientTagsByCategory(
 // Tag axes are the union of all four domains so a single endpoint serves any
 // selected `ingredient_type`. Coerce because query params arrive as strings.
 
+export const INGREDIENT_SORT_VALUES = ['name', 'random'] as const
+export const ingredientSortEnum = z.enum(INGREDIENT_SORT_VALUES)
+export type IngredientSort = z.infer<typeof ingredientSortEnum>
+
 export const listIngredientsSearchSchema = z.object({
   // Tag axes — comma-separated slug lists, AND across keys / OR within.
   concern: z.string().optional(),
@@ -101,7 +105,7 @@ export const listIngredientsSearchSchema = z.object({
   // Pagination / sort
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
-  sort: z.enum(['name', 'random']).optional(),
+  sort: ingredientSortEnum.optional(),
 })
 
 export type ListIngredientsSearchFilters = z.infer<typeof listIngredientsSearchSchema>

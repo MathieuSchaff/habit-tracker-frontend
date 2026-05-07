@@ -33,6 +33,11 @@ interface TabsProps<T extends string> {
   idPrefix?: string
   /** Accessible name for the tablist (role="tablist" aria-label). */
   ariaLabel?: string
+  /**
+   * Set to false when tabs control navigation/filtering without associated tabpanel elements.
+   * Omits aria-controls to avoid pointing to non-existent DOM nodes.
+   */
+  hasPanels?: boolean
 }
 
 export const Tabs = <T extends string>({
@@ -45,6 +50,7 @@ export const Tabs = <T extends string>({
   containerClassName,
   idPrefix = 'tab',
   ariaLabel,
+  hasPanels = true,
 }: TabsProps<T>) => {
   const activeIndex = options.findIndex((opt) => opt.id === activeTab)
 
@@ -163,7 +169,7 @@ export const Tabs = <T extends string>({
               style={tintStyle}
               onClick={() => onTabChange(option.id)}
               aria-selected={isActive}
-              aria-controls={`${idPrefix}-panel-${option.id}`}
+              aria-controls={hasPanels ? `${idPrefix}-panel-${option.id}` : undefined}
               tabIndex={isActive ? 0 : -1}
               aria-label={
                 option.badge !== undefined ? `${option.label} (${option.badge})` : undefined

@@ -7,7 +7,10 @@ import { PRODUCT_KINDS } from './kinds'
 // declares only its own filter keys — prevents e.g. skin_type from leaking into
 // a haircare request. Per-domain keys mirror shared/src/products/{domain}/tag-filters.ts.
 
-const sortEnum = z.enum(['name', 'random', 'price_asc', 'price_desc', 'newest'])
+export const PRODUCT_SORT_VALUES = ['name', 'random', 'price_asc', 'price_desc', 'newest'] as const
+export const productSortEnum = z.enum(PRODUCT_SORT_VALUES)
+export type ProductSort = z.infer<typeof productSortEnum>
+const sortEnum = productSortEnum
 
 // Reject ?kind=<value> that does not belong to the tab's DB categories
 // (e.g. skincare tab + kind=shampoo). Skincare tab spans skincare/solaire/bodycare,
@@ -57,6 +60,7 @@ export const skincareListProductsQuery = baseListProductsQuery.extend({
   skin_effect: z.string().optional(),
   sensation: z.string().optional(),
   product_characteristic: z.string().optional(),
+  actif_class: z.string().optional(),
 })
 
 export const haircareListProductsQuery = baseListProductsQuery.extend({

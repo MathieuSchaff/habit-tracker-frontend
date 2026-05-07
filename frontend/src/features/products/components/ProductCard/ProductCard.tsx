@@ -1,12 +1,4 @@
-import {
-  DENTAL_PRODUCT_TAG_TAXONOMY,
-  getProductKindLabel,
-  HAIRCARE_PRODUCT_TAG_TAXONOMY,
-  PRODUCT_KINDS,
-  PRODUCT_UNITS,
-  SKINCARE_PRODUCT_TAG_TAXONOMY,
-  SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
-} from '@habit-tracker/shared'
+import { getProductKindLabel, PRODUCT_KINDS, PRODUCT_UNITS } from '@habit-tracker/shared'
 
 import { Link } from '@tanstack/react-router'
 import { AlertTriangle, Plus } from 'lucide-react'
@@ -16,7 +8,7 @@ import { Button } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
-import { LABEL_OVERRIDES } from '@/features/products/filters'
+import { tagLabel } from '@/features/products/filters'
 import type { ProductListItem } from '@/lib/queries/products'
 
 import './ProductCard.css'
@@ -32,27 +24,6 @@ const CATEGORIES_WITH_HUE = new Set(['skincare', 'complement'])
 const KNOWN_UNITS = new Set<string>(
   Object.values(PRODUCT_UNITS).flatMap((domain) => Object.values(domain))
 )
-
-// Merged lookup across all 4 domain taxonomies. Slugs are effectively unique;
-// when they overlap (e.g. peau-grasse exists in skincare + haircare) labels match.
-const ALL_TAG_LABELS: Record<string, string> = {
-  ...Object.fromEntries(
-    Object.entries(SKINCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
-  ),
-  ...Object.fromEntries(
-    Object.entries(HAIRCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
-  ),
-  ...Object.fromEntries(
-    Object.entries(DENTAL_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
-  ),
-  ...Object.fromEntries(
-    Object.entries(SUPPLEMENT_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
-  ),
-}
-
-function tagLabel(slug: string): string {
-  return LABEL_OVERRIDES[slug] ?? ALL_TAG_LABELS[slug] ?? slug
-}
 
 // Maps tagType → chip visual variant. Drives CSS class so concern/goal pop in
 // accent color, audience/restriction stay neutral, labels look like flags.

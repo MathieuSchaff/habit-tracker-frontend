@@ -46,12 +46,39 @@
 }
 
 .tag-item__relevance {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-1) calc(var(--space-3) + 0.6rem) var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
   border: 1px solid var(--border-default);
-  background: var(--bg-default);
+  background: var(--bg-page);
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
   color: var(--text-secondary);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.55rem) 50%,
+    calc(100% - 0.3rem) 50%;
+  background-size:
+    0.3rem 0.3rem,
+    0.3rem 0.3rem;
+  background-repeat: no-repeat;
+  transition:
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
+}
+
+.tag-item__relevance:hover {
+  border-color: var(--border-strong);
+}
+
+.tag-item__relevance:focus-visible {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
 }
 
 .tag-item__remove {
@@ -84,14 +111,37 @@
 
 .tag-manager__select {
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--bg-card);
+  padding: var(--space-2) calc(var(--space-4) + 1.25rem) var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: var(--bg-page);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   color: var(--text-primary);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1rem) 50%,
+    calc(100% - 0.65rem) 50%;
+  background-size:
+    0.4rem 0.4rem,
+    0.4rem 0.4rem;
+  background-repeat: no-repeat;
+  transition:
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
+}
+
+.tag-manager__select:hover {
+  border-color: var(--border-strong);
 }
 
 .tag-manager__select:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
 }

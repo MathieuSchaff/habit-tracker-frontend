@@ -8,6 +8,7 @@ import { articleQueries } from '@/lib/queries/articles'
 
 const searchSchema = z.object({
   page: z.number().min(1).default(1),
+  q: z.string().optional(),
 })
 
 const defaultValues = { page: 1 }
@@ -17,21 +18,27 @@ export const Route = createFileRoute('/blog/')({
   search: {
     middlewares: [stripSearchParams(defaultValues)],
   },
-  loaderDeps: ({ search: { page } }) => ({ page }),
+  loaderDeps: ({ search: { page, q } }) => ({ page, q }),
   loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(articleQueries.list({ page: deps.page, limit: 20 })),
+    context.queryClient.ensureQueryData(
+      articleQueries.list({ page: deps.page, q: deps.q, limit: 20 })
+    ),
   component: BlogIndexRoute,
   pendingComponent: BlogListSkeleton,
 })
 
 function BlogIndexRoute() {
-  const { page } = Route.useSearch()
+  const { page, q } = Route.useSearch()
   const navigate = useNavigate({ from: '/blog/' })
 
   return (
     <BlogListPage
       page={page}
+      q={q}
       onPageChange={(next) => navigate({ search: (prev) => ({ ...prev, page: next }) })}
+      onSearchChange={(next) =>
+        navigate({ search: (prev) => ({ ...prev, q: next || undefined, page: 1 }) })
+      }
     />
   )
 }

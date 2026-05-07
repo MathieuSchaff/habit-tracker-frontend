@@ -63,6 +63,13 @@ export const SKINCARE_PRODUCT_TAG_CATEGORY_META: Record<
     tier: 'advanced',
     order: 10,
   },
+  actif_class: {
+    label: "Famille d'actif",
+    placeholder: 'Toutes',
+    tier: 'advanced',
+    order: 11,
+    defaultOpen: false,
+  },
 }
 
 export function skincareProductFilterCategories(): SkincareProductTagCategory[] {

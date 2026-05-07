@@ -1,12 +1,11 @@
 .ingredient-search__input {
   width: 100%;
   box-sizing: border-box;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--border-default);
+  border-radius: var(--radius-full);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  line-height: var(--leading-relaxed);
   color: var(--text-primary);
   background: var(--bg-page);
   transition:
@@ -18,10 +17,14 @@
   color: var(--text-muted);
 }
 
+.ingredient-search__input:hover {
+  border-color: var(--border-strong);
+}
+
 .ingredient-search__input:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px oklch(from var(--color-accent) l c h / 0.15);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
 }
 
 .ingredient-search__result-name {

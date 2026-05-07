@@ -17,6 +17,9 @@ export {
   haircareListProductsQuery,
   type ListProductsFilters,
   listProductsQuery,
+  PRODUCT_SORT_VALUES,
+  type ProductSort,
+  productSortEnum,
   type SkincareListProductsFilters,
   skincareListProductsQuery,
 } from './list-products-query'

@@ -2,6 +2,8 @@ import { db } from '../..'
 import type { DB } from '../../index'
 import {
   articles,
+  discussionReplies,
+  discussionThreads,
   ingredients,
   ingredientTagsDefs,
   productIngredients,
@@ -26,8 +28,13 @@ export function flattenTagGroups(
 
 export async function cleanDatabase(tx: DB = db) {
   console.log('🧹 Nettoyage de la base de données...')
-  // Order matters: junction tables before owners (FK constraints)
+  // Order matters: junction tables before owners (FK constraints).
+  // Discussions: replies cascade from threads, but threads have an
+  // ON DELETE RESTRICT FK to products — must be cleared explicitly
+  // before the products delete or the seed transaction aborts.
   await tx.delete(articles)
+  await tx.delete(discussionReplies)
+  await tx.delete(discussionThreads)
   await tx.delete(userProductReviews)
   await tx.delete(userProducts)
   await tx.delete(tagProducts)

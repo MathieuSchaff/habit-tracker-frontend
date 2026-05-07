@@ -6,22 +6,19 @@ import {
   PRODUCT_CATEGORY_LABELS,
   PRODUCT_CATEGORY_TO_DOMAIN_TAB,
   PRODUCT_CATEGORY_VALUES,
-  PRODUCT_CONCENTRATION_UNIT_LABELS,
-  PRODUCT_CONCENTRATION_UNIT_VALUES,
   PRODUCT_KIND_LABELS,
   PRODUCT_KINDS,
   PRODUCT_UNIT_LABELS,
   PRODUCT_UNITS,
 } from '@habit-tracker/shared'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
-import { ImageUpload } from '@/component/ImageUpload'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
@@ -30,16 +27,17 @@ import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
 import { IngredientSearch } from '@/features/products/components/IngredientSearch/IngredientSearch'
+import { DoseField } from '@/features/products/components/ProductForm/DoseField'
+import { ProductImageField } from '@/features/products/components/ProductForm/ProductImageField'
+import { useProductFormSubmit } from '@/features/products/hooks/useProductFormSubmit'
 import { useDebounce } from '@/hooks/useDebounce'
 import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import {
+  type ProductDetail,
   productQueries,
   useAddProductIngredient,
-  useCreateProduct,
   useRemoveProductIngredient,
-  useUpdateProduct,
   useUpdateProductIngredient,
-  useUpdateProductTags,
 } from '@/lib/queries/products'
 import { tagQueries } from '@/lib/queries/tags'
 import './ProductForm.css'
@@ -47,36 +45,9 @@ import './ProductForm.css'
 import {
   emptyProductEditForm,
   type ProductEditFormInput,
-  productEditFormSchema,
-  productEditFormToCreateInput,
-  productEditFormToUpdateInput,
   productToEditForm,
 } from './ProductForm.schema'
 import { SlugEditModal } from './SlugEditModal'
-
-type ProductWithIngredients = {
-  id: string
-  slug: string
-  name: string | null
-  brand: string | null
-  category?: string | null
-  kind: string | null
-  unit: string | null
-  priceCents: number | null
-  totalAmount: number | null
-  amountUnit: string | null
-  inci: string | null
-  description: string | null
-  notes: string | null
-  url: string | null
-  imageUrl: string | null
-  ingredients: Array<{
-    ingredientId: string
-    ingredientName: string
-    concentrationValue: string | null
-    concentrationUnit: string | null
-  }>
-}
 
 type PendingIngredient = {
   ingredientId: string
@@ -84,11 +55,6 @@ type PendingIngredient = {
   concentrationValue: string
   concentrationUnit: ProductConcentrationUnit | ''
 }
-
-const CONCENTRATION_UNIT_OPTIONS = PRODUCT_CONCENTRATION_UNIT_VALUES.map((v) => ({
-  value: v,
-  label: PRODUCT_CONCENTRATION_UNIT_LABELS[v],
-}))
 
 type IngredientRowProps = {
   ingredientId: string
@@ -116,38 +82,20 @@ function IngredientRow({
   return (
     <div className="product-edit-ingredient">
       <span className="product-edit-ingredient__name">{ingredientName}</span>
-      <div className="product-edit-ingredient__dose">
-        <input
-          className="product-edit-ingredient__dose-input"
-          type="number"
-          min={0}
-          step={0.01}
-          placeholder="—"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={() => {
-            if (value !== initialValue) onPersist({ value, unit })
-          }}
-          aria-label={`Dose de ${ingredientName}`}
-        />
-        <select
-          className="product-edit-ingredient__dose-unit"
-          value={unit}
-          onChange={(e) => {
-            const nextUnit = e.target.value as ProductConcentrationUnit | ''
-            setUnit(nextUnit)
-            onPersist({ value, unit: nextUnit })
-          }}
-          aria-label={`Unité pour ${ingredientName}`}
-        >
-          <option value="">—</option>
-          {CONCENTRATION_UNIT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <DoseField
+        value={value}
+        unit={unit}
+        onValueChange={setValue}
+        onUnitChange={(nextUnit) => {
+          setUnit(nextUnit)
+          onPersist({ value, unit: nextUnit })
+        }}
+        onValueBlur={() => {
+          if (value !== initialValue) onPersist({ value, unit })
+        }}
+        valueAriaLabel={`Dose de ${ingredientName}`}
+        unitAriaLabel={`Unité pour ${ingredientName}`}
+      />
       <Button
         type="button"
         variant="ghost"
@@ -172,16 +120,12 @@ type ProductFormProps =
     }
   | {
       mode: 'edit'
-      product: ProductWithIngredients
+      product: ProductDetail
       initialTags?: TagState[]
       onSuccess: (slug: string) => void
     }
 export function ProductForm({ mode, product, initialTags = [], onSuccess }: ProductFormProps) {
-  const queryClient = useQueryClient()
   const { data: allTags } = useQuery(tagQueries.list())
-  const createProduct = useCreateProduct()
-  const updateProduct = useUpdateProduct()
-  const updateTags = useUpdateProductTags()
   const addIngredient = useAddProductIngredient()
   const removeIngredient = useRemoveProductIngredient()
   const updateIngredient = useUpdateProductIngredient()
@@ -207,7 +151,6 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
 
   const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit')
   const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
-  const [error, setError] = useState<string | null>(null)
   const [slugModalOpen, setSlugModalOpen] = useState(false)
 
   const debouncedName = useDebounce(form.name.trim())
@@ -218,116 +161,67 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
     enabled: mode === 'create' && debouncedName.length >= 2 && debouncedBrand.length >= 1,
   })
 
+  const submitArgs =
+    mode === 'edit'
+      ? ({ mode: 'edit' as const, product, form, tags, onSuccess } as const)
+      : ({
+          mode: 'create' as const,
+          form,
+          tags,
+          pendingIngredients,
+          onSuccess,
+        } as const)
+  const { handleSubmit, error, clearError, isPending, submitLabel } =
+    useProductFormSubmit(submitArgs)
+
   const handleChange = useCallback(
     (field: keyof typeof form) =>
       (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
-        setError(null)
+        clearError()
       },
-    []
+    [clearError]
   )
 
-  const isFormDirty = (Object.keys(form) as Array<keyof ProductEditFormInput>).some(
-    (k) => form[k] !== initialForm[k]
+  const isFormDirty = useMemo(
+    () =>
+      (Object.keys(form) as Array<keyof ProductEditFormInput>).some(
+        (k) => form[k] !== initialForm[k]
+      ),
+    [form, initialForm]
   )
   const isDirty = isFormDirty || isTagsDirty
 
   const isSubmitDisabled =
-    mode === 'create'
-      ? createProduct.isPending ||
-        !form.name.trim() ||
+    isPending ||
+    (mode === 'create'
+      ? !form.name.trim() ||
         !form.brand.trim() ||
         !brandConfirmed ||
         !form.kind.trim() ||
         !form.unit.trim()
-      : updateProduct.isPending || updateTags.isPending || !isDirty
+      : !isDirty)
 
-  const submitLabel =
-    mode === 'create'
-      ? createProduct.isPending
-        ? 'Création…'
-        : 'Créer le produit'
-      : updateProduct.isPending || updateTags.isPending
-        ? 'Enregistrement…'
-        : 'Enregistrer'
-
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault()
-
-    const parsed = productEditFormSchema.safeParse(form)
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Formulaire invalide.')
-      return
+  // Normalised view used by the row mapper. In edit mode we coerce DB nulls to ''
+  // so IngredientRow only ever sees strings; the persistence side re-coerces back.
+  const ingredientItems = useMemo<
+    Array<{
+      ingredientId: string
+      ingredientName: string
+      concentrationValue: string
+      concentrationUnit: ProductConcentrationUnit | ''
+    }>
+  >(() => {
+    if (mode === 'edit') {
+      return product.ingredients.map((i) => ({
+        ingredientId: i.ingredientId,
+        ingredientName: i.ingredientName,
+        concentrationValue: i.concentrationValue ?? '',
+        concentrationUnit: (i.concentrationUnit ?? '') as ProductConcentrationUnit | '',
+      }))
     }
-
-    try {
-      if (mode === 'create') {
-        const newProduct = await createProduct.mutateAsync(
-          productEditFormToCreateInput(parsed.data)
-        )
-        if (tags.length > 0) {
-          await updateTags.mutateAsync({
-            productId: newProduct.id,
-            slug: newProduct.slug,
-            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-          })
-        }
-        if (pendingIngredients.length > 0) {
-          await Promise.all(
-            pendingIngredients.map((i) => {
-              const value = i.concentrationValue.trim()
-              const parsedValue = value === '' ? undefined : parseFloat(value)
-              return addIngredient.mutateAsync({
-                productId: newProduct.id,
-                slug: newProduct.slug,
-                ingredientId: i.ingredientId,
-                concentrationValue:
-                  parsedValue != null && !Number.isNaN(parsedValue) ? parsedValue : undefined,
-                concentrationUnit: i.concentrationUnit === '' ? undefined : i.concentrationUnit,
-              })
-            })
-          )
-        }
-        onSuccess(newProduct.slug)
-      } else {
-        const [updated] = await Promise.all([
-          updateProduct.mutateAsync({
-            id: product.id,
-            data: productEditFormToUpdateInput(parsed.data, {
-              slug: product.slug,
-              priceCents: product.priceCents,
-              totalAmount: product.totalAmount,
-              amountUnit: product.amountUnit,
-              inci: product.inci,
-              description: product.description,
-              notes: product.notes,
-              url: product.url,
-              imageUrl: product.imageUrl,
-            }),
-          }),
-          updateTags.mutateAsync({
-            productId: product.id,
-            slug: product.slug,
-            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-          }),
-        ])
-        // Drop the stale bySlug cache entry when the slug actually changed,
-        // otherwise lingers as orphan with the new payload under the old key.
-        if (updated.slug !== product.slug) {
-          queryClient.removeQueries({
-            queryKey: productQueries.bySlug(product.slug).queryKey,
-          })
-        }
-        onSuccess(updated.slug)
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Une erreur est survenue lors de la sauvegarde.'
-      )
-    }
-  }
-
-  const ingredientItems = mode === 'edit' ? product.ingredients : pendingIngredients
+    return pendingIngredients
+  }, [mode, product, pendingIngredients])
 
   function handleRemoveIngredient(ingredientId: string) {
     if (mode === 'edit') {
@@ -501,35 +395,16 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           placeholder="https://…"
         />
         {mode === 'edit' ? (
-          <FormField label="Image du produit">
-            <ImageUpload
-              shape="square"
-              outputSize={1200}
-              endpoint={`/api/uploads/product/${product.slug}`}
-              currentImageUrl={form.imageUrl}
-              alt={`Image de ${form.name || product.name || 'produit'}`}
-              onSuccess={(url) => {
-                setForm((prev) => ({ ...prev, imageUrl: url }))
-                queryClient.invalidateQueries({ queryKey: ['products'] })
-              }}
-            />
-            {form.imageUrl && (
-              <Input
-                id="edit-image-url"
-                value={form.imageUrl}
-                readOnly
-                onFocus={(e) => e.currentTarget.select()}
-                aria-label="URL de l'image (lecture seule)"
-                hideRequired
-              />
-            )}
-          </FormField>
+          <ProductImageField
+            mode="edit"
+            productSlug={product.slug}
+            productName={product.name ?? ''}
+            imageUrl={form.imageUrl}
+            altName={form.name || product.name || 'produit'}
+            onUpload={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+          />
         ) : (
-          <FormField label="Image du produit">
-            <p className="product-form__upload-hint">
-              Image disponible après la création du produit.
-            </p>
-          </FormField>
+          <ProductImageField mode="create" />
         )}
       </div>
 
@@ -585,18 +460,8 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
               key={ing.ingredientId}
               ingredientId={ing.ingredientId}
               ingredientName={ing.ingredientName}
-              initialValue={
-                mode === 'edit'
-                  ? ((ing as ProductWithIngredients['ingredients'][number]).concentrationValue ??
-                    '')
-                  : (ing as PendingIngredient).concentrationValue
-              }
-              initialUnit={
-                mode === 'edit'
-                  ? (((ing as ProductWithIngredients['ingredients'][number]).concentrationUnit ??
-                      '') as ProductConcentrationUnit | '')
-                  : (ing as PendingIngredient).concentrationUnit
-              }
+              initialValue={ing.concentrationValue}
+              initialUnit={ing.concentrationUnit}
               onPersist={({ value, unit }) => {
                 if (mode === 'edit') {
                   const trimmed = value.trim()
@@ -655,16 +520,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             Annuler
           </Button>
         )}
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isSubmitDisabled}
-          loading={
-            mode === 'create'
-              ? createProduct.isPending
-              : updateProduct.isPending || updateTags.isPending
-          }
-        >
+        <Button type="submit" variant="primary" disabled={isSubmitDisabled} loading={isPending}>
           {submitLabel}
         </Button>
       </div>

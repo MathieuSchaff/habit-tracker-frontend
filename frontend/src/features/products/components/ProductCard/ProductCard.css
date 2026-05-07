@@ -123,9 +123,8 @@
 }
 
 .list-card--product .list-card__chip--benefit {
-  color: var(--_kind-color);
-  background: oklch(from var(--_kind-color) l c h / 0.14);
-  border: 1px solid oklch(from var(--_kind-color) l c h / 0.3);
+  color: var(--text-secondary);
+  background: oklch(from var(--text-secondary) l c h / 0.1);
 }
 
 .list-card--product .list-card__chip--audience {
@@ -134,8 +133,9 @@
 }
 
 .list-card--product .list-card__chip--label {
-  color: var(--color-success, var(--text-secondary));
-  background: oklch(from var(--color-success, var(--text-secondary)) l c h / 0.12);
+  color: var(--text-secondary);
+  background: oklch(from var(--text-secondary) l c h / 0.08);
+  border: 1px solid oklch(from var(--text-secondary) l c h / 0.18);
 }
 
 .list-card--product .list-card__price-wrap {

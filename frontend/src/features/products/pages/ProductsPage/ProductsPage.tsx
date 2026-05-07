@@ -6,8 +6,8 @@ import {
 
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { ChevronDown, Package, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, startTransition, useCallback, useMemo, useState } from 'react'
+import { Package } from 'lucide-react'
+import { startTransition, useCallback, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
@@ -16,6 +16,7 @@ import { emptyFilters, type FilterValues } from '@/component/Filter'
 import { ListPageLayout } from '@/component/Layout'
 import type { TabOption } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
+import { CollapsibleFiltersStrip } from '@/features/products/components/CollapsibleFiltersStrip/CollapsibleFiltersStrip'
 import {
   type AddToCollectionTarget,
   ProductCard,
@@ -196,6 +197,11 @@ export function ProductsPage() {
 
   const handleDomainChange = useCallback(
     (next: ProductDomainTab) => {
+      // Wipe the in-flight drawer draft alongside the URL: URL tag filters get
+      // cleared by buildDomainSwitchSearch, but draftFilters is local React
+      // state — without this, the live preview keeps applying the old domain's
+      // chips against the new domain's catalogue.
+      setDraftFilters(null)
       startTransition(() => {
         navigate({
           search: (prev) => buildDomainSwitchSearch(prev, next, EMPTY_TAG_FILTERS),
@@ -311,52 +317,5 @@ export function ProductsPage() {
         />
       )}
     </>
-  )
-}
-
-type CollapsibleFiltersStripProps = {
-  count: number
-  onOpenDrawer: () => void
-  children: ReactNode
-}
-
-function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: CollapsibleFiltersStripProps) {
-  // Start expanded — component only mounts when count > 0, so filters are visible
-  // on first appearance. User can collapse them if desired.
-  const [open, setOpen] = useState(true)
-  if (count === 0) return null
-  return (
-    <div className={`products-chips-collapsible${open ? ' products-chips-collapsible--open' : ''}`}>
-      <div className="products-chips-toggle-row">
-        <button
-          type="button"
-          className="products-chips-toggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label={`${count} filtre${count > 1 ? 's' : ''} actif${count > 1 ? 's' : ''} — ${open ? 'masquer' : 'voir les filtres'}`}
-        >
-          <SlidersHorizontal size={13} className="products-chips-toggle__icon" aria-hidden="true" />
-          <span>
-            <strong>{count}</strong> filtre{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''}
-          </span>
-          <ChevronDown
-            size={13}
-            className={`products-chips-toggle__chevron${open ? ' products-chips-toggle__chevron--open' : ''}`}
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          type="button"
-          className="products-chips-toggle__edit"
-          onClick={onOpenDrawer}
-          aria-label="Modifier les filtres"
-        >
-          Modifier
-        </button>
-      </div>
-      <div className="products-chips-body" aria-hidden={!open}>
-        <div className="products-chips-inner">{children}</div>
-      </div>
-    </div>
   )
 }

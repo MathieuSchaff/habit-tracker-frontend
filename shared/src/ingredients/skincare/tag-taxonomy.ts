@@ -6,6 +6,7 @@ export const SKINCARE_INGREDIENT_TAG_CATEGORIES = [
   'ingredient_attribute',
   'skin_effect',
   'shared_label',
+  'actif_class',
 ] as const
 
 export type SkincareIngredientTagCategory = (typeof SKINCARE_INGREDIENT_TAG_CATEGORIES)[number]
@@ -87,6 +88,25 @@ const SHARED_LABEL: SkincareIngredientTagSlug[] = [
   SKINCARE_INGREDIENT_TAG_SLUGS.GROSSESSE_COMPATIBLE,
 ]
 
+const ACTIF_CLASS: SkincareIngredientTagSlug[] = [
+  SKINCARE_INGREDIENT_TAG_SLUGS.RETINOIDS,
+  SKINCARE_INGREDIENT_TAG_SLUGS.RETINOL_ALTERNATIVES,
+  SKINCARE_INGREDIENT_TAG_SLUGS.VITAMIN_C,
+  SKINCARE_INGREDIENT_TAG_SLUGS.VITAMIN_E,
+  SKINCARE_INGREDIENT_TAG_SLUGS.NIACINAMIDE,
+  SKINCARE_INGREDIENT_TAG_SLUGS.AHA,
+  SKINCARE_INGREDIENT_TAG_SLUGS.BHA,
+  SKINCARE_INGREDIENT_TAG_SLUGS.PHA,
+  SKINCARE_INGREDIENT_TAG_SLUGS.ENZYMES_EXFOLIANTS,
+  SKINCARE_INGREDIENT_TAG_SLUGS.CERAMIDES,
+  SKINCARE_INGREDIENT_TAG_SLUGS.HYALURONIC_ACID,
+  SKINCARE_INGREDIENT_TAG_SLUGS.PEPTIDES,
+  SKINCARE_INGREDIENT_TAG_SLUGS.POLYPHENOLS,
+  SKINCARE_INGREDIENT_TAG_SLUGS.CENTELLA,
+  SKINCARE_INGREDIENT_TAG_SLUGS.TYROSINASE_INHIBITORS,
+  SKINCARE_INGREDIENT_TAG_SLUGS.AZELAIC_ACID,
+]
+
 type Entry = [SkincareIngredientTagSlug, SkincareIngredientTagMeta]
 
 const entries: Entry[] = [
@@ -95,6 +115,7 @@ const entries: Entry[] = [
   ...INGREDIENT_ATTRIBUTE.map((s): Entry => [s, { category: 'ingredient_attribute' }]),
   ...SKIN_EFFECT.map((s): Entry => [s, { category: 'skin_effect' }]),
   ...SHARED_LABEL.map((s): Entry => [s, { category: 'shared_label' }]),
+  ...ACTIF_CLASS.map((s): Entry => [s, { category: 'actif_class' }]),
 ]
 
 export const SKINCARE_INGREDIENT_TAG_TAXONOMY = Object.fromEntries(entries) as Record<

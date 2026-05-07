@@ -22,16 +22,16 @@
 
 .input-wrapper input {
   width: 100%;
-  padding: var(--space-3);
-  font-size: var(--text-base);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   color: var(--text-primary);
-  background: var(--bg-card);
+  background: var(--bg-page);
   border: var(--border-width) solid var(--border-default);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background var(--transition-fast);
+    border-color var(--transition-fast) ease,
+    box-shadow var(--transition-fast) ease;
 }
 
 .input-wrapper input::placeholder {
@@ -46,7 +46,6 @@
   outline: none;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
-  background: oklch(from var(--color-primary) l c h / 0.03);
 }
 
 .input-wrapper input:disabled {
