@@ -10,6 +10,7 @@ import { eq, sql } from 'drizzle-orm'
 import type { DB } from '../../db/index'
 import type { User, UserSafe } from '../../db/schema'
 import { profiles, users, usersSafe } from '../../db/schema'
+import { normalizeInstant } from '../../utils/dates'
 
 // Maps a snake_case row returned by SELECT * FROM auth.find_user_*() into the
 // camelCase User shape Drizzle would have produced. Lives here because the
@@ -56,7 +57,7 @@ export function toPublicUser(user: UserSafe): UserPublic {
   return {
     id: user.id,
     email: user.email,
-    createdAt: user.createdAt,
+    createdAt: normalizeInstant(user.createdAt),
     emailVerified: user.emailVerifiedAt !== null,
     role: user.role,
     isDemo: user.isDemo,
@@ -81,7 +82,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
   return {
     id: user.id,
     email: user.email,
-    createdAt: user.createdAt,
+    createdAt: normalizeInstant(user.createdAt),
     emailVerified: user.emailVerifiedAt !== null,
     role: user.role,
     isDemo: user.isDemo,

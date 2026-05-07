@@ -31,7 +31,9 @@ export const tasks = pgTable(
     snoozedUntil: date('snoozed_until', { mode: 'string' }),
     doneAt: timestamp('done_at', { withTimezone: true, mode: 'string' }),
     focusDurationMinutes: integer('focus_duration_minutes'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()
@@ -54,7 +56,9 @@ export const subtasks = pgTable(
     title: text('title').notNull(),
     completed: boolean('completed').notNull().default(false),
     order: integer('order').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('subtasks_task_order_idx').on(t.taskId, t.order),

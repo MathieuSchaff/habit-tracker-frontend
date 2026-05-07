@@ -3,6 +3,7 @@ import type {
   CreateArticleInput,
   UpdateArticleInput,
 } from '@habit-tracker/shared'
+import { articleListItemSchema, articleResponseSchema } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, asc, eq, ilike, isNotNull, type SQL, sql } from 'drizzle-orm'
@@ -10,7 +11,39 @@ import { and, asc, eq, ilike, isNotNull, type SQL, sql } from 'drizzle-orm'
 import type { DB } from '../../db'
 import { articles } from '../../db/schema/blog/articles'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
+import { normalizeInstant } from '../../utils/dates'
+import { devAssertSchema } from '../../utils/dev-validate'
 import { BlogError } from './blog-error'
+
+type ArticleRow = typeof articles.$inferSelect
+
+function toApiArticleListItem(row: {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  category: ArticleRow['category']
+  coverImageUrl: string | null
+  publishedAt: string | null
+  updatedAt: string
+}) {
+  const mapped = {
+    ...row,
+    publishedAt: row.publishedAt ? normalizeInstant(row.publishedAt) : null,
+    updatedAt: normalizeInstant(row.updatedAt),
+  }
+  return devAssertSchema(articleListItemSchema, mapped, 'toApiArticleListItem')
+}
+
+function toApiArticle(row: ArticleRow) {
+  const mapped = {
+    ...row,
+    publishedAt: row.publishedAt ? normalizeInstant(row.publishedAt) : null,
+    createdAt: normalizeInstant(row.createdAt),
+    updatedAt: normalizeInstant(row.updatedAt),
+  }
+  return devAssertSchema(articleResponseSchema, mapped, 'toApiArticle')
+}
 
 export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmin = false) {
   const page = filters.page ?? 1
@@ -35,7 +68,7 @@ export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmi
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
-  const [items, [{ total }]] = await Promise.all([
+  const [rows, [{ total }]] = await Promise.all([
     db
       .select({
         id: articles.id,
@@ -55,13 +88,13 @@ export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmi
     db.select({ total: sql<number>`cast(count(*) as integer)` }).from(articles).where(where),
   ])
 
-  return { items, total }
+  return { items: rows.map(toApiArticleListItem), total }
 }
 
 export async function getArticleBySlug(db: DB, slug: string) {
   const [article] = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1)
   if (!article) throw new BlogError('article_not_found')
-  return article
+  return toApiArticle(article)
 }
 
 export async function createArticle(db: DB, userId: string, input: CreateArticleInput) {
@@ -77,7 +110,7 @@ export async function createArticle(db: DB, userId: string, input: CreateArticle
       })
       .returning()
     if (!article) throw new BlogError('article_creation_failed')
-    return article
+    return toApiArticle(article)
   } catch (e) {
     if (e instanceof BlogError) throw e
     if (isUniqueViolation(e)) throw new BlogError('slug_already_exists')
@@ -95,7 +128,7 @@ export async function updateArticle(db: DB, slug: string, input: UpdateArticleIn
       .where(eq(articles.id, existing.id))
       .returning()
     if (!updated) throw new BlogError('article_update_failed')
-    return updated
+    return toApiArticle(updated)
   } catch (e) {
     if (e instanceof BlogError) throw e
     if (isUniqueViolation(e)) throw new BlogError('slug_already_exists')

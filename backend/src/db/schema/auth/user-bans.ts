@@ -24,7 +24,9 @@ export const userBans = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }), // admin qui a banni
     expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }), // null = permanent
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('user_bans_user_idx').on(t.userId),

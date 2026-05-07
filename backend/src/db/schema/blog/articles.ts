@@ -22,7 +22,9 @@ export const articles = pgTable(
     coverImageUrl: text('cover_image_url'),
     // null = brouillon, sinon date de publication
     publishedAt: timestamp('published_at', { withTimezone: true, mode: 'string' }),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow()

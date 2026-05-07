@@ -25,10 +25,16 @@ export const errorGroups = pgTable(
     stack: text('stack'),
     context: jsonb('context'),
     count: integer('count').notNull().default(1),
-    firstSeenAt: timestamp('first_seen_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
-    lastSeenAt: timestamp('last_seen_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     resolvedAt: timestamp('resolved_at', { withTimezone: true, mode: 'string' }),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex('error_groups_fingerprint_idx').on(t.fingerprint),
@@ -45,7 +51,9 @@ export const errorOccurrences = pgTable(
       .notNull()
       .references(() => errorGroups.id, { onDelete: 'cascade' }),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
-    occurredAt: timestamp('occurred_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     index('error_occurrences_group_idx').on(t.groupId),

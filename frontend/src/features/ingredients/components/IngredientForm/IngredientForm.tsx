@@ -16,7 +16,6 @@ import { type TagState, useFormTags } from '@/hooks/useFormTags'
 import { extractFormError } from '@/lib/helpers/apiError'
 import { isHttpError } from '@/lib/helpers/isHttpError'
 import { useAuthStore } from '@/store/auth'
-import { INGREDIENT_FORM_ERRORS, type IngredientFormField } from './formErrors'
 import {
   ingredientQueries,
   useCreateIngredient,
@@ -24,6 +23,7 @@ import {
   useUpdateIngredientTags,
 } from '../../../../lib/queries/ingredients'
 import { tagQueries } from '../../../../lib/queries/tags'
+import { INGREDIENT_FORM_ERRORS, type IngredientFormField } from './formErrors'
 import '../IngredientPageEditable.css'
 
 interface BaseIngredient {

@@ -22,9 +22,6 @@
   gap: var(--space-4);
 }
 
-.products-header__count {
-}
-
 .products-header__count strong {
   color: var(--text-primary);
   font-weight: 700;

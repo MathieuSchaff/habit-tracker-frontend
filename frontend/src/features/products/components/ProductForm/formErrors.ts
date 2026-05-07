@@ -13,7 +13,7 @@ export const PRODUCT_FORM_ERRORS: FormErrorMap<ProductFormField> = {
   },
   tag_domain_mismatch: {
     field: 'tags',
-    message: "Certains tags ne correspondent pas au domaine du produit.",
+    message: 'Certains tags ne correspondent pas au domaine du produit.',
   },
   unauthorized_access: {
     message: "Tu n'as pas le droit de modifier ce produit.",

@@ -11,11 +11,7 @@ interface SafeParser<T> {
   safeParse(value: unknown): { success: true; data: T } | { success: false; error: unknown }
 }
 
-export function devAssertSchema<T>(
-  schema: SafeParser<T>,
-  value: T,
-  context: string
-): T {
+export function devAssertSchema<T>(schema: SafeParser<T>, value: T, context: string): T {
   if (!isDev) return value
   const result = schema.safeParse(value)
   if (!result.success) {

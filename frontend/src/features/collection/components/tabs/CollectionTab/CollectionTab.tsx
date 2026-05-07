@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { ArrowUpDown, Plus, Search, SlidersHorizontal } from 'lucide-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
@@ -13,10 +13,16 @@ import {
 import { type UserPreferences, userPreferenceQueries } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { useUpdateUserProduct } from '@/lib/queries/user-products'
-import { CollectionFiltersSheet } from './parts/CollectionFiltersSheet'
-import { ProductDetailSheet } from './parts/ProductDetailSheet'
 import { ShelfView } from './ShelfView/ShelfView'
 import './CollectionTab.css'
+
+const CollectionFiltersSheet = lazy(() =>
+  import('./parts/CollectionFiltersSheet').then((m) => ({ default: m.CollectionFiltersSheet }))
+)
+
+const ProductDetailSheet = lazy(() =>
+  import('./parts/ProductDetailSheet').then((m) => ({ default: m.ProductDetailSheet }))
+)
 
 interface CollectionTabProps {
   userProducts: UserProduct[] | undefined
@@ -128,19 +134,25 @@ function CollectionTabContent({
         onAddClick={onAddClick}
       />
 
-      {showFiltersSheet && <CollectionFiltersSheet onClose={() => setShowFiltersSheet(false)} />}
+      {showFiltersSheet && (
+        <Suspense fallback={null}>
+          <CollectionFiltersSheet onClose={() => setShowFiltersSheet(false)} />
+        </Suspense>
+      )}
 
       {selectedProduct && (
-        <ProductDetailSheet
-          p={selectedProduct}
-          prefs={prefs}
-          activeTooltip={activeTooltip}
-          setActiveTooltip={setActiveTooltip}
-          onClose={() => {
-            setExpandedId(null)
-            setActiveTooltip(null)
-          }}
-        />
+        <Suspense fallback={null}>
+          <ProductDetailSheet
+            p={selectedProduct}
+            prefs={prefs}
+            activeTooltip={activeTooltip}
+            setActiveTooltip={setActiveTooltip}
+            onClose={() => {
+              setExpandedId(null)
+              setActiveTooltip(null)
+            }}
+          />
+        </Suspense>
       )}
     </>
   )
