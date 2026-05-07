@@ -195,18 +195,25 @@ const INGREDIENT_TAG_LABELS: Record<string, string> = {
 
   // Skin effects
   occlusif: 'Occlusif',
+  'semi-occlusif': 'Semi-occlusif',
   repulpant: 'Repulpant',
   matifiant: 'Matifiant',
   'texture-riche': 'Texture riche',
   'texture-legere': 'Texture légère',
-  'protection-cutanee': 'Protection cutanée',
+  'effet-protecteur': 'Effet protecteur',
 
   // Product labels
+  // `sans-sulfates` / `sans-silicones` labels live in the haircare section
+  // (same slug, same FR label across domains — see also `sans-parfum`/`vegan`).
   'sans-parfum': 'Sans parfum',
+  'sans-huiles-essentielles': 'Sans huiles essentielles',
+  'sans-huiles-minerales': 'Sans huiles minérales',
+  'sans-allergenes-parfumants': 'Sans allergènes parfumants',
   'bio-naturel': 'Bio / Naturel',
   vegan: 'Vegan',
   'cruelty-free': 'Cruelty-free',
   hypoallergenique: 'Hypoallergénique',
+  'non-irritant': 'Non irritant',
   'pigments-verts': 'Pigments verts',
   'sans-savon': 'Sans savon',
   'filtres-chimiques': 'Filtres chimiques',

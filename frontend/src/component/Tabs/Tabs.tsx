@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import type React from 'react'
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './Tabs.css'
+import { useDragScroll } from './useDragScroll'
 
 export interface TabOption<T extends string> {
   id: T
@@ -118,6 +119,8 @@ export const Tabs = <T extends string>({
       ? (options[activeIndex]?.color ?? 'var(--color-primary)')
       : 'var(--color-primary)'
 
+  const dragHandlers = useDragScroll(listRef, { enabled: scrollable })
+
   return (
     <div
       className={clsx(
@@ -137,6 +140,7 @@ export const Tabs = <T extends string>({
         aria-label={ariaLabel}
         onKeyDown={handleKeyDown}
         style={{ '--active-tab-color': activeColor } as CSSProperties}
+        {...dragHandlers}
       >
         {variant === 'pill' && underline && (
           <div

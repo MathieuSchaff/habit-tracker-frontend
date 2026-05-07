@@ -42,6 +42,7 @@ export const HUMECTANTS = {
   MANNITOL: 'mannitol', // INCI: Mannitol | humectant sucre, souvent utilisé dans les complexes apaisants
   IMPERATA_CYLINDRICA_ROOT: 'imperata-cylindrica-root', // INCI: Imperata Cylindrica Root Extract | extrait herbacé osmolyte hydratant
   DISODIUM_ACETYL_GLUCOSAMINE_PHOSPHATE: 'disodium-acetyl-glucosamine-phosphate', // INCI: Disodium Acetyl Glucosamine Phosphate | dérivé glucosamine hydratant, éclaircissant
+  ACETAMIDOETHOXYETHANOL: 'acetamidoethoxyethanol', // INCI: Acetamidoethoxyethanol (Hydromanil) | humectant biomimétique longue durée
 } as const
 
 export const BARRIERE_EMOLLIENTS_OCCLUSIFS = {
@@ -97,6 +98,9 @@ export const BARRIERE_EMOLLIENTS_OCCLUSIFS = {
   C10_18_TRIGLYCERIDES: 'c10-18-triglycerides', // INCI: C10-18 Triglycerides | triglycérides solides biomimétiques, émollient structurant
   HELIANTHUS_ANNUUS_SEED_WAX: 'helianthus-annuus-seed-wax', // INCI: Helianthus Annuus (Sunflower) Seed Wax | cire de tournesol, agent structurant et film occlusif
   LANOLIN_OIL: 'lanolin-oil', // INCI: Lanolin Oil | fraction huileuse de la lanoline, émollient occlusif riche
+  HYDROXYSTEARIC_ACID_10: '10-hydroxystearic-acid', // INCI: 10-Hydroxystearic Acid | acide gras hydroxylé, agoniste PPAR-α
+  PASSIFLORA_EDULIS: 'passiflora-edulis', // INCI: Passiflora Edulis Seed Oil (Passioline) | huile riche linoléique, antioxydante
+  MYROTHAMNUS_FLABELLIFOLIA: 'myrothamnus-flabellifolia', // INCI: Myrothamnus Flabellifolia Leaf/Stem Extract (Myramaze) | plante de résurrection
 } as const
 
 export const EXFOLIANTS = {
@@ -113,6 +117,7 @@ export const EXFOLIANTS = {
   SUCCINIC_ACID: 'succinic-acid', // INCI: Succinic Acid | exfoliant doux, régulateur sébum
   AHA_ESTERS: 'aha-esters', // Esters d'AHA (acides hydroxy-carboxyliques éstérifiés) | libération prolongée
   ESTER_ACIDE_MALIQUE: 'ester-acide-malique', // Ester d'acide malique | AHA doux à libération modérée
+  GLYCOLIDE: 'glycolide', // INCI: Glycolide | dimère cyclique de l'acide glycolique, exfoliant time-release
 } as const
 
 export const RETINOIDES = {
@@ -181,7 +186,6 @@ export const ANTIOXYDANTS_VITAMINES = {
   MAGNESIUM_ASCORBYL_PHOSPHATE: 'magnesium-ascorbyl-phosphate', // INCI: Magnesium Ascorbyl Phosphate | dérivé vitamine C stable
   SODIUM_ASCORBYL_PHOSPHATE: 'sodium-ascorbyl-phosphate', // INCI: Sodium Ascorbyl Phosphate | dérivé vitamine C
   THREE_O_ETHYL_ASCORBIC_ACID: '3-o-ethyl-ascorbic-acid', // INCI: 3-O-Ethyl Ascorbic Acid | dérivé vitamine C stable et pénétrant
-  THD_ASCORBATE: 'thd-ascorbate', // INCI: Tetrahexyldecyl Ascorbate | dérivé vitamine C liposoluble
   TOCOPHEROL: 'tocopherol', // INCI: Tocopherol | vitamine E pure
   TOCOPHERYL_ACETATE: 'tocopheryl-acetate', // INCI: Tocopheryl Acetate | ester stable de vitamine E
   TOCOPHERYL_GLUCOSIDE: 'tocopheryl-glucoside', // INCI: Tocopheryl Glucoside | dérivé hydrophile vitamine E
@@ -218,9 +222,19 @@ export const ANTIOXYDANTS_VITAMINES = {
   BENZOTRIAZOLYL_DODECYL_P_CRESOL: 'benzotriazolyl-dodecyl-p-cresol', // INCI: Benzotriazolyl Dodecyl p-Cresol (Tinogard TT) | antioxydant stabilisant de formule
   SUPEROXIDE_DISMUTASE: 'superoxide-dismutase', // INCI: Superoxide Dismutase | enzyme antioxydante, neutralise les superoxydes
   SOPHORA_JAPONICA_FLOWER_EXTRACT: 'sophora-japonica-flower-extract', // INCI: Sophora Japonica Flower Extract | extrait riche en flavonoïdes (rutine), antioxydant
-  ASCORBYL_TETRAISOPALMITATE: 'ascorbyl-tetraisopalmitate', // INCI: Ascorbyl Tetraisopalmitate | dérivé vitamine C liposoluble très stable (VC-IP)
+  ASCORBYL_TETRAISOPALMITATE: 'ascorbyl-tetraisopalmitate', // INCI: Ascorbyl Tetraisopalmitate / Tetrahexyldecyl Ascorbate (alias: THDA / VC-IP) — dérivé vitamine C liposoluble ultra-stable
   POLYGONUM_CUSPIDATUM_EXTRACT: 'polygonum-cuspidatum-extract', // INCI: Polygonum Cuspidatum Root Extract | source naturelle de resvératrol
   CISTUS_MONSPELIENSIS_EXTRACT: 'cistus-monspeliensis-extract', // INCI: Cistus Monspeliensis Extract | ciste, plante méditerranéenne antioxydante
+  ACETYL_ZINGERONE: 'acetyl-zingerone', // INCI: Acetyl Zingerone | antioxydant nouvelle génération (gingembre), stabilisateur Vit C
+  GENISTEIN: 'genistein', // INCI: Genistein | isoflavone soja, antioxydant phyto-œstrogène-like
+  QUERCETIN: 'quercetin', // INCI: Quercetin | flavonoïde antioxydant et anti-inflammatoire
+  SILYBIN: 'silybin', // INCI: Silybin | flavonolignane chardon-marie, anti-âge / anti-rougeurs
+  HESPERIDIN_METHYL_CHALCONE: 'hesperidin-methyl-chalcone', // INCI: Hesperidin Methyl Chalcone | flavonoïde agrumes, veinotonique
+  DIMETHYLMETHOXYCHROMANOL: 'dimethylmethoxychromanol', // INCI: Dimethylmethoxy Chromanol (Lipochroman) | antioxydant bi-mode hydro/lipo
+  TETRAHYDRODIFERULOYLMETHANE: 'tetrahydrodiferuloylmethane', // INCI: Tetrahydrodiferuloylmethane (THC) | tétrahydrocurcuminoïde, anti-pigmentation
+  NARINGENIN: 'naringenin', // INCI: Naringenin | flavonoïde agrumes, anti-rougeurs partenaire azélaïque
+  GLUCOSYLRUTIN: 'glucosylrutin', // INCI: Glucosylrutin | rutine glycosylée stable
+  RUTIN: 'rutin', // INCI: Rutin | glycoside de quercétine, antioxydant veinotonique
 } as const
 
 export const APAISANTS_ANTI_INFLAMMATOIRES = {
@@ -257,7 +271,7 @@ export const APAISANTS_ANTI_INFLAMMATOIRES = {
   BOSWELLIA_SERRATA: 'boswellia-serrata', // INCI: Boswellia Serrata Gum/Extract | apaisant puissant
   ZINGIBER_OFFICINALE: 'zingiber-officinale', // INCI: Zingiber Officinale Root Extract | gingembre, tonifiant/antioxydant
   MORINDA_CITRIFOLIA: 'morinda-citrifolia', // INCI: Morinda Citrifolia Fruit Extract | Noni, protecteur/antioxydant
-  ENOXOLONE: 'enoxolone', // INCI: Enoxolone | dérivé glycyrrhizinique, anti-inflammatoire puissant
+  GLYCYRRHETINIC_ACID: 'glycyrrhetinic-acid', // INCI: Glycyrrhetinic Acid | acide 18-β-glycyrrhétinique (alias INN/BAN: Enoxolone), anti-inflammatoire
   DIPOTASSIUM_GLYCYRRHIZATE: 'dipotassium-glycyrrhizate', // INCI: Dipotassium Glycyrrhizate | apaisant puissant issu de la réglisse
   NEUTRAZEN: 'neutrazen', // INCI: (composant appaisant spécialisé) | complexe pour peaux réactives / couperose
   SYMSITIVE: 'symsitive', // INCI: 4-t-Butylcyclohexanol | régulateur de sensibilité cutanée
@@ -269,6 +283,8 @@ export const APAISANTS_ANTI_INFLAMMATOIRES = {
   GINKGO_BILOBA: 'ginkgo-biloba', // INCI: Ginkgo Biloba Leaf Extract | antioxydant / circulatoire
   MALTOOLIGOSYL_GLUCOSIDE: 'maltooligosyl-glucoside', // INCI: Maltooligosyl Glucoside | polysaccharide apaisant biomimétique (Rosactiv 2.0)
   METHYLHYDANTOIN_IMIDE: 'methylhydantoin-imide', // INCI: 1-Methylhydantoin-2-Imide | actif neuro-apaisant TRPV1, anti-inconfort sensoriel
+  SWERTIA_CHIRATA: 'swertia-chirata', // INCI: Swertia Chirata Extract (swertiamarine) | apaisant, gentiane himalayenne
+  SALICORNIA_HERBACEA: 'salicornia-herbacea', // INCI: Salicornia Herbacea Extract (Saliporine-8) | apaisant neuro-cosmétique
 } as const
 
 export const ECLAIRCISSANTS_DEPIGMENTANTS = {
@@ -311,6 +327,8 @@ export const ANTI_ACNE_SEBUM = {
   PEA_EXTRACT: 'pea-extract', // INCI: Pisum Sativum Extract | extrait de pois, matifiant / sébum
   SARCOSINE: 'sarcosine', // INCI: Sarcosine | acide aminé anti-sébum, assainissant
   AMMONIUM_LACTATE: 'ammonium-lactate', // INCI: Ammonium Lactate | kératolytique doux, anti-acné
+  AZELAMIDE_MEA: 'azelamide-mea', // INCI: Azelamide MEA | dérivé amide de l'acide azélaïque, anti-imperfections soluble
+  AZELAMIDOPROPYL_DIMETHYL_AMINE: 'azelamidopropyl-dimethyl-amine', // INCI: Azelamidopropyl Dimethyl Amine (Epi-On) | dérivé amine de l'acide azélaïque
 } as const
 
 export const ANTI_ROSACEE_VASOCONSTRICTEURS = {
@@ -395,6 +413,7 @@ export const TENSIOACTIFS_NETTOYANTS = {
   SODIUM_COCOYL_ISETHIONATE: 'sodium-cocoyl-isethionate', // INCI: Sodium Cocoyl Isethionate | tensioactif doux dérivé de coco
   GLEDITSIA_TRIACANTHOS_SEED_EXTRACT: 'gleditsia-seed-extract', // INCI: Gleditsia Triacanthos Seed Extract | tensioactif / épaississant naturel doux
   PEG_20_GLYCERYL_TRIISOSTEARATE: 'peg-20-glyceryl-triisostearate', // INCI: PEG-20 Glyceryl Triisostearate | émulsifiant huileux (nettoyants)
+  COCAMIDOPROPYL_HYDROXYSULTAINE: 'cocamidopropyl-hydroxysultaine', // INCI: Cocamidopropyl Hydroxysultaine | tensioactif amphotère doux
 } as const
 
 export const TEXTURANTS_FONCTIONNELS = {
