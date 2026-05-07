@@ -5,7 +5,11 @@ import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { Input } from '@/component/Input/Input'
-import { useCollectionFilter } from '@/features/collection/context/CollectionFilterContext'
+import {
+  type CollectionFilterValues,
+  DEFAULT_FILTERS,
+  useCollectionFilter,
+} from '@/features/collection/context/CollectionFilterContext'
 
 import './CollectionFiltersSheet.css'
 
@@ -16,23 +20,7 @@ interface CollectionFiltersSheetProps {
 // Local draft so the page behind the sheet doesn't flicker on every click —
 // we only commit to the global filter state when the user clicks "Appliquer".
 // Closing via Esc, backdrop, or the X button discards the draft.
-type Draft = {
-  brand: string
-  kind: string
-  sentiment: number | 'all'
-  repurchase: 'yes' | 'no' | 'unsure' | 'all'
-  minNote: number
-  maxPrice: number | ''
-}
-
-const EMPTY_DRAFT: Draft = {
-  brand: 'all',
-  kind: 'all',
-  sentiment: 'all',
-  repurchase: 'all',
-  minNote: 0,
-  maxPrice: '',
-}
+type Draft = CollectionFilterValues
 
 export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps) {
   const { brand, kind, sentiment, repurchase, minNote, maxPrice, filterOptions, setFilter } =
@@ -61,7 +49,7 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
   }, [draft, setFilter, onClose])
 
   const handleReset = useCallback(() => {
-    setDraft(EMPTY_DRAFT)
+    setDraft(DEFAULT_FILTERS)
   }, [])
 
   return (

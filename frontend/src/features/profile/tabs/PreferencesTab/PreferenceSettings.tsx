@@ -15,7 +15,6 @@ import { useThemeStore } from '../../../../store/theme'
 import './PreferenceSettings.css'
 
 const PALETTE_SWATCHES: Array<{ variant: Variant; label: string; color: string }> = [
-  { variant: 'bleu', label: 'Bleu', color: 'oklch(55% 0.2 260)' },
   { variant: 'terracota', label: 'Terracota', color: 'oklch(52% 0.13 32)' },
   { variant: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
   { variant: 'ardoise', label: 'Ardoise', color: 'oklch(35% 0.12 240)' },

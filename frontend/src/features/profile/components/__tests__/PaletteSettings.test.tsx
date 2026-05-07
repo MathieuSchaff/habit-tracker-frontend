@@ -29,14 +29,14 @@ describe('PreferenceSettings — palette section', () => {
   beforeEach(() => {
     localStorage.clear()
     document.documentElement.removeAttribute('data-variant')
-    useThemeStore.setState({ theme: 'light', variant: 'bleu' })
+    useThemeStore.setState({ theme: 'light', variant: 'terracota' })
   })
 
   afterEach(() => {
     cleanup()
     localStorage.clear()
     document.documentElement.removeAttribute('data-variant')
-    useThemeStore.setState({ theme: 'light', variant: 'bleu' })
+    useThemeStore.setState({ theme: 'light', variant: 'terracota' })
   })
 
   it('shows palette section in light mode', async () => {
@@ -45,18 +45,18 @@ describe('PreferenceSettings — palette section', () => {
   })
 
   it('shows palette section in dark mode too', async () => {
-    useThemeStore.setState({ theme: 'dark', variant: 'bleu' })
+    useThemeStore.setState({ theme: 'dark', variant: 'terracota' })
     renderWithProviders(<PreferenceSettings />)
     expect(await screen.findByText('Palette (mode clair)')).toBeInTheDocument()
   })
 
-  it('marks Bleu as active when variant is bleu', async () => {
+  it('marks Terracota as active when variant is terracota', async () => {
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
     const paletteGroup = screen.getByRole('radiogroup', { name: /palette/i })
-    expect(within(paletteGroup).getByRole('radio', { name: /bleu/i })).toBeChecked()
+    expect(within(paletteGroup).getByRole('radio', { name: /terracota/i })).toBeChecked()
 
-    const others = within(paletteGroup).getAllByRole('radio', { name: /^(?!bleu)/i })
+    const others = within(paletteGroup).getAllByRole('radio', { name: /^(?!terracota)/i })
     for (const s of others) expect(s).not.toBeChecked()
   })
 
@@ -69,7 +69,7 @@ describe('PreferenceSettings — palette section', () => {
 
   it('calls setVariant when a swatch is clicked', async () => {
     const setVariant = vi.fn()
-    useThemeStore.setState({ theme: 'light', variant: 'bleu', setVariant })
+    useThemeStore.setState({ theme: 'light', variant: 'terracota', setVariant })
     renderWithProviders(<PreferenceSettings />)
     await screen.findByText('Palette (mode clair)')
     fireEvent.click(screen.getByRole('radio', { name: /forêt/i }))

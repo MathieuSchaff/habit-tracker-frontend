@@ -10,6 +10,15 @@ export type CollectionFilters = Pick<
   'brand' | 'kind' | 'sentiment' | 'repurchase' | 'minNote' | 'maxPrice'
 > & { q: string }
 
+function getNumericReviewScore(
+  p: UserProduct,
+  weights: CriteriaWeights | undefined,
+  scale: DisplayScale | undefined
+): number {
+  const score = calculateWeightedScore(p.review, weights, scale)
+  return score ? Number.parseFloat(score) : 0
+}
+
 export function applyFilters(
   products: UserProduct[],
   filters: CollectionFilters,
@@ -19,8 +28,7 @@ export function applyFilters(
   const needle = q.toLowerCase()
 
   return products.filter((p) => {
-    const score = calculateWeightedScore(p.review, criteriaWeights, 'out_of_20')
-    const numericScore = score ? Number.parseFloat(score) : 0
+    const numericScore = getNumericReviewScore(p, criteriaWeights, 'out_of_20')
 
     const matchesSearch =
       p.product.name.toLowerCase().includes(needle) ||
@@ -63,15 +71,11 @@ export function sortProducts(
         return (a.product.priceCents || 0) - (b.product.priceCents || 0)
       case 'price_desc':
         return (b.product.priceCents || 0) - (a.product.priceCents || 0)
-      case 'note': {
-        const sA = Number.parseFloat(
-          calculateWeightedScore(a.review, criteriaWeights, displayScale) || '0'
+      case 'note':
+        return (
+          getNumericReviewScore(b, criteriaWeights, displayScale) -
+          getNumericReviewScore(a, criteriaWeights, displayScale)
         )
-        const sB = Number.parseFloat(
-          calculateWeightedScore(b.review, criteriaWeights, displayScale) || '0'
-        )
-        return sB - sA
-      }
       default:
         return 0
     }

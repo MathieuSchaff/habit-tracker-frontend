@@ -1,6 +1,5 @@
-import type { ProductCategory, UserProductStatus } from '@habit-tracker/shared'
+import type { ProductCategory } from '@habit-tracker/shared'
 
-import clsx from 'clsx'
 import { X } from 'lucide-react'
 
 import { Button } from '@/component/Button/Button'
@@ -9,10 +8,11 @@ import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
-import { statusLabels } from '@/features/collection/constants'
 import { useQuickAdd } from '@/features/collection/hooks/useQuickAdd'
 import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
 import { productQueries } from '@/lib/queries/products'
+import { PurchaseFields } from './PurchaseFields'
+import { StatusSelector } from './StatusSelector'
 
 import './QuickAdd.css'
 
@@ -54,6 +54,8 @@ export function QuickAdd({ onClose }: QuickAddProps) {
     handleCreateAndAdd,
     isPending,
   } = useQuickAdd({ onClose })
+
+  const purchaseFieldsVisible = selectedStatus === 'in_stock'
 
   return (
     <Modal onClose={onClose} size="lg" className="qa-modal">
@@ -112,53 +114,18 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                   </Button>
                 </div>
 
-                <div className="qa-status-grid">
-                  {(Object.keys(statusLabels) as UserProductStatus[]).map((s) => {
-                    const cfg = statusLabels[s]
-                    const Icon = cfg.icon
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        className={clsx('qa-status-opt', selectedStatus === s && 'active')}
-                        onClick={() => setSelectedStatus(s)}
-                        aria-pressed={selectedStatus === s}
-                      >
-                        <Icon size={18} aria-hidden="true" />
-                        <span>{cfg.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+                <StatusSelector value={selectedStatus} onChange={setSelectedStatus} />
 
-                {selectedStatus === 'in_stock' && (
-                  <div className="qa-purchase-fields">
-                    <Input
-                      id="qa-purchased-at"
-                      label="Date d'achat"
-                      type="date"
-                      value={purchasedAt}
-                      onChange={(e) => setPurchasedAt(e.target.value)}
-                      required
-                    />
-                    <Input
-                      id="qa-purchase-price"
-                      label="Prix payé (€) — optionnel"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={purchasePrice}
-                      onChange={(e) => setPurchasePrice(e.target.value)}
-                    />
-                    <Input
-                      id="qa-expires-at"
-                      label="Date d'expiration — optionnel"
-                      type="date"
-                      value={expiresAt}
-                      onChange={(e) => setExpiresAt(e.target.value)}
-                    />
-                  </div>
+                {purchaseFieldsVisible && (
+                  <PurchaseFields
+                    idPrefix="qa"
+                    purchasedAt={purchasedAt}
+                    onPurchasedAtChange={setPurchasedAt}
+                    purchasePrice={purchasePrice}
+                    onPurchasePriceChange={setPurchasePrice}
+                    expiresAt={expiresAt}
+                    onExpiresAtChange={setExpiresAt}
+                  />
                 )}
 
                 <Button
@@ -226,53 +193,18 @@ export function QuickAdd({ onClose }: QuickAddProps) {
               onChange={(e) => setNewCategory(e.target.value as ProductCategory)}
             />
 
-            <div className="qa-status-grid qa-status-grid--spaced">
-              {(Object.keys(statusLabels) as UserProductStatus[]).map((s) => {
-                const cfg = statusLabels[s]
-                const Icon = cfg.icon
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    className={clsx('qa-status-opt', selectedStatus === s && 'active')}
-                    onClick={() => setSelectedStatus(s)}
-                    aria-pressed={selectedStatus === s}
-                  >
-                    <Icon size={18} aria-hidden="true" />
-                    <span>{cfg.label}</span>
-                  </button>
-                )
-              })}
-            </div>
+            <StatusSelector value={selectedStatus} onChange={setSelectedStatus} spaced />
 
-            {selectedStatus === 'in_stock' && (
-              <div className="qa-purchase-fields">
-                <Input
-                  id="qa-new-purchased-at"
-                  label="Date d'achat"
-                  type="date"
-                  value={purchasedAt}
-                  onChange={(e) => setPurchasedAt(e.target.value)}
-                  required
-                />
-                <Input
-                  id="qa-new-purchase-price"
-                  label="Prix payé (€) — optionnel"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={purchasePrice}
-                  onChange={(e) => setPurchasePrice(e.target.value)}
-                />
-                <Input
-                  id="qa-new-expires-at"
-                  label="Date d'expiration — optionnel"
-                  type="date"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-              </div>
+            {purchaseFieldsVisible && (
+              <PurchaseFields
+                idPrefix="qa-new"
+                purchasedAt={purchasedAt}
+                onPurchasedAtChange={setPurchasedAt}
+                purchasePrice={purchasePrice}
+                onPurchasePriceChange={setPurchasePrice}
+                expiresAt={expiresAt}
+                onExpiresAtChange={setExpiresAt}
+              />
             )}
 
             <Button

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 
 type Theme = 'light' | 'dark'
-export type Variant = 'bleu' | 'terracota' | 'foret' | 'ardoise'
+export type Variant = 'terracota' | 'foret' | 'ardoise'
 
-const VALID_VARIANTS: Variant[] = ['bleu', 'terracota', 'foret', 'ardoise']
-const DEFAULT_VARIANT: Variant = 'bleu'
+const VALID_VARIANTS: Variant[] = ['terracota', 'foret', 'ardoise']
+const DEFAULT_VARIANT: Variant = 'terracota'
 
 const STORAGE_KEY = 'theme-preference'
 const VARIANT_KEY = 'variant'
@@ -42,11 +42,34 @@ const applyVariant = (variant: Variant) => {
   document.documentElement.setAttribute('data-variant', variant)
 }
 
+// terracota is bundled statically; foret + ardoise CSS chunks are fetched on demand.
+// Brief FOUC possible on first switch to a non-cached variant (Vite injects <link>
+// asynchronously). Both light and dark of a variant preload together so theme toggle
+// stays instant after the first variant pick.
+const loadedVariants = new Set<Variant>(['terracota'])
+
+const loadVariant = (variant: Variant): void => {
+  if (loadedVariants.has(variant)) return
+  loadedVariants.add(variant)
+
+  switch (variant) {
+    case 'foret':
+      void import('../styles/tokens/colors-light-foret.css')
+      void import('../styles/tokens/colors-dark-foret.css')
+      break
+    case 'ardoise':
+      void import('../styles/tokens/colors-light-ardoise.css')
+      void import('../styles/tokens/colors-dark-ardoise.css')
+      break
+  }
+}
+
 const initial = getInitialTheme()
 const initialVariant = getInitialVariant()
 
 applyTheme(initial.theme)
 applyVariant(initialVariant)
+loadVariant(initialVariant)
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
   theme: initial.theme,
@@ -69,6 +92,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 
   setVariant: (v) => {
+    loadVariant(v)
     localStorage.setItem(VARIANT_KEY, v)
     applyVariant(v)
     set({ variant: v })
