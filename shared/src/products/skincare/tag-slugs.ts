@@ -84,22 +84,18 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   SEMI_OCCLUSIF: 'semi-occlusif',
   REPULPANT: 'repulpant',
   MATIFIANT: 'matifiant',
-  EFFET_PROTECTEUR: 'effet-protecteur',
   ANTI_OXYDANT: 'anti-oxydant',
   APAISANT: 'apaisant',
   SEBO_REGULATEUR: 'sebo-regulateur',
   REPARATEUR: 'reparateur',
   PURIFIANT: 'purifiant',
   PREBIOTIQUE: 'prebiotique',
-  KERATOLYTIQUE: 'keratolytique',
 
   // Sensations (how the formula feels)
   TEXTURE_RICHE: 'texture-riche',
   TEXTURE_LEGERE: 'texture-legere',
   NON_GRAS: 'non-gras',
   FINI_MAT: 'fini-mat',
-  FINI_GLOWY: 'fini-glowy',
-  ABSORPTION_RAPIDE: 'absorption-rapide',
 
   // Product labels
   SANS_PARFUM: 'sans-parfum',
