@@ -96,6 +96,7 @@ async function getProductRow(condition: SQL, database: Database) {
       unit: products.unit,
       priceCents: products.priceCents,
       kind: products.kind,
+      texture: products.texture,
       notes: products.notes,
     })
     .from(products)
@@ -138,6 +139,7 @@ const TRACKED_FIELDS = [
   'brand',
   'category',
   'kind',
+  'texture',
   'unit',
   'inci',
   'description',

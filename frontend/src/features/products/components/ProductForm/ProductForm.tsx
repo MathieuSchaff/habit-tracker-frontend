@@ -8,6 +8,8 @@ import {
   PRODUCT_CATEGORY_VALUES,
   PRODUCT_KIND_LABELS,
   PRODUCT_KINDS,
+  PRODUCT_TEXTURE_LABELS,
+  PRODUCT_TEXTURE_VALUES,
   PRODUCT_UNIT_LABELS,
   PRODUCT_UNITS,
 } from '@habit-tracker/shared'
@@ -270,7 +272,14 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           onChange={([v]) => {
             if (!v) return
             const next = v as ProductCategory
-            setForm((prev) => ({ ...prev, category: next, kind: '', unit: '', amountUnit: '' }))
+            setForm((prev) => ({
+              ...prev,
+              category: next,
+              kind: '',
+              unit: '',
+              amountUnit: '',
+              texture: '',
+            }))
             const nextDomain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[next]
             setTags((prev) =>
               prev.filter((t) => {
@@ -332,6 +341,28 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
           aria-label="Type de produit"
         />
       </FormField>
+
+      {(form.category === 'skincare' ||
+        form.category === 'solaire' ||
+        form.category === 'bodycare') && (
+        <FormField label="Texture" hint="Optionnel — cliquer à nouveau pour désélectionner">
+          <ChipGroup
+            options={PRODUCT_TEXTURE_VALUES.map((v) => ({
+              value: v,
+              label: PRODUCT_TEXTURE_LABELS[v],
+            }))}
+            selected={form.texture ? [form.texture] : []}
+            onChange={(values) => {
+              // Toggle mode (not exclusive) so a second click on the active chip clears the
+              // field — radios in exclusive mode swallow the re-click. Take the last chip
+              // added to enforce single-select semantics.
+              setForm((prev) => ({ ...prev, texture: values.at(-1) ?? '' }))
+            }}
+            mode="toggle"
+            aria-label="Texture du produit"
+          />
+        </FormField>
+      )}
 
       <FormField label="Conditionnement" required>
         <ChipGroup

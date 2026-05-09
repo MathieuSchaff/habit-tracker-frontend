@@ -3,6 +3,7 @@ import type {
   ProductCategory,
   ProductChanges,
   ProductKind,
+  ProductTexture,
   ProductUnit,
 } from '@habit-tracker/shared'
 
@@ -36,6 +37,10 @@ export const products = pgTable(
     category: text('category').notNull().$type<ProductCategory>(),
     // specific product type within a category: serum, cleanser, gélule, etc.
     kind: text('kind').notNull().$type<ProductKind>(),
+    // Sensoriel feel — orthogonal to `kind`. A `cleanser` can be gel/mousse/
+    // huile/baume; a `moisturizer` can be creme/gel/lait. NULL when not yet
+    // captured (admin-curated for the long tail). Drives S5 sensoriel tagging.
+    texture: text('texture').$type<ProductTexture>(),
     // amountUnit differs from unit when dosage and container units differ
     // (e.g. dosed in "gouttes" but the bottle is in "mL"). When identical, amountUnit is null.
     unit: text('unit').notNull().$type<ProductUnit>(),

@@ -2,8 +2,10 @@ import {
   type CreateProductInput,
   PRODUCT_AMOUNT_UNIT_VALUES,
   PRODUCT_CATEGORY_VALUES,
+  PRODUCT_TEXTURE_VALUES,
   PRODUCT_UNIT_VALUES,
   type ProductAmountUnit,
+  type ProductTexture,
   type ProductUnit,
   type UpdateProductInput,
 } from '@habit-tracker/shared'
@@ -51,6 +53,13 @@ export const productEditFormSchema = z.object({
     .refine((v) => v === '' || (PRODUCT_AMOUNT_UNIT_VALUES as readonly string[]).includes(v), {
       message: 'Unité de contenance invalide.',
     }),
+  // Optional. Empty = unset. Backend stores ProductTexture | null.
+  texture: z
+    .string()
+    .trim()
+    .refine((v) => v === '' || (PRODUCT_TEXTURE_VALUES as readonly string[]).includes(v), {
+      message: 'Texture invalide.',
+    }),
   inci: z.string().max(5000),
   description: z.string().max(5000),
   notes: z.string().max(5000),
@@ -73,6 +82,7 @@ export function emptyProductEditForm(): ProductEditFormInput {
     priceEuros: '',
     totalAmount: '',
     amountUnit: '',
+    texture: '',
     inci: '',
     description: '',
     notes: '',
@@ -95,6 +105,7 @@ export function productToEditForm(p: ProductDetail): ProductEditFormInput {
     priceEuros: p.priceCents != null ? (p.priceCents / 100).toFixed(2) : '',
     totalAmount: p.totalAmount != null ? String(p.totalAmount) : '',
     amountUnit: p.amountUnit ?? '',
+    texture: p.texture ?? '',
     inci: p.inci ?? '',
     description: p.description ?? '',
     notes: p.notes ?? '',
@@ -118,6 +129,7 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
     priceCents: priceEuros === '' ? undefined : Math.round(parseFloat(priceEuros) * 100),
     totalAmount: totalAmount === '' ? undefined : parseInt(totalAmount, 10),
     amountUnit: form.amountUnit.trim() ? (form.amountUnit.trim() as ProductAmountUnit) : undefined,
+    texture: form.texture.trim() ? (form.texture.trim() as ProductTexture) : undefined,
     inci: form.inci.trim() || undefined,
     description: form.description.trim() || undefined,
     notes: form.notes.trim() || undefined,
@@ -163,6 +175,11 @@ export function productEditFormToUpdateInput(
       form.amountUnit.trim(),
       form.amountUnit.trim() as ProductAmountUnit,
       original.amountUnit
+    ),
+    texture: clearOrOmit(
+      form.texture.trim(),
+      form.texture.trim() as ProductTexture,
+      original.texture
     ),
     inci: clearOrOmit(form.inci.trim(), form.inci.trim(), original.inci),
     description: clearOrOmit(

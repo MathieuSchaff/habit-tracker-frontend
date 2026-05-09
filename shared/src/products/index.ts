@@ -26,5 +26,6 @@ export {
 export * from './schemas'
 export * from './skincare'
 export * from './supplement'
+export * from './textures'
 export * from './types'
 export * from './units'
