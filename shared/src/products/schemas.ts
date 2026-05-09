@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { fieldChangeSchema } from '../core'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
+import { PRODUCT_TEXTURE_VALUES } from './textures'
 import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
 
 export const createProductSchema = z
@@ -16,6 +17,7 @@ export const createProductSchema = z
     description: z.string().max(5000).optional(),
     totalAmount: z.number().int().min(1).optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).optional(),
+    texture: z.enum(PRODUCT_TEXTURE_VALUES).optional(),
     url: z.url().max(2000).optional(),
     imageUrl: z.url().max(2000).optional(),
     notes: z.string().max(5000).optional(),
@@ -41,6 +43,7 @@ export const updateProductSchema = z
     description: z.string().max(5000).nullable().optional(),
     totalAmount: z.number().int().min(1).nullable().optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).nullable().optional(),
+    texture: z.enum(PRODUCT_TEXTURE_VALUES).nullable().optional(),
     url: z.url().max(2000).nullable().optional(),
     imageUrl: z.url().max(2000).nullable().optional(),
     notes: z.string().max(5000).nullable().optional(),
@@ -81,6 +84,7 @@ const editableProductFields = {
   description: fieldChangeSchema(z.string()),
   totalAmount: fieldChangeSchema(z.number().int()),
   amountUnit: fieldChangeSchema(z.enum(PRODUCT_AMOUNT_UNIT_VALUES)),
+  texture: fieldChangeSchema(z.enum(PRODUCT_TEXTURE_VALUES)),
   url: fieldChangeSchema(z.url()),
   imageUrl: fieldChangeSchema(z.url()),
   notes: fieldChangeSchema(z.string()),

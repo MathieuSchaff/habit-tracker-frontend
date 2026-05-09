@@ -3,6 +3,7 @@ import type {
   Patent,
   ProductCategory,
   ProductKind,
+  ProductTexture,
   ProductUnit,
   Purchase,
   RepurchaseFlag,
@@ -120,6 +121,7 @@ export function makeUserProduct(
       updatedAt: string
       createdBy: string
       kind: ProductKind
+      texture: ProductTexture | null
       unit: ProductUnit
       inci: string | null
       description: string | null
@@ -202,6 +204,7 @@ export function makeUserProduct(
       updatedAt: new Date().toISOString(),
       createdBy: 'test-user-1',
       kind: 'cleanser' as ProductKind,
+      texture: null,
       unit: 'pump' as ProductUnit,
       inci: null,
       description: null,
