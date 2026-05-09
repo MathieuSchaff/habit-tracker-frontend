@@ -28,7 +28,8 @@ export function useDragScroll<T extends HTMLElement>(
         startScroll: ref.current.scrollLeft,
         moved: false,
       }
-      ref.current.setPointerCapture(e.pointerId)
+      // Capture lazily on first drag past threshold so taps stay on the button
+      // and let onClick fire normally. Capturing here would steal the click.
     },
     [enabled, ref]
   )
@@ -37,8 +38,11 @@ export function useDragScroll<T extends HTMLElement>(
     (e: React.PointerEvent<T>) => {
       if (!state.current.active || !ref.current) return
       const dx = e.clientX - state.current.startX
-      if (!state.current.moved && Math.abs(dx) < threshold) return
-      state.current.moved = true
+      if (!state.current.moved) {
+        if (Math.abs(dx) < threshold) return
+        state.current.moved = true
+        ref.current.setPointerCapture(e.pointerId)
+      }
       ref.current.scrollLeft = state.current.startScroll - dx
     },
     [ref, threshold]

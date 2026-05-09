@@ -19,7 +19,8 @@
       "!**/*.test.tsx",
       "!**/__tests__",
       "!docs/**/*.md",
-      "!docs/.obsidian"
+      "!docs/.obsidian",
+      "!backend/src/db/seed/data/*.json"
     ]
   },
   "formatter": {

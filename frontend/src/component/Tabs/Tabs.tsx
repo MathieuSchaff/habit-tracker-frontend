@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import type React from 'react'
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import './Tabs.css'
+
 import { useDragScroll } from './useDragScroll'
 
 export interface TabOption<T extends string> {
