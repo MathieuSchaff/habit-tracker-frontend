@@ -225,8 +225,12 @@ export function useCreateProduct() {
       if (!json.success) throw new ApiError('product_creation_failed', res.status)
       return json.data
     },
-    onSuccess: (product) => {
-      qc.setQueryData(productKeys.bySlug(product.slug), product)
+    onSuccess: () => {
+      // No bySlug seeding: POST returns the row only, but the bySlug cache
+      // holds full ProductDetail (row + tags + ingredients). Seeding with the
+      // truncated row would crash consumers reading .tags/.ingredients on the
+      // detail page that mounts after navigation. Leave the cache empty so the
+      // next subscriber fetches the canonical shape.
       qc.invalidateQueries({ queryKey: productKeys.lists() })
       qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
@@ -245,7 +249,11 @@ export function useUpdateProduct() {
       return json.data
     },
     onSuccess: (product) => {
-      qc.setQueryData(productKeys.bySlug(product.slug), product)
+      // PATCH returns the row only; bySlug cache holds full ProductDetail
+      // (row + tags + ingredients via getProductFullBySlug). Direct setQueryData
+      // would truncate the cache and crash consumers reading .tags/.ingredients
+      // until the next refetch lands. Invalidate triggers a fresh GET.
+      qc.invalidateQueries({ queryKey: productKeys.bySlug(product.slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
     meta: { errorMessage: 'Modification du produit impossible.' },
