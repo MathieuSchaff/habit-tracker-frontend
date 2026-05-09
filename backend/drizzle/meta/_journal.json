@@ -379,6 +379,13 @@
       "when": 1778500000000,
       "tag": "0053_drop_keratolytique_effet_protecteur",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1778600000000,
+      "tag": "0054_cleanup_texture_creme_stale_pairs",
+      "breakpoints": true
     }
   ]
 }
