@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { fkTenantPolicies, tenantPolicies } from '../_policies'
+import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
 export const taskEnergyEnum = pgEnum('task_energy', ['low', 'medium', 'high'])
@@ -31,13 +32,7 @@ export const tasks = pgTable(
     snoozedUntil: date('snoozed_until', { mode: 'string' }),
     doneAt: timestamp('done_at', { withTimezone: true, mode: 'string' }),
     focusDurationMinutes: integer('focus_duration_minutes'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     index('tasks_user_status_idx').on(t.userId, t.status, t.createdAt),

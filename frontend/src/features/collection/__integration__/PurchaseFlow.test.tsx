@@ -1,14 +1,14 @@
 /** @vitest-environment jsdom */
 
-import { useQuery } from '@tanstack/react-query'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAddPurchase } from '../../../lib/queries/purchases'
 import { useUpdateUserProduct } from '../../../lib/queries/user-products'
-import { renderWithProviders } from '../../../test/utils'
+import { mockUseQueryByKey, renderWithProviders } from '../../../test/utils'
 import { CollectionPage } from '../page/CollectionPage'
+import { makeUserProductMock, mockPrefs } from './__fixtures__'
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
@@ -40,23 +40,14 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 })
 
 const mockUserProducts = [
-  {
+  makeUserProductMock({
     id: 'up-1',
     status: 'wishlist', // Start in wishlist
     qty: 0,
-    sentiment: null,
-    wouldRepurchase: null,
-    updatedAt: new Date().toISOString(),
     productId: 'p-1',
     product: { name: 'Dream Cream', brand: 'Cloud Nine', kind: 'Cream', priceCents: 2500 },
-    review: null,
-  },
+  }),
 ]
-
-const mockPrefs = {
-  displayScale: 'out_of_20',
-  criteriaWeights: { tolerance: 1, efficacy: 1 },
-}
 
 vi.mock('../../../lib/queries/user-products', async (importOriginal) => {
   const actual = await importOriginal<any>()
@@ -94,15 +85,9 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    vi.mocked(useQuery).mockImplementation((options: any) => {
-      const key = options.queryKey?.[0]
-      if (key === 'user-products') {
-        return { data: mockUserProducts, isLoading: false } as any
-      }
-      if (key === 'user-preferences') {
-        return { data: mockPrefs, isLoading: false } as any
-      }
-      return { data: undefined, isLoading: false } as any
+    mockUseQueryByKey({
+      'user-products': mockUserProducts,
+      'user-preferences': mockPrefs,
     })
 
     vi.mocked(useUpdateUserProduct).mockReturnValue({

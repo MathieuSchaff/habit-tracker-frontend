@@ -29,7 +29,7 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 | Database | PostgreSQL 18 + Drizzle ORM |
 | Validation | Zod (shared between front and back) |
 | Styling | Vanilla CSS + Lucide Icons |
-| Quality | Biome (lint & format) + Vitest |
+| Quality | Biome (lint & format) + Vitest + Lefthook (pre-commit) |
 | Infrastructure | Docker Compose + Nginx |
 
 ---
@@ -49,19 +49,19 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 > **Important**: the monorepo has a `shared` TypeScript package. Docker doesn't always have the build cache at startup, so build the types locally first.
 
 ```bash
-# 1. Install dependencies (requires Bun)
-make install-deps
+# 1. First-time setup (deps + hooks + env template) — requires Bun + mise
+just init
 
-# 2. Copy and fill in environment variables
-cp .env.example .env.dev
+# 2. Fill in secrets
+$EDITOR .env.dev
 
 # 3. Start the full environment
-make dev-fresh
+just dev-fresh
 ```
 
 **Daily workflow:**
-- Terminal 1: `make ts-check` — TypeScript watch mode on the host
-- Terminal 2: `make dev` — Docker
+- Terminal 1: `just ts-check` — TypeScript watch mode on the host
+- Terminal 2: `just dev` — Docker
 
 ---
 
@@ -71,42 +71,42 @@ make dev-fresh
 
 | Command | Description |
 | :--- | :--- |
-| `make dev` | Build types + start Docker |
-| `make dev-fresh` | Full cleanup + install + start |
-| `make ts-check` | TypeScript watch mode (host) |
-| `make ts-build` | Generate types and TanStack routes |
-| `make diagnose` | Check types and container state |
+| `just dev` | Build types + start Docker |
+| `just dev-fresh` | Full cleanup + install + start |
+| `just ts-check` | TypeScript watch mode (host) |
+| `just ts-build` | Generate types and TanStack routes |
+| `just diagnose` | Check types and container state |
 
 ### Quality & tests
 
 | Command | Description |
 | :--- | :--- |
-| `make lint-fix` | Fix style with Biome |
-| `make format` | Format code |
-| `make test` | Backend tests (isolated DB) |
-| `make test-frontend` | Vitest frontend tests |
-| `make test-all` | Full test suite |
-| `make test-db-reset` | Reset the test DB from scratch |
+| `just lint-fix` | Fix style with Biome |
+| `just format` | Format code |
+| `just test` | Backend tests (isolated DB) |
+| `just test-frontend` | Vitest frontend tests |
+| `just test-all` | Full test suite |
+| `just test-db-reset` | Reset the test DB from scratch |
 
 ### Backend tests (recommended workflow)
 
 Keep the test DB running during your session:
 
 ```bash
-make test-db-up  # once per session, starts Docker on port 5433
+just test-db-up  # once per session, starts Docker on port 5433
 ```
 
 Run targeted tests:
 
 ```bash
-make test-dev ARGS="products"
-make test-dev ARGS="features/products/tests/products.routes.test.ts"
+just test-dev "products"
+just test-dev "features/products/tests/products.routes.test.ts"
 ```
 
 Watch mode (TDD):
 
 ```bash
-make test-dev-watch ARGS="products"
+just test-dev-watch "products"
 ```
 
 > Each test (`beforeEach`) cleans tables via `cleanDatabase` — no need to restart Docker between tests.
@@ -115,14 +115,14 @@ make test-dev-watch ARGS="products"
 
 | Command | Description |
 | :--- | :--- |
-| `make db-generate` | Generate a SQL migration file |
-| `make db-migrate` | Apply migrations locally |
-| `make db-push` | Sync schema without migration |
-| `make db-studio` | Drizzle UI (http://localhost:4983) |
-| `make db-seed` | Inject test data |
-| `make db-reset` | Wipe + migrate + seed |
-| `make db-backup` | Backup to `./backups/` |
-| `make db-restore FILE=...` | Restore from a `.sql` file |
+| `just db-generate` | Generate a SQL migration file |
+| `just db-migrate` | Apply migrations locally |
+| `just db-push` | Sync schema without migration |
+| `just db-studio` | Drizzle UI (http://localhost:4983) |
+| `just db-seed` | Inject test data |
+| `just db-reset` | Wipe + migrate + seed |
+| `just db-backup` | Backup to `./backups/` |
+| `just db-restore ./backups/xxx.sql` | Restore from a `.sql` file |
 
 ---
 
@@ -165,18 +165,18 @@ aurore/
 Symptom: `Cannot find module '@habit-tracker/shared'`
 
 ```bash
-make ts-clean && make ts-build  # rebuild types
+just ts-clean && just ts-build  # rebuild types
 # then restart Docker
 ```
 
-Make sure `make ts-check` is running in a separate terminal on the host.
+Make sure `just ts-check` is running in a separate terminal on the host.
 
 **Docker issues**
 
 ```bash
-make stop          # port already in use
-make dev-rebuild   # after a dependency change
-make clean && make dev-fresh  # nuclear reset
+just stop          # port already in use
+just dev-rebuild   # after a dependency change
+just clean && just dev-fresh  # nuclear reset
 ```
 
 ---
@@ -184,7 +184,7 @@ make clean && make dev-fresh  # nuclear reset
 ## Production
 
 1. Create `.env.prod` from `.env.example`
-2. Update the domain and email in the `Makefile` (`ssl-init`)
-3. `make prod-migrate` — apply migrations
-4. `make prod` — start services
-5. `make ssl-init` — generate SSL certificate
+2. Update the domain and email in `just/ops.just` (`ssl-init`)
+3. `just prod-migrate` — apply migrations
+4. `just prod` — start services
+5. `just ssl-init` — generate SSL certificate

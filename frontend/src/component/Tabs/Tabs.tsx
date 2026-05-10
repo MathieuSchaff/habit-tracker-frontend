@@ -16,7 +16,7 @@ export interface TabOption<T extends string> {
   dimmed?: boolean
 }
 
-export type TabsVariant = 'pill' | 'underline'
+type TabsVariant = 'pill' | 'underline'
 
 interface TabsProps<T extends string> {
   options: TabOption<T>[]

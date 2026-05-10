@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.fallow.tools/schema/v1/fallowrc.json",
+
+  // Extra entry points beyond package.json scripts (seed scripts are run directly)
+  "entry": [
+    "backend/src/db/seed/runners/*.ts",
+    "backend/src/db/seed/scripts/**/*.ts",
+    "backend/src/db/seed/tests/**/*.test.ts",
+    "backend/src/db/migrate.ts",
+    "backend/drizzle.config.ts",
+    "frontend/src/main.tsx",
+    "frontend/src/router.tsx"
+  ],
+
+  // workspace packages (bun symlink) + pino-pretty (string reference in transport config)
+  "ignoreDependencies": ["@habit-tracker/shared", "pino-pretty"],
+
+  "ignorePatterns": ["vendor/**", ".fallow/**", "**/*.d.ts", "node_modules/**"],
+
+  // Complexity gates aligned with fallow defaults (20 cyclomatic / 15 cognitive)
+  "health": {
+    "maxCyclomatic": 20,
+    "maxCognitive": 15
+  },
+
+  // mild mode avoids flagging structurally similar seed data objects
+  // ignoreImports drops false positives from Biome-sorted import blocks
+  "duplicates": {
+    "mode": "mild",
+    "threshold": 8,
+    "ignoreImports": true
+  },
+
+  "audit": {
+    "deadCodeBaseline": ".fallow/audit-dead-code.json",
+    "healthBaseline": ".fallow/audit-health.json",
+    "dupesBaseline": ".fallow/audit-dupes.json"
+  }
+}

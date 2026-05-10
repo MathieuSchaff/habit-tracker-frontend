@@ -3,7 +3,6 @@ import type { AppType } from '@habit-tracker/backend'
 import { hc } from 'hono/client'
 
 import { useAuthStore } from '../store/auth'
-import { silentRefresh } from './queries/silentRefresh'
 import { queryClient } from './queryClient'
 
 // Skip the refresh endpoint itself, otherwise a 401 from a stale cookie loops forever.
@@ -29,6 +28,10 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
 
   const hadSession = useAuthStore.getState().accessToken != null
 
+  // Lazy import breaks the api ↔ silentRefresh init order: api.ts loads first without
+  // pulling silentRefresh, which is only resolved when a 401 actually occurs.
+  // fallow-ignore-next-line circular-dependencies
+  const { silentRefresh } = await import('./queries/silentRefresh')
   // silentRefresh dedupes concurrent calls internally, so parallel 401s share one refresh.
   const result = await silentRefresh(queryClient)
   if (result !== 'ok') {

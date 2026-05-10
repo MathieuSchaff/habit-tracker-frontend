@@ -51,7 +51,6 @@ export const TAG_SLUGS = {
   // nutripure/etc. seeds that use `TAG_SLUGS.GELULE` still resolve.
   ...SUPPLEMENT_PRODUCT_TAG_SLUGS,
 } as const
-export type TagSlug = (typeof TAG_SLUGS)[keyof typeof TAG_SLUGS]
 
 // Ingredient-only labels (slug → FR display name). Product tag labels now
 // live in the shared product taxonomies and are resolved via

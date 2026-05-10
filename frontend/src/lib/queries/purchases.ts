@@ -5,7 +5,7 @@ import type {
   UpdatePurchaseInput,
 } from '@habit-tracker/shared'
 
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
 import { userProductKeys } from './user-products'
@@ -13,6 +13,13 @@ import { userProductKeys } from './user-products'
 export const purchaseKeys = {
   all: ['purchases'] as const,
   byUserProduct: (userProductId: string) => [...purchaseKeys.all, userProductId] as const,
+}
+
+// All purchase mutations invalidate both the purchase list of the affected
+// user-product and the global user-product list (qty/lifecycle changes).
+function invalidateAfterPurchaseMutation(qc: QueryClient, userProductId: string) {
+  qc.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
+  qc.invalidateQueries({ queryKey: userProductKeys.all })
 }
 
 export const purchaseQueries = {
@@ -48,10 +55,8 @@ export const useAddPurchase = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { userProductId }) => {
-      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
+    onSuccess: (_, { userProductId }) =>
+      invalidateAfterPurchaseMutation(queryClient, userProductId),
   })
 }
 
@@ -75,10 +80,8 @@ export const useOpenPurchase = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { userProductId }) => {
-      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
+    onSuccess: (_, { userProductId }) =>
+      invalidateAfterPurchaseMutation(queryClient, userProductId),
     meta: { errorMessage: "Impossible d'entamer le flacon." },
   })
 }
@@ -101,10 +104,8 @@ export const useFinishPurchase = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { userProductId }) => {
-      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
+    onSuccess: (_, { userProductId }) =>
+      invalidateAfterPurchaseMutation(queryClient, userProductId),
     meta: { errorMessage: 'Impossible de terminer le flacon.' },
   })
 }
@@ -129,10 +130,8 @@ export const useUpdatePurchase = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { userProductId }) => {
-      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
+    onSuccess: (_, { userProductId }) =>
+      invalidateAfterPurchaseMutation(queryClient, userProductId),
     // Caller (AddPurchaseDialog) shows its own toast.
   })
 }
@@ -152,10 +151,8 @@ export const useDeletePurchase = () => {
       })
       if (!res.ok) throw new Error('Failed to delete purchase')
     },
-    onSuccess: (_, { userProductId }) => {
-      queryClient.invalidateQueries({ queryKey: purchaseKeys.byUserProduct(userProductId) })
-      queryClient.invalidateQueries({ queryKey: userProductKeys.all })
-    },
+    onSuccess: (_, { userProductId }) =>
+      invalidateAfterPurchaseMutation(queryClient, userProductId),
     meta: { errorMessage: 'Suppression de cet achat impossible.' },
   })
 }

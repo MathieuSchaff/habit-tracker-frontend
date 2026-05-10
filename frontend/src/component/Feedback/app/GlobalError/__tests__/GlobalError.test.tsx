@@ -9,7 +9,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 // reportError is a side-effect we don't need to test here
-vi.mock('../../../../lib/errorReporter', () => ({
+vi.mock('../../../../../lib/errorReporter', () => ({
   reportError: vi.fn(),
 }))
 
