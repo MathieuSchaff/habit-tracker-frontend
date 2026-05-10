@@ -13,7 +13,6 @@ import {
   infiniteQueryOptions,
   queryOptions,
   useMutation,
-  useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
 
@@ -418,11 +417,9 @@ export function useRemoveProductIngredient() {
   })
 }
 
-export function useProducts(filters: ListProductsFilters = {}) {
-  return useQuery(productQueries.list(filters))
-}
-
-export type ProductListItem = NonNullable<ReturnType<typeof useProducts>['data']>['items'][number]
+export type ProductListItem = NonNullable<
+  Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.list>['queryFn']>>>
+>['items'][number]
 
 // Single source of truth for the bySlug response shape. Inferred from the
 // query so adding a backend field surfaces here without manual type sync.

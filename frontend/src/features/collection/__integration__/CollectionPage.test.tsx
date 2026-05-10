@@ -1,6 +1,5 @@
 /** @vitest-environment jsdom */
 
-import { useQuery } from '@tanstack/react-query'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,19 +9,11 @@ import {
   useUpdateUserProduct,
   useUpsertUserProductReview,
 } from '../../../lib/queries/user-products'
-import { renderWithProviders } from '../../../test/utils'
+import { mockUseQueryByKey, renderWithProviders } from '../../../test/utils'
 import { CollectionPage } from '../page/CollectionPage'
+import { defaultCollectionSearch, makeUserProductMock, mockPrefs } from './__fixtures__'
 
-let mockSearch = {
-  q: '',
-  sort: 'name',
-  brand: 'all',
-  kind: 'all',
-  sentiment: 'all',
-  repurchase: 'all',
-  minNote: 0,
-  maxPrice: '',
-}
+let mockSearch = { ...defaultCollectionSearch }
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
@@ -51,32 +42,20 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 })
 
 const mockUserProducts = [
-  {
+  makeUserProductMock({
     id: 'up-1',
-    status: 'in_stock',
-    qty: 1,
     sentiment: 5,
     wouldRepurchase: 'yes',
-    updatedAt: new Date().toISOString(),
     product: { name: 'Super Serum', brand: 'Nice Brand', kind: 'Serum', priceCents: 2000 },
     review: { tolerance: 5, efficacy: 5 },
-  },
-  {
+  }),
+  makeUserProductMock({
     id: 'up-2',
     status: 'wishlist',
     qty: 0,
-    sentiment: null,
-    wouldRepurchase: null,
-    updatedAt: new Date().toISOString(),
     product: { name: 'Cool Cream', brand: 'Other Brand', kind: 'Cream', priceCents: 1500 },
-    review: null,
-  },
+  }),
 ]
-
-const mockPrefs = {
-  displayScale: 'out_of_20',
-  criteriaWeights: { tolerance: 1, efficacy: 1 },
-}
 
 vi.mock('../../../lib/queries/user-products', async (importOriginal) => {
   const actual = await importOriginal<any>()
@@ -95,14 +74,6 @@ vi.mock('../../../lib/queries/user-preferences', async (importOriginal) => {
   }
 })
 
-vi.mock('../../../lib/queries/stock', async (importOriginal) => {
-  const actual = await importOriginal<any>()
-  return {
-    ...actual,
-    useAddStockEntry: () => ({ mutate: vi.fn() }),
-  }
-})
-
 vi.mock('../../../hooks/useScrollLock', () => ({
   useScrollLock: vi.fn(),
 }))
@@ -114,29 +85,12 @@ describe('CollectionPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockSearch = {
-      q: '',
-      sort: 'name',
-      brand: 'all',
-      kind: 'all',
-      sentiment: 'all',
-      repurchase: 'all',
-      minNote: 0,
-      maxPrice: '',
-    }
+    mockSearch = { ...defaultCollectionSearch }
 
-    vi.mocked(useQuery).mockImplementation((options: any) => {
-      const key = options.queryKey?.[0]
-      if (key === 'user-products') {
-        return { data: mockUserProducts, isLoading: false } as any
-      }
-      if (key === 'user-preferences') {
-        return { data: mockPrefs, isLoading: false } as any
-      }
-      if (key === 'stock-entries') {
-        return { data: [], isLoading: false } as any
-      }
-      return { data: undefined, isLoading: false } as any
+    mockUseQueryByKey({
+      'user-products': mockUserProducts,
+      'user-preferences': mockPrefs,
+      'stock-entries': [],
     })
 
     vi.mocked(useUpdateUserProduct).mockReturnValue({ mutate: mockUpdate, isPending: false } as any)

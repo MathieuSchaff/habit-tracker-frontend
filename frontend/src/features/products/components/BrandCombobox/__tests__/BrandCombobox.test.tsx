@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createTestQueryClient } from '../../../../../test/utils'
 import { BrandCombobox } from '../BrandCombobox'
 
 // Mock des queries pour éviter les appels API réels
@@ -14,15 +15,6 @@ vi.mock('@/lib/queries/products', () => ({
     })),
   },
 }))
-
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  })
 
 describe('BrandCombobox', () => {
   let queryClient: QueryClient

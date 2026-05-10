@@ -12,18 +12,11 @@ import type {
   UserProductStatus,
 } from '@habit-tracker/shared'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  createMemoryHistory,
-  createRootRoute,
-  createRouter,
-  RouterProvider,
-} from '@tanstack/react-router'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { type RenderOptions, render } from '@testing-library/react'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { Suspense } from 'react'
-
-import type { CriteriaWeights, ReviewCriteria } from '../lib/helpers/reviews'
+import { vi } from 'vitest'
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -49,56 +42,13 @@ export function renderWithProviders(
   })
 }
 
-// Integration helper: real TanStack Router (memory history) + QueryClient.
-// Tests using this MUST `vi.unmock('@tanstack/react-router')` at the top of the file —
-// the global setup.ts mock would otherwise neutralise hooks like useNavigate.
-export function renderWithRouter(
-  ui: ReactNode,
-  options?: {
-    initialEntries?: string[]
-    queryClient?: QueryClient
-  } & Omit<RenderOptions, 'wrapper'>
-) {
-  const queryClient = options?.queryClient ?? createTestQueryClient()
-  const rootRoute = createRootRoute({ component: () => <>{ui}</> })
-  const router = createRouter({
-    routeTree: rootRoute,
-    history: createMemoryHistory({ initialEntries: options?.initialEntries ?? ['/'] }),
+// Routes `useQuery` results by `queryKey[0]`. Tests must `vi.mock('@tanstack/react-query', ...)`
+// to expose `useQuery` as a vi.fn before calling this.
+export function mockUseQueryByKey(map: Record<string, unknown>): void {
+  vi.mocked(useQuery).mockImplementation((options: any) => {
+    const key = options.queryKey?.[0]
+    return { data: map[key], isLoading: false } as any
   })
-  return {
-    router,
-    queryClient,
-    ...render(<RouterProvider router={router} />, {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      ),
-      ...options,
-    }),
-  }
-}
-
-export function makeReview(overrides: Partial<ReviewCriteria> = {}): ReviewCriteria {
-  return {
-    tolerance: null,
-    efficacy: null,
-    sensoriality: null,
-    stability: null,
-    mixability: null,
-    valueForMoney: null,
-    ...overrides,
-  }
-}
-
-export function makeWeights(overrides: Partial<CriteriaWeights> = {}): CriteriaWeights {
-  return {
-    tolerance: 1,
-    efficacy: 1,
-    sensoriality: 1,
-    stability: 1,
-    mixability: 1,
-    valueForMoney: 1,
-    ...overrides,
-  }
 }
 
 export function makeUserProduct(

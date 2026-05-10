@@ -23,7 +23,7 @@ import { FLUOCARIL_SEED } from './dental/fluocaril/fluocaril.seed'
 import { GUM_SEED } from './dental/gum/gum.seed'
 import { HYALUGEL_SEED } from './dental/hyalugel/hyalugel.seed'
 import { INAVA_SEED } from './dental/inava/inava.seed'
-import { LA_ROS_E_SEED as LA_ROSEE_DENTAL_SEED } from './dental/laRosee/laRosee.seed'
+import { LA_ROSEE_DENTAL_SEED } from './dental/laRosee/laRosee.seed'
 import { MEDIDENT_SEED } from './dental/medident/medident.seed'
 import { M_RIDOL_SEED } from './dental/meridol/meridol.seed'
 import { ORAL_B_SEED } from './dental/oralB/oralB.seed'
@@ -61,7 +61,7 @@ import { ITEM_SEED } from './haircare/item/item.seed'
 import { JALDES_SEED } from './haircare/jaldes/jaldes.seed'
 import { K_RANOVE_SEED } from './haircare/keranove/keranove.seed'
 import { KLORANE_SEED } from './haircare/klorane/klorane.seed'
-import { LA_ROS_E_SEED as LA_ROSEE_HAIRCARE_SEED } from './haircare/laRosee/laRosee.seed'
+import { LA_ROSEE_HAIRCARE_SEED } from './haircare/laRosee/laRosee.seed'
 import { LAZARTIGUE_SEED } from './haircare/lazartigue/lazartigue.seed'
 import { LED_NOREVA_SEED } from './haircare/ledNoreva/ledNoreva.seed'
 import { LES_3_CH_NES_SEED } from './haircare/les3Chenes/les3Chenes.seed'
@@ -202,8 +202,6 @@ const allProductIngredientsMap: Record<string, Ingredient[]> = Object.fromEntrie
     p.keyIngredients && p.keyIngredients.length > 0 ? [[p.slug, p.keyIngredients] as const] : []
   )
 )
-
-export { allProductIngredientsMap as ALL_PRODUCT_INGREDIENTS_MAP }
 
 export const allIngredientProductTags = Object.entries(allProductIngredientsMap).flatMap(
   ([productSlug, ings]) =>

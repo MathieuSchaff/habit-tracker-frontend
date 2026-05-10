@@ -20,6 +20,7 @@ import {
 
 import { tenantPolicies } from '../_policies'
 import { appRuntimeRole } from '../_roles'
+import { timestamps } from '../_timestamps'
 
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
 
@@ -35,13 +36,7 @@ export const users = pgTable(
     // Stable Google identifier (subject). Null if user never logged in with Google
     googleSub: text('google_sub'),
 
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true, mode: 'string' }),
     role: userRoleEnum('role').notNull().default('user'),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
@@ -115,13 +110,7 @@ export const userDermoProfiles = pgTable(
     fitzpatrickType: integer('fitzpatrick_type'),
     skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
     privateNotes: text('private_notes'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),

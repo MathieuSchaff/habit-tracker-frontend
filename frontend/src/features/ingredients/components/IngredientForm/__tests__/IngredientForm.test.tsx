@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -8,6 +8,7 @@ import {
   useUpdateIngredientTags,
 } from '@/lib/queries/ingredients'
 import { useAuthStore } from '@/store/auth'
+import { createTestQueryClient } from '@/test/utils'
 import { IngredientForm } from '../IngredientForm'
 
 // Mocking auth store
@@ -56,16 +57,6 @@ const mockIngredient = {
   description: 'Old description',
   content: 'Old content',
   updatedAt: '2024-01-01T10:00:00Z',
-}
-
-const createTestQueryClient = () => {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  })
 }
 
 describe('IngredientForm - Conflict Resolution', () => {

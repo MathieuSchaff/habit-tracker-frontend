@@ -118,9 +118,3 @@ export const SKINCARE_INGREDIENT_TAG_TAXONOMY = Object.fromEntries(entries) as R
   SkincareIngredientTagSlug,
   SkincareIngredientTagMeta
 >
-
-export function getSkincareIngredientTagCategory(
-  slug: SkincareIngredientTagSlug
-): SkincareIngredientTagCategory | undefined {
-  return SKINCARE_INGREDIENT_TAG_TAXONOMY[slug]?.category
-}

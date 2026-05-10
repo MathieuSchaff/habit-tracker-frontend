@@ -8,12 +8,12 @@ import {
   pgEnum,
   pgTable,
   text,
-  timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
 import { fkTenantPolicies, tenantPolicies } from '../_policies'
+import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 import { products } from './products'
 
@@ -35,13 +35,7 @@ export const userProducts = pgTable(
     sentiment: integer('sentiment'), // 1-5
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
@@ -66,13 +60,7 @@ export const userProductReviews = pgTable(
     mixability: integer('mixability'), // 1-5
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),

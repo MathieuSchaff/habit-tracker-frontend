@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
-import { index, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core'
 
+import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 import { products } from './products'
 
@@ -12,13 +13,7 @@ export const productComparisons = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [index('product_comparisons_user_idx').on(t.userId)]
 )

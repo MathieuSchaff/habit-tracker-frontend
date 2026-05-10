@@ -386,6 +386,13 @@
       "when": 1778600000000,
       "tag": "0054_cleanup_texture_creme_stale_pairs",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1778700000000,
+      "tag": "0055_cleanup_texture_eau_huile_baume_lait_gel_stale",
+      "breakpoints": true
     }
   ]
 }

@@ -20,6 +20,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
 export const collaboratorRoleEnum = pgEnum('collaborator_role', ['editor'])
@@ -54,13 +55,7 @@ export const products = pgTable(
     imageUrl: text('image_url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     index('products_kind_idx').on(t.kind),

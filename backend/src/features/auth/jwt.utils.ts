@@ -1,7 +1,7 @@
 import { CryptoHasher } from 'bun'
 
+import type { AccessTokenPayload, RefreshTokenPayload } from '@habit-tracker/shared'
 import { accessTokenPayloadSchema, refreshTokenPayloadSchema } from '@habit-tracker/shared'
-import type { AccessTokenPayload, RefreshTokenPayload } from '@habit-tracker/shared/'
 
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'

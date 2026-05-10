@@ -12,6 +12,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
 export const ingredients = pgTable(
@@ -30,13 +31,7 @@ export const ingredients = pgTable(
     // "humectant", "emollient", "filtre-uv", "tensioactif", "excipient".
     // supplement → "vitamine", "mineral", "carotenoide", "plante", etc.
     category: text('category'),
-    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date().toISOString()),
+    ...timestamps,
   },
   (t) => [
     uniqueIndex('ingredients_slug_unique').on(t.slug),

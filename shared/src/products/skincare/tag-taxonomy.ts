@@ -17,11 +17,6 @@ export const SKINCARE_PRODUCT_TAG_CATEGORIES = [
 
 export type SkincareProductTagCategory = (typeof SKINCARE_PRODUCT_TAG_CATEGORIES)[number]
 
-export interface SkincareProductTagMeta {
-  category: SkincareProductTagCategory
-  label: string
-}
-
 const SKINCARE_PRODUCT_TAG_LABELS: Record<SkincareProductTagSlug, string> = {
   // Concerns
   [SKINCARE_PRODUCT_TAG_SLUGS.ACNE_IMPERFECTIONS]: 'Acné / Imperfections',
