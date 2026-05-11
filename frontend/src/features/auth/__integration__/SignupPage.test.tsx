@@ -53,7 +53,11 @@ async function fillForm({
   email = VALID_EMAIL,
   password = VALID_PASSWORD,
   confirm = VALID_PASSWORD,
-}: { email?: string; password?: string; confirm?: string } = {}) {
+}: {
+  email?: string
+  password?: string
+  confirm?: string
+} = {}) {
   const user = userEvent.setup()
   await user.type(screen.getByLabelText(/^Email$/), email)
   await user.type(screen.getByLabelText(/^Mot de passe$/), password)

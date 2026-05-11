@@ -5,9 +5,9 @@ import {
   DENTAL_PRODUCT_TAG_TAXONOMY,
   HAIRCARE_INGREDIENT_TAG_TAXONOMY,
   HAIRCARE_PRODUCT_TAG_TAXONOMY,
+  PRODUCT_KINDS,
   SKINCARE_INGREDIENT_CATEGORY_VALUES,
   SKINCARE_INGREDIENT_TAG_TAXONOMY,
-  PRODUCT_KINDS,
   SKINCARE_PRODUCT_TAG_TAXONOMY,
   SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
   SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
@@ -98,9 +98,7 @@ describe('Shared schemas ↔ seed tags integrity', () => {
         const toCheck: string[] = [
           ...groups.primary.map((t) => t as string),
           ...groups.secondary.map((t) => t as string),
-          ...groups.avoid
-            .filter((t) => (t as string) !== AVOID_EXCEPTION)
-            .map((t) => t as string),
+          ...groups.avoid.filter((t) => (t as string) !== AVOID_EXCEPTION).map((t) => t as string),
         ]
         for (const slug of toCheck) {
           const inSkincareIngredient = slug in SKINCARE_INGREDIENT_TAG_TAXONOMY

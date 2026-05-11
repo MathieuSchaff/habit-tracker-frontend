@@ -1,7 +1,7 @@
 import { DENTAL_INGREDIENT_TAG_SLUGS as D } from '@habit-tracker/shared'
 
 import type { IngredientTagMap } from '../../ingredient-tags'
-import { TAG_SLUGS } from '../../tags'
+import { SKINCARE_INGREDIENT_TAG_SLUGS } from '../../tags'
 import {
   DENTAL_ABRASIFS,
   DENTAL_ANTI_SENSIBILITE,
@@ -143,22 +143,22 @@ export const dentalTagMap: IngredientTagMap = {
   // cross-domain `excipient` slug (scope ingredient_attribute, shared with
   // skincare) so filters and audits don't flag them as orphan.
   [DENTAL_EXCIPIENTS.GLYCERIN_DENTAL]: {
-    primary: [TAG_SLUGS.EXCIPIENT, TAG_SLUGS.HUMECTANT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT, SKINCARE_INGREDIENT_TAG_SLUGS.HUMECTANT],
     secondary: [],
     avoid: [],
   },
   [DENTAL_EXCIPIENTS.SORBITOL_DENTAL]: {
-    primary: [TAG_SLUGS.EXCIPIENT, TAG_SLUGS.HUMECTANT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT, SKINCARE_INGREDIENT_TAG_SLUGS.HUMECTANT],
     secondary: [],
     avoid: [],
   },
   [DENTAL_EXCIPIENTS.CARRAGEENAN_DENTAL]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [DENTAL_EXCIPIENTS.XANTHAN_GUM_DENTAL]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },

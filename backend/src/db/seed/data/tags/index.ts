@@ -26,31 +26,20 @@ import {
   type SupplementProductTagSlug,
 } from '@habit-tracker/shared'
 
-// Re-export the haircare product slug map directly. It cannot be folded into
-// the legacy `TAG_SLUGS` alias below: keys `BRILLANCE` and `HYDRATATION` exist
-// in both skincare and haircare product taxonomies with different slug values
-// (`brillance` / `brillance-cheveux`, `hydratation` / `hydratation-cheveux`),
-// so spreading would silently rewrite skincare seeds that reference those keys.
-export { HAIRCARE_PRODUCT_TAG_SLUGS } from '@habit-tracker/shared'
-
-// Combined legacy alias — still consumed by other seed modules that have not
-// been migrated to the split slug maps yet.
-export const TAG_SLUGS = {
-  ...SKINCARE_INGREDIENT_TAG_SLUGS,
-  ...SKINCARE_PRODUCT_TAG_SLUGS,
-  ...SUPPLEMENT_INGREDIENT_TAG_SLUGS,
-  ...DENTAL_INGREDIENT_TAG_SLUGS,
-  ...HAIRCARE_INGREDIENT_TAG_SLUGS,
-  // Product-side dental slugs (DENTIFRICE, BAIN_DE_BOUCHE, FIL_DENTAIRE, etc.)
-  // spread after skincare so dental seed files that reference
-  // `TAG_SLUGS.DENTIFRICE` keep resolving (same slug value, now owned by dental
-  // instead of the removed skincare legacy keys).
-  ...DENTAL_PRODUCT_TAG_SLUGS,
-  // Same migration for supplement product_type slugs (GELULE, CAPSULE, POUDRE,
-  // SIROP, GUMMY) — removed from skincare, ownership moved to supplement so
-  // nutripure/etc. seeds that use `TAG_SLUGS.GELULE` still resolve.
-  ...SUPPLEMENT_PRODUCT_TAG_SLUGS,
-} as const
+// Re-export every domain-specific slug map so local seed/ingredient-tag files
+// can import via the colocated `data/tags` barrel instead of reaching into
+// `@habit-tracker/shared` directly. Each consumer imports only the maps whose
+// keys it actually uses — TS catches wrong-domain slugs at compile time.
+export {
+  DENTAL_INGREDIENT_TAG_SLUGS,
+  DENTAL_PRODUCT_TAG_SLUGS,
+  HAIRCARE_INGREDIENT_TAG_SLUGS,
+  HAIRCARE_PRODUCT_TAG_SLUGS,
+  SKINCARE_INGREDIENT_TAG_SLUGS,
+  SKINCARE_PRODUCT_TAG_SLUGS,
+  SUPPLEMENT_INGREDIENT_TAG_SLUGS,
+  SUPPLEMENT_PRODUCT_TAG_SLUGS,
+} from '@habit-tracker/shared'
 
 // Ingredient-only labels (slug → FR display name). Product tag labels now
 // live in the shared product taxonomies and are resolved via

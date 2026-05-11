@@ -15,7 +15,11 @@ import {
 import { createProduct } from '../service'
 
 async function makeProduct(userId: string, name = 'Produit Test') {
-  return createProduct(userId, { name, brand: 'toto', category: 'skincare', kind: 'complément', unit: 'gélule' }, testDb)
+  return createProduct(
+    userId,
+    { name, brand: 'toto', category: 'skincare', kind: 'complément', unit: 'gélule' },
+    testDb
+  )
 }
 
 async function makeIngredient(userId: string, name = 'Ingrédient Test') {

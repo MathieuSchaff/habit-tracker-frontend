@@ -105,7 +105,9 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     renderWithProviders(<CollectionPage />)
 
     // Expand product
-    const productBtn = await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
+    const productBtn = await screen.findByRole('button', {
+      name: /Voir les détails de Dream Cream/i,
+    })
     await userEvent.click(productBtn)
 
     // Click "Enregistrer un achat" in sheet (lazy component — findByRole waits for resolve)
@@ -121,7 +123,9 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
   it("appelle addStockEntry lors de la validation du formulaire d'achat", async () => {
     renderWithProviders(<CollectionPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
+    )
     await userEvent.click(await screen.findByRole('button', { name: /Enregistrer un achat/i }))
 
     const priceInput = screen.getByLabelText(/Prix payé/i)
@@ -144,7 +148,9 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
   it('ne déclenche plus le formulaire automatiquement lors du passage en stock', async () => {
     renderWithProviders(<CollectionPage />)
 
-    await userEvent.click(await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
+    )
 
     const statusButtons = await screen.findAllByRole('button', { name: /En stock/i })
     const inStockBtn = statusButtons.find((btn) => btn.className.includes('pds-status-chip'))

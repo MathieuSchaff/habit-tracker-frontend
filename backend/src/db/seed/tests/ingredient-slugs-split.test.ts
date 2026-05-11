@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'bun:test'
+
 import {
-  INGREDIENT_SLUGS,
-  HUMECTANTS,
-  RETINOIDES,
-  SUPPLEMENTS_VITAMINES,
   DENTAL_ABRASIFS,
   HAIR_CONDITIONNEURS,
+  HUMECTANTS,
+  INGREDIENT_SLUGS,
+  RETINOIDES,
+  SUPPLEMENTS_VITAMINES,
 } from '../data/ingredients/ingredient-slugs'
 
 describe('ingredient-slugs split refactor — invariance', () => {

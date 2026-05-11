@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
-import type { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
+import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { users } from '../../../db/schema'
@@ -98,7 +98,11 @@ describe('Article Routes — Write (admin only)', () => {
         .update(users)
         .set({ role: 'admin' })
         .where(eq(users.email, TEST_CREDENTIALS.toto.email))
-      const token = await loginAndGetToken(app, TEST_CREDENTIALS.toto.rawEmail, TEST_CREDENTIALS.toto.rawPassword)
+      const token = await loginAndGetToken(
+        app,
+        TEST_CREDENTIALS.toto.rawEmail,
+        TEST_CREDENTIALS.toto.rawPassword
+      )
 
       const res = await authPost(app, '/articles', token, VALID_ARTICLE)
       expect(res.status).toBe(HTTP_STATUS.CREATED)
@@ -123,7 +127,11 @@ describe('Article Routes — Write (admin only)', () => {
         .update(users)
         .set({ role: 'admin' })
         .where(eq(users.email, TEST_CREDENTIALS.alice.email))
-      const token = await loginAndGetToken(app, TEST_CREDENTIALS.alice.rawEmail, TEST_CREDENTIALS.alice.rawPassword)
+      const token = await loginAndGetToken(
+        app,
+        TEST_CREDENTIALS.alice.rawEmail,
+        TEST_CREDENTIALS.alice.rawPassword
+      )
       const res = await authPatch(app, '/articles/nonexistent', token, { title: 'X' })
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })

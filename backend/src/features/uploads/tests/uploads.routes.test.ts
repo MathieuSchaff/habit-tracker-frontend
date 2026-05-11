@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
+
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
-import {
-  authPostMultipart,
-  setupAndLogin,
-} from '../../../tests/helpers/route-test-helpers'
+import { authPostMultipart, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 function buildVp8l(width: number, height: number, padBytes: number): Buffer {

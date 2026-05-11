@@ -2,5 +2,8 @@ pre-commit:
   commands:
     biome:
       glob: "*.{ts,tsx,js,jsx,json,jsonc}"
+      exclude:
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
       run: bunx biome check --write {staged_files}
       stage_fixed: true

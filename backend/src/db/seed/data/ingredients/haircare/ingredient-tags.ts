@@ -1,7 +1,7 @@
 import { HAIRCARE_INGREDIENT_TAG_SLUGS as H } from '@habit-tracker/shared'
 
 import type { IngredientTagMap } from '../../ingredient-tags'
-import { TAG_SLUGS } from '../../tags'
+import { SKINCARE_INGREDIENT_TAG_SLUGS } from '../../tags'
 import { INGREDIENT_SLUGS } from '../ingredient-slugs'
 import {
   HAIR_AGENTS_NACRANTS,
@@ -34,69 +34,75 @@ import {
 //                 cheveux gras pour les occlusifs lourds.
 //
 // Les entrées "dual-domain" (EDTA, coco-glucoside, sodium-cocoyl-isethionate…)
-// tirent leurs slugs du vocabulaire skincare (TAG_SLUGS) car l'ingrédient est
+// tirent leurs slugs du vocabulaire skincare (SKINCARE_INGREDIENT_TAG_SLUGS) car l'ingrédient est
 // dédupliqué côté skincare au moment du seed.
 
 export const haircareTagMap: IngredientTagMap = {
   // Dual-domain skincare+haircare — slugs skincare (dedup skincare-first)
   [INGREDIENT_SLUGS.TETRASODIUM_EDTA]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.HYDROXYETHYLCELLULOSE]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.HYDROXYPROPYL_METHYLCELLULOSE]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.SCLEROTIUM_GUM]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.BEHENYL_ALCOHOL]: {
-    primary: [TAG_SLUGS.EMOLLIENT, TAG_SLUGS.EXCIPIENT],
-    secondary: [TAG_SLUGS.PEAU_SECHE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EMOLLIENT, SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
+    secondary: [SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_SECHE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.DIMETHICONOL]: {
-    primary: [TAG_SLUGS.EMOLLIENT, TAG_SLUGS.OCCLUSIF],
-    secondary: [TAG_SLUGS.PEAU_SECHE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EMOLLIENT, SKINCARE_INGREDIENT_TAG_SLUGS.OCCLUSIF],
+    secondary: [SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_SECHE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.CYCLOPENTASILOXANE]: {
-    primary: [TAG_SLUGS.EXCIPIENT, TAG_SLUGS.EMOLLIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT, SKINCARE_INGREDIENT_TAG_SLUGS.EMOLLIENT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.PHENYL_TRIMETHICONE]: {
-    primary: [TAG_SLUGS.EMOLLIENT, TAG_SLUGS.ECLAT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EMOLLIENT, SKINCARE_INGREDIENT_TAG_SLUGS.ECLAT],
     secondary: [],
     avoid: [],
   },
   [INGREDIENT_SLUGS.PIROCTONE_OLAMINE]: {
-    primary: [TAG_SLUGS.ANTISEPTIQUE],
-    secondary: [TAG_SLUGS.ANTI_ACNE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.ANTISEPTIQUE],
+    secondary: [SKINCARE_INGREDIENT_TAG_SLUGS.ANTI_ACNE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.COCO_GLUCOSIDE]: {
-    primary: [TAG_SLUGS.TENSIOACTIF],
-    secondary: [TAG_SLUGS.PEAU_SENSIBLE, TAG_SLUGS.NON_COMEDOGENE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.TENSIOACTIF],
+    secondary: [
+      SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_SENSIBLE,
+      SKINCARE_INGREDIENT_TAG_SLUGS.NON_COMEDOGENE,
+    ],
     avoid: [],
   },
   [INGREDIENT_SLUGS.DECYL_GLUCOSIDE]: {
-    primary: [TAG_SLUGS.TENSIOACTIF],
-    secondary: [TAG_SLUGS.PEAU_SECHE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.TENSIOACTIF],
+    secondary: [SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_SECHE],
     avoid: [],
   },
   [INGREDIENT_SLUGS.SODIUM_COCOYL_ISETHIONATE]: {
-    primary: [TAG_SLUGS.TENSIOACTIF],
-    secondary: [TAG_SLUGS.PEAU_SECHE, TAG_SLUGS.PEAU_NORMALE],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.TENSIOACTIF],
+    secondary: [
+      SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_SECHE,
+      SKINCARE_INGREDIENT_TAG_SLUGS.PEAU_NORMALE,
+    ],
     avoid: [],
   },
 
@@ -198,17 +204,17 @@ export const haircareTagMap: IngredientTagMap = {
     avoid: [],
   },
   [HAIR_TENSIOACTIFS_NON_IONIQUES.POLYSORBATE_20]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [HAIR_TENSIOACTIFS_NON_IONIQUES.POLYSORBATE_60]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
   [HAIR_TENSIOACTIFS_NON_IONIQUES.POLYSORBATE_80]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
@@ -353,7 +359,7 @@ export const haircareTagMap: IngredientTagMap = {
 
   // Humectants
   [HAIR_HUMECTANTS.AQUA_HAIR]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },
@@ -708,7 +714,7 @@ export const haircareTagMap: IngredientTagMap = {
     avoid: [],
   },
   [HAIR_EPAISSISSANTS.PEG_40_HYDROGENATED_CASTOR_OIL]: {
-    primary: [TAG_SLUGS.EXCIPIENT],
+    primary: [SKINCARE_INGREDIENT_TAG_SLUGS.EXCIPIENT],
     secondary: [],
     avoid: [],
   },

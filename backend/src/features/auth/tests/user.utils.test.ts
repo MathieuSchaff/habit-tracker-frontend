@@ -4,7 +4,6 @@ import { describe, expect, it } from 'bun:test'
 import type { Email, HashedPassword } from '@habit-tracker/shared'
 import { emailSchema } from '@habit-tracker/shared'
 
-
 import { testDb } from '../../../tests/db.test.config'
 import { getProfile } from '../../profile'
 import { createProfile, createUser, getUser } from '../user.utils'

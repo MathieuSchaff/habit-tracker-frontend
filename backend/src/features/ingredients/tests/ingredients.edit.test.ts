@@ -546,7 +546,9 @@ describe('updateIngredient — exhaustive', () => {
         description: 'Changé pour timestamp',
       })
 
-      expect(new Date(updated.updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(originalUpdatedAt).getTime())
+      expect(new Date(updated.updatedAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(originalUpdatedAt).getTime()
+      )
     })
 
     it('should not change createdAt after update', async () => {

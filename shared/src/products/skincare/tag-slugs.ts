@@ -50,7 +50,6 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   TYPE_TRAITEMENT: 'type-traitement',
   TYPE_PRIMER: 'type-primer',
   TYPE_DEODORANT: 'type-deodorant',
-  TYPE_OUTIL: 'type-outil',
 
   // Textures (physical format)
   TEXTURE_GEL: 'texture-gel',

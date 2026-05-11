@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
-import { upsertDermoProfile } from '../../profile/service'
 import { createProduct } from '../../products/service'
+import { upsertDermoProfile } from '../../profile/service'
 import { computeProductDermoScore } from '../service'
 
 let user: { id: string }
