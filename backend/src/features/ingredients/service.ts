@@ -96,8 +96,10 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
 
   const orderBy = filters.sort === 'random' ? sql`random()` : ingredients.name
 
-  // I run both requests at the same time with Promise.all to go faster.
-  // One for the data, and one to count how many ingredients we have in total.
+  // avoid_for is computed post-fetch as per-ingredient profileMatches (badge UX)
+  // — mirrors products. Never excludes rows.
+  const avoidSlugs = filters.avoid_for ? filters.avoid_for.split(',').filter(Boolean) : []
+
   const [items, [{ total }]] = await Promise.all([
     database
       .select({
@@ -106,7 +108,7 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
         slug: ingredients.slug,
         type: ingredients.type,
         category: ingredients.category,
-        // I only take the beginning of the description to avoid sending too much text.
+        // Truncated to keep the list payload small — full text on detail page.
         description: sql<string | null>`left(${ingredients.description}, 120)`,
       })
       .from(ingredients)
@@ -119,7 +121,34 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
       .from(ingredients)
       .where(where),
   ])
-  return { items, total }
+
+  const matchesByIngredient = new Map<string, string[]>()
+  if (items.length > 0 && avoidSlugs.length > 0) {
+    const itemIds = items.map((i) => i.id)
+    const avoidRows = await database
+      .select({ ingredientId: tagIngredients.ingredientId, slug: ingredientTagsDefs.slug })
+      .from(tagIngredients)
+      .innerJoin(ingredientTagsDefs, eq(tagIngredients.ingredientTagId, ingredientTagsDefs.id))
+      .where(
+        and(
+          inArray(tagIngredients.ingredientId, itemIds),
+          inArray(ingredientTagsDefs.slug, avoidSlugs),
+          eq(tagIngredients.relevance, 'avoid')
+        )
+      )
+    for (const row of avoidRows) {
+      const list = matchesByIngredient.get(row.ingredientId) ?? []
+      list.push(row.slug)
+      matchesByIngredient.set(row.ingredientId, list)
+    }
+  }
+
+  const itemsWithMatches = items.map((i) => ({
+    ...i,
+    profileMatches: matchesByIngredient.get(i.id) ?? [],
+  }))
+
+  return { items: itemsWithMatches, total }
 }
 
 export async function createIngredient(database: DB, userId: string, input: CreateIngredientInput) {

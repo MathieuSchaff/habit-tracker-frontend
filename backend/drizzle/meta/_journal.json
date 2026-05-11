@@ -400,6 +400,13 @@
       "when": 1778800000000,
       "tag": "0056_drop_type_outil",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1778900000000,
+      "tag": "0057_ingredients_type_category_check",
+      "breakpoints": true
     }
   ]
 }

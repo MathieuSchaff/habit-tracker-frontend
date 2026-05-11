@@ -52,14 +52,14 @@ describe('Ingredient Routes', () => {
         type: 'skincare',
         description: 'Forme pure de la vitamine C',
         content: '## Description\n\nActif antioxydant.',
-        category: 'vitamine',
+        category: 'humectant',
       })
 
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
       expect(data.data.description).toBe('Forme pure de la vitamine C')
       expect(data.data.content).toBe('## Description\n\nActif antioxydant.')
-      expect(data.data.category).toBe('vitamine')
+      expect(data.data.category).toBe('humectant')
     })
 
     it('should auto-generate slug from name', async () => {

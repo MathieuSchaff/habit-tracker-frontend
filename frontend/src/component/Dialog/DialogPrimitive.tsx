@@ -97,7 +97,7 @@ export function DialogPrimitive({
       onCancel={handleCancel}
       onClick={handleClick}
     >
-      <DialogTitleContext.Provider value={{ id: titleId }}>{children}</DialogTitleContext.Provider>
+      <DialogTitleContext value={{ id: titleId }}>{children}</DialogTitleContext>
     </dialog>
   )
 }

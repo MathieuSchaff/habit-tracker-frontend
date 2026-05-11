@@ -46,6 +46,19 @@ export const ingredients = pgTable(
       'ingredients_type_check',
       sql`${t.type} IN ('skincare', 'haircare', 'dental', 'supplement')`
     ),
+    // Cross-field: category must be NULL or a value from the type's set. Values
+    // duplicated from shared/src/ingredients/*/categories.ts — drizzle-kit can
+    // import constants from shared (TS source via Bun) but plain literal lists
+    // keep this readable and audit-friendly. Keep in sync if either set changes.
+    check(
+      'ingredients_type_category_check',
+      sql`${t.category} IS NULL OR (
+        (${t.type} = 'skincare'   AND ${t.category} IN ('actif','humectant','emollient','filtre-uv','tensioactif','excipient')) OR
+        (${t.type} = 'haircare'   AND ${t.category} IN ('actif','conditionneur','filmogene','humectant','tensioactif','excipient')) OR
+        (${t.type} = 'dental'     AND ${t.category} IN ('actif','abrasif','aromatisant','humectant','tensioactif','excipient')) OR
+        (${t.type} = 'supplement' AND ${t.category} IN ('vitamine','mineral','acide-amine','acide-gras','antioxydant','carotenoide','plante','adaptogene','champignon','probiotique','prebiotique','peptide','collagene','polyphenol','neuroactif','longevite','enzyme','autre'))
+      )`
+    ),
   ]
 )
 

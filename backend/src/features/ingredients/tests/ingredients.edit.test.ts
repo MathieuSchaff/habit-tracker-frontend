@@ -59,7 +59,7 @@ describe('updateIngredient — exhaustive', () => {
       const created = await makeIngredient('Intact', {
         description: 'Desc originale',
         content: 'Contenu original',
-        category: 'vitamine',
+        category: 'humectant',
       })
 
       const updated = await updateIngredient(testDb, user.id, created.id, { category: 'actif' })
@@ -163,11 +163,11 @@ describe('updateIngredient — exhaustive', () => {
 
       const updated = await updateIngredient(testDb, user.id, created.id, {
         description: 'Nouvelle desc',
-        category: 'vitamine',
+        category: 'humectant',
       })
 
       expect(updated.description).toBe('Nouvelle desc')
-      expect(updated.category).toBe('vitamine')
+      expect(updated.category).toBe('humectant')
     })
 
     it('should update all mutable fields simultaneously', async () => {

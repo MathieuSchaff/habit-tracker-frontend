@@ -109,7 +109,7 @@ export function CollectionFilterProvider({
   }, [setFilter])
 
   return (
-    <CollectionFilterContext.Provider
+    <CollectionFilterContext
       value={{
         q,
         sort,
@@ -127,7 +127,7 @@ export function CollectionFilterProvider({
       }}
     >
       {children}
-    </CollectionFilterContext.Provider>
+    </CollectionFilterContext>
   )
 }
 
