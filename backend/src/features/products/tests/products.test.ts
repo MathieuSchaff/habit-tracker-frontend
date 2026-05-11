@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { createProductSchema } from '@habit-tracker/shared'
+
 import { eq } from 'drizzle-orm'
 
 import { productEdits } from '../../../db/schema/products'
@@ -451,15 +452,18 @@ describe('Product Service', () => {
       })
 
       it('combines with tag filters (AND)', async () => {
-        const product = await makeProduct('Sérum acné', 'A', 'serum', 'pump', { category: 'skincare' })
+        const product = await makeProduct('Sérum acné', 'A', 'serum', 'pump', {
+          category: 'skincare',
+        })
         await makeProduct('Shampoing', 'B', 'shampoo', 'bottle', { category: 'haircare' })
-        const tag = await createProductTag(testDb, { name: 'Acné', slug: 'acne', category: 'concern' })
+        const tag = await createProductTag(testDb, {
+          name: 'Acné',
+          slug: 'acne',
+          category: 'concern',
+        })
         await replaceProductTags(testDb, product.id, [{ tagId: tag.id, relevance: 'primary' }])
 
-        const result = await listProducts(
-          { category: 'skincare', concern: 'acne' },
-          testDb
-        )
+        const result = await listProducts({ category: 'skincare', concern: 'acne' }, testDb)
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Sérum acné')
       })
@@ -473,9 +477,7 @@ describe('Product Service', () => {
         })
         const retinol = await makeProduct('Rétinol fort', 'A')
         const gentle = await makeProduct('Hydratant doux', 'B')
-        await replaceProductTags(testDb, retinol.id, [
-          { tagId: reactive.id, relevance: 'avoid' },
-        ])
+        await replaceProductTags(testDb, retinol.id, [{ tagId: reactive.id, relevance: 'avoid' }])
 
         const result = await listProducts(
           { category: 'skincare', page: 1, limit: 10, avoid_for: reactive.slug },
@@ -508,10 +510,7 @@ describe('Product Service', () => {
 
       it('returns empty profileMatches when no avoid_for filter is provided', async () => {
         await makeProduct('Produit simple', 'A')
-        const result = await listProducts(
-          { category: 'skincare', page: 1, limit: 10 },
-          testDb
-        )
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 10 }, testDb)
         expect(result.items[0]?.profileMatches).toEqual([])
       })
     })
@@ -556,9 +555,7 @@ describe('Product Service', () => {
           category: 'skin_type',
         })
         const product = await makeProduct('Rétinol', 'A')
-        await replaceProductTags(testDb, product.id, [
-          { tagId: reactive.id, relevance: 'avoid' },
-        ])
+        await replaceProductTags(testDb, product.id, [{ tagId: reactive.id, relevance: 'avoid' }])
 
         const result = await listProducts({ category: 'skincare' }, testDb)
         expect(result.items[0]?.tags).toEqual([])
@@ -689,7 +686,9 @@ describe('Product Service', () => {
       it('scopes brands and kinds to the skincare tab categories', async () => {
         await makeProduct('Sérum', 'Brand-Skincare', 'serum', 'pump', { category: 'skincare' })
         await makeProduct('SPF', 'Brand-Solaire', 'sunscreen', 'tube', { category: 'solaire' })
-        await makeProduct('Shampoing', 'Brand-Haircare', 'shampoo', 'bottle', { category: 'haircare' })
+        await makeProduct('Shampoing', 'Brand-Haircare', 'shampoo', 'bottle', {
+          category: 'haircare',
+        })
 
         const options = await getFilterOptions(testDb, 'skincare')
         expect(options.brands.sort()).toEqual(['Brand-Skincare', 'Brand-Solaire'])
@@ -746,21 +745,32 @@ describe('Product Service', () => {
 describe('createProductSchema validation', () => {
   it('requires category', () => {
     const result = createProductSchema.safeParse({
-      name: 'Test', brand: 'Brand', kind: 'serum', unit: 'pump',
+      name: 'Test',
+      brand: 'Brand',
+      kind: 'serum',
+      unit: 'pump',
     })
     expect(result.success).toBe(false)
   })
 
   it('rejects mismatched category and kind', () => {
     const result = createProductSchema.safeParse({
-      name: 'Test', brand: 'Brand', category: 'skincare', kind: 'gelule', unit: 'pump',
+      name: 'Test',
+      brand: 'Brand',
+      category: 'skincare',
+      kind: 'gelule',
+      unit: 'pump',
     })
     expect(result.success).toBe(false)
   })
 
   it('accepts valid category and kind pair', () => {
     const result = createProductSchema.safeParse({
-      name: 'Test', brand: 'Brand', category: 'skincare', kind: 'serum', unit: 'pump',
+      name: 'Test',
+      brand: 'Brand',
+      category: 'skincare',
+      kind: 'serum',
+      unit: 'pump',
     })
     expect(result.success).toBe(true)
   })

@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  emptyFilters,
-  filterSearchSchema,
-  filtersToQuery,
-  getFilterLabel,
-} from './helpers'
+import { emptyFilters, filterSearchSchema, filtersToQuery, getFilterLabel } from './helpers'
 import type { FilterGroupConfig } from './types'
 
 type Key = 'concern' | 'kind' | 'ingredient'

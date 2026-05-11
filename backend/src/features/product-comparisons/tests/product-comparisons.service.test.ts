@@ -60,17 +60,13 @@ describe('createComparison', () => {
     const p1 = await makeProduct('Sérum A', 'BrandA')
     const p2 = await makeProduct('Sérum B', 'BrandB')
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [p1.id, p2.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [p1.id, p2.id] }, testDb)
 
     const otherUser = await createTestUser('intruder@toto.com')
 
-    await expect(
-      getEnrichedComparison(otherUser.id, cmp.id, testDb)
-    ).rejects.toMatchObject({ code: 'comparison_not_found' })
+    await expect(getEnrichedComparison(otherUser.id, cmp.id, testDb)).rejects.toMatchObject({
+      code: 'comparison_not_found',
+    })
   })
 })
 
@@ -85,18 +81,9 @@ describe('updateComparison', () => {
     const b = await makeProduct('Sérum B', 'BrandB')
     const c = await makeProduct('Sérum C', 'BrandC')
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [a.id, b.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [a.id, b.id] }, testDb)
 
-    await updateComparison(
-      user.id,
-      cmp.id,
-      { productIds: [c.id, a.id, b.id] },
-      testDb
-    )
+    await updateComparison(user.id, cmp.id, { productIds: [c.id, a.id, b.id] }, testDb)
 
     const enriched = await getEnrichedComparison(user.id, cmp.id, testDb)
     expect(enriched.products.map((p) => p.id)).toEqual([c.id, a.id, b.id])
@@ -130,11 +117,7 @@ describe('listComparisons', () => {
     const p1 = await makeProduct('Sérum A', 'BrandA')
     const p2 = await makeProduct('Sérum B', 'BrandB')
 
-    await createComparison(
-      user.id,
-      { name: 'first', productIds: [p1.id, p2.id] },
-      testDb
-    )
+    await createComparison(user.id, { name: 'first', productIds: [p1.id, p2.id] }, testDb)
 
     const list = await listComparisons(user.id, testDb)
     expect(list.length).toBe(1)
@@ -153,34 +136,26 @@ describe('deleteComparison', () => {
     const p1 = await makeProduct('Sérum A', 'BrandA')
     const p2 = await makeProduct('Sérum B', 'BrandB')
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [p1.id, p2.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [p1.id, p2.id] }, testDb)
 
     await deleteComparison(user.id, cmp.id, testDb)
 
-    await expect(
-      getEnrichedComparison(user.id, cmp.id, testDb)
-    ).rejects.toMatchObject({ code: 'comparison_not_found' })
+    await expect(getEnrichedComparison(user.id, cmp.id, testDb)).rejects.toMatchObject({
+      code: 'comparison_not_found',
+    })
   })
 
   it('denies a different user from deleting', async () => {
     const a = await makeProduct('Sérum A', 'BrandA')
     const b = await makeProduct('Sérum B', 'BrandB')
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [a.id, b.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [a.id, b.id] }, testDb)
 
     const otherUser = await createTestUser('intruder@test.com')
 
-    await expect(
-      deleteComparison(otherUser.id, cmp.id, testDb)
-    ).rejects.toMatchObject({ code: 'comparison_not_found' })
+    await expect(deleteComparison(otherUser.id, cmp.id, testDb)).rejects.toMatchObject({
+      code: 'comparison_not_found',
+    })
   })
 })
 
@@ -210,11 +185,7 @@ describe('enrichment', () => {
       ingredientId: ingredient.id,
     })
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [p1.id, p2.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [p1.id, p2.id] }, testDb)
 
     const enriched = await getEnrichedComparison(user.id, cmp.id, testDb)
     const first = enriched.products.find((p) => p.id === p1.id)
@@ -238,11 +209,7 @@ describe('enrichment', () => {
     )
     const b = await makeProduct('Sérum B', 'BrandB')
 
-    const cmp = await createComparison(
-      user.id,
-      { productIds: [a.id, b.id] },
-      testDb
-    )
+    const cmp = await createComparison(user.id, { productIds: [a.id, b.id] }, testDb)
 
     const enriched = await getEnrichedComparison(user.id, cmp.id, testDb)
     const ap = enriched.products.find((p) => p.id === a.id)

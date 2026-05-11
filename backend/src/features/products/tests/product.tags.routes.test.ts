@@ -6,11 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
-import {
-  authPost,
-  authPut,
-  setupAndLogin,
-} from '../../../tests/helpers/route-test-helpers'
+import { authPost, authPut, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -111,7 +107,10 @@ describe('Product Tags Routes', () => {
 
       const t1Res = await authPost(app, '/tags', token, { name: 'Anti-âge', category: 'concern' })
       const { data: t1 } = await t1Res.json()
-      const t2Res = await authPost(app, '/tags', token, { name: 'Peau grasse', category: 'skin_type' })
+      const t2Res = await authPost(app, '/tags', token, {
+        name: 'Peau grasse',
+        category: 'skin_type',
+      })
       const { data: t2 } = await t2Res.json()
 
       const res = await authPut(app, `/products/${product.id}/tags`, token, {

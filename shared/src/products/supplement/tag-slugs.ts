@@ -29,9 +29,9 @@ export const SUPPLEMENT_PRODUCT_TAG_SLUGS = {
   HORMONAL: 'hormonal',
 
   // Moment
-  // `MATIN_SUPPLEMENT` / `SOIR_SUPPLEMENT` keys (pas `MATIN`/`SOIR`) pour
-  // éviter l'override de `SUPPLEMENT_INGREDIENT_TAG_SLUGS.MATIN` dans le
-  // legacy `TAG_SLUGS` merge (même clé, valeur différente).
+  // Suffixed `MATIN_SUPPLEMENT` / `SOIR_SUPPLEMENT` keep distinct DB slug
+  // values vs `SUPPLEMENT_INGREDIENT_TAG_SLUGS.MATIN` (same display, distinct
+  // row — same pattern as haircare `brillance-cheveux`).
   MATIN_SUPPLEMENT: 'matin-supplement',
   SOIR_SUPPLEMENT: 'soir-supplement',
   AVEC_REPAS: 'avec-repas',

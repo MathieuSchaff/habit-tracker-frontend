@@ -39,9 +39,7 @@ describe('useProductTagFilterGroups', () => {
       useProductTagFilterGroups('skincare', {}, { 'barriere-cutanee': 'Peau sensibilisée' })
     )
     const concern = result.current.find((g) => g.id === 'concern')
-    const overridden = concern?.subFilters[0]?.options.find(
-      (o) => o.value === 'barriere-cutanee'
-    )
+    const overridden = concern?.subFilters[0]?.options.find((o) => o.value === 'barriere-cutanee')
     expect(overridden?.label).toBe('Peau sensibilisée')
   })
 

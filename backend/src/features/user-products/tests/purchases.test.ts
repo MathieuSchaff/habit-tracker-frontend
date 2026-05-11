@@ -21,7 +21,13 @@ describe('Purchase Service', () => {
     user = await createTestUser('user@test.com')
     product = await createProduct(
       user.id,
-      { name: 'Vitamine C', brand: 'Solgar', category: 'skincare', kind: 'complément', unit: 'gélule' },
+      {
+        name: 'Vitamine C',
+        brand: 'Solgar',
+        category: 'skincare',
+        kind: 'complément',
+        unit: 'gélule',
+      },
       testDb
     )
     userProduct = await createUserProduct(
@@ -48,23 +54,38 @@ describe('Purchase Service', () => {
 
     it('should throw if user product not found', async () => {
       const fakeId = crypto.randomUUID()
-      expect(addPurchase(user.id, fakeId, { purchasedAt: '2026-03-22T00:00:00.000Z' }, testDb)).rejects.toThrow(
-        PurchaseError
-      )
+      expect(
+        addPurchase(user.id, fakeId, { purchasedAt: '2026-03-22T00:00:00.000Z' }, testDb)
+      ).rejects.toThrow(PurchaseError)
     })
 
     it('should throw if user product belongs to another user', async () => {
       const otherUser = await createTestUser('other@test.com')
       expect(
-        addPurchase(otherUser.id, userProduct.id, { purchasedAt: '2026-03-22T00:00:00.000Z' }, testDb)
+        addPurchase(
+          otherUser.id,
+          userProduct.id,
+          { purchasedAt: '2026-03-22T00:00:00.000Z' },
+          testDb
+        )
       ).rejects.toThrow(PurchaseError)
     })
   })
 
   describe('getPurchases', () => {
     it('should return purchases for a user product', async () => {
-      await addPurchase(user.id, userProduct.id, { purchasedAt: '2026-03-22T00:00:00.000Z' }, testDb)
-      await addPurchase(user.id, userProduct.id, { purchasedAt: '2026-03-20T00:00:00.000Z' }, testDb)
+      await addPurchase(
+        user.id,
+        userProduct.id,
+        { purchasedAt: '2026-03-22T00:00:00.000Z' },
+        testDb
+      )
+      await addPurchase(
+        user.id,
+        userProduct.id,
+        { purchasedAt: '2026-03-20T00:00:00.000Z' },
+        testDb
+      )
 
       const purchases = await getPurchases(user.id, userProduct.id, testDb)
       expect(purchases).toHaveLength(2)
@@ -84,25 +105,40 @@ describe('Purchase Service', () => {
         { purchasedAt: '2026-03-20T00:00:00.000Z' },
         testDb
       )
-      const opened = await openPurchase(user.id, purchase.id, { openedAt: '2026-03-22T00:00:00.000Z' }, testDb)
+      const opened = await openPurchase(
+        user.id,
+        purchase.id,
+        { openedAt: '2026-03-22T00:00:00.000Z' },
+        testDb
+      )
       expect(opened.openedAt).toBe('2026-03-22T00:00:00.000Z')
     })
 
     it('should throw if another purchase is already active', async () => {
-      const p1 = await addPurchase(user.id, userProduct.id, { purchasedAt: '2026-03-20T00:00:00.000Z' }, testDb)
+      const p1 = await addPurchase(
+        user.id,
+        userProduct.id,
+        { purchasedAt: '2026-03-20T00:00:00.000Z' },
+        testDb
+      )
       await openPurchase(user.id, p1.id, { openedAt: '2026-03-20T00:00:00.000Z' }, testDb)
 
-      const p2 = await addPurchase(user.id, userProduct.id, { purchasedAt: '2026-03-21T00:00:00.000Z' }, testDb)
-      expect(openPurchase(user.id, p2.id, { openedAt: '2026-03-22T00:00:00.000Z' }, testDb)).rejects.toThrow(
-        PurchaseError
+      const p2 = await addPurchase(
+        user.id,
+        userProduct.id,
+        { purchasedAt: '2026-03-21T00:00:00.000Z' },
+        testDb
       )
+      expect(
+        openPurchase(user.id, p2.id, { openedAt: '2026-03-22T00:00:00.000Z' }, testDb)
+      ).rejects.toThrow(PurchaseError)
     })
 
     it('should throw if purchase not found', async () => {
       const fakeId = crypto.randomUUID()
-      expect(openPurchase(user.id, fakeId, { openedAt: '2026-03-22T00:00:00.000Z' }, testDb)).rejects.toThrow(
-        PurchaseError
-      )
+      expect(
+        openPurchase(user.id, fakeId, { openedAt: '2026-03-22T00:00:00.000Z' }, testDb)
+      ).rejects.toThrow(PurchaseError)
     })
   })
 

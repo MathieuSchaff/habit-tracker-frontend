@@ -8,10 +8,8 @@ function installCanvasMock(blobSize = 50_000) {
   const originalGetContext = HTMLCanvasElement.prototype.getContext
 
   // jsdom does not implement canvas 2d — provide a no-op context stub
-  ;(HTMLCanvasElement.prototype.getContext as unknown) = function () {
-    return { drawImage: () => {} }
-  }
-  ;(HTMLCanvasElement.prototype.toBlob as unknown) = function (cb: BlobCallback) {
+  ;(HTMLCanvasElement.prototype.getContext as unknown) = () => ({ drawImage: () => {} })
+  ;(HTMLCanvasElement.prototype.toBlob as unknown) = (cb: BlobCallback) => {
     cb(new Blob([new Uint8Array(blobSize)], { type: 'image/webp' }))
   }
   return () => {
@@ -74,7 +72,9 @@ describe('useImageUpload', () => {
     )
 
     await act(async () => {
-      ;(result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }).__setSourceForTest?.(new Image())
+      ;(
+        result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+      ).__setSourceForTest?.(new Image())
       await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
     })
     await waitFor(() => expect(result.current.state.phase).toBe('idle'))
@@ -89,7 +89,9 @@ describe('useImageUpload', () => {
       useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
     )
     await act(async () => {
-      ;(result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }).__setSourceForTest?.(new Image())
+      ;(
+        result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+      ).__setSourceForTest?.(new Image())
       try {
         await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
       } catch {
@@ -117,7 +119,7 @@ describe('useImageUpload', () => {
     // second returns 150_000 (under budget).
     const originalToBlob = HTMLCanvasElement.prototype.toBlob
     let callCount = 0
-    ;(HTMLCanvasElement.prototype.toBlob as unknown) = function (cb: BlobCallback) {
+    ;(HTMLCanvasElement.prototype.toBlob as unknown) = (cb: BlobCallback) => {
       callCount++
       const size = callCount === 1 ? 250_000 : 150_000
       cb(new Blob([new Uint8Array(size)], { type: 'image/webp' }))
@@ -131,7 +133,9 @@ describe('useImageUpload', () => {
         useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
       )
       await act(async () => {
-        ;(result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }).__setSourceForTest(new Image())
+        ;(
+          result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+        ).__setSourceForTest(new Image())
         await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
       })
       await waitFor(() => expect(result.current.state.phase).toBe('idle'))

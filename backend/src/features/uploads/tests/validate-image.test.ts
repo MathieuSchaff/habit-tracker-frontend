@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
-import { validateWebpUpload } from '../validate-image'
 import { UploadError } from '../upload-error'
+import { validateWebpUpload } from '../validate-image'
 
 // Build a minimal VP8L (lossless) WebP with given canvas size.
 // VP8L payload layout: 0x2f signature + 4 packed bytes encoding ((h-1)<<14)|(w-1).
@@ -71,56 +71,47 @@ function buildVp8x(width: number, height: number, padBytes: number): Buffer {
 describe('validateWebpUpload', () => {
   it('accepts a valid WebP at the expected size', () => {
     const buf = buildVp8l(1024, 1024, 100)
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).not.toThrow()
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).not.toThrow()
   })
 
   it('rejects non-WebP magic bytes (PNG header)', () => {
-    const png = Buffer.concat([
-      Buffer.from([0x89, 0x50, 0x4e, 0x47]),
-      Buffer.alloc(20, 0),
-    ])
-    expect(() =>
-      validateWebpUpload(png, { maxBytes: 200_000, expectedSize: 1024 })
-    ).toThrow(UploadError)
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(20, 0)])
+    expect(() => validateWebpUpload(png, { maxBytes: 200_000, expectedSize: 1024 })).toThrow(
+      UploadError
+    )
   })
 
   it('rejects buffers exceeding maxBytes', () => {
     const buf = buildVp8l(1024, 1024, 200_000)
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).toThrow(/upload_too_large/)
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).toThrow(
+      /upload_too_large/
+    )
   })
 
   it('rejects WebP with wrong dimensions', () => {
     const buf = buildVp8l(800, 800, 100)
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).toThrow(/upload_invalid_dimensions/)
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).toThrow(
+      /upload_invalid_dimensions/
+    )
   })
 
   it('accepts a valid VP8 (lossy) WebP at the expected size', () => {
     const buf = buildVp8Lossy(1024, 1024, 100)
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).not.toThrow()
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).not.toThrow()
   })
 
   it('accepts a valid VP8X (extended) WebP at the expected size', () => {
     const buf = buildVp8x(1024, 1024, 100)
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).not.toThrow()
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).not.toThrow()
   })
 
   it('rejects VP8 (lossy) with missing start code', () => {
     const buf = buildVp8Lossy(1024, 1024, 100)
     // Corrupt the start code at byte 23 (= payload[3])
     buf[23] = 0x00
-    expect(() =>
-      validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })
-    ).toThrow(UploadError)
+    expect(() => validateWebpUpload(buf, { maxBytes: 200_000, expectedSize: 1024 })).toThrow(
+      UploadError
+    )
   })
 
   it('rejects truncated/empty buffers', () => {

@@ -22,7 +22,13 @@ let user: any
 
 async function makeIngredient(
   name: string,
-  extra: { type?: string; category?: string; description?: string; slug?: string; content?: string } = {}
+  extra: {
+    type?: string
+    category?: string
+    description?: string
+    slug?: string
+    content?: string
+  } = {}
 ) {
   return createIngredient(testDb, user.id, { name, type: 'skincare', ...extra })
 }

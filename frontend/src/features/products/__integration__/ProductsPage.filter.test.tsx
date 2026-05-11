@@ -2,6 +2,7 @@
 // MUST unmock react-router before any import that pulls in router internals,
 // otherwise the global mock from setup.ts neutralises useSearch/useNavigate.
 import { vi } from 'vitest'
+
 vi.unmock('@tanstack/react-router')
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -45,9 +46,11 @@ function renderProducts(initialEntries: string[] = ['/products/']) {
   const rootRoute = createRootRoute()
   // Mirrors what routeTree.gen does: re-attach the file route to a fresh root
   // so the test owns the tree and can pick its initial URL via memory history.
-  const productsRoute = (ProductsIndexRouteImport as unknown as {
-    update: (opts: object) => unknown
-  }).update({
+  const productsRoute = (
+    ProductsIndexRouteImport as unknown as {
+      update: (opts: object) => unknown
+    }
+  ).update({
     id: '/products/',
     path: '/products/',
     getParentRoute: () => rootRoute,
