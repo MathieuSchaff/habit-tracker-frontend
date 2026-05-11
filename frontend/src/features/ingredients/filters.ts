@@ -63,11 +63,13 @@ const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
 export const ingredientsSearchSchema = baseSchema.extend({
   type: z.enum(INGREDIENT_TYPE_VALUES).default('skincare'),
+  profile_filter: z.boolean().default(false),
 })
 
 export const ingredientsSearchDefaults = {
   ...defaultValues,
   type: 'skincare' as IngredientType,
+  profile_filter: false,
 }
 
 // Reset every tag filter when the user switches domain — categories from the

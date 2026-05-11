@@ -1,7 +1,11 @@
 import { z } from 'zod'
 
 import { fieldChangeSchema } from '../core'
-import { INGREDIENT_TYPE_VALUES } from './ingredient-types'
+import { DENTAL_INGREDIENT_CATEGORY_VALUES } from './dental/categories'
+import { HAIRCARE_INGREDIENT_CATEGORY_VALUES } from './haircare/categories'
+import { INGREDIENT_TYPE_VALUES, type IngredientType } from './ingredient-types'
+import { SKINCARE_INGREDIENT_CATEGORY_VALUES } from './skincare/categories'
+import { SUPPLEMENT_CATEGORY_VALUES } from './supplement/categories'
 
 // SCHEMAS
 
@@ -16,14 +20,43 @@ const slugSchema = z
 
 const ingredientTypeSchema = z.enum(INGREDIENT_TYPE_VALUES)
 
-export const createIngredientSchema = z.object({
-  name: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
-  slug: slugSchema.optional(),
-  content: z.string().max(50000).optional(),
-  type: ingredientTypeSchema,
-  category: z.string().min(1).max(100).optional(),
-})
+const INGREDIENT_CATEGORIES_BY_TYPE: Record<IngredientType, readonly string[]> = {
+  skincare: SKINCARE_INGREDIENT_CATEGORY_VALUES,
+  haircare: HAIRCARE_INGREDIENT_CATEGORY_VALUES,
+  dental: DENTAL_INGREDIENT_CATEGORY_VALUES,
+  supplement: SUPPLEMENT_CATEGORY_VALUES,
+}
+
+// Cross-field check: category must belong to the type's allowed set. Skipped
+// when category is null/undefined (clear/unset). On update, only validated
+// when type is also present in the payload — partial updates touching only
+// `category` rely on service-layer merge with the stored type.
+const refineTypeCategory = (
+  type: IngredientType | undefined,
+  category: string | null | undefined,
+  ctx: z.RefinementCtx
+) => {
+  if (!type || category == null) return
+  const allowed = INGREDIENT_CATEGORIES_BY_TYPE[type]
+  if (!allowed.includes(category)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['category'],
+      message: `Category "${category}" not allowed for type "${type}". Expected one of: ${allowed.join(', ')}`,
+    })
+  }
+}
+
+export const createIngredientSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    description: z.string().max(2000).optional(),
+    slug: slugSchema.optional(),
+    content: z.string().max(50000).optional(),
+    type: ingredientTypeSchema,
+    category: z.string().min(1).max(100).optional(),
+  })
+  .superRefine((data, ctx) => refineTypeCategory(data.type, data.category, ctx))
 
 export const updateIngredientSchema = z
   .object({
@@ -35,6 +68,7 @@ export const updateIngredientSchema = z
     category: z.string().min(1).max(100).nullable().optional(),
   })
   .strict()
+  .superRefine((data, ctx) => refineTypeCategory(data.type, data.category, ctx))
 
 export const ingredientResponseSchema = z.object({
   id: uuid,

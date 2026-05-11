@@ -102,6 +102,9 @@ export const listIngredientsSearchSchema = z.object({
   shared_label: z.string().optional(),
   // Domain — comma-separated `IngredientType` values.
   ingredient_type: z.string().optional(),
+  // Profile-derived avoid tags (skin types + concerns). Flags rows post-fetch
+  // as `profileMatches`; never excludes — keeps the catalog visible.
+  avoid_for: z.string().optional(),
   // Pagination / sort
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),

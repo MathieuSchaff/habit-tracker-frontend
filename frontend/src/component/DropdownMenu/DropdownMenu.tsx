@@ -70,7 +70,7 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
   useClickOutside(wrapperRef, () => setIsOpen(false))
 
   return (
-    <DropdownMenuContext.Provider
+    <DropdownMenuContext
       value={{
         isOpen,
         open,
@@ -86,7 +86,7 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
       <div ref={wrapperRef} className={`dropdown-menu${className ? ` ${className}` : ''}`}>
         {children}
       </div>
-    </DropdownMenuContext.Provider>
+    </DropdownMenuContext>
   )
 }
 

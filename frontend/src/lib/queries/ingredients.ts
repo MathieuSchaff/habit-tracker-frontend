@@ -24,6 +24,8 @@ export type ListIngredientsFilters = Partial<Record<AllIngredientTagCategory, st
   sort?: IngredientSort
   page?: number
   limit?: number
+  // Profile-derived avoid tags. Backend flags rows post-fetch as `profileMatches`.
+  avoid_for?: string[]
 }
 
 export const ingredientKeys = {
@@ -77,6 +79,7 @@ export const ingredientQueries = {
           if (values?.length) query[axis] = values.join(',')
         }
         if (filters.type) query.ingredient_type = filters.type
+        if (filters.avoid_for?.length) query.avoid_for = filters.avoid_for.join(',')
         if (filters.sort !== undefined) query.sort = filters.sort
         if (filters.page) query.page = String(filters.page)
         if (filters.limit) query.limit = String(filters.limit)

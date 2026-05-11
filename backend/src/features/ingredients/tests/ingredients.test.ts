@@ -59,13 +59,13 @@ describe('Ingredient Service', () => {
       const ingredient = await makeIngredient('Acide Ascorbique', {
         description: 'Forme pure de la vitamine C',
         content: '## Description\n\nActif antioxydant.',
-        category: 'vitamine',
+        category: 'humectant',
       })
 
       expect(ingredient.name).toBe('Acide Ascorbique')
       expect(ingredient.description).toBe('Forme pure de la vitamine C')
       expect(ingredient.content).toBe('## Description\n\nActif antioxydant.')
-      expect(ingredient.category).toBe('vitamine')
+      expect(ingredient.category).toBe('humectant')
     })
 
     it('should auto-generate slug from name', async () => {
@@ -227,6 +227,37 @@ describe('Ingredient Service', () => {
       const result = await listIngredients(testDb, { concern: 'anti-age' })
       expect(result.total).toBe(1)
       expect(result.items[0]?.name).toBe('Rétinol')
+    })
+
+    describe('avoid_for filter', () => {
+      it('flags matching ingredients via profileMatches but does not exclude them', async () => {
+        const reactive = await makeTag('Peau réactive', 'skin_type')
+        const retinol = await makeIngredient('Rétinol')
+        const gentle = await makeIngredient('Hydratant doux')
+        await addTagToIngredient(testDb, retinol.id, reactive.id, 'avoid')
+
+        const result = await listIngredients(testDb, { avoid_for: reactive.slug })
+        expect(result.items.map((i) => i.name).sort()).toEqual(['Hydratant doux', 'Rétinol'])
+        const flagged = result.items.find((i) => i.id === retinol.id)
+        expect(flagged?.profileMatches).toEqual([reactive.slug])
+        const ok = result.items.find((i) => i.id === gentle.id)
+        expect(ok?.profileMatches).toEqual([])
+      })
+
+      it('does not flag ingredients where the tag relevance is primary or secondary', async () => {
+        const reactive = await makeTag('Peau réactive', 'skin_type')
+        const dedicated = await makeIngredient('Allantoïne')
+        await addTagToIngredient(testDb, dedicated.id, reactive.id, 'primary')
+
+        const result = await listIngredients(testDb, { avoid_for: reactive.slug })
+        expect(result.items[0]?.profileMatches).toEqual([])
+      })
+
+      it('returns empty profileMatches when no avoid_for filter is provided', async () => {
+        await makeIngredient('Niacinamide')
+        const result = await listIngredients(testDb, {})
+        expect(result.items[0]?.profileMatches).toEqual([])
+      })
     })
   })
 
