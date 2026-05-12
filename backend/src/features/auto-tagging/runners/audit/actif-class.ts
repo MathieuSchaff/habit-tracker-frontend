@@ -33,6 +33,7 @@ import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
+const DUMP_DRIFT = process.env.DUMP_DRIFT === '1'
 
 interface ClusterStat {
   hit: number
@@ -40,6 +41,7 @@ interface ClusterStat {
   new: number
   manualOnly: number
   byKind: Map<ProductKind, number>
+  driftProducts: Array<{ slug: string; kind: string; inci: string | null }>
 }
 
 async function main() {
@@ -79,7 +81,14 @@ async function main() {
 
   const stats = new Map<string, ClusterStat>()
   for (const def of ACTIF_CLASS_DEFS) {
-    stats.set(def.slug, { hit: 0, agree: 0, new: 0, manualOnly: 0, byKind: new Map() })
+    stats.set(def.slug, {
+      hit: 0,
+      agree: 0,
+      new: 0,
+      manualOnly: 0,
+      byKind: new Map(),
+      driftProducts: [],
+    })
   }
 
   let withInci = 0
@@ -108,7 +117,11 @@ async function main() {
     for (const slug of existing) {
       if (!detected.has(slug)) {
         const stat = stats.get(slug)
-        if (stat) stat.manualOnly++
+        if (!stat) continue
+        stat.manualOnly++
+        if (DUMP_DRIFT) {
+          stat.driftProducts.push({ slug: p.slug, kind: p.kind ?? 'unknown', inci: p.inci })
+        }
       }
     }
   }
@@ -157,6 +170,19 @@ async function main() {
       console.log(
         `   ${pad(slug, 24)} only_db=${s.manualOnly}${s.hit > 0 ? ` (vs hit=${s.hit})` : ' (no detector hit)'}`
       )
+    }
+  }
+
+  if (DUMP_DRIFT) {
+    console.log(`\n📦 Dump drift products (DUMP_DRIFT=1)`)
+    for (const [slug, s] of sorted) {
+      if (s.driftProducts.length === 0) continue
+      console.log(`\n── ${slug} (${s.driftProducts.length}) ──`)
+      for (const p of s.driftProducts) {
+        const inciTrunc = p.inci ? p.inci.slice(0, 200) : '(no inci)'
+        console.log(`  [${p.kind}] ${p.slug}`)
+        console.log(`     ${inciTrunc}${(p.inci?.length ?? 0) > 200 ? '…' : ''}`)
+      }
     }
   }
 
