@@ -81,6 +81,7 @@ pgdata/
 # =========================
 docs/
 !backend/src/db/seed/docs/
+!backend/src/features/auto-tagging/docs/
 frontend/.tanstack/tmp/
 scripts/*
 
@@ -105,5 +106,6 @@ frontend/public/mock-products
 # Manual image-fetcher scripts (one-shot maintenance, output goes to CDN)
 # =========================
 backend/src/db/seed/data/image-fetchers/
-backend/src/db/seed/scripts/fetch-images-*.ts
+backend/src/images/fetchers/*.ts
+!backend/src/images/fetchers/README.md
 
