@@ -5,6 +5,7 @@ import { createProductSchema } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import { productEdits } from '../../../db/schema/products'
+import { productTagsDefs, tagProducts } from '../../../db/schema/tags/tags'
 import { createIngredient } from '../../../features/ingredients/service'
 import { createProductTag, replaceProductTags } from '../../../features/tags/tags.service'
 import { testDb } from '../../../tests/db.test.config'
@@ -70,6 +71,43 @@ describe('Product Service', () => {
     it('should throw product_already_exists for duplicate name+brand', async () => {
       await makeProduct('Vitamine D3', 'Solgar')
       expect(makeProduct('Vitamine D3', 'Solgar')).rejects.toThrow(ProductError)
+    })
+
+    // Auto-tag pipeline runs inline at create. `type-serum` is emitted by
+    // pass 3 (kind-tag-detection) deterministically for any skincare serum —
+    // proves the wiring without depending on INCI parsing.
+    it('writes auto-tags when matching defs exist', async () => {
+      await testDb.insert(productTagsDefs).values({
+        slug: 'type-serum',
+        label: 'Sérum',
+        tagType: 'product_type',
+      })
+
+      const product = await makeProduct('Serum Test', 'Auto-Tag Brand', 'serum')
+
+      const pairs = await testDb
+        .select({ slug: productTagsDefs.slug, relevance: tagProducts.relevance })
+        .from(tagProducts)
+        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .where(eq(tagProducts.productId, product.id))
+
+      expect(pairs).toEqual([{ slug: 'type-serum', relevance: 'secondary' }])
+    })
+
+    // Fail-soft contract: when no product_tags_defs exist for the slugs the
+    // orchestrator emits, write silently inserts zero rows — never throws.
+    // Product creation must still succeed.
+    it('fails soft when no tag defs exist (product still returned)', async () => {
+      const product = await makeProduct('Serum Orphan', 'No Defs', 'serum')
+
+      expect(product.id).toBeDefined()
+
+      const pairs = await testDb
+        .select()
+        .from(tagProducts)
+        .where(eq(tagProducts.productId, product.id))
+
+      expect(pairs).toHaveLength(0)
     })
   })
 
