@@ -8,7 +8,12 @@
 // missing) are silently dropped — keeps the runtime path resilient when new
 // orchestrator rules ship before the seed catches up.
 
-import type { ProductKind, ProductTexture } from '@habit-tracker/shared'
+import {
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
+  type ProductKind,
+  type ProductTexture,
+} from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
@@ -60,11 +65,22 @@ export async function writeTagsForProduct(
       .from(productIngredients)
       .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
       .where(eq(productIngredients.productId, productId)),
-    database.select({ id: productTagsDefs.id, slug: productTagsDefs.slug }).from(productTagsDefs),
+    database
+      .select({
+        id: productTagsDefs.id,
+        slug: productTagsDefs.slug,
+        tagType: productTagsDefs.tagType,
+      })
+      .from(productTagsDefs),
   ])
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-  const tagSlugToId = new Map(tagDefs.map((t) => [t.slug, t.id]))
+  const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
+
+  const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[product.category]
+  const validTagTypes = domain
+    ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
+    : []
   const percentClaims = claimRows
     .filter((r): r is typeof r & { concentrationValue: string; concentrationUnit: string } => {
       return r.concentrationValue !== null && r.concentrationUnit !== null
@@ -92,8 +108,9 @@ export async function writeTagsForProduct(
   if (pairs.length === 0) return { inserted: 0, detected: 0 }
 
   const rows = pairs.flatMap((pair) => {
-    const tagId = tagSlugToId.get(pair.tagSlug)
-    return tagId ? [{ productId: product.id, productTagId: tagId, relevance: pair.relevance }] : []
+    const info = tagSlugToInfo.get(pair.tagSlug)
+    if (!info || !validTagTypes.includes(info.tagType)) return []
+    return [{ productId: product.id, productTagId: info.id, relevance: pair.relevance }]
   })
 
   if (rows.length === 0) return { inserted: 0, detected: pairs.length }

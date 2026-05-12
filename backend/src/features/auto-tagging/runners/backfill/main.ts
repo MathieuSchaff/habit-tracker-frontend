@@ -25,7 +25,12 @@
 //   INCLUDE_DROPPED 1      — surface allow:false tags in report (no writes)
 //   LIMIT           int    — cap product count
 
-import type { ProductKind, ProductTexture } from '@habit-tracker/shared'
+import {
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
+  type ProductKind,
+  type ProductTexture,
+} from '@habit-tracker/shared'
 
 import { eq, inArray, sql } from 'drizzle-orm'
 
@@ -140,9 +145,13 @@ async function main() {
   }
 
   const tagDefs = await db
-    .select({ id: productTagsDefs.id, slug: productTagsDefs.slug })
+    .select({
+      id: productTagsDefs.id,
+      slug: productTagsDefs.slug,
+      tagType: productTagsDefs.tagType,
+    })
     .from(productTagsDefs)
-  const tagSlugToId = new Map(tagDefs.map((t) => [t.slug, t.id]))
+  const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
 
   // Fetch existing (productId, tagId) → relevance so we can decide whether to skip or upsert.
   const existingRows = await db
@@ -178,6 +187,11 @@ async function main() {
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
 
+    const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[p.category]
+    const validTagTypes = domain
+      ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
+      : []
+
     const pairs = detectAllAutoTags(
       {
         inci: p.inci,
@@ -196,11 +210,12 @@ async function main() {
     )
 
     for (const pair of pairs) {
-      const tagId = tagSlugToId.get(pair.tagSlug)
-      if (!tagId) continue
-      candidateMap.set(`${p.id}:${tagId}`, {
+      const info = tagSlugToInfo.get(pair.tagSlug)
+      if (!info) continue
+      if (!validTagTypes.includes(info.tagType)) continue
+      candidateMap.set(`${p.id}:${info.id}`, {
         productId: p.id,
-        productTagId: tagId,
+        productTagId: info.id,
         slug: p.slug,
         tagSlug: pair.tagSlug,
         relevance: pair.relevance,
