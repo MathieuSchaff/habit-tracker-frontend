@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import { SKINCARE_PRODUCT_TAG_SLUGS } from '@habit-tracker/shared'
 
 import {
+  detectAbsenceClaimsFromText,
   detectCernesPoches,
   detectEczemaAtopie,
   detectFiniMat,
@@ -1561,5 +1562,32 @@ describe('mutex invariants — texture-creme vs texture-legere (F2)', () => {
   test('serum with sunflower oil top 5 → texture-legere also abstains (vegetable oil exclusion)', () => {
     const inci = 'Aqua, Glycerin, Helianthus Annuus Seed Oil, Niacinamide, Tocopherol'
     expect(detectTextureLegere(inci, 'serum')).toEqual([])
+  })
+})
+
+// Absence claims (name/description fallback)
+describe('detectAbsenceClaimsFromText — sans-parfum override', () => {
+  test('description with "sans parfum" → SANS_PARFUM', () => {
+    expect(detectAbsenceClaimsFromText('Crème Apaisante', 'sans parfum, non comédogène')).toEqual([
+      S.SANS_PARFUM,
+    ])
+  })
+
+  test('name with "Sans Parfum" (mixed case) → SANS_PARFUM', () => {
+    expect(detectAbsenceClaimsFromText('Crème Sans Parfum', null)).toEqual([S.SANS_PARFUM])
+  })
+
+  test('description with "fragrance-free" → SANS_PARFUM', () => {
+    expect(detectAbsenceClaimsFromText('Daily Moisturizer', 'A fragrance-free formula')).toEqual([
+      S.SANS_PARFUM,
+    ])
+  })
+
+  test('name "Parfum à la rose" (positive parfum mention) → no fire', () => {
+    expect(detectAbsenceClaimsFromText('Parfum à la rose', null)).toEqual([])
+  })
+
+  test('null name + null description → empty', () => {
+    expect(detectAbsenceClaimsFromText(null, null)).toEqual([])
   })
 })

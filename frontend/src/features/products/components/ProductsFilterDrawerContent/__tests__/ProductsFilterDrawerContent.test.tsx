@@ -40,7 +40,6 @@ const GROUPS: FilterGroupConfig<FilterKey>[] = [
 const EMPTY = {
   brand: [],
   ingredient: [],
-  kind: [],
   concern: [],
   skin_type: [],
   skin_zone: [],

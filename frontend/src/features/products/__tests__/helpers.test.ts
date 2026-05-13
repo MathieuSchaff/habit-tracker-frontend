@@ -79,7 +79,6 @@ describe('buildProductsApiFilters', () => {
   it('returns discovery payload when in discovery mode', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'newest',
@@ -98,7 +97,6 @@ describe('buildProductsApiFilters', () => {
   it('includes avoid_for in discovery mode when the profile has slugs', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: ['peau-sensible'],
       sort: 'newest',
@@ -114,7 +112,6 @@ describe('buildProductsApiFilters', () => {
     filters.concern = ['acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -136,7 +133,6 @@ describe('buildProductsApiFilters', () => {
     filters.concern = ['acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -153,7 +149,6 @@ describe('buildProductsApiFilters', () => {
     filters.skin_type = ['peau-grasse'] // ignored for haircare
     const out = buildProductsApiFilters({
       category: 'haircare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -164,25 +159,11 @@ describe('buildProductsApiFilters', () => {
     expect(out.skin_type).toBeUndefined()
   })
 
-  it('includes kind when provided', () => {
-    const out = buildProductsApiFilters({
-      category: 'haircare',
-      kind: ['shampoo', 'conditioner'],
-      filters: emptyTagFilters(),
-      avoidFor: [],
-      sort: 'name',
-      page: 1,
-      hasFilters: true,
-    })
-    expect(out.kind).toEqual(['shampoo', 'conditioner'])
-  })
-
   it('forwards brand when set (was silently dropped — bug 7)', () => {
     const filters = emptyTagFilters()
     filters.brand = ['avene', 'bioderma']
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -197,7 +178,6 @@ describe('buildProductsApiFilters', () => {
     filters.ingredient = ['niacinamide']
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -210,7 +190,6 @@ describe('buildProductsApiFilters', () => {
   it('omits brand and ingredient when arrays are empty', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'name',
@@ -221,23 +200,9 @@ describe('buildProductsApiFilters', () => {
     expect(out.ingredient).toBeUndefined()
   })
 
-  it('omits kind when array is empty', () => {
-    const out = buildProductsApiFilters({
-      category: 'skincare',
-      kind: [],
-      filters: emptyTagFilters(),
-      avoidFor: [],
-      sort: 'name',
-      page: 1,
-      hasFilters: true,
-    })
-    expect(out.kind).toBeUndefined()
-  })
-
   it('switches out of discovery when only sort is changed', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'price_asc',
@@ -251,7 +216,6 @@ describe('buildProductsApiFilters', () => {
   it('switches out of discovery when only a price range is set', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'newest',
@@ -266,7 +230,6 @@ describe('buildProductsApiFilters', () => {
   it('forwards q when set (D3 free-text fallback)', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'name',
@@ -280,7 +243,6 @@ describe('buildProductsApiFilters', () => {
   it('switches out of discovery when only q is set', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'newest',
@@ -323,7 +285,6 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
     filters.goal = ['immunite'] // supplement — must be excluded
     const out = buildProductsApiFilters({
       category: 'dental',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -344,7 +305,6 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
     filters.dental_effect = ['blanchissant'] // dental — must be excluded
     const out = buildProductsApiFilters({
       category: 'complement',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -359,27 +319,10 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
 })
 
 describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
-  // Discovery mode silently drops `kind` — document this contract explicitly
-  it('discovery mode ignores kind even when kind is provided', () => {
-    const out = buildProductsApiFilters({
-      category: 'haircare',
-      kind: ['shampoo'],
-      filters: emptyTagFilters(),
-      avoidFor: [],
-      sort: 'newest',
-      page: 1,
-      hasFilters: false,
-    })
-    // Discovery payload only has category, sort, limit, page, avoid_for
-    expect(out.kind).toBeUndefined()
-    expect(out.limit).toBe(20)
-  })
-
   // avoidFor: [''] has length > 0 so it passes through — caller must sanitize
   it('avoidFor with a single empty string is forwarded as-is', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [''],
       sort: 'name',
@@ -395,7 +338,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     filters.concern = ['', 'acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters,
       avoidFor: [],
       sort: 'name',
@@ -410,7 +352,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     expect(() =>
       buildProductsApiFilters({
         category: 'skincare',
-        kind: [],
         filters: emptyTagFilters(),
         avoidFor: [],
         sort: 'name',
@@ -425,7 +366,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('inverted price range exits discovery mode (price bound is set)', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'newest',
@@ -443,7 +383,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes negative page through without throwing', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'name',
@@ -456,7 +395,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes page=0 through without throwing', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: [],
       sort: 'name',
@@ -470,7 +408,6 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes duplicate avoidFor slugs through without deduplication', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      kind: [],
       filters: emptyTagFilters(),
       avoidFor: ['peau-sensible', 'peau-sensible'],
       sort: 'name',
@@ -491,13 +428,12 @@ describe('buildDomainSwitchSearch', () => {
     goal: [], moment: [], restriction: [],
   }
 
-  it('switches category and resets tag filters + kind', () => {
+  it('switches category and resets tag filters', () => {
     const prev = {
       category: 'skincare' as const,
       skin_type: ['peau-grasse'],
       concern: ['anti-acne'],
       brand: ['Cosrx'],
-      kind: ['serum'],
       ingredient: ['niacinamide'],
       priceMin: 1000,
       priceMax: 5000,
@@ -511,7 +447,6 @@ describe('buildDomainSwitchSearch', () => {
     expect(next.category).toBe('haircare')
     expect(next.skin_type).toEqual([])
     expect(next.concern).toEqual([])
-    expect(next.kind).toEqual([])
     expect(next.profile_filter).toBe(false)
     expect(next.page).toBe(1)
   })

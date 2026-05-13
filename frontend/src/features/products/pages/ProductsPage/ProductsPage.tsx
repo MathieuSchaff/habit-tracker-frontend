@@ -42,7 +42,7 @@ import '@/features/products/styles/kinds.css'
 
 const routeApi = getRouteApi('/products/')
 
-// Only tag keys — omits brand/ingredient/kind — so domain switch resets tags
+// Only tag keys — omits brand/ingredient — so domain switch resets tags
 // without clobbering ingredient (which buildDomainSwitchSearch preserves explicitly).
 const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS)
 
@@ -109,7 +109,6 @@ export function ProductsPage() {
     () =>
       buildProductsApiFilters({
         category,
-        kind: search.kind ?? [],
         filters,
         avoidFor,
         sort,
@@ -119,7 +118,7 @@ export function ProductsPage() {
         page,
         hasFilters,
       }),
-    [category, search.kind, filters, avoidFor, sort, priceMin, priceMax, q, page, hasFilters]
+    [category, filters, avoidFor, sort, priceMin, priceMax, q, page, hasFilters]
   )
 
   // Random sort: keep result stable across back-nav so order doesn't reshuffle
@@ -138,7 +137,6 @@ export function ProductsPage() {
     () =>
       buildProductsApiFilters({
         category,
-        kind: (draftFilters?.kind as string[] | undefined) ?? search.kind ?? [],
         filters: draftFilters ?? filters,
         avoidFor,
         sort,
@@ -148,7 +146,7 @@ export function ProductsPage() {
         page: 1,
         hasFilters: true,
       }),
-    [category, draftFilters, search.kind, filters, avoidFor, sort, priceMin, priceMax, q]
+    [category, draftFilters, filters, avoidFor, sort, priceMin, priceMax, q]
   )
   const { data: previewData } = useQuery({
     ...productQueries.list(previewApiFilters),

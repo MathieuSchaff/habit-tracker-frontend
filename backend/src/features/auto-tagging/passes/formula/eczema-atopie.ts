@@ -25,9 +25,10 @@ import { IONIC_SURFACTANT_PATTERNS } from './step-nettoyage-1'
 // (Lodén 2003 on cumulative surfactant exposure; oat OTC label requires
 // "leave on the affected area" usage).
 //
-// Algo-derm `peaux_atopiques` mapping is kept `allow:false` (auto-tag-detection.ts)
-// — it fires on 22 % corpus / 3 % agree, too permissive. This formula-pass
-// detector replaces it with a chemistry-aware ruleset.
+// Replaces algo-derm `peaux_atopiques` mapping (fired on 22 % corpus / 3 %
+// agree, too permissive). The algo-derm slug has no TAG_CONFIG entry — its
+// candidate is dropped as `unmapped`. Original detector landed in f3fd5e2f;
+// split into passes/formula/ at 211219d5.
 
 const ATOPIE_OAT_PATTERN = 'avena sativa kernel'
 

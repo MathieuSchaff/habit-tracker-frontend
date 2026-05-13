@@ -98,9 +98,3 @@ describe('productsSearchSchema — category', () => {
   })
 })
 
-describe('productsSearchSchema — kind', () => {
-  it('defaults kind to an empty array', () => {
-    const parsed = productsSearchSchema.parse({})
-    expect(parsed.kind).toEqual([])
-  })
-})

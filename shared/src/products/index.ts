@@ -7,6 +7,7 @@ export * from './domain-tabs'
 export * from './haircare'
 export * from './helpers'
 export * from './ingredients'
+export * from './kind-to-tags'
 export * from './kinds'
 export {
   type ComplementListProductsFilters,

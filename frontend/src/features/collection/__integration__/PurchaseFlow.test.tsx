@@ -21,7 +21,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
         q: '',
         sort: 'name',
         brand: 'all',
-        kind: 'all',
+        productType: 'all',
         sentiment: 'all',
         repurchase: 'all',
         minNote: 0,

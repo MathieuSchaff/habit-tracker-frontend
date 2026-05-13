@@ -390,22 +390,29 @@
     {
       "idx": 55,
       "version": "7",
-      "when": 1778700000000,
+      "when": 1778601000000,
       "tag": "0055_cleanup_texture_eau_huile_baume_lait_gel_stale",
       "breakpoints": true
     },
     {
       "idx": 56,
       "version": "7",
-      "when": 1778800000000,
+      "when": 1778602000000,
       "tag": "0056_drop_type_outil",
       "breakpoints": true
     },
     {
       "idx": 57,
       "version": "7",
-      "when": 1778900000000,
+      "when": 1778603000000,
       "tag": "0057_ingredients_type_category_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1778604000000,
+      "tag": "0058_same_sabretooth",
       "breakpoints": true
     }
   ]

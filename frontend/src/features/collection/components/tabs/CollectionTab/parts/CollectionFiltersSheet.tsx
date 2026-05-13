@@ -1,3 +1,5 @@
+import { getProductTagLabel } from '@habit-tracker/shared'
+
 import clsx from 'clsx'
 import { FilterX, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
@@ -23,14 +25,14 @@ interface CollectionFiltersSheetProps {
 type Draft = CollectionFilterValues
 
 export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps) {
-  const { brand, kind, sentiment, repurchase, minNote, maxPrice, filterOptions, setFilter } =
+  const { brand, productType, sentiment, repurchase, minNote, maxPrice, filterOptions, setFilter } =
     useCollectionFilter()
 
   // The sheet is unmounted when closed, so initial state always reflects
   // the latest committed filters at the moment the user opens it.
   const [draft, setDraft] = useState<Draft>({
     brand,
-    kind,
+    productType,
     sentiment,
     repurchase,
     minNote,
@@ -98,16 +100,16 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
           </div>
 
           <div className="coll-adv-group">
-            <label htmlFor="coll-kind">Catégorie</label>
+            <label htmlFor="coll-product-type">Type de produit</label>
             <select
-              id="coll-kind"
-              value={draft.kind}
-              onChange={(e) => update('kind', e.target.value)}
+              id="coll-product-type"
+              value={draft.productType}
+              onChange={(e) => update('productType', e.target.value)}
             >
-              <option value="all">Toutes les catégories</option>
-              {filterOptions.kinds.map((k) => (
-                <option key={k} value={k}>
-                  {k}
+              <option value="all">Tous les types</option>
+              {filterOptions.productTypes.map((slug) => (
+                <option key={slug} value={slug}>
+                  {getProductTagLabel(slug) ?? slug}
                 </option>
               ))}
             </select>

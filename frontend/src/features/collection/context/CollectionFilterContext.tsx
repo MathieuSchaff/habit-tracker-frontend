@@ -1,3 +1,5 @@
+import { detectKindPrimaryType, type ProductKind } from '@habit-tracker/shared'
+
 import { getRouteApi } from '@tanstack/react-router'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 
@@ -10,7 +12,7 @@ const routeApi = getRouteApi('/_authenticated/collection')
 
 export type CollectionFilterValues = {
   brand: string
-  kind: string
+  productType: string
   sentiment: number | 'all'
   repurchase: 'yes' | 'no' | 'unsure' | 'all'
   minNote: number
@@ -19,7 +21,7 @@ export type CollectionFilterValues = {
 
 export const DEFAULT_FILTERS: CollectionFilterValues = {
   brand: 'all',
-  kind: 'all',
+  productType: 'all',
   sentiment: 'all',
   repurchase: 'all',
   minNote: 0,
@@ -32,14 +34,14 @@ type CollectionFilterContextValue = {
   q: string
   sort: CollectionSearch['sort']
   brand: string
-  kind: string
+  productType: string
   sentiment: number | 'all'
   repurchase: 'yes' | 'no' | 'unsure' | 'all'
   minNote: number
   maxPrice: number | ''
 
   filteredProducts: UserProduct[]
-  filterOptions: { brands: string[]; kinds: string[] }
+  filterOptions: { brands: string[]; productTypes: string[] }
   hasActiveFilters: boolean
 
   setFilter: (updates: CollectionFilterUpdates) => void
@@ -59,39 +61,47 @@ export function CollectionFilterProvider({
   prefs,
   children,
 }: CollectionFilterProviderProps) {
-  const { sort, brand, kind, sentiment, repurchase, minNote, maxPrice } = routeApi.useSearch()
+  const { sort, brand, productType, sentiment, repurchase, minNote, maxPrice } =
+    routeApi.useSearch()
   const navigate = routeApi.useNavigate()
   // Local state — search input doesn't need to live in the URL, and keeping it
   // out avoids re-running the route loader on every keystroke.
   const [q, setQ] = useState('')
 
   const filterOptions = useMemo(() => {
-    if (!userProducts) return { brands: [], kinds: [] }
+    if (!userProducts) return { brands: [], productTypes: [] }
     const brands = Array.from(new Set(userProducts.map((p) => p.product.brand))).sort()
-    const kinds = Array.from(new Set(userProducts.map((p) => p.product.kind))).sort()
-    return { brands, kinds }
+    // Derive TYPE_* slugs from product.kind. Drops kinds with no type mapping
+    // (haircare/dental/complement) — that catalog still surfaces via brand/note
+    // filters, just not by type axis until those domains get auto-tagging.
+    const types = new Set<string>()
+    for (const up of userProducts) {
+      const t = detectKindPrimaryType(up.product.kind as ProductKind)
+      if (t) types.add(t)
+    }
+    return { brands, productTypes: [...types].sort() }
   }, [userProducts])
 
   const filteredProducts = useMemo(() => {
     if (!userProducts) return []
     const filtered = applyFilters(
       userProducts,
-      { q, brand, kind, sentiment, repurchase, minNote, maxPrice },
+      { q, brand, productType, sentiment, repurchase, minNote, maxPrice },
       prefs?.criteriaWeights
     )
     return sortProducts(filtered, sort, prefs?.criteriaWeights, prefs?.displayScale)
-  }, [userProducts, q, sort, prefs, brand, kind, sentiment, repurchase, minNote, maxPrice])
+  }, [userProducts, q, sort, prefs, brand, productType, sentiment, repurchase, minNote, maxPrice])
 
   const hasActiveFilters = useMemo(() => {
     return (
       brand !== 'all' ||
-      kind !== 'all' ||
+      productType !== 'all' ||
       sentiment !== 'all' ||
       repurchase !== 'all' ||
       minNote > 0 ||
       maxPrice !== ''
     )
-  }, [brand, kind, sentiment, repurchase, minNote, maxPrice])
+  }, [brand, productType, sentiment, repurchase, minNote, maxPrice])
 
   const setFilter = useCallback(
     (updates: CollectionFilterUpdates) => {
@@ -114,7 +124,7 @@ export function CollectionFilterProvider({
         q,
         sort,
         brand,
-        kind,
+        productType,
         sentiment,
         repurchase,
         minNote,
