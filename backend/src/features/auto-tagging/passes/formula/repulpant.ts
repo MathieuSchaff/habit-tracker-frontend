@@ -6,11 +6,11 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
 // Repulpant
-// Plumping claim — hydrate-fill-smooth lines. Algo-derm `repulpant` was
-// previously emitted at minConf 0.5 on 78 % of corpus (any HA/glycerin
-// moisturizer) and disabled (auto-tag-detection.ts allow:false). This
-// formula-pass detector restricts emission to formulas with all three
-// signals co-present:
+// Plumping claim — hydrate-fill-smooth lines. Replaces algo-derm `repulpant`
+// mapping (fired on 78 % of corpus — any HA/glycerin moisturizer). The
+// algo-derm slug has no TAG_CONFIG entry — its candidate is dropped as
+// `unmapped`. This formula-pass detector restricts emission to formulas with
+// all three signals co-present:
 //
 //   - Hyaluronate (any variant — substring `hyaluron`) in top 8 INCI.
 //     Plumping peptide serums dose the peptide as headline actif (pos 3-6)
@@ -24,8 +24,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 //     are dosed mg-range, sit deep in INCI; presence ≥ 1 = formulary
 //     intent (clinical INCI declarations require minimum 0.001 % dose).
 //
-// Leave-on only. Algo-derm `repulpant` stays `allow:false` — same
-// cohabitation pattern as `peaux_atopiques` / eczema-atopie.
+// Leave-on only.
 
 const REPULPANT_HA_PATTERN = 'hyaluron'
 const REPULPANT_HA_POSITION_CAP = 8

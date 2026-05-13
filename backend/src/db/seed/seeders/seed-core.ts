@@ -289,6 +289,7 @@ export async function seedCore(shouldClean = false) {
     for (const product of allProductData) {
       const inci = (product as { inci?: string | null }).inci
       const name = (product as { name?: string | null }).name
+      const description = (product as { description?: string | null }).description
       const pairs = detectAllAutoTags(
         {
           inci,
@@ -296,6 +297,7 @@ export async function seedCore(shouldClean = false) {
           category: product.category,
           brand: product.brand,
           name,
+          description,
           percentClaims: percentClaimsByProduct.get(product.slug) ?? [],
         },
         { brandCertifications: brandCertMap }

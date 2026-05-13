@@ -9,6 +9,7 @@ import type {
 
 import { sql } from 'drizzle-orm'
 import {
+  check,
   index,
   integer,
   jsonb,
@@ -66,6 +67,28 @@ export const products = pgTable(
     // both rely on `similarity()` and `ILIKE %q%` which seq-scan otherwise.
     index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
     index('products_brand_trgm_idx').using('gin', sql`${t.brand} gin_trgm_ops`),
+    check(
+      'products_category_check',
+      sql`${t.category} IN ('skincare','solaire','complement','haircare','bodycare','dental')`
+    ),
+    // Cross-field: kind must be valid FOR its category. Values mirror
+    // shared/src/products/kinds.ts PRODUCT_KINDS map. Keep in sync if either set
+    // changes. Literal lists chosen for audit-friendliness (cf 0057 precedent).
+    check(
+      'products_kind_category_check',
+      sql`(
+        (${t.category} = 'skincare'   AND ${t.kind} IN ('serum','moisturizer','cleanser','toner','exfoliant','eye-cream','mask','mist','essence','spot-treatment','lip-care','balm','oil','primer','patch')) OR
+        (${t.category} = 'solaire'    AND ${t.kind} IN ('sunscreen','after-sun','self-tanner')) OR
+        (${t.category} = 'complement' AND ${t.kind} IN ('gelule','capsule','ampoule','poudre','sirop','gummy','huile')) OR
+        (${t.category} = 'haircare'   AND ${t.kind} IN ('shampoo','conditioner','hair-mask','hair-serum','hair-oil','styling')) OR
+        (${t.category} = 'bodycare'   AND ${t.kind} IN ('body-lotion','body-oil','body-scrub','body-wash','deodorant','hand-cream','foot-cream')) OR
+        (${t.category} = 'dental'     AND ${t.kind} IN ('toothpaste','mouthwash','teeth-whitening','floss'))
+      )`
+    ),
+    check(
+      'products_unit_check',
+      sql`${t.unit} IN ('pump','dropper','jar','tube','bottle','spray','pack','roller','bar','aerosol','stick','sachet','cartridge','tablet','capsule','gummy','powder','ampoule')`
+    ),
   ]
 )
 

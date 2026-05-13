@@ -175,6 +175,10 @@ export const SKINCARE_PRODUCT_CONCERN_GROUPS: Record<
 
 const CONCERN: SkincareProductTagSlug[] = [...CONCERN_FUNCTIONAL, ...CONCERN_AESTHETIC]
 
+// Membership check for the auto-tag pipeline's primary-promotion pass. Built
+// from the same source as `CONCERN` so adding a concern slug is a single edit.
+export const SKINCARE_CONCERN_SLUGS: ReadonlySet<SkincareProductTagSlug> = new Set(CONCERN)
+
 const SKIN_TYPE: SkincareProductTagSlug[] = [
   SKINCARE_PRODUCT_TAG_SLUGS.PEAU_SECHE,
   SKINCARE_PRODUCT_TAG_SLUGS.PEAU_MIXTE,

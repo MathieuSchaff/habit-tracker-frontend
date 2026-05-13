@@ -138,6 +138,7 @@ export {
 } from './ingredients'
 export {
   type AllProductTagCategory,
+  availableTypeSlugs,
   COMPARISON_MAX_PRODUCTS,
   COMPARISON_MIN_PRODUCTS,
   type ComparisonPriceUnit,
@@ -167,6 +168,8 @@ export {
   dentalListProductsQuery,
   dentalProductFilterCategories,
   dentalProductFilterOptionsSchema,
+  detectKindPrimaryType,
+  detectKindTags,
   type EnrichedComparison,
   type EnrichedComparisonProduct,
   getProductKindLabel,
@@ -186,6 +189,8 @@ export {
   haircareListProductsQuery,
   haircareProductFilterCategories,
   haircareProductFilterOptionsSchema,
+  KIND_TO_TAGS,
+  kindsForTypeSlug,
   type ListProductsFilters,
   listProductsQuery,
   type Patent,
@@ -232,6 +237,7 @@ export {
   productIngredientErrorMapping,
   productSortEnum,
   productsByIdsQuery,
+  SKINCARE_CONCERN_SLUGS,
   SKINCARE_PRODUCT_CHARACTERISTIC_GROUP_KEYS,
   SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS,
   SKINCARE_PRODUCT_CONCERN_GROUP_KEYS,

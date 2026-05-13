@@ -11,9 +11,12 @@
 //   5. cross-signal         — MOMENT_SOIR/MATIN/CRISE from actif × kind
 //   6. avoid                — grossesse + stack-irritation + interaction
 //
-// Relevance precedence: avoid > secondary. When both signals fire for the same
-// (product, tag), avoid wins and is upserted (overrides any existing secondary).
-// Existing manual tags at secondary are preserved (onConflictDoNothing).
+// Relevance precedence: avoid > primary > secondary. When both signals fire for
+// the same (product, tag), the higher precedence wins. Detected `primary` (kind-
+// derived TYPE_* headline) upserts over existing `secondary` so backfill heals
+// products whose primary was never curated manually. Existing manual `primary`
+// is preserved when the detector only emits `secondary` for that same pair
+// (no demotion).
 //
 // Usage (via `just backfill-auto-tags`):
 //   bun run backend/src/features/auto-tagging/runners/backfill/main.ts            # dry-run
@@ -21,7 +24,7 @@
 //   bun run backend/src/features/auto-tagging/runners/backfill/main.ts --slug <s> # single product
 //
 // Env tunables:
-//   CONF_OVERRIDE   float  — raise every algo-derm per-tag minConf to this floor
+//   CONF_OVERRIDE   float  — raise every algo-derm per-tag confidenceFloor (computed_score) to this
 //   INCLUDE_DROPPED 1      — surface allow:false tags in report (no writes)
 //   LIMIT           int    — cap product count
 
@@ -84,6 +87,7 @@ async function main() {
       id: products.id,
       slug: products.slug,
       name: products.name,
+      description: products.description,
       brand: products.brand,
       kind: products.kind,
       inci: products.inci,
@@ -153,7 +157,16 @@ async function main() {
     .from(productTagsDefs)
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
 
-  // Fetch existing (productId, tagId) → relevance so we can decide whether to skip or upsert.
+  // Fetch existing (productId, tagId) → relevance + the tagType behind the
+  // tagId so we can tell curated primaries apart from V1 auto primaries.
+  // V1 backfill inserts product_type_v2 primaries when curation is absent;
+  // re-running the gate on "any primary row" would block V2 (concern) from
+  // firing on products V1 already touched, so we treat only the V1-emittable
+  // tagType as "auto" here. Concern primaries are considered curated even
+  // when V2 added them in a prior run — re-promotion would be a no-op
+  // (dbRel='primary' → skipped branch), so the heuristic stays consistent.
+  const tagIdToType = new Map(tagDefs.map((t) => [t.id, t.tagType]))
+  const AUTO_PRIMARY_TAG_TYPES = new Set(['product_type_v2'])
   const existingRows = await db
     .select({
       pId: tagProducts.productId,
@@ -162,8 +175,12 @@ async function main() {
     })
     .from(tagProducts)
   const existingMap = new Map<string, Relevance>()
+  const productsWithCuratedPrimary = new Set<string>()
   for (const r of existingRows) {
     existingMap.set(`${r.pId}:${r.tId}`, r.rel as Relevance)
+    if (r.rel !== 'primary') continue
+    const type = tagIdToType.get(r.tId)
+    if (type && !AUTO_PRIMARY_TAG_TYPES.has(type)) productsWithCuratedPrimary.add(r.pId)
   }
 
   // Detection
@@ -200,6 +217,7 @@ async function main() {
         brand: p.brand,
         texture: p.texture as ProductTexture | null,
         name: p.name,
+        description: p.description,
         percentClaims: claimsByProduct.get(p.id) ?? [],
       },
       {
@@ -227,23 +245,44 @@ async function main() {
   // Classify candidates
 
   const toInsert: Candidate[] = []
-  const toUpsert: Candidate[] = [] // avoid overriding an existing secondary
+  const toUpsert: Candidate[] = [] // override an existing lower-precedence relevance
   let skipped = 0
+  let primaryInserts = 0 // brand-new primary rows (no prior pair in DB)
+  let primaryUpserts = 0 // secondary → primary upgrade on an existing pair
 
   for (const c of candidateMap.values()) {
     const pairKey = `${c.productId}:${c.productTagId}`
     const dbRel = existingMap.get(pairKey)
 
+    // V1/V2 gate: auto-derived `primary` only fills products with NO curated
+    // primary today (curated = primary whose tagType ∉ {product_type_v2,
+    // concern}, typically routine_step_v2 / skin_effect / skin_type). Avoids
+    // competing with curated primaries and getting truncated by ProductCard's
+    // 3-chip cap. Demote to `secondary` for curated products so the row is
+    // still inserted as a regular tag.
+    const promoteAllowed = c.relevance === 'primary' && !productsWithCuratedPrimary.has(c.productId)
+    const effectiveRelevance: Relevance =
+      c.relevance === 'primary' && !promoteAllowed ? 'secondary' : c.relevance
+    const effective =
+      effectiveRelevance === c.relevance ? c : { ...c, relevance: effectiveRelevance }
+
     if (dbRel === undefined) {
-      // Not in DB at all — insert.
-      toInsert.push(c)
-    } else if (c.relevance === 'avoid' && dbRel !== 'avoid') {
-      // Detected avoid but DB has secondary/primary — must upsert to correct it.
-      toUpsert.push(c)
+      toInsert.push(effective)
+      if (effective.relevance === 'primary') primaryInserts++
+    } else if (effective.relevance === 'avoid' && dbRel !== 'avoid') {
+      toUpsert.push(effective)
+    } else if (effective.relevance === 'primary' && dbRel === 'secondary') {
+      // Kind-derived TYPE_* / concern primary already inserted as secondary
+      // by an earlier backfill; gate above confirmed no curated primary
+      // exists. Promote.
+      toUpsert.push(effective)
+      primaryUpserts++
     } else {
+      // Includes: detected=secondary ∧ db=primary → preserve manual curation.
       skipped++
     }
   }
+  const primaryPromotions = primaryInserts + primaryUpserts
 
   // Report
 
@@ -259,7 +298,6 @@ async function main() {
     'percent-claim': 0,
   }
   for (const c of toInsert) sourceCountInsert[c.source]++
-  const avoidCorrections = toUpsert.length
 
   console.log(`📊 Produits : ${subset.length} scannés · ${noInci} sans INCI`)
   console.log(`   Candidats (après dédup intra-produit) : ${candidateMap.size}`)
@@ -274,8 +312,12 @@ async function main() {
   console.log(`   ├ brand          : ${sourceCountInsert['brand']}`)
   console.log(`   ├ grossesse-avoid: ${sourceCountInsert['grossesse-avoid']}`)
   console.log(`   └ interaction    : ${sourceCountInsert['interaction']}`)
-  if (avoidCorrections > 0) {
-    console.log(`   Corrections avoid (secondary→avoid) : ${avoidCorrections}`)
+  const avoidUpserts = toUpsert.length - primaryUpserts
+  if (avoidUpserts > 0) {
+    console.log(`   Corrections avoid (→avoid)             : ${avoidUpserts}`)
+  }
+  if (primaryPromotions > 0) {
+    console.log(`   Promotions primary (secondary→primary) : ${primaryPromotions}`)
   }
 
   if (SLUG_ARG) {
@@ -323,27 +365,33 @@ async function main() {
   }
   if (toInsert.length > CHUNK) console.log()
 
-  // 2. Upsert avoid pairs — these must override any existing secondary.
+  // 2. Upsert pairs that must override an existing lower-precedence row:
+  //    - avoid over secondary/primary  (safety signal must win)
+  //    - primary over secondary        (kind-derived headline promotion)
+  // Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
+  // EXCLUDED.relevance so the upserted value matches what we inserted.
   let upserted = 0
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
     const chunk = toUpsert.slice(i, i + CHUNK)
     await db
       .insert(tagProducts)
       .values(
-        chunk.map(({ productId, productTagId }) => ({
+        chunk.map(({ productId, productTagId, relevance }) => ({
           productId,
           productTagId,
-          relevance: 'avoid' as const,
+          relevance,
         }))
       )
       .onConflictDoUpdate({
         target: [tagProducts.productTagId, tagProducts.productId],
-        set: { relevance: 'avoid' },
+        set: { relevance: sql`excluded.relevance` },
       })
     upserted += chunk.length
   }
 
-  console.log(`\n✅ ${inserted} insérées · ${upserted} corrections avoid.\n`)
+  console.log(
+    `\n✅ ${inserted} insérées · ${avoidUpserts} corrections avoid · ${primaryPromotions} promotions primary.\n`
+  )
 }
 
 main().catch((err) => {

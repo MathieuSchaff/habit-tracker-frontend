@@ -1,4 +1,4 @@
-import type { DisplayScale } from '@habit-tracker/shared'
+import { type DisplayScale, detectKindPrimaryType, type ProductKind } from '@habit-tracker/shared'
 
 import { compareInstant } from '@/lib/dates'
 import { type CriteriaWeights, calculateWeightedScore } from '@/lib/helpers/reviews'
@@ -7,7 +7,7 @@ import type { CollectionSearch } from '@/routes/_authenticated/collection'
 
 export type CollectionFilters = Pick<
   CollectionSearch,
-  'brand' | 'kind' | 'sentiment' | 'repurchase' | 'minNote' | 'maxPrice'
+  'brand' | 'productType' | 'sentiment' | 'repurchase' | 'minNote' | 'maxPrice'
 > & { q: string }
 
 function getNumericReviewScore(
@@ -24,7 +24,7 @@ export function applyFilters(
   filters: CollectionFilters,
   criteriaWeights: CriteriaWeights | undefined
 ): UserProduct[] {
-  const { q, brand, kind, sentiment, repurchase, minNote, maxPrice } = filters
+  const { q, brand, productType, sentiment, repurchase, minNote, maxPrice } = filters
   const needle = q.toLowerCase()
 
   return products.filter((p) => {
@@ -34,7 +34,8 @@ export function applyFilters(
       p.product.name.toLowerCase().includes(needle) ||
       p.product.brand.toLowerCase().includes(needle)
     const matchesBrand = brand === 'all' || p.product.brand === brand
-    const matchesKind = kind === 'all' || p.product.kind === kind
+    const matchesProductType =
+      productType === 'all' || detectKindPrimaryType(p.product.kind as ProductKind) === productType
     const matchesSentiment = sentiment === 'all' || p.sentiment === sentiment
     const matchesRepurchase = repurchase === 'all' || p.wouldRepurchase === repurchase
     const matchesNote = numericScore >= minNote
@@ -43,7 +44,7 @@ export function applyFilters(
     return (
       matchesSearch &&
       matchesBrand &&
-      matchesKind &&
+      matchesProductType &&
       matchesSentiment &&
       matchesRepurchase &&
       matchesNote &&

@@ -25,7 +25,6 @@ export function isDiscoveryMode(args: {
 //  API: GET /products?category=skincare&brand=Avène&q=matifiant&sort=newest&limit=20&page=1
 export function buildProductsApiFilters(args: {
   category: ProductDomainTab
-  kind: string[]
   filters: FilterValues<FilterKey>
   avoidFor: string[]
   sort: ProductSort
@@ -63,7 +62,6 @@ export function buildProductsApiFilters(args: {
   return {
     category: args.category,
     ...tagFields,
-    kind: args.kind.length > 0 ? args.kind : undefined,
     brand: brand && brand.length > 0 ? brand : undefined,
     ingredient: ingredient && ingredient.length > 0 ? ingredient : undefined,
     q: args.q,
@@ -88,10 +86,9 @@ export function buildResetSearchParams<T extends Record<string, unknown>>(prev: 
   }
 }
 
-// On domain switch: reset domain-specific filters and pagination.
-// `kind` is reset (taxonomy is per-domain). `brand` and `ingredient` carry
-// over — many brands span domains (Avène, Bioderma…) and ingredients are
-// universally meaningful; an empty result is acceptable feedback.
+// On domain switch: reset domain-specific filters and pagination. `brand` and
+// `ingredient` carry over — many brands span domains (Avène, Bioderma…) and
+// ingredients are universally meaningful; an empty result is acceptable feedback.
 export function buildDomainSwitchSearch<T extends Record<string, unknown>>(
   prev: T,
   next: ProductDomainTab,
@@ -101,7 +98,6 @@ export function buildDomainSwitchSearch<T extends Record<string, unknown>>(
     ...prev,
     ...emptyTagFilters,
     category: next,
-    kind: [] as string[],
     profile_filter: false,
     q: undefined,
     page: 1,

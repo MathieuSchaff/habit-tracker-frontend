@@ -6,7 +6,7 @@ export const defaultCollectionSearch = {
   q: '',
   sort: 'name',
   brand: 'all',
-  kind: 'all',
+  productType: 'all',
   sentiment: 'all',
   repurchase: 'all',
   minNote: 0,

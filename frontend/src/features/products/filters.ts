@@ -21,18 +21,17 @@ import { filterSearchSchema } from '@/component/Filter'
 
 export type TagFilterKey = AllProductTagCategory
 
-export type FilterKey = TagFilterKey | 'brand' | 'ingredient' | 'kind'
+export type FilterKey = TagFilterKey | 'brand' | 'ingredient'
 
 // Deduped union of all domain tag keys (skincare ∪ haircare ∪ dental ∪ supplement).
 // Duplicates (concern, product_type, product_label, routine_step) appear only once.
 const _allTagKeys = Object.values(DOMAIN_PRODUCT_FILTER_CATEGORIES).flat()
 export const TAG_FILTER_KEYS = [...new Set(_allTagKeys)] as TagFilterKey[]
 
-export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient', 'kind'] as (
+export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient'] as (
   | TagFilterKey
   | 'brand'
   | 'ingredient'
-  | 'kind'
 )[]
 
 // Merge order: supplement/dental/haircare first → skincare wins for shared keys
@@ -48,14 +47,12 @@ const _allMeta: Record<string, TagCategoryMeta> = {
 export const NON_TAG_FILTER_LABELS = {
   brand: 'Marque',
   ingredient: 'Ingrédient',
-  kind: 'Format',
-} as const satisfies Record<'brand' | 'ingredient' | 'kind', string>
+} as const satisfies Record<'brand' | 'ingredient', string>
 
 export const NON_TAG_FILTER_PLACEHOLDERS = {
   brand: 'Rechercher une marque...',
   ingredient: 'Rechercher un ingrédient...',
-  kind: 'Tous formats',
-} as const satisfies Record<'brand' | 'ingredient' | 'kind', string>
+} as const satisfies Record<'brand' | 'ingredient', string>
 
 export const GROUP_LABELS: Record<FilterKey, string> = {
   ...(Object.fromEntries(TAG_FILTER_KEYS.map((k) => [k, _allMeta[k].label])) as Record<
@@ -95,7 +92,6 @@ const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
 export const productsSearchSchema = baseSchema.extend({
   category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
-  kind: z.array(z.string()).default([]),
   profile_filter: z.boolean().default(false),
   sort: productSortEnum.default('newest'),
   priceMin: z.number().int().min(0).optional(),
@@ -106,7 +102,6 @@ export const productsSearchSchema = baseSchema.extend({
 export const productsSearchDefaults = {
   ...defaultValues,
   category: 'skincare' as ProductDomainTab,
-  kind: [] as string[],
   profile_filter: false,
   sort: 'newest' as const,
 }

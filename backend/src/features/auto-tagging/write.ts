@@ -42,6 +42,7 @@ export async function writeTagsForProduct(
     .select({
       id: products.id,
       name: products.name,
+      description: products.description,
       brand: products.brand,
       kind: products.kind,
       inci: products.inci,
@@ -100,6 +101,7 @@ export async function writeTagsForProduct(
       brand: product.brand,
       texture: product.texture as ProductTexture | null,
       name: product.name,
+      description: product.description,
       percentClaims,
     },
     { brandCertifications: brandCertMap }
