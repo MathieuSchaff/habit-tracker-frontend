@@ -8,11 +8,38 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { InferResponseType } from 'hono/client'
 
 import { api } from '../api'
+import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 
 export type UserProduct = Extract<
   InferResponseType<(typeof api)['user-products']['$get']>,
   { data: unknown }
 >['data'][number]
+
+type UpdateUserProductVariables = {
+  id: string
+  input: UpdateUserProductInput
+}
+
+type UpsertUserProductReviewVariables = {
+  id: string
+  input: UpdateUserProductReviewInput
+}
+
+type UserProductReview = NonNullable<UserProduct['review']>
+
+function patchUserProductReview(
+  userProduct: UserProduct,
+  input: UpdateUserProductReviewInput
+): UserProduct {
+  return {
+    ...userProduct,
+    review: {
+      ...userProduct.review,
+      userProductId: userProduct.id,
+      ...input,
+    } as UserProductReview,
+  }
+}
 
 export const userProductKeys = {
   all: ['user-products'] as const,
@@ -76,7 +103,7 @@ export const useCreateUserProduct = () => {
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, input }: { id: string; input: UpdateUserProductInput }) => {
+    mutationFn: async ({ id, input }: UpdateUserProductVariables) => {
       const res = await api['user-products'][':id'].$patch({
         param: { id },
         json: input,
@@ -85,22 +112,21 @@ export const useUpdateUserProduct = () => {
       const data = await res.json()
       return data.data
     },
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: userProductKeys.list() })
-      const previousData = queryClient.getQueryData(userProductKeys.list())
-      queryClient.setQueryData(userProductKeys.list(), (oldProducts: UserProduct[] | undefined) => {
-        if (!oldProducts) return oldProducts
-        return oldProducts.map((product: UserProduct) => {
-          if (product.id === variables.id) {
-            return { ...product, ...variables.input }
-          }
-          return product
-        })
-      })
-      return previousData
+    onMutate: (variables) => {
+      return applyOptimisticUpdates(queryClient, variables, [
+        optimisticCacheUpdate<UpdateUserProductVariables, UserProduct[]>({
+          queryKey: userProductKeys.list(),
+          updater: (oldProducts, { id, input }) => {
+            if (!oldProducts) return oldProducts
+            return oldProducts.map((product) =>
+              product.id === id ? { ...product, ...input } : product
+            )
+          },
+        }),
+      ])
     },
-    onError: (_error, _variables, previousData) => {
-      queryClient.setQueryData(userProductKeys.list(), previousData)
+    onError: (_error, _variables, context) => {
+      context?.rollback()
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
@@ -126,7 +152,7 @@ export const useDeleteUserProduct = () => {
 export const useUpsertUserProductReview = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, input }: { id: string; input: UpdateUserProductReviewInput }) => {
+    mutationFn: async ({ id, input }: UpsertUserProductReviewVariables) => {
       const res = await api['user-products'][':id'].review.$put({
         param: { id },
         json: input,
@@ -135,7 +161,30 @@ export const useUpsertUserProductReview = () => {
       const data = await res.json()
       return data.data
     },
-    onSuccess: (_, { id }) => {
+    onMutate: (variables) => {
+      return applyOptimisticUpdates(queryClient, variables, [
+        optimisticCacheUpdate<UpsertUserProductReviewVariables, UserProduct[]>({
+          queryKey: userProductKeys.list(),
+          updater: (oldProducts, { id, input }) => {
+            if (!oldProducts) return oldProducts
+            return oldProducts.map((product) =>
+              product.id === id ? patchUserProductReview(product, input) : product
+            )
+          },
+        }),
+        optimisticCacheUpdate<UpsertUserProductReviewVariables, UserProduct>({
+          queryKey: ({ id }) => userProductKeys.detail(id),
+          updater: (oldProduct, { input }) => {
+            if (!oldProduct) return oldProduct
+            return patchUserProductReview(oldProduct, input)
+          },
+        }),
+      ])
+    },
+    onError: (_error, _variables, context) => {
+      context?.rollback()
+    },
+    onSettled: (_, __, { id }) => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
     },

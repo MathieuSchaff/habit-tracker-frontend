@@ -276,5 +276,19 @@ describe('Ingredient Service', () => {
       const results = await searchIngredients(testDb, 'NIACINAMIDE')
       expect(results).toHaveLength(1)
     })
+
+    // pg_trgm similarity catches typos that ILIKE %q% would miss.
+    it('should match typos via trigram similarity', async () => {
+      await makeIngredient('Niacinamide')
+      const results = await searchIngredients(testDb, 'niacynamid')
+      expect(results.length).toBeGreaterThan(0)
+      expect(results[0]?.name).toBe('Niacinamide')
+    })
+
+    it('should return empty list for blank query', async () => {
+      await makeIngredient('Niacinamide')
+      const results = await searchIngredients(testDb, '   ')
+      expect(results).toHaveLength(0)
+    })
   })
 })

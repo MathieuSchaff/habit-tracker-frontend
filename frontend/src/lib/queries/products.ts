@@ -19,6 +19,7 @@ import {
 import { FILTER_KEYS } from '@/features/products/filters'
 import { api } from '../api'
 import { ApiError, throwIfNotOk } from '../helpers/apiError'
+import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 
 // Pre-serialization shape: arrays allowed (buildListProductsQuery converts to CSV).
 // Kept local (not shared discriminated union) because Hono RPC expects Record<string,string>.
@@ -378,36 +379,38 @@ type BySlugData = {
   ingredients: Array<{ ingredientId: string }>
 } & Record<string, unknown>
 
+type RemoveProductIngredientVariables = {
+  productId: string
+  slug: string
+  ingredientId: string
+}
+
 export function useRemoveProductIngredient() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({
-      productId,
-      ingredientId,
-    }: {
-      productId: string
-      slug: string
-      ingredientId: string
-    }) => {
+    mutationFn: async ({ productId, ingredientId }: RemoveProductIngredientVariables) => {
       const res = await api.products[':productId'].ingredients[':ingredientId'].$delete({
         param: { productId, ingredientId },
       })
       if (!res.ok) throw new Error('Failed to remove product ingredient')
     },
     // Optimistic remove: drop the row immediately so unrelated rows stay interactive.
-    onMutate: async ({ slug, ingredientId }) => {
-      await qc.cancelQueries({ queryKey: productKeys.bySlug(slug) })
-      const previous = qc.getQueryData<BySlugData>(productKeys.bySlug(slug))
-      if (previous) {
-        qc.setQueryData<BySlugData>(productKeys.bySlug(slug), {
-          ...previous,
-          ingredients: previous.ingredients.filter((i) => i.ingredientId !== ingredientId),
-        })
-      }
-      return { previous }
+    onMutate: (variables) => {
+      return applyOptimisticUpdates(qc, variables, [
+        optimisticCacheUpdate<RemoveProductIngredientVariables, BySlugData>({
+          queryKey: ({ slug }) => productKeys.bySlug(slug),
+          updater: (previous, { ingredientId }) => {
+            if (!previous) return previous
+            return {
+              ...previous,
+              ingredients: previous.ingredients.filter((i) => i.ingredientId !== ingredientId),
+            }
+          },
+        }),
+      ])
     },
-    onError: (_err, { slug }, ctx) => {
-      if (ctx?.previous) qc.setQueryData(productKeys.bySlug(slug), ctx.previous)
+    onError: (_err, _variables, context) => {
+      context?.rollback()
     },
     onSettled: (_, __, { productId, slug }) => {
       qc.invalidateQueries({ queryKey: productKeys.ingredients(productId) })

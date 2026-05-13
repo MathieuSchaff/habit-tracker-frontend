@@ -324,10 +324,13 @@ export async function listIngredientEdits(database: DB, ingredientId: string) {
   return rows.map(normalizeEdit)
 }
 
-// I use a simple "ILIKE" search to find ingredients by their name or slug.
-// It's very useful for the search bar on the front-end.
+// Fuzzy search aligned with `searchProducts` — pg_trgm `similarity()` plus
+// ILIKE substring fallback (catches short queries below the trigram floor),
+// ordered by best similarity. Trigram GIN on name/slug feeds both branches.
 export async function searchIngredients(database: DB, query: string, limit = 10) {
-  const pattern = `%${escapeLike(query)}%`
+  const q = query.trim()
+  if (!q) return []
+  const pattern = `%${escapeLike(q)}%`
   return database
     .select({
       id: ingredients.id,
@@ -337,8 +340,21 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
       category: ingredients.category,
     })
     .from(ingredients)
-    .where(or(ilike(ingredients.name, pattern), ilike(ingredients.slug, pattern)))
-    .orderBy(ingredients.name)
+    .where(
+      or(
+        ilike(ingredients.name, pattern),
+        ilike(ingredients.slug, pattern),
+        sql`similarity(lower(${ingredients.name}), lower(${q})) > 0.3`,
+        sql`similarity(lower(${ingredients.slug}), lower(${q})) > 0.3`
+      )
+    )
+    .orderBy(
+      sql`GREATEST(
+            similarity(lower(${ingredients.name}), lower(${q})),
+            similarity(lower(${ingredients.slug}), lower(${q}))
+          ) DESC`,
+      ingredients.name
+    )
     .limit(limit)
 }
 

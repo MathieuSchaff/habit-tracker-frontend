@@ -16,9 +16,6 @@
       "!backend/src/db/seed/data/image-fetchers",
       "!backend/src/images/fetchers/*.ts",
       "!**/_archive",
-      "!**/*.test.ts",
-      "!**/*.test.tsx",
-      "!**/__tests__",
       "!docs/**/*.md",
       "!docs/.obsidian",
       "!backend/src/db/seed/data/*.json"
