@@ -414,6 +414,13 @@
       "when": 1778604000000,
       "tag": "0058_same_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1778715343890,
+      "tag": "0059_common_valeria_richards",
+      "breakpoints": true
     }
   ]
 }
