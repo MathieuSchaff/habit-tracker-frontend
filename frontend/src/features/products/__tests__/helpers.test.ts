@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { FilterValues } from '@/component/Filter'
-import { type FilterKey, FILTER_KEYS } from '../filters'
+import { FILTER_KEYS, type FilterKey } from '../filters'
 import {
   buildDomainSwitchSearch,
   buildProductsApiFilters,
@@ -421,11 +421,22 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
 describe('buildDomainSwitchSearch', () => {
   // All domain tag keys — so domain switch resets every tag regardless of domain
   const EMPTY_TAGS: Record<string, string[]> = {
-    skin_type: [], concern: [], skin_zone: [], product_type: [], routine_step: [],
-    skin_effect: [], sensation: [], product_characteristic: [], product_label: [],
-    hair_type: [], hair_effect: [],
-    age_group: [], dental_effect: [],
-    goal: [], moment: [], restriction: [],
+    skin_type: [],
+    concern: [],
+    skin_zone: [],
+    product_type: [],
+    routine_step: [],
+    skin_effect: [],
+    sensation: [],
+    product_characteristic: [],
+    product_label: [],
+    hair_type: [],
+    hair_effect: [],
+    age_group: [],
+    dental_effect: [],
+    goal: [],
+    moment: [],
+    restriction: [],
   }
 
   it('switches category and resets tag filters', () => {

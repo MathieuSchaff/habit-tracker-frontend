@@ -67,7 +67,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={onAdd}
-      />,
+      />
     )
     expect(screen.getByText(/étagère est vide/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /ajouter mon premier/i }))
@@ -87,7 +87,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={noop}
-      />,
+      />
     )
     const tout = screen.getByRole('tab', { name: /tout/i })
     expect(tout).toHaveAttribute('aria-selected', 'true')
@@ -106,7 +106,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={noop}
-      />,
+      />
     )
     expect(screen.getByText('Grail A')).toBeInTheDocument()
     expect(screen.getByText('Stock A')).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={noop}
-      />,
+      />
     )
     fireEvent.click(screen.getByRole('tab', { name: /wishlist/i }))
     expect(screen.getByText(/Wishlist vide/i)).toBeInTheDocument()
@@ -140,7 +140,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={noop}
-      />,
+      />
     )
     fireEvent.click(screen.getByRole('tab', { name: /wishlist/i }))
     expect(window.localStorage.getItem('collection:activeShelf')).toBe('wishlist')
@@ -153,7 +153,7 @@ describe('ShelfView', () => {
         onStatusChangeMany={noop}
         onToggleExpand={noop}
         onAddClick={noop}
-      />,
+      />
     )
     expect(screen.getByRole('tab', { name: /wishlist/i })).toHaveAttribute('aria-selected', 'true')
   })

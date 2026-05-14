@@ -196,5 +196,4 @@ describe('useQuickAdd', () => {
     expect(toast.error).toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
   })
-
 })

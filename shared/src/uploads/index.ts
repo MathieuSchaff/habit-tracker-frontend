@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-import { HTTP_STATUS, type HttpStatus } from '../core'
+import { HTTP_STATUS, type HttpStatus, safeUrl } from '../core'
 
 export const uploadResponseSchema = z.object({
-  url: z.url(),
+  url: safeUrl,
 })
 export type UploadResponse = z.infer<typeof uploadResponseSchema>
 

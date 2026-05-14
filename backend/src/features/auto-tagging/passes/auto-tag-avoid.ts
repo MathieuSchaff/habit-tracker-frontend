@@ -7,16 +7,18 @@
 // Categories: skincare + solaire + bodycare. Other categories (haircare,
 // dental, supplements) carry no INCI-derived safety signal yet.
 
-import type { ProductKind } from '@habit-tracker/shared'
-import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, SkincareProductTagSlug } from '@habit-tracker/shared'
 
 import type { ProductAssessment } from 'algo-derm'
 
 import { detectActifClasses } from './actif-class-detection'
-import { detectCrossSignalAvoidTags, detectInteractionAvoidTags } from './cross-signal-detection'
-import { detectGrossesseAvoid } from './formula'
+import {
+  detectConcentrationAvoidTags,
+  detectCrossSignalAvoidTags,
+  detectInteractionAvoidTags,
+} from './cross-signal-detection'
 
-export type AvoidSource = 'grossesse-avoid' | 'cross-signal' | 'interaction'
+export type AvoidSource = 'cross-signal' | 'interaction' | 'concentration'
 
 export interface AvoidCandidate {
   tagSlug: SkincareProductTagSlug
@@ -60,10 +62,6 @@ export function computeAvoidCandidates(
     candidates.push({ tagSlug, source })
   }
 
-  if (detectGrossesseAvoid(inci, kind, hoistedIngredients)) {
-    push(SKINCARE_PRODUCT_TAG_SLUGS.GROSSESSE_COMPATIBLE, 'grossesse-avoid')
-  }
-
   const actifs = actifClasses ?? detectActifClasses(inci, hoistedIngredients, kind)
   for (const tagSlug of detectCrossSignalAvoidTags(actifs, kind)) {
     push(tagSlug, 'cross-signal')
@@ -72,6 +70,9 @@ export function computeAvoidCandidates(
   if (assessment) {
     for (const tagSlug of detectInteractionAvoidTags(assessment, kind)) {
       push(tagSlug, 'interaction')
+    }
+    for (const tagSlug of detectConcentrationAvoidTags(assessment, kind)) {
+      push(tagSlug, 'concentration')
     }
   }
 

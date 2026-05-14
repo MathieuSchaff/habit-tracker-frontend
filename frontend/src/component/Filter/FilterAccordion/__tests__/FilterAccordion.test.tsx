@@ -43,9 +43,7 @@ const noopResolve: AsyncSearchQueryFactory<string[], FilterOption[]> = (slugs) =
   queryFn: async () => [],
 })
 
-function makeGroup(
-  overrides: Partial<FilterGroupConfig<Key>> = {}
-): FilterGroupConfig<Key> {
+function makeGroup(overrides: Partial<FilterGroupConfig<Key>> = {}): FilterGroupConfig<Key> {
   return {
     id: 'g1',
     label: 'Concern',
@@ -70,10 +68,7 @@ const emptyFilters: FilterValues<Key> = {
   tag: [],
 }
 
-function renderAccordion(
-  ui: ReactElement,
-  { withQuery = false }: { withQuery?: boolean } = {}
-) {
+function renderAccordion(ui: ReactElement, { withQuery = false }: { withQuery?: boolean } = {}) {
   if (!withQuery) return render(ui)
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },

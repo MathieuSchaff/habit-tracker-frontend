@@ -14,9 +14,17 @@
 // functional concentration (retinol stabilizer trace, AHA used as pH
 // adjuster, niacinamide in trace amounts). Each cluster declares a
 // `positionCap` — only the first N normalized ingredients are scanned
-// for that cluster's patterns. pH-dependent acids (AHA/BHA/PHA), enzymes
-// and HA humectants get a tighter cap because functional concentration
-// always sits early in the list.
+// for that cluster's patterns. pH-dependent acids (AHA/BHA/PHA) keep a
+// tight cap; all other clusters use `positionCap: Infinity` because
+// the manual gold-set tags antioxidants/humectants/ceramides regardless
+// of INCI position (functional sub-1%).
+//
+// Note: an earlier attempt gated this pass on
+// `assessment.matchedEvidenceByName.<ing>.concentrationEstimate.belowBreakpoint`,
+// reasoning that the EU <1% zone signal would replace position caps cleanly.
+// Gold-set audit (2026-05-14) rejected it: macro F1 dropped 0.995 → 0.930
+// (vitamin-e/HA/ceramides functional below 1% are tagged anyway by manual
+// annotators; AHA/BHA/PHA breakpoint reads also disagreed with gold).
 
 import type { ProductKind } from '@habit-tracker/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'

@@ -5,9 +5,6 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-import { RETINOID_PATTERNS } from './grossesse-avoid'
-import { VEGAN_MIN_INGREDIENTS } from './vegan'
-
 // Peau-normale (heuristic, used by orchestrator post-pass)
 // Inverse heuristic: a product can be tagged `peau-normale` when no other
 // skin_type fired AND the kind is a neutral routine staple AND no aggressive
@@ -16,6 +13,31 @@ import { VEGAN_MIN_INGREDIENTS } from './vegan'
 //
 // Orchestrator passes the set of skin_type slugs already proposed for the
 // product; we abstain if any of them are present.
+
+// Minimum INCI length for the peau-normale claim to be credible (mirrors
+// the vegan absence-tag floor, now that vegan is in algo-derm).
+const MIN_INCI_LENGTH = 5
+
+// Retinoid patterns used to exclude products with vitamin-A derivatives from
+// peau-normale (strong actifs = not a neutral baseline product).
+const RETINOID_PATTERNS = [
+  'retinol',
+  'retinal',
+  'retinaldehyde',
+  'retinyl palmitate',
+  'retinyl acetate',
+  'retinyl propionate',
+  'retinyl linoleate',
+  'retinyl retinoate',
+  'hydroxypinacolone retinoate',
+  'granactive retinoid',
+  'sodium retinoyl hyaluronate',
+  'tretinoin',
+  'isotretinoin',
+  'adapalene',
+  'tazarotene',
+  'trifarotene',
+]
 
 const PEAU_NORMALE_KINDS = new Set<ProductKind>([
   'moisturizer',
@@ -61,7 +83,7 @@ export function detectPeauNormale(
   }
 
   const ingredients = resolveIngredients(inci, hoistedIngredients)
-  if (ingredients.length < VEGAN_MIN_INGREDIENTS) return []
+  if (ingredients.length < MIN_INCI_LENGTH) return []
 
   for (const ing of ingredients) {
     if (STRONG_ACTIF_PATTERNS.some((p) => ing.includes(p))) return []

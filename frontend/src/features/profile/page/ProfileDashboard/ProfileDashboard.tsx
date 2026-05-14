@@ -9,6 +9,7 @@ import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { formatInstant } from '@/lib/dates'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
+import { sanitizeUrl } from '../../../../lib/url'
 import { EditableSection } from '../../components/EditableSection/EditableSection'
 import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
 import { ProfileForm } from '../../components/ProfileForm/ProfileForm'
@@ -113,7 +114,7 @@ export const ProfileDashboard = () => {
                     {profile.links.map((link) => (
                       <a
                         key={link.url}
-                        href={link.url}
+                        href={sanitizeUrl(link.url) ?? '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="profile-info-read__link"

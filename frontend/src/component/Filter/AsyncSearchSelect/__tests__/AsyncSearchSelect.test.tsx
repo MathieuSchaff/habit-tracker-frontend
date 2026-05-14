@@ -135,11 +135,7 @@ describe('AsyncSearchSelect — resolve chips', () => {
 
   it('resolves chip labels for a deep-linked slug list', async () => {
     renderASS(
-      <AsyncSearchSelect
-        {...baseProps}
-        selected={['retinol', 'niacinamide']}
-        onToggle={vi.fn()}
-      />
+      <AsyncSearchSelect {...baseProps} selected={['retinol', 'niacinamide']} onToggle={vi.fn()} />
     )
 
     // Before the resolve completes, chip should render the raw slug.
@@ -163,7 +159,9 @@ describe('AsyncSearchSelect — label cache merge', () => {
         <AsyncSearchSelect
           {...baseProps}
           selected={sel}
-          onToggle={(v) => setSel((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))}
+          onToggle={(v) =>
+            setSel((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))
+          }
         />
       )
     }
@@ -183,9 +181,7 @@ describe('AsyncSearchSelect — label cache merge', () => {
 describe('AsyncSearchSelect — filtre dropdown', () => {
   it('hides already-selected options from the dropdown', async () => {
     const user = userEvent.setup()
-    renderASS(
-      <AsyncSearchSelect {...baseProps} selected={['niacinamide']} onToggle={vi.fn()} />
-    )
+    renderASS(<AsyncSearchSelect {...baseProps} selected={['niacinamide']} onToggle={vi.fn()} />)
     await user.type(screen.getByRole('combobox'), 'nia')
 
     await waitFor(() => {
@@ -246,9 +242,7 @@ describe('AsyncSearchSelect — keyboard', () => {
 describe('AsyncSearchSelect — empty + error states', () => {
   it('shows "Aucun résultat" when search returns []', async () => {
     server.use(
-      http.get('*/api/ingredients/search', () =>
-        HttpResponse.json({ success: true, data: [] })
-      )
+      http.get('*/api/ingredients/search', () => HttpResponse.json({ success: true, data: [] }))
     )
     const user = userEvent.setup()
     renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)
@@ -261,7 +255,9 @@ describe('AsyncSearchSelect — empty + error states', () => {
 
   it('does not crash when the search request fails (500)', async () => {
     server.use(
-      http.get('*/api/ingredients/search', () => HttpResponse.json({ error: 'boom' }, { status: 500 }))
+      http.get('*/api/ingredients/search', () =>
+        HttpResponse.json({ error: 'boom' }, { status: 500 })
+      )
     )
     const user = userEvent.setup()
     renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)
@@ -415,4 +411,3 @@ describe('AsyncSearchSelect — positionnement', () => {
     })
   })
 })
-

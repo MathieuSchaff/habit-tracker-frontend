@@ -1,4 +1,5 @@
 import { signupSchema } from '@habit-tracker/shared'
+
 import { describe, expect, it } from 'vitest'
 
 const VALID_PASSWORD = 'Abcdef12!'

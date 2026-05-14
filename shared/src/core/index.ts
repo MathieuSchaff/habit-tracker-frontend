@@ -122,6 +122,13 @@ export const isApiSuccess = <T, E extends string>(
   return response.success === true
 }
 
+// Zod v4's z.url() accepts javascript: and data: protocols — this refine
+// restricts to http/https to prevent XSS via <a href> or <img src>.
+export const safeUrl = z
+  .url()
+  .max(2000)
+  .refine((v) => /^https?:\/\//.test(v), { message: 'URL must use http or https protocol' })
+
 export const isApiError = <T, E extends string>(
   response: ApiResponse<T, E>
 ): response is ApiError<E> => {

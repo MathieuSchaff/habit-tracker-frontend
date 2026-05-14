@@ -56,7 +56,9 @@ const EMPTY = {
   benefit_dental: [],
 } as never
 
-function renderContent(overrides: Partial<React.ComponentProps<typeof ProductsFilterDrawerContent>> = {}) {
+function renderContent(
+  overrides: Partial<React.ComponentProps<typeof ProductsFilterDrawerContent>> = {}
+) {
   const props = {
     open: true,
     onClose: vi.fn(),

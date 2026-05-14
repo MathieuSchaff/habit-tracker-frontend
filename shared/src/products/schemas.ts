@@ -1,9 +1,20 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema } from '../core'
+import { fieldChangeSchema, safeUrl } from '../core'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
 import { PRODUCT_TEXTURE_VALUES } from './textures'
 import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
+
+// Soft validation: rejects HTML and bare prose (no comma for strings > 100 chars).
+// Does not attempt full INCI nomenclature parsing — algo-derm handles that at
+// processing time.
+const inciBase = z
+  .string()
+  .max(5000)
+  .refine((v) => !/<[^>]+>/.test(v), { message: 'inci must not contain HTML' })
+  .refine((v) => v.trim().length <= 100 || v.includes(','), {
+    message: 'inci must be a comma-separated ingredient list',
+  })
 
 export const createProductSchema = z
   .object({
@@ -13,13 +24,13 @@ export const createProductSchema = z
     kind: z.string().min(1).max(100),
     unit: z.enum(PRODUCT_UNIT_VALUES),
     slug: z.string().max(100).optional(),
-    inci: z.string().max(5000).optional(),
+    inci: inciBase.optional(),
     description: z.string().max(5000).optional(),
     totalAmount: z.number().int().min(1).optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).optional(),
     texture: z.enum(PRODUCT_TEXTURE_VALUES).optional(),
-    url: z.url().max(2000).optional(),
-    imageUrl: z.url().max(2000).optional(),
+    url: safeUrl.optional(),
+    imageUrl: safeUrl.optional(),
     notes: z.string().max(5000).optional(),
     priceCents: z.number().int().min(0).optional(),
   })
@@ -39,13 +50,13 @@ export const updateProductSchema = z
     kind: z.string().min(1).max(100).optional(),
     unit: z.enum(PRODUCT_UNIT_VALUES).optional(),
     slug: z.string().max(100).optional(),
-    inci: z.string().max(5000).nullable().optional(),
+    inci: inciBase.nullable().optional(),
     description: z.string().max(5000).nullable().optional(),
     totalAmount: z.number().int().min(1).nullable().optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).nullable().optional(),
     texture: z.enum(PRODUCT_TEXTURE_VALUES).nullable().optional(),
-    url: z.url().max(2000).nullable().optional(),
-    imageUrl: z.url().max(2000).nullable().optional(),
+    url: safeUrl.nullable().optional(),
+    imageUrl: safeUrl.nullable().optional(),
     notes: z.string().max(5000).nullable().optional(),
     priceCents: z.number().int().min(0).nullable().optional(),
   })
@@ -85,8 +96,8 @@ const editableProductFields = {
   totalAmount: fieldChangeSchema(z.number().int()),
   amountUnit: fieldChangeSchema(z.enum(PRODUCT_AMOUNT_UNIT_VALUES)),
   texture: fieldChangeSchema(z.enum(PRODUCT_TEXTURE_VALUES)),
-  url: fieldChangeSchema(z.url()),
-  imageUrl: fieldChangeSchema(z.url()),
+  url: fieldChangeSchema(safeUrl),
+  imageUrl: fieldChangeSchema(safeUrl),
   notes: fieldChangeSchema(z.string()),
   priceCents: fieldChangeSchema(z.number().int()),
   updatedAt: fieldChangeSchema(z.iso.datetime()),
@@ -124,5 +135,5 @@ export const patentSchema = z.object({
     .optional(),
   // si url = "" =>  ZodError => sucess est false=>  l'update échoue
   // { name: "Rosactiv", url: "" } =>   ZodError =>  update bloqué
-  url: z.preprocess((v) => (v === '' ? null : v), z.url().nullable().optional()),
+  url: z.preprocess((v) => (v === '' ? null : v), safeUrl.nullable().optional()),
 })

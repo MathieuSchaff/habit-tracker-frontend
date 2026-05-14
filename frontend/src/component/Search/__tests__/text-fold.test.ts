@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { foldText } from '../text-fold'
 
 describe('foldText', () => {
@@ -8,7 +9,7 @@ describe('foldText', () => {
 
   it('strips diacritics (é → e, à → a, î → i)', () => {
     expect(foldText('Crème')).toBe('creme')
-    expect(foldText('Hydratant à l\'açaï')).toBe('hydratant a l\'acai')
+    expect(foldText("Hydratant à l'açaï")).toBe("hydratant a l'acai")
   })
 
   it('trims surrounding whitespace', () => {

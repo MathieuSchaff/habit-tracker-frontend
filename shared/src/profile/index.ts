@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { safeUrl } from '../core'
+
 // SCHEMAS
 
 // profile
@@ -48,14 +50,14 @@ export const SKIN_CONCERNS = [
 
 const profileLinkSchema = z.object({
   label: z.string().min(1).max(50),
-  url: z.url(),
+  url: safeUrl,
 })
 
 const profilePublicSchema = z.object({
   userId: z.uuid(),
   username: z.string().max(USERNAME_MAX_LENGTH).nullable().optional(),
   bio: z.string().max(BIO_MAX_LENGTH).nullable().optional(),
-  avatarUrl: z.url().nullable().optional(),
+  avatarUrl: safeUrl.nullable().optional(),
   links: profileLinkSchema.array().optional().default([]),
   createdAt: z.iso.datetime().nullable().optional(),
   updatedAt: z.iso.datetime().nullable().optional(),
@@ -66,7 +68,7 @@ export const profileUpdateSchema = z
   .object({
     username: z.string().min(1).max(USERNAME_MAX_LENGTH).optional(),
     bio: z.string().max(BIO_MAX_LENGTH).optional(),
-    avatarUrl: z.url().optional(),
+    avatarUrl: safeUrl.optional(),
     links: profileLinkSchema.array().max(5).optional(),
   })
   .strict()

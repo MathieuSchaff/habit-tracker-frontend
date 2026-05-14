@@ -25,8 +25,8 @@ describe('Purchase Service', () => {
         name: 'Vitamine C',
         brand: 'Solgar',
         category: 'skincare',
-        kind: 'complément',
-        unit: 'gélule',
+        kind: 'serum',
+        unit: 'dropper',
       },
       testDb
     )
