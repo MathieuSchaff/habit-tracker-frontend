@@ -8,11 +8,7 @@ afterEach(() => cleanup())
 describe('ChipGroup — count rendering', () => {
   it('does not render a count span when option.count is undefined', () => {
     const { container } = render(
-      <ChipGroup
-        options={[{ value: 'a', label: 'Alpha' }]}
-        selected={[]}
-        onChange={vi.fn()}
-      />
+      <ChipGroup options={[{ value: 'a', label: 'Alpha' }]} selected={[]} onChange={vi.fn()} />
     )
     expect(container.querySelector('.chip__count')).toBeNull()
   })

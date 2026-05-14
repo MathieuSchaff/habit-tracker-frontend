@@ -9,28 +9,30 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 ## Features
 
 **Products & ingredients**
+
 - Personal database of cosmetic products and supplements
 - Ingredients linked to each product: role, origin, notes
 - Tags for quick filtering
 - Inventory tracking: what you have, what you're testing, what you're using
 
 **Tasks**
+
 - Simple tasks, no streaks, no pressure
 
 ---
 
 ## Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| Runtime | Bun |
-| Backend | Hono (REST API + typesafe RPC) |
-| Frontend | React 19, TanStack Router & Query |
-| Database | PostgreSQL 18 + Drizzle ORM |
-| Validation | Zod (shared between front and back) |
-| Styling | Vanilla CSS + Lucide Icons |
-| Quality | Biome (lint & format) + Vitest + Lefthook (pre-commit) |
-| Infrastructure | Docker Compose + Nginx |
+| Layer          | Technology                                             |
+| :------------- | :----------------------------------------------------- |
+| Runtime        | Bun                                                    |
+| Backend        | Hono (REST API + typesafe RPC)                         |
+| Frontend       | React 19, TanStack Router & Query                      |
+| Database       | PostgreSQL 18 + Drizzle ORM                            |
+| Validation     | Zod (shared between front and back)                    |
+| Styling        | Vanilla CSS + Lucide Icons                             |
+| Quality        | Biome (lint & format) + Vitest + Lefthook (pre-commit) |
+| Infrastructure | Docker Compose + Nginx                                 |
 
 ---
 
@@ -60,6 +62,7 @@ just dev-fresh
 ```
 
 **Daily workflow:**
+
 - Terminal 1: `just ts-check` — TypeScript watch mode on the host
 - Terminal 2: `just dev` — Docker
 
@@ -69,23 +72,23 @@ just dev-fresh
 
 ### Development & types
 
-| Command | Description |
-| :--- | :--- |
-| `just dev` | Build types + start Docker |
-| `just dev-fresh` | Full cleanup + install + start |
-| `just ts-check` | TypeScript watch mode (host) |
-| `just ts-build` | Generate types and TanStack routes |
-| `just diagnose` | Check types and container state |
+| Command          | Description                        |
+| :--------------- | :--------------------------------- |
+| `just dev`       | Build types + start Docker         |
+| `just dev-fresh` | Full cleanup + install + start     |
+| `just ts-check`  | TypeScript watch mode (host)       |
+| `just ts-build`  | Generate types and TanStack routes |
+| `just diagnose`  | Check types and container state    |
 
 ### Quality & tests
 
-| Command | Description |
-| :--- | :--- |
-| `just lint-fix` | Fix style with Biome |
-| `just format` | Format code |
-| `just test` | Backend tests (isolated DB) |
-| `just test-frontend` | Vitest frontend tests |
-| `just test-all` | Full test suite |
+| Command              | Description                    |
+| :------------------- | :----------------------------- |
+| `just lint-fix`      | Fix style with Biome           |
+| `just format`        | Format code                    |
+| `just test`          | Backend tests (isolated DB)    |
+| `just test-frontend` | Vitest frontend tests          |
+| `just test-all`      | Full test suite                |
 | `just test-db-reset` | Reset the test DB from scratch |
 
 ### Backend tests (recommended workflow)
@@ -113,16 +116,16 @@ just test-dev-watch "products"
 
 ### Database
 
-| Command | Description |
-| :--- | :--- |
-| `just db-generate` | Generate a SQL migration file |
-| `just db-migrate` | Apply migrations locally |
-| `just db-push` | Sync schema without migration |
-| `just db-studio` | Drizzle UI (http://localhost:4983) |
-| `just db-seed` | Inject test data |
-| `just db-reset` | Wipe + migrate + seed |
-| `just db-backup` | Backup to `./backups/` |
-| `just db-restore ./backups/xxx.sql` | Restore from a `.sql` file |
+| Command                             | Description                        |
+| :---------------------------------- | :--------------------------------- |
+| `just db-generate`                  | Generate a SQL migration file      |
+| `just db-migrate`                   | Apply migrations locally           |
+| `just db-push`                      | Sync schema without migration      |
+| `just db-studio`                    | Drizzle UI (http://localhost:4983) |
+| `just db-seed`                      | Inject test data                   |
+| `just db-reset`                     | Wipe + migrate + seed              |
+| `just db-backup`                    | Backup to `./backups/`             |
+| `just db-restore ./backups/xxx.sql` | Restore from a `.sql` file         |
 
 ---
 
@@ -135,7 +138,7 @@ aurore/
 ├── shared/             # Shared Zod schemas (source of truth)
 ├── nginx/              # Reverse proxy (production)
 ├── backups/            # DB backups
-├── Makefile            # Command entry point
+├── just/               # Command entry point
 └── docker-compose.yml  # PostgreSQL 18
 ```
 
@@ -149,12 +152,12 @@ aurore/
 
 **Ports:**
 
-| Service | Port |
-| :--- | :--- |
-| Frontend | 5173 |
-| API | 3000 |
-| DB | 5432 |
-| Test DB | 5433 |
+| Service        | Port |
+| :------------- | :--- |
+| Frontend       | 5173 |
+| API            | 3000 |
+| DB             | 5432 |
+| Test DB        | 5433 |
 | Drizzle Studio | 4983 |
 
 ---

@@ -55,7 +55,9 @@ describe('Product Service', () => {
 
   describe('createProduct', () => {
     it('should create a product with minimal fields', async () => {
-      const product = await makeProduct('Vitamine C', 'Generic', 'complément', 'gélule')
+      const product = await makeProduct('Vitamine C', 'Generic', 'gelule', 'capsule', {
+        category: 'complement',
+      })
 
       expect(product.id).toBeDefined()
       expect(product.name).toBe('Vitamine C')
@@ -80,7 +82,7 @@ describe('Product Service', () => {
       await testDb.insert(productTagsDefs).values({
         slug: 'type-serum',
         label: 'Sérum',
-        tagType: 'product_type',
+        tagType: 'product_type_v2',
       })
 
       const product = await makeProduct('Serum Test', 'Auto-Tag Brand', 'serum')
@@ -91,7 +93,7 @@ describe('Product Service', () => {
         .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
         .where(eq(tagProducts.productId, product.id))
 
-      expect(pairs).toEqual([{ slug: 'type-serum', relevance: 'secondary' }])
+      expect(pairs).toEqual([{ slug: 'type-serum', relevance: 'primary' }])
     })
 
     // Fail-soft contract: when no product_tags_defs exist for the slugs the
@@ -202,9 +204,9 @@ describe('Product Service', () => {
     })
 
     it('should filter by kind', async () => {
-      await makeProduct('Sérum A', 'Brand', 'skincare')
-      await makeProduct('Zinc', 'Brand', 'complément')
-      const result = await listProducts({ category: 'skincare', kind: 'skincare' }, testDb)
+      await makeProduct('Sérum A', 'Brand', 'serum')
+      await makeProduct('Zinc', 'Brand', 'gelule', 'capsule', { category: 'complement' })
+      const result = await listProducts({ category: 'skincare', kind: 'serum' }, testDb)
       expect(result.total).toBe(1)
     })
 
@@ -683,13 +685,13 @@ describe('Product Service', () => {
 
   describe('getFilterOptions', () => {
     it('should return distinct brands and kinds', async () => {
-      await makeProduct('Sérum A', 'The Ordinary', 'skincare')
-      await makeProduct('Zinc', 'Solgar', 'complément')
+      await makeProduct('Sérum A', 'The Ordinary', 'serum')
+      await makeProduct('Zinc', 'Solgar', 'gelule', 'capsule', { category: 'complement' })
       const options = await getFilterOptions(testDb)
       expect(options.brands).toContain('The Ordinary')
       expect(options.brands).toContain('Solgar')
-      expect(options.kinds).toContain('skincare')
-      expect(options.kinds).toContain('complément')
+      expect(options.kinds).toContain('serum')
+      expect(options.kinds).toContain('gelule')
     })
 
     it('should include product counts per tag in tagCounts map', async () => {

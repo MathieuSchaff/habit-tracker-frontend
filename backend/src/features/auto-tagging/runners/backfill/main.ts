@@ -292,7 +292,6 @@ async function main() {
     kind: 0,
     formula: 0,
     'cross-signal': 0,
-    'grossesse-avoid': 0,
     interaction: 0,
     brand: 0,
     'percent-claim': 0,
@@ -310,7 +309,6 @@ async function main() {
   console.log(`   ├ cross-signal   : ${sourceCountInsert['cross-signal']}`)
   console.log(`   ├ percent-claim  : ${sourceCountInsert['percent-claim']}`)
   console.log(`   ├ brand          : ${sourceCountInsert['brand']}`)
-  console.log(`   ├ grossesse-avoid: ${sourceCountInsert['grossesse-avoid']}`)
   console.log(`   └ interaction    : ${sourceCountInsert['interaction']}`)
   const avoidUpserts = toUpsert.length - primaryUpserts
   if (avoidUpserts > 0) {

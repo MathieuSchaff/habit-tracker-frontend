@@ -610,8 +610,9 @@ describe('FilterDrawer — Apply button label', () => {
         previewCount={1}
       />
     )
-    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
-      .toHaveTextContent('Voir 1 produit')
+    expect(
+      screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+    ).toHaveTextContent('Voir 1 produit')
   })
 
   it('reads "Voir N produits" (plural) when previewCount > 1', () => {
@@ -627,8 +628,9 @@ describe('FilterDrawer — Apply button label', () => {
         previewCount={42}
       />
     )
-    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
-      .toHaveTextContent('Voir 42 produits')
+    expect(
+      screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+    ).toHaveTextContent('Voir 42 produits')
   })
 
   it('reads "Voir 0 produit" (singular) when previewCount=0', () => {
@@ -644,8 +646,9 @@ describe('FilterDrawer — Apply button label', () => {
         previewCount={0}
       />
     )
-    expect(screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i }))
-      .toHaveTextContent('Voir 0 produit')
+    expect(
+      screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
+    ).toHaveTextContent('Voir 0 produit')
   })
 })
 

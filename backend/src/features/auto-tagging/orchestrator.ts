@@ -64,7 +64,6 @@ import {
   detectTextureLegere,
   detectTextureRiche,
   detectTextureStickFromName,
-  detectVegan,
 } from './passes/formula'
 import { detectPercentClaimTags, type PercentClaimEvidence } from './passes/percent-claim-detection'
 
@@ -81,7 +80,6 @@ export type AutoTagSource =
   | 'kind'
   | 'formula'
   | 'cross-signal'
-  | 'grossesse-avoid'
   | 'interaction'
   | 'brand'
   | 'percent-claim'
@@ -204,8 +202,12 @@ export function detectAllAutoTags(
   let topConcernSlug: SkincareProductTagSlug | null = null
   let topConcernConfidence = 0
   for (const t of autoTags) {
-    propose(t.slug, 'secondary', 'algo-derm')
-    if (SKINCARE_CONCERN_SLUGS.has(t.slug) && t.confidence > topConcernConfidence) {
+    propose(t.slug, t.relevance, 'algo-derm')
+    if (
+      t.relevance === 'secondary' &&
+      SKINCARE_CONCERN_SLUGS.has(t.slug) &&
+      t.confidence > topConcernConfidence
+    ) {
       topConcernSlug = t.slug
       topConcernConfidence = t.confidence
     }
@@ -238,7 +240,6 @@ export function detectAllAutoTags(
     ...detectTextureLegere(inci, kind, normalizedIngredients),
     ...detectNonGras(inci, kind, normalizedIngredients),
     ...detectPigmentsVerts(inci, normalizedIngredients),
-    ...detectVegan(inci, normalizedIngredients),
     ...detectTextureFromField(product.texture),
     ...detectTextureGelInci(inci, kind, product.texture, normalizedIngredients),
     ...detectTextureCremeInci(inci, kind, product.texture, normalizedIngredients),

@@ -14,6 +14,7 @@ import { Hono } from 'hono'
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
+import { securityScan } from '../security/security.middleware'
 import {
   deleteUser,
   getDermoProfile,
@@ -53,7 +54,7 @@ export const profileRoute = app
     return c.json(ok(stats), HTTP_STATUS.OK)
   })
 
-  .patch('/', zValidator('json', profileUpdateSchema), async (c) => {
+  .patch('/', securityScan(), zValidator('json', profileUpdateSchema), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
 

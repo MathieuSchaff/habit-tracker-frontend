@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-
 import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
+
+import { describe, expect, it } from 'vitest'
 
 import {
   computeAlerts,

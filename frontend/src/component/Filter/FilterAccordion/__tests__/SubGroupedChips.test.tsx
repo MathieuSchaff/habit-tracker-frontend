@@ -15,17 +15,13 @@ const OPTIONS: FilterOption[] = [
   { value: 'e', label: 'Epsilon' },
 ]
 
-function makeField(
-  overrides: Partial<GroupedFilterField<Key>> = {}
-): GroupedFilterField<Key> {
+function makeField(overrides: Partial<GroupedFilterField<Key>> = {}): GroupedFilterField<Key> {
   return {
     key: 'tag',
     label: 'Tags',
     placeholder: '',
     options: OPTIONS,
-    subGroups: [
-      { label: 'Greek', slugs: ['a', 'b', 'c', 'd', 'e'] },
-    ],
+    subGroups: [{ label: 'Greek', slugs: ['a', 'b', 'c', 'd', 'e'] }],
     ...overrides,
   }
 }
@@ -173,10 +169,7 @@ describe('SubGroupedChips — toggle', () => {
     )
     // 'e' is hidden behind the cap initially — expanding reveals it as already active.
     await user.click(screen.getByRole('button', { name: /Voir les 5 options/ }))
-    expect(screen.getByRole('button', { name: 'Epsilon' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
+    expect(screen.getByRole('button', { name: 'Epsilon' })).toHaveAttribute('aria-pressed', 'true')
   })
 })
 

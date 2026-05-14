@@ -16,8 +16,7 @@ const labelMap: Record<Key, Record<string, string>> = {
   kind: { serum: 'Sérum', cleanser: 'Nettoyant' },
 }
 
-const getFilterLabel = (key: Key, value: string) =>
-  labelMap[key]?.[value] ?? value // fallback to raw slug if not in map
+const getFilterLabel = (key: Key, value: string) => labelMap[key]?.[value] ?? value // fallback to raw slug if not in map
 
 describe('ActiveFiltersBar — empty', () => {
   it('renders nothing when there are no active tags and no extras', () => {
@@ -144,9 +143,7 @@ describe('ActiveFiltersBar — extras', () => {
         getFilterLabel={getFilterLabel}
         onRemoveTag={vi.fn()}
         onClearAll={vi.fn()}
-        extraChips={[
-          { id: 'price', prefix: 'Prix', label: '< 20€', onRemove: extraRemove },
-        ]}
+        extraChips={[{ id: 'price', prefix: 'Prix', label: '< 20€', onRemove: extraRemove }]}
       />
     )
     const pill = screen.getByRole('button', { name: /Retirer le filtre Prix < 20€/i })

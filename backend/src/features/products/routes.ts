@@ -16,6 +16,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { requireJwtAuth } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
+import { securityScan } from '../security/security.middleware'
 import {
   createProduct,
   deleteProduct,
@@ -89,7 +90,7 @@ export const productRoutes = productsApp
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  .post('/', zValidator('json', createProductSchema), async (c) => {
+  .post('/', securityScan(), zValidator('json', createProductSchema), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const input = c.req.valid('json')
@@ -107,6 +108,7 @@ export const productRoutes = productsApp
   .patch(
     '/:id',
     zValidator('param', idParam),
+    securityScan(),
     zValidator('json', updateProductSchema),
     async (c) => {
       const db = c.get('db')

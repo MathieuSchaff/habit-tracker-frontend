@@ -7,7 +7,6 @@ import {
   detectCernesPoches,
   detectEczemaAtopie,
   detectFiniMat,
-  detectGrossesseAvoid,
   detectKeratosePilaire,
   detectNonGras,
   detectOcclusifTags,
@@ -27,7 +26,6 @@ import {
   detectTextureLegere,
   detectTextureRiche,
   detectTextureStickFromName,
-  detectVegan,
 } from '../passes/formula'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
@@ -101,86 +99,9 @@ describe('detectSemiOcclusif', () => {
   })
 })
 
-describe('detectGrossesseAvoid — tier 1', () => {
-  test('retinol → avoid', () => {
-    expect(detectGrossesseAvoid('Aqua, Retinol, Glycerin', 'serum')).toBe(true)
-  })
-
-  test('hydroquinone → avoid', () => {
-    expect(detectGrossesseAvoid('Aqua, Hydroquinone, Glycerin', 'serum')).toBe(true)
-  })
-
-  test('formaldehyde donor (DMDM hydantoin) → avoid, any kind', () => {
-    expect(detectGrossesseAvoid('Aqua, Glycerin, DMDM Hydantoin', 'moisturizer')).toBe(true)
-    expect(detectGrossesseAvoid('Aqua, Glycerin, DMDM Hydantoin', 'cleanser')).toBe(true)
-  })
-
-  test('formaldehyde donor variants — quaternium-15, imidazolidinyl urea, bronopol', () => {
-    expect(detectGrossesseAvoid('Aqua, Quaternium-15', 'serum')).toBe(true)
-    expect(detectGrossesseAvoid('Aqua, Imidazolidinyl Urea', 'serum')).toBe(true)
-    expect(detectGrossesseAvoid('Aqua, Diazolidinyl Urea', 'serum')).toBe(true)
-    expect(detectGrossesseAvoid('Aqua, Bronopol', 'serum')).toBe(true)
-  })
-
-  test('formaldehyde donor at trailing position still flagged (preservative slot)', () => {
-    const filler = Array.from({ length: 18 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectGrossesseAvoid(`Aqua, ${filler}, DMDM Hydantoin`, 'moisturizer')).toBe(true)
-  })
-})
-
-describe('detectGrossesseAvoid — homosalate (sunscreen only)', () => {
-  test('homosalate in sunscreen → avoid', () => {
-    expect(detectGrossesseAvoid('Aqua, Homosalate, Octocrylene', 'sunscreen')).toBe(true)
-  })
-
-  test('homosalate in non-sunscreen → not flagged via this path', () => {
-    // Off-label appearance (e.g. tinted balm) — out of pregnancy-safety scope here.
-    expect(detectGrossesseAvoid('Aqua, Homosalate, Glycerin', 'lip-care')).toBe(false)
-  })
-})
-
-describe('detectGrossesseAvoid — risky essential oils', () => {
-  test('peppermint oil in top 8 → avoid', () => {
-    expect(detectGrossesseAvoid('Aqua, Glycerin, Mentha Piperita Oil', 'serum')).toBe(true)
-  })
-
-  test('clary sage oil in top 8 → avoid', () => {
-    expect(detectGrossesseAvoid('Aqua, Glycerin, Salvia Sclarea (Clary) Oil', 'serum')).toBe(true)
-  })
-
-  test('rosemary essential oil (verbenone CT) in top 8 → avoid', () => {
-    expect(
-      detectGrossesseAvoid('Aqua, Glycerin, Rosmarinus Officinalis (Rosemary) Leaf Oil', 'serum')
-    ).toBe(true)
-  })
-
-  test('rosemary leaf extract (polyphenol CO2, no "oil") → not flagged', () => {
-    expect(
-      detectGrossesseAvoid('Aqua, Glycerin, Rosmarinus Officinalis Leaf Extract', 'serum')
-    ).toBe(false)
-  })
-
-  test('peppermint leaf extract (no "oil") → not flagged', () => {
-    expect(detectGrossesseAvoid('Aqua, Glycerin, Mentha Piperita Leaf Extract', 'serum')).toBe(
-      false
-    )
-  })
-
-  test('peppermint oil past position 8 (perfume trace) → not flagged', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectGrossesseAvoid(`Aqua, ${filler}, Mentha Piperita Oil`, 'serum')).toBe(false)
-  })
-})
-
-describe('detectGrossesseAvoid — preserves prior behavior', () => {
-  test('clean INCI → not flagged', () => {
-    expect(detectGrossesseAvoid('Aqua, Glycerin, Niacinamide, Panthenol', 'serum')).toBe(false)
-  })
-
-  test('salicylic acid in cleanser (rinse-off) → not flagged', () => {
-    expect(detectGrossesseAvoid('Aqua, Salicylic Acid, Glycerin', 'cleanser')).toBe(false)
-  })
-})
+// detectGrossesseAvoid and detectVegan migrated to algo-derm (TAG_DEFS v7).
+// Pregnancy and vegan detection tested via detectAutoTags / detectAllAutoTags
+// in auto-tag-detection.test.ts and auto-tag-orchestrator-parity.test.ts.
 
 describe('detectSolaireTags — sanity', () => {
   test('avobenzone in sunscreen → chemical filter', () => {
@@ -764,85 +685,9 @@ describe('detectPigmentsVerts', () => {
   })
 })
 
-// T1.7 — vegan
-describe('detectVegan', () => {
-  test('clean plant-based INCI ≥ 5 ingredients → vegan', () => {
-    expect(
-      detectVegan('Aqua, Glycerin, Niacinamide, Hyaluronic Acid, Panthenol, Tocopherol')
-    ).toContain(S.VEGAN)
-  })
-
-  test('beeswax (cera alba) → not flagged', () => {
-    expect(detectVegan('Aqua, Glycerin, Cera Alba, Tocopherol, Panthenol, Niacinamide')).toEqual([])
-  })
-
-  test('lanolin → not flagged', () => {
-    expect(detectVegan('Aqua, Glycerin, Lanolin, Tocopherol, Panthenol, Niacinamide')).toEqual([])
-  })
-
-  test('snail mucin → not flagged', () => {
-    expect(
-      detectVegan('Aqua, Snail Secretion Filtrate, Glycerin, Niacinamide, Panthenol, Tocopherol')
-    ).toEqual([])
-  })
-
-  test('carmine / CI 75470 → not flagged', () => {
-    expect(detectVegan('Aqua, Glycerin, Niacinamide, Panthenol, CI 75470, Tocopherol')).toEqual([])
-  })
-
-  test('hydrolyzed collagen → not flagged', () => {
-    expect(
-      detectVegan('Aqua, Glycerin, Hydrolyzed Collagen, Niacinamide, Panthenol, Tocopherol')
-    ).toEqual([])
-  })
-
-  test('squalane (plant-derived saturated form) → vegan ok', () => {
-    expect(detectVegan('Aqua, Glycerin, Squalane, Niacinamide, Panthenol, Tocopherol')).toContain(
-      S.VEGAN
-    )
-  })
-
-  test('squalene (animal-derived unsaturated form) → not flagged', () => {
-    expect(detectVegan('Aqua, Glycerin, Squalene, Niacinamide, Panthenol, Tocopherol')).toEqual([])
-  })
-
-  test('short INCI < 5 ingredients → abstain', () => {
-    expect(detectVegan('Aqua, Glycerin, Niacinamide')).toEqual([])
-  })
-
-  test('null INCI → []', () => {
-    expect(detectVegan(null)).toEqual([])
-  })
-
-  // B.7 corpus spot-check fixes (2026-05-08)
-  // Audit revealed 8 vegan-tagged products with `pearl powder` and 1 with
-  // `pearl extract` (mollusk shell), plus 2 with `lactoperoxidase` (milk
-  // enzyme). Patterns added to ANIMAL_PATTERNS — these tests pin the fix.
-
-  test('pearl powder → not flagged', () => {
-    expect(detectVegan('Aqua, Glycerin, Pearl Powder, Niacinamide, Panthenol, Tocopherol')).toEqual(
-      []
-    )
-  })
-
-  test('pearl extract → not flagged', () => {
-    expect(
-      detectVegan('Aqua, Glycerin, Pearl Extract, Niacinamide, Panthenol, Tocopherol')
-    ).toEqual([])
-  })
-
-  test('hydrolyzed pearl protein → not flagged', () => {
-    expect(
-      detectVegan('Aqua, Glycerin, Hydrolyzed Pearl Protein, Niacinamide, Panthenol, Tocopherol')
-    ).toEqual([])
-  })
-
-  test('lactoperoxidase → not flagged', () => {
-    expect(
-      detectVegan('Aqua, Glycerin, Lactoperoxidase, Niacinamide, Panthenol, Tocopherol')
-    ).toEqual([])
-  })
-})
+// T1.7 vegan → migrated to algo-derm (TAG_DEFS v7)
+// detectVegan tests removed. Logic tested via detectAutoTags in
+// auto-tag-detection.test.ts.
 
 // T1.8 — peau-normale heuristic
 describe('detectPeauNormale', () => {
@@ -931,13 +776,7 @@ describe('detectPeauNormale', () => {
 // Coverage for the recall and mutex gaps closed in commit
 // `fix(seed/auto-tags): close recall and mutex gaps in formula detectors`.
 
-describe('detectGrossesseAvoid — sodium retinoyl hyaluronate', () => {
-  test('retinyl ester on hyaluronate backbone → avoid', () => {
-    expect(
-      detectGrossesseAvoid('Aqua, Glycerin, Sodium Retinoyl Hyaluronate, Niacinamide', 'serum')
-    ).toBe(true)
-  })
-})
+// detectGrossesseAvoid — sodium retinoyl hyaluronate test removed (migrated to algo-derm).
 
 describe('detectStepNettoyage1 — extended sulfate variants', () => {
   test('coco-sulfate in top 5 → not flagged (foaming gel cleanser)', () => {

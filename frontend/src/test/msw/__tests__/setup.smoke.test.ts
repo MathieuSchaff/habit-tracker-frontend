@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { INGREDIENTS } from '../fixtures/ingredients'
+import type { INGREDIENTS } from '../fixtures/ingredients'
 
 describe('MSW smoke', () => {
   it('intercepts /api/ingredients/search and returns matching fixtures', async () => {

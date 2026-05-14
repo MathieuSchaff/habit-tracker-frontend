@@ -5,16 +5,12 @@ import { BulkBar } from '../BulkBar'
 
 describe('BulkBar', () => {
   it('renders nothing when no items are selected', () => {
-    const { container } = render(
-      <BulkBar selectedCount={0} onMove={() => {}} onClear={() => {}} />,
-    )
+    const { container } = render(<BulkBar selectedCount={0} onMove={() => {}} onClear={() => {}} />)
     expect(container).toBeEmptyDOMElement()
   })
 
   it('shows the selected count with correct pluralization', () => {
-    const { rerender } = render(
-      <BulkBar selectedCount={1} onMove={() => {}} onClear={() => {}} />,
-    )
+    const { rerender } = render(<BulkBar selectedCount={1} onMove={() => {}} onClear={() => {}} />)
     expect(screen.getByText(/produit sélectionné$/)).toBeInTheDocument()
     rerender(<BulkBar selectedCount={3} onMove={() => {}} onClear={() => {}} />)
     expect(screen.getByText(/produits sélectionnés/)).toBeInTheDocument()

@@ -15,12 +15,12 @@ describe('ingredient-slugs split refactor — invariance', () => {
     const values = Object.values(INGREDIENT_SLUGS)
 
     // Exact key count — changes if any group gains or loses a slug.
-    expect(keys.length).toBe(670)
+    expect(keys.length).toBe(689)
 
-    // Exact unique-value count. 661 = 663 keys − 2 intentional aliases
+    // Exact unique-value count. 687 = 689 keys − 2 intentional aliases
     // (HAEMATOCOCCUS_PLUVIALIS aliases the skincare astaxanthine slug, and
     //  AVOBENZONE aliases BUTYL_METHOXYDIBENZOYLMETHANE).
-    expect(new Set(values).size).toBe(668)
+    expect(new Set(values).size).toBe(687)
     console.log(new Set(values).size)
     // Spot-check one slug from each domain stays reachable via the root aggregate.
     expect(INGREDIENT_SLUGS.GLYCERIN).toBe('glycerin')

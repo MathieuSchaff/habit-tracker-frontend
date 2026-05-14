@@ -210,3 +210,40 @@ export function detectInteractionSecondaryTags(
   }
   return [...tags]
 }
+
+// Concentration-driven avoid — uses algo-derm `concentrationEstimate.solverMeanPct`
+// (Beta posterior + QP solver over sum=100 constraint) to gate per-ingredient
+// dose thresholds. Revisits §6 "skip définitif" decisions for standalone
+// retinoid / standalone BHA → peau-sensible : the previous concern was over-
+// flagging dermo-friendly low-dose products (LRP Retinol B3 0.3 %, Cicaplast
+// Baume B5 trace salicylic). Dose-gating with thresholds tuned to the audit
+// Class A MAE (< 1 % per slug) preserves those products while flagging
+// high-dose standalone leave-on products.
+//
+// Scope limited to EU-capped actives where the solver is robust:
+//   - retinol      cap = 0.3 % → threshold ≥ 0.25 % (catches at-cap)
+//   - salicylic    cap = 2.0 % → threshold ≥ 1.5 % (catches at-cap)
+//
+// Uncapped actives (retinal, hydroxypinacolone retinoate, bakuchiol) currently
+// deferred — solver QP overshoots in trace zones (low position triggers
+// non-monotone estimates: e.g. retinal pos 11/14 → solver 2.58 %, would mis-
+// flag Retrinal-class products). Unblock via algo-derm calibration (Pass 2 V2 §C1).
+//
+// Leave-on only — rinse-off contact time is too short for dose to matter.
+export function detectConcentrationAvoidTags(
+  assessment: ProductAssessment,
+  kind: ProductKind
+): SkincareProductTagSlug[] {
+  if (!LEAVE_ON_KINDS.has(kind)) return []
+
+  const tags = new Set<SkincareProductTagSlug>()
+  for (const m of assessment.matchedEvidence) {
+    const conc = m.concentrationEstimate.solverMeanPct
+    if (conc === undefined) continue
+    const lowerInci = m.evidence.inci.toLowerCase()
+
+    if (lowerInci === 'retinol' && conc >= 0.25) tags.add(S.PEAU_SENSIBLE)
+    if (lowerInci === 'salicylic acid' && conc >= 1.5) tags.add(S.PEAU_SENSIBLE)
+  }
+  return [...tags]
+}

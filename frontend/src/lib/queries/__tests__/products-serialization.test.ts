@@ -187,9 +187,7 @@ describe('buildListProductsQuery — adversarial / edge-case inputs', () => {
   })
 
   it('inverted price range is forwarded without throwing', () => {
-    expect(() =>
-      buildListProductsQuery({ priceMin: 9999, priceMax: 100 })
-    ).not.toThrow()
+    expect(() => buildListProductsQuery({ priceMin: 9999, priceMax: 100 })).not.toThrow()
   })
 
   // Large arrays — no guard, function does not throw

@@ -20,12 +20,15 @@ describe('productsSearchSchema — defaults', () => {
 })
 
 describe('productsSearchSchema — sort', () => {
-  it.each(['name', 'random', 'price_asc', 'price_desc', 'newest'] as const)(
-    'accepts sort=%s',
-    (sort) => {
-      expect(productsSearchSchema.parse({ sort }).sort).toBe(sort)
-    }
-  )
+  it.each([
+    'name',
+    'random',
+    'price_asc',
+    'price_desc',
+    'newest',
+  ] as const)('accepts sort=%s', (sort) => {
+    expect(productsSearchSchema.parse({ sort }).sort).toBe(sort)
+  })
 
   it('rejects unknown sort values', () => {
     expect(() => productsSearchSchema.parse({ sort: 'alphabetical' })).toThrow()
@@ -85,16 +88,12 @@ describe('productsSearchSchema — category', () => {
     expect(parsed.category).toBe('skincare')
   })
 
-  it.each(['skincare', 'haircare', 'dental', 'complement'])(
-    'accepts category = %s',
-    (value) => {
-      const parsed = productsSearchSchema.parse({ category: value })
-      expect(parsed.category).toBe(value)
-    }
-  )
+  it.each(['skincare', 'haircare', 'dental', 'complement'])('accepts category = %s', (value) => {
+    const parsed = productsSearchSchema.parse({ category: value })
+    expect(parsed.category).toBe(value)
+  })
 
   it('rejects unknown category', () => {
     expect(() => productsSearchSchema.parse({ category: 'nope' })).toThrow()
   })
 })
-

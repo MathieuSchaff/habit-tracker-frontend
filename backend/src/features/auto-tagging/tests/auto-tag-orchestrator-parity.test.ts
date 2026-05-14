@@ -127,7 +127,7 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     expect(sources.has('actif-class')).toBe(true)
     expect(sources.has('kind')).toBe(true)
     expect(sources.has('cross-signal')).toBe(true)
-    expect(sources.has('grossesse-avoid')).toBe(true)
+    expect(sources.has('algo-derm')).toBe(true)
 
     const slugs = slugsOf(got)
     expect(slugs).toContain(S.RETINOIDS)

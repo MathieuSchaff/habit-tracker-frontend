@@ -3,6 +3,8 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { Check, Copy, ExternalLink, FlaskConical } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo } from 'react'
 
+import { sanitizeUrl } from '../../../../lib/url'
+
 // Defer ~50KB gzip — description block is below the fold on first paint.
 const Markdown = lazy(() => import('react-markdown'))
 
@@ -186,9 +188,14 @@ export function ProductInfoTab() {
         </aside>
       )}
 
-      {product.url && (
+      {sanitizeUrl(product.url) !== null && (
         <div className="product-section product-section--cta">
-          <a href={product.url} target="_blank" rel="noopener noreferrer" className="product-link">
+          <a
+            href={sanitizeUrl(product.url) ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="product-link"
+          >
             <ExternalLink size={16} aria-hidden="true" />
             <span>Voir le produit</span>
             <span className="sr-only"> (nouvel onglet)</span>

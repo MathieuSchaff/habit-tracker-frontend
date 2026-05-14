@@ -90,9 +90,7 @@ describe('SearchSelect — selection', () => {
 
   it('hides already-selected options from the dropdown', async () => {
     const user = userEvent.setup()
-    renderSelect(
-      <SearchSelect {...baseProps} selected={['niacinamide']} onToggle={vi.fn()} />
-    )
+    renderSelect(<SearchSelect {...baseProps} selected={['niacinamide']} onToggle={vi.fn()} />)
     await user.type(screen.getByRole('combobox'), 'nia')
 
     const options = screen.getAllByRole('option')
@@ -102,13 +100,7 @@ describe('SearchSelect — selection', () => {
   it('toggles the selection when clicking a selected chip', async () => {
     const onToggle = vi.fn()
     const user = userEvent.setup()
-    renderSelect(
-      <SearchSelect
-        {...baseProps}
-        selected={['retinol']}
-        onToggle={onToggle}
-      />
-    )
+    renderSelect(<SearchSelect {...baseProps} selected={['retinol']} onToggle={onToggle} />)
     await user.click(screen.getByRole('button', { name: /Retirer Retinol/i }))
     expect(onToggle).toHaveBeenCalledWith('retinol')
   })
@@ -270,9 +262,7 @@ describe('SearchSelect — a11y', () => {
   it('assertive live region announces "X ajouté" on toggle', async () => {
     const onToggle = vi.fn()
     const user = userEvent.setup()
-    const { container } = renderSelect(
-      <SearchSelect {...baseProps} onToggle={onToggle} />
-    )
+    const { container } = renderSelect(<SearchSelect {...baseProps} onToggle={onToggle} />)
     await user.type(screen.getByRole('combobox'), 'nia')
     await user.click(screen.getByRole('option', { name: 'Niacinamide' }))
     const assertive = container.querySelector('[aria-live="assertive"]') as HTMLElement
@@ -395,11 +385,7 @@ describe('SearchSelect — keyboard edge cases', () => {
 describe('SearchSelect — selected chip a11y', () => {
   it('exposes a "Retirer X" aria-label on each selected chip', () => {
     renderSelect(
-      <SearchSelect
-        {...baseProps}
-        selected={['retinol', 'glycerin']}
-        onToggle={vi.fn()}
-      />
+      <SearchSelect {...baseProps} selected={['retinol', 'glycerin']} onToggle={vi.fn()} />
     )
     expect(screen.getByRole('button', { name: /Retirer Retinol/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Retirer Glycerin/i })).toBeInTheDocument()

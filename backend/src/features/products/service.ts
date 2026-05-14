@@ -251,6 +251,19 @@ export async function updateProduct(
     changes,
   })
 
+  // Re-derive tags when the INCI formula changes. Fail-soft: tag errors never
+  // block the update — tags are derived state, re-derivable via backfill runner.
+  if (changes.inci !== undefined) {
+    try {
+      await writeTagsForProduct(id, database)
+    } catch (err) {
+      console.warn(
+        `[auto-tag] writeTagsForProduct failed for product ${id} after inci update:`,
+        err instanceof Error ? err.message : err
+      )
+    }
+  }
+
   return newProduct as Product
 }
 

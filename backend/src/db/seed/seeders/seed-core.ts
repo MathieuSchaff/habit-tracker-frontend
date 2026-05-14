@@ -262,7 +262,7 @@ export async function seedCore(shouldClean = false) {
     // `'cross-signal'` source overlaps between secondary and avoid streams —
     // disambiguate by AutoTagPair.relevance.
     const avoidBySource: Record<string, number> = {
-      'grossesse-avoid': 0,
+      'algo-derm': 0,
       'cross-signal': 0,
       interaction: 0,
     }
@@ -323,7 +323,7 @@ export async function seedCore(shouldClean = false) {
     }
     if (avoidPairs.length > 0) {
       console.log(
-        `🛡  Backfill avoid: +${avoidBySource['grossesse-avoid']} grossesse · +${avoidBySource['cross-signal']} stack-irritation · +${avoidBySource.interaction} interaction`
+        `🛡  Backfill avoid: +${avoidBySource['algo-derm']} grossesse · +${avoidBySource['cross-signal']} stack-irritation · +${avoidBySource.interaction} interaction`
       )
     }
 

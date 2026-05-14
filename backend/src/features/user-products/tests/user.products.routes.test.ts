@@ -35,8 +35,8 @@ describe('User Products API', () => {
         name: 'Crème hydratante',
         brand: 'Avène',
         category: 'skincare',
-        kind: 'soin',
-        unit: 'flacon',
+        kind: 'moisturizer',
+        unit: 'jar',
       },
       testDb
     )
