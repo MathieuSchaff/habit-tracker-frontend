@@ -1,0 +1,39 @@
+.aur-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--tag-default-bg);
+  color: var(--tag-default-text);
+  font-size: 0.7rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.aur-tag--active {
+  background: var(--tag-active-bg);
+  color: var(--tag-active-text);
+}
+.aur-tag--outline {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+.aur-tag--warn {
+  background: oklch(94% 0.08 30);
+  color: oklch(40% 0.17 30);
+}
+.aur-tag--safe {
+  background: oklch(94% 0.07 var(--h-pine, 155));
+  color: oklch(36% 0.13 var(--h-pine, 155));
+}
+[data-theme="dark"] .aur-tag--warn {
+  background: oklch(28% 0.1 30);
+  color: oklch(85% 0.13 30);
+}
+[data-theme="dark"] .aur-tag--safe {
+  background: oklch(28% 0.08 var(--h-pine, 155));
+  color: oklch(85% 0.1 var(--h-pine, 155));
+}

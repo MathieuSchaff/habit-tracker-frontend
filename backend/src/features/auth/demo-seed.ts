@@ -92,9 +92,10 @@ async function seedDemoCollection(userId: string, db: Database) {
     return
   }
 
-  // Status distribution across the 15 products
+  // Status distribution across the 15 products.
+  // Holy Grail is now sentiment=6 (orthogonal to status), not its own status.
   const assignments: Array<{
-    status: 'in_stock' | 'wishlist' | 'holy_grail' | 'archived' | 'avoided' | 'watched'
+    status: 'in_stock' | 'wishlist' | 'archived' | 'avoided' | 'watched'
     sentiment?: number
     wouldRepurchase?: 'yes' | 'no' | 'unsure'
     comment?: string
@@ -119,14 +120,14 @@ async function seedDemoCollection(userId: string, db: Database) {
     { status: 'wishlist' },
     { status: 'wishlist', comment: 'Très bien noté sur les forums, à tester absolument.' },
     { status: 'wishlist' },
-    // holy_grail (2)
+    // in_stock + Holy Grail sentiment (2)
     {
-      status: 'holy_grail',
-      sentiment: 5,
+      status: 'in_stock',
+      sentiment: 6,
       wouldRepurchase: 'yes',
       comment: 'Résultats visibles en 2 semaines. Je ne change plus.',
     },
-    { status: 'holy_grail', sentiment: 5, wouldRepurchase: 'yes' },
+    { status: 'in_stock', sentiment: 6, wouldRepurchase: 'yes' },
     // archived (2)
     {
       status: 'archived',
@@ -166,28 +167,27 @@ async function seedDemoCollection(userId: string, db: Database) {
 
     if (!up) continue
 
-    // Reviews for rated products
+    // Reviews for rated products. Holy Grail (sentiment=6) caps review axes at 5.
     if (config.sentiment) {
+      const reviewBase = Math.min(5, config.sentiment)
       await upsertUserProductReview(
         userId,
         up.id,
         {
-          efficacy: config.sentiment,
-          sensoriality: Math.max(1, config.sentiment - 1 + Math.round(Math.random())),
-          tolerance: config.status === 'avoided' ? 1 : Math.min(5, config.sentiment),
-          valueForMoney: config.sentiment >= 4 ? 4 : 3,
+          efficacy: reviewBase,
+          sensoriality: Math.max(1, reviewBase - 1 + Math.round(Math.random())),
+          tolerance: config.status === 'avoided' ? 1 : reviewBase,
+          valueForMoney: reviewBase >= 4 ? 4 : 3,
         },
         db
       )
     }
 
-    // Purchases for in_stock and holy_grail products
-    if (
-      config.status === 'in_stock' ||
-      config.status === 'holy_grail' ||
-      config.status === 'archived'
-    ) {
-      await seedDemoPurchases(userId, up.id, config.status, db)
+    // Purchase history: in_stock + archived get them. Holy Grail (sentiment=6)
+    // implies a deeper history (old finished + currently open).
+    if (config.status === 'in_stock' || config.status === 'archived') {
+      const isHolyGrail = config.sentiment === 6
+      await seedDemoPurchases(userId, up.id, isHolyGrail ? 'holy_grail' : config.status, db)
     }
   }
 }
@@ -195,10 +195,10 @@ async function seedDemoCollection(userId: string, db: Database) {
 async function seedDemoPurchases(
   userId: string,
   userProductId: string,
-  status: 'in_stock' | 'holy_grail' | 'archived',
+  pattern: 'in_stock' | 'holy_grail' | 'archived',
   db: Database
 ) {
-  if (status === 'archived') {
+  if (pattern === 'archived') {
     // One finished purchase in the past
     const p = await addPurchase(
       userId,
@@ -214,7 +214,7 @@ async function seedDemoPurchases(
     return
   }
 
-  if (status === 'holy_grail') {
+  if (pattern === 'holy_grail') {
     // Old finished purchase + currently open one
     const old = await addPurchase(
       userId,

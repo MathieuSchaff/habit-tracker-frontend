@@ -1,0 +1,124 @@
+.aur-obj {
+  display: inline-block;
+  position: relative;
+}
+.aur-obj--jar {
+  width: 56px;
+  height: 56px;
+}
+.aur-obj--jar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 14px;
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-dark));
+  border-radius: 4px 4px 2px 2px;
+}
+.aur-obj--jar::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(160deg, var(--bg-card), var(--bg-sunken));
+  border: 1px solid var(--border-strong);
+  border-radius: 4px 4px 8px 8px;
+}
+.aur-obj--bottle {
+  width: 36px;
+  height: 64px;
+}
+.aur-obj--bottle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 12px;
+  background: var(--color-accent);
+  border-radius: 2px 2px 0 0;
+}
+.aur-obj--bottle::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 0;
+  width: 100%;
+  height: 54px;
+  background: linear-gradient(
+    160deg,
+    oklch(from var(--color-primary) 75% c h / 0.5),
+    var(--color-primary)
+  );
+  border-radius: 4px 4px 6px 6px;
+}
+.aur-obj--dropper {
+  width: 28px;
+  height: 78px;
+}
+.aur-obj--dropper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  background: var(--color-accent);
+  border-radius: 50% 50% 35% 35%;
+}
+.aur-obj--dropper::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 62px;
+  background: linear-gradient(
+    to bottom,
+    var(--bg-card),
+    oklch(from var(--color-primary) 80% c h / 0.3)
+  );
+  border: 1px solid var(--border-strong);
+  border-radius: 2px 2px 50% 50%;
+}
+.aur-obj--spray {
+  width: 44px;
+  height: 80px;
+}
+.aur-obj--spray::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 16px;
+  background: linear-gradient(to right, var(--bg-card), var(--bg-sunken));
+  border: 1px solid var(--border-strong);
+  border-radius: 4px 4px 0 0;
+}
+.aur-obj--spray::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 100%;
+  height: 66px;
+  background: linear-gradient(
+    160deg,
+    oklch(from var(--color-accent) 80% c h / 0.4),
+    var(--color-accent)
+  );
+  border-radius: 0 0 6px 6px;
+}
+.aur-objs-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+}

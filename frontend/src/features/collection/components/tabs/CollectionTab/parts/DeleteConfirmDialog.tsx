@@ -1,4 +1,4 @@
-import { AlertTriangle, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
@@ -10,6 +10,13 @@ interface DeleteConfirmDialogProps {
   isPending: boolean
   message?: string
   confirmLabel?: string
+  title?: string
+  // Aurore preserves user research: when an "Avoid instead" path makes sense,
+  // surface it as the recommended action so destructive delete is the fallback,
+  // not the default.
+  onAvoid?: () => void
+  avoidLabel?: string
+  avoidPending?: boolean
 }
 
 export function DeleteConfirmDialog({
@@ -18,14 +25,17 @@ export function DeleteConfirmDialog({
   isPending,
   message = 'Retirer ce produit de votre collection ?',
   confirmLabel = 'Retirer',
+  title = 'Confirmation',
+  onAvoid,
+  avoidLabel = 'Marquer à éviter (garder mes notes)',
+  avoidPending = false,
 }: DeleteConfirmDialogProps) {
+  const anyPending = isPending || avoidPending
+
   return (
     <Modal onClose={onClose} role="alertdialog" size="sm" className="dcd-dialog">
       <div className="dcd-header">
-        <div className="dcd-header-title">
-          <AlertTriangle size={14} className="dcd-warning-icon" />
-          <Modal.Title className="dcd-dialog-title">CONFIRMATION</Modal.Title>
-        </div>
+        <Modal.Title className="dcd-dialog-title">{title}</Modal.Title>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">
           <X size={14} />
         </Button>
@@ -35,17 +45,24 @@ export function DeleteConfirmDialog({
         <p>{message}</p>
 
         <div className="dcd-footer">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
-            Annuler
-          </Button>
-          <Button
-            variant="danger-ghost"
-            onClick={() => onConfirm()}
-            disabled={isPending}
-            loading={isPending}
-          >
-            {confirmLabel}
-          </Button>
+          {onAvoid && (
+            <Button onClick={onAvoid} disabled={anyPending} loading={avoidPending} fullWidth>
+              {avoidLabel}
+            </Button>
+          )}
+          <div className="dcd-footer-secondary">
+            <Button variant="outline" onClick={onClose} disabled={anyPending}>
+              Annuler
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => onConfirm()}
+              disabled={anyPending}
+              loading={isPending}
+            >
+              {confirmLabel}
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

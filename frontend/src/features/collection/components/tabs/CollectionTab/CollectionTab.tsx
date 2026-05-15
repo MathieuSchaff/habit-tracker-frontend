@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { ArrowUpDown, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
@@ -10,7 +11,8 @@ import {
   CollectionFilterProvider,
   useCollectionFilter,
 } from '@/features/collection/context/CollectionFilterContext'
-import { type UserPreferences, userPreferenceQueries } from '@/lib/queries/user-preferences'
+import { useCreateComparison } from '@/lib/queries/comparisons'
+import { userPreferenceQueries } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { useUpdateUserProduct } from '@/lib/queries/user-products'
 import { ShelfView } from './ShelfView/ShelfView'
@@ -36,28 +38,24 @@ export function CollectionTab({ userProducts, onAddClick }: CollectionTabProps) 
     return (
       <output className="coll-page-container coll-loading" aria-live="polite">
         <div className="coll-spinner" aria-hidden="true" />
-        <p>Récupération de vos trésors...</p>
+        <p>Chargement de votre étagère…</p>
       </output>
     )
   }
 
   return (
     <CollectionFilterProvider userProducts={userProducts} prefs={prefs}>
-      <CollectionTabContent prefs={prefs} onAddClick={onAddClick} />
+      <CollectionTabContent onAddClick={onAddClick} />
     </CollectionFilterProvider>
   )
 }
 
-function CollectionTabContent({
-  prefs,
-  onAddClick,
-}: {
-  prefs: UserPreferences | undefined
-  onAddClick: () => void
-}) {
+function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
   const { filteredProducts, q, sort, setFilter, hasActiveFilters } = useCollectionFilter()
+  const navigate = useNavigate()
 
   const updateMutation = useUpdateUserProduct()
+  const createComparison = useCreateComparison()
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
@@ -132,6 +130,19 @@ function CollectionTabContent({
         }}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
         onAddClick={onAddClick}
+        onCompare={([upA, upB]) => {
+          const productIds = [upA, upB]
+            .map((id) => filteredProducts.find((p) => p.id === id)?.productId)
+            .filter((pid): pid is string => Boolean(pid))
+          if (productIds.length !== 2 || createComparison.isPending) return
+          createComparison.mutate(
+            { productIds },
+            {
+              onSuccess: (created) =>
+                void navigate({ to: '/products/compare/$id', params: { id: created.id } }),
+            }
+          )
+        }}
       />
 
       {showFiltersSheet && (
@@ -144,7 +155,6 @@ function CollectionTabContent({
         <Suspense fallback={null}>
           <ProductDetailSheet
             p={selectedProduct}
-            prefs={prefs}
             activeTooltip={activeTooltip}
             setActiveTooltip={setActiveTooltip}
             onClose={() => {

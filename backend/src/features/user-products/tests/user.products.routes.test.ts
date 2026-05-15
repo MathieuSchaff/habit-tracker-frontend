@@ -77,7 +77,7 @@ describe('User Products API', () => {
     it('creates a user product with all optional fields', async () => {
       const res = await authPost(app, '/user-products', token, {
         productId,
-        status: 'holy_grail',
+        status: 'archived',
         sentiment: 5,
         wouldRepurchase: 'yes',
         comment: 'Mon produit préféré',
@@ -150,11 +150,11 @@ describe('User Products API', () => {
       const up = (await createRes.json()).data
 
       const res = await authPatch(app, `/user-products/${up.id}`, token, {
-        status: 'holy_grail',
+        status: 'archived',
       })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
-      expect(json.data.status).toBe('holy_grail')
+      expect(json.data.status).toBe('archived')
     })
 
     it('returns 404 for another user product', async () => {
@@ -169,6 +169,38 @@ describe('User Products API', () => {
 
       const res = await authPatch(app, `/user-products/${up.id}`, token, { status: 'archived' })
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+    })
+
+    it('persists experience tags (ressenti / routine / preferences)', async () => {
+      const createRes = await authPost(app, '/user-products', token, {
+        productId,
+        status: 'in_stock',
+      })
+      const up = (await createRes.json()).data
+
+      const res = await authPatch(app, `/user-products/${up.id}`, token, {
+        ressenti: ['leger', 'confortable'],
+        routine: ['matin', 'voyage'],
+        preferences: ['sans-parfum'],
+      })
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const json = await res.json()
+      expect(json.data.ressenti).toEqual(['leger', 'confortable'])
+      expect(json.data.routine).toEqual(['matin', 'voyage'])
+      expect(json.data.preferences).toEqual(['sans-parfum'])
+    })
+
+    it('rejects an unknown tag value', async () => {
+      const createRes = await authPost(app, '/user-products', token, {
+        productId,
+        status: 'in_stock',
+      })
+      const up = (await createRes.json()).data
+
+      const res = await authPatch(app, `/user-products/${up.id}`, token, {
+        ressenti: ['not-a-real-tag'],
+      })
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
   })
 

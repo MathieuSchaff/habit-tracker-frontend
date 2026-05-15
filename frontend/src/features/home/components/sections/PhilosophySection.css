@@ -1,0 +1,65 @@
+.aur-philo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 768px) {
+  .aur-philo {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.aur-philo__card {
+  background: oklch(from var(--bg-card) l c h / 0.5);
+  border: 1px solid oklch(from var(--border-default) l c h / 0.5);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+@media (min-width: 600px) {
+  .aur-philo__card {
+    padding: var(--space-6);
+  }
+}
+.aur-section--deep .aur-philo__card {
+  background: oklch(from var(--bg-card) 34% c h / 0.78);
+  border-color: oklch(from var(--bg-card) 62% c h / 0.72);
+}
+.aur-philo__icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: oklch(from var(--color-accent) l c h / 0.18);
+  color: var(--color-accent);
+}
+.aur-section--deep .aur-philo__icon {
+  background: oklch(from var(--color-tertiary) l c h / 0.2);
+  color: var(--color-tertiary);
+}
+.aur-philo__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  letter-spacing: -0.005em;
+}
+.aur-section--deep .aur-philo__title {
+  color: oklch(99% 0.01 var(--h-amber, 75));
+  font-weight: var(--font-bold);
+}
+.aur-philo__title-em {
+  color: var(--color-tertiary);
+  font-style: italic;
+  font-weight: 400;
+}
+.aur-philo__desc {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: oklch(from currentColor l c h / 0.75);
+}
+.aur-section--deep .aur-philo__desc {
+  color: oklch(90% 0.02 var(--h-amber, 75));
+}

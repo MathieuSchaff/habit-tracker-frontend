@@ -1,0 +1,128 @@
+.aur-pillars {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 768px) {
+  .aur-pillars {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+}
+.aur-pillar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+@media (min-width: 600px) {
+  .aur-pillar {
+    padding: 1.75rem;
+    gap: var(--space-5);
+  }
+}
+@media (min-width: 768px) {
+  .aur-pillar {
+    padding: var(--space-8);
+    min-height: 360px;
+  }
+}
+.aur-pillar:hover {
+  translate: 0 -4px;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+.aur-pillar__index {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+}
+.aur-pillar__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+.aur-pillar__title em {
+  color: var(--color-accent);
+  font-style: italic;
+}
+.aur-pillar__desc {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+.aur-pillar__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: auto;
+  list-style: none;
+  padding: 0;
+}
+.aur-pillar__list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--border-default);
+}
+.aur-pillar__list-item::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+.aur-pillar__list-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.aur-pillar__viz {
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+@media (min-width: 768px) {
+  .aur-pillar__viz {
+    min-height: 96px;
+  }
+}
+
+/* tag-based viz for pillar 2 */
+.aur-pillar__viz-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 180px;
+}
+.aur-pillar__viz-tagrow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* compare viz for pillar 3 */
+.aur-pillar__viz-compare {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+.aur-pillar__viz-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--border-default);
+}

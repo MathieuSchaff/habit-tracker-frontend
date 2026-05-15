@@ -86,6 +86,8 @@
   --color-accent: var(--terracotta-warm);
   --color-accent-light: oklch(28% 0.1 var(--h-terracotta));
   --color-accent-hover: oklch(78% 0.18 var(--h-terracotta));
+  --section-accent: var(--color-accent);
+  --bg-deep: oklch(10% 0.01 var(--h-pine));
 
   /* =========================
        STATUS

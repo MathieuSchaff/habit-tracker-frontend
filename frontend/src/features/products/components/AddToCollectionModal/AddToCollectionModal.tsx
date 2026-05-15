@@ -29,14 +29,13 @@ interface AddToCollectionModalProps {
 const STATUS_OPTIONS: { value: UserProductStatus; label: string }[] = [
   { value: 'in_stock', label: 'En stock' },
   { value: 'wishlist', label: 'Liste de souhaits' },
-  { value: 'watched', label: 'Surveillé' },
-  { value: 'holy_grail', label: 'Saint Graal' },
+  { value: 'watched', label: 'Garde un œil' },
   { value: 'archived', label: 'Archivé' },
   { value: 'avoided', label: 'Évité' },
 ]
 
 // statuses where the user has owned the product → purchase log is meaningful
-const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'holy_grail', 'archived', 'avoided']
+const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'archived', 'avoided']
 
 export function AddToCollectionModal({ product, onClose, onSuccess }: AddToCollectionModalProps) {
   const defaultPrice = product.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''

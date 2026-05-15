@@ -17,6 +17,7 @@
   --status-color-holy-grail: oklch(75% 0.18 85deg);
   --status-color-archived: oklch(52% 0.03 220deg);
   --status-color-avoided: oklch(52% 0.14 25deg);
+  --status-color-repurchase: oklch(70% 0.14 340deg);
 
   /* ===================================
      STATS — theme-independent

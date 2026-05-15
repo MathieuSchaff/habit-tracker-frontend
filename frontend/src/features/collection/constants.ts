@@ -1,29 +1,63 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import type {
+  PreferencesTag,
+  RessentiTag,
+  RoutineTag,
+  UserProductStatus,
+} from '@habit-tracker/shared'
 
-import { Archive, Ban, Eye, Heart, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
+import { Archive, Ban, Eye, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
 
 import type { ReviewCriteria } from '@/lib/helpers/reviews'
 
 export const statusLabels: Record<
   UserProductStatus,
-  { label: string; icon: LucideIcon; color: string }
+  { label: string; icon: LucideIcon; color: string; purpose: string }
 > = {
-  in_stock: { label: 'En stock', icon: Package, color: 'var(--status-color-in-stock)' },
-  wishlist: { label: 'Wishlist', icon: ShoppingBag, color: 'var(--status-color-wishlist)' },
-  watched: { label: 'Surveille', icon: Eye, color: 'var(--status-color-watched)' },
-  holy_grail: { label: 'Saint Graal', icon: Heart, color: 'var(--status-color-holy-grail)' },
-  archived: { label: 'Archivé', icon: Archive, color: 'var(--status-color-archived)' },
-  avoided: { label: 'À éviter', icon: Ban, color: 'var(--status-color-avoided)' },
+  in_stock: {
+    label: 'En stock',
+    icon: Package,
+    color: 'var(--status-color-in-stock)',
+    purpose: 'Produit en votre possession, prêt à être utilisé.',
+  },
+  wishlist: {
+    label: 'Wishlist',
+    icon: ShoppingBag,
+    color: 'var(--status-color-wishlist)',
+    purpose: 'Pas encore acheté — vous avez l’intention de l’acheter.',
+  },
+  watched: {
+    label: 'Garde un œil',
+    icon: Eye,
+    color: 'var(--status-color-watched)',
+    purpose:
+      'Bookmark sans engagement — vous gardez ce produit en mémoire sans l’ajouter à votre routine ni à votre wishlist.',
+  },
+  archived: {
+    label: 'Archivé',
+    icon: Archive,
+    color: 'var(--status-color-archived)',
+    purpose: 'Produit passé — fini, plus en stock, ou mis de côté longuement.',
+  },
+  avoided: {
+    label: 'À éviter',
+    icon: Ban,
+    color: 'var(--status-color-avoided)',
+    purpose: 'Vous avez rejeté ce produit pour vous.',
+  },
 }
 
-export const SHELF_ORDER: UserProductStatus[] = [
-  'holy_grail',
-  'in_stock',
-  'wishlist',
-  'watched',
-  'archived',
-  'avoided',
-]
+// Primary tabs surface the day-to-day shelf: products owned, wished, or
+// being watched. Holy Grail is orthogonal (sentiment=6), not a status.
+export const PRIMARY_SHELF_ORDER: UserProductStatus[] = ['in_stock', 'wishlist', 'watched']
+
+// Secondary tabs live in the "Plus" overflow — past products and rejects
+// stay accessible without crowding the primary row.
+export const SECONDARY_SHELF_ORDER: UserProductStatus[] = ['archived', 'avoided']
+
+// "Tout" excludes archived + avoided so the default view stays calm.
+export const ALL_TAB_STATUSES: UserProductStatus[] = [...PRIMARY_SHELF_ORDER]
+
+export const SHELF_ORDER: UserProductStatus[] = [...PRIMARY_SHELF_ORDER, ...SECONDARY_SHELF_ORDER]
 
 export const kindColorTokens: Record<string, string> = {
   skincare: 'var(--shelf-color-skincare)',
@@ -47,9 +81,8 @@ export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
 }
 
 export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
-  tolerance:
-    'Réaction de la peau (rougeurs, picotements, boutons). Le produit respecte-t-il votre barrière cutanée ?',
-  efficacy: 'Le produit tient-il ses promesses (hydratation, éclat, anti-imperfections, etc.) ?',
+  tolerance: 'Comment votre peau a réagi à ce produit, dans votre routine.',
+  efficacy: "Ce que vous avez constaté pendant la durée d'utilisation.",
   sensoriality:
     "Confort, texture, odeur et plaisir à l'application. Un produit peut être efficace mais désagréable à utiliser !",
   stability:
@@ -87,3 +120,33 @@ export const SCORE_THRESHOLDS = {
   rare: 14,
   good: 10,
 } as const
+
+// User-experience tag labels surfaced in PDS §5 (audit F10).
+// Slug → French label. Source: docs/04-design-ux/product-detail.md L189-193.
+export const ressentiLabels: Record<RessentiTag, string> = {
+  leger: 'Léger',
+  riche: 'Riche',
+  collant: 'Collant',
+  confortable: 'Confortable',
+  dessechant: 'Desséchant',
+  picotements: 'Picotements',
+  'aucun-souci': 'Aucun souci',
+  incertain: 'Incertain',
+}
+
+export const routineLabels: Record<RoutineTag, string> = {
+  matin: 'Matin',
+  soir: 'Soir',
+  'sous-maquillage': 'Sous le maquillage',
+  'apres-exfoliation': 'Après exfoliation',
+  voyage: 'Voyage',
+  hiver: 'Hiver',
+  ete: 'Été',
+}
+
+export const preferencesLabels: Record<PreferencesTag, string> = {
+  'sans-parfum': 'Je préfère sans parfum',
+  'eviter-pour-moi': 'À éviter pour moi',
+  'a-comparer': 'À comparer',
+  'a-reessayer': 'À réessayer',
+}

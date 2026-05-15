@@ -31,7 +31,7 @@ export const CollectionPage = () => {
     },
     {
       id: 'insights',
-      label: 'Analyses',
+      label: 'Motifs',
       icon: <BarChart3 size={18} />,
     },
     {

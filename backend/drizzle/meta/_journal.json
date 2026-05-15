@@ -421,6 +421,20 @@
       "when": 1778715343890,
       "tag": "0059_common_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1778804228733,
+      "tag": "0060_real_living_lightning",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1778808287838,
+      "tag": "0061_open_morbius",
+      "breakpoints": true
     }
   ]
 }

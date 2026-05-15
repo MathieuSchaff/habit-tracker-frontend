@@ -29,7 +29,7 @@ test.describe('Products page — "Ajouter" modal', () => {
     await expect(dialog.getByRole('heading', { name: 'Ajouter à la collection' })).toBeVisible()
     await expect(dialog.getByText(`${productName} · ${brand}`)).toBeVisible()
 
-    for (const label of ['En stock', 'Liste de souhaits', 'Surveillé', 'Saint Graal', 'Évité']) {
+    for (const label of ['En stock', 'Liste de souhaits', 'Garde un œil', 'Archivé', 'Évité']) {
       await expect(dialog.getByRole('button', { name: label, exact: true })).toBeVisible()
     }
   })

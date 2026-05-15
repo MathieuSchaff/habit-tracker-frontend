@@ -86,6 +86,8 @@
   --color-accent: var(--gold-deep);
   --color-accent-light: oklch(94% 0.06 var(--h-gold));
   --color-accent-hover: oklch(62% 0.18 var(--h-gold));
+  --section-accent: var(--color-accent);
+  --bg-deep: var(--slate-deep);
 
   /* =========================
        STATUS
