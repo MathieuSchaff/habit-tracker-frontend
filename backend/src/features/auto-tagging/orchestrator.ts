@@ -81,6 +81,7 @@ export type AutoTagSource =
   | 'formula'
   | 'cross-signal'
   | 'interaction'
+  | 'concentration'
   | 'brand'
   | 'percent-claim'
 

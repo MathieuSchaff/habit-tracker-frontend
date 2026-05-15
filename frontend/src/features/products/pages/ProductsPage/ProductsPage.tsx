@@ -124,8 +124,9 @@ export function ProductsPage() {
   // Random sort: keep result stable across back-nav so order doesn't reshuffle
   // (random() is non-deterministic — without staleTime, refetch yields a new sequence).
   const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 0
+  const userKey = user?.id ?? null
   const { data, isLoading, isPlaceholderData } = useQuery({
-    ...productQueries.list(apiFilters),
+    ...productQueries.list(apiFilters, userKey),
     placeholderData: (prev) => prev,
     staleTime,
   })
@@ -149,7 +150,7 @@ export function ProductsPage() {
     [category, draftFilters, filters, avoidFor, sort, priceMin, priceMax, q]
   )
   const { data: previewData } = useQuery({
-    ...productQueries.list(previewApiFilters),
+    ...productQueries.list(previewApiFilters, userKey),
     enabled: isDrawerOpen,
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,

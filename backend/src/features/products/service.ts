@@ -6,6 +6,7 @@ import type {
   ProductSearchResult,
   ProductUnit,
   UpdateProductInput,
+  UserProductStatus,
 } from '@habit-tracker/shared'
 import {
   DENTAL_PRODUCT_TAG_CATEGORIES,
@@ -38,6 +39,7 @@ import { db } from '../../db'
 import type { Database, DB } from '../../db/index'
 import { ingredients, productIngredients } from '../../db/schema'
 import { type Product, products } from '../../db/schema/products'
+import { userProducts } from '../../db/schema/products/user-products'
 import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
@@ -281,11 +283,14 @@ export type ProductSummary = Pick<
   | 'imageUrl'
 > & {
   // Avoid-tag slugs matching the caller's profile (avoid_for). Empty when no
-  // profile filter is active. Drives the "Éviter" badge on cards.
+  // profile filter is active. Drives the "Pour vous" preference flag on cards.
   profileMatches: string[]
   // Positive tags (relevance != 'avoid'). Card filters relevance='primary' to
   // show top 3 chips; tagType drives chip styling (concern/skin_type/label).
   tags: { slug: string; tagType: string; relevance: 'primary' | 'secondary' }[]
+  // Caller's shelf status for this product, null when anonymous or unshelved.
+  // Drives the catalog CTA: null → "Ajouter", else → calm shelf flag.
+  userStatus: UserProductStatus | null
 }
 export type ProductsPage = {
   items: ProductSummary[]
@@ -297,7 +302,8 @@ export type ProductsPage = {
 // This is the search with many filters
 export async function listProducts(
   filters: ListProductsFilters,
-  database: Database = db
+  database: Database = db,
+  userId: string | null = null
 ): Promise<ProductsPage> {
   const page = filters.page ?? 1
   const limit = filters.limit ?? 20
@@ -480,11 +486,12 @@ export async function listProducts(
 
   const matchesByProduct = new Map<string, string[]>()
   const tagsByProduct = new Map<string, ProductSummary['tags']>()
+  const statusByProduct = new Map<string, UserProductStatus>()
 
   if (items.length > 0) {
     const itemIds = items.map((i) => i.id)
 
-    const [avoidRows, positiveTagRows] = await Promise.all([
+    const [avoidRows, positiveTagRows, shelfRows] = await Promise.all([
       avoidSlugs.length > 0
         ? database
             .select({ productId: tagProducts.productId, slug: productTagsDefs.slug })
@@ -510,6 +517,14 @@ export async function listProducts(
         .from(tagProducts)
         .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
         .where(and(inArray(tagProducts.productId, itemIds), ne(tagProducts.relevance, 'avoid'))),
+      // Caller's shelf rows for these products. Explicit userId filter is
+      // belt-and-suspenders against RLS — tests run as DB owner and bypass RLS.
+      userId
+        ? database
+            .select({ productId: userProducts.productId, status: userProducts.status })
+            .from(userProducts)
+            .where(and(eq(userProducts.userId, userId), inArray(userProducts.productId, itemIds)))
+        : Promise.resolve([] as { productId: string; status: UserProductStatus }[]),
     ])
 
     for (const row of avoidRows) {
@@ -527,12 +542,17 @@ export async function listProducts(
       })
       tagsByProduct.set(row.productId, list)
     }
+
+    for (const row of shelfRows) {
+      statusByProduct.set(row.productId, row.status)
+    }
   }
 
   const itemsWithMatches: ProductSummary[] = items.map((i) => ({
     ...i,
     profileMatches: matchesByProduct.get(i.id) ?? [],
     tags: tagsByProduct.get(i.id) ?? [],
+    userStatus: statusByProduct.get(i.id) ?? null,
   }))
 
   return { items: itemsWithMatches, total, page, limit }

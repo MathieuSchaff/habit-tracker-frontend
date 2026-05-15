@@ -1,7 +1,7 @@
 import { getProductKindLabel, PRODUCT_KINDS, PRODUCT_UNITS } from '@habit-tracker/shared'
 
 import { Link } from '@tanstack/react-router'
-import { AlertTriangle, Plus } from 'lucide-react'
+import { Check, Plus } from 'lucide-react'
 import { memo, useCallback } from 'react'
 
 import { Button } from '@/component/Button/Button'
@@ -107,19 +107,7 @@ function ProductCardImpl({ product, onAdd }: Props) {
           />
 
           <div className="list-card__body">
-            <div className="list-card__top-row">
-              <span className="list-card__kind">{getProductKindLabel(product.kind)}</span>
-              {product.profileMatches.length > 0 && (
-                <span
-                  className="list-card__avoid-badge"
-                  title={`Déconseillé pour : ${avoidLabels.join(', ')}`}
-                >
-                  <AlertTriangle size={12} aria-hidden="true" />
-                  Éviter
-                </span>
-              )}
-            </div>
-
+            <span className="list-card__kind">{getProductKindLabel(product.kind)}</span>
             <span className="list-card__brand">{product.brand}</span>
             <Card.Title
               as="p"
@@ -145,6 +133,16 @@ function ProductCardImpl({ product, onAdd }: Props) {
         </Link>
 
         <Card.Footer>
+          {product.profileMatches.length > 0 && (
+            <span
+              className="list-card__preference-flag"
+              role="note"
+              aria-label={`Pour vous. Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
+              title={`Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
+            >
+              Pour vous
+            </span>
+          )}
           <div className="list-card__price-wrap">
             {product.priceCents != null && product.priceCents > 0 ? (
               <span className="list-card__price">
@@ -164,15 +162,26 @@ function ProductCardImpl({ product, onAdd }: Props) {
               </span>
             )}
           </div>
-          <Button
-            variant="primary"
-            size="sm"
-            aria-label={`Ajouter ${product.name} à la collection`}
-            onClick={handleAdd}
-          >
-            <Plus size={14} aria-hidden="true" />
-            <span>Ajouter</span>
-          </Button>
+          {product.userStatus === null ? (
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={`Ajouter ${product.name} à la collection`}
+              onClick={handleAdd}
+            >
+              <Plus size={14} aria-hidden="true" />
+              <span>Ajouter</span>
+            </Button>
+          ) : product.userStatus === 'avoided' ? (
+            <span className="list-card__shelf-flag list-card__shelf-flag--avoided">
+              Marqué à éviter pour vous
+            </span>
+          ) : (
+            <span className="list-card__shelf-flag">
+              <Check size={14} aria-hidden="true" />
+              Sur votre étagère
+            </span>
+          )}
         </Card.Footer>
       </div>
     </Card>

@@ -89,8 +89,11 @@ export function useLogout() {
     },
     onSuccess: () => {
       useAuthStore.getState().clearAuth()
-      qc.removeQueries({ queryKey: ['session'] })
-      qc.removeQueries({ queryKey: ['auth'] })
+      // Nuke the whole cache. Covers session/auth + every user-scoped query
+      // (product lists keyed by userId, future personalized data) without a
+      // per-feature allowlist to maintain. Anonymous reference data (brands,
+      // filter-options) gets re-fetched on next visit — cheap.
+      qc.clear()
     },
   })
 }

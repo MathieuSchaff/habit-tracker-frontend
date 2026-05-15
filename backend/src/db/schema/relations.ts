@@ -6,6 +6,7 @@ import { discussionReplies, discussionThreads } from './products/discussions'
 import { productIngredients } from './products/product-ingredients'
 import { products } from './products/products'
 import { purchases } from './products/purchases'
+import { userProductStatusLog } from './products/user-product-status-log'
 import { userProductReviews, userProducts } from './products/user-products'
 import { productTagsDefs, tagProducts } from './tags/tags'
 
@@ -93,6 +94,14 @@ export const userProductsRelations = relations(userProducts, ({ one, many }) => 
     references: [userProductReviews.userProductId],
   }),
   purchases: many(purchases),
+  statusLog: many(userProductStatusLog),
+}))
+
+export const userProductStatusLogRelations = relations(userProductStatusLog, ({ one }) => ({
+  userProduct: one(userProducts, {
+    fields: [userProductStatusLog.userProductId],
+    references: [userProducts.id],
+  }),
 }))
 
 export const userProductReviewsRelations = relations(userProductReviews, ({ one }) => ({

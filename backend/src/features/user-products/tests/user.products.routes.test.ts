@@ -266,6 +266,37 @@ describe('User Products API', () => {
     })
   })
 
+  describe('GET /user-products/:id/history', () => {
+    it('returns ordered transitions including initial creation', async () => {
+      const createRes = await authPost(app, '/user-products', token, {
+        productId,
+        status: 'wishlist',
+      })
+      const up = (await createRes.json()).data
+
+      await authPatch(app, `/user-products/${up.id}`, token, {
+        status: 'avoided',
+        reason: 'Trop riche pour mon hiver',
+      })
+
+      const res = await authGet(app, `/user-products/${up.id}/history`, token)
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const json = await res.json()
+      expect(json.data).toHaveLength(2)
+      expect(json.data[0].toStatus).toBe('avoided')
+      expect(json.data[0].fromStatus).toBe('wishlist')
+      expect(json.data[0].reason).toBe('Trop riche pour mon hiver')
+      expect(json.data[1].toStatus).toBe('wishlist')
+      expect(json.data[1].fromStatus).toBeNull()
+    })
+
+    it('returns 404 for another user product', async () => {
+      const fakeId = crypto.randomUUID()
+      const res = await authGet(app, `/user-products/${fakeId}/history`, token)
+      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+    })
+  })
+
   describe('Purchases', () => {
     let upId: string
 

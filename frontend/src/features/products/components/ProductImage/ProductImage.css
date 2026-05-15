@@ -20,3 +20,14 @@
 .product-image--icon {
   color: oklch(45% 0.02 250);
 }
+
+/* Borderless variant for hero/embedded contexts where the photo
+   sits inside a richer surface and a tile border would read as noise. */
+.product-image--flat {
+  border: none;
+  background: transparent;
+}
+
+.product-image--flat .product-image__img {
+  padding: 0;
+}

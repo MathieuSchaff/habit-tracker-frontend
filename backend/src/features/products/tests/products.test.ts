@@ -555,6 +555,37 @@ describe('Product Service', () => {
       })
     })
 
+    describe('userStatus (shelf flag)', () => {
+      it('returns null userStatus for anonymous callers', async () => {
+        await makeProduct('Anon visible', 'A')
+        const result = await listProducts({ category: 'skincare' }, testDb)
+        expect(result.items[0]?.userStatus).toBeNull()
+      })
+
+      it('flags products the caller has shelved with their actual status', async () => {
+        const { createUserProduct } = await import('../../user-products/service')
+        const shelved = await makeProduct('Sur étagère', 'A')
+        const unshelved = await makeProduct('Pas sur étagère', 'B')
+        await createUserProduct(user.id, { productId: shelved.id, status: 'in_stock' }, testDb)
+
+        const result = await listProducts({ category: 'skincare' }, testDb, user.id)
+        const flagged = result.items.find((p) => p.id === shelved.id)
+        const plain = result.items.find((p) => p.id === unshelved.id)
+        expect(flagged?.userStatus).toBe('in_stock')
+        expect(plain?.userStatus).toBeNull()
+      })
+
+      it('does not leak other users shelf status when userId filter is enforced', async () => {
+        const other = await createTestUser('other@test.com')
+        const { createUserProduct } = await import('../../user-products/service')
+        const product = await makeProduct('Produit partagé', 'A')
+        await createUserProduct(other.id, { productId: product.id, status: 'in_stock' }, testDb)
+
+        const result = await listProducts({ category: 'skincare' }, testDb, user.id)
+        expect(result.items[0]?.userStatus).toBeNull()
+      })
+    })
+
     describe('tags aggregation', () => {
       it('exposes positive tags as { slug, tagType, relevance } entries', async () => {
         const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
