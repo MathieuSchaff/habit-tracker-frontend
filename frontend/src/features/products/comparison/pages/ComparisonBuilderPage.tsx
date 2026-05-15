@@ -16,17 +16,19 @@ import { EmptyComparisonState } from '../components/EmptyComparisonState'
 import { ProductPicker } from '../components/ProductPicker'
 import './ComparisonBuilderPage.css'
 
-type Props = { mode: 'new'; id?: never } | { mode: 'edit'; id: string }
+type Props =
+  | { mode: 'new'; id?: never; seedProductId?: string }
+  | { mode: 'edit'; id: string; seedProductId?: never }
 
 export function ComparisonBuilderPage(props: Props) {
-  if (props.mode === 'new') return <NewComparisonBuilder />
+  if (props.mode === 'new') return <NewComparisonBuilder seedProductId={props.seedProductId} />
   return <EditComparisonBuilder id={props.id} />
 }
 
-function NewComparisonBuilder() {
+function NewComparisonBuilder({ seedProductId }: { seedProductId?: string }) {
   const navigate = useNavigate()
   const create = useCreateComparison()
-  const [productIds, setProductIds] = useState<string[]>([])
+  const [productIds, setProductIds] = useState<string[]>(seedProductId ? [seedProductId] : [])
   const [name, setName] = useState<string>('')
 
   const onSave = async () => {

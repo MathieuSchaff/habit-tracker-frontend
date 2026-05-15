@@ -1,12 +1,15 @@
 import type {
   IngredientType,
   Patent,
+  PreferencesTag,
   ProductCategory,
   ProductKind,
   ProductTexture,
   ProductUnit,
   Purchase,
   RepurchaseFlag,
+  RessentiTag,
+  RoutineTag,
   SkincareIngredientCategory,
   SupplementCategory,
   UserProductStatus,
@@ -61,6 +64,9 @@ export function makeUserProduct(
     sentiment: number | null
     wouldRepurchase: RepurchaseFlag | null
     comment: string | null
+    ressenti: RessentiTag[]
+    routine: RoutineTag[]
+    preferences: PreferencesTag[]
     createdAt: string
     updatedAt: string
     product: {
@@ -144,6 +150,9 @@ export function makeUserProduct(
     sentiment: null,
     wouldRepurchase: null,
     comment: null,
+    ressenti: [] as RessentiTag[],
+    routine: [] as RoutineTag[],
+    preferences: [] as PreferencesTag[],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     product: {

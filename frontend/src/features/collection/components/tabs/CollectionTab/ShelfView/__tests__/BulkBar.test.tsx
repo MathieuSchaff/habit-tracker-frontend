@@ -27,7 +27,29 @@ describe('BulkBar', () => {
     const onMove = vi.fn()
     render(<BulkBar selectedCount={2} onMove={onMove} onClear={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: /déplacer vers/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /saint graal/i }))
-    expect(onMove).toHaveBeenCalledWith('holy_grail')
+    fireEvent.click(screen.getByRole('menuitem', { name: /archivé/i }))
+    expect(onMove).toHaveBeenCalledWith('archived')
+  })
+
+  it('shows the Comparer button only when exactly 2 items are selected and onCompare is set', () => {
+    const onCompare = vi.fn()
+    const { rerender } = render(
+      <BulkBar selectedCount={1} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    expect(screen.queryByRole('button', { name: /comparer/i })).not.toBeInTheDocument()
+
+    rerender(
+      <BulkBar selectedCount={3} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    expect(screen.queryByRole('button', { name: /comparer/i })).not.toBeInTheDocument()
+
+    rerender(<BulkBar selectedCount={2} onMove={() => {}} onClear={() => {}} />)
+    expect(screen.queryByRole('button', { name: /comparer/i })).not.toBeInTheDocument()
+
+    rerender(
+      <BulkBar selectedCount={2} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /comparer/i }))
+    expect(onCompare).toHaveBeenCalledOnce()
   })
 })

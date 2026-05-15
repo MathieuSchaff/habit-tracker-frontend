@@ -1,7 +1,8 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import { HOLY_GRAIL_SENTIMENT, type UserProductStatus } from '@habit-tracker/shared'
 
 import { useCallback, useMemo, useState } from 'react'
 
+import { ALL_TAB_STATUSES, SHELF_ORDER } from '@/features/collection/constants'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { ProductCardCondensed } from '../ProductCard/Condensed/ProductCardCondensed'
 import { BulkBar } from './BulkBar'
@@ -18,18 +19,10 @@ interface ShelfViewProps {
   onStatusChangeMany: (productIds: string[], newStatus: UserProductStatus) => void
   onToggleExpand: (id: string) => void
   onAddClick: () => void
+  onCompare?: (ids: [string, string]) => void
 }
 
 const ACTIVE_SHELF_KEY = 'collection:activeShelf'
-
-const ALL_STATUSES: UserProductStatus[] = [
-  'holy_grail',
-  'in_stock',
-  'wishlist',
-  'watched',
-  'archived',
-  'avoided',
-]
 
 export function ShelfView({
   products,
@@ -37,6 +30,7 @@ export function ShelfView({
   onStatusChangeMany,
   onToggleExpand,
   onAddClick,
+  onCompare,
 }: ShelfViewProps) {
   const [activeTab, setActiveTab] = useState<ShelfTabKey>(() => {
     if (typeof window === 'undefined') return 'all'
@@ -58,7 +52,6 @@ export function ShelfView({
 
   const countsByStatus = useMemo(() => {
     const counts: Record<UserProductStatus, number> = {
-      holy_grail: 0,
       in_stock: 0,
       wishlist: 0,
       watched: 0,
@@ -69,8 +62,27 @@ export function ShelfView({
     return counts
   }, [products])
 
+  const holyGrailCount = useMemo(
+    () => products.filter((p) => p.sentiment === HOLY_GRAIL_SENTIMENT).length,
+    [products]
+  )
+
+  const repurchaseCount = useMemo(
+    () => products.filter((p) => p.wouldRepurchase === 'yes').length,
+    [products]
+  )
+
   const visibleProducts = useMemo(() => {
-    if (activeTab === 'all') return products
+    if (activeTab === 'all') {
+      // "Tout" stays calm — past products + rejects live behind the Plus menu.
+      return products.filter((p) => ALL_TAB_STATUSES.includes(p.status))
+    }
+    if (activeTab === 'holy_grail') {
+      return products.filter((p) => p.sentiment === HOLY_GRAIL_SENTIMENT)
+    }
+    if (activeTab === 'repurchase') {
+      return products.filter((p) => p.wouldRepurchase === 'yes')
+    }
     return products.filter((p) => p.status === activeTab)
   }, [products, activeTab])
 
@@ -93,19 +105,39 @@ export function ShelfView({
     [selected, onStatusChangeMany]
   )
 
+  const handleCompare = useCallback(() => {
+    if (!onCompare || selected.size !== 2) return
+    const [a, b] = Array.from(selected) as [string, string]
+    onCompare([a, b])
+    setSelected(new Set())
+  }, [selected, onCompare])
+
   if (products.length === 0) {
     return <FirstTimeEmpty onAdd={onAddClick} />
   }
 
-  const showShelfEmpty =
-    activeTab !== 'all' && visibleProducts.length === 0 && ALL_STATUSES.includes(activeTab)
+  const isStatusTab =
+    activeTab !== 'all' &&
+    activeTab !== 'holy_grail' &&
+    SHELF_ORDER.includes(activeTab as UserProductStatus)
+  const showShelfEmpty = isStatusTab && visibleProducts.length === 0
 
   return (
     <div className="shelf-view">
-      <ShelfTabs active={activeTab} onChange={handleTabChange} countsByStatus={countsByStatus} />
+      <ShelfTabs
+        active={activeTab}
+        onChange={handleTabChange}
+        countsByStatus={countsByStatus}
+        holyGrailCount={holyGrailCount}
+        repurchaseCount={repurchaseCount}
+      />
 
       {showShelfEmpty ? (
         <ShelfEmpty status={activeTab as UserProductStatus} />
+      ) : activeTab === 'holy_grail' && visibleProducts.length === 0 ? (
+        <ShelfEmpty status="holy_grail" />
+      ) : activeTab === 'repurchase' && visibleProducts.length === 0 ? (
+        <ShelfEmpty status="repurchase" />
       ) : (
         <ShelfGrid>
           {visibleProducts.map((p) => (
@@ -122,7 +154,12 @@ export function ShelfView({
         </ShelfGrid>
       )}
 
-      <BulkBar selectedCount={selected.size} onMove={handleMoveBulk} onClear={clearSelection} />
+      <BulkBar
+        selectedCount={selected.size}
+        onMove={handleMoveBulk}
+        onClear={clearSelection}
+        onCompare={onCompare ? handleCompare : undefined}
+      />
     </div>
   )
 }

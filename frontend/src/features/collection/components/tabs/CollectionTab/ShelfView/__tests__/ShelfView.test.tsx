@@ -20,13 +20,18 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   }
 })
 
-function makeProduct(id: string, status: UserProduct['status'], name: string): UserProduct {
+function makeProduct(
+  id: string,
+  status: UserProduct['status'],
+  name: string,
+  sentiment: number | null = null
+): UserProduct {
   return {
     id,
     userId: 'u1',
     productId: `p-${id}`,
     status,
-    sentiment: null,
+    sentiment,
     wouldRepurchase: null,
     comment: null,
     createdAt: new Date().toISOString(),
@@ -74,11 +79,12 @@ describe('ShelfView', () => {
     expect(onAdd).toHaveBeenCalledOnce()
   })
 
-  it('renders Tout + status tabs with accurate counts', () => {
+  it('Tout count reflects primary statuses only (archived + avoided excluded)', () => {
     const products = [
-      makeProduct('1', 'holy_grail', 'Grail A'),
-      makeProduct('2', 'holy_grail', 'Grail B'),
+      makeProduct('1', 'in_stock', 'HG A', 6), // Holy Grail (orthogonal) — still in_stock
+      makeProduct('2', 'in_stock', 'HG B', 6),
       makeProduct('3', 'in_stock', 'Stock A'),
+      makeProduct('4', 'archived', 'Past A'), // excluded from Tout
     ]
     render(
       <ShelfView
@@ -94,9 +100,9 @@ describe('ShelfView', () => {
     expect(tout).toHaveTextContent('3')
   })
 
-  it('filters products when switching tabs', () => {
+  it('filters to sentiment=6 when Saint Graal is picked from the Plus menu', () => {
     const products = [
-      makeProduct('1', 'holy_grail', 'Grail A'),
+      makeProduct('1', 'in_stock', 'Grail A', 6),
       makeProduct('2', 'in_stock', 'Stock A'),
     ]
     render(
@@ -111,9 +117,30 @@ describe('ShelfView', () => {
     expect(screen.getByText('Grail A')).toBeInTheDocument()
     expect(screen.getByText('Stock A')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('tab', { name: /saint graal/i }))
+    fireEvent.click(screen.getByRole('button', { name: /plus de filtres/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /saint graal/i }))
+
     expect(screen.getByText('Grail A')).toBeInTheDocument()
     expect(screen.queryByText('Stock A')).not.toBeInTheDocument()
+  })
+
+  it('filters to wouldRepurchase=yes when À racheter is picked from the Plus menu', () => {
+    const a = makeProduct('1', 'in_stock', 'Rachat A')
+    const b = makeProduct('2', 'in_stock', 'Stock B')
+    ;(a as { wouldRepurchase: 'yes' | null }).wouldRepurchase = 'yes'
+    render(
+      <ShelfView
+        products={[a, b]}
+        onStatusChange={noop}
+        onStatusChangeMany={noop}
+        onToggleExpand={noop}
+        onAddClick={noop}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /plus de filtres/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /à racheter/i }))
+    expect(screen.getByText('Rachat A')).toBeInTheDocument()
+    expect(screen.queryByText('Stock B')).not.toBeInTheDocument()
   })
 
   it('shows a per-shelf empty state for a status tab with no products', () => {

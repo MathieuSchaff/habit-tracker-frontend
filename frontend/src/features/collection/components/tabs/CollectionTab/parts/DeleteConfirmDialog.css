@@ -1,7 +1,3 @@
-.dcd-dialog {
-  border-color: var(--color-error);
-}
-
 .dcd-header {
   display: flex;
   justify-content: space-between;
@@ -11,32 +7,27 @@
   border-bottom: 1px solid var(--bg-muted);
 }
 
-.dcd-header-title {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dcd-warning-icon {
-  color: var(--color-error);
-}
-
 .dcd-dialog-title {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: var(--color-error);
-  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .dcd-body p {
   font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.5;
   margin: 0 0 1rem;
   color: var(--text-primary);
 }
 
 .dcd-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dcd-footer-secondary {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;

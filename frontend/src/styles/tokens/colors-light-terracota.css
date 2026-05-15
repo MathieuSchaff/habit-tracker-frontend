@@ -58,6 +58,8 @@
   --color-accent: oklch(68% 0.2 var(--h-mango));
   --color-accent-light: oklch(92% 0.1 var(--h-mango));
   --color-accent-hover: oklch(60% 0.22 var(--h-mango));
+  --section-accent: var(--color-accent);
+  --bg-deep: oklch(28% 0.1 var(--h-papaya));
 
   /* Extended palette — not yet wired to components */
   --color-aqua: oklch(70% 0.11 var(--h-aqua));

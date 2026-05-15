@@ -1,6 +1,6 @@
 import type { UserProductStatus } from '@habit-tracker/shared'
 
-import { ArrowRight, X } from 'lucide-react'
+import { ArrowRight, GitCompare, X } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { StatusPicker } from './StatusPicker'
@@ -11,10 +11,13 @@ interface BulkBarProps {
   selectedCount: number
   onMove: (status: UserProductStatus) => void
   onClear: () => void
+  onCompare?: () => void
 }
 
-export function BulkBar({ selectedCount, onMove, onClear }: BulkBarProps) {
+export function BulkBar({ selectedCount, onMove, onClear, onCompare }: BulkBarProps) {
   if (selectedCount === 0) return null
+
+  const canCompare = selectedCount === 2 && Boolean(onCompare)
 
   return (
     <section className="bulk-bar-wrap" aria-label="Actions groupées">
@@ -32,6 +35,12 @@ export function BulkBar({ selectedCount, onMove, onClear }: BulkBarProps) {
           <span>{selectedCount > 1 ? 'produits sélectionnés' : 'produit sélectionné'}</span>
         </div>
         <div className="bulk-bar-action">
+          {canCompare && (
+            <button type="button" className="bulk-bar-compare" onClick={onCompare}>
+              <GitCompare size={14} aria-hidden="true" />
+              <span>Comparer</span>
+            </button>
+          )}
           <DropdownMenu>
             <DropdownMenu.Trigger>
               <button type="button" className="bulk-bar-move">

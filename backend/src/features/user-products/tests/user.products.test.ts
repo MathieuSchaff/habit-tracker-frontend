@@ -166,13 +166,13 @@ describe('User Products Service', () => {
         testDb
       )
 
-      const updated = await updateUserProduct(user.id, created.id, { status: 'holy_grail' }, testDb)
-      expect(updated.status).toBe('holy_grail')
+      const updated = await updateUserProduct(user.id, created.id, { status: 'archived' }, testDb)
+      expect(updated.status).toBe('archived')
     })
 
     it('should throw if user product does not exist', async () => {
       const fakeId = crypto.randomUUID()
-      expect(updateUserProduct(user.id, fakeId, { status: 'holy_grail' }, testDb)).rejects.toThrow(
+      expect(updateUserProduct(user.id, fakeId, { status: 'archived' }, testDb)).rejects.toThrow(
         UserProductError
       )
     })
@@ -186,7 +186,7 @@ describe('User Products Service', () => {
       const otherUser = await createTestUser('other@test.com')
 
       expect(
-        updateUserProduct(otherUser.id, created.id, { status: 'holy_grail' }, testDb)
+        updateUserProduct(otherUser.id, created.id, { status: 'archived' }, testDb)
       ).rejects.toThrow(UserProductError)
     })
   })

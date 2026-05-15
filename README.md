@@ -14,10 +14,29 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 - Ingredients linked to each product: role, origin, notes
 - Tags for quick filtering
 - Inventory tracking: what you have, what you're testing, what you're using
+- Calm product detail and comparison UX: no scores, no universal verdicts, no medical claims
 
 **Tasks**
 
 - Simple tasks, no streaks, no pressure
+
+---
+
+## Product & UX Sources
+
+Aurore's skincare UX is designed to stay calm, human, precise, and non-medical.
+
+Core references:
+
+- [`docs/04-design-ux/design-system.md`](docs/04-design-ux/design-system.md) — product UX principles, safe wording, screen structure, scope, and forbidden patterns.
+- [`docs/04-design-ux/product-detail.md`](docs/04-design-ux/product-detail.md) — Product Detail screen structure, French labels, card rules, microcopy, empty states.
+- [`docs/04-design-ux/product-comparison.md`](docs/04-design-ux/product-comparison.md) — product comparison without winners, scores, or fake precision.
+- [`docs/04-design-ux/ux-writing.md`](docs/04-design-ux/ux-writing.md) — voice, tone, approved wording, forbidden claims, French microcopy.
+- [`docs/04-design-ux/anti-patterns.md`](docs/04-design-ux/anti-patterns.md) — what Aurore must avoid around scoring, claims, warnings, recommendations, and trust.
+
+Product rule:
+
+> Aurore helps users understand formulas and remember their own experience. It must not diagnose, rank safety, make treatment claims, or pressure users with fear-based language.
 
 ---
 

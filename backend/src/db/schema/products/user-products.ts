@@ -1,4 +1,10 @@
-import { repurchaseFlag, userProductStatus } from '@habit-tracker/shared'
+import {
+  type PreferencesTag,
+  type RessentiTag,
+  type RoutineTag,
+  repurchaseFlag,
+  userProductStatus,
+} from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -32,15 +38,19 @@ export const userProducts = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     status: userProductStatusEnum('status').notNull().default('in_stock'),
-    sentiment: integer('sentiment'), // 1-5
+    sentiment: integer('sentiment'), // 1-6 (6 = Holy Grail)
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
+    // F10 — user-experience tag catalogs (slug values validated in shared/).
+    ressenti: text('ressenti').array().$type<RessentiTag[]>().notNull().default(sql`'{}'`),
+    routine: text('routine').array().$type<RoutineTag[]>().notNull().default(sql`'{}'`),
+    preferences: text('preferences').array().$type<PreferencesTag[]>().notNull().default(sql`'{}'`),
     ...timestamps,
   },
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
     index('user_products_status_idx').on(t.status),
-    check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 5`),
+    check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 6`),
     ...tenantPolicies('user_products', t.userId),
   ]
 ).enableRLS()

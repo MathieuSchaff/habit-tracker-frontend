@@ -1,0 +1,95 @@
+.aur-problem {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+@media (min-width: 768px) {
+  .aur-problem {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: var(--space-12);
+  }
+}
+.aur-problem__quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.aur-problem__quote em {
+  color: var(--color-accent);
+  font-style: italic;
+  font-weight: 400;
+}
+.aur-problem__attribution {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-4);
+}
+.aur-problem__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 600px) {
+  .aur-problem__list {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+.aur-problem__item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: relative;
+  transition: all var(--transition-base);
+}
+.aur-problem__item-num {
+  font-size: 0.65rem;
+  font-weight: var(--font-bold);
+  font-family: var(--font-mono);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-accent);
+}
+.aur-problem__item-text {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-snug);
+  text-decoration-line: line-through;
+  text-decoration-color: oklch(from var(--color-accent) l c h / 0.58);
+  text-decoration-thickness: 1px;
+  text-decoration-skip-ink: auto;
+}
+.aur-problem__item--solved {
+  border-color: var(--color-primary);
+  border-top: 3px solid var(--color-primary);
+}
+.aur-problem__item--solved .aur-problem__item-text {
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+}
+.aur-problem__item-flag {
+  font-size: 0.7rem;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+/* utility — used inside the manifest column */
+.aur-stack {
+  display: flex;
+  flex-direction: column;
+}
+.aur-gap-4 {
+  gap: var(--space-4);
+}

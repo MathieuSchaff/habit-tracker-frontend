@@ -28,22 +28,14 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
       </div>
       <h2 className="first-empty-title">Votre étagère est vide</h2>
       <p className="first-empty-sub">
-        Commencez par ajouter vos produits préférés. Nous vous aiderons à analyser vos habitudes et
-        à trouver ce qui fonctionne vraiment pour vous.
+        Ajoutez un produit que vous utilisez en ce moment. Aurore pourra vous aider à retenir ce
+        qu'il contient et comment il s'intègre à votre routine.
       </p>
       <Button variant="primary" size="lg" className="first-empty-cta" onClick={onAdd}>
         <Plus size={18} aria-hidden="true" />
         <span>Ajouter mon premier produit</span>
       </Button>
       <div className="first-empty-hints">
-        <div className="first-empty-hint">
-          <span className="first-empty-hint-icon" aria-hidden="true">
-            💎
-          </span>
-          <span>
-            <b>Saint Graal</b> — vos coups de cœur
-          </span>
-        </div>
         <div className="first-empty-hint">
           <span className="first-empty-hint-icon" aria-hidden="true">
             📦
@@ -58,6 +50,14 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
           </span>
           <span>
             <b>Wishlist</b> — vos envies
+          </span>
+        </div>
+        <div className="first-empty-hint">
+          <span className="first-empty-hint-icon" aria-hidden="true">
+            💎
+          </span>
+          <span>
+            <b>Saint Graal</b> — un ressenti à part, sur n'importe quel produit
           </span>
         </div>
       </div>

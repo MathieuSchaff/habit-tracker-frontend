@@ -88,6 +88,8 @@
   --color-accent: var(--mango-bright);
   --color-accent-light: oklch(30% 0.1 var(--h-mango));
   --color-accent-hover: oklch(86% 0.16 var(--h-mango));
+  --section-accent: var(--color-accent);
+  --bg-deep: oklch(10% 0.03 var(--h-plum));
 
   /* =========================
        STATUS
