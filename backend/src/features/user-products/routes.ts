@@ -33,6 +33,7 @@ import {
   deleteUserProduct,
   getUserProductById,
   getUserProductByProductId,
+  getUserProductStatusHistory,
   getUserProducts,
   updateUserProduct,
   upsertUserProductReview,
@@ -119,6 +120,14 @@ export const userProductRoutes = app
       return c.json(ok(result), HTTP_STATUS.OK)
     }
   )
+
+  .get('/:id/history', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
+    const db = c.get('db')
+    const userId = c.get('userId')
+    const { id } = c.req.valid('param')
+    const result = await getUserProductStatusHistory(userId, id, db)
+    return c.json(ok(result), HTTP_STATUS.OK)
+  })
 
   .get('/:id/purchases', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')

@@ -91,9 +91,12 @@ export const productQueries = {
       staleTime: 5 * 60 * 1000,
     }),
 
-  list: (filters: ListProductsFilters = {}) =>
+  // userKey scopes the cache to the caller identity so login/logout flips the
+  // server-personalized fields (userStatus, profileMatches) without surfacing
+  // stale anonymous data. Pass null for anonymous.
+  list: (filters: ListProductsFilters = {}, userKey: string | null = null) =>
     queryOptions({
-      queryKey: productKeys.list(filters),
+      queryKey: [...productKeys.list(filters), userKey] as const,
       queryFn: async () => {
         // Hono RPC types the query as a Zod discriminated union on `category`.
         // buildListProductsQuery returns a stringified record that the backend

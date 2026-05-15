@@ -274,13 +274,7 @@ describe('computeAvoidCandidates — concentration-gated avoid', () => {
 
   test('salicylic pos 2 leave-on toner → peau-sensible concentration', () => {
     const inci = 'Aqua, Salicylic Acid, Glycerin'
-    const got = computeAvoidCandidates(
-      inci,
-      'serum',
-      'skincare',
-      undefined,
-      assess(inci, 'serum')
-    )
+    const got = computeAvoidCandidates(inci, 'serum', 'skincare', undefined, assess(inci, 'serum'))
     expect(got).toContainEqual({
       tagSlug: S.PEAU_SENSIBLE,
       source: 'concentration',
@@ -310,13 +304,7 @@ describe('computeAvoidCandidates — concentration-gated avoid', () => {
     // Both cross-signal (retinoid+AHA) AND concentration (retinol at cap) would
     // emit peau-sensible. Dedup: first source seen wins, cross-signal runs first.
     const inci = 'Aqua, Glycerin, Retinol, Glycolic Acid, Niacinamide'
-    const got = computeAvoidCandidates(
-      inci,
-      'serum',
-      'skincare',
-      undefined,
-      assess(inci, 'serum')
-    )
+    const got = computeAvoidCandidates(inci, 'serum', 'skincare', undefined, assess(inci, 'serum'))
     const peauSensible = got.filter((c) => c.tagSlug === S.PEAU_SENSIBLE)
     expect(peauSensible).toHaveLength(1)
     expect(peauSensible[0].source).toBe('cross-signal')

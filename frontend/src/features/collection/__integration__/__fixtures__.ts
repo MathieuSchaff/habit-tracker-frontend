@@ -27,6 +27,9 @@ type UserProductOverrides = {
   productId?: string
   product?: { name: string; brand: string; kind: string; priceCents: number }
   review?: { tolerance: number; efficacy: number } | null
+  ressenti?: string[]
+  routine?: string[]
+  preferences?: string[]
 }
 
 export function makeUserProductMock(overrides: UserProductOverrides = {}) {
@@ -39,6 +42,9 @@ export function makeUserProductMock(overrides: UserProductOverrides = {}) {
     updatedAt: new Date().toISOString(),
     product: { name: 'Sample', brand: 'Sample Brand', kind: 'Serum', priceCents: 1000 },
     review: null,
+    ressenti: [],
+    routine: [],
+    preferences: [],
     ...overrides,
   }
 }

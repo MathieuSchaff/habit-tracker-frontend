@@ -54,8 +54,9 @@ function clearAndRedirect(
   pathname: string
 ): never {
   store.clearAuth()
-  queryClient.removeQueries({ queryKey: ['session'] })
-  queryClient.removeQueries({ queryKey: ['auth'] })
+  // Same hygiene as useLogout — drop all cached queries when the session
+  // ends, including user-scoped product lists. See queries/auth.ts.
+  queryClient.clear()
   throw redirect({
     to: '/auth/login',
     search: { redirect: pathname },

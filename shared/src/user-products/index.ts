@@ -66,7 +66,22 @@ export const updateUserProductSchema = z.object({
   ressenti: z.array(ressentiTagSchema).optional(),
   routine: z.array(routineTagSchema).optional(),
   preferences: z.array(preferencesTagSchema).optional(),
+  // Optional free-form note captured alongside a status transition. Persisted
+  // to user_product_status_log only, never to user_products.comment. Ignored
+  // when no status change is in the payload.
+  reason: z.string().max(500).optional(),
 })
+
+export const userProductStatusLogEntrySchema = z.object({
+  id: z.uuid(),
+  userProductId: z.uuid(),
+  fromStatus: userProductStatusSchema.nullable(),
+  toStatus: userProductStatusSchema,
+  reason: z.string().nullable(),
+  createdAt: z.string(),
+})
+
+export type UserProductStatusLogEntry = z.infer<typeof userProductStatusLogEntrySchema>
 
 export const updateUserProductReviewSchema = z.object({
   tolerance: z.number().int().min(1).max(5).nullable().optional(),

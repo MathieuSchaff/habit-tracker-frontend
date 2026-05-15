@@ -19,7 +19,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   upload_invalid_format: 'Format invalide',
   upload_too_large: 'Image trop volumineuse',
   upload_invalid_dimensions: 'Dimensions incorrectes',
-  upload_storage_failed: 'Échec serveur, réessaie',
+  upload_storage_failed: 'Échec serveur, réessayez',
   compress_too_large: 'Compression impossible',
   source_too_large: 'Image source > 8 Mo',
   not_found: 'Produit introuvable',

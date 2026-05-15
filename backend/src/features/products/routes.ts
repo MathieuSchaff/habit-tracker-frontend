@@ -14,7 +14,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { optionalJwtAuth, requireJwtAuth } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
 import {
@@ -41,7 +41,7 @@ const checkDuplicateQuery = z.object({
 const productsApp = new Hono<AppEnv>()
 
 productsApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return next()
+  if (c.req.method === 'GET') return optionalJwtAuth(c, next)
   return requireJwtAuth(c, next)
 })
 productsApp.use('*', withRlsContext)
@@ -85,8 +85,9 @@ export const productRoutes = productsApp
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
     const filters = c.req.valid('query')
+    const userId = (c.get('userId') as string | undefined) ?? null
 
-    const result = await listProducts(filters, db)
+    const result = await listProducts(filters, db, userId)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 

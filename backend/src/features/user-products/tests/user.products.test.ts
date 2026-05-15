@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 
 import type { Product } from '../../../db/schema/products'
+import { userProductStatusLog } from '../../../db/schema/products/user-product-status-log'
 import { userProductReviews, userProducts } from '../../../db/schema/user-products'
 import type { User } from '../../../db/schema/users'
 import { createProduct } from '../../../features/products/service'
@@ -14,6 +15,7 @@ import {
   deleteUserProduct,
   getUserProductById,
   getUserProductByProductId,
+  getUserProductStatusHistory,
   getUserProducts,
   updateUserProduct,
   upsertUserProductReview,
@@ -219,6 +221,114 @@ describe('User Products Service', () => {
       const otherUser = await createTestUser('other@test.com')
 
       expect(deleteUserProduct(otherUser.id, created.id, testDb)).rejects.toThrow(UserProductError)
+    })
+  })
+
+  describe('status log', () => {
+    it('logs initial transition (null → status) on creation', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'wishlist' },
+        testDb
+      )
+
+      const log = await testDb
+        .select()
+        .from(userProductStatusLog)
+        .where(eq(userProductStatusLog.userProductId, created.id))
+      expect(log).toHaveLength(1)
+      expect(log[0].fromStatus).toBeNull()
+      expect(log[0].toStatus).toBe('wishlist')
+      expect(log[0].reason).toBeNull()
+    })
+
+    it('appends a row on status change via update', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'wishlist' },
+        testDb
+      )
+
+      await updateUserProduct(
+        user.id,
+        created.id,
+        { status: 'avoided', reason: 'Trop riche pour mon hiver' },
+        testDb
+      )
+
+      const history = await getUserProductStatusHistory(user.id, created.id, testDb)
+      expect(history).toHaveLength(2)
+      expect(history[0].fromStatus).toBe('wishlist')
+      expect(history[0].toStatus).toBe('avoided')
+      expect(history[0].reason).toBe('Trop riche pour mon hiver')
+      expect(history[1].fromStatus).toBeNull()
+      expect(history[1].toStatus).toBe('wishlist')
+    })
+
+    it('does not append when update has no status field', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'in_stock' },
+        testDb
+      )
+
+      await updateUserProduct(user.id, created.id, { comment: 'note only' }, testDb)
+
+      const history = await getUserProductStatusHistory(user.id, created.id, testDb)
+      expect(history).toHaveLength(1)
+    })
+
+    it('does not append when status update matches current status', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'in_stock' },
+        testDb
+      )
+
+      await updateUserProduct(user.id, created.id, { status: 'in_stock' }, testDb)
+
+      const history = await getUserProductStatusHistory(user.id, created.id, testDb)
+      expect(history).toHaveLength(1)
+    })
+
+    it('logs the upsert path when createUserProduct re-statuses an existing row', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'wishlist' },
+        testDb
+      )
+      await createUserProduct(user.id, { productId: product.id, status: 'in_stock' }, testDb)
+
+      const history = await getUserProductStatusHistory(user.id, created.id, testDb)
+      expect(history).toHaveLength(2)
+      expect(history[0].fromStatus).toBe('wishlist')
+      expect(history[0].toStatus).toBe('in_stock')
+    })
+
+    it('trims and nullifies empty reason', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'in_stock' },
+        testDb
+      )
+
+      await updateUserProduct(user.id, created.id, { status: 'archived', reason: '   ' }, testDb)
+
+      const history = await getUserProductStatusHistory(user.id, created.id, testDb)
+      expect(history[0].reason).toBeNull()
+    })
+
+    it('throws when fetching history for another user product', async () => {
+      const created = await createUserProduct(
+        user.id,
+        { productId: product.id, status: 'in_stock' },
+        testDb
+      )
+      const otherUser = await createTestUser('other@test.com')
+
+      expect(getUserProductStatusHistory(otherUser.id, created.id, testDb)).rejects.toThrow(
+        UserProductError
+      )
     })
   })
 

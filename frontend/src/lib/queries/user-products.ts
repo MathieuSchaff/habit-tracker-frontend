@@ -41,12 +41,19 @@ function patchUserProductReview(
   }
 }
 
+// History uses its own root prefix so it can be invalidated independently
+// and stays out of the way of broad `user-products` cache routing (test
+// fixtures keyed by queryKey[0]).
+const userProductHistoryRoot = ['user-product-history'] as const
+
 export const userProductKeys = {
   all: ['user-products'] as const,
   lists: () => [...userProductKeys.all, 'list'] as const,
   list: () => [...userProductKeys.lists()] as const,
   detail: (id: string) => [...userProductKeys.all, 'detail', id] as const,
   byProduct: (productId: string) => [...userProductKeys.all, 'by-product', productId] as const,
+  historyRoot: () => userProductHistoryRoot,
+  history: (id: string) => [...userProductHistoryRoot, id] as const,
 }
 
 export const userProductQueries = {
@@ -78,6 +85,15 @@ export const userProductQueries = {
     },
     retry: false,
   }),
+  history: (id: string) => ({
+    queryKey: userProductKeys.history(id),
+    queryFn: async () => {
+      const res = await api['user-products'][':id'].history.$get({ param: { id } })
+      if (!res.ok) throw new Error('Failed to fetch status history')
+      const data = await res.json()
+      return data.data
+    },
+  }),
 }
 
 export const useCreateUserProduct = () => {
@@ -91,6 +107,7 @@ export const useCreateUserProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
+      queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
     },
     // Callers (useQuickAdd, AddToCollectionModal) drive their own toast.
   })
@@ -130,8 +147,9 @@ export const useUpdateUserProduct = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
+      queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
     },
-    meta: { errorMessage: 'Modification impossible — réessaie plus tard.' },
+    meta: { errorMessage: 'Modification impossible — réessayez plus tard.' },
   })
 }
 
@@ -145,7 +163,7 @@ export const useDeleteUserProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
     },
-    meta: { errorMessage: 'Suppression impossible — réessaie plus tard.' },
+    meta: { errorMessage: 'Suppression impossible — réessayez plus tard.' },
   })
 }
 
@@ -188,6 +206,6 @@ export const useUpsertUserProductReview = () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
     },
-    meta: { errorMessage: 'Note non enregistrée — réessaie plus tard.' },
+    meta: { errorMessage: 'Note non enregistrée — réessayez plus tard.' },
   })
 }

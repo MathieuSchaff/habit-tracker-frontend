@@ -194,7 +194,9 @@ describe('CollectionPage', () => {
     await userEvent.click(deleteBtn)
 
     const dialog = await screen.findByRole('alertdialog')
-    const confirmBtn = await within(dialog).findByRole('button', { name: /^Retirer$/ })
+    const confirmBtn = await within(dialog).findByRole('button', {
+      name: /Retirer définitivement/i,
+    })
     await userEvent.click(confirmBtn)
 
     expect(mockDelete).toHaveBeenCalledWith('up-1', expect.anything())

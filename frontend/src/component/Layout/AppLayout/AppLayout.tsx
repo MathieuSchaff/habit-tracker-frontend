@@ -19,7 +19,7 @@ export const AppLayout = () => {
   const handleResend = () => {
     resend.mutate(undefined, {
       onSuccess: () => toast.success('Email envoyé !'),
-      onError: () => toast.error('Erreur, réessaie plus tard.'),
+      onError: () => toast.error('Erreur, réessayez plus tard.'),
     })
   }
 

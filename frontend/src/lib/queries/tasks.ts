@@ -66,7 +66,7 @@ export function useCreateTask() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: taskKeys.list() })
     },
-    meta: { errorMessage: 'Tâche non créée — réessaie plus tard.' },
+    meta: { errorMessage: 'Tâche non créée — réessayez plus tard.' },
   })
 }
 
