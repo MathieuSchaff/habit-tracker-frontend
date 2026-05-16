@@ -59,7 +59,7 @@
   color: var(--color-error);
 }
 
-/* default variant uses lighter styles to stay visually quiet */
+/* Default variant: lighter so it stays visually quiet. */
 .section-header--default .section-header__title {
   font-family: var(--font-sans);
   font-size: var(--text-xs);

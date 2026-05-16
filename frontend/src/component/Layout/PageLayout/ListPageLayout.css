@@ -37,7 +37,7 @@
   text-align: center;
 }
 
-/* Full-bleed : échappe le padding du root pour aller bord à bord */
+/* Full-bleed: escape root padding to render edge-to-edge. */
 .list-page-layout__header--full-bleed {
   margin-inline: calc(-1 * var(--page-gutter));
   width: calc(100% + 2 * var(--page-gutter));
@@ -136,8 +136,6 @@
     flex: 1;
   }
 }
-
-/* Body */
 
 .list-page-layout__body {
   flex: 1;

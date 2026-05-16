@@ -64,16 +64,14 @@ export function CollectionFilterProvider({
   const { sort, brand, productType, sentiment, repurchase, minNote, maxPrice } =
     routeApi.useSearch()
   const navigate = routeApi.useNavigate()
-  // Local state — search input doesn't need to live in the URL, and keeping it
-  // out avoids re-running the route loader on every keystroke.
+  // Local state — URL-bound search would re-run the route loader on every keystroke.
   const [q, setQ] = useState('')
 
   const filterOptions = useMemo(() => {
     if (!userProducts) return { brands: [], productTypes: [] }
     const brands = Array.from(new Set(userProducts.map((p) => p.product.brand))).sort()
-    // Derive TYPE_* slugs from product.kind. Drops kinds with no type mapping
-    // (haircare/dental/complement) — that catalog still surfaces via brand/note
-    // filters, just not by type axis until those domains get auto-tagging.
+    // Derive TYPE_* slugs from kind. Haircare/dental/complement have no mapping yet
+    // and surface via brand/note filters only.
     const types = new Set<string>()
     for (const up of userProducts) {
       const t = detectKindPrimaryType(up.product.kind as ProductKind)

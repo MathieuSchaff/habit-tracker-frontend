@@ -1,9 +1,6 @@
 import type { FormErrorMap } from '@/lib/helpers/apiError'
 
-// Backend → user message + form field to highlight. Codes come from
-// `productErrorMapping` in shared/products/helpers.ts. Codes that already
-// surface via toast (creation_failed, update_failed) stay unmapped — they
-// fall back to the toast and the generic form message.
+// Codes already surfaced via toast (creation_failed, update_failed) stay unmapped here.
 export type ProductFormField = 'name' | 'brand' | 'kind' | 'tags'
 
 export const PRODUCT_FORM_ERRORS: FormErrorMap<ProductFormField> = {

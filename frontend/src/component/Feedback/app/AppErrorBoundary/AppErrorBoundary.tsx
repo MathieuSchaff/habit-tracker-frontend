@@ -3,13 +3,8 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { reportError } from '../../../../lib/errorReporter'
 import { GlobalError } from '../GlobalError/GlobalError'
 
-// Defense-in-depth boundary for render crashes inside `RootComponent`. The
-// TanStack root `errorComponent` already catches loader errors and route-level
-// component throws; this catches the same family of errors for non-route
-// descendants (Header, Toaster, BottomNav) and lets us reset without a full
-// page reload. Reusable: drop it around any feature subtree that should
-// degrade locally instead of crashing the whole app.
-
+// Defense-in-depth boundary for non-route descendants (Header, Toaster, BottomNav);
+// TanStack root errorComponent handles loader/route throws but not these.
 interface Props {
   children: ReactNode
   fallback?: (props: { error: Error; reset: () => void }) => ReactNode

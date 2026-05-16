@@ -96,10 +96,9 @@ describe('Flow : ajout rapide dans Ma Collection', () => {
     await userEvent.click(screen.getByText('Nouveau produit'))
     await userEvent.type(screen.getByPlaceholderText('ex: CeraVe Hydrating Cleanser'), 'Mon Sérum')
     await userEvent.type(screen.getByPlaceholderText('ex: CeraVe'), 'Ma Marque')
-    // Lose focus to trigger the "Confirm brand" UI
+    // Blur triggers the "Confirm brand" UI.
     await userEvent.tab()
 
-    // Click "Oui" to confirm the new brand
     const confirmButton = await screen.findByRole('button', { name: /Oui/ })
     await userEvent.click(confirmButton)
 

@@ -39,7 +39,7 @@ export function useFormTags({ initialTags, allTags }: UseFormTagsProps) {
     [allTags, tags]
   )
 
-  // Sort before serializing so tag order doesn't affect the dirty check
+  // Sort before serializing so tag order doesn't affect the dirty check.
   const getSortedTagsKey = useCallback((arr: TagState[]) => {
     return JSON.stringify(
       [...arr]

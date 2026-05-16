@@ -32,7 +32,6 @@ export function ActiveFiltersBar<T extends string>({
   }
 
   return (
-    // polite so screen readers announce when filters change
     <div className="list-active-filters" aria-live="polite">
       {activeTags.map(({ key, value }) => (
         <button

@@ -1,8 +1,5 @@
-// Backend always responds with `{ success: false, error: <code>, details? }`
-// for failures (see backend/src/utils/errors/error-handler.ts). This module
-// turns that envelope into a typed `ApiError` so callers can branch on
-// `err.code` / `err.status` instead of regexing message strings.
-
+// Backend failure envelope: `{ success: false, error: <code>, details? }`.
+// See backend/src/utils/errors/error-handler.ts.
 export class ApiError extends Error {
   status: number
   code: string
@@ -32,14 +29,12 @@ export async function throwIfNotOk(res: Response, fallbackCode = 'http_error'): 
       details = body.details
     }
   } catch {
-    // Non-JSON body — keep the fallback code; status alone is enough to branch.
+    // Non-JSON body — fall back to status-only branching.
   }
   throw new ApiError(code, res.status, details)
 }
 
-// Maps backend error codes to user-facing messages, optionally targeting a form
-// field so the UI can highlight that input. Unmapped codes fall through to the
-// caller's generic fallback.
+// Maps backend error codes to user-facing messages, optionally targeting a form field.
 export type FormErrorMap<F extends string = string> = Record<string, { field?: F; message: string }>
 
 export function extractFormError<F extends string>(

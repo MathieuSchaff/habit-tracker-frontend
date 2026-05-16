@@ -1,8 +1,6 @@
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import type { FilterOption, GroupedFilterField } from '../types'
 
-// When a filter field has sub-groups (formulation/texture etc)
-// we render each sub group with its own label and chip limit.
 export function SubGroupedChips<T extends string>({
   field,
   selected,

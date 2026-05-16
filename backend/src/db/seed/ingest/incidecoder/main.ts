@@ -242,20 +242,22 @@ type FetchedINCI = { db: WeakProduct; url: string; inci: string[]; rawINCI: stri
 async function phaseFetch(scoreThreshold: number): Promise<void> {
   const matchRaw = await Bun.file(MATCH_PATH).text()
   const matches: MatchResult[] = JSON.parse(matchRaw)
-  const kept = matches.filter((m) => m.score >= scoreThreshold && m.url)
+  const kept = matches.filter(
+    (m): m is MatchResult & { url: string } => m.score >= scoreThreshold && Boolean(m.url)
+  )
   console.log(`fetching ${kept.length} products (threshold ${scoreThreshold})`)
   const out: FetchedINCI[] = []
   let i = 0
   for (const m of kept) {
     i++
     try {
-      const html = await fetchHTML(m.url!)
+      const html = await fetchHTML(m.url)
       const inci = extractINCIFromProduct(html)
       if (!inci || inci.length === 0) {
         console.log(`  [${i}/${kept.length}] EMPTY ${m.db.slug}`)
         continue
       }
-      out.push({ db: m.db, url: m.url!, inci, rawINCI: inci.join(', ') })
+      out.push({ db: m.db, url: m.url, inci, rawINCI: inci.join(', ') })
       console.log(`  [${i}/${kept.length}] ${m.db.slug}  (${inci.length} ings)`)
     } catch (e) {
       console.log(`  [${i}/${kept.length}] ERROR ${m.db.slug} :: ${(e as Error).message}`)
@@ -300,7 +302,7 @@ if (args.includes('--crawl')) await phaseCrawl()
 else if (args.includes('--match')) await phaseMatch()
 else if (args.includes('--fetch')) {
   const t = parseFloat(args[args.indexOf('--fetch') + 1] ?? '0.75')
-  await phaseFetch(isFinite(t) && t > 0 ? t : 0.75)
+  await phaseFetch(Number.isFinite(t) && t > 0 ? t : 0.75)
 } else if (args.includes('--apply')) await phaseApply()
 else {
   console.log('Usage: --crawl | --match | --fetch [threshold=0.75] | --apply')

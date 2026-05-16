@@ -3,9 +3,7 @@ import type { z } from 'zod'
 import type {
   createIngredientSchema,
   ingredientChangesSchema,
-  ingredientEditResponseSchema,
   ingredientResponseSchema,
-  ingredientSearchResultSchema,
   updateIngredientRouteSchema,
   updateIngredientSchema,
 } from './schemas'
@@ -16,8 +14,6 @@ import type {
 export type CreateIngredientInput = z.infer<typeof createIngredientSchema>
 export type UpdateIngredientInput = z.infer<typeof updateIngredientSchema>
 export type IngredientResponse = z.infer<typeof ingredientResponseSchema>
-export type IngredientSearchResult = z.infer<typeof ingredientSearchResultSchema>
-export type IngredientEditResponse = z.infer<typeof ingredientEditResponseSchema>
 // IngredientChanges = the Zod-validated change payload (used for API + DB column type)
 export type IngredientChanges = z.infer<typeof ingredientChangesSchema>
 export type UpdateIngredientRouteInput = z.infer<typeof updateIngredientRouteSchema>
@@ -44,12 +40,6 @@ export type IngredientEdit = {
   summary: string | null
   createdAt: string | Date
 }
-
-// only the fields a user is allowed to change (no id, slug, timestamps…)
-export type EditableIngredientKeys = Exclude<
-  keyof Ingredient,
-  'id' | 'createdBy' | 'createdAt' | 'slug' | 'updatedAt'
->
 
 export type IngredientErrorCode =
   | 'ingredient_not_found'

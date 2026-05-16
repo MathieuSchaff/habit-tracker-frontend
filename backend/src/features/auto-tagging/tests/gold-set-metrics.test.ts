@@ -99,12 +99,12 @@ describe('bucketByConfidence', () => {
 
   test('confidence == 0 lands in bin 0', () => {
     const result = bucketByConfidence([s(0, 0), s(0, 0)], 10)
-    expect(result[0]!.count).toBe(2)
+    expect(result[0]?.count).toBe(2)
   })
 
   test('boundary p=0.5 with nBins=10 → bin 5 (half-open)', () => {
     const result = bucketByConfidence([s(0.5, 1)], 10)
-    expect(result[5]!.count).toBe(1)
+    expect(result[5]?.count).toBe(1)
   })
 })
 

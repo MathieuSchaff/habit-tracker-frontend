@@ -54,8 +54,7 @@ describe('useEscapeKey', () => {
   })
 
   it('fires every active instance when multiple are mounted', () => {
-    // Current impl has no LIFO/stop semantics — both handlers fire.
-    // If LIFO is added later, this test should be updated to assert ordering.
+    // No LIFO/stop semantics: update this test if ordering is introduced.
     const a = vi.fn()
     const b = vi.fn()
 

@@ -27,8 +27,6 @@ function setup(filters: Record<TestFilter, string[]> = emptyFilters) {
 describe('useListFilters', () => {
   beforeEach(() => navigateMock.mockClear())
 
-  // --- filterCount ---
-
   it('returns 0 when no filters are active', () => {
     const { result } = setup()
     expect(result.current.filterCount).toBe(0)
@@ -38,8 +36,6 @@ describe('useListFilters', () => {
     const { result } = setup({ brand: ['CeraVe', 'La Roche-Posay'], category: ['serum'] })
     expect(result.current.filterCount).toBe(3)
   })
-
-  // --- activeTags ---
 
   it('returns empty activeTags when no filters are active', () => {
     const { result } = setup()
@@ -54,8 +50,6 @@ describe('useListFilters', () => {
       { key: 'category', value: 'cream' },
     ])
   })
-
-  // --- applyFilters ---
 
   it('navigates with merged filters and resets page to 1', () => {
     const { result } = setup()
@@ -76,8 +70,6 @@ describe('useListFilters', () => {
     })
   })
 
-  // --- resetFilters ---
-
   it('resets all filters to empty and sets page to 1 with replace', () => {
     const { result } = setup({ brand: ['CeraVe'], category: ['serum'] })
 
@@ -97,8 +89,6 @@ describe('useListFilters', () => {
     })
   })
 
-  // --- goToPage ---
-
   it('navigates to the given page number', () => {
     const { result } = setup()
 
@@ -107,8 +97,6 @@ describe('useListFilters', () => {
     const searchFn = navigateMock.mock.calls[0][0].search
     expect(searchFn({ page: 1, brand: ['x'] })).toEqual({ page: 4, brand: ['x'] })
   })
-
-  // --- toggleSingleFilter ---
 
   it('adds a value when not present', () => {
     const { result } = setup({ brand: [], category: ['serum'] })

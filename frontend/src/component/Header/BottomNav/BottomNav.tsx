@@ -24,7 +24,6 @@ export function BottomNav() {
   }, [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
 
-  // Focus first link when sheet opens
   useEffect(() => {
     if (sheetOpen) {
       const firstFocusable = sheetRef.current?.querySelector<HTMLElement>('a, button')
@@ -32,7 +31,6 @@ export function BottomNav() {
     }
   }, [sheetOpen])
 
-  // Escape + focus trap
   useEffect(() => {
     if (!sheetOpen) return
 

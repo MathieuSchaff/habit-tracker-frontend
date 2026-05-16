@@ -1,16 +1,12 @@
 :root {
-  /* ===================================
-     HUES — Indigo base (default fallback)
-     =================================== */
+  /* Indigo-base hues — default fallback when no variant is loaded. */
   --hue-primary: 260deg;
   --hue-accent: 35deg;
   --hue-success: 145deg;
   --hue-error: 15deg;
   --hue-warning: 45deg;
 
-  /* ===================================
-     STATUS COLORS — feature collection
-     =================================== */
+  /* Collection status colors — kept theme-independent so status reads consistently across variants. */
   --status-color-in-stock: oklch(65% 0.18 145deg);
   --status-color-wishlist: oklch(58% 0.18 250deg);
   --status-color-watched: oklch(72% 0.15 60deg);
@@ -19,9 +15,7 @@
   --status-color-avoided: oklch(52% 0.14 25deg);
   --status-color-repurchase: oklch(70% 0.14 340deg);
 
-  /* ===================================
-     STATS — theme-independent
-     =================================== */
+  /* Stats palette — theme-independent. */
   --color-stat-orange: oklch(70% 0.18 45deg);
   --color-stat-purple: oklch(65% 0.15 280deg);
 }

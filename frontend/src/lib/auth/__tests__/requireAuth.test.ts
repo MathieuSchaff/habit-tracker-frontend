@@ -3,12 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../../store/auth'
 
-// Mock silentRefresh
 vi.mock('../../queries/silentRefresh', () => ({
   silentRefresh: vi.fn(),
 }))
 
-// Mock authQueries.session()
 vi.mock('../../queries/auth', () => ({
   authQueries: {
     session: () => ({
@@ -84,7 +82,6 @@ describe('requireAuth', () => {
       })
       expect.unreachable('should have thrown redirect')
     } catch {
-      // Redirect thrown — store should be cleared
       expect(useAuthStore.getState().accessToken).toBeNull()
     }
   })
@@ -101,7 +98,7 @@ describe('requireAuth', () => {
   })
 
   it("does NOT redirect when expired token and refresh is in 'cooldown'", async () => {
-    // Expired token = user had a session; cooldown = possible network blip, be lenient
+    // Expired token + cooldown = possible network blip; keep the user in.
     const expiredToken = `h.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }))}.s`
     useAuthStore.getState().setAuth(expiredToken, {
       id: 'u1',
@@ -121,7 +118,6 @@ describe('requireAuth', () => {
   it('attempts silent refresh when token looks valid but server rejects session', async () => {
     setAuthenticated()
 
-    // Make ensureQueryData throw to simulate server rejection
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
     mockSilentRefresh.mockResolvedValue('ok')
 
@@ -150,7 +146,6 @@ describe('requireAuth', () => {
       })
       expect.unreachable('should have thrown redirect')
     } catch {
-      // Redirect thrown — store and queries should be cleared
       expect(useAuthStore.getState().accessToken).toBeNull()
     }
   })
@@ -165,12 +160,11 @@ describe('requireAuth', () => {
     await expect(
       requireAuth({ queryClient, pathname: '/settings', accessToken: tokenBefore })
     ).resolves.toBeUndefined()
-    // Token preserved — user not kicked out on a backoff blip.
+    // User stays logged in through the backoff blip.
     expect(useAuthStore.getState().accessToken).toBe(tokenBefore)
   })
 
   it('attempts refresh when token is expired', async () => {
-    // Set an already-expired token
     const expiredToken = `h.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 60 }))}.s`
     useAuthStore.getState().setAuth(expiredToken, {
       id: 'u1',

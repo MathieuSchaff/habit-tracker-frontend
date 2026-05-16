@@ -33,7 +33,3 @@ export const PRODUCT_TEXTURE_LABELS: Record<ProductTexture, string> = {
   baume: 'Baume',
   patch: 'Patch',
 }
-
-export function getProductTextureLabel(texture: string): string {
-  return PRODUCT_TEXTURE_LABELS[texture as ProductTexture] ?? texture
-}

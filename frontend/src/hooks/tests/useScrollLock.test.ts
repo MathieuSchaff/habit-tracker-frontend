@@ -8,7 +8,6 @@ describe('useScrollLock', () => {
   const originalScrollTo = window.scrollTo
 
   afterEach(() => {
-    // Nettoyer les styles du body après chaque test
     document.body.style.position = ''
     document.body.style.top = ''
     document.body.style.left = ''

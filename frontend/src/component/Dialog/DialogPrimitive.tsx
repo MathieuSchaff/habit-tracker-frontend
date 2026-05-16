@@ -42,7 +42,7 @@ export function DialogPrimitive({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const generatedId = useId()
   const titleId = labelledBy ?? generatedId
-  // showModal() locks background scroll natively; we only need the manual lock on the fallback path
+  // showModal() locks background scroll natively; manual lock only on fallback path.
   const needsManualLock = useRef(false)
 
   useEffect(() => {
@@ -75,13 +75,13 @@ export function DialogPrimitive({
 
   useScrollLock(needsManualLock.current)
 
-  // native fires "cancel" on Escape — drive the unmount via React state instead of letting the browser close it alone
+  // Native fires "cancel" on Escape; route unmount through React instead of letting the browser close alone.
   const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault()
     onClose()
   }
 
-  // backdrop clicks have target === dialog itself; clicks on inner content bubble with a different target
+  // Backdrop clicks land on the dialog itself; inner content bubbles with a different target.
   const handleClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     if (!closeOnBackdrop) return
     if (e.target === dialogRef.current) onClose()

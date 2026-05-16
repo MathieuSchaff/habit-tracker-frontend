@@ -1,5 +1,4 @@
--- F4: drop holy_grail from user_product_status enum, fold into sentiment level 6.
--- See docs/04-design-ux/collection-page-audit.md F4.
+-- Drop holy_grail from user_product_status enum, fold into sentiment level 6.
 -- Migration order: drop checks → text-coerce status → backfill data → swap enum → re-cast → re-check.
 
 ALTER TABLE "user_products" DROP CONSTRAINT "user_products_sentiment_range";--> statement-breakpoint

@@ -42,10 +42,9 @@ const applyVariant = (variant: Variant) => {
   document.documentElement.setAttribute('data-variant', variant)
 }
 
-// terracota is bundled statically; foret + ardoise CSS chunks are fetched on demand.
-// Brief FOUC possible on first switch to a non-cached variant (Vite injects <link>
-// asynchronously). Both light and dark of a variant preload together so theme toggle
-// stays instant after the first variant pick.
+// terracota ships statically; foret/ardoise CSS chunks are fetched on demand.
+// Both light + dark of a variant preload together so theme toggle stays instant after first pick.
+// Brief FOUC possible on first switch since Vite injects <link> asynchronously.
 const loadedVariants = new Set<Variant>(['terracota'])
 
 const loadVariant = (variant: Variant): void => {
@@ -80,7 +79,6 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
     const next = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem(STORAGE_KEY, next)
     applyTheme(next)
-    // variant stays unchanged — toggle only switches light/dark
     set({ theme: next, isUserChoice: true })
   },
 
@@ -99,7 +97,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 }))
 
-// Listen for system theme change, only if user didn't choose manually
+// Follow system theme changes only when the user hasn't picked manually.
 if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!useThemeStore.getState().isUserChoice) {

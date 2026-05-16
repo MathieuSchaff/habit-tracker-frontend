@@ -83,29 +83,6 @@ export const ingredientResponseSchema = z.object({
   updatedAt: z.iso.datetime(),
 })
 
-export const ingredientSearchResultSchema = z.object({
-  id: uuid,
-  name: z.string(),
-  slug: z.string(),
-  type: ingredientTypeSchema,
-  category: z.string().nullable(),
-})
-
-export const ingredientEditResponseSchema = z.object({
-  id: uuid,
-  ingredientId: uuid,
-  editedBy: uuid,
-  changes: z.record(
-    z.string(),
-    z.object({
-      old: z.string().nullable(),
-      new: z.string().nullable(),
-    })
-  ),
-  summary: z.string().nullable(),
-  createdAt: z.iso.datetime(),
-})
-
 // partial because an edit can touch only some fields, but at least one is required
 export const ingredientChangesSchema = z
   .object({

@@ -30,9 +30,7 @@ export function BrandCombobox({
   const [showDropdown, setShowDropdown] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  // Tracks the latest value synchronously so handleBlur doesn't read a stale
-  // closure when Tab autocompletes (handleSelect runs, then native blur fires
-  // before React re-renders with the selected brand).
+  // Synchronous mirror so handleBlur reads the Tab-autocompleted value before React re-renders.
   const latestValueRef = useRef(value)
 
   useEffect(() => {
@@ -69,7 +67,7 @@ export function BrandCombobox({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Tab key autocompletes: select highlighted item or first match, then let focus move next
+    // Tab autocompletes highlighted item or first match, then lets focus advance.
     if (e.key === 'Tab' && showDropdown && filtered.length > 0) {
       const indexToSelect = highlightedIndex >= 0 ? highlightedIndex : 0
       handleSelect(filtered[indexToSelect])
@@ -77,9 +75,7 @@ export function BrandCombobox({
   }
 
   function handleBlur() {
-    // Option clicks don't fire blur — ComboboxPrimitive preventDefaults their
-    // mousedown. Read from ref because Tab-autocomplete sets inputValue via
-    // handleSelect, but blur fires before React re-renders.
+    // Read from ref: Tab-autocomplete updates inputValue, but blur fires before re-render.
     setShowDropdown(false)
     const trimmed = latestValueRef.current.trim()
     if (trimmed && !isKnownBrand(trimmed)) {
@@ -120,7 +116,6 @@ export function BrandCombobox({
             role="combobox"
             label={label}
             required={required}
-            // when no visible label, keep an accessible name
             aria-label={label ? undefined : 'Marque'}
             value={inputValue}
             onChange={handleInputChange}

@@ -54,9 +54,8 @@ const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>>
 }
 
 /**
- * Build product filter accordions from the shared taxonomy. The drawer always
- * shows every category × slug defined in `shared/`, regardless of what is
- * currently seeded in the DB; the API only contributes `tagCounts` so chips
+ * Always render every category × slug defined in `shared/`, regardless of
+ * what is currently seeded. The API only contributes `tagCounts`; chips
  * with zero matching products render disabled.
  */
 export function useProductTagFilterGroups(

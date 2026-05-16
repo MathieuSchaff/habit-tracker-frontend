@@ -17,8 +17,7 @@ import { type ProductSort, productQueries } from '@/lib/queries/products'
 
 import '@/component/Layout/PageLayout/ListPage.css'
 
-// Sections cap: keep the dropdown scannable. Top N matches per facet by
-// alphabetical order — matches are rare enough that ranking has little payoff.
+// Cap matches per facet to keep the dropdown scannable.
 const FACET_SECTION_LIMIT = 2
 
 type Props = {
@@ -241,15 +240,13 @@ type FloatingFilterButtonProps = {
 }
 
 const FLOATING_FILTER_Y_KEY = 'products-floating-filter-y'
-// Pill is 56px tall, centered on viewport mid; halfH = 28
 const PILL_HALF_HEIGHT = 28
-// Visual buffer between pill edge and any obstacle (viewport / nav)
 const EDGE_BUFFER = 8
 
 function computeFloatingFilterBounds() {
   if (typeof window === 'undefined') return { minY: 0, maxY: 0 }
   const halfV = window.innerHeight / 2
-  // Mobile-only — desktop has no bottom-nav rendered
+  // Mobile-only: desktop has no bottom-nav rendered.
   const nav = document.querySelector<HTMLElement>('.bottom-nav')
   const navH = nav?.getBoundingClientRect().height ?? 0
   return {

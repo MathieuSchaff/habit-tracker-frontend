@@ -16,7 +16,7 @@ const labelMap: Record<Key, Record<string, string>> = {
   kind: { serum: 'Sérum', cleanser: 'Nettoyant' },
 }
 
-const getFilterLabel = (key: Key, value: string) => labelMap[key]?.[value] ?? value // fallback to raw slug if not in map
+const getFilterLabel = (key: Key, value: string) => labelMap[key]?.[value] ?? value
 
 describe('ActiveFiltersBar — empty', () => {
   it('renders nothing when there are no active tags and no extras', () => {

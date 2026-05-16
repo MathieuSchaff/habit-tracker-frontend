@@ -11,7 +11,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { api } from '../api'
 
-export const taskKeys = {
+const taskKeys = {
   all: ['tasks'] as const,
   list: () => [...taskKeys.all, 'list'] as const,
   today: () => [...taskKeys.all, 'today'] as const,

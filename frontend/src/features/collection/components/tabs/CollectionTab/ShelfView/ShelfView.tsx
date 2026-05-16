@@ -74,7 +74,7 @@ export function ShelfView({
 
   const visibleProducts = useMemo(() => {
     if (activeTab === 'all') {
-      // "Tout" stays calm — past products + rejects live behind the Plus menu.
+      // Past products + rejects live behind the Plus menu.
       return products.filter((p) => ALL_TAB_STATUSES.includes(p.status))
     }
     if (activeTab === 'holy_grail') {

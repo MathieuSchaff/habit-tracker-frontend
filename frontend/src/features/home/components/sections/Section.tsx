@@ -1,6 +1,5 @@
 import './shared.css'
 
-/** Section eyebrow — small dot + section number + label. */
 export function SectionEyebrow({
   num,
   children,
@@ -20,7 +19,6 @@ export function SectionEyebrow({
   )
 }
 
-/** Standard section header — eyebrow + title + lede. */
 export function SectionHead({
   num,
   eyebrow,
@@ -41,7 +39,6 @@ export function SectionHead({
   )
 }
 
-/** Container — capped width + page gutter. */
 export function Container({
   children,
   className,

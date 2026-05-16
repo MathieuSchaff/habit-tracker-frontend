@@ -21,8 +21,7 @@ import { api } from '../api'
 import { ApiError, throwIfNotOk } from '../helpers/apiError'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 
-// Pre-serialization shape: arrays allowed (buildListProductsQuery converts to CSV).
-// Kept local (not shared discriminated union) because Hono RPC expects Record<string,string>.
+// Pre-serialization shape (arrays → CSV via buildListProductsQuery); local because Hono RPC expects Record<string,string>.
 export type ListProductsFilters = {
   category?: ProductDomainTab
   kind?: string | string[]
@@ -52,8 +51,7 @@ export function buildListProductsQuery(
 
   if (filters.category !== undefined) query.category = filters.category
 
-  // Tag categories + brand/ingredient/kind share the same array-CSV serialization.
-  // avoid_for is profile-derived (not a user filter), kept separate.
+  // avoid_for is profile-derived, kept separate from user-driven tag categories.
   const f = filters as Record<string, string | string[] | undefined>
   for (const key of FILTER_KEYS) addParam(key, f[key])
   addParam('avoid_for', filters.avoid_for)
@@ -91,16 +89,12 @@ export const productQueries = {
       staleTime: 5 * 60 * 1000,
     }),
 
-  // userKey scopes the cache to the caller identity so login/logout flips the
-  // server-personalized fields (userStatus, profileMatches) without surfacing
-  // stale anonymous data. Pass null for anonymous.
+  // userKey scopes cache to caller identity; login/logout flips personalized fields without stale anonymous data.
   list: (filters: ListProductsFilters = {}, userKey: string | null = null) =>
     queryOptions({
       queryKey: [...productKeys.list(filters), userKey] as const,
       queryFn: async () => {
-        // Hono RPC types the query as a Zod discriminated union on `category`.
-        // buildListProductsQuery returns a stringified record that the backend
-        // validator accepts at runtime; the cast bridges that shape gap.
+        // Cast bridges Hono RPC's Zod discriminated union and our stringified record (accepted at runtime).
         const query = buildListProductsQuery(filters) as Parameters<
           typeof api.products.$get
         >[0]['query']
@@ -143,8 +137,7 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
-  // Flat (non-infinite) variant for AsyncSearchSelect: one page is plenty for
-  // a typeahead, and the consumer needs queryOptions, not infiniteQueryOptions.
+  // Non-infinite variant for AsyncSearchSelect typeahead.
   searchFlat: (q: string) =>
     queryOptions({
       queryKey: [...productKeys.all, 'search-flat', q] as const,
@@ -172,8 +165,7 @@ export const productQueries = {
     }),
 
   checkDuplicate: (name: string, brand: string) => {
-    // Normalize so case/whitespace variants share a single cache entry —
-    // server already matches case-insensitively.
+    // Normalize so case/whitespace variants share one cache entry (server matches case-insensitively).
     const n = name.trim().toLowerCase()
     const b = brand.trim().toLowerCase()
     return queryOptions({
@@ -229,15 +221,11 @@ export function useCreateProduct() {
       return json.data
     },
     onSuccess: () => {
-      // No bySlug seeding: POST returns the row only, but the bySlug cache
-      // holds full ProductDetail (row + tags + ingredients). Seeding with the
-      // truncated row would crash consumers reading .tags/.ingredients on the
-      // detail page that mounts after navigation. Leave the cache empty so the
-      // next subscriber fetches the canonical shape.
+      // Don't seed bySlug: POST returns row only, cache holds full ProductDetail with tags/ingredients.
       qc.invalidateQueries({ queryKey: productKeys.lists() })
       qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
-    // Caller (useQuickAdd, AddToCollectionModal) toasts the contextual message.
+    // Callers (useQuickAdd, AddToCollectionModal) own the contextual toast.
   })
 }
 
@@ -252,10 +240,7 @@ export function useUpdateProduct() {
       return json.data
     },
     onSuccess: (product) => {
-      // PATCH returns the row only; bySlug cache holds full ProductDetail
-      // (row + tags + ingredients via getProductFullBySlug). Direct setQueryData
-      // would truncate the cache and crash consumers reading .tags/.ingredients
-      // until the next refetch lands. Invalidate triggers a fresh GET.
+      // Invalidate (not setQueryData): PATCH returns row only, bySlug cache holds full ProductDetail.
       qc.invalidateQueries({ queryKey: productKeys.bySlug(product.slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
@@ -397,7 +382,7 @@ export function useRemoveProductIngredient() {
       })
       if (!res.ok) throw new Error('Failed to remove product ingredient')
     },
-    // Optimistic remove: drop the row immediately so unrelated rows stay interactive.
+    // Drop the row immediately so unrelated rows stay interactive.
     onMutate: (variables) => {
       return applyOptimisticUpdates(qc, variables, [
         optimisticCacheUpdate<RemoveProductIngredientVariables, BySlugData>({
@@ -427,8 +412,7 @@ export type ProductListItem = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.list>['queryFn']>>>
 >['items'][number]
 
-// Single source of truth for the bySlug response shape. Inferred from the
-// query so adding a backend field surfaces here without manual type sync.
+// Inferred from query so backend field additions surface without manual type sync.
 export type ProductDetail = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.bySlug>['queryFn']>>>
 >

@@ -1,7 +1,3 @@
-/* =========================================
-   GlobalError — dropper spill error page
-   ========================================= */
-
 .global-error-page {
   display: flex;
   flex-direction: column;
@@ -13,13 +9,10 @@
   font-family: var(--font-sans);
 }
 
-/* ---- Illustration ---- */
-
 .global-error-illustration {
   margin-bottom: var(--space-6);
 }
 
-/* Drops fall from the dropper tip downward */
 @keyframes drip {
   0% {
     transform: translateY(0);
@@ -50,8 +43,6 @@
   animation-delay: 2.2s;
 }
 
-/* ---- Copy ---- */
-
 .global-error-title {
   font-family: var(--font-display);
   font-size: var(--text-3xl);
@@ -72,8 +63,6 @@
   margin: 0 0 var(--space-8) 0;
   max-width: 340px;
 }
-
-/* ---- Actions ---- */
 
 .global-error-actions {
   display: flex;

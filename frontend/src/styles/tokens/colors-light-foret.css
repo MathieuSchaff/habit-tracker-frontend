@@ -1,33 +1,23 @@
 [data-theme="light"][data-variant="foret"] {
   color-scheme: light;
 
-  /* =========================
-       HUES — Pine + terracotta + amber honey
-     ========================= */
+  /* Pine + terracotta + amber honey. */
   --h-pine: 155;
   --h-terracotta: 30;
   --h-amber: 75;
   --h-coral: 18;
   --h-ink: 150;
 
-  /* =========================
-       CHROMA
-     ========================= */
   --c-muted: 0.07;
   --c-soft: 0.018;
 
-  /* =========================
-       LIGHTNESS — page parchment, cards pure white
-     ========================= */
+  /* Page parchment, cards pure white. */
   --l-page: 98.5%;
   --l-card: 100%;
   --l-elevated: 100%;
   --l-sunken: 95%;
   --l-muted: 97%;
 
-  /* =========================
-       NAMED COLORS
-     ========================= */
   --pine-deep: oklch(38% 0.13 var(--h-pine));
   --pine-mid: oklch(54% 0.16 var(--h-pine));
   --terracotta-warm: oklch(64% 0.16 var(--h-terracotta));
@@ -35,9 +25,7 @@
   --amber-honey: oklch(78% 0.16 var(--h-amber));
   --text-inverse-warm: oklch(100% 0 0);
 
-  /* =========================
-       PRIMARY — Pine green CTA
-     ========================= */
+  /* Primary: pine green CTA. */
   --color-primary: var(--pine-mid);
   --color-primary-hover: oklch(46% 0.18 var(--h-pine));
   --color-primary-text: oklch(100% 0 0);
@@ -47,9 +35,7 @@
   --color-primary-light: oklch(92% 0.06 var(--h-pine));
   --color-primary-subtle: oklch(97% 0.012 var(--h-pine));
 
-  /* =========================
-       SIDEBAR — Dark pine, amber accent
-     ========================= */
+  /* Sidebar: dark pine, amber accent. */
   --color-sidebar-bg: oklch(26% 0.1 var(--h-pine));
   --color-sidebar-item-hover: oklch(34% 0.12 var(--h-pine));
   --color-sidebar-item-active: oklch(from var(--amber-honey) l c h / 0.22);
@@ -59,39 +45,27 @@
   --color-sidebar-text-active: var(--amber-honey);
   --color-sidebar-accent: var(--amber-honey);
 
-  /* =========================
-       SECONDARY / TERTIARY
-     ========================= */
   --color-secondary: var(--terracotta-warm);
   --color-tertiary: var(--amber-honey);
 
-  /* =========================
-       HEADER — Pine green bold band, white actions
-     ========================= */
+  /* Header: pine green band, white actions. */
   --color-header-bg: var(--pine-deep);
   --color-header-action: oklch(100% 0 0);
   --color-header-action-bg-hover: oklch(from oklch(100% 0 0) l c h / 0.18);
 
-  /* =========================
-       TEXT — Deep moss with green undertone
-     ========================= */
+  /* Deep moss text with green undertone. */
   --text-inverse: var(--text-inverse-warm);
   --text-primary: oklch(20% 0.06 var(--h-ink));
   --text-secondary: oklch(40% 0.06 var(--h-ink));
   --text-muted: oklch(56% var(--c-muted) var(--h-ink));
 
-  /* =========================
-       ACCENT — Terracotta highlight
-     ========================= */
+  /* Accent: terracotta highlight. */
   --color-accent: var(--terracotta-deep);
   --color-accent-light: oklch(94% 0.06 var(--h-terracotta));
   --color-accent-hover: oklch(48% 0.2 var(--h-terracotta));
   --section-accent: var(--color-accent);
   --bg-deep: oklch(22% 0.07 var(--h-pine));
 
-  /* =========================
-       STATUS
-     ========================= */
   --color-success: oklch(50% 0.18 var(--h-pine));
   --color-success-light: oklch(94% 0.06 var(--h-pine));
   --color-error: oklch(56% 0.22 var(--h-coral));
@@ -101,70 +75,45 @@
   --color-warning-light: oklch(96% 0.06 60);
   --color-warning-text: oklch(42% 0.14 60);
 
-  /* =========================
-       BACKGROUNDS — Page warm parchment, cards pure white
-     ========================= */
+  /* Page warm parchment, cards pure white. */
   --bg-page: oklch(var(--l-page) var(--c-soft) var(--h-amber));
   --bg-card: oklch(var(--l-card) 0 0);
   --bg-elevated: oklch(var(--l-elevated) 0 0);
   --bg-sunken: oklch(var(--l-sunken) 0.025 var(--h-amber));
   --bg-muted: oklch(var(--l-muted) 0.012 var(--h-amber));
 
-  /* =========================
-       PAGE TITLE — Terracotta pop on green theme
-     ========================= */
+  /* Page H1: terracotta pop on green base. */
   --page-title-color: var(--terracotta-deep);
 
-  /* =========================
-       CARD FOOTER — Warm clay tint
-     ========================= */
+  /* Card footer: warm clay tint. */
   --card-footer-bg: oklch(95% 0.03 var(--h-terracotta));
   --card-footer-border: oklch(85% 0.07 var(--h-terracotta));
   --card-footer-color: var(--text-primary);
   --card-footer-color-muted: var(--text-muted);
 
-  /* =========================
-       PRODUCT UNIT CHIP — White bg, terracotta text
-     ========================= */
   --product-unit-chip-bg: oklch(100% 0 0);
   --product-unit-chip-text: var(--terracotta-deep);
   --product-unit-chip-border: oklch(100% 0 0);
 
-  /* =========================
-       HOVER / ACTIVE / SELECTED
-     ========================= */
   --bg-hover: oklch(from var(--color-primary) l c h / 0.08);
   --bg-active: oklch(from var(--color-primary) l c h / 0.14);
   --bg-selected: var(--color-secondary);
 
-  /* =========================
-       BORDERS
-     ========================= */
   --border-default: oklch(78% 0.05 var(--h-pine));
   --border-strong: oklch(58% 0.1 var(--h-pine));
 
-  /* =========================
-       SHADOWS
-     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.1);
   --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.1), 0 1px 4px oklch(0% 0 0 / 0.06);
 
-  /* =========================
-       TAGS
-     ========================= */
   --tag-active-bg: var(--pine-deep);
   --tag-active-text: var(--amber-honey);
   --tag-default-bg: oklch(90% 0.05 var(--h-pine));
   --tag-default-text: oklch(40% 0.08 var(--h-pine));
 
-  /* =========================
-       MISC
-     ========================= */
   --overlay: oklch(15% 0.08 var(--h-pine) / 0.45);
   --surface-bright: oklch(99% 0.002 0deg);
   --hero-glow: oklch(94% 0.04 var(--h-amber));
 
-  /* Toggle */
   --toggle-track-bg: var(--color-primary-dark);
   --toggle-track-hover-bg: var(--color-primary-deeper);
   --toggle-fg: oklch(100% 0 0);

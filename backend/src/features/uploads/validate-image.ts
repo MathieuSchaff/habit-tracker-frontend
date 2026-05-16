@@ -20,7 +20,7 @@ export function validateWebpUpload(buf: Buffer, opts: Options): void {
   }
 }
 
-export function parseWebpDimensions(buf: Buffer): { width: number; height: number } {
+function parseWebpDimensions(buf: Buffer): { width: number; height: number } {
   if (buf.byteLength < 30) throw new UploadError('upload_invalid_format')
   const chunkType = buf.subarray(12, 16).toString('ascii')
 

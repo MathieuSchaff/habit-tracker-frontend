@@ -11,8 +11,7 @@ function isRefreshEndpoint(input: RequestInfo | URL): boolean {
   return url.includes('/api/auth/refresh')
 }
 
-// The original `init` was built with the OLD token by the `headers` callback below.
-// After a refresh, the retry must overwrite Authorization with the NEW token.
+// Retry after refresh must overwrite Authorization with the new token.
 function withAuthHeader(init: RequestInit | undefined, token: string | null): RequestInit {
   const headers = new Headers(init?.headers)
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -28,15 +27,13 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
 
   const hadSession = useAuthStore.getState().accessToken != null
 
-  // Lazy import breaks the api ↔ silentRefresh init order: api.ts loads first without
-  // pulling silentRefresh, which is only resolved when a 401 actually occurs.
+  // Lazy import breaks the api ↔ silentRefresh circular init order.
   // fallow-ignore-next-line circular-dependencies
   const { silentRefresh } = await import('./queries/silentRefresh')
-  // silentRefresh dedupes concurrent calls internally, so parallel 401s share one refresh.
+  // silentRefresh dedupes concurrent calls so parallel 401s share one refresh.
   const result = await silentRefresh(queryClient)
   if (result !== 'ok') {
-    // Only flag as expired if the user actually had a token — boot probes on
-    // anonymous browsers also land here and shouldn't trigger a login redirect.
+    // Anonymous boot probes also hit 401; don't redirect them to login.
     if (result === 'failed' && hadSession) useAuthStore.getState().markSessionExpired()
     return res
   }
@@ -47,7 +44,7 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
 
 const client = hc<AppType>('/', {
   fetch: authFetch,
-  // Read the token per request so a refresh between calls is picked up without rebuilding the client.
+  // Read token per request so refreshes between calls are picked up without rebuilding the client.
   headers: (): Record<string, string> => {
     const token = useAuthStore.getState().accessToken
     return token ? { Authorization: `Bearer ${token}` } : {}

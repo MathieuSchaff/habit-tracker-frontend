@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-page);
-  /*important: do not delete. This is to stop the body from changing size when a scroll bar appear*/
+  /* Prevents body width jumping when the scrollbar appears. */
   scrollbar-gutter: stable;
 }
 

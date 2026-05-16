@@ -11,12 +11,10 @@ import { useAuthStore } from '@/store/auth'
 import { createTestQueryClient } from '@/test/utils'
 import { IngredientForm } from '../IngredientForm'
 
-// Mocking auth store
 vi.mock('@/store/auth', () => ({
   useAuthStore: vi.fn(),
 }))
 
-// Mocking hooks from queries/ingredients
 vi.mock('@/lib/queries/ingredients', () => ({
   useCreateIngredient: vi.fn(),
   useUpdateIngredient: vi.fn(),
@@ -37,7 +35,6 @@ vi.mock('@/lib/queries/ingredients', () => ({
   },
 }))
 
-// Mocking hooks from queries/tags
 vi.mock('@/lib/queries/tags', () => ({
   tagQueries: {
     list: vi.fn(() => ({
@@ -76,12 +73,10 @@ describe('IngredientForm - Conflict Resolution', () => {
       isPending: false,
     })
 
-    // 1. Initial attempt fails with 409
     const conflictError = new Error('Conflict')
     ;(conflictError as any).status = 409
     mockMutateAsync.mockRejectedValueOnce(conflictError)
 
-    // 2. Fetch fresh version after 409
     const freshIngredient = {
       ...mockIngredient,
       description: 'Server edited description',
@@ -96,36 +91,28 @@ describe('IngredientForm - Conflict Resolution', () => {
       </QueryClientProvider>
     )
 
-    // Change description to our draft
     const descriptionField = screen.getByLabelText(/Description/)
     fireEvent.change(descriptionField, { target: { value: 'My local draft' } })
 
-    // Submit form
     const saveButton = screen.getByRole('button', { name: /Enregistrer/i })
     fireEvent.click(saveButton)
 
-    // Wait for conflict banner to appear
     await waitFor(() => {
       expect(screen.getByText(/Conflit détecté/i)).toBeInTheDocument()
     })
 
-    // Form should now show the server's value
     expect(descriptionField).toHaveValue('Server edited description')
 
-    // But our draft hint should be visible
+    // Banner description also contains "Ton brouillon" — match by count, not unique.
     const draftHints = screen.getAllByText(/Ton brouillon/i)
-    // The banner also contains the text "Ton brouillon" in its description, hence the ambiguity
     expect(draftHints.length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('My local draft')).toBeInTheDocument()
 
-    // Restore our draft
     const restoreButton = screen.getByRole('button', { name: /Restaurer/i })
     fireEvent.click(restoreButton)
 
-    // Field should be back to our draft
     expect(descriptionField).toHaveValue('My local draft')
 
-    // Try saving again - it should now use the fresh updatedAt
     mockMutateAsync.mockResolvedValueOnce({ ...mockIngredient, slug: 'retinol' })
     fireEvent.click(saveButton)
 
@@ -137,7 +124,6 @@ describe('IngredientForm - Conflict Resolution', () => {
           }),
         })
       )
-      // Check date separately to avoid issues with exact object matching
       const lastCall = mockMutateAsync.mock.calls[mockMutateAsync.mock.calls.length - 1][0]
       expect(new Date(lastCall.data.expectedUpdatedAt).toISOString()).toBe(
         new Date('2024-01-01T10:05:00Z').toISOString()
@@ -153,7 +139,6 @@ describe('IngredientForm - Conflict Resolution', () => {
     ;(useCreateIngredient as any).mockReturnValue({ isPending: false })
     ;(useUpdateIngredient as any).mockReturnValue({ isPending: false })
 
-    // Non-admin
     ;(useAuthStore as any).mockReturnValue({ isAdmin: false })
     const { rerender } = render(
       <QueryClientProvider client={queryClient}>
@@ -162,7 +147,6 @@ describe('IngredientForm - Conflict Resolution', () => {
     )
     expect(screen.queryByLabelText(/Slug/)).not.toBeInTheDocument()
 
-    // Admin
     ;(useAuthStore as any).mockReturnValue({ isAdmin: true })
     rerender(
       <QueryClientProvider client={queryClient}>

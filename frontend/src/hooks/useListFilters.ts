@@ -28,8 +28,7 @@ export function useListFilters<T extends string>({
     return filterKeys.flatMap((key) => (filters[key] ?? []).map((value) => ({ key, value })))
   }, [filters, filterKeys])
 
-  // resetScroll:false — filter changes shouldn't yank the user back to the top;
-  // the drawer typically sits at viewport bottom and a scroll-jump on close is jarring.
+  // resetScroll:false — the filter drawer sits at viewport bottom, scroll-jump on close is jarring.
   const applyFilters = (newFilters: FilterValues<T>) => {
     navigate({
       search: (prev: Record<string, unknown>) => ({ ...prev, ...newFilters, page: 1 }),

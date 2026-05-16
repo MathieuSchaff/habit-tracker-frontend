@@ -5,8 +5,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { FilterGroupConfig, FilterValues } from '../../types'
 import { FilterDrawer } from '../FilterDrawer'
 
-// jsdom does not implement <dialog>.showModal()/close() — stub them so the
-// drawer's open/close lifecycle can run without throwing.
+// jsdom lacks <dialog>.showModal/close; stub for the drawer's open/close lifecycle.
 beforeAll(() => {
   if (!HTMLDialogElement.prototype.showModal) {
     HTMLDialogElement.prototype.showModal = function () {
@@ -164,7 +163,7 @@ describe('FilterDrawer — reset', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Réinitialiser/i }))
     expect(onReset).toHaveBeenCalledTimes(1)
-    // After reset, applying should commit the empty state (not the original currentFilters)
+    // After reset, Apply commits the empty state, not the original currentFilters.
     fireEvent.click(screen.getByRole('button', { name: /Appliquer/i }))
     const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
     expect(payload.concern).toEqual([])
@@ -205,7 +204,6 @@ describe('FilterDrawer — Escape key (native cancel)', () => {
         onReset={vi.fn()}
       />
     )
-    // User stages a local change then escapes → draft must be discarded.
     fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
 
     const dialog = document.querySelector('dialog') as HTMLDialogElement
@@ -270,8 +268,7 @@ describe('FilterDrawer — currentFilters resync', () => {
         onReset={vi.fn()}
       />
     )
-    // User makes a local change, then the parent pushes a different snapshot
-    // (e.g. URL state changed externally).
+    // Parent pushes a different snapshot (e.g. URL state changed externally) while a local change is staged.
     fireEvent.click(screen.getByRole('button', { name: /Acné/i }))
     rerender(
       <FilterDrawer
@@ -286,7 +283,6 @@ describe('FilterDrawer — currentFilters resync', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Appliquer/i }))
     const payload = onApply.mock.calls[0]?.[0] as FilterValues<Key>
-    // Local 'acne' was wiped by the resync to the new currentFilters.
     expect(payload.concern).toEqual(['anti-age'])
   })
 })
@@ -346,7 +342,6 @@ describe('FilterDrawer — focus restoration', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Fermer les filtres/i }))
 
-    // handleClose schedules `previousFocusRef.current?.focus()` via setTimeout(0).
     await waitFor(() => {
       expect(document.activeElement).toBe(opener)
     })
@@ -361,7 +356,7 @@ describe('FilterDrawer — async child does not block the drawer', () => {
     })
 
     function PendingChild() {
-      // Hangs forever — simulates a slow async loader injected into the drawer.
+      // Hangs forever — simulates a slow async loader inside the drawer.
       useQuery({
         queryKey: ['pending'],
         queryFn: () => new Promise<never>(() => {}),
@@ -396,13 +391,9 @@ describe('FilterDrawer — async child does not block the drawer', () => {
   })
 })
 
-// Regression guards for the "Maximum update depth" feedback loop documented
-// in filter-drawer.md §5.2. The bug was a useEffect that emitted localFilters
-// upward on every change — paired with an unmemoised parent `currentFilters`,
-// it ping-ponged renders forever. Fix moved the emit to user-action paths
-// (`commitLocal`). These tests pin that contract: opening the drawer must not
-// emit; toggling emits exactly once; a fresh-but-equal `currentFilters` ref
-// from the parent must not bubble back up.
+// Regression guards for the §5.2 "Maximum update depth" loop: emit-on-effect
+// + unmemoised parent currentFilters ping-ponged forever. Fix moved emit into
+// commitLocal (user-action only).
 describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
   it('does not call onLocalFiltersChange just by opening', () => {
     const onChange = vi.fn()
@@ -441,9 +432,7 @@ describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
   })
 
   it('emits exactly once even when the parent ships a fresh currentFilters ref each render', () => {
-    // Reproduces the unmemoised-parent shape that triggered the loop. Build a
-    // brand-new `currentFilters` object on every rerender; the drawer must not
-    // re-emit just because the ref changed.
+    // Fresh object every rerender mimics the unmemoised-parent that triggered the loop.
     const onChange = vi.fn()
     const renderWithFreshRef = () => (
       <FilterDrawer
@@ -489,10 +478,8 @@ describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
   })
 })
 
-// Native <dialog> already implies role="dialog" + aria-modal semantics, but
-// we also set aria-modal and aria-labelledby explicitly so screen readers in
-// jsdom-style environments report the title as the dialog name. These pin
-// the contract.
+// Native <dialog> implies dialog + aria-modal, but jsdom-like SRs need the
+// attributes explicit to report the title; pin that contract.
 describe('FilterDrawer — a11y attributes', () => {
   it('exposes aria-modal=true on the dialog', () => {
     render(
@@ -652,9 +639,6 @@ describe('FilterDrawer — Apply button label', () => {
   })
 })
 
-// ArrowDown/ArrowUp move focus between accordion triggers, but only when the
-// trigger itself is focused — typing arrows inside a chip or input must not
-// hijack focus.
 describe('FilterDrawer — accordion trigger keyboard nav', () => {
   it('ArrowDown moves focus from the first trigger to the second', async () => {
     render(
@@ -727,7 +711,6 @@ describe('FilterDrawer — accordion trigger keyboard nav', () => {
     const chip = screen.getByRole('button', { name: /Acné/i })
     chip.focus()
     fireEvent.keyDown(chip, { key: 'ArrowDown' })
-    // Focus stays on the chip — handleArrowNav guard ignores non-trigger targets.
     expect(document.activeElement).toBe(chip)
   })
 })

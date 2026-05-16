@@ -41,9 +41,7 @@ function patchUserProductReview(
   }
 }
 
-// History uses its own root prefix so it can be invalidated independently
-// and stays out of the way of broad `user-products` cache routing (test
-// fixtures keyed by queryKey[0]).
+// Separate root so history invalidates independently and doesn't collide with `user-products` routing.
 const userProductHistoryRoot = ['user-product-history'] as const
 
 export const userProductKeys = {
@@ -109,14 +107,11 @@ export const useCreateUserProduct = () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
     },
-    // Callers (useQuickAdd, AddToCollectionModal) drive their own toast.
+    // useQuickAdd / AddToCollectionModal drive their own toast.
   })
 }
 
-/**
- * Updates the list in the cache right away so the UI feels instant,
- * then rolls back to the previous state if the server returns an error.
- */
+/** Optimistic update with rollback on server error. */
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()
   return useMutation({

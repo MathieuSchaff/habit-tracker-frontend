@@ -1,13 +1,9 @@
-/* ============================================================
-   Products Page — Editorial Toolbar Header
-   Full-bleed chrome, capped inner rail (aligned to .list-main)
-   ============================================================ */
-
+/* Products page header: full-bleed chrome, inner rail aligned to .list-main. */
 .products-page {
   --products-rail: 72rem;
 }
 
-/* Title row — full-bleed gradient, contenu calé sur le rail */
+/* Title row: full-bleed gradient, content aligned on rail. */
 .products-header__top {
   padding-inline: var(--space-6);
 }
@@ -27,7 +23,7 @@
   font-weight: 700;
 }
 
-/* Sticky toolbar — full-bleed bordures, contenu calé sur le rail */
+/* Sticky toolbar: full-bleed borders, content aligned on rail. */
 .products-header__toolbar {
   position: sticky;
   top: 0;
@@ -45,13 +41,13 @@
   gap: var(--space-4);
 }
 
-/* Tabs : largeur naturelle (override width: 100% de Tabs.css) */
+/* Override Tabs.css width: 100% to natural width. */
 .products-header__toolbar-inner .tabs-wrapper {
   flex-shrink: 0;
   width: auto;
 }
 
-/* Desktop : pill tabs plus généreux pour matcher la densité du toolbar */
+/* Desktop: roomier pill tabs to match toolbar density. */
 @media (min-width: 769px) {
   .products-header__toolbar-inner .icon-tab {
     padding: var(--space-2) var(--space-4);
@@ -78,10 +74,7 @@
   min-height: 38px;
 }
 
-/* ============================================================
-   Collapsible filter chips strip
-   ============================================================ */
-
+/* Collapsible filter chips strip */
 .products-chips-collapsible {
   border-top: 1px solid var(--border-default);
   border-bottom: 1px solid var(--border-default);
@@ -167,11 +160,7 @@
   overflow: hidden;
 }
 
-/* ============================================================
-   Floating sticky filter pill
-   Appears when the toolbar scrolls out of the viewport
-   ============================================================ */
-
+/* Floating sticky filter pill — appears when toolbar scrolls off. */
 .products-floating-filter {
   position: fixed;
   right: 0;
@@ -192,7 +181,7 @@
   font-weight: 700;
   font-size: var(--text-sm);
   cursor: grab;
-  /* Prevent page scroll while dragging vertically on touch */
+  /* Prevent page scroll while dragging vertically on touch. */
   touch-action: none;
   transition:
     transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1),
@@ -240,10 +229,7 @@
   border: 2px solid var(--color-primary);
 }
 
-/* ============================================================
-   Mobile
-   ============================================================ */
-
+/* Mobile */
 @media (--mobile) {
   .products-header__top {
     padding: var(--space-4) var(--space-4) var(--space-2);
@@ -309,11 +295,7 @@
   }
 }
 
-/* ============================================================
-   Wide screens — rail élargi + grille 3 colonnes
-   Aligne le contenu sur var(--products-rail) défini en haut
-   ============================================================ */
-
+/* Wide screens: 3-column grid aligned on --products-rail. */
 @media (min-width: 1280px) {
   .products-page .list-grid {
     grid-template-columns: repeat(3, 1fr);

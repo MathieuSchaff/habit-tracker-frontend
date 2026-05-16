@@ -10,7 +10,7 @@ type Props = { products: EnrichedComparisonProduct[] }
 
 const NO_POSITION = 999
 
-// Average ingredient position across products. Lowest = highest concentration.
+// Average ingredient position across products; lowest = highest concentration.
 function buildAvgPositions(products: EnrichedComparisonProduct[]): Map<string, number> {
   const sums = new Map<string, { sum: number; count: number }>()
   for (const product of products) {

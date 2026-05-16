@@ -41,12 +41,12 @@ type Checker = (db: DB) => Promise<CheckResult>
 
 // Helpers
 
-function isMaliciousUrl(value: string | null | undefined): boolean {
+function isMaliciousUrl(value: string | null | undefined): value is string {
   if (!value) return false
   return sanitizeUrl(value) === 'about:blank'
 }
 
-function isHttpUrl(value: string | null | undefined): boolean {
+function isHttpUrl(value: string | null | undefined): value is string {
   if (!value) return false
   return /^http:\/\//i.test(value)
 }
@@ -56,7 +56,7 @@ function isHttpUrl(value: string | null | undefined): boolean {
 // text nodes — React does not decode HTML entities there.
 const HTML_TAG_RE = /<[a-z][^>]*>/i
 
-function hasSuspiciousHtml(value: string | null | undefined): boolean {
+function hasSuspiciousHtml(value: string | null | undefined): value is string {
   if (!value) return false
   return HTML_TAG_RE.test(value)
 }
@@ -69,7 +69,7 @@ const DANGEROUS_CONTENT_PATTERNS = [
   /src\s*=\s*["']?\s*(javascript:|data:)/i,
 ]
 
-function hasDangerousHtmlContent(value: string | null | undefined): boolean {
+function hasDangerousHtmlContent(value: string | null | undefined): value is string {
   if (!value) return false
   return DANGEROUS_CONTENT_PATTERNS.some((re) => re.test(value))
 }
@@ -102,27 +102,29 @@ async function checkProductUrls(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    if (isMaliciousUrl(row.url))
+    const url = row.url
+    if (isMaliciousUrl(url))
       findings.push({
-        description: `product ${row.slug} — url: ${preview(row.url!)}`,
+        description: `product ${row.slug} — url: ${preview(url)}`,
         severity: 'high',
         table: 'products',
         identifier: row.slug,
         field: 'url',
-        value: row.url!,
+        value: url,
         fixable: true,
         applyFix: async () => {
           await db.update(products).set({ url: null }).where(eq(products.id, row.id))
         },
       })
-    if (isMaliciousUrl(row.imageUrl))
+    const imageUrl = row.imageUrl
+    if (isMaliciousUrl(imageUrl))
       findings.push({
-        description: `product ${row.slug} — imageUrl: ${preview(row.imageUrl!)}`,
+        description: `product ${row.slug} — imageUrl: ${preview(imageUrl)}`,
         severity: 'high',
         table: 'products',
         identifier: row.slug,
         field: 'imageUrl',
-        value: row.imageUrl!,
+        value: imageUrl,
         fixable: true,
         applyFix: async () => {
           await db.update(products).set({ imageUrl: null }).where(eq(products.id, row.id))
@@ -146,8 +148,8 @@ async function checkProductTextFields(db: DB): Promise<CheckResult> {
   const findings: Finding[] = []
   for (const row of rows) {
     for (const field of ['inci', 'description', 'notes'] as const) {
-      if (!hasSuspiciousHtml(row[field])) continue
-      const val = row[field]!
+      const val = row[field]
+      if (!hasSuspiciousHtml(val)) continue
       findings.push({
         description: `product ${row.slug} — ${field}: ${preview(val)}`,
         severity: 'high',
@@ -220,14 +222,15 @@ async function checkProfileUrls(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    if (isMaliciousUrl(row.avatarUrl))
+    const avatarUrl = row.avatarUrl
+    if (isMaliciousUrl(avatarUrl))
       findings.push({
-        description: `profile ${row.userId} — avatarUrl: ${preview(row.avatarUrl!)}`,
+        description: `profile ${row.userId} — avatarUrl: ${preview(avatarUrl)}`,
         severity: 'high',
         table: 'profiles',
         identifier: row.userId,
         field: 'avatarUrl',
-        value: row.avatarUrl!,
+        value: avatarUrl,
         fixable: true,
         applyFix: async () => {
           await db.update(profiles).set({ avatarUrl: null }).where(eq(profiles.userId, row.userId))
@@ -269,35 +272,37 @@ async function checkProfileTextFields(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    if (hasSuspiciousHtml(row.bio))
+    const bio = row.bio
+    if (hasSuspiciousHtml(bio))
       findings.push({
-        description: `profile ${row.userId} — bio: ${preview(row.bio!)}`,
+        description: `profile ${row.userId} — bio: ${preview(bio)}`,
         severity: 'high',
         table: 'profiles',
         identifier: row.userId,
         field: 'bio',
-        value: row.bio!,
+        value: bio,
         fixable: true,
         applyFix: async () => {
           await db
             .update(profiles)
-            .set({ bio: stripHtml(row.bio!) })
+            .set({ bio: stripHtml(bio) })
             .where(eq(profiles.userId, row.userId))
         },
       })
-    if (hasSuspiciousHtml(row.username))
+    const username = row.username
+    if (hasSuspiciousHtml(username))
       findings.push({
-        description: `profile ${row.userId} — username: ${preview(row.username!)}`,
+        description: `profile ${row.userId} — username: ${preview(username)}`,
         severity: 'high',
         table: 'profiles',
         identifier: row.userId,
         field: 'username',
-        value: row.username!,
+        value: username,
         fixable: true,
         applyFix: async () => {
           await db
             .update(profiles)
-            .set({ username: stripHtml(row.username!) })
+            .set({ username: stripHtml(username) })
             .where(eq(profiles.userId, row.userId))
         },
       })
@@ -312,14 +317,15 @@ async function checkArticleUrls(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    if (isMaliciousUrl(row.coverImageUrl))
+    const coverImageUrl = row.coverImageUrl
+    if (isMaliciousUrl(coverImageUrl))
       findings.push({
-        description: `article ${row.slug} — coverImageUrl: ${preview(row.coverImageUrl!)}`,
+        description: `article ${row.slug} — coverImageUrl: ${preview(coverImageUrl)}`,
         severity: 'high',
         table: 'articles',
         identifier: row.slug,
         field: 'coverImageUrl',
-        value: row.coverImageUrl!,
+        value: coverImageUrl,
         fixable: true,
         applyFix: async () => {
           await db.update(articles).set({ coverImageUrl: null }).where(eq(articles.id, row.id))
@@ -357,19 +363,20 @@ async function checkArticleTitles(db: DB): Promise<CheckResult> {
             .where(eq(articles.id, row.id))
         },
       })
-    if (hasSuspiciousHtml(row.excerpt))
+    const excerpt = row.excerpt
+    if (hasSuspiciousHtml(excerpt))
       findings.push({
-        description: `article ${row.slug} — excerpt: ${preview(row.excerpt!)}`,
+        description: `article ${row.slug} — excerpt: ${preview(excerpt)}`,
         severity: 'high',
         table: 'articles',
         identifier: row.slug,
         field: 'excerpt',
-        value: row.excerpt!,
+        value: excerpt,
         fixable: true,
         applyFix: async () => {
           await db
             .update(articles)
-            .set({ excerpt: stripHtml(row.excerpt!) })
+            .set({ excerpt: stripHtml(excerpt) })
             .where(eq(articles.id, row.id))
         },
       })
@@ -406,24 +413,26 @@ async function checkNonHttpsUrls(db: DB): Promise<CheckResult> {
     .select({ slug: products.slug, url: products.url, imageUrl: products.imageUrl })
     .from(products)
   for (const row of productRows) {
-    if (isHttpUrl(row.url))
+    const url = row.url
+    if (isHttpUrl(url))
       findings.push({
-        description: `product ${row.slug} — url: ${preview(row.url!)}`,
+        description: `product ${row.slug} — url: ${preview(url)}`,
         severity: 'low',
         table: 'products',
         identifier: row.slug,
         field: 'url',
-        value: row.url!,
+        value: url,
         fixable: false,
       })
-    if (isHttpUrl(row.imageUrl))
+    const imageUrl = row.imageUrl
+    if (isHttpUrl(imageUrl))
       findings.push({
-        description: `product ${row.slug} — imageUrl: ${preview(row.imageUrl!)}`,
+        description: `product ${row.slug} — imageUrl: ${preview(imageUrl)}`,
         severity: 'low',
         table: 'products',
         identifier: row.slug,
         field: 'imageUrl',
-        value: row.imageUrl!,
+        value: imageUrl,
         fixable: false,
       })
   }
@@ -432,14 +441,15 @@ async function checkNonHttpsUrls(db: DB): Promise<CheckResult> {
     .select({ userId: profiles.userId, avatarUrl: profiles.avatarUrl, links: profiles.links })
     .from(profiles)
   for (const row of profileRows) {
-    if (isHttpUrl(row.avatarUrl))
+    const avatarUrl = row.avatarUrl
+    if (isHttpUrl(avatarUrl))
       findings.push({
-        description: `profile ${row.userId} — avatarUrl: ${preview(row.avatarUrl!)}`,
+        description: `profile ${row.userId} — avatarUrl: ${preview(avatarUrl)}`,
         severity: 'low',
         table: 'profiles',
         identifier: row.userId,
         field: 'avatarUrl',
-        value: row.avatarUrl!,
+        value: avatarUrl,
         fixable: false,
       })
     for (const link of row.links ?? []) {
@@ -460,14 +470,15 @@ async function checkNonHttpsUrls(db: DB): Promise<CheckResult> {
     .select({ slug: articles.slug, coverImageUrl: articles.coverImageUrl })
     .from(articles)
   for (const row of articleRows) {
-    if (isHttpUrl(row.coverImageUrl))
+    const coverImageUrl = row.coverImageUrl
+    if (isHttpUrl(coverImageUrl))
       findings.push({
-        description: `article ${row.slug} — coverImageUrl: ${preview(row.coverImageUrl!)}`,
+        description: `article ${row.slug} — coverImageUrl: ${preview(coverImageUrl)}`,
         severity: 'low',
         table: 'articles',
         identifier: row.slug,
         field: 'coverImageUrl',
-        value: row.coverImageUrl!,
+        value: coverImageUrl,
         fixable: false,
       })
   }
@@ -484,14 +495,15 @@ async function checkEmbeddedUrlsInText(db: DB): Promise<CheckResult> {
     .from(products)
   for (const row of productRows) {
     for (const field of ['description', 'notes'] as const) {
-      if (EMBEDDED_URL_RE.test(row[field] ?? ''))
+      const val = row[field]
+      if (val && EMBEDDED_URL_RE.test(val))
         findings.push({
-          description: `product ${row.slug} — ${field}: ${preview(row[field]!)}`,
+          description: `product ${row.slug} — ${field}: ${preview(val)}`,
           severity: 'low',
           table: 'products',
           identifier: row.slug,
           field,
-          value: row[field]!,
+          value: val,
           fixable: false,
         })
     }
@@ -499,14 +511,15 @@ async function checkEmbeddedUrlsInText(db: DB): Promise<CheckResult> {
 
   const profileRows = await db.select({ userId: profiles.userId, bio: profiles.bio }).from(profiles)
   for (const row of profileRows) {
-    if (EMBEDDED_URL_RE.test(row.bio ?? ''))
+    const bio = row.bio
+    if (bio && EMBEDDED_URL_RE.test(bio))
       findings.push({
-        description: `profile ${row.userId} — bio: ${preview(row.bio!)}`,
+        description: `profile ${row.userId} — bio: ${preview(bio)}`,
         severity: 'low',
         table: 'profiles',
         identifier: row.userId,
         field: 'bio',
-        value: row.bio!,
+        value: bio,
         fixable: false,
       })
   }
@@ -515,14 +528,15 @@ async function checkEmbeddedUrlsInText(db: DB): Promise<CheckResult> {
     .select({ slug: articles.slug, excerpt: articles.excerpt })
     .from(articles)
   for (const row of articleRows) {
-    if (EMBEDDED_URL_RE.test(row.excerpt ?? ''))
+    const excerpt = row.excerpt
+    if (excerpt && EMBEDDED_URL_RE.test(excerpt))
       findings.push({
-        description: `article ${row.slug} — excerpt: ${preview(row.excerpt!)}`,
+        description: `article ${row.slug} — excerpt: ${preview(excerpt)}`,
         severity: 'low',
         table: 'articles',
         identifier: row.slug,
         field: 'excerpt',
-        value: row.excerpt!,
+        value: excerpt,
         fixable: false,
       })
   }
@@ -606,7 +620,10 @@ async function main() {
 
   // Auto-fix (WRITE=1, high-severity fixable only)
   if (WRITE) {
-    const fixable = allFindings.filter((f) => f.severity === 'high' && f.fixable)
+    const fixable = allFindings.filter(
+      (f): f is Finding & { applyFix: NonNullable<Finding['applyFix']> } =>
+        f.severity === 'high' && f.fixable && f.applyFix !== undefined
+    )
     if (fixable.length === 0) {
       console.log('✓ No auto-fixable high-severity findings')
     } else {
@@ -615,7 +632,7 @@ async function main() {
       let failed = 0
       for (const f of fixable) {
         try {
-          await f.applyFix!()
+          await f.applyFix()
           console.log(`   ✓ fixed: ${f.description}`)
           fixed++
         } catch (err) {

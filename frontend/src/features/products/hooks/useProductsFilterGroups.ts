@@ -42,9 +42,7 @@ export function useProductsFilterGroups(
 
     return [
       ...(tagGroups as FilterGroupConfig<FilterKey>[]),
-      // Ingredient lives in essentials so dermo-informed users (the core
-      // audience) reach it without unfolding "Avancé". Closed by default
-      // because the async search is heavier than chip groups.
+      // Essential tier for dermo-informed users. Closed by default — async search is heavier than chip groups.
       {
         id: 'ingredient',
         label: NON_TAG_FILTER_LABELS.ingredient,

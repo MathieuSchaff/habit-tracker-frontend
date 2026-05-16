@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// IntersectionObserver is not available in jsdom; stub it so ComboboxPrimitive
-// can register its sentinel without throwing.
+// jsdom lacks IntersectionObserver; stub for ComboboxPrimitive's sentinel.
 if (!window.IntersectionObserver) {
   window.IntersectionObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
@@ -16,8 +15,6 @@ if (!window.IntersectionObserver) {
 
 import { SearchCombobox, type SearchComboboxResult } from '../SearchCombobox'
 
-// types & helpers
-
 type TestItem = { id: number; slug: string; name: string }
 
 const toResult = (item: TestItem): SearchComboboxResult => ({
@@ -26,8 +23,7 @@ const toResult = (item: TestItem): SearchComboboxResult => ({
   label: item.name,
 })
 
-// Returns a SearchCombobox-compatible queryFn. Each key in `handlers` is a
-// query string; the matching handler is called when that query fires.
+// Each key in `handlers` is a query string mapped to a handler.
 function makeQueryFn(handlers: Record<string, () => Promise<TestItem[]>> = {}) {
   return (q: string) => ({
     queryKey: ['test-search', q] as const,
@@ -52,8 +48,6 @@ const ITEMS_AB: TestItem[] = [
   { id: 2, slug: 'item-b', name: 'Item B' },
 ]
 const ITEMS_C: TestItem[] = [{ id: 3, slug: 'item-c', name: 'Item C' }]
-
-// suites
 
 describe('SearchCombobox — results', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -134,7 +128,6 @@ describe('SearchCombobox — loading states', () => {
       { wrapper: makeWrapper() }
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
-    // Spinner appears while first fetch is in flight
     await waitFor(() => expect(screen.getByText('Chargement...')).toBeInTheDocument())
     resolve([])
   })
@@ -165,22 +158,18 @@ describe('SearchCombobox — loading states', () => {
       { wrapper: makeWrapper() }
     )
 
-    // First query: ab → results show
     await userEvent.type(screen.getByRole('combobox'), 'ab')
     await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
 
-    // Add 'c': triggers re-fetch for 'abc' (never resolves during this test)
+    // Add 'c': triggers a re-fetch for 'abc' that stays pending.
     await userEvent.type(screen.getByRole('combobox'), 'c')
-
-    // Wait until the 'abc' query has actually started (debounce fired, fetch called)
     await waitFor(() => expect(abcStarted).toBe(true))
 
-    // Placeholder data: old items still visible, no spinner
+    // Placeholder data: old items still visible, no spinner.
     expect(screen.queryByText('Chargement...')).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item A' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item B' })).toBeInTheDocument()
 
-    // Resolve 'abc' → new items replace old ones
     resolveC(ITEMS_C)
     await waitFor(() => screen.getByRole('option', { name: 'Item C' }))
     expect(screen.queryByRole('option', { name: 'Item A' })).not.toBeInTheDocument()
@@ -271,7 +260,7 @@ describe('SearchCombobox — keyboard', () => {
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
     await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
-    // Section entry sits at idx 0 (rendered first); main items follow at 1, 2.
+    // Section entry at idx 0; main items follow at 1, 2.
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
     expect(onSelect).toHaveBeenCalledWith('item-a', expect.objectContaining({ slug: 'item-a' }))
     expect(sectionSelect).not.toHaveBeenCalled()
@@ -398,7 +387,7 @@ describe('SearchCombobox — sections', () => {
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
     await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
-    // Section entry (idx 0) → ItemA (idx 1) → ItemB (idx 2)
+    // idx 0 = section entry, 1/2 = ItemA/ItemB.
     await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(sectionSelect).toHaveBeenCalledOnce()
   })

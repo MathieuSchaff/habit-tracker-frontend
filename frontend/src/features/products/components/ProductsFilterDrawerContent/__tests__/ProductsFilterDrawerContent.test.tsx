@@ -77,10 +77,7 @@ function renderContent(
   return { props, ...render(<ProductsFilterDrawerContent {...props} />) }
 }
 
-// The profile toggle is a super-filter that lives outside the drawer's draft
-// flow: toggling it navigates immediately (parent owns the URL) instead of
-// staging a change for Apply. Pin that contract so a future refactor that
-// routes the toggle through commitLocal would fail loudly here.
+// Profile toggle bypasses the draft flow — it navigates immediately (parent owns URL).
 describe('ProductsFilterDrawerContent — profile toggle bypasses draft (§10.6)', () => {
   it('renders the toggle when showProfileToggle=true', () => {
     renderContent()
@@ -101,7 +98,6 @@ describe('ProductsFilterDrawerContent — profile toggle bypasses draft (§10.6)
 
     expect(onProfileFilterChange).toHaveBeenCalledTimes(1)
     expect(onProfileFilterChange).toHaveBeenCalledWith(true)
-    // No draft side-effect: the toggle is a parent-owned URL flag, not a chip.
     expect(onLocalFiltersChange).not.toHaveBeenCalled()
   })
 

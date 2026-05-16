@@ -160,8 +160,8 @@ async function main() {
         .delete(tagProducts)
         .where(
           and(
-            eq(tagProducts.productId, product[0]!.id),
-            eq(tagProducts.productTagId, tagDef[0]!.id)
+            eq(tagProducts.productId, product[0]?.id),
+            eq(tagProducts.productTagId, tagDef[0]?.id)
           )
         )
       const count = (result as unknown as { count: number }).count ?? 0
@@ -174,8 +174,8 @@ async function main() {
         .from(tagProducts)
         .where(
           and(
-            eq(tagProducts.productId, product[0]!.id),
-            eq(tagProducts.productTagId, tagDef[0]!.id)
+            eq(tagProducts.productId, product[0]?.id),
+            eq(tagProducts.productTagId, tagDef[0]?.id)
           )
         )
         .limit(1)

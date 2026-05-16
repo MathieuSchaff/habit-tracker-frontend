@@ -9,8 +9,7 @@ type Props = {
   children: ReactNode
 }
 
-// Start expanded — component only mounts when count > 0, so filters are visible
-// on first appearance. User can collapse them if desired.
+// Mounts only when count > 0, so default-open keeps filters visible on first appearance.
 export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props) {
   const [open, setOpen] = useState(true)
   if (count === 0) return null

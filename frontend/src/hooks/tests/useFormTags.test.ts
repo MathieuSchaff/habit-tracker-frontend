@@ -84,7 +84,6 @@ describe('useFormTags', () => {
       useFormTags({ initialTags: INITIAL_TAGS, allTags: ALL_TAGS })
     )
 
-    // t1 is already selected
     expect(result.current.availableTags).toEqual([
       { id: 't2', name: 'Anti-âge', category: 'type' },
       { id: 't3', name: 'Apaisant', category: 'type' },
@@ -102,7 +101,6 @@ describe('useFormTags', () => {
     ]
     const { result } = renderHook(() => useFormTags({ initialTags: initial, allTags: ALL_TAGS }))
 
-    // Reverse the order by removing and re-adding
     act(() => {
       result.current.setTags([
         { tagId: 't2', tagName: 'Anti-âge', relevance: 'secondary' },
@@ -110,7 +108,7 @@ describe('useFormTags', () => {
       ])
     })
 
-    // Same content, different order — should NOT be dirty
+    // Same content, reversed order: must NOT be dirty.
     expect(result.current.isTagsDirty).toBe(false)
   })
 

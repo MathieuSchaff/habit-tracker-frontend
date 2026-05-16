@@ -71,7 +71,31 @@ interface ProductRow {
   inci: string | null
 }
 
-async function main() {
+interface Pools {
+  positives: ProductRow[]
+  negatives: ProductRow[]
+}
+
+interface PoolsState {
+  poolsByTag: Map<GoldSetFocusTag, Pools>
+  kindFreqByTag: Map<GoldSetFocusTag, Map<string, number>>
+}
+
+interface SelectionEntry {
+  product: ProductRow
+  sampledFor: Set<GoldSetFocusTag>
+}
+
+interface MergeResult {
+  merged: GoldSetAnnotation[]
+  newCount: number
+  preservedFilled: number
+  updatedSampledFor: number
+}
+
+// Setup
+
+function validateParams(): void {
   if (
     !Number.isFinite(SAMPLE_SIZE) ||
     SAMPLE_SIZE < 1 ||
@@ -84,16 +108,19 @@ async function main() {
       `Invalid sampling params: SAMPLE_SIZE=${SAMPLE_SIZE}, POSITIVES_PER_TAG=${POSITIVES_PER_TAG}, NEGATIVES_PER_TAG=${NEGATIVES_PER_TAG}`
     )
   }
+}
 
+function logHeader(): void {
   console.log(`🌱 Gold-set bootstrap`)
   console.log(
     `   target=${SAMPLE_SIZE} · positives_per_tag=${POSITIVES_PER_TAG} · negatives_per_tag=${NEGATIVES_PER_TAG} · seed=${SEED}`
   )
   console.log(`   out=${GOLD_SET_PATH}\n`)
+}
 
+async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: ProductRow[] }> {
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const allProducts = await db
+  const all = await db
     .select({
       id: products.id,
       slug: products.slug,
@@ -105,15 +132,14 @@ async function main() {
     })
     .from(products)
     .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+  const eligible = all.filter((p) => !!p.inci?.trim())
+  return { all, eligible }
+}
 
-  const eligible = allProducts.filter((p) => !!p.inci?.trim())
-  console.log(`📊 Corpus`)
-  console.log(`   ${allProducts.length} produits éligibles`)
-  console.log(`   ${eligible.length} avec INCI (les seuls candidats)\n`)
-
-  // Pull the (productId → Set<tagSlug>) map by joining tag_products with
-  // product_tags_defs. Filtered to focus tags only — anything else is irrelevant
-  // for sampling.
+// Pull the (productId → Set<tagSlug>) map by joining tag_products with
+// product_tags_defs. Filtered to focus tags only — anything else is irrelevant
+// for sampling.
+async function fetchTagsByProduct(): Promise<Map<string, Set<string>>> {
   const focusTagDefIds = await db
     .select({ id: productTagsDefs.id, slug: productTagsDefs.slug })
     .from(productTagsDefs)
@@ -146,9 +172,12 @@ async function main() {
     }
     set.add(slug)
   }
+  return tagsByProduct
+}
 
-  // Per-tag candidate pools.
-  type Pools = { positives: ProductRow[]; negatives: ProductRow[] }
+// Pool construction
+
+function buildPools(eligible: ProductRow[], tagsByProduct: Map<string, Set<string>>): PoolsState {
   const poolsByTag = new Map<GoldSetFocusTag, Pools>()
   for (const tag of GOLD_SET_FOCUS_TAGS) poolsByTag.set(tag, { positives: [], negatives: [] })
 
@@ -168,9 +197,16 @@ async function main() {
       freq.set(p.kind, (freq.get(p.kind) ?? 0) + 1)
     }
   }
+  return { poolsByTag, kindFreqByTag }
+}
 
-  // Negatives draw: sample products in the dominant kind that lack the tag.
-  // Computed after the positives pass so we know each tag's dominant kind.
+// Negatives draw: sample products in the dominant kind that lack the tag.
+// Computed after the positives pass so we know each tag's dominant kind.
+function addNegativesToPools(
+  eligible: ProductRow[],
+  tagsByProduct: Map<string, Set<string>>,
+  { poolsByTag, kindFreqByTag }: PoolsState
+): void {
   for (const tag of GOLD_SET_FOCUS_TAGS) {
     const freq = kindFreqByTag.get(tag)
     const pools = poolsByTag.get(tag)
@@ -184,7 +220,15 @@ async function main() {
       pools.negatives.push(p)
     }
   }
+}
 
+function logCorpus(allLen: number, eligibleLen: number): void {
+  console.log(`📊 Corpus`)
+  console.log(`   ${allLen} produits éligibles`)
+  console.log(`   ${eligibleLen} avec INCI (les seuls candidats)\n`)
+}
+
+function logPoolsTable({ poolsByTag, kindFreqByTag }: PoolsState): void {
   console.log(`📋 Pools par tag`)
   console.log(`   ${pad('tag', 24)} ${rpad('+', 5)} ${rpad('-', 5)} ${pad('dominant kind', 16)}`)
   console.log(`   ${'─'.repeat(24)} ${'─'.repeat(5)} ${'─'.repeat(5)} ${'─'.repeat(16)}`)
@@ -198,73 +242,68 @@ async function main() {
     )
   }
   console.log()
+}
 
-  // Round-robin draw: cycle through tags, take next positive/negative until
-  // we hit SAMPLE_SIZE unique products. `sampledFor` accumulates every tag
-  // that selected the same product.
+// Selection round-robin
+
+// Round-robin draw: cycle through tags, take next positive/negative until
+// we hit SAMPLE_SIZE unique products. `sampledFor` accumulates every tag
+// that selected the same product.
+function drawSelection(state: PoolsState): Map<string, SelectionEntry> {
   const rng = mulberry32(SEED >>> 0)
-  for (const pools of poolsByTag.values()) {
+  for (const pools of state.poolsByTag.values()) {
     shuffleInPlace(pools.positives, rng)
     shuffleInPlace(pools.negatives, rng)
   }
-  const positiveQuotaUsed = new Map<GoldSetFocusTag, number>()
-  const negativeQuotaUsed = new Map<GoldSetFocusTag, number>()
-  for (const tag of GOLD_SET_FOCUS_TAGS) {
-    positiveQuotaUsed.set(tag, 0)
-    negativeQuotaUsed.set(tag, 0)
-  }
 
-  const selected = new Map<string, { product: ProductRow; sampledFor: Set<GoldSetFocusTag> }>()
-
+  const selected = new Map<string, SelectionEntry>()
   // First pass: positives — diversify by stratifying within each tag's pool
   // by kind. Stratification is approximate (we shuffled, so kinds are
   // already randomly interleaved; we simply take the first POSITIVES_PER_TAG
   // entries from the shuffle), good enough for a 60-80 sample budget.
+  drawRound(state.poolsByTag, selected, POSITIVES_PER_TAG, 'positives')
+  // Second pass: negatives, same round-robin.
+  drawRound(state.poolsByTag, selected, NEGATIVES_PER_TAG, 'negatives')
+  return selected
+}
+
+function drawRound(
+  poolsByTag: Map<GoldSetFocusTag, Pools>,
+  selected: Map<string, SelectionEntry>,
+  perTagCap: number,
+  side: 'positives' | 'negatives'
+): void {
+  const quotaUsed = new Map<GoldSetFocusTag, number>()
+  for (const tag of GOLD_SET_FOCUS_TAGS) quotaUsed.set(tag, 0)
   let progress = true
   while (selected.size < SAMPLE_SIZE && progress) {
     progress = false
     for (const tag of GOLD_SET_FOCUS_TAGS) {
       if (selected.size >= SAMPLE_SIZE) break
-      const used = positiveQuotaUsed.get(tag) ?? 0
-      if (used >= POSITIVES_PER_TAG) continue
+      const used = quotaUsed.get(tag) ?? 0
+      if (used >= perTagCap) continue
       const pools = poolsByTag.get(tag)
       if (!pools) continue
-      const next = popNextUnselected(pools.positives, selected)
+      const next = popNextUnselected(pools[side], selected)
       if (!next) continue
       addSelection(selected, next, tag)
-      positiveQuotaUsed.set(tag, used + 1)
+      quotaUsed.set(tag, used + 1)
       progress = true
     }
   }
+}
 
-  // Second pass: negatives, same round-robin.
-  progress = true
-  while (selected.size < SAMPLE_SIZE && progress) {
-    progress = false
-    for (const tag of GOLD_SET_FOCUS_TAGS) {
-      if (selected.size >= SAMPLE_SIZE) break
-      const used = negativeQuotaUsed.get(tag) ?? 0
-      if (used >= NEGATIVES_PER_TAG) continue
-      const pools = poolsByTag.get(tag)
-      if (!pools) continue
-      const next = popNextUnselected(pools.negatives, selected)
-      if (!next) continue
-      addSelection(selected, next, tag)
-      negativeQuotaUsed.set(tag, used + 1)
-      progress = true
-    }
-  }
+// Merge with existing annotations
 
-  console.log(`🎯 Sélection`)
-  console.log(`   ${selected.size} produits uniques choisis (target ${SAMPLE_SIZE})\n`)
-
-  // Merge with existing annotations: preserve every entry that already
-  // carries any present/absent decision, append new skeletons for newly
-  // sampled products. Entries the new draw doesn't include are KEPT —
-  // bootstrap is additive, never destructive.
-  const existing = await tryLoadExisting(GOLD_SET_PATH)
+// Merge with existing annotations: preserve every entry that already
+// carries any present/absent decision, append new skeletons for newly
+// sampled products. Entries the new draw doesn't include are KEPT —
+// bootstrap is additive, never destructive.
+function mergeAnnotations(
+  existing: GoldSetFile,
+  selected: Map<string, SelectionEntry>
+): MergeResult {
   const existingBySlug = new Map(existing.annotations.map((a) => [a.productSlug, a]))
-
   const merged: GoldSetAnnotation[] = []
   let newCount = 0
   let preservedFilled = 0
@@ -285,10 +324,7 @@ async function main() {
       if (JSON.stringify(newSampledFor) !== JSON.stringify(oldSampledFor)) {
         updatedSampledFor++
       }
-      merged.push({
-        ...a,
-        sampledFor: newSampledFor,
-      })
+      merged.push({ ...a, sampledFor: newSampledFor })
     } else {
       merged.push(a)
       preservedFilled++
@@ -310,20 +346,51 @@ async function main() {
     newCount++
   }
 
+  return { merged, newCount, preservedFilled, updatedSampledFor }
+}
+
+function logFinal(merged: MergeResult, existingLen: number): void {
+  console.log(`📝 Fichier`)
+  console.log(`   ${merged.merged.length} entrées totales (était ${existingLen})`)
+  console.log(
+    `   + ${merged.newCount} nouvelles · ↺ ${merged.updatedSampledFor} sampledFor mis à jour`
+  )
+  console.log(`   ${merged.preservedFilled} entrées avec annotations remplies (préservées)\n`)
+  console.log(`✨ Bootstrap terminé. Édite ${GOLD_SET_PATH} pour annoter les nouvelles entrées.\n`)
+}
+
+// Main
+
+async function main() {
+  validateParams()
+  logHeader()
+
+  const { all, eligible } = await fetchEligibleProducts()
+  logCorpus(all.length, eligible.length)
+
+  const tagsByProduct = await fetchTagsByProduct()
+  const poolsState = buildPools(eligible, tagsByProduct)
+  addNegativesToPools(eligible, tagsByProduct, poolsState)
+  logPoolsTable(poolsState)
+
+  const selected = drawSelection(poolsState)
+  console.log(`🎯 Sélection`)
+  console.log(`   ${selected.size} produits uniques choisis (target ${SAMPLE_SIZE})\n`)
+
+  const existing = await tryLoadExisting(GOLD_SET_PATH)
+  const result = mergeAnnotations(existing, selected)
+
   const file: GoldSetFile = {
     schemaVersion: GOLD_SET_SCHEMA_VERSION,
     ...(existing.rulesetVersion ? { rulesetVersion: existing.rulesetVersion } : {}),
-    annotations: merged,
+    annotations: result.merged,
   }
-
   await Bun.write(GOLD_SET_PATH, serializeGoldSet(file))
 
-  console.log(`📝 Fichier`)
-  console.log(`   ${merged.length} entrées totales (était ${existing.annotations.length})`)
-  console.log(`   + ${newCount} nouvelles · ↺ ${updatedSampledFor} sampledFor mis à jour`)
-  console.log(`   ${preservedFilled} entrées avec annotations remplies (préservées)\n`)
-  console.log(`✨ Bootstrap terminé. Édite ${GOLD_SET_PATH} pour annoter les nouvelles entrées.\n`)
+  logFinal(result, existing.annotations.length)
 }
+
+// Helpers
 
 function pickDominantKind(freq: Map<string, number>): string | null {
   let best: string | null = null
@@ -351,7 +418,7 @@ function popNextUnselected(
 }
 
 function addSelection(
-  selected: Map<string, { product: ProductRow; sampledFor: Set<GoldSetFocusTag> }>,
+  selected: Map<string, SelectionEntry>,
   product: ProductRow,
   tag: GoldSetFocusTag
 ): void {

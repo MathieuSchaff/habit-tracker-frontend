@@ -49,9 +49,6 @@ type Args = (CreateArgs | EditArgs) & {
   onSuccess: (slug: string) => void
 }
 
-// Owns the create/edit submit choreography: schema validation, mutation
-// sequencing, optimistic-cache cleanup on slug change, error surface. Caller
-// composes the rendered form and decides when to disable submit.
 export function useProductFormSubmit(args: Args) {
   const queryClient = useQueryClient()
   const createProduct = useCreateProduct()
@@ -108,8 +105,7 @@ export function useProductFormSubmit(args: Args) {
         tags: tagsPayload(),
       }),
     ])
-    // Drop the stale bySlug cache entry when the slug actually changed,
-    // otherwise lingers as orphan with the new payload under the old key.
+    // Drop stale bySlug cache when slug changes, else orphaned under old key.
     if (updated.slug !== current.slug) {
       queryClient.removeQueries({ queryKey: productQueries.bySlug(current.slug).queryKey })
     }

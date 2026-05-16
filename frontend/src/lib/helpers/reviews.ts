@@ -9,9 +9,7 @@ export interface ReviewCriteria {
   valueForMoney?: number | null
 }
 
-/**
- * Each key maps to a weight for the final score. A weight of 0 means that criterion is skipped.
- */
+/** Weight of 0 skips that criterion. */
 export interface CriteriaWeights {
   tolerance: number
   efficacy: number
@@ -39,10 +37,7 @@ const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
   'valueForMoney',
 ]
 
-/**
- * Returns the weighted average of all rated criteria, scaled to the requested display format.
- * Criteria with a null or zero rating are excluded so they don't drag the score down.
- */
+/** Weighted average of rated criteria, scaled to display format. Null/zero ratings are excluded. */
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
   weights: CriteriaWeights = DEFAULT_WEIGHTS,

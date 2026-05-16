@@ -21,9 +21,7 @@ const UNIT_OPTIONS = PRODUCT_CONCENTRATION_UNIT_VALUES.map((v) => ({
   label: PRODUCT_CONCENTRATION_UNIT_LABELS[v],
 }))
 
-// Composite pill: numeric input + unit select share a single border with a unified
-// focus ring. Wrapping each side in <Input>/<Select> would split that pill in two,
-// so the bare elements live inside this primitive — it owns the bespoke styling.
+// Bare input + select share one border/focus ring; <Input>/<Select> wrappers would split the pill.
 export function DoseField({
   value,
   unit,

@@ -11,8 +11,7 @@ import {
   statusLabels,
 } from '@/features/collection/constants'
 
-// Virtual tabs (holy_grail, repurchase) filter on fields other than status —
-// keeping them as tab keys lets the active-tab state machine treat them uniformly.
+// Virtual tabs (holy_grail, repurchase) filter on fields other than status; modeled as tab keys.
 export type ShelfTabKey = 'all' | 'holy_grail' | 'repurchase' | UserProductStatus
 
 interface ShelfTabsProps {

@@ -81,7 +81,7 @@ describe('ShelfView', () => {
 
   it('Tout count reflects primary statuses only (archived + avoided excluded)', () => {
     const products = [
-      makeProduct('1', 'in_stock', 'HG A', 6), // Holy Grail (orthogonal) — still in_stock
+      makeProduct('1', 'in_stock', 'HG A', 6),
       makeProduct('2', 'in_stock', 'HG B', 6),
       makeProduct('3', 'in_stock', 'Stock A'),
       makeProduct('4', 'archived', 'Past A'), // excluded from Tout

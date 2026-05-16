@@ -115,22 +115,19 @@
   white-space: nowrap;
 }
 
-/* benefit (concern/goal) — what the formula targets. Subtle kind-color tint
-   echoes the kind pill; reads as "for this skin context". */
+/* benefit (concern/goal): kind-color tint echoes the kind pill. */
 .list-card--product .list-card__chip--benefit {
   color: oklch(from var(--_kind-color) calc(l * 0.7) c h);
   background: oklch(from var(--_kind-color) l c h / 0.1);
 }
 
-/* audience (skin/hair type, age, restriction) — who this is for. Stays
-   neutral; orienting context, not target. */
+/* audience (skin/hair type, age, restriction): neutral orienting context. */
 .list-card--product .list-card__chip--audience {
   color: var(--text-secondary);
   background: oklch(from var(--text-secondary) l c h / 0.08);
 }
 
-/* label (product_label / characteristic) — flag-like format tag. Outlined,
-   no fill, distinct from filled chips above. */
+/* label (product_label / characteristic): outlined flag-like tag. */
 .list-card--product .list-card__chip--label {
   color: var(--text-muted);
   background: transparent;
@@ -169,8 +166,7 @@
   flex-shrink: 0;
 }
 
-/* Shown in place of the Ajouter button when the product is already on the
-   caller's shelf. Calm info, not a CTA — no border, muted color. */
+/* Replaces the Ajouter button when product is already on shelf. Calm info, not CTA. */
 .list-card--product .list-card__shelf-flag {
   display: inline-flex;
   align-items: center;

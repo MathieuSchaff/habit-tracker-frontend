@@ -134,7 +134,6 @@ export function TaskItem({ task }: TaskItemProps) {
                 aria-label={`Énergie : ${task.energy}. Cliquer pour changer`}
                 onClick={(e) => {
                   e.stopPropagation()
-                  // We cycle the energy levels: low, medium, high and then back to none.
                   const energies: (TaskEnergy | null)[] = ['low', 'medium', 'high', null]
                   const next = energies[(energies.indexOf(task.energy) + 1) % energies.length]
                   handleUpdateEnergy(next)

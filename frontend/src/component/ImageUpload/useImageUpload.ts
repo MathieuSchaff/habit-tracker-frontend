@@ -7,7 +7,7 @@ type Phase =
   | { phase: 'uploading'; progress: number }
   | { phase: 'error'; message: string; code: string }
 
-export type CropArea = { x: number; y: number; size: number }
+type CropArea = { x: number; y: number; size: number }
 
 export type UseImageUploadOptions = {
   endpoint: string

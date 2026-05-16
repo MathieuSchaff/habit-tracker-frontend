@@ -1,5 +1,4 @@
-// Level 6 = Holy Grail. Folded into sentiment so HG isn't a status
-// (see docs/04-design-ux/collection-page-audit.md F4).
+// Level 6 = Holy Grail. Folded into sentiment so HG isn't a status.
 export const sentimentEmojis: Record<number, string> = {
   1: '🤢',
   2: '👎',

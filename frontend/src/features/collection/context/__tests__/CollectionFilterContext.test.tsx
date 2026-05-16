@@ -11,8 +11,7 @@ describe('useCollectionFilter', () => {
   })
 
   it('exposes expected keys when inside a provider', () => {
-    // This test documents the contract of the context value shape.
-    // Full integration testing requires a router context; checked via TypeScript.
+    // Documents the context value shape; full integration needs a router context.
     const value: ReturnType<typeof useCollectionFilter> = {
       q: '',
       sort: 'date',

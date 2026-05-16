@@ -109,7 +109,6 @@
 }
 
 /* Privacy section (merged from PrivacySettings) */
-
 .privacy-loading {
   color: var(--text-muted);
   font-size: var(--text-sm);

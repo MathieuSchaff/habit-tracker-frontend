@@ -56,7 +56,7 @@ describe('SearchSelect — filter', () => {
     const input = screen.getByRole('combobox')
     await user.type(input, 'nia')
     await user.clear(input)
-    // Re-focus so dropdown stays open after clear
+    // Refocus to keep the dropdown open after clear.
     input.focus()
 
     const options = screen.getAllByRole('option')
@@ -124,7 +124,7 @@ describe('SearchSelect — lazy load', () => {
     await user.click(screen.getByRole('combobox'))
 
     const listbox = screen.getByRole('listbox')
-    // Force scroll-to-bottom: scrollTop+clientHeight >= scrollHeight - 5
+    // Force scroll-to-bottom (scrollTop+clientHeight >= scrollHeight - 5).
     Object.defineProperty(listbox, 'scrollHeight', { value: 1000, configurable: true })
     Object.defineProperty(listbox, 'clientHeight', { value: 200, configurable: true })
     Object.defineProperty(listbox, 'scrollTop', { value: 800, configurable: true })
@@ -187,7 +187,7 @@ describe('SearchSelect — keyboard', () => {
     renderSelect()
     const input = screen.getByRole('combobox')
     input.focus()
-    await user.keyboard('{Tab}') // close
+    await user.keyboard('{Tab}')
     expect(input).toHaveAttribute('aria-expanded', 'false')
     input.focus()
     await user.keyboard('{Enter}')
@@ -198,6 +198,7 @@ describe('SearchSelect — keyboard', () => {
     const parentEsc = vi.fn()
     const user = userEvent.setup()
     render(
+      // biome-ignore lint/a11y/noStaticElementInteractions: test wrapper to assert Escape propagation is stopped
       <div onKeyDown={(e) => e.key === 'Escape' && parentEsc()}>
         <SearchSelect {...baseProps} onToggle={vi.fn()} />
       </div>
@@ -330,7 +331,6 @@ describe('SearchSelect — controlled selected (integration)', () => {
     await user.type(screen.getByRole('combobox'), 'reti')
     await user.click(screen.getByRole('option', { name: 'Retinol' }))
 
-    // Chip appears, option disappears from dropdown.
     expect(screen.getByRole('button', { name: /Retirer Retinol/i })).toBeInTheDocument()
   })
 })
@@ -345,7 +345,7 @@ describe('SearchSelect — keyboard edge cases', () => {
     renderSelect(<SearchSelect {...baseProps} options={tiny} onToggle={vi.fn()} />)
     const input = screen.getByRole('combobox')
     input.focus()
-    // 6 ArrowDown on 2 options must not push activedescendant past option-1
+    // 6 ArrowDown on 2 options must not push activedescendant past option-1.
     await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
     expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
   })

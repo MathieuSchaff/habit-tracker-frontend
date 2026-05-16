@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTestQueryClient } from '../../../../../test/utils'
 import { BrandCombobox } from '../BrandCombobox'
 
-// Mock des queries pour éviter les appels API réels
 vi.mock('@/lib/queries/products', () => ({
   productQueries: {
     brands: vi.fn(() => ({
@@ -74,11 +73,10 @@ describe('BrandCombobox', () => {
     await userEvent.type(input, 'The')
     await screen.findByText('The Ordinary')
 
-    // Simuler la touche Tab
     fireEvent.keyDown(input, { key: 'Tab' })
 
     expect(onChange).toHaveBeenCalledWith('The Ordinary', true)
-    // On ne fait pas de preventDefault sur Tab, donc le test de focus se ferait en intégration réelle
+    // Tab preventDefault is not called; focus-move belongs in an integration test.
   })
 
   it('affiche le message de confirmation si la marque est inconnue au blur', async () => {

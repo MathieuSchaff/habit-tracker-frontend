@@ -11,9 +11,7 @@ interface DeleteConfirmDialogProps {
   message?: string
   confirmLabel?: string
   title?: string
-  // Aurore preserves user research: when an "Avoid instead" path makes sense,
-  // surface it as the recommended action so destructive delete is the fallback,
-  // not the default.
+  // "Avoid instead" path: destructive delete becomes the fallback, not the default.
   onAvoid?: () => void
   avoidLabel?: string
   avoidPending?: boolean

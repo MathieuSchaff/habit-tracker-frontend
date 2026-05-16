@@ -1,10 +1,7 @@
-/**
- * Uses fixed positioning instead of overflow: hidden because iOS Safari ignores
- * overflow: hidden on the body. The scroll position is saved and restored on unlock.
- */
-
 import { useEffect } from 'react'
 
+// iOS Safari ignores `overflow: hidden` on body, so we use fixed positioning
+// and save/restore scroll position on unlock.
 export function useScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return

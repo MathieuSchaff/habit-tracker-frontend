@@ -159,8 +159,6 @@
   }
 }
 
-/* Tabs */
-
 .profile-tabs-container {
   padding: 0;
   margin: 1.5rem 0 0.5rem;
@@ -201,8 +199,6 @@
   min-height: 32rem;
   width: 100%;
 }
-
-/* Profile info read mode */
 
 .profile-info-read {
   display: flex;

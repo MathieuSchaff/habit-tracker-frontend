@@ -38,7 +38,7 @@
   outline-offset: 2px;
 }
 
-/* If we choose an existing product */
+/* Existing-product branch */
 .qa-search-section {
   min-height: 200px;
 }
@@ -100,7 +100,7 @@
   box-shadow: 0 4px 16px oklch(from var(--color-primary) l c h / 0.35);
 }
 
-/* If we want to create a brand new product */
+/* New-product branch */
 .qa-form {
   display: flex;
   flex-direction: column;

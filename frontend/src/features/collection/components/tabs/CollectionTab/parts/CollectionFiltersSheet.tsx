@@ -19,17 +19,14 @@ interface CollectionFiltersSheetProps {
   onClose: () => void
 }
 
-// Local draft so the page behind the sheet doesn't flicker on every click —
-// we only commit to the global filter state when the user clicks "Appliquer".
-// Closing via Esc, backdrop, or the X button discards the draft.
+// Local draft: commit to global state only on "Appliquer"; Esc/backdrop/X discards.
 type Draft = CollectionFilterValues
 
 export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps) {
   const { brand, productType, sentiment, repurchase, minNote, maxPrice, filterOptions, setFilter } =
     useCollectionFilter()
 
-  // The sheet is unmounted when closed, so initial state always reflects
-  // the latest committed filters at the moment the user opens it.
+  // Sheet unmounts on close; initial state reflects committed filters at open time.
   const [draft, setDraft] = useState<Draft>({
     brand,
     productType,

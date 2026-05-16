@@ -1,4 +1,4 @@
-/* override .dialog-modal: this modal manages padding inside its own header/form/grid sections */
+/* Modal manages padding inside its own header/form/grid sections. */
 .inv-modal-dialog {
   max-width: 28rem;
   padding: 0;

@@ -8,14 +8,12 @@ export const userProductStatus = ['in_stock', 'wishlist', 'watched', 'archived',
 
 export const repurchaseFlag = ['yes', 'no', 'unsure'] as const
 
-// Sentiment 1-5 = ressenti rapide. Level 6 is reserved for Holy Grail
-// (folded into the sentiment scale so HG isn't a status — see
-// docs/04-design-ux/collection-page-audit.md F4).
+// Sentiment 1-5 = ressenti rapide. Level 6 is reserved for Holy Grail,
+// folded into the sentiment scale so HG isn't a status.
 export const HOLY_GRAIL_SENTIMENT = 6 as const
 
-// User-experience tag catalogs surfaced in PDS §5 (audit F10).
-// Source: docs/04-design-ux/product-detail.md L189-193. Statut group is
-// intentionally omitted — bound to userProduct.status (audit F4).
+// User-experience tag catalogs surfaced in PDS §5. Statut group is
+// intentionally omitted — bound to userProduct.status.
 export const ressentiTags = [
   'leger',
   'riche',
@@ -71,17 +69,6 @@ export const updateUserProductSchema = z.object({
   // when no status change is in the payload.
   reason: z.string().max(500).optional(),
 })
-
-export const userProductStatusLogEntrySchema = z.object({
-  id: z.uuid(),
-  userProductId: z.uuid(),
-  fromStatus: userProductStatusSchema.nullable(),
-  toStatus: userProductStatusSchema,
-  reason: z.string().nullable(),
-  createdAt: z.string(),
-})
-
-export type UserProductStatusLogEntry = z.infer<typeof userProductStatusLogEntrySchema>
 
 export const updateUserProductReviewSchema = z.object({
   tolerance: z.number().int().min(1).max(5).nullable().optional(),

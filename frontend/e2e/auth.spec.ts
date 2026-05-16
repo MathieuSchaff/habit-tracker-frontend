@@ -4,9 +4,8 @@ import { expect, test } from '@playwright/test'
 const SEED_EMAIL = 'seed@seed.com'
 const SEED_PASSWORD = 'Azerty123!seed'
 
-// Random unique email per signup to avoid collisions across runs (snapshot-once seed
-// keeps prior signups in the DB; truncating user-owned tables is the next upgrade
-// step in docs/frontend/e2e.md).
+// Random unique email per signup to avoid collisions across runs — snapshot-once
+// seed keeps prior signups in the DB.
 function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`
 }

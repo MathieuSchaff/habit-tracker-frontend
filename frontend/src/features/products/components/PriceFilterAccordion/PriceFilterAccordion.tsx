@@ -9,10 +9,7 @@ type Props = {
   onChange: (next: { min?: number; max?: number }) => void
 }
 
-// Mirrors FilterAccordion's <details>-based shape so it sits inside the
-// essential block without breaking the rhythm. Open by default if a price
-// is already set, collapsed otherwise to free vertical space at the top
-// of the drawer.
+// Mirrors FilterAccordion's <details> shape. Open by default only if a price is already set.
 export function PriceFilterAccordion({ min, max, onChange }: Props) {
   const hasValue = min !== undefined || max !== undefined
   const [initialOpen] = useState(() => hasValue)

@@ -14,9 +14,7 @@ interface SlugEditModalProps {
   onConfirm: (newSlug: string) => void
 }
 
-// Slug rules mirror the backend @sindresorhus/slugify defaults closely enough
-// for a preview. Backend re-slugifies on receipt so any small divergence (eg.
-// "&" handling) is normalized server-side.
+// Preview only — backend re-slugifies on receipt, divergences (e.g. "&") normalize server-side.
 function slugify(s: string): string {
   return s
     .normalize('NFD')

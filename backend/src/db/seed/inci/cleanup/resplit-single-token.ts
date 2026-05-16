@@ -3,8 +3,6 @@
 // Two strategies: (1) trivial-separator split for " - " / " • " / " / " forms,
 // (2) longest-match against algo-derm alias index for uppercase blobs.
 // Dry-run by default. After --apply, regenerate snapshot + re-audit.
-//
-// See backend/src/db/seed/docs/audits/INCI-QUALITY-AUDIT.md §6 item 10.
 import { SQL } from 'bun'
 
 import { normalize, splitINCI } from 'algo-derm'
@@ -39,7 +37,7 @@ const SEPARATOR_RX = / [-•] |\s•\s|;\s+/
 // " / " is ambiguous: WATER / EAU vs OIL / GLYCERIN — only split when surrounded
 // by non-synonym pairs. Cheap heuristic: split on " / " unless both sides are
 // known aqua/water/eau synonyms.
-const SYNONYM_TOKENS = new Set(['aqua', 'water', 'eau', 'parfum', 'fragrance'])
+const _SYNONYM_TOKENS = new Set(['aqua', 'water', 'eau', 'parfum', 'fragrance'])
 
 function trivialSplit(inci: string): string[] | null {
   const stripped = inci.replace(LEADING_PREFIX_RX, '').trim()

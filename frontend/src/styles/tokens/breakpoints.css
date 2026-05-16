@@ -5,7 +5,7 @@
 @custom-media --xl (min-width: 1280px);
 @custom-media --2xl (min-width: 1536px);
 
-/* I use these when I am really blocked with the design for the phones */
+/* Mobile-only escape hatches; prefer min-width breakpoints otherwise. */
 @custom-media --mobile (max-width: 767px);
 @custom-media --sm-only (max-width: 639px);
 @custom-media --xs-only (max-width: 479px);

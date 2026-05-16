@@ -10,8 +10,7 @@ type Props = {
   onChange: (next: { min?: number; max?: number }) => void
 }
 
-// Internal state holds euro strings so the user can clear the input;
-// we only commit (in cents) when the field loses focus.
+// Inputs hold euro strings (so user can clear them); commit to cents on blur.
 function centsToEuros(v?: number): string {
   return v === undefined ? '' : String(Math.round(v / 100))
 }
@@ -28,8 +27,7 @@ export function PriceRangeFilter({ min, max, onChange }: Props) {
   const [minInput, setMinInput] = useState(centsToEuros(min))
   const [maxInput, setMaxInput] = useState(centsToEuros(max))
 
-  // Keep local inputs in sync when URL-driven values change from outside
-  // (e.g. reset button, external navigation).
+  // Resync when URL-driven values change externally (reset button, navigation).
   useEffect(() => {
     setMinInput(centsToEuros(min))
     setMaxInput(centsToEuros(max))

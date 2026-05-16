@@ -2,11 +2,6 @@ import { CosmeticObject, Tag } from '../primitives'
 import { Container, SectionHead } from './Section'
 import './PillarsSection.css'
 
-/**
- * Section 02 — Trois piliers : Collectionner / Comprendre / Comparer.
- * Pas une app d'habitudes : un endroit où ce que vous avez, ce que vous lisez
- * et ce que vous comparez se retrouve dans le même geste.
- */
 export function PillarsSection() {
   const pillars = [
     {

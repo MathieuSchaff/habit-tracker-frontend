@@ -3,8 +3,6 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import './ListPageLayout.css'
 
-/* Root */
-
 interface ListPageLayoutProps {
   children: ReactNode
   className?: string
@@ -14,18 +12,14 @@ function ListPageLayout({ children, className }: ListPageLayoutProps) {
   return <div className={clsx('list-page-layout', className)}>{children}</div>
 }
 
-/* Header */
-
 interface HeaderProps {
-  // Simple mode
   title?: string
   meta?: ReactNode
   actions?: ReactNode
   isLoading?: boolean
-  // Variants
   transparent?: boolean
   centered?: boolean
-  // Full-bleed mode — renders children directly, escapes root padding
+  /** Renders children directly and escapes root padding. */
   fullBleed?: boolean
   children?: ReactNode
   className?: string
@@ -77,8 +71,6 @@ function Header({
   )
 }
 
-/* Body */
-
 interface BodyProps {
   children: ReactNode
   maxWidth?: string
@@ -100,8 +92,6 @@ function Body({ children, maxWidth, isSyncing, className }: BodyProps) {
     </div>
   )
 }
-
-/* Compound */
 
 ListPageLayout.Header = Header
 ListPageLayout.Body = Body

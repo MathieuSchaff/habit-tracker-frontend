@@ -1,7 +1,4 @@
-// ------------------------------------------------------------
-// Aurore — Branding atoms
-// Logo mark (3 sunrise arcs, mirrors src/assets/aurore-icon.svg)
-// ------------------------------------------------------------
+// Mirrors src/assets/aurore-icon.svg (3 sunrise arcs).
 type Props = {
   size?: number
   stroke?: string

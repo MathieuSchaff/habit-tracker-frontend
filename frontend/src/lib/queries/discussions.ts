@@ -4,7 +4,7 @@ import { api } from '../api'
 
 type EntityType = 'product' | 'ingredient'
 
-export const discussionKeys = {
+const discussionKeys = {
   threads: (entityType: EntityType, slug: string) => ['discussions', entityType, slug] as const,
   thread: (entityType: EntityType, slug: string, threadId: string) =>
     ['discussions', entityType, slug, threadId] as const,

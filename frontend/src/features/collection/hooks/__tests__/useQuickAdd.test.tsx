@@ -3,7 +3,6 @@ import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock all external mutation hooks
 const mockCreateProductMutateAsync = vi.fn()
 const mockAddUserProductMutateAsync = vi.fn()
 const mockAddPurchaseMutateAsync = vi.fn()

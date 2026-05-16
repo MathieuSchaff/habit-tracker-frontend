@@ -6,7 +6,7 @@ export interface PageTitleProps {
   title: ReactNode
   subtitle?: ReactNode
   count?: number | string
-  // Screen reader label for the count (default: éléments)
+  /** Screen reader label for the count (default: "éléments"). */
   countLabel?: string
   isLoading?: boolean
   className?: string

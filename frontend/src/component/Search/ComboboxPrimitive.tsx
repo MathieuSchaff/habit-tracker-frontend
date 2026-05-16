@@ -9,9 +9,7 @@ export interface ComboboxAriaProps {
   activeDescendant: string | undefined
 }
 
-// Grouped suggestion entries rendered below the main `items` list. Each entry
-// is self-contained (own render + onSelect) so the Primitive stays agnostic
-// about the section's domain (ingredients, brands, free-text fallback…).
+// Self-contained section entries (own render + onSelect) so the Primitive stays domain-agnostic.
 export interface ComboboxSectionItem {
   id: string | number
   render: ReactNode
@@ -39,15 +37,14 @@ interface ComboboxPrimitiveProps<T> {
   emptyMessage?: string
   keyExtractor?: (item: T, index: number) => string | number
   footer?: ReactNode
-  // Infinite scroll: when hasMore is true and the sentinel intersects the dropdown
-  // viewport, onLoadMore is invoked. isLoadingMore renders a "loading more" status.
+  /** Infinite scroll: sentinel intersection triggers onLoadMore. */
   hasMore?: boolean
   onLoadMore?: () => void
   isLoadingMore?: boolean
   children: (ariaProps: ComboboxAriaProps) => ReactNode
 }
 
-// follows the WAI-ARIA Combobox pattern (Listbox version) for keyboard navigation and accessibility
+// Follows the WAI-ARIA Combobox (Listbox) pattern.
 export function ComboboxPrimitive<T>({
   items,
   sections,
@@ -74,13 +71,11 @@ export function ComboboxPrimitive<T>({
   const itemsRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  // Flat list of all interactive entries (main items + every section's items)
-  // gives a single index space for keyboard navigation across the whole dropdown.
+  // Flat index space across sections + main items for keyboard nav.
   const sectionEntries = useMemo(() => (sections ?? []).flatMap((s) => s.items), [sections])
   const totalEntries = items.length + sectionEntries.length
 
-  // items.length is a deps trigger: dropdown height changes as results stream
-  // in (async queries), and we want the flip recalculated when content shifts.
+  // totalEntries in deps so flip recalculates as async results stream in.
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
   useEffect(() => {
@@ -88,12 +83,10 @@ export function ComboboxPrimitive<T>({
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as Node
       const inTrigger = containerRef.current?.contains(target)
-      // Dropdown is portaled — also exempt clicks on it from "outside".
+      // Dropdown is portaled; exempt its clicks from "outside".
       const inDropdown = dropdownRef.current?.contains(target)
       if (!inTrigger && !inDropdown) {
-        // Capture-phase intercept so an outside tap dismisses the dropdown
-        // without firing the underlying link/button (common on mobile where
-        // there's no Escape key — accidental navigation was the alternative).
+        // Capture-phase intercept so an outside tap dismisses without firing the underlying link/button (matters on mobile, no Escape).
         e.preventDefault()
         e.stopPropagation()
         onClose()
@@ -130,7 +123,7 @@ export function ComboboxPrimitive<T>({
   }, [isOpen, hasMore, onLoadMore])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // let the parent handle its own keys first, so it can intercept things like Tab before we do
+    // Parent runs first so it can intercept e.g. Tab.
     onKeyDown?.(e)
     if (e.defaultPrevented) return
 
@@ -147,8 +140,7 @@ export function ComboboxPrimitive<T>({
         break
       case 'Enter':
         if (highlightedIndex >= 0) {
-          // Sections first in index space (0..sectionEntries.length-1), then main items.
-          // Section facets render above results, so keyboard order mirrors visual order.
+          // Sections occupy indices 0..sectionEntries.length-1; main items follow. Mirrors visual order.
           if (highlightedIndex < sectionEntries.length) {
             const sectionEntry = sectionEntries[highlightedIndex]
             if (sectionEntry) {
@@ -194,8 +186,7 @@ export function ComboboxPrimitive<T>({
                   aria-label="Suggestions"
                 >
                   {sections?.map((section, sIdx) => {
-                    // Each section's first global index = sum of prior section sizes.
-                    // Sections precede main items in both render and keyboard order.
+                    // First global index of this section = sum of prior section sizes.
                     let baseIdx = 0
                     for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
                     const labelId = `${listboxId}-section-${section.id}`

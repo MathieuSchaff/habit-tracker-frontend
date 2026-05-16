@@ -60,8 +60,7 @@ export const Tabs = <T extends string>({
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [underline, setUnderline] = useState<{ left: number; width: number } | null>(null)
 
-  // Measure-based indicator (both variants): keep indicator aligned with the
-  // active tab's actual box, since labels can have very different widths.
+  // Measure-based indicator: aligns with the active tab's actual box (labels vary in width).
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when tab list changes
   useLayoutEffect(() => {
     const btn = btnRefs.current[activeTab]

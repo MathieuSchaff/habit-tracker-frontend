@@ -1,14 +1,10 @@
-/**
- * We store the callback in a ref so the event listeners don't need to be
- * re-attached on every render when the callback identity changes.
- */
-
 import { type RefObject, useEffect, useRef } from 'react'
 
 export const useClickOutside = (
   ref: RefObject<HTMLElement | null>,
   handleOnClickOutside: (event: MouseEvent | TouchEvent | KeyboardEvent) => void
 ) => {
+  // Keep latest handler in a ref so listeners stay attached across renders.
   const callbackRef = useRef(handleOnClickOutside)
   callbackRef.current = handleOnClickOutside
 

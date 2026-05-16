@@ -1,3 +1,5 @@
+import type { ProductCategory } from './kinds'
+
 // Product Units per Category
 
 export const PRODUCT_UNITS = {
@@ -89,13 +91,7 @@ export const PRODUCT_UNIT_LABELS: Record<ProductUnit, string> = {
   ampoule: 'Ampoule',
 }
 
-export function getProductUnitLabel(unit: string): string {
-  return PRODUCT_UNIT_LABELS[unit as ProductUnit] ?? unit
-}
-
 // Product Amount Units (contenance — measurement of totalAmount)
-
-import type { ProductCategory } from './kinds'
 
 export const PRODUCT_AMOUNT_UNIT_VALUES = [
   'ml',
@@ -132,10 +128,6 @@ export const PRODUCT_AMOUNT_UNIT_LABELS: Record<ProductAmountUnit, string> = {
   ampoule: 'ampoules',
 }
 
-export function getProductAmountUnitLabel(unit: string): string {
-  return PRODUCT_AMOUNT_UNIT_LABELS[unit as ProductAmountUnit] ?? unit
-}
-
 // Concentration Units (active ingredient dose in a product)
 
 export const PRODUCT_CONCENTRATION_UNIT_VALUES = ['%', 'IU', 'mg', 'mcg', 'mg/mL'] as const
@@ -148,8 +140,4 @@ export const PRODUCT_CONCENTRATION_UNIT_LABELS: Record<ProductConcentrationUnit,
   mg: 'mg',
   mcg: 'µg',
   'mg/mL': 'mg/mL',
-}
-
-export function getProductConcentrationUnitLabel(unit: string): string {
-  return PRODUCT_CONCENTRATION_UNIT_LABELS[unit as ProductConcentrationUnit] ?? unit
 }

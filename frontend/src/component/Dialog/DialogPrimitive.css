@@ -1,6 +1,4 @@
-/* native <dialog> reset: kill the browser default border/padding/bg so each variant fully owns its look.
-   We re-state position/inset/margin explicitly because UA defaults vary across browsers and some
-   variants (.qa-modal) use display: flex which can interact oddly with the UA's fit-content sizing. */
+/* Reset native <dialog> defaults; re-state position/inset because UA defaults vary and flex variants interact oddly with fit-content. */
 .dialog-content {
   position: fixed;
   inset: 0;

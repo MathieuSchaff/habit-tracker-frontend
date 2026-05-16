@@ -40,27 +40,47 @@ type Claim = {
   knownPct: number
 }
 
-type AuditEntry = {
+type BaseEntry = {
   productSlug: string
   ingredientSlug: string
   ingredientName: string
   knownPct: number
-  matched: boolean
-  reason?: 'not-in-inci' | 'analyze-error'
-  matchedAlgoInci?: string
+}
+
+type UnmatchedEntry = BaseEntry & {
+  matched: false
+  reason: 'not-in-inci' | 'analyze-error'
+}
+
+type MatchedEntry = BaseEntry & {
+  matched: true
+  matchedAlgoInci: string
   solverMeanPct?: number
   solverCiLowPct?: number
   solverCiHighPct?: number
-  meanPct?: number
-  ciLowPct?: number
-  ciHighPct?: number
+  meanPct: number
+  ciLowPct: number
+  ciHighPct: number
   regulatoryCapPct?: number
   belowBreakpoint?: boolean
   absSolverErr?: number
-  absMeanErr?: number
+  absMeanErr: number
   inSolverCI?: boolean
-  inBetaCI?: boolean
+  inBetaCI: boolean
 }
+
+type AuditEntry = UnmatchedEntry | MatchedEntry
+
+type SolverEntry = MatchedEntry & {
+  solverMeanPct: number
+  solverCiLowPct: number
+  solverCiHighPct: number
+  absSolverErr: number
+  inSolverCI: boolean
+}
+
+const isMatched = (e: AuditEntry): e is MatchedEntry => e.matched
+const hasSolver = (e: MatchedEntry): e is SolverEntry => e.absSolverErr !== undefined
 
 const toSlug = (s: string): string =>
   s
@@ -203,14 +223,12 @@ async function main() {
   }
 
   // Coverage
-  const matched = entries.filter((e) => e.matched)
-  const reasonCounts = entries
-    .filter((e) => !e.matched)
-    .reduce<Record<string, number>>((acc, e) => {
-      const k = e.reason ?? 'unknown'
-      acc[k] = (acc[k] ?? 0) + 1
-      return acc
-    }, {})
+  const matched = entries.filter(isMatched)
+  const unmatched = entries.filter((e): e is UnmatchedEntry => !e.matched)
+  const reasonCounts = unmatched.reduce<Record<string, number>>((acc, e) => {
+    acc[e.reason] = (acc[e.reason] ?? 0) + 1
+    return acc
+  }, {})
   console.log(`📊 Coverage`)
   console.log(
     `   ${matched.length}/${entries.length} claims matched (${pct(matched.length / Math.max(1, entries.length))})`
@@ -222,7 +240,7 @@ async function main() {
   console.log()
 
   // Per-slug metrics
-  const bySlug = new Map<string, AuditEntry[]>()
+  const bySlug = new Map<string, MatchedEntry[]>()
   for (const e of matched) {
     const arr = bySlug.get(e.ingredientSlug) ?? []
     arr.push(e)
@@ -230,14 +248,14 @@ async function main() {
   }
   const slugStats = [...bySlug.entries()]
     .map(([slug, es]) => {
-      const withSolver = es.filter((e) => e.absSolverErr !== undefined)
+      const withSolver = es.filter(hasSolver)
       return {
         slug,
         n: es.length,
         nSolver: withSolver.length,
-        solverMAE: mean(withSolver.map((e) => e.absSolverErr!)),
-        solverRMSE: rmse(withSolver.map((e) => e.absSolverErr!)),
-        meanMAE: mean(es.map((e) => e.absMeanErr!)),
+        solverMAE: mean(withSolver.map((e) => e.absSolverErr)),
+        solverRMSE: rmse(withSolver.map((e) => e.absSolverErr)),
+        meanMAE: mean(es.map((e) => e.absMeanErr)),
         solverCICov:
           withSolver.length > 0
             ? withSolver.filter((e) => e.inSolverCI).length / withSolver.length
@@ -264,28 +282,28 @@ async function main() {
   }
 
   // Global
-  const allSolver = matched.filter((e) => e.absSolverErr !== undefined)
+  const allSolver = matched.filter(hasSolver)
   console.log()
   console.log(`📈 Global`)
   console.log(`   matched=${matched.length} · with solverMeanPct=${allSolver.length}`)
   console.log(
-    `   solver  MAE=${fmt(mean(allSolver.map((e) => e.absSolverErr!)))}  RMSE=${fmt(rmse(allSolver.map((e) => e.absSolverErr!)))}  CI cov=${fmt(allSolver.filter((e) => e.inSolverCI).length / Math.max(1, allSolver.length))}`
+    `   solver  MAE=${fmt(mean(allSolver.map((e) => e.absSolverErr)))}  RMSE=${fmt(rmse(allSolver.map((e) => e.absSolverErr)))}  CI cov=${fmt(allSolver.filter((e) => e.inSolverCI).length / Math.max(1, allSolver.length))}`
   )
   console.log(
-    `   beta    MAE=${fmt(mean(matched.map((e) => e.absMeanErr!)))}            CI cov=${fmt(matched.filter((e) => e.inBetaCI).length / Math.max(1, matched.length))}`
+    `   beta    MAE=${fmt(mean(matched.map((e) => e.absMeanErr)))}            CI cov=${fmt(matched.filter((e) => e.inBetaCI).length / Math.max(1, matched.length))}`
   )
 
   // Outliers
-  const outliers = [...allSolver].sort((a, b) => b.absSolverErr! - a.absSolverErr!).slice(0, 20)
+  const outliers = [...allSolver].sort((a, b) => b.absSolverErr - a.absSolverErr).slice(0, 20)
   if (outliers.length > 0) {
     console.log(`\n🔥 Top ${outliers.length} solver outliers`)
     console.log(
       `   ${pad('product', 36)} ${pad('ingredient', 22)} ${rpad('known', 7)} ${rpad('solver', 7)} ${rpad('err', 7)} ${rpad('meanβ', 7)} ${rpad('CIβ', 14)}`
     )
     for (const o of outliers) {
-      const betaCI = `[${fmt(o.ciLowPct!)}, ${fmt(o.ciHighPct!)}]`
+      const betaCI = `[${fmt(o.ciLowPct)}, ${fmt(o.ciHighPct)}]`
       console.log(
-        `   ${pad(o.productSlug, 36)} ${pad(o.ingredientSlug, 22)} ${rpad(fmt(o.knownPct), 7)} ${rpad(fmt(o.solverMeanPct!), 7)} ${rpad(fmt(o.absSolverErr!), 7)} ${rpad(fmt(o.meanPct!), 7)} ${rpad(betaCI, 14)}`
+        `   ${pad(o.productSlug, 36)} ${pad(o.ingredientSlug, 22)} ${rpad(fmt(o.knownPct), 7)} ${rpad(fmt(o.solverMeanPct), 7)} ${rpad(fmt(o.absSolverErr), 7)} ${rpad(fmt(o.meanPct), 7)} ${rpad(betaCI, 14)}`
       )
     }
   }

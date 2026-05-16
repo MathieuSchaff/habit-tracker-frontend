@@ -4,10 +4,8 @@ import { statusLabels } from '@/features/collection/constants'
 
 import './ShelfEmpty.css'
 
-// Virtual tabs (holy_grail, repurchase) filter on fields other than status —
-// handle their empty states alongside the real statuses here so ShelfView only
-// needs one empty component.
-export type ShelfEmptyKind = UserProductStatus | 'holy_grail' | 'repurchase'
+// Virtual tabs share this empty component so ShelfView only needs one.
+type ShelfEmptyKind = UserProductStatus | 'holy_grail' | 'repurchase'
 
 const EMOJIS: Record<ShelfEmptyKind, string> = {
   in_stock: '🪞',

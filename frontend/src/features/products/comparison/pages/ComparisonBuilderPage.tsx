@@ -68,8 +68,7 @@ function EditComparisonBuilder({ id }: { id: string }) {
 
   const setName = (name: string) => update.mutate({ id, input: { name } })
 
-  // Block PATCH client-side when count is out of bounds — schema rejects with 400
-  // and useMutation swallows the error, leaving the picker desynced from server.
+  // Schema rejects out-of-bounds counts; useMutation swallows the 400 and desyncs the picker.
   const setProductIds = (productIds: string[]) => {
     if (
       productIds.length < COMPARISON_MIN_PRODUCTS ||

@@ -42,22 +42,18 @@ describe('useTokenRefresh', () => {
   })
 
   it('schedules a refresh 1 minute before token expiry', () => {
-    // Token expires in 5 minutes
     const fiveMin = Date.now() + 5 * 60_000
     useAuthStore.setState({ tokenExpiresAt: fiveMin })
 
     renderHook(() => useTokenRefresh(), { wrapper })
 
-    // Should not have refreshed yet
     expect(mockSilentRefresh).not.toHaveBeenCalled()
 
-    // Advance to 1 minute before expiry (4 min from now)
     vi.advanceTimersByTime(4 * 60_000)
     expect(mockSilentRefresh).toHaveBeenCalledOnce()
   })
 
   it('refreshes immediately when token expires in less than 1 minute', () => {
-    // Token expires in 30 seconds — delay would be negative
     useAuthStore.setState({ tokenExpiresAt: Date.now() + 30_000 })
 
     renderHook(() => useTokenRefresh(), { wrapper })
@@ -80,11 +76,9 @@ describe('useTokenRefresh', () => {
 
     const { rerender } = renderHook(() => useTokenRefresh(), { wrapper })
 
-    // Update to a closer expiry
     useAuthStore.setState({ tokenExpiresAt: Date.now() + 2 * 60_000 })
     rerender()
 
-    // Advance 1 minute — the new schedule should fire
     vi.advanceTimersByTime(60_000)
     expect(mockSilentRefresh).toHaveBeenCalledOnce()
   })
@@ -110,9 +104,9 @@ describe('useTokenRefresh', () => {
     }
 
     it('refreshes when tab becomes visible and token is expired', () => {
-      loginWithExpiry(-10) // already expired
+      loginWithExpiry(-10)
       renderHook(() => useTokenRefresh(), { wrapper })
-      mockSilentRefresh.mockClear() // ignore the immediate-on-mount refresh
+      mockSilentRefresh.mockClear() // discard the immediate-on-mount refresh
 
       setVisibility('hidden')
       setVisibility('visible')
@@ -121,7 +115,7 @@ describe('useTokenRefresh', () => {
     })
 
     it('does not refresh on visibility change when token is still valid', () => {
-      loginWithExpiry(3600) // 1h ahead
+      loginWithExpiry(3600)
       renderHook(() => useTokenRefresh(), { wrapper })
       mockSilentRefresh.mockClear()
 
@@ -132,7 +126,6 @@ describe('useTokenRefresh', () => {
     })
 
     it('does not refresh on visibility change when user is not logged in', () => {
-      // No token in store
       renderHook(() => useTokenRefresh(), { wrapper })
 
       setVisibility('hidden')

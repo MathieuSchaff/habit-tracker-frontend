@@ -16,7 +16,7 @@
   --font-semibold: 600;
   --font-bold: 700;
 
-  /*  lines closer for titles so it looks more professional and "chic" */
+  /* Tighter leading on titles for an editorial feel. */
   --leading-tight: 1.15;
   --leading-normal: 1.5;
   --leading-relaxed: 1.75;
@@ -24,7 +24,8 @@
   --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
-  --tracking-widest: 0.2em; /* For labels that needs a lot of space to look expensive */
+  /* Widest tracking for uppercase labels — luxurious / editorial. */
+  --tracking-widest: 0.2em;
 
   --font-features-display: "kern" 1, "liga" 1, "onum" 1, "pnum" 1;
   --font-features-sans: "kern" 1, "liga" 1, "cv01" 1, "cv11" 1;

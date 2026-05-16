@@ -25,8 +25,7 @@ const KNOWN_UNITS = new Set<string>(
   Object.values(PRODUCT_UNITS).flatMap((domain) => Object.values(domain))
 )
 
-// Maps tagType → chip visual variant. Drives CSS class so concern/goal pop in
-// accent color, audience/restriction stay neutral, labels look like flags.
+// tagType → chip CSS variant. Concern/goal in accent, audience neutral, labels flagged.
 const TAG_VARIANT: Record<string, string> = {
   concern: 'benefit',
   goal: 'benefit',

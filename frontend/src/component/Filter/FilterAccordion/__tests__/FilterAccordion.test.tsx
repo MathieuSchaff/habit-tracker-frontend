@@ -87,7 +87,6 @@ describe('FilterAccordion — variant routing', () => {
       />
     )
 
-    // Chips show as toggle buttons.
     const acne = screen.getByRole('button', { name: 'Acné' })
     expect(acne).toBeInTheDocument()
     await userEvent.click(acne)
@@ -163,7 +162,6 @@ describe('FilterAccordion — variant routing', () => {
         onToggle={vi.fn()}
       />
     )
-    // Header still renders, but no combobox/inputs for that field.
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   })
 
@@ -213,12 +211,9 @@ describe('FilterAccordion — variant routing', () => {
       />
     )
 
-    // Each sub-group renders a fieldset with its label as legend.
-    // Two groups match each name (outer subgroup fieldset + inner ChipGroup fieldset),
-    // assert at least one for each.
+    // Two groups match each name (outer fieldset + inner ChipGroup fieldset).
     expect(screen.getAllByRole('group', { name: 'Sous A' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('group', { name: 'Sous B' }).length).toBeGreaterThan(0)
-    // Slugs from the right sub-group land in their respective ChipGroup.
     expect(screen.getByRole('button', { name: 'Tag A' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tag C' })).toBeInTheDocument()
   })
@@ -291,7 +286,6 @@ describe('FilterAccordion — header behavior', () => {
         onToggle={vi.fn()}
       />
     )
-    // Total = 2 selections across sub-filters.
     expect(screen.getByTitle(/2 filtres actifs/)).toHaveTextContent('2')
   })
 
@@ -346,7 +340,6 @@ describe('FilterAccordion — open state', () => {
 
 describe('FilterAccordion — multi sub-filters', () => {
   it('shows the sub-filter label only when there are multiple sub-filters', () => {
-    // Single sub-filter: no nested label expected on the chip group wrapper.
     const { container, rerender } = renderAccordion(
       <FilterAccordion
         group={makeGroup({ defaultOpen: true })}

@@ -144,30 +144,27 @@ describe('buildListProductsQuery — pagination', () => {
 })
 
 describe('buildListProductsQuery — adversarial / edge-case inputs', () => {
-  // String '' is falsy — filtered by `if (!value)`. Array [''] is truthy — NOT filtered.
+  // Empty string is falsy and filtered; [''] is truthy and leaks through.
   it('single empty string is filtered out', () => {
     expect(buildListProductsQuery({ brand: '' })).toEqual({})
   })
 
   it('array containing a single empty string leaks into output (caller must sanitize)', () => {
-    // [''].join(',') = '' — produces { brand: '' }
     const q = buildListProductsQuery({ brand: [''] })
     expect(q.brand).toBe('')
   })
 
   it('mixed valid + empty string produces a trailing comma in CSV', () => {
-    // ['CeraVe', ''].join(',') = 'CeraVe,' — looks like two slugs to the backend
     const q = buildListProductsQuery({ brand: ['CeraVe', ''] })
     expect(q.brand).toBe('CeraVe,')
   })
 
   it('value with an embedded comma passes through unchanged (CSV ambiguity)', () => {
-    // Backend would parse 'La,Roche' as two distinct brand slugs
+    // Backend will read 'La,Roche' as two slugs.
     const q = buildListProductsQuery({ brand: ['La,Roche'] })
     expect(q.brand).toBe('La,Roche')
   })
 
-  // Numeric edge cases — function does not validate; backend is responsible
   it('NaN page is stringified as "NaN" (caller must validate)', () => {
     const q = buildListProductsQuery({ page: NaN })
     expect(q.page).toBe('NaN')
@@ -190,7 +187,6 @@ describe('buildListProductsQuery — adversarial / edge-case inputs', () => {
     expect(() => buildListProductsQuery({ priceMin: 9999, priceMax: 100 })).not.toThrow()
   })
 
-  // Large arrays — no guard, function does not throw
   it('joins a very large array without throwing', () => {
     const slugs = Array.from({ length: 500 }, (_, i) => `slug-${i}`)
     expect(() => buildListProductsQuery({ concern: slugs })).not.toThrow()
@@ -199,19 +195,16 @@ describe('buildListProductsQuery — adversarial / edge-case inputs', () => {
     expect(q.concern).toContain('slug-499')
   })
 
-  // Duplicate values — passed through, no deduplication
   it('forwards duplicate slugs without deduplication', () => {
     const q = buildListProductsQuery({ concern: ['acne', 'acne'] })
     expect(q.concern).toBe('acne,acne')
   })
 
-  // avoid_for with multiple values — serialized like any other array
   it('serializes multiple avoid_for slugs as CSV', () => {
     const q = buildListProductsQuery({ avoid_for: ['peau-sensible', 'comedogene'] })
     expect(q.avoid_for).toBe('peau-sensible,comedogene')
   })
 
-  // Unknown extra properties on filters object are silently ignored
   it('ignores extra properties not handled by addParam', () => {
     const filters = { brand: 'CeraVe', unknown_key: 'value' } as Parameters<
       typeof buildListProductsQuery
@@ -233,7 +226,5 @@ describe('buildListProductsQuery — category and kind', () => {
     expect(q.category).toBeUndefined()
   })
 
-  // kind is no longer an active frontend filter (refactor ff5fcd08 dropped it
-  // from FILTER_KEYS; ProductsPage filters by tag instead). Backend still accepts
-  // ?kind=… for direct API consumers, but the frontend doesn't serialize it.
+  // `kind` was dropped from FILTER_KEYS (refactor ff5fcd08); backend still accepts ?kind= for direct API consumers.
 })
