@@ -26,10 +26,6 @@ const PRINCIPLES = [
   },
 ]
 
-/**
- * Section 05 — Ce qu'on n'est pas.
- * Section fond sombre, ton manifeste.
- */
 export function PhilosophySection() {
   return (
     <section className="aur-section aur-section--deep" id="philosophie">

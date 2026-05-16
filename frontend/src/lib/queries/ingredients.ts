@@ -17,18 +17,17 @@ import {
 import { api } from '../api'
 import { ApiError, throwIfNotOk } from '../helpers/apiError'
 
-// Per-axis slug arrays + the active domain. The page builds this from URL
-// search params; the queryFn flattens it back to comma-joined query strings.
+// Per-axis slug arrays; queryFn flattens to comma-joined query strings.
 export type ListIngredientsFilters = Partial<Record<AllIngredientTagCategory, string[]>> & {
   type?: IngredientType
   sort?: IngredientSort
   page?: number
   limit?: number
-  // Profile-derived avoid tags. Backend flags rows post-fetch as `profileMatches`.
+  // Profile-derived avoid tags; backend flags rows as `profileMatches`.
   avoid_for?: string[]
 }
 
-export const ingredientKeys = {
+const ingredientKeys = {
   all: ['ingredients'] as const,
   lists: () => [...ingredientKeys.all, 'list'] as const,
   list: (filters: ListIngredientsFilters = {}) => [...ingredientKeys.all, 'list', filters] as const,
@@ -141,9 +140,7 @@ export const ingredientQueries = {
       enabled: query.length >= 2,
     }),
 
-  // Wraps the single-page response so consumers using the unified infinite
-  // SearchCombobox interface (e.g. IngredientsPage) can plug in. Backend has
-  // no pagination on ingredient search yet — hasMore is always false.
+  // Wraps single-page response for the SearchCombobox infinite interface; backend has no pagination yet.
   searchInfinite: (query: string) =>
     infiniteQueryOptions({
       queryKey: [...ingredientKeys.all, 'search-infinite', query] as const,
@@ -158,8 +155,7 @@ export const ingredientQueries = {
       enabled: query.length >= 2,
     }),
 
-  // Resolve names for a list of slugs (chips deep-linked from URL).
-  // Cached long enough that re-mount of the filter doesn't refetch.
+  // Resolve names for slugs deep-linked from URL; cached so filter re-mount doesn't refetch.
   bySlugs: (slugs: string[]) =>
     queryOptions({
       queryKey: [...ingredientKeys.all, 'by-slugs', [...slugs].sort()] as const,
@@ -224,8 +220,7 @@ export function useUpdateIngredient() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateIngredientRouteInput }) => {
       const res = await api.ingredients[':id'].$patch({ param: { id }, json: data })
-      // 409 (optimistic-lock conflict) is surfaced by IngredientForm via its
-      // status check on the thrown ApiError.
+      // 409 conflict is surfaced inline by IngredientForm via the thrown ApiError.
       await throwIfNotOk(res, 'ingredient_update_failed')
       const json = await res.json()
       if (!json.success) throw new ApiError('ingredient_update_failed', res.status)
@@ -235,7 +230,7 @@ export function useUpdateIngredient() {
       qc.setQueryData(ingredientKeys.bySlug(ingredient.slug), ingredient)
       qc.invalidateQueries({ queryKey: ingredientKeys.lists() })
     },
-    // 409 conflict surfaces inline in IngredientForm — keep silent here.
+    // 409 conflict handled inline in IngredientForm; no global toast.
   })
 }
 

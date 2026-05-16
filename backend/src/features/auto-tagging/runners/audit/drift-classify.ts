@@ -107,7 +107,7 @@ async function main() {
         }
       }
 
-      driftByCluster.get(slug)!.push({
+      driftByCluster.get(slug)?.push({
         slug: p.slug,
         kind: p.kind ?? 'unknown',
         inci: p.inci,

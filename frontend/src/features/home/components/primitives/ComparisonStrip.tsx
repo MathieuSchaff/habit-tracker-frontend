@@ -4,7 +4,7 @@ export type CompareRow = {
   key: string
   a: string
   b: string
-  /** 'ok' = green (primary), 'warn' = accent (terracotta), default = neutral */
+  // 'ok' = green, 'warn' = accent, default = neutral.
   aHint?: 'ok' | 'warn'
   bHint?: 'ok' | 'warn'
 }
@@ -21,7 +21,6 @@ export type ComparisonStripProps = {
   className?: string
 }
 
-/** Mini-comparatif 2 produits — utilisé dans Hero C et flow step 4. */
 export function ComparisonStrip({ left, right, rows, className }: ComparisonStripProps) {
   return (
     <div className={['aur-compare', className].filter(Boolean).join(' ')}>

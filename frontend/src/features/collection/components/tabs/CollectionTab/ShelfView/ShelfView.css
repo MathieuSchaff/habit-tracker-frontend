@@ -18,8 +18,7 @@
     min-width: 0;
   }
 
-  /* Primary tabs own their own underline; the Plus trigger is visually
-     distinct so it doesn't compete with the active tab indicator. */
+  /* Plus trigger stays visually distinct from the primary tab indicator. */
   .shelf-tabs-row .shelf-tabs-primary {
     border-bottom: none;
   }

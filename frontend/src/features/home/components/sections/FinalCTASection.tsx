@@ -5,10 +5,6 @@ import { AuroreBrandMark } from '../primitives/AuroreBrandMark'
 import { Container } from './Section'
 import './FinalCTASection.css'
 
-/**
- * Section finale — invitation à commencer.
- * 2 CTAs : créer un compte / explorer sans compte.
- */
 export function FinalCTASection() {
   return (
     <section className="aur-section">

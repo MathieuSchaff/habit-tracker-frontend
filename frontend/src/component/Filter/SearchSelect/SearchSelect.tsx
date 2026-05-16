@@ -37,12 +37,11 @@ export function SearchSelect({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
 
-  // lazy load long lists so the DOM stays small on first render
+  // Lazy load long lists to keep the DOM small on first render.
   const PAGE_SIZE = 50
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   useEffect(() => setVisibleCount(PAGE_SIZE), [])
 
-  // only show unselected options that match the query
   const filtered = useMemo(() => {
     const unselected = options.filter((o) => !selected.includes(o.value))
     const result = query
@@ -91,8 +90,7 @@ export function SearchSelect({
           }
           break
         case 'Escape':
-          // only the first Escape closes the dropdown,
-          // a second one will bubble up and close the whole dialog
+          // First Escape closes the dropdown; a second bubbles up and closes the dialog.
           if (isOpen) {
             e.preventDefault()
             e.stopPropagation()
@@ -112,7 +110,6 @@ export function SearchSelect({
 
   useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen)
 
-  // close the dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -128,7 +125,6 @@ export function SearchSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // keep the highlighted option visible while navigating with arrows
   useEffect(() => {
     if (activeIndex >= 0 && isOpen) {
       const element = document.getElementById(`${listboxId}-option-${activeIndex}`)
@@ -184,7 +180,7 @@ export function SearchSelect({
               type="button"
               className="search-select__dismiss"
               onMouseDown={(e) => {
-                // onMouseDown + preventDefault so the input does not blur before click fires
+                // preventDefault on mousedown so the input doesn't blur before click fires.
                 e.preventDefault()
                 setIsOpen(false)
                 setQuery('')

@@ -10,7 +10,7 @@ export type UserPreferences = Extract<
   { data: unknown }
 >['data']
 
-export const userPreferenceKeys = {
+const userPreferenceKeys = {
   all: ['user-preferences'] as const,
 }
 

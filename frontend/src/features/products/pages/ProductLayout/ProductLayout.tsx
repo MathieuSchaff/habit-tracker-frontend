@@ -48,8 +48,7 @@ export function ProductLayout() {
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const [showAddModal, setShowAddModal] = useState(false)
   const navigate = useNavigate()
-  // Narrow select: subscribe to a boolean, not the whole location object,
-  // so unrelated route-state churn (search params, etc.) won't re-render.
+  // Subscribe to a boolean, not the whole location, to skip re-renders on search-param churn.
   const isDiscussions = useRouterState({
     select: (s) => s.location.pathname.includes('/discussions'),
   })

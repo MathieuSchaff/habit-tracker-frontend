@@ -1,20 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 
-export type DraggableBounds = { minY: number; maxY: number }
+type DraggableBounds = { minY: number; maxY: number }
 
 const clamp = (v: number, { minY, maxY }: DraggableBounds) => Math.max(minY, Math.min(maxY, v))
 
 type Options = {
   storageKey: string
-  // Caller-provided so bounds can react to viewport, layout obstacles (nav bars),
-  // or other DOM-derived values. Re-invoked on mount + window resize.
+  // Re-invoked on mount and window resize so bounds can react to viewport
+  // and DOM-derived obstacles (e.g. nav bars).
   computeBounds: () => DraggableBounds
   dragThreshold?: number
   enabled?: boolean
 }
 
-// Vertical-only drag with persistence. Returns spreadable pointer handlers, a
-// click guard so a tap-after-drag doesn't fire onClick, and the current Y offset.
 export function useDraggableY({
   storageKey,
   computeBounds,

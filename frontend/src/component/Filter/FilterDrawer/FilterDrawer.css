@@ -127,7 +127,6 @@
   background: var(--color-primary);
 }
 
-/* Body tinted with primary so white accordion shelves pop as cards */
 .filter-drawer__body {
   flex: 1;
   overflow-y: auto;
@@ -153,8 +152,7 @@
   min-inline-size: 0;
 }
 
-/* Toggle "Selon mon profil" is a direct child of body (it sits above
-   accordions as a global super-filter) — give it shelf styling. */
+/* Toggle "Selon mon profil" sits above accordions as a global super-filter; shelf-styled. */
 .filter-drawer__body > .toggle {
   background: var(--bg-card);
   padding: var(--space-4) var(--space-5);
@@ -219,14 +217,13 @@
   box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.4);
 }
 
-/* Bigger drawer chips — sm (xs font) reads as cramped on a filter list */
+/* Default sm chip reads as cramped in a filter list. */
 .filter-drawer__body .chip--sm {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
 }
 
-/* Drawer-scoped chip override: idle = white pill with primary outline,
-   keeps strong contrast against the tinted body and against active chips */
+/* Drawer-scoped: idle chips render as white pills against the tinted body. */
 .filter-drawer__body .chip:not(.chip--active) {
   background: var(--bg-card);
   border-color: oklch(from var(--color-primary) l c h / 0.5);
@@ -243,8 +240,7 @@
   box-shadow: 0 4px 12px oklch(from var(--color-primary) l c h / 0.25);
 }
 
-/* Active chip in drawer (sm size): bolder than the default ring style
-   so selection reads instantly against idle white pills */
+/* Bolder than the default ring so selection reads instantly against idle white pills. */
 .filter-drawer__body .chip--sm.chip--active {
   background: var(--color-primary);
   border-color: var(--color-primary);
@@ -259,8 +255,7 @@
   box-shadow: 0 6px 16px oklch(from var(--color-primary) l c h / 0.5);
 }
 
-/* Inputs (search-select, price range) get a subtle primary outline so
-   they don't disappear on the tinted body */
+/* Outline so inputs don't disappear on the tinted body. */
 .filter-drawer__body .search-select__input,
 .filter-drawer__body .input-wrapper input {
   background: var(--bg-card);
@@ -271,8 +266,7 @@
   border-color: var(--color-primary);
 }
 
-/* Search-select wrappers (Marque, Ingrédient) live inside the accordion body
-   without padding by default — give them shelf-aligned spacing + breathing room. */
+/* Search-select wrappers (Marque, Ingrédient): shelf-aligned spacing inside the accordion body. */
 .filter-drawer__body .filter-drawer__group--nested {
   display: flex;
   flex-direction: column;
@@ -285,7 +279,6 @@
   padding-top: var(--space-4);
 }
 
-/* Beefier search-select input: bigger hit zone, search-icon prefix, focus glow */
 .filter-drawer__body .search-select__input {
   padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 1.25rem);
   font-size: var(--text-sm);
@@ -305,13 +298,11 @@
   box-shadow: 0 0 0 4px oklch(from var(--color-primary) l c h / 0.15);
 }
 
-/* Selected chips above the input get a touch of breathing room */
 .filter-drawer__body .search-select__selected {
   gap: var(--space-2);
   margin-bottom: var(--space-1);
 }
 
-/* Empty state inside dropdown */
 .filter-drawer__body .search-select__empty {
   padding: var(--space-3);
   text-align: center;

@@ -19,8 +19,11 @@ import { globalErrorHandler } from '../../utils/errors/error-handler'
 import { cleanDatabase } from '../helpers/db-cleaner'
 import { JWT_SECRET, REFRESH_SECRET } from '../helpers/secrets'
 
+const APP_DATABASE_URL = process.env.APP_DATABASE_URL
+if (!APP_DATABASE_URL) throw new Error('APP_DATABASE_URL not set')
+
 // A real app_runtime connection — RLS is fully enforced here.
-const appRuntimePool = new SQL(process.env.APP_DATABASE_URL!)
+const appRuntimePool = new SQL(APP_DATABASE_URL)
 const appRuntimeDb = drizzle(appRuntimePool, {
   schema: await import('../../db/schema'),
 })

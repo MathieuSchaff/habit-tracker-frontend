@@ -33,8 +33,7 @@ vi.mock('@/lib/queries/ingredients', () => ({
   ingredientQueries: {
     options: vi.fn(() => ({
       queryKey: ['ingredients-options'],
-      // 4 vitamins enable the top-3 cap test; 'vitamine c' (with space) still
-      // uniquely matches "Vitamine C" since the others fold to 'vitamine e/a/b3'.
+      // 4 vitamins enable the top-N cap test; 'vitamine c' still matches uniquely after folding.
       queryFn: () =>
         Promise.resolve([
           { id: 1, slug: 'vitamine-c', name: 'Vitamine C' },
@@ -98,8 +97,7 @@ describe('ProductsHeader — facet match footer', () => {
     render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
     await userEvent.type(input, 'matifiant')
-    // Fallback uses "résultats", facet entries use "produits" — the negative
-    // assertion below excludes facet entries while the positive proves fallback ran.
+    // Fallback uses "résultats", facets use "produits"; negative assertion excludes facets.
     await waitFor(() =>
       expect(screen.getByText(/voir tous les résultats pour "matifiant"/i)).toBeInTheDocument()
     )
@@ -111,8 +109,7 @@ describe('ProductsHeader — facet match footer', () => {
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
     await userEvent.type(input, 'vitamine c')
     await waitFor(() => screen.getByText(/voir tous les produits avec vitamine c/i))
-    // D4 contract change vs D3: fallback is no longer mutex with facets — both
-    // surface so the user can pick "see all by name+brand" even when an ingredient matched.
+    // D4: fallback and facets coexist so the user can still pick "see all by name+brand".
     expect(screen.getByText(/voir tous les résultats pour "vitamine c"/i)).toBeInTheDocument()
   })
 
@@ -122,14 +119,14 @@ describe('ProductsHeader — facet match footer', () => {
     await userEvent.type(input, 'vitamine c')
     await waitFor(() => screen.getByText('Ingrédients'))
     expect(screen.getByText('Recherche')).toBeInTheDocument()
-    // Brand section is empty for "vitamine c" → must be filtered out (no header rendered).
+    // Empty brand section must be filtered out (no header rendered).
     expect(screen.queryByText('Marques')).not.toBeInTheDocument()
   })
 
   it('caps ingredient section at FACET_SECTION_LIMIT (D4)', async () => {
     render(<ProductsHeader {...baseProps} />, { wrapper: makeWrapper() })
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
-    // 'vita' folds to substring of all 4 mocked vitamins → top 2 only.
+    // 'vita' matches all 4 vitamins; cap limits to top 2.
     await userEvent.type(input, 'vita')
     await waitFor(() => screen.getByText('Ingrédients'))
     const entries = screen.getAllByText(/voir tous les produits avec vitamine/i)
@@ -180,7 +177,7 @@ describe('ProductsHeader — facet match footer', () => {
     expect(navigate).toHaveBeenCalledOnce()
     const [call] = navigate.mock.calls
     expect(call[0].to).toBe('/products')
-    // search is a functional updater — verify it produces the expected shape
+    // search is a functional updater.
     const resolved = call[0].search({})
     expect(resolved).toMatchObject({ ingredient: ['vitamine-c'], page: 1 })
   })
@@ -204,7 +201,7 @@ describe('ProductsHeader — facet match footer', () => {
     const input = screen.getByRole('combobox', { name: /rechercher un produit/i })
     await userEvent.type(input, 'vitamine c')
     await screen.findByText(/voir tous les produits avec vitamine c/i)
-    // Sections are rendered first → idx 0 = ingredient entry.
+    // Sections render first; idx 0 = ingredient entry.
     await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(navigate).toHaveBeenCalledOnce()
     const [call] = navigate.mock.calls

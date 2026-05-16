@@ -57,7 +57,7 @@
     padding: var(--space-1) 0;
   }
 
-  /* strip margins on the edges so the content doesn't double up spacing with the container */
+  /* Strip outer margins so content doesn't double-up spacing with the container. */
   & > :first-child {
     margin-top: 0;
   }

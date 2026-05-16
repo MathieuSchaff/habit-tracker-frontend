@@ -1,6 +1,3 @@
-/* ============================================
-   HERO — shared shell
-   ============================================ */
 .aur-hero {
   position: relative;
   overflow: hidden;
@@ -141,9 +138,7 @@
   min-width: 0;
 }
 
-/* ============================================
-   HERO — Variant A : visual stack (3 cards)
-   ============================================ */
+/* Variant A: visual stack (3 cards) */
 .aur-hero-stack {
   position: relative;
   display: grid;
@@ -191,9 +186,7 @@
   }
 }
 
-/* ============================================
-   HERO — Variant B : chaos → ordre
-   ============================================ */
+/* Variant B: chaos -> order */
 .aur-hero-chaos {
   position: relative;
   min-height: 26rem;
@@ -239,9 +232,7 @@
   color: oklch(99% 0 0);
 }
 
-/* ============================================
-   HERO — Variant C : Wiki + comparaison
-   ============================================ */
+/* Variant C: Wiki + comparison */
 .aur-hero-wiki {
   display: flex;
   flex-direction: column;

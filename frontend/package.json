@@ -20,7 +20,6 @@
     "@tanstack/router-core": "^1.153.2",
     "@tanstack/zod-adapter": "^1.163.3",
     "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
     "hono": "^4.11.4",
     "katex": "^0.16.38",
     "lucide-react": "^0.563.0",

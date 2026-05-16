@@ -64,7 +64,7 @@ describe('SubGroupedChips — rendering', () => {
       />
     )
     expect(within(container).queryByText('Empty')).not.toBeInTheDocument()
-    // Two matches expected: visible <legend> + sr-only legend inside ChipGroup.
+    // Two matches: visible <legend> + sr-only legend inside ChipGroup.
     expect(within(container).getAllByText('Real').length).toBeGreaterThan(0)
   })
 
@@ -77,7 +77,6 @@ describe('SubGroupedChips — rendering', () => {
         escapeHandler={() => {}}
       />
     )
-    // No fieldset/legend per sub-group, just chips for the flat option list.
     expect(screen.getByRole('button', { name: 'Alpha' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Epsilon' })).toBeInTheDocument()
   })
@@ -95,7 +94,6 @@ describe('SubGroupedChips — maxVisible', () => {
         escapeHandler={() => {}}
       />
     )
-    // 3 chips visible + the "Voir tout" expand button.
     expect(screen.getByRole('button', { name: 'Alpha' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Beta' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Gamma' })).toBeInTheDocument()
@@ -167,7 +165,6 @@ describe('SubGroupedChips — toggle', () => {
         escapeHandler={() => {}}
       />
     )
-    // 'e' is hidden behind the cap initially — expanding reveals it as already active.
     await user.click(screen.getByRole('button', { name: /Voir les 5 options/ }))
     expect(screen.getByRole('button', { name: 'Epsilon' })).toHaveAttribute('aria-pressed', 'true')
   })

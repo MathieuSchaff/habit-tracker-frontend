@@ -43,9 +43,9 @@
   align-self: self-start;
   white-space: nowrap;
   transition: all var(--transition-fast) ease;
-  width: 120px; /* Fixed width to match all action buttons */
+  width: 120px;
   position: relative;
-  padding: 0; /* Let fixed width and flex center handle it */
+  padding: 0;
 }
 
 .list-filter-btn:hover {
@@ -92,7 +92,6 @@
   }
   .list-header__actions-group > * {
     flex: initial;
-    /* width: 120px will apply here */
   }
 }
 

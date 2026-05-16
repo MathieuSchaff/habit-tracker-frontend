@@ -177,7 +177,6 @@ export {
   getProductTagCategory,
   getProductTagLabel,
   getProductTagsByCategory,
-  getProductUnitLabel,
   HAIRCARE_PRODUCT_TAG_CATEGORIES,
   HAIRCARE_PRODUCT_TAG_CATEGORY_META,
   HAIRCARE_PRODUCT_TAG_SLUGS,

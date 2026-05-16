@@ -17,17 +17,13 @@ type FilterDrawerProps<T extends string> = {
   onReset: () => void
   initialFilters: FilterValues<T>
   children?: React.ReactNode
-  // Rendered after the essential accordions, before the "Avancé" separator.
-  // Used for non-tag essentials so they sit inside the essential block
-  // instead of floating above the whole list.
+  /** Rendered after essential accordions, before the "Avancé" separator. */
   essentialExtras?: React.ReactNode
-  // Rendered at the end of the advanced section (after all advanced
-  // accordions). Used for non-tag advanced controls (e.g. price range).
+  /** Rendered at the end of the advanced section (e.g. price range). */
   advancedExtras?: React.ReactNode
-  // Live count of products matching the in-flight selection, displayed on
-  // the Apply button. Parent owns the query — drawer just renders.
+  /** Live count for the Apply button label; parent owns the query. */
   previewCount?: number
-  // Emitted on every local change so the parent can drive a preview query.
+  /** Emitted on user action so the parent can drive a preview query. */
   onLocalFiltersChange?: (filters: FilterValues<T>) => void
 }
 
@@ -49,24 +45,20 @@ export function FilterDrawer<T extends string>({
   const [localFilters, setLocalFilters] = useState<FilterValues<T>>(currentFilters)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
-  // Stable ref so commitLocal can call the latest callback without
-  // re-creating itself every render.
+  // Stable ref so commitLocal stays stable across renders.
   const onLocalFiltersChangeRef = useRef(onLocalFiltersChange)
   onLocalFiltersChangeRef.current = onLocalFiltersChange
 
   useScrollLock(open)
 
-  // remember which button opened the dialog so we can restore focus on close
+  // Remember the opener so we can restore focus on close.
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement
     }
   }, [open])
 
-  // Drawer model: drawer = staging, Apply = commit, X / Esc / backdrop = drop
-  // draft (no commit). Local filters are re-synced from currentFilters on
-  // next open via the open-sync effect, so a closed-then-reopened drawer
-  // shows the canonical state.
+  // Drawer = staging; Apply commits; X/Esc/backdrop drop the draft. The open-sync effect resyncs from currentFilters on reopen.
   const handleClose = useCallback(() => {
     onClose()
     setTimeout(() => previousFocusRef.current?.focus(), 0)
@@ -90,9 +82,7 @@ export function FilterDrawer<T extends string>({
     }
   }, [open])
 
-  // Emit on user action instead of via effect on localFilters: an effect
-  // would call setDraftFilters in the parent, which re-renders and ships a
-  // new currentFilters ref back, triggering Maximum update depth.
+  // Emit on user action, not via effect: an effect-driven emit ping-pongs renders with an unmemoised parent and trips Maximum update depth.
   const commitLocal = (next: FilterValues<T>) => {
     setLocalFilters(next)
     onLocalFiltersChangeRef.current?.(next)
@@ -115,9 +105,7 @@ export function FilterDrawer<T extends string>({
     }
   }
 
-  // arrow keys move focus between accordion triggers,
-  // but only when the trigger itself is focused — we don't want
-  // to hijack arrows inside a SearchSelect or other inputs
+  // Arrow keys move focus between accordion triggers; ignored elsewhere so we don't hijack arrows in inputs.
   const handleArrowNav = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     const target = e.target as HTMLElement
@@ -134,9 +122,7 @@ export function FilterDrawer<T extends string>({
     triggers[nextIndex]?.focus()
   }
 
-  // Native <dialog> + showModal() blocks focus from leaving the dialog but
-  // does NOT cycle Tab/Shift+Tab at the boundaries (Chromium escapes to body
-  // on Shift+Tab from first focusable / Tab from last). Wrap explicitly.
+  // Native <dialog> blocks focus escape but doesn't cycle Tab at the boundaries; wrap explicitly.
   const FOCUSABLE_SELECTOR =
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
   const handleTabTrap = (e: React.KeyboardEvent<HTMLDialogElement>) => {

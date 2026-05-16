@@ -39,8 +39,8 @@ describe('validateGoldSet', () => {
   test('accepts a minimal valid file', () => {
     const out = validateGoldSet(validBase, 'test.json')
     expect(out.annotations.length).toBe(1)
-    expect(out.annotations[0]!.present).toEqual(['retinoids'])
-    expect(out.annotations[0]!.absent).toEqual(['vitamin-c'])
+    expect(out.annotations[0]?.present).toEqual(['retinoids'])
+    expect(out.annotations[0]?.absent).toEqual(['vitamin-c'])
   })
 
   test('rejects wrong schemaVersion', () => {
@@ -133,8 +133,8 @@ describe('validateGoldSet', () => {
       'test.json'
     )
     expect(out.rulesetVersion).toBe('products-branch@a4934d1f')
-    expect(out.annotations[0]!.sampledFor).toEqual(['retinoids', 'vitamin-c'])
-    expect(out.annotations[0]!.notes).toBe('borderline call on past pos 12')
+    expect(out.annotations[0]?.sampledFor).toEqual(['retinoids', 'vitamin-c'])
+    expect(out.annotations[0]?.notes).toBe('borderline call on past pos 12')
   })
 })
 
@@ -170,10 +170,10 @@ describe('serializeGoldSet', () => {
     const reparsed = validateGoldSet(JSON.parse(serialized), 'reparsed')
     expect(reparsed.annotations.length).toBe(2)
     // Sorted by slug → 'a-product' first.
-    expect(reparsed.annotations[0]!.productSlug).toBe('a-product')
-    expect(reparsed.annotations[1]!.productSlug).toBe('b-product')
+    expect(reparsed.annotations[0]?.productSlug).toBe('a-product')
+    expect(reparsed.annotations[1]?.productSlug).toBe('b-product')
     // present sorted alphabetically.
-    expect(reparsed.annotations[1]!.present).toEqual(['retinoids', 'vitamin-c'])
+    expect(reparsed.annotations[1]?.present).toEqual(['retinoids', 'vitamin-c'])
   })
 
   test('omits empty optional fields (rulesetVersion, notes, sampledFor)', () => {

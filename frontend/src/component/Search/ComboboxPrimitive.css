@@ -89,13 +89,11 @@
   border-top: 0;
 }
 
-/* Compact facet entries (sections sit above results — keep them dense
-   so the main list remains scannable without heavy scrolling). */
+/* Dense facet entries so the main results list stays scannable. */
 .combobox-primitive__section .combobox-primitive__option {
   padding: 6px var(--space-3);
 }
 
-/* Divider between section cluster (rendered first) and main results below */
 .combobox-primitive__section + .combobox-primitive__option {
   border-top: 1px solid var(--border-default);
 }

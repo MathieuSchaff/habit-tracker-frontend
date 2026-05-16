@@ -9,11 +9,8 @@ import { SubGroupedChips } from './SubGroupedChips'
 
 import './FilterAccordion.css'
 
-// One accordion section inside the filter drawer.
-// Built on native <details>/<summary> so the open/close state lives in the
-// browser, not React. Toggling does not re-render the chip list — critical
-// for categories with 70+ chips where React reconciliation alone causes a
-// visible freeze on each toggle.
+// Native <details>/<summary>: toggle is browser-owned, skipping React reconciliation
+// of the 70+ chip categories that would otherwise freeze on each toggle.
 export function FilterAccordion<T extends string>({
   group,
   localFilters,
@@ -27,18 +24,13 @@ export function FilterAccordion<T extends string>({
     (sum, sf) => sum + (localFilters[sf.key]?.length ?? 0),
     0
   )
-  // Lock the initial open state at mount; the browser owns it after.
-  // Stable across re-renders so React never re-asserts `open` and overrides
-  // a native toggle.
+  // Lock initial open at mount; browser owns it after so React never re-asserts and overrides a native toggle.
   const [initialOpen] = useState(() => group.defaultOpen || totalSelected > 0)
   const detailsRef = useRef<HTMLDetailsElement>(null)
   const summaryRef = useRef<HTMLElement>(null)
   const contentId = useId()
 
-  // Escape inside a chip closes the accordion and refocuses the summary.
-  // Without this, Escape would bubble to the parent <dialog> and close the
-  // whole drawer — too aggressive when the user just wants to back out of
-  // a single section.
+  // Escape inside a chip closes the accordion; otherwise it would bubble to the parent <dialog> and close the whole drawer.
   const escapeHandler = (e: React.KeyboardEvent) => {
     if (e.key !== 'Escape') return
     const details = detailsRef.current
@@ -60,8 +52,7 @@ export function FilterAccordion<T extends string>({
         className="filter-accordion__trigger"
         aria-controls={contentId}
       >
-        {/* h3 inside <summary> keeps screen-reader heading navigation
-            without breaking <summary>'s required first-child position. */}
+        {/* h3 inside <summary>: preserves SR heading nav without breaking the required first-child position. */}
         <h3 className="filter-accordion__label">{group.label}</h3>
         <div className="filter-accordion__meta">
           {totalSelected > 0 && (

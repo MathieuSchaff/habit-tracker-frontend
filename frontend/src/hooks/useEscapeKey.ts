@@ -1,10 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-/**
- * Calls the handler when the user presses Escape. We keep the handler in a
- * ref so the listener doesn't need to be re-attached on every render.
- */
 export function useEscapeKey(handler: () => void) {
+  // Keep latest handler in a ref so listener stays attached across renders.
   const callbackRef = useRef(handler)
   callbackRef.current = handler
 

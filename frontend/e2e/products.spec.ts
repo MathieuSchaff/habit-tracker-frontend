@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 // All specs target unauthenticated paths — list, detail, filters, sort, search.
 // Auth-gated surfaces (Add to collection modal, Créer button, profile toggle)
-// require a `storageState` setup (see docs/frontend/e2e.md "Quand upgrade").
+// require a `storageState` setup.
 
 test.describe('Products page', () => {
   test.beforeEach(async ({ page }) => {

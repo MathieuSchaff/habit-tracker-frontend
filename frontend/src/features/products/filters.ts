@@ -23,8 +23,6 @@ export type TagFilterKey = AllProductTagCategory
 
 export type FilterKey = TagFilterKey | 'brand' | 'ingredient'
 
-// Deduped union of all domain tag keys (skincare ∪ haircare ∪ dental ∪ supplement).
-// Duplicates (concern, product_type, product_label, routine_step) appear only once.
 const _allTagKeys = Object.values(DOMAIN_PRODUCT_FILTER_CATEGORIES).flat()
 export const TAG_FILTER_KEYS = [...new Set(_allTagKeys)] as TagFilterKey[]
 
@@ -34,8 +32,7 @@ export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient'] as (
   | 'ingredient'
 )[]
 
-// Merge order: supplement/dental/haircare first → skincare wins for shared keys
-// (concern="Problème", product_type="Type", product_label="Label", routine_step="Étape").
+// Skincare meta wins for shared keys (concern, product_type, product_label, routine_step).
 const _allMeta: Record<string, TagCategoryMeta> = {
   ...SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
   ...DENTAL_PRODUCT_TAG_CATEGORY_META,
@@ -43,7 +40,6 @@ const _allMeta: Record<string, TagCategoryMeta> = {
   ...SKINCARE_PRODUCT_TAG_CATEGORY_META,
 }
 
-// Labels for non-tag filters — tag labels come from shared metas above.
 export const NON_TAG_FILTER_LABELS = {
   brand: 'Marque',
   ingredient: 'Ingrédient',
@@ -62,13 +58,12 @@ export const GROUP_LABELS: Record<FilterKey, string> = {
   ...NON_TAG_FILTER_LABELS,
 }
 
-// Kept as explicit overrides — special-case display tweaks not derivable from taxonomy.
+// Display tweaks not derivable from taxonomy.
 export const LABEL_OVERRIDES: Record<string, string> = {
   'barriere-cutanee-alteree': 'Peau sensibilisée',
 }
 
-// Merged tag-slug → label lookup across all 4 domain taxonomies. Slugs are effectively
-// unique; when they overlap (e.g. peau-grasse exists in skincare + haircare) labels match.
+// Merged tag-slug → label across the 4 domain taxonomies. Overlapping slugs share labels.
 const ALL_TAG_LABELS: Record<string, string> = {
   ...Object.fromEntries(
     Object.entries(SKINCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])

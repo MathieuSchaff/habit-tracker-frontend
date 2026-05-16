@@ -32,8 +32,7 @@
   flex-shrink: 0;
 }
 
-/* Popover UA defaults: position:fixed; inset:0; margin:auto.
-   Override inset/margin so JS-set left/bottom take effect. */
+/* Override popover UA inset/margin so JS-set left/bottom take effect. */
 .theme-dropdown {
   inset: unset;
   margin: 0;

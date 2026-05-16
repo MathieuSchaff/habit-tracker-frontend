@@ -248,7 +248,7 @@ async function writeSnapshot(path: string, rows: readonly Row[]): Promise<void> 
   for (const r of rows) {
     lines.push(`${r.productSlug},${r.kind},${r.category},${r.tagSlug},${r.relevance},${r.source}`)
   }
-  await Bun.write(path, lines.join('\n') + '\n')
+  await Bun.write(path, `${lines.join('\n')}\n`)
 }
 
 async function writeDiff(path: string, diff: readonly DiffRow[]): Promise<void> {
@@ -258,7 +258,7 @@ async function writeDiff(path: string, diff: readonly DiffRow[]): Promise<void> 
       `${d.action},${d.productSlug},${d.tagSlug},${d.relevanceBefore},${d.relevanceAfter},${d.sourceBefore},${d.sourceAfter}`
     )
   }
-  await Bun.write(path, lines.join('\n') + '\n')
+  await Bun.write(path, `${lines.join('\n')}\n`)
 }
 
 async function readSnapshot(path: string): Promise<Row[]> {

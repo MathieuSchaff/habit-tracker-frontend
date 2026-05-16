@@ -13,7 +13,7 @@
   --c-muted: 0.07;
   --c-soft: 0.02;
 
-  /* Surface lightness — page warm ivory, cards pure white */
+  /* Page warm ivory, cards pure white. */
   --l-page: 98.5%;
   --l-card: 100%;
   --l-elevated: 100%;
@@ -61,7 +61,7 @@
   --section-accent: var(--color-accent);
   --bg-deep: oklch(28% 0.1 var(--h-papaya));
 
-  /* Extended palette — not yet wired to components */
+  /* Extended palette — not yet wired to components. */
   --color-aqua: oklch(70% 0.11 var(--h-aqua));
   --color-aqua-hover: oklch(62% 0.13 var(--h-aqua));
   --color-aqua-light: oklch(93% 0.045 var(--h-aqua));
@@ -89,24 +89,22 @@
   --color-warning-light: oklch(96% 0.06 30deg);
   --color-warning-text: oklch(40% 0.15 30deg);
 
-  /* Page warm ivory, cards pure white — product footers get mango via scoped rule */
+  /* Product card footers get a mango tint via a scoped rule. */
   --bg-page: oklch(var(--l-page) 0.006 75);
   --bg-card: oklch(var(--l-card) 0 0);
   --bg-elevated: oklch(var(--l-elevated) 0 0);
   --bg-sunken: oklch(var(--l-sunken) 0.02 75);
   --bg-muted: oklch(var(--l-muted) 0.008 75);
 
-  /* Page H1 — mango */
   --page-title-color: oklch(68% 0.2 65);
 
-  /* Card footer — subtle warm tint, dark text */
-  /* CANDIDATS RETENUS footer: shamrock oklch(60% 0.1268 154.47) ✓, emerald oklch(78% 0.1394 156.93) ✓ */
+  /* Card footer candidates kept for reference: shamrock oklch(60% 0.1268 154.47) ✓, emerald oklch(78% 0.1394 156.93) ✓. */
   --card-footer-bg: oklch(95% 0.026 65);
   --card-footer-border: oklch(85% 0.06 65);
   --card-footer-color: var(--text-primary);
   --card-footer-color-muted: var(--text-muted);
 
-  /* Product unit chip — white bg, mango text (page-specific override) */
+  /* Product unit chip: white bg, mango text — overrides the page surface treatment. */
   --product-unit-chip-bg: oklch(100% 0 0);
   --product-unit-chip-text: oklch(58% 0.2 65);
   --product-unit-chip-border: oklch(100% 0 0);
@@ -129,7 +127,6 @@
   --surface-bright: oklch(99% 0.002 0deg);
   --hero-glow: oklch(93% 0.04 var(--h-mango));
 
-  /* Toggle */
   --toggle-track-bg: var(--color-primary-dark);
   --toggle-track-hover-bg: var(--color-primary-deeper);
   --toggle-fg: oklch(100% 0 0);

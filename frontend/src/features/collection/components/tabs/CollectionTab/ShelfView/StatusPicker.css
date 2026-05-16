@@ -20,8 +20,7 @@
     gap: 4px;
   }
 
-  /* DropdownMenu.Item applies `.dropdown-menu__item` to the child; reset padding
-     so our option button controls spacing, and neutralize the default hover bg. */
+  /* Reset DropdownMenu.Item padding/hover so the option button owns spacing. */
   .status-picker-grid .dropdown-menu__item {
     padding: 0;
     background: transparent;

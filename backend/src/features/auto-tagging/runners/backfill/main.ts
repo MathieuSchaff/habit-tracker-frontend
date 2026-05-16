@@ -31,6 +31,7 @@
 import {
   DOMAIN_PRODUCT_FILTER_CATEGORIES,
   PRODUCT_CATEGORY_TO_DOMAIN_TAB,
+  type ProductCategory,
   type ProductKind,
   type ProductTexture,
 } from '@habit-tracker/shared'
@@ -64,14 +65,71 @@ const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 
 type Relevance = 'primary' | 'secondary' | 'avoid'
 
-async function main() {
+interface ProductRow {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  brand: string
+  kind: ProductKind
+  inci: string | null
+  category: ProductCategory
+  texture: ProductTexture | null
+}
+
+interface PercentClaim {
+  ingredientSlug: string
+  concentrationValue: number
+  concentrationUnit: string
+}
+
+interface TagInfo {
+  id: string
+  tagType: string
+}
+
+interface Candidate {
+  productId: string
+  productTagId: string
+  slug: string
+  tagSlug: string
+  relevance: Relevance
+  source: AutoTagSource
+}
+
+interface ClassifyResult {
+  toInsert: Candidate[]
+  toUpsert: Candidate[]
+  skipped: number
+  primaryInserts: number
+  primaryUpserts: number
+}
+
+// Brand certifications: pre-load once, then pass as immutable Map to the
+// orchestrator. Map key = `lower(trim(brand))` produced via `normalizeBrand`
+// — same convention as the seed (`brandNormalized` PK).
+type BrandCertMap = Map<string, typeof brandCertifications.$inferSelect>
+
+// V1/V2 gate: V1 backfill inserts product_type_v2 primaries when curation is
+// absent; re-running the gate on "any primary row" would block V2 (concern)
+// from firing on products V1 already touched, so we treat only the V1-emittable
+// tagType as "auto" here. Concern primaries are considered curated even when
+// V2 added them in a prior run — re-promotion would be a no-op
+// (dbRel='primary' → skipped branch), so the heuristic stays consistent.
+const AUTO_PRIMARY_TAG_TYPES = new Set(['product_type_v2'])
+
+// Setup
+
+function validateParams(): void {
   if (
     CONF_OVERRIDE !== null &&
     (Number.isNaN(CONF_OVERRIDE) || CONF_OVERRIDE < 0 || CONF_OVERRIDE > 1)
   ) {
     throw new Error(`CONF_OVERRIDE must be in [0,1], got "${process.env.CONF_OVERRIDE}"`)
   }
+}
 
+function logHeader(): void {
   const allowedTagCount = Object.values(TAG_CONFIG).filter((r) => r.allow).length
   console.log('🏷  Backfill auto-tags')
   console.log(
@@ -79,9 +137,13 @@ async function main() {
       CONF_OVERRIDE !== null ? ` · conf_override=${CONF_OVERRIDE}` : ''
     }${SLUG_ARG ? ` · slug=${SLUG_ARG}` : ''}${LIMIT ? ` · limit=${LIMIT}` : ''}\n`
   )
+}
 
+async function fetchProductsAndCerts(): Promise<{
+  allProducts: ProductRow[]
+  brandCertMap: BrandCertMap
+}> {
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
   const allProducts = await db
     .select({
       id: products.id,
@@ -96,24 +158,24 @@ async function main() {
     })
     .from(products)
     .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-
-  // Brand certifications: pre-load once, then pass as immutable Map to the
-  // orchestrator. Map key = `lower(trim(brand))` produced via `normalizeBrand`
-  // — same convention as the seed (`brandNormalized` PK).
   const certRows = await db.select().from(brandCertifications)
-  const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
+  const brandCertMap: BrandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
+  return { allProducts, brandCertMap }
+}
 
+function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
   const subset = SLUG_ARG
     ? allProducts.filter((p) => p.slug === SLUG_ARG)
     : LIMIT
       ? allProducts.slice(0, LIMIT)
       : allProducts
-
   if (SLUG_ARG && subset.length === 0) {
     throw new Error(`Product slug "${SLUG_ARG}" not found in DB (or not in an eligible category)`)
   }
+  return subset
+}
 
-  const productIds = subset.map((p) => p.id)
+async function fetchClaimsByProduct(productIds: string[]): Promise<Map<string, PercentClaim[]>> {
   const claimRows =
     productIds.length === 0
       ? []
@@ -127,14 +189,7 @@ async function main() {
           .from(productIngredients)
           .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
           .where(inArray(productIngredients.productId, productIds))
-  const claimsByProduct = new Map<
-    string,
-    {
-      ingredientSlug: string
-      concentrationValue: number
-      concentrationUnit: string
-    }[]
-  >()
+  const claimsByProduct = new Map<string, PercentClaim[]>()
   for (const row of claimRows) {
     if (!row.concentrationValue || !row.concentrationUnit) continue
     const value = Number(row.concentrationValue)
@@ -147,7 +202,13 @@ async function main() {
     })
     claimsByProduct.set(row.productId, arr)
   }
+  return claimsByProduct
+}
 
+async function fetchTagInfo(): Promise<{
+  tagSlugToInfo: Map<string, TagInfo>
+  tagIdToType: Map<string, string>
+}> {
   const tagDefs = await db
     .select({
       id: productTagsDefs.id,
@@ -156,17 +217,16 @@ async function main() {
     })
     .from(productTagsDefs)
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
-
-  // Fetch existing (productId, tagId) → relevance + the tagType behind the
-  // tagId so we can tell curated primaries apart from V1 auto primaries.
-  // V1 backfill inserts product_type_v2 primaries when curation is absent;
-  // re-running the gate on "any primary row" would block V2 (concern) from
-  // firing on products V1 already touched, so we treat only the V1-emittable
-  // tagType as "auto" here. Concern primaries are considered curated even
-  // when V2 added them in a prior run — re-promotion would be a no-op
-  // (dbRel='primary' → skipped branch), so the heuristic stays consistent.
   const tagIdToType = new Map(tagDefs.map((t) => [t.id, t.tagType]))
-  const AUTO_PRIMARY_TAG_TYPES = new Set(['product_type_v2'])
+  return { tagSlugToInfo, tagIdToType }
+}
+
+// Fetch existing (productId, tagId) → relevance + the tagType behind the
+// tagId so we can tell curated primaries apart from V1 auto primaries.
+async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
+  existingMap: Map<string, Relevance>
+  productsWithCuratedPrimary: Set<string>
+}> {
   const existingRows = await db
     .select({
       pId: tagProducts.productId,
@@ -182,25 +242,22 @@ async function main() {
     const type = tagIdToType.get(r.tId)
     if (type && !AUTO_PRIMARY_TAG_TYPES.has(type)) productsWithCuratedPrimary.add(r.pId)
   }
+  return { existingMap, productsWithCuratedPrimary }
+}
 
-  // Detection
+// Detection
 
-  interface Candidate {
-    productId: string
-    productTagId: string
-    slug: string
-    tagSlug: string
-    relevance: Relevance
-    source: AutoTagSource
-  }
-
-  // Orchestrator already dedups intra-product (avoid > secondary). The map here
-  // just translates `tagSlug → tagId` and drops candidates whose slug is unknown
-  // to the current `product_tags_defs` (legacy slug remap).
+// Orchestrator already dedups intra-product (avoid > secondary). The map here
+// just translates `tagSlug → tagId` and drops candidates whose slug is unknown
+// to the current `product_tags_defs` (legacy slug remap).
+function detectCandidates(
+  subset: ProductRow[],
+  claimsByProduct: Map<string, PercentClaim[]>,
+  tagSlugToInfo: Map<string, TagInfo>,
+  brandCertMap: BrandCertMap
+): { candidateMap: Map<string, Candidate>; noInci: number } {
   const candidateMap = new Map<string, Candidate>()
-
   let noInci = 0
-
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
 
@@ -212,10 +269,10 @@ async function main() {
     const pairs = detectAllAutoTags(
       {
         inci: p.inci,
-        kind: p.kind as ProductKind,
+        kind: p.kind,
         category: p.category,
         brand: p.brand,
-        texture: p.texture as ProductTexture | null,
+        texture: p.texture,
         name: p.name,
         description: p.description,
         percentClaims: claimsByProduct.get(p.id) ?? [],
@@ -241,9 +298,28 @@ async function main() {
       })
     }
   }
+  return { candidateMap, noInci }
+}
 
-  // Classify candidates
+// V1/V2 gate: auto-derived `primary` only fills products with NO curated
+// primary today (curated = primary whose tagType ∉ {product_type_v2,
+// concern}, typically routine_step_v2 / skin_effect / skin_type). Avoids
+// competing with curated primaries and getting truncated by ProductCard's
+// 3-chip cap. Demote to `secondary` for curated products so the row is
+// still inserted as a regular tag.
+function applyV1V2Gate(c: Candidate, productsWithCuratedPrimary: Set<string>): Candidate {
+  const promoteAllowed = c.relevance === 'primary' && !productsWithCuratedPrimary.has(c.productId)
+  if (c.relevance === 'primary' && !promoteAllowed) {
+    return { ...c, relevance: 'secondary' }
+  }
+  return c
+}
 
+function classifyCandidates(
+  candidateMap: Map<string, Candidate>,
+  existingMap: Map<string, Relevance>,
+  productsWithCuratedPrimary: Set<string>
+): ClassifyResult {
   const toInsert: Candidate[] = []
   const toUpsert: Candidate[] = [] // override an existing lower-precedence relevance
   let skipped = 0
@@ -251,20 +327,9 @@ async function main() {
   let primaryUpserts = 0 // secondary → primary upgrade on an existing pair
 
   for (const c of candidateMap.values()) {
-    const pairKey = `${c.productId}:${c.productTagId}`
+    const effective = applyV1V2Gate(c, productsWithCuratedPrimary)
+    const pairKey = `${effective.productId}:${effective.productTagId}`
     const dbRel = existingMap.get(pairKey)
-
-    // V1/V2 gate: auto-derived `primary` only fills products with NO curated
-    // primary today (curated = primary whose tagType ∉ {product_type_v2,
-    // concern}, typically routine_step_v2 / skin_effect / skin_type). Avoids
-    // competing with curated primaries and getting truncated by ProductCard's
-    // 3-chip cap. Demote to `secondary` for curated products so the row is
-    // still inserted as a regular tag.
-    const promoteAllowed = c.relevance === 'primary' && !productsWithCuratedPrimary.has(c.productId)
-    const effectiveRelevance: Relevance =
-      c.relevance === 'primary' && !promoteAllowed ? 'secondary' : c.relevance
-    const effective =
-      effectiveRelevance === c.relevance ? c : { ...c, relevance: effectiveRelevance }
 
     if (dbRel === undefined) {
       toInsert.push(effective)
@@ -282,10 +347,17 @@ async function main() {
       skipped++
     }
   }
-  const primaryPromotions = primaryInserts + primaryUpserts
+  return { toInsert, toUpsert, skipped, primaryInserts, primaryUpserts }
+}
 
-  // Report
+// Report
 
+function reportPlan(
+  subset: ProductRow[],
+  noInci: number,
+  candidateCount: number,
+  result: ClassifyResult
+): void {
   const sourceCountInsert: Record<AutoTagSource, number> = {
     'algo-derm': 0,
     'actif-class': 0,
@@ -297,56 +369,49 @@ async function main() {
     brand: 0,
     'percent-claim': 0,
   }
-  for (const c of toInsert) sourceCountInsert[c.source]++
+  for (const c of result.toInsert) sourceCountInsert[c.source]++
 
   console.log(`📊 Produits : ${subset.length} scannés · ${noInci} sans INCI`)
-  console.log(`   Candidats (après dédup intra-produit) : ${candidateMap.size}`)
-  console.log(`   Déjà à jour                           : ${skipped}`)
-  console.log(`   À insérer                             : ${toInsert.length}`)
+  console.log(`   Candidats (après dédup intra-produit) : ${candidateCount}`)
+  console.log(`   Déjà à jour                           : ${result.skipped}`)
+  console.log(`   À insérer                             : ${result.toInsert.length}`)
   console.log(`   ├ algo-derm      : ${sourceCountInsert['algo-derm']}`)
   console.log(`   ├ actif-class    : ${sourceCountInsert['actif-class']}`)
-  console.log(`   ├ kind           : ${sourceCountInsert['kind']}`)
-  console.log(`   ├ formula        : ${sourceCountInsert['formula']}`)
+  console.log(`   ├ kind           : ${sourceCountInsert.kind}`)
+  console.log(`   ├ formula        : ${sourceCountInsert.formula}`)
   console.log(`   ├ cross-signal   : ${sourceCountInsert['cross-signal']}`)
   console.log(`   ├ percent-claim  : ${sourceCountInsert['percent-claim']}`)
-  console.log(`   ├ brand          : ${sourceCountInsert['brand']}`)
-  console.log(`   ├ interaction    : ${sourceCountInsert['interaction']}`)
-  console.log(`   └ concentration  : ${sourceCountInsert['concentration']}`)
-  const avoidUpserts = toUpsert.length - primaryUpserts
+  console.log(`   ├ brand          : ${sourceCountInsert.brand}`)
+  console.log(`   ├ interaction    : ${sourceCountInsert.interaction}`)
+  console.log(`   └ concentration  : ${sourceCountInsert.concentration}`)
+  const avoidUpserts = result.toUpsert.length - result.primaryUpserts
   if (avoidUpserts > 0) {
     console.log(`   Corrections avoid (→avoid)             : ${avoidUpserts}`)
   }
+  const primaryPromotions = result.primaryInserts + result.primaryUpserts
   if (primaryPromotions > 0) {
     console.log(`   Promotions primary (secondary→primary) : ${primaryPromotions}`)
   }
 
   if (SLUG_ARG) {
-    const all = [...toInsert, ...toUpsert]
+    const all = [...result.toInsert, ...result.toUpsert]
     if (all.length > 0) {
       console.log('\n   Tags :')
       for (const c of all) {
-        const action = toUpsert.includes(c) ? 'UPSERT' : 'INSERT'
+        const action = result.toUpsert.includes(c) ? 'UPSERT' : 'INSERT'
         console.log(`     [${action} ${c.relevance}] [${c.source}] ${c.tagSlug}`)
       }
     }
   }
+}
 
-  if (toInsert.length === 0 && toUpsert.length === 0) {
-    console.log('\n✨ Rien à insérer. Base à jour.')
-    return
-  }
+// Write
 
-  if (!WRITE) {
-    console.log('\nRun avec --write pour appliquer.')
-    return
-  }
+const CHUNK = 500
 
-  // Write
-
-  const CHUNK = 500
+// Insert new pairs (secondary/actif/kind/formula) — doNothing preserves manual tags.
+async function insertNewPairs(toInsert: Candidate[]): Promise<number> {
   let inserted = 0
-
-  // 1. Insert new pairs (secondary/actif/kind/formula) — doNothing preserves manual tags.
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const chunk = toInsert.slice(i, i + CHUNK)
     await db
@@ -360,16 +425,20 @@ async function main() {
       )
       .onConflictDoNothing()
     inserted += chunk.length
-    if (toInsert.length > CHUNK)
+    if (toInsert.length > CHUNK) {
       process.stdout.write(`\r   Inséré : ${inserted}/${toInsert.length}`)
+    }
   }
   if (toInsert.length > CHUNK) console.log()
+  return inserted
+}
 
-  // 2. Upsert pairs that must override an existing lower-precedence row:
-  //    - avoid over secondary/primary  (safety signal must win)
-  //    - primary over secondary        (kind-derived headline promotion)
-  // Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
-  // EXCLUDED.relevance so the upserted value matches what we inserted.
+// Upsert pairs that must override an existing lower-precedence row:
+//    - avoid over secondary/primary  (safety signal must win)
+//    - primary over secondary        (kind-derived headline promotion)
+// Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
+// EXCLUDED.relevance so the upserted value matches what we inserted.
+async function upsertExistingPairs(toUpsert: Candidate[]): Promise<number> {
   let upserted = 0
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
     const chunk = toUpsert.slice(i, i + CHUNK)
@@ -388,7 +457,45 @@ async function main() {
       })
     upserted += chunk.length
   }
+  return upserted
+}
 
+// Main
+
+async function main() {
+  validateParams()
+  logHeader()
+
+  const { allProducts, brandCertMap } = await fetchProductsAndCerts()
+  const subset = narrowSubset(allProducts)
+  const claimsByProduct = await fetchClaimsByProduct(subset.map((p) => p.id))
+  const { tagSlugToInfo, tagIdToType } = await fetchTagInfo()
+  const { existingMap, productsWithCuratedPrimary } = await fetchExistingState(tagIdToType)
+
+  const { candidateMap, noInci } = detectCandidates(
+    subset,
+    claimsByProduct,
+    tagSlugToInfo,
+    brandCertMap
+  )
+  const result = classifyCandidates(candidateMap, existingMap, productsWithCuratedPrimary)
+
+  reportPlan(subset, noInci, candidateMap.size, result)
+
+  if (result.toInsert.length === 0 && result.toUpsert.length === 0) {
+    console.log('\n✨ Rien à insérer. Base à jour.')
+    return
+  }
+  if (!WRITE) {
+    console.log('\nRun avec --write pour appliquer.')
+    return
+  }
+
+  const inserted = await insertNewPairs(result.toInsert)
+  await upsertExistingPairs(result.toUpsert)
+
+  const avoidUpserts = result.toUpsert.length - result.primaryUpserts
+  const primaryPromotions = result.primaryInserts + result.primaryUpserts
   console.log(
     `\n✅ ${inserted} insérées · ${avoidUpserts} corrections avoid · ${primaryPromotions} promotions primary.\n`
   )

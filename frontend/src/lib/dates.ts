@@ -1,6 +1,3 @@
-import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
-
 // API contract: every wire date is ISO 8601 UTC. Calendar dates round to
 // midnight UTC ("YYYY-MM-DDT00:00:00.000Z"). Native <input type="date"> only
 // understands "YYYY-MM-DD", so forms must convert at the boundary.
@@ -41,10 +38,4 @@ export function formatInstant(
 // Use `compareInstant(b, a)` for descending (most recent first).
 export function compareInstant(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
-}
-
-// "il y a 3 jours" / "dans 2 heures". Locale FR forced via date-fns.
-export function formatRelative(iso: string | null | undefined): string {
-  if (!iso) return ''
-  return formatDistanceToNow(new Date(iso), { addSuffix: true, locale: fr })
 }

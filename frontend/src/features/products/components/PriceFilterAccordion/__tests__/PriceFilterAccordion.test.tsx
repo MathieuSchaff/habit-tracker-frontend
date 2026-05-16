@@ -5,10 +5,7 @@ import { PriceFilterAccordion } from '../PriceFilterAccordion'
 
 afterEach(() => cleanup())
 
-// The accordion uses native <details>; jsdom respects `open` on render but
-// does not auto-toggle on `summary` click in older versions. Reading the
-// `open` attribute reflects the React-controlled mount state, which is the
-// only thing this component locks.
+// jsdom honors `open` on render but doesn't auto-toggle on summary click; component locks mount state.
 function getDetails(): HTMLDetailsElement {
   const el = document.querySelector('details')
   if (!el) throw new Error('PriceFilterAccordion did not render a <details> element')
@@ -37,10 +34,8 @@ describe('PriceFilterAccordion — initial open state', () => {
   })
 })
 
-// Behavior the component leans on: the initial state is captured via lazy
-// `useState(() => hasValue)` and the `open` prop is only read on mount. After
-// that, ownership belongs to the browser's native toggle. Without this lock,
-// a parent reset would yank the panel closed under the user's cursor.
+// `hasValue` is read only at mount via lazy useState; without this lock, a parent reset would
+// close the panel under the user's cursor.
 describe('PriceFilterAccordion — initialOpen lock', () => {
   it('does not close itself when the price is cleared by the parent', () => {
     const { rerender } = render(<PriceFilterAccordion min={1000} onChange={vi.fn()} />)
@@ -48,8 +43,6 @@ describe('PriceFilterAccordion — initialOpen lock', () => {
 
     rerender(<PriceFilterAccordion onChange={vi.fn()} />)
 
-    // Parent dropped the value (e.g. global reset). The native open state is
-    // owned by the browser from now on; React must not flip it back.
     expect(getDetails().open).toBe(true)
   })
 
@@ -59,7 +52,6 @@ describe('PriceFilterAccordion — initialOpen lock', () => {
 
     rerender(<PriceFilterAccordion min={1000} onChange={vi.fn()} />)
 
-    // Same logic mirrored: React only honors `hasValue` at mount, never after.
     expect(getDetails().open).toBe(false)
   })
 })
@@ -79,7 +71,7 @@ describe('PriceFilterAccordion — meta indicator', () => {
 describe('PriceFilterAccordion — wiring to PriceRangeFilter', () => {
   it('forwards the inner range commit through onChange (cents conversion intact)', () => {
     const onChange = vi.fn()
-    // Mount with a value so the accordion is open and the inputs are interactive.
+    // Mount with a value so the accordion is open.
     render(<PriceFilterAccordion min={1500} onChange={onChange} />)
 
     const minInput = screen.getByLabelText('Prix minimum en euros') as HTMLInputElement

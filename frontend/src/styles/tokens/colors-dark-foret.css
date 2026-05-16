@@ -1,33 +1,24 @@
 [data-theme="dark"][data-variant="foret"] {
   color-scheme: dark;
 
-  /* =========================
-       HUES (mirror light)
-     ========================= */
+  /* Hues mirror the light variant. */
   --h-pine: 155;
   --h-terracotta: 30;
   --h-amber: 75;
   --h-coral: 18;
   --h-ink: 150;
 
-  /* =========================
-       CHROMA — boosted for dark depth
-     ========================= */
+  /* Chroma boosted for dark depth. */
   --c-muted: 0.08;
   --c-soft: 0.025;
 
-  /* =========================
-       LIGHTNESS — page deep moss, cards lifted pine
-     ========================= */
+  /* Page deep moss, cards lifted pine. */
   --l-page: 12%;
   --l-card: 28%;
   --l-elevated: 32%;
   --l-sunken: 20%;
   --l-muted: 38%;
 
-  /* =========================
-       NAMED COLORS
-     ========================= */
   --pine-deep: oklch(40% 0.13 var(--h-pine));
   --pine-mid: oklch(58% 0.16 var(--h-pine));
   --terracotta-warm: oklch(70% 0.17 var(--h-terracotta));
@@ -35,9 +26,7 @@
   --amber-honey: oklch(80% 0.16 var(--h-amber));
   --text-inverse-warm: oklch(10% 0.02 var(--h-ink));
 
-  /* =========================
-       PRIMARY — Terracotta CTA pops on pine cards
-     ========================= */
+  /* Primary: terracotta CTA pops on pine cards. */
   --color-primary: var(--terracotta-warm);
   --color-primary-hover: oklch(78% 0.18 var(--h-terracotta));
   --color-primary-text: oklch(15% 0.04 var(--h-ink));
@@ -47,9 +36,7 @@
   --color-primary-light: oklch(28% 0.08 var(--h-pine));
   --color-primary-subtle: oklch(20% 0.05 var(--h-pine));
 
-  /* =========================
-       SIDEBAR — Even deeper pine, amber accent
-     ========================= */
+  /* Sidebar: deeper pine, amber accent. */
   --color-sidebar-bg: oklch(18% 0.08 var(--h-pine));
   --color-sidebar-item-hover: oklch(28% 0.1 var(--h-pine));
   --color-sidebar-item-active: oklch(from var(--amber-honey) l c h / 0.22);
@@ -59,39 +46,26 @@
   --color-sidebar-text-active: var(--amber-honey);
   --color-sidebar-accent: var(--amber-honey);
 
-  /* =========================
-       SECONDARY / TERTIARY
-     ========================= */
   --color-secondary: var(--terracotta-warm);
   --color-tertiary: var(--amber-honey);
 
-  /* =========================
-       HEADER — Pine green band, amber actions
-     ========================= */
+  /* Header: pine green band, amber actions. */
   --color-header-bg: oklch(22% 0.09 var(--h-pine));
   --color-header-action: var(--amber-honey);
   --color-header-action-bg-hover: oklch(from var(--amber-honey) l c h / 0.15);
 
-  /* =========================
-       TEXT — Warm-tinted on dark pine
-     ========================= */
+  /* Warm-tinted text on dark pine. */
   --text-inverse: oklch(15% 0.04 var(--h-ink));
   --text-primary: oklch(95% 0.02 var(--h-amber));
   --text-secondary: oklch(78% 0.03 var(--h-amber));
   --text-muted: oklch(60% var(--c-muted) var(--h-pine));
 
-  /* =========================
-       ACCENT — Terracotta
-     ========================= */
   --color-accent: var(--terracotta-warm);
   --color-accent-light: oklch(28% 0.1 var(--h-terracotta));
   --color-accent-hover: oklch(78% 0.18 var(--h-terracotta));
   --section-accent: var(--color-accent);
   --bg-deep: oklch(10% 0.01 var(--h-pine));
 
-  /* =========================
-       STATUS
-     ========================= */
   --color-success: oklch(72% 0.18 var(--h-pine));
   --color-success-light: oklch(25% 0.08 var(--h-pine));
   --color-error: oklch(70% 0.22 var(--h-coral));
@@ -101,70 +75,44 @@
   --color-warning-light: oklch(25% 0.08 60);
   --color-warning-text: oklch(85% 0.14 60);
 
-  /* =========================
-       BACKGROUNDS — Page deep moss, cards tinted pine
-     ========================= */
+  /* Page deep moss, cards tinted pine. */
   --bg-page: oklch(var(--l-page) 0.012 var(--h-pine));
   --bg-card: oklch(var(--l-card) 0.06 var(--h-pine));
   --bg-elevated: oklch(var(--l-elevated) 0.07 var(--h-pine));
   --bg-sunken: oklch(var(--l-sunken) 0.05 var(--h-pine));
   --bg-muted: oklch(var(--l-muted) 0.04 var(--h-pine));
 
-  /* =========================
-       PAGE TITLE — Terracotta pop
-     ========================= */
   --page-title-color: var(--terracotta-warm);
 
-  /* =========================
-       CARD FOOTER — Warm clay haze
-     ========================= */
+  /* Card footer: warm clay haze. */
   --card-footer-bg: oklch(20% 0.06 var(--h-terracotta));
   --card-footer-border: oklch(35% 0.09 var(--h-terracotta));
   --card-footer-color: oklch(92% 0.05 var(--h-amber));
   --card-footer-color-muted: oklch(65% 0.05 var(--h-amber));
 
-  /* =========================
-       PRODUCT UNIT CHIP — Amber glow
-     ========================= */
   --product-unit-chip-bg: oklch(from var(--amber-honey) l c h / 0.12);
   --product-unit-chip-text: var(--amber-honey);
   --product-unit-chip-border: oklch(from var(--amber-honey) l c h / 0.3);
 
-  /* =========================
-       HOVER / ACTIVE / SELECTED
-     ========================= */
   --bg-hover: oklch(from var(--terracotta-warm) l c h / 0.1);
   --bg-active: oklch(from var(--terracotta-warm) l c h / 0.18);
   --bg-selected: oklch(30% 0.14 var(--h-terracotta));
 
-  /* =========================
-       BORDERS
-     ========================= */
   --border-default: oklch(42% 0.08 var(--h-pine));
   --border-strong: oklch(58% 0.12 var(--h-pine));
 
-  /* =========================
-       SHADOWS
-     ========================= */
   --shadow-color: oklch(0% 0 0 / 0.55);
   --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.45), 0 1px 4px oklch(0% 0 0 / 0.3);
 
-  /* =========================
-       TAGS
-     ========================= */
   --tag-active-bg: oklch(45% 0.16 var(--h-pine));
   --tag-active-text: oklch(92% 0.06 var(--h-amber));
   --tag-default-bg: oklch(25% 0.06 var(--h-pine));
   --tag-default-text: oklch(72% 0.07 var(--h-amber));
 
-  /* =========================
-       MISC
-     ========================= */
   --overlay: oklch(6% 0.04 var(--h-pine) / 0.78);
   --surface-bright: oklch(99% 0.002 0deg);
   --hero-glow: oklch(22% 0.08 var(--h-pine));
 
-  /* Toggle */
   --toggle-track-bg: oklch(from var(--color-header-action) l c h / 0.15);
   --toggle-track-hover-bg: var(--color-header-action-bg-hover);
   --toggle-fg: var(--color-header-action);

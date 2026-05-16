@@ -113,7 +113,6 @@ describe('CollectionPage', () => {
 
     const sortBtn = await screen.findByTitle(/Tri :/i)
 
-    // Click to cycle (name -> note)
     await userEvent.click(sortBtn)
     rerender(<CollectionPage />)
     expect(screen.getByTitle(/Tri : Note/i)).toBeInTheDocument()
@@ -131,11 +130,9 @@ describe('CollectionPage', () => {
   it('renders shelf tabs with status labels and shows all products on "Tout"', async () => {
     renderWithProviders(<CollectionPage />)
 
-    // Both products visible on the default "Tout" tab
     expect(await screen.findByText('Super Serum')).toBeInTheDocument()
     expect(screen.getByText('Cool Cream')).toBeInTheDocument()
 
-    // Shelf tabs expose status labels
     expect(screen.getByRole('tab', { name: /En stock/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Wishlist/i })).toBeInTheDocument()
   })
@@ -144,7 +141,7 @@ describe('CollectionPage', () => {
     const { rerender } = renderWithProviders(<CollectionPage />)
 
     const searchInput = await screen.findByPlaceholderText(/Rechercher/i)
-    // fireEvent.change is sometimes more reliable with mocked router search params
+    // fireEvent.change is more reliable than userEvent with mocked router search params.
     fireEvent.change(searchInput, { target: { value: 'Super' } })
 
     rerender(<CollectionPage />)
@@ -164,7 +161,7 @@ describe('CollectionPage', () => {
     })
     await userEvent.click(cardBody)
 
-    // PDS opens — sentiment 5 button (😍, value === current 5 still triggers onChange(5))
+    // Clicking the active sentiment button still calls onChange.
     const sentimentBtn = await screen.findByRole('button', { name: /Ressenti 5 sur 5/i })
     await userEvent.click(sentimentBtn)
     expect(mockUpdate).toHaveBeenCalledWith(

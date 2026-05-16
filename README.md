@@ -1,8 +1,30 @@
-# Aurore — Skincare Inventory & Routine Tracker
+# Aurore — Skincare Research Memory
 
-I was tired of switching between brand websites, copying INCI lists into a spreadsheet, then pasting them into an AI to get an opinion — and losing everything between sessions. I had a folder full of dead Markdown files that I never opened anymore.
+I was tired of switching between brand websites, copying INCI lists into a spreadsheet, then pasting them into an AI to get an opinion — and losing everything between sessions. A folder of dead Markdown notes I never opened again.
 
-Aurore centralizes all of that: a personal database of products and ingredients, with inventory tracking and routine management in one place. It's designed around low cognitive load — one action at a time, no streaks, no punishment mechanics.
+Aurore centralises that: a personal database of skincare products and ingredients, with the **decision trail** kept beside each product — why it's still a candidate, why it was rejected, what fits the user's own goals. Calm by design, no scores, no medical claims, no shopping pressure.
+
+---
+
+## What Aurore is
+
+A calm skincare shelf and formula notebook for people who **compare formulas before buying** — formula-conscious buyers, INCI readers, AI-skincare overthinkers.
+
+The core loop:
+
+```text
+collect products → understand formulas → compare candidates
+→ decide (keep / wishlist / reject) → come back later without losing the reasoning
+```
+
+**Decision states** (FR labels in the UI): `Wishlist`, `En cours`, `Saint Graal`, `À éviter`. `À éviter` is a first-class state, not a trash bin — it remembers *why* a product was rejected so the same research loop doesn't repeat.
+
+## What Aurore isn't
+
+- Not a medical tool or diagnostic system.
+- Not a universal "best product for you" oracle.
+- Not a safety score or Yuka-style verdict.
+- Not a shopping app or influencer platform.
 
 ---
 
@@ -10,33 +32,23 @@ Aurore centralizes all of that: a personal database of products and ingredients,
 
 **Products & ingredients**
 
-- Personal database of cosmetic products and supplements
-- Ingredients linked to each product: role, origin, notes
-- Tags for quick filtering
-- Inventory tracking: what you have, what you're testing, what you're using
-- Calm product detail and comparison UX: no scores, no universal verdicts, no medical claims
+- Personal database of cosmetic products
+- INCI parsed into structured ingredients (role, family, notes)
+- Tag system for filtering and auto-tagging from formula signals
+- Per-product personal note + decision state
+- Product comparison without winners, scores, or fake precision
 
-**Tasks**
+**Dermo signal (algo-derm)**
 
-- Simple tasks, no streaks, no pressure
+- Theoretical dermatological score per product (risk / benefit / confidence axes) computed backend-side from the INCI
+- Calm presentation in the UI: groups before details, no medical claims, no universal verdicts
+- Algo lives in a separate repo (`algo-derm`, MIT) vendored as a tarball — see [§ Vendored `algo-derm`](#vendored-algo-derm)
 
----
+**Auth**
 
-## Product & UX Sources
-
-Aurore's skincare UX is designed to stay calm, human, precise, and non-medical.
-
-Core references:
-
-- [`docs/04-design-ux/design-system.md`](docs/04-design-ux/design-system.md) — product UX principles, safe wording, screen structure, scope, and forbidden patterns.
-- [`docs/04-design-ux/product-detail.md`](docs/04-design-ux/product-detail.md) — Product Detail screen structure, French labels, card rules, microcopy, empty states.
-- [`docs/04-design-ux/product-comparison.md`](docs/04-design-ux/product-comparison.md) — product comparison without winners, scores, or fake precision.
-- [`docs/04-design-ux/ux-writing.md`](docs/04-design-ux/ux-writing.md) — voice, tone, approved wording, forbidden claims, French microcopy.
-- [`docs/04-design-ux/anti-patterns.md`](docs/04-design-ux/anti-patterns.md) — what Aurore must avoid around scoring, claims, warnings, recommendations, and trust.
-
-Product rule:
-
-> Aurore helps users understand formulas and remember their own experience. It must not diagnose, rank safety, make treatment claims, or pressure users with fear-based language.
+- Email + password (Argon2 via Bun) or Google OAuth
+- Short-lived access token (15 min, memory) + refresh token (7 d, HttpOnly cookie, rotated)
+- Row-Level Security at the Postgres level — see [`SECURITY.md`](./SECURITY.md)
 
 ---
 
@@ -50,18 +62,8 @@ Product rule:
 | Database       | PostgreSQL 18 + Drizzle ORM                            |
 | Validation     | Zod (shared between front and back)                    |
 | Styling        | Vanilla CSS + Lucide Icons                             |
-| Quality        | Biome (lint & format) + Vitest + Lefthook (pre-commit) |
+| Quality        | Biome (lint & format) + Vitest + Playwright + Lefthook |
 | Infrastructure | Docker Compose + Nginx                                 |
-
----
-
-## What I learned building this
-
-- **Monorepo with a shared package**: sharing Zod schemas between backend and frontend eliminates type drift. I'd never set this up before.
-- **Hono RPC**: the pattern of exporting `AppType` from the backend and consuming it with `hc()` on the frontend took time to understand, but once it clicked, API contract mismatches started appearing directly in the editor — no OpenAPI spec, no codegen step.
-- **Drizzle ORM**: the SQL-first approach forced me to actually understand my queries instead of relying on an opaque abstraction.
-- **TanStack Router**: the file-based routing convention and `createFileRoute` are not obvious at first, especially when wiring up typesafe search params. Once it's set up, navigating to a route that doesn't exist is a compile error instead of a runtime blank screen.
-- **Error handling**: building a global handler that correctly distinguishes expected HTTP errors (validation failures, 404s) from unexpected runtime errors took several rewrites. The tricky part was deciding what to expose in production vs. development.
 
 ---
 
@@ -97,6 +99,7 @@ just dev-fresh
 | `just dev-fresh` | Full cleanup + install + start     |
 | `just ts-check`  | TypeScript watch mode (host)       |
 | `just ts-build`  | Generate types and TanStack routes |
+| `just ts-verify` | One-shot type check (host)         |
 | `just diagnose`  | Check types and container state    |
 
 ### Quality & tests
@@ -133,6 +136,14 @@ just test-dev-watch "products"
 
 > Each test (`beforeEach`) cleans tables via `cleanDatabase` — no need to restart Docker between tests.
 
+### E2E (Playwright)
+
+```bash
+just dev-down   # stop the dev stack first
+just e2e-up     # bring up the e2e overlay (swapped DB)
+just e2e        # run Playwright suites
+```
+
 ### Database
 
 | Command                             | Description                        |
@@ -152,14 +163,28 @@ just test-dev-watch "products"
 
 ```text
 aurore/
-├── backend/            # Hono API
-├── frontend/           # React SPA (Vite + TanStack)
+├── backend/            # Hono API (Route → Service → DB)
+├── frontend/           # React SPA (Vite + TanStack Router/Query)
 ├── shared/             # Shared Zod schemas (source of truth)
+├── vendor/             # Vendored deps (algo-derm tarball)
 ├── nginx/              # Reverse proxy (production)
 ├── backups/            # DB backups
 ├── just/               # Command entry point
 └── docker-compose.yml  # PostgreSQL 18
 ```
+
+---
+
+## Vendored `algo-derm`
+
+`algo-derm` is a separate MIT lib (`../algo-derm`) that computes the dermo signal from an INCI list. It's vendored into the backend as a tarball because Docker can't read outside the build context:
+
+```bash
+just vendor-algo-derm   # rebuild source, npm pack, drop into vendor/
+just reinstall-backend  # if containers are running, wipe the volume + reinstall
+```
+
+Backend-only — the frontend receives the precomputed `ProductAssessment`. The bundled dataset (~535 KB) never ships to the browser.
 
 ---
 
@@ -184,7 +209,7 @@ aurore/
 
 **Editor shows errors / Docker crashes at startup**
 
-Symptom: `Cannot find module '@habit-tracker/shared'`
+Symptom: `Cannot find module '@habit-tracker/shared'` (legacy package name, kept for now to avoid an invasive rename across imports).
 
 ```bash
 just ts-clean && just ts-build  # rebuild types
@@ -210,3 +235,10 @@ just clean && just dev-fresh  # nuclear reset
 3. `just prod-migrate` — apply migrations
 4. `just prod` — start services
 5. `just ssl-init` — generate SSL certificate
+
+---
+
+## Related docs
+
+- [`SECURITY.md`](./SECURITY.md) — auth model, RLS, DB role separation
+- [`PRIVACY.md`](./PRIVACY.md) — RGPD policy, data handling

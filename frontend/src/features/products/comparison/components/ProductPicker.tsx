@@ -13,9 +13,7 @@ const formatLabel = (p: { brand: string; name: string }) => `${p.brand} — ${p.
 export function ProductPicker({ selectedIds, onChange }: Props) {
   const atCap = selectedIds.length >= COMPARISON_MAX_PRODUCTS
 
-  // Cap is enforced here, not in AsyncSearchSelect: silently dropping an add
-  // attempt avoids a misleading "selected" state if AsyncSearchSelect ever
-  // adds optimistic UI.
+  // Cap enforced here, not in AsyncSearchSelect, to stay correct if it ever adds optimistic UI.
   const handleToggle = (id: string) => {
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((x) => x !== id))

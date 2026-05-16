@@ -46,30 +46,16 @@ export const statusLabels: Record<
   },
 }
 
-// Primary tabs surface the day-to-day shelf: products owned, wished, or
-// being watched. Holy Grail is orthogonal (sentiment=6), not a status.
+// Holy Grail is sentiment=6, not a status — orthogonal to these tabs.
 export const PRIMARY_SHELF_ORDER: UserProductStatus[] = ['in_stock', 'wishlist', 'watched']
 
-// Secondary tabs live in the "Plus" overflow — past products and rejects
-// stay accessible without crowding the primary row.
+// Past products and rejects live in the "Plus" overflow.
 export const SECONDARY_SHELF_ORDER: UserProductStatus[] = ['archived', 'avoided']
 
 // "Tout" excludes archived + avoided so the default view stays calm.
 export const ALL_TAB_STATUSES: UserProductStatus[] = [...PRIMARY_SHELF_ORDER]
 
 export const SHELF_ORDER: UserProductStatus[] = [...PRIMARY_SHELF_ORDER, ...SECONDARY_SHELF_ORDER]
-
-export const kindColorTokens: Record<string, string> = {
-  skincare: 'var(--shelf-color-skincare)',
-  complément: 'var(--shelf-color-complement)',
-  complement: 'var(--shelf-color-complement)',
-  huile: 'var(--shelf-color-huile)',
-  vitamine: 'var(--shelf-color-vitamine)',
-}
-
-export const DEFAULT_KIND_COLOR_TOKEN = 'var(--shelf-color-default)'
-
-export { sentimentEmojis } from '@/utils/sentimentMap'
 
 export const criteriaLabels: Record<keyof ReviewCriteria, string> = {
   tolerance: 'Tolérance',
@@ -111,18 +97,14 @@ export const sortLabels: Record<SortOption, string> = {
   price_desc: 'Prix ↓',
 }
 
-/**
- * Score thresholds for the product card chip color (out of 20).
- * Above gold = best, above rare = great, above good = decent, below = neutral.
- */
+// Card chip color thresholds (score out of 20).
 export const SCORE_THRESHOLDS = {
   gold: 17,
   rare: 14,
   good: 10,
 } as const
 
-// User-experience tag labels surfaced in PDS §5 (audit F10).
-// Slug → French label. Source: docs/04-design-ux/product-detail.md L189-193.
+// FR labels for user-experience tags (PDS §5).
 export const ressentiLabels: Record<RessentiTag, string> = {
   leger: 'Léger',
   riche: 'Riche',

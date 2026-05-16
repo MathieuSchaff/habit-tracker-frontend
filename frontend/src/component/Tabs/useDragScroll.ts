@@ -28,8 +28,7 @@ export function useDragScroll<T extends HTMLElement>(
         startScroll: ref.current.scrollLeft,
         moved: false,
       }
-      // Capture lazily on first drag past threshold so taps stay on the button
-      // and let onClick fire normally. Capturing here would steal the click.
+      // Capture lazily past threshold so taps stay on the button and onClick fires.
     },
     [enabled, ref]
   )

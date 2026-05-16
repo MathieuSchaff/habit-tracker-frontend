@@ -49,7 +49,7 @@ describe('variant — initialization', () => {
     expect(document.documentElement.getAttribute('data-variant')).toBe('terracota')
   })
 
-  // Legacy 'bleu' variant retired; users with old localStorage value migrate silently
+  // Legacy 'bleu' variant retired; old localStorage values migrate silently.
   it('falls back to terracota when legacy "bleu" variant is stored', async () => {
     localStorage.setItem('variant', 'bleu')
     const { useThemeStore } = await import('../theme')

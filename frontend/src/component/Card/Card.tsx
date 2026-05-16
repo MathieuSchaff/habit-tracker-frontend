@@ -3,8 +3,6 @@ import './Card.css'
 type ClassValue = string | false | null | undefined
 const cx = (...values: ClassValue[]) => values.filter(Boolean).join(' ')
 
-// ---------- Root ----------
-
 type CardProps<T extends React.ElementType = 'div'> = {
   as?: T
   /** Must be a valid CSS color value, e.g. "var(--color-primary)", "oklch(60% 0.2 30)", "#e07" */
@@ -36,8 +34,6 @@ function CardRoot<T extends React.ElementType = 'div'>({
     </Tag>
   )
 }
-
-// ---------- Sub-components ----------
 
 type DivProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -104,8 +100,6 @@ function CardActions({ className, children, ...props }: DivProps) {
     </div>
   )
 }
-
-// ---------- Compound export ----------
 
 export const Card = Object.assign(CardRoot, {
   Media: CardMedia,

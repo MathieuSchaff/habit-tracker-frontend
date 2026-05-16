@@ -86,10 +86,6 @@ const STEPS: Step[] = [
   },
 ]
 
-/**
- * Section 04 — Un usage concret.
- * 5 étapes — pas une démo magique : la chose réelle, telle qu'elle existe.
- */
 export function FlowSection() {
   return (
     <section className="aur-section" id="usage">

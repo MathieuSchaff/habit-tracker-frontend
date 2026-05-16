@@ -83,11 +83,6 @@ const ENTRIES: Entry[] = [
   },
 ]
 
-/**
- * Section 03 — Entrer dans l'app.
- * 6 cartes claires, focusables au clavier, 1 exemple concret par carte.
- * WIP s'affiche en grisé avec un badge "Bientôt" — toujours focusable.
- */
 export function AppEntriesSection() {
   return (
     <section className="aur-section aur-section--sunken" id="entrees">

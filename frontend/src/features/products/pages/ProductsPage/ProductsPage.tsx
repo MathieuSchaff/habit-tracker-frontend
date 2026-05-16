@@ -42,8 +42,7 @@ import '@/features/products/styles/kinds.css'
 
 const routeApi = getRouteApi('/products/')
 
-// Only tag keys — omits brand/ingredient — so domain switch resets tags
-// without clobbering ingredient (which buildDomainSwitchSearch preserves explicitly).
+// Tag keys only — domain switch resets tags; brand/ingredient carry over via buildDomainSwitchSearch.
 const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS)
 
 const EMPTY_FILTERS = emptyFilters(FILTER_KEYS)
@@ -76,9 +75,7 @@ export function ProductsPage() {
     [profile_filter, dermoProfile]
   )
 
-  // Stable ref across renders — passed to FilterDrawer as currentFilters.
-  // A fresh object every render would chain through the drawer's open-sync
-  // effect and feed back into setDraftFilters → "Maximum update depth".
+  // Stable ref: a fresh object every render feeds back into setDraftFilters and loops.
   const filters = useMemo<FilterValues<FilterKey>>(
     () =>
       Object.fromEntries(FILTER_KEYS.map((k) => [k, search[k] ?? []])) as FilterValues<FilterKey>,
@@ -121,8 +118,7 @@ export function ProductsPage() {
     [category, filters, avoidFor, sort, priceMin, priceMax, q, page, hasFilters]
   )
 
-  // Random sort: keep result stable across back-nav so order doesn't reshuffle
-  // (random() is non-deterministic — without staleTime, refetch yields a new sequence).
+  // Random sort: staleTime keeps order stable across back-nav (refetch reshuffles otherwise).
   const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 0
   const userKey = user?.id ?? null
   const { data, isLoading, isPlaceholderData } = useQuery({
@@ -131,9 +127,7 @@ export function ProductsPage() {
     staleTime,
   })
 
-  // Live count of products matching the user's in-flight drawer selection.
-  // Only enabled while the drawer is open so we don't fire phantom requests
-  // when the user isn't comparing options.
+  // Live count for the drawer's in-flight selection; only runs while drawer is open.
   const previewApiFilters = useMemo<ListProductsFilters>(
     () =>
       buildProductsApiFilters({
@@ -196,10 +190,7 @@ export function ProductsPage() {
 
   const handleDomainChange = useCallback(
     (next: ProductDomainTab) => {
-      // Wipe the in-flight drawer draft alongside the URL: URL tag filters get
-      // cleared by buildDomainSwitchSearch, but draftFilters is local React
-      // state — without this, the live preview keeps applying the old domain's
-      // chips against the new domain's catalogue.
+      // URL tag filters reset via buildDomainSwitchSearch; draftFilters is local state and must too.
       setDraftFilters(null)
       startTransition(() => {
         navigate({

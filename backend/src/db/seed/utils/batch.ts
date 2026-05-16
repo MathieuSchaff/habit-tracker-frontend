@@ -9,11 +9,6 @@ export interface SeedError {
   reason: string
 }
 
-export function toNull(value: string | null | undefined): string | null {
-  if (value === null || value === undefined || value === '') return null
-  return value
-}
-
 export function toNumeric(val: unknown): string | null {
   if (val == null) return null
   const str = String(val).trim()

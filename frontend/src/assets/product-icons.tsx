@@ -29,7 +29,7 @@ export function ProdPumpIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-export function ProdDropperIcon({ size = 24 }: { size?: number }) {
+function ProdDropperIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -98,7 +98,7 @@ export function ProdTubeIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-export function ProdSprayIcon({ size = 24 }: { size?: number }) {
+function ProdSprayIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -123,7 +123,7 @@ export function ProdSprayIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-export function ProdSpfIcon({ size = 24 }: { size?: number }) {
+function ProdSpfIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -239,7 +239,7 @@ const KIND_FALLBACK: Record<string, React.ElementType> = {
 }
 
 // priority: specific unit shape → kind archetype → Package
-export function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
+function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
   const normalizedUnit = unit?.toLowerCase().trim()
   if (normalizedUnit && UNIT_TO_ICON[normalizedUnit]) {
     return UNIT_TO_ICON[normalizedUnit]

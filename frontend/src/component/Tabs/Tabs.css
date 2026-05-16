@@ -3,10 +3,7 @@
   width: 100%;
 }
 
-/* ======================================================================== */
-/* Variant: pill (default) — equal-width segmented control                   */
-/* ======================================================================== */
-
+/* Variant: pill — equal-width segmented control. */
 .icon-tabs {
   display: flex;
   background: var(--color-primary);
@@ -79,10 +76,7 @@
   outline-offset: -2px;
 }
 
-/* ======================================================================== */
-/* Variant: underline — horizontal list, per-tab color, measure-based rule   */
-/* ======================================================================== */
-
+/* Variant: underline — horizontal list, per-tab color, measure-based rule. */
 @layer components {
   .underline-tabs {
     --active-tab-color: var(--color-primary);

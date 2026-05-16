@@ -14,7 +14,7 @@
     transform 0.4s cubic-bezier(0.2, 1, 0.2, 1);
 }
 
-/* Border glow hover — only on interactive elements */
+/* Only on interactive cards. */
 .card:is(button, a, [role="button"]):hover,
 .card:is(button, a, [role="button"]):focus-visible,
 .card--interactive:hover,
@@ -33,8 +33,6 @@
     outline-offset: 2px;
   }
 }
-
-/* ---------- Sub-components ---------- */
 
 .card__media {
   padding: var(--card-media-padding, var(--space-4));

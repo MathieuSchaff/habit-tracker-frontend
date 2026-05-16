@@ -1,6 +1,4 @@
-// Shared fixtures for collection integration tests. `vi.mock` factories must
-// stay inlined per file (hoisted; cannot import), so this only covers data
-// constants and the user-product shape factory.
+// vi.mock factories are hoisted and can't import — this file only exports data + factories.
 
 export const defaultCollectionSearch = {
   q: '',

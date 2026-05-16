@@ -1,12 +1,6 @@
 import { IngredientCard, ProductCard, ProfileCard } from '../primitives'
 import { HeroShell } from './HeroShell'
 
-/**
- * Hero A — "Base personnelle".
- * Positionnement clair et direct. Visuel : stack ProductCard / IngredientCard / ProfileCard.
- *
- * À configurer pour le repo : remplacer le `to` du primary par votre route signup.
- */
 export function HeroBase() {
   return (
     <HeroShell

@@ -10,11 +10,9 @@ interface AuthStore {
   role: 'user' | 'admin'
   isAdmin: boolean
   isDemo: boolean
-  // Latch flipped after the first silent-refresh probe at boot, so subsequent navigations
-  // don't re-fire /auth/refresh on every click when the user has no session cookie.
+  // Latched after the first boot-time silent-refresh probe so unauthenticated nav doesn't re-fire /auth/refresh.
   bootRefreshAttempted: boolean
-  // Set when authFetch's 401-recovery silent refresh fails after the user had a live
-  // session. RootComponent watches this and redirects to /auth/login.
+  // Set when 401-recovery refresh fails on a live session; RootComponent redirects to /auth/login.
   sessionExpired: boolean
 
   setAuth: (token: string, user: UserPublic) => void
@@ -27,9 +25,7 @@ interface AuthStore {
 
 function decodeTokenExp(token: string): number | null {
   try {
-    // JWT payload is base64url-encoded (RFC 7519 §3); atob only accepts standard base64,
-    // so swap `-_` back to `+/` before decoding to avoid silent failures on tokens that
-    // happen to contain those chars.
+    // JWT payload is base64url (RFC 7519 §3); convert to standard base64 for atob.
     const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
     const payload = JSON.parse(atob(b64))
     return typeof payload.exp === 'number' ? payload.exp * 1000 : null
@@ -62,7 +58,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       sessionExpired: false,
     }),
 
-  // After logout we know there's no session — keep the latch on to avoid re-probing.
+  // Keep boot latch on after logout to avoid re-probing for a session we know is gone.
   clearAuth: () =>
     set({
       accessToken: null,

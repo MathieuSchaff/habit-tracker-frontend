@@ -9,9 +9,7 @@ import { server } from '../../../../test/msw/server'
 import type { AsyncSearchQueryFactory, FilterOption } from '../../types'
 import { AsyncSearchSelect } from '../AsyncSearchSelect'
 
-// Real factories that hit the MSW-mocked endpoints. Keeping them realistic so
-// the test exercises the same code path as production (TanStack Query +
-// fetch + JSON unwrap), not a synthetic shortcut.
+// Real factories hit MSW endpoints so the test exercises the same path as production.
 const loadOptionsQuery: AsyncSearchQueryFactory<string, FilterOption[]> = (q) => ({
   queryKey: ['ing-search', q],
   queryFn: async () => {
@@ -51,8 +49,7 @@ function renderASS(ui: ReactElement, client = makeClient()) {
   }
 }
 
-// Track every request that matches an MSW handler (keyed by URL) so tests can
-// assert call counts without binding to fetch directly.
+// Tracks matched MSW requests so tests can assert call counts without binding to fetch.
 let requestLog: string[] = []
 beforeEach(() => {
   requestLog = []
@@ -212,6 +209,7 @@ describe('AsyncSearchSelect — keyboard', () => {
     const parentEsc = vi.fn()
     const user = userEvent.setup()
     renderASS(
+      // biome-ignore lint/a11y/noStaticElementInteractions: test wrapper to assert Escape propagation is stopped
       <div onKeyDown={(e) => e.key === 'Escape' && parentEsc()}>
         <AsyncSearchSelect {...baseProps} onToggle={onToggle} />
       </div>
@@ -290,10 +288,8 @@ describe('AsyncSearchSelect — click outside', () => {
 })
 
 describe('AsyncSearchSelect — régression positionnement (2026-04-26)', () => {
-  // Regression: position effect deps used to be `[showDropdown]` only.
-  // showDropdown flipped before optionsQuery resolved, the listbox wasn't
-  // mounted yet, ref was null → early-return with empty coords. Now that
-  // `filtered.length` is in deps the effect re-runs once the listbox mounts.
+  // Regression: effect deps were `[showDropdown]` only, so it fired before the
+  // listbox mounted (ref null, empty coords). `filtered.length` re-triggers it.
   it('sets non-empty inline coords on the dropdown once it shows', async () => {
     const user = userEvent.setup()
     renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)

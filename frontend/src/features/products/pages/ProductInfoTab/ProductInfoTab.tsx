@@ -5,7 +5,7 @@ import { lazy, Suspense, useCallback, useMemo } from 'react'
 
 import { sanitizeUrl } from '../../../../lib/url'
 
-// Defer ~50KB gzip — description block is below the fold on first paint.
+// Defer ~50KB gzip; description is below the fold on first paint.
 const Markdown = lazy(() => import('react-markdown'))
 
 import { Button } from '@/component/Button/Button'

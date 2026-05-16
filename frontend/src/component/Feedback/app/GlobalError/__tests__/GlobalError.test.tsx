@@ -3,12 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { GlobalError } from '../GlobalError'
 
-// useNavigate returns a no-op function in tests
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
 }))
 
-// reportError is a side-effect we don't need to test here
 vi.mock('../../../../../lib/errorReporter', () => ({
   reportError: vi.fn(),
 }))

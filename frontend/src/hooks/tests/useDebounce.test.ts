@@ -29,7 +29,7 @@ describe('useDebounce', () => {
     act(() => {
       vi.advanceTimersByTime(100)
     })
-    // Total elapsed since last change = 100ms < 200ms → not committed yet.
+    // 100ms since last change < 200ms debounce → not committed yet.
     expect(result.current).toBe('a')
 
     act(() => {
@@ -61,8 +61,7 @@ describe('useDebounce', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    // React 19 throws on setState-after-unmount via console.error;
-    // assertion guards against any "Can't perform a React state update on an unmounted component".
+    // React 19 logs "setState on unmounted component" via console.error.
     expect(errorSpy).not.toHaveBeenCalled()
     errorSpy.mockRestore()
   })

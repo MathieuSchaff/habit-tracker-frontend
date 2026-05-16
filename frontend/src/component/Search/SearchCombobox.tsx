@@ -21,9 +21,8 @@ export interface SearchComboboxResult {
   sublabel?: string
 }
 
-// Pages are uniform across consumers; backends without real pagination wrap
-// their single-page response as { items, hasMore: false, nextOffset: 0 }.
-export interface SearchPage<TItem> {
+// Backends without pagination wrap their response as { items, hasMore: false, nextOffset: 0 }.
+interface SearchPage<TItem> {
   items: TItem[]
   hasMore: boolean
   nextOffset: number
@@ -39,17 +38,12 @@ interface SearchComboboxProps<TItem, TQueryKey extends QueryKey> {
     TQueryKey,
     number
   >
-  // NoInfer keeps inference anchored to queryFn — TItem flows from there.
+  // NoInfer keeps TItem anchored to queryFn.
   toResult: (item: NoInfer<TItem>) => SearchComboboxResult
   onSelect: (slug: string, result: SearchComboboxResult) => void
-  // Optional grouped suggestions rendered below the main results list.
-  // Each section has a header label and self-contained items (own onSelect).
-  // Use cases: "see all products with X" facet shortcuts, "see all results
-  // for X" free-text fallback. Empty sections are filtered out before render.
+  /** Grouped facets/shortcuts above results. Empty sections are filtered out. */
   sections?: (debouncedQuery: string) => ComboboxSection[]
-  // Free-text submit. Fired on Enter when no item is highlighted and the dropdown
-  // is open. Receives the debounced query (already passed minChars). Useful for
-  // applying typed text as a list-page `q` filter rather than navigating to a result.
+  /** Fired on Enter when no item is highlighted; applies typed text as a free-text filter. */
   onSubmitQuery?: (query: string) => void
   placeholder?: string
   label: string
@@ -110,9 +104,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     entry.onSelect()
   }
 
-  // Drop sections with no matches — avoids orphan headers in the dropdown.
-  // Wrap each item's onSelect to clear input and close dropdown after selection;
-  // the caller's onSelect (e.g. navigate) only handles navigation, not UI cleanup.
+  // Filter empty sections; wrap each onSelect to clean up UI state the caller's onSelect doesn't.
   const visibleSections = (sections?.(debouncedQuery) ?? [])
     .filter((s) => s.items.length > 0)
     .map((s) => ({
@@ -131,8 +123,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setHighlightedIndex(-1)
     }
     if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown && onSubmitQuery) {
-      // Enter with no item highlighted: submit the typed query as free text.
-      // Highlighted items still resolve to their facet/result via ComboboxPrimitive.
+      // No highlight: submit typed query as free text.
       e.preventDefault()
       onSubmitQuery(debouncedQuery)
       clearAndClose()

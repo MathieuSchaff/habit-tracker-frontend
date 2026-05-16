@@ -113,7 +113,7 @@
   cursor: not-allowed;
 }
 
-/* Smallest phones — hide example to keep cards scannable */
+/* Smallest phones: hide example to keep cards scannable. */
 @media (max-width: 479px) {
   .aur-entry__example {
     display: none;

@@ -13,13 +13,8 @@ type RequireAuthOptions = {
 }
 
 /**
- * Guards the route by checking local token validity first, then verifying with the server.
- * Falls back to a silent refresh before giving up and redirecting to login.
- *
- * Cooldown handling: when silentRefresh is throttled by its backoff window, we don't have
- * a definitive answer. We let the user stay on the route instead of logging them out on
- * what may be a transient network blip — queries will still go through the 401 interceptor
- * (which also respects the cooldown) and recover once the window expires.
+ * Route guard: local token check, server verify, silent refresh fallback, then redirect.
+ * During silentRefresh cooldown we don't log out — network blips recover via the 401 interceptor.
  */
 export async function requireAuth({
   queryClient,
@@ -30,8 +25,7 @@ export async function requireAuth({
 
   if (!accessToken || store.isTokenExpired()) {
     const result = await silentRefresh(queryClient)
-    // cooldown with no token = never had a session, redirect; with an expired token = possible
-    // network blip, let them stay and recover via the 401 interceptor
+    // Cooldown + no token = never had a session, redirect. Cooldown + expired token = let 401 interceptor recover.
     if (result === 'failed' || (result === 'cooldown' && !accessToken)) {
       clearAndRedirect(store, queryClient, pathname)
     }
@@ -39,7 +33,7 @@ export async function requireAuth({
   }
 
   try {
-    // Local token can look valid but already be revoked server-side, so we double-check
+    // Token can look valid locally but already be revoked server-side.
     await queryClient.ensureQueryData(authQueries.session())
   } catch (error) {
     if (isRedirect(error)) throw error
@@ -54,8 +48,7 @@ function clearAndRedirect(
   pathname: string
 ): never {
   store.clearAuth()
-  // Same hygiene as useLogout — drop all cached queries when the session
-  // ends, including user-scoped product lists. See queries/auth.ts.
+  // Drop all cached queries on session end (mirrors useLogout, includes user-scoped lists).
   queryClient.clear()
   throw redirect({
     to: '/auth/login',

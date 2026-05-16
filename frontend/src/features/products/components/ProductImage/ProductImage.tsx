@@ -13,8 +13,7 @@ type Props = {
 
 export function ProductImage({ kind, unit, imageUrl, size = 48, className }: Props) {
   const trimmedUrl = imageUrl?.trim() || null
-  // Reset error state on URL change via the "adjusting state during render"
-  // pattern — avoids an extra effect tick that flickers icon→image→icon.
+  // Reset error during render to avoid an effect tick that flickers icon→image→icon.
   const [errorUrl, setErrorUrl] = useState<string | null>(null)
   const [trackedUrl, setTrackedUrl] = useState<string | null>(trimmedUrl)
   if (trackedUrl !== trimmedUrl) {

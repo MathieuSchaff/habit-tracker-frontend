@@ -28,7 +28,7 @@ export const ThemeToggle = () => {
       return
     }
 
-    // Position above the trigger (viewport-relative, works through any overflow parent)
+    // Viewport-relative positioning so overflow parents don't clip the popover.
     const rect = btn.getBoundingClientRect()
     el.style.left = `${rect.left}px`
     el.style.bottom = `${window.innerHeight - rect.top + 8}px`
@@ -58,7 +58,7 @@ export const ThemeToggle = () => {
         />
       </button>
 
-      {/* popover="auto" handles outside-click and Escape dismiss natively */}
+      {/* popover="auto" handles outside-click + Escape natively. */}
       <div ref={popoverRef} className="theme-dropdown" popover="auto">
         <button
           type="button"

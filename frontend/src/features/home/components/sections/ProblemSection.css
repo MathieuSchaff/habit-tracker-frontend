@@ -85,7 +85,6 @@
   color: var(--color-primary);
 }
 
-/* utility — used inside the manifest column */
 .aur-stack {
   display: flex;
   flex-direction: column;

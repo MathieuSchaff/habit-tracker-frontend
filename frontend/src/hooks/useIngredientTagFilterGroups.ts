@@ -12,11 +12,9 @@ import type { FilterGroupConfig, FilterOption } from '@/component/Filter'
 import { DOMAIN_TAG_META } from '@/features/ingredients/filters'
 
 /**
- * Build ingredient filter accordions from the shared taxonomy + API tag rows.
- *
- * The drawer always shows every (category, slug) pair defined in `shared/`
- * for the selected domain — the API only contributes labels and counts via
- * `tags`. Slugs absent from the API are shown disabled with count 0.
+ * Always render every (category, slug) defined in `shared/` for the domain.
+ * The API only contributes labels and counts; slugs absent from the API
+ * render disabled with count 0.
  */
 export function useIngredientTagFilterGroups(
   domain: IngredientType,

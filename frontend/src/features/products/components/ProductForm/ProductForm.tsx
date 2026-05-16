@@ -204,8 +204,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
         !form.unit.trim()
       : !isDirty)
 
-  // Normalised view used by the row mapper. In edit mode we coerce DB nulls to ''
-  // so IngredientRow only ever sees strings; the persistence side re-coerces back.
+  // Edit mode coerces DB nulls to '' so IngredientRow only sees strings; persistence re-coerces.
   const ingredientItems = useMemo<
     Array<{
       ingredientId: string
@@ -353,9 +352,7 @@ export function ProductForm({ mode, product, initialTags = [], onSuccess }: Prod
             }))}
             selected={form.texture ? [form.texture] : []}
             onChange={(values) => {
-              // Toggle mode (not exclusive) so a second click on the active chip clears the
-              // field — radios in exclusive mode swallow the re-click. Take the last chip
-              // added to enforce single-select semantics.
+              // Toggle mode so re-clicking the active chip clears it (exclusive radios swallow re-click).
               setForm((prev) => ({ ...prev, texture: values.at(-1) ?? '' }))
             }}
             mode="toggle"

@@ -14,7 +14,7 @@
   min-height: 0;
   height: auto;
   align-self: stretch;
-  /* Shave a couple pixels top/bottom so it's slightly shorter than the search pill */
+  /* Slightly shorter than the search pill. */
   margin: 2px 0;
   padding: 0 var(--space-4);
   border-radius: var(--radius-full);
@@ -37,7 +37,7 @@
     box-shadow 0.2s ease;
 }
 
-/* Reserve the green border for focus, search is a secondary action */
+/* Green border reserved for focus; search is a secondary action. */
 .coll-controls:focus-within {
   border-color: var(--coll-green);
   box-shadow: 0 0 0 3px oklch(from var(--coll-green) l c h / 0.12);
@@ -51,7 +51,7 @@
   align-items: stretch;
 }
 
-/* Kill the Input component's default vertical margin so it fills the pill */
+/* Strip Input's default vertical margin so it fills the pill. */
 .coll-search-wrapper .input-wrapper {
   width: 100%;
   margin: 0;

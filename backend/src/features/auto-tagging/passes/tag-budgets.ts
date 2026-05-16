@@ -33,7 +33,7 @@ import type { SkincareProductTagSlug } from '@habit-tracker/shared'
 
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../orchestrator'
 
-export const BUDGET_CATEGORIES = AUTO_TAG_ELIGIBLE_CATEGORIES
+const BUDGET_CATEGORIES = AUTO_TAG_ELIGIBLE_CATEGORIES
 export type BudgetCategory = (typeof BUDGET_CATEGORIES)[number]
 
 export interface TagBudget {

@@ -17,7 +17,7 @@ export function FormField({ label, htmlFor, required, hint, error, children }: F
   const errorId = error ? `${baseId}-error` : undefined
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
 
-  // Inject aria-describedby into the first child element
+  // Inject aria-describedby into the first child element.
   const enhancedChildren =
     describedBy && isValidElement(children)
       ? cloneElement(

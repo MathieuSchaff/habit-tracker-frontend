@@ -13,9 +13,6 @@
 //      gate excluded them. Strip prefix and keep the short collagen-film INCI.
 //
 // Dry-run by default. Pass --apply to UPDATE.
-//
-// See backend/src/db/seed/docs/ROADMAP.md §2 (worst-match products) and
-// backend/src/db/seed/docs/audits/INCI-QUALITY-AUDIT.md §2.
 import { SQL } from 'bun'
 
 const apply = process.argv.includes('--apply')
@@ -92,14 +89,15 @@ for (const fix of FIXES) {
       skipped++
       continue
     }
-    const m = [...row.inci.matchAll(new RegExp(fix.marker.source, fix.marker.flags + 'g'))]
+    const m = [...row.inci.matchAll(new RegExp(fix.marker.source, `${fix.marker.flags}g`))]
     if (m.length === 0) {
       console.log(`  SKIP (no marker)  ${fix.slug}`)
       skipped++
       continue
     }
     const last = m[m.length - 1]
-    next = row.inci.slice(last.index! + last[0].length).trimStart()
+    const lastIndex = last.index ?? 0
+    next = row.inci.slice(lastIndex + last[0].length).trimStart()
   }
 
   const before = row.inci?.slice(0, 120) ?? 'NULL'

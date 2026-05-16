@@ -11,7 +11,6 @@ describe('useClickOutside', () => {
 
     renderHook(() => useClickOutside(ref, handler))
 
-    // Simuler un clic sur le body (extérieur au div)
     document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
 
     expect(handler).toHaveBeenCalledTimes(1)
@@ -26,7 +25,6 @@ describe('useClickOutside', () => {
 
     renderHook(() => useClickOutside(ref, handler))
 
-    // Simuler un clic directement sur l'élément (intérieur)
     const event = new MouseEvent('mousedown', { bubbles: true })
     ref.current.dispatchEvent(event)
 

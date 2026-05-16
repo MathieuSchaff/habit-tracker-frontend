@@ -13,8 +13,7 @@ function formatPricePer(p: EnrichedComparisonProduct): string {
   return `${eur.format(p.pricePer.cents / 100)} / ${p.pricePer.unit}`
 }
 
-// Subset of skincare tag categories shown as chips in the comparison header.
-// Typed against the shared union so a rename in `shared` becomes a TS error here.
+// Typed against shared union so renames there become TS errors here.
 const TAG_TYPES: readonly SkincareProductTagCategory[] = [
   'product_type_v2',
   'texture',

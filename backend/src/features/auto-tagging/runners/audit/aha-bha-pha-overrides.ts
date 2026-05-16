@@ -402,7 +402,7 @@ async function main() {
   if (CSV_OUT) {
     const lines = [csvHeader()]
     for (const o of overrides) lines.push(csvLine(o))
-    await Bun.write(CSV_OUT, lines.join('\n') + '\n')
+    await Bun.write(CSV_OUT, `${lines.join('\n')}\n`)
     console.log(`📄 CSV écrit : ${CSV_OUT} (${overrides.length} lignes)\n`)
   }
 
@@ -417,7 +417,7 @@ async function main() {
     }
     for (const v of ['delete', 'keep', 'borderline'] as Verdict[]) {
       const path = `${CSV_DIR.replace(/\/$/, '')}/${v}.csv`
-      await Bun.write(path, buckets[v].join('\n') + '\n')
+      await Bun.write(path, `${buckets[v].join('\n')}\n`)
       console.log(`📄 CSV écrit : ${path} (${buckets[v].length - 1} lignes)`)
     }
     console.log()

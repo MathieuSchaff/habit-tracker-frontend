@@ -42,7 +42,7 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 const mockUserProducts = [
   makeUserProductMock({
     id: 'up-1',
-    status: 'wishlist', // Start in wishlist
+    status: 'wishlist',
     qty: 0,
     productId: 'p-1',
     product: { name: 'Dream Cream', brand: 'Cloud Nine', kind: 'Cream', priceCents: 2500 },
@@ -104,17 +104,15 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
   it("affiche le formulaire d'achat lors du clic sur le bouton dédié", async () => {
     renderWithProviders(<CollectionPage />)
 
-    // Expand product
     const productBtn = await screen.findByRole('button', {
       name: /Voir les détails de Dream Cream/i,
     })
     await userEvent.click(productBtn)
 
-    // Click "Enregistrer un achat" in sheet (lazy component — findByRole waits for resolve)
+    // Lazy component; findByRole waits for resolve.
     const addPurchaseBtn = await screen.findByRole('button', { name: /Enregistrer un achat/i })
     await userEvent.click(addPurchaseBtn)
 
-    // Check if purchase form appears
     expect(screen.getByText('ENREGISTRER UN ACHAT')).toBeInTheDocument()
     expect(screen.getByLabelText(/Date d'achat/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Prix payé/i)).toBeInTheDocument()

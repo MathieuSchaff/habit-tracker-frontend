@@ -13,7 +13,6 @@ type Props = {
 }
 
 export function ComparisonHeader({ name, onNameChange, count, onSave, canSave }: Props) {
-  // Wrap in form so FormActions' built-in submit button triggers onSave.
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     onSave?.()

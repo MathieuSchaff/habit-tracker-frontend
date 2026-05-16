@@ -72,11 +72,9 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Les 6 segments reçoivent leurs couleurs de peau via des sélecteurs nth-child.
-   --fitz-bg est exposé pour que les enfants dérivent leur couleur de texte
-   via relative color syntax. */
+/* 6 skin-tone segments via nth-child; --fitz-bg lets children derive text color. */
 .dermo-fitz-item {
-  /* flex-grow explicite pour une transition fiable (pas le shorthand flex) */
+  /* Explicit flex-grow (not the shorthand) for a reliable transition. */
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 0;
@@ -86,7 +84,7 @@
   justify-content: center;
   gap: 0.125rem;
   cursor: pointer;
-  /* box-shadow initialisé à 0 spread transparent pour éviter le saut au premier clic */
+  /* Zero-spread transparent box-shadow avoids a first-click jump. */
   box-shadow: inset 0 0 0 0 oklch(0% 0 0 / 0);
   transition:
     flex-grow var(--transition-slower) cubic-bezier(0.4, 0, 0.2, 1),
@@ -132,19 +130,19 @@
 .dermo-fitz-label {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  /* Auto-contrast : noir au-dessus de 60% lightness, blanc en-dessous */
+  /* Auto-contrast: black above 60% lightness, white below. */
   color: oklch(from var(--fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0);
   line-height: 1;
   font-family: var(--font-display);
 }
 
-/* Description en position absolute : hors du flow, le label reste toujours centré */
+/* Absolute so the label stays centered regardless of description presence. */
 .dermo-fitz-desc {
   position: absolute;
   bottom: var(--space-2);
   left: 0;
   right: 0;
-  /* 0.5625rem = 9px — taille serrée nécessaire pour tenir dans 3.5rem de hauteur */
+  /* 9px — tight size required to fit inside the 3.5rem height. */
   font-size: 0.5625rem;
   color: oklch(from var(--fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0 / 0.8);
   line-height: 1.2;

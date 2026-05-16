@@ -8,8 +8,7 @@ export function hasActivePriceRange(priceMin?: number, priceMax?: number): boole
   return priceMin !== undefined || priceMax !== undefined
 }
 
-// Discovery mode = untouched listing page. Any user intent (a filter, a price
-// range, a free-text query, or an explicit sort choice) bumps the user out of it.
+// Discovery mode = untouched listing. Any filter/price/query/sort exits it.
 export function isDiscoveryMode(args: {
   hasFilters: boolean
   hasPriceRange: boolean
@@ -19,10 +18,6 @@ export function isDiscoveryMode(args: {
   return !args.hasFilters && !args.hasPriceRange && !args.hasQuery && args.sort === 'newest'
 }
 
-// create an object from the URL state
-// URL: ?category=skincare&brand=Avène&q=matifiant&sort=newest
-//  passes in buildProductsApiFilters
-//  API: GET /products?category=skincare&brand=Avène&q=matifiant&sort=newest&limit=20&page=1
 export function buildProductsApiFilters(args: {
   category: ProductDomainTab
   filters: FilterValues<FilterKey>
@@ -74,8 +69,7 @@ export function buildProductsApiFilters(args: {
   }
 }
 
-// Reset of UI-level toggles that live outside the FilterDrawer local state.
-// Tag filters are reset separately via `useListFilters.resetFilters()`.
+// UI-level toggles outside FilterDrawer state. Tag filters reset via useListFilters.resetFilters().
 export function buildResetSearchParams<T extends Record<string, unknown>>(prev: T) {
   return {
     ...prev,
@@ -86,9 +80,7 @@ export function buildResetSearchParams<T extends Record<string, unknown>>(prev: 
   }
 }
 
-// On domain switch: reset domain-specific filters and pagination. `brand` and
-// `ingredient` carry over — many brands span domains (Avène, Bioderma…) and
-// ingredients are universally meaningful; an empty result is acceptable feedback.
+// brand and ingredient carry over across domains; tag filters and pagination reset.
 export function buildDomainSwitchSearch<T extends Record<string, unknown>>(
   prev: T,
   next: ProductDomainTab,

@@ -14,8 +14,7 @@ import { z } from 'zod'
 
 import type { ProductDetail } from '@/lib/queries/products'
 
-// Form-state schema: every field is what the DOM holds (strings).
-// Validation messages are FR — they surface directly in the form.
+// Every field is what the DOM holds (strings). FR messages surface directly in the form.
 export const productEditFormSchema = z.object({
   name: z.string().trim().min(1, 'Le nom du produit est obligatoire.').max(200),
   slug: z
@@ -53,7 +52,7 @@ export const productEditFormSchema = z.object({
     .refine((v) => v === '' || (PRODUCT_AMOUNT_UNIT_VALUES as readonly string[]).includes(v), {
       message: 'Unité de contenance invalide.',
     }),
-  // Optional. Empty = unset. Backend stores ProductTexture | null.
+  // Empty = unset. Backend stores ProductTexture | null.
   texture: z
     .string()
     .trim()
@@ -63,14 +62,13 @@ export const productEditFormSchema = z.object({
   inci: z.string().max(5000),
   description: z.string().max(5000),
   notes: z.string().max(5000),
-  // Empty allowed (= cleared); otherwise must be a valid URL.
+  // Empty = cleared, otherwise must be a valid URL.
   url: z.union([z.literal(''), z.url('URL invalide.').max(2000)]),
   imageUrl: z.union([z.literal(''), z.url('URL image invalide.').max(2000)]),
 })
 
 export type ProductEditFormInput = z.infer<typeof productEditFormSchema>
 
-// Empty form state for the create flow.
 export function emptyProductEditForm(): ProductEditFormInput {
   return {
     name: '',
@@ -91,9 +89,6 @@ export function emptyProductEditForm(): ProductEditFormInput {
   }
 }
 
-// Entity → form conversion used to seed the edit page. Accepts the full
-// ProductDetail (extra fields ignored) so the form picks up new backend
-// columns without manual snapshot-type maintenance.
 export function productToEditForm(p: ProductDetail): ProductEditFormInput {
   return {
     name: p.name ?? '',
@@ -114,7 +109,7 @@ export function productToEditForm(p: ProductDetail): ProductEditFormInput {
   }
 }
 
-// Wire format produced for POST /api/products: empty = omit (undefined).
+// Wire format for POST /api/products: empty = omit (undefined).
 export function productEditFormToCreateInput(form: ProductEditFormInput): CreateProductInput {
   const priceEuros = form.priceEuros.trim()
   const totalAmount = form.totalAmount.trim()
@@ -138,9 +133,7 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
   }
 }
 
-// Wire format for PATCH /api/products/:id.
-// Empty on a nullable field that previously held a value → null (clear it).
-// Empty on a field that was already empty → undefined (omit, no-op).
+// PATCH /api/products/:id — empty + previously set → null (clear); empty + was empty → undefined.
 export function productEditFormToUpdateInput(
   form: ProductEditFormInput,
   original: ProductDetail
@@ -151,8 +144,7 @@ export function productEditFormToUpdateInput(
   }
   const priceEuros = form.priceEuros.trim()
   const totalAmount = form.totalAmount.trim()
-  // Send slug only when it actually changed — backend never auto-regenerates
-  // from name (Phase 7-2), so omitting keeps the URL stable.
+  // Backend never auto-regenerates slug from name; omitting keeps URL stable.
   const slug = form.slug.trim()
   return {
     name: form.name.trim(),

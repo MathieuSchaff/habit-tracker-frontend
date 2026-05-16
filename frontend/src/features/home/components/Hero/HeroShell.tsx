@@ -6,7 +6,7 @@ import './Hero.css'
 
 export type HeroAction = {
   label: string
-  /** TanStack route path. Use `to` for internal nav, `href` for anchors. */
+  // Use `to` for internal TanStack routes, `href` for anchors/external.
   to?: string
   href?: string
   onClick?: () => void
@@ -20,14 +20,9 @@ export type HeroShellProps = {
   secondary?: HeroAction
   meta?: string[]
   layout?: 'split' | 'center'
-  /** Right-column visual. On mobile renders below the copy. */
   children: React.ReactNode
 }
 
-/**
- * Hero shell shared by the 3 variants.
- * Holds brand, headline, subtitle, CTAs, meta + visual column.
- */
 export function HeroShell({
   badge,
   title,

@@ -4,9 +4,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '../../store/auth'
 import { silentRefresh } from '../queries/silentRefresh'
 
-// Schedule a silent refresh ~1 minute before the access token expires.
-// When silentRefresh succeeds, setAuth updates tokenExpiresAt, which
-// re-triggers this effect and schedules the next refresh automatically.
+// Schedule silent refresh ~1 min before expiry. setAuth updates tokenExpiresAt, retriggering this effect.
 export function useTokenRefresh() {
   const tokenExpiresAt = useAuthStore((s) => s.tokenExpiresAt)
   const queryClient = useQueryClient()
@@ -25,10 +23,7 @@ export function useTokenRefresh() {
     return () => clearTimeout(timer)
   }, [tokenExpiresAt, queryClient])
 
-  // Background tabs throttle setTimeout heavily (can drift by minutes), so the scheduled
-  // refresh above may fire late or not at all when the user comes back. Catch the moment
-  // the tab regains visibility and proactively refresh if the token is already expired,
-  // so queries firing on focus don't all 401 first.
+  // Background tabs throttle setTimeout; refresh on visibility regain so focus queries don't all 401.
   useEffect(() => {
     function handleVisible() {
       if (document.visibilityState !== 'visible') return

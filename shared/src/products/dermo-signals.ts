@@ -1,7 +1,7 @@
 // Slugs flagged as a "signal" in the comparator. Active slugs map to the seed
 // taxonomy; alert slugs are partly prospective (see note below).
 
-export const ACTIVE_INGREDIENT_SLUGS: ReadonlySet<string> = new Set([
+const ACTIVE_INGREDIENT_SLUGS: ReadonlySet<string> = new Set([
   'niacinamide',
   'hyaluronic-acid',
   'sodium-hyaluronate',
@@ -27,7 +27,7 @@ export const ACTIVE_INGREDIENT_SLUGS: ReadonlySet<string> = new Set([
 
 // Alert slugs are prospective: most are not yet present in the seed taxonomy,
 // so the alert path is currently inert. They will activate as the seed grows.
-export const ALERT_INGREDIENT_SLUGS: ReadonlySet<string> = new Set([
+const ALERT_INGREDIENT_SLUGS: ReadonlySet<string> = new Set([
   'parfum',
   'fragrance',
   'alcool-denat',

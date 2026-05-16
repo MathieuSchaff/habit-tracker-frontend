@@ -319,7 +319,7 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
 })
 
 describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
-  // avoidFor: [''] has length > 0 so it passes through — caller must sanitize
+  // Empty string passes through (length > 0); caller must sanitize.
   it('avoidFor with a single empty string is forwarded as-is', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -332,7 +332,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     expect(out.avoid_for).toEqual([''])
   })
 
-  // val.length > 0 for ['', 'acne'] is true so the mixed array passes through
+  // Mixed empty + value: length > 0, so the array passes through.
   it('tag filter with empty strings mixed in is forwarded as-is', () => {
     const filters = emptyTagFilters()
     filters.concern = ['', 'acne']
@@ -347,7 +347,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     expect(out.concern).toEqual(['', 'acne'])
   })
 
-  // The function does not check priceMin <= priceMax — backend validates
+  // No min ≤ max check here; backend validates.
   it('passes inverted price range through without throwing', () => {
     expect(() =>
       buildProductsApiFilters({
@@ -374,12 +374,12 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
       page: 1,
       hasFilters: false,
     })
-    expect(out.limit).toBe(20) // paginated, not discovery
+    expect(out.limit).toBe(20)
     expect(out.priceMin).toBe(5000)
     expect(out.priceMax).toBe(100)
   })
 
-  // Negative/zero page passes through — backend validates
+  // Negative/zero page passes through; backend validates.
   it('passes negative page through without throwing', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -404,7 +404,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     expect(out.page).toBe(0)
   })
 
-  // avoidFor with duplicate slugs — passed through, dedup is backend concern
+  // Dedup is a backend concern; duplicates pass through.
   it('passes duplicate avoidFor slugs through without deduplication', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -419,7 +419,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
 })
 
 describe('buildDomainSwitchSearch', () => {
-  // All domain tag keys — so domain switch resets every tag regardless of domain
+  // All domain tag keys: domain switch resets every tag regardless of source domain.
   const EMPTY_TAGS: Record<string, string[]> = {
     skin_type: [],
     concern: [],

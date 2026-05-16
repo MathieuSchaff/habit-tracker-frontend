@@ -33,9 +33,9 @@ function RootComponent() {
   )
 }
 
-// Listens for the sessionExpired flag flipped by authFetch when a 401-recovery
-// refresh fails. Clears local auth state, then redirects to /auth/login with
-// the current path so the user lands back where they were after re-login.
+// Reacts to the sessionExpired flag set by authFetch when a 401-recovery
+// refresh fails: clears auth and redirects to /auth/login with the current
+// path so the user lands back here after re-login.
 function useSessionExpiredRedirect() {
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const navigate = useNavigate()
@@ -43,7 +43,7 @@ function useSessionExpiredRedirect() {
 
   useEffect(() => {
     if (!sessionExpired) return
-    // Already on auth flow — no redirect, just clear the flag.
+    // Already on the auth flow — clear the flag without redirecting.
     if (pathname.startsWith('/auth/')) {
       useAuthStore.getState().clearSessionExpired()
       return
@@ -57,12 +57,11 @@ function useSessionExpiredRedirect() {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ context, preload }) => {
-    // Skip during link hover prefetch — actual navigation re-runs this with preload=false.
+    // Skip link hover prefetch; real navigation re-runs this with preload=false.
     if (preload) return
     if (context.auth.accessToken) return
-    // One-shot probe at boot: if there's a valid refresh cookie, hydrate the session.
-    // After the first attempt (success or fail) we stop, so subsequent navigations
-    // don't re-fire /auth/refresh on every click.
+    // One-shot probe at boot: hydrate session from refresh cookie, then stop
+    // so subsequent navigations don't re-fire /auth/refresh on every click.
     const store = useAuthStore.getState()
     if (store.bootRefreshAttempted) return
     store.markBootRefreshAttempted()

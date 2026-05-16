@@ -10,11 +10,6 @@ const PROBLEMS = [
   { num: '06', text: "Wishlist éparpillée entre captures d'écran et favoris.", solved: true },
 ]
 
-/**
- * Section 01 — État des lieux.
- * Manifesto : pourquoi le statu quo ne marche pas.
- * Style éditorial, items rayés (solved item passe au pin vert).
- */
 export function ProblemSection() {
   return (
     <section className="aur-section aur-section--sunken" id="probleme">

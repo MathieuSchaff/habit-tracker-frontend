@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../store/auth'
 
-// Stubbing inside beforeEach so it overrides MSW's globalThis.fetch patch (set in beforeAll).
+// Stubbed in beforeEach to override MSW's globalThis.fetch patch set in beforeAll.
 const fetchSpy = vi.fn()
 
 describe('reportError', () => {
@@ -42,11 +42,18 @@ describe('reportError', () => {
   })
 
   it('includes userId when the user is authenticated', async () => {
-    useAuthStore.getState().setAuth(
-      // Minimal JWT with exp claim
-      `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.sig`,
-      { id: 'user-123', email: 'a@b.com', emailVerified: true, role: 'user', isDemo: false } as any
-    )
+    useAuthStore
+      .getState()
+      .setAuth(
+        `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.sig`,
+        {
+          id: 'user-123',
+          email: 'a@b.com',
+          emailVerified: true,
+          role: 'user',
+          isDemo: false,
+        } as any
+      )
 
     const reportError = await loadReportError()
     await reportError(new Error('fail'))
@@ -77,7 +84,6 @@ describe('reportError', () => {
     fetchSpy.mockRejectedValue(new Error('network down'))
 
     const reportError = await loadReportError()
-    // Should resolve without throwing
     await expect(reportError(new Error('boom'))).resolves.toBeUndefined()
   })
 })

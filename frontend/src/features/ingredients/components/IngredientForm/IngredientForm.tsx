@@ -56,7 +56,7 @@ const FIELD_LABELS: Record<FormFieldKey, string> = {
   content: 'Contenu',
 }
 
-// when a 409 happens, we store the user's draft so they can recover their work
+// On 409 we keep the user's draft so they can recover their work after refresh.
 type ConflictState = {
   draft: FormData
   freshUpdatedAt: string
@@ -113,8 +113,7 @@ export function IngredientForm({
   } | null>(null)
   const [conflict, setConflict] = useState<ConflictState | null>(null)
 
-  // after a conflict, we use the fresh updatedAt for the next save attempt
-  // so the optimistic lock doesn't fail again on the same stale value
+  // Next save uses the fresh updatedAt so the optimistic lock doesn't trip again.
   const [updatedAtOverride, setUpdatedAtOverride] = useState<string | null>(null)
 
   const handleChange = useCallback(
@@ -235,7 +234,6 @@ export function IngredientForm({
     setConflict(null)
   }
 
-  // check if a field differs between the draft and the current form (server version)
   const hasFieldConflict = (field: FormFieldKey): boolean => {
     if (!conflict) return false
     return conflict.draft[field] !== form[field]
@@ -385,8 +383,6 @@ export function IngredientForm({
   )
 }
 
-// small read-only block that shows the user's draft value for one field
-// with a button to restore it into the form
 function DraftHint({
   field,
   value,

@@ -9,7 +9,7 @@ import { sign, verify } from 'hono/jwt'
 
 import type { AppEnv } from '../../app-env'
 
-export const JWT_CONFIG = {
+const JWT_CONFIG = {
   accessTokenExpiry: 15 * 60,
   refreshTokenExpiry: 7 * 24 * 60 * 60,
 } as const

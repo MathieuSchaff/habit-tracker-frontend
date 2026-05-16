@@ -4,7 +4,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { api } from '../api'
 
-export type ListArticlesFilters = {
+type ListArticlesFilters = {
   category?: BlogCategory
   q?: string
   page?: number
@@ -12,7 +12,7 @@ export type ListArticlesFilters = {
   publishedOnly?: boolean
 }
 
-export const articleKeys = {
+const articleKeys = {
   all: ['articles'] as const,
   lists: () => [...articleKeys.all, 'list'] as const,
   list: (filters: ListArticlesFilters = {}) => [...articleKeys.all, 'list', filters] as const,

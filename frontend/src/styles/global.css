@@ -1,7 +1,7 @@
 * {
   font-family: var(--font-sans);
   font-feature-settings: var(--font-features-sans);
-  -webkit-font-smoothing: antialiased; /* To make the text more clean */
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -18,7 +18,7 @@ h6 {
   line-height: var(--leading-tight);
   text-wrap: balance;
   overflow-wrap: break-word;
-  letter-spacing: var(--tracking-tight); /* I squeeze a bit the letters for the  titles */
+  letter-spacing: var(--tracking-tight);
 }
 
 [style*="text-transform: uppercase"],
@@ -30,7 +30,7 @@ span.uppercase,
   letter-spacing: var(--tracking-widest);
 }
 
-/* If we use uppercase, I put more space between letters, it looks more "luxurious"*/
+/* Wider tracking on uppercase for a more "luxurious" feel. */
 *:where([class], [style]) {
   &:is([style*="text-transform: uppercase"]),
   &:is(.uppercase),
@@ -39,7 +39,7 @@ span.uppercase,
   }
 }
 
-/* For the prices, I use special numbers that are beautifuler for a design magazine */
+/* Old-style + tabular numerals for prices (magazine feel + aligned columns). */
 .price,
 [class*="price"],
 .amount {
@@ -133,7 +133,7 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
-/* The math formulas are sometimes broken or go out of the box, so I fix them here */
+/* KaTeX formulas can overflow their container — clip horizontally with scroll. */
 .markdown-container .katex-display {
   display: block;
   white-space: nowrap;
@@ -148,7 +148,7 @@ dialog::backdrop {
   justify-content: center;
 }
 
-/* Katex adds new lines when we don't want, I hide them */
+/* KaTeX inserts unwanted newlines; hide them. */
 .markdown-container .mspace.newline {
   display: none;
 }
