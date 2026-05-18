@@ -1,0 +1,101 @@
+# Rendered at container start by reload-certs.sh via envsubst.
+# ${DOMAIN} comes from the nginx service environment (.env.prod → docker-compose).
+
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+upstream api {
+    server api:3000;
+}
+
+upstream frontend {
+    server frontend:80;
+}
+
+# ----------------------------------------------------------
+# Bloc HTTP (port 80) — ACME challenge + redirect to HTTPS.
+# ----------------------------------------------------------
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    server_tokens off;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Docker healthcheck only — keeps port 80 reachable for the daemon probe.
+    location /nginx-health {
+        access_log off;
+        return 200 "ok";
+        add_header Content-Type text/plain;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ----------------------------------------------------------
+# Bloc HTTPS (port 443) — production traffic.
+# ----------------------------------------------------------
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location /nginx-health {
+        access_log off;
+        return 200 "ok";
+        add_header Content-Type text/plain;
+    }
+
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+
+        proxy_pass http://api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location / {
+        limit_req zone=api_limit burst=50 nodelay;
+
+        proxy_pass http://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+# ----------------------------------------------------------
+# Default server — rejects unknown Host headers (CSO pass2 #6).
+# ----------------------------------------------------------
+server {
+    listen 80 default_server;
+    listen 443 ssl default_server;
+    server_name _;
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    return 444;
+}

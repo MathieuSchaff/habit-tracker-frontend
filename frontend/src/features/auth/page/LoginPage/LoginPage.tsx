@@ -20,6 +20,7 @@ type FieldErrors = Partial<Record<keyof AuthInput | 'form', string>>
 const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
   invalid_credentials: 'Email ou mot de passe incorrect',
   email_not_verified: "Votre adresse email n'est pas vérifiée",
+  account_locked: 'Trop de tentatives. Réessayez dans 15 minutes.',
   server_error: 'Une erreur est survenue, réessayez plus tard',
 }
 

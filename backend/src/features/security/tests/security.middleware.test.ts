@@ -31,34 +31,34 @@ describe('Security Middleware — product routes', () => {
   })
 
   describe('detection', () => {
-    it('rejects javascript: URL (400 from Zod, event logged)', async () => {
+    it('blocks javascript: URL on first attempt (403)', async () => {
       const res = await postProduct(app, token, {
         ...VALID_PRODUCT,
         url: 'javascript:alert(document.cookie)',
       })
-      // Zod rejects the URL — middleware logs but passes through to Zod
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status).toBe(403)
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      expect(data.error).toBe('forbidden')
     })
 
-    it('rejects data:text/html URL (400 from Zod, event logged)', async () => {
+    it('blocks data:text/html URL on first attempt (403)', async () => {
       const res = await postProduct(app, token, {
         ...VALID_PRODUCT,
         url: 'data:text/html,<script>alert(1)</script>',
       })
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status).toBe(403)
     })
 
-    it('rejects HTML in inci (400 from Zod, event logged)', async () => {
+    it('blocks HTML in inci on first attempt (403)', async () => {
       const res = await postProduct(app, token, {
         ...VALID_PRODUCT,
         inci: '<script>alert(1)</script>',
       })
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status).toBe(403)
     })
 
     it('allows http:// URL through (LOW event logged, not blocked)', async () => {
-      // safeUrl allows http:// — only javascript: / data: are blocked at schema level.
-      // The middleware logs a LOW severity event but does not reject the request.
       const res = await postProduct(app, token, {
         ...VALID_PRODUCT,
         url: 'http://example.com',
@@ -80,22 +80,28 @@ describe('Security Middleware — product routes', () => {
     })
   })
 
-  describe('auto-block after 3 high-severity attempts', () => {
-    it('returns 403 on 3rd high-severity attempt', async () => {
-      // Attempts 1 and 2 — logged but not yet blocked
-      await postProduct(app, token, { ...VALID_PRODUCT, url: 'javascript:alert(1)' })
-      await postProduct(app, token, { ...VALID_PRODUCT, url: 'javascript:alert(2)' })
-
-      // 3rd attempt — middleware logs (total = 3), then checks blocked (3 >= 3) → 403
-      const res = await postProduct(app, token, { ...VALID_PRODUCT, url: 'javascript:alert(3)' })
+  describe('Content-Type bypass', () => {
+    it('blocks HIGH detection even when Content-Type is text/plain', async () => {
+      const res = await app.request('/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...VALID_PRODUCT, url: 'javascript:alert(1)' }),
+      })
       expect(res.status).toBe(403)
-      const data = await res.json()
-      expect(data.success).toBe(false)
-      expect(data.error).toBe('forbidden')
     })
 
+    it('blocks HIGH detection even when Content-Type is missing', async () => {
+      const res = await app.request('/products', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...VALID_PRODUCT, inci: '<script>1</script>' }),
+      })
+      expect(res.status).toBe(403)
+    })
+  })
+
+  describe('repeat-offender fast-path', () => {
     it('low-severity events do not contribute to the block', async () => {
-      // 5 http:// attempts (LOW) — pass through, logged but never trigger block
       for (let i = 0; i < 5; i++) {
         await postProduct(app, token, {
           name: `Produit ${i}`,
@@ -107,7 +113,6 @@ describe('Security Middleware — product routes', () => {
         })
       }
 
-      // A valid subsequent request still goes through (not blocked)
       const res = await postProduct(app, token, { ...VALID_PRODUCT, name: 'Produit Final' })
       expect(res.status).toBe(HTTP_STATUS.CREATED)
     })

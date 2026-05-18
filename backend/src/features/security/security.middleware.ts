@@ -51,9 +51,16 @@ export function securityScan() {
     const userId = c.get('userId')
     if (!userId) return next()
 
-    const contentType = c.req.header('content-type') ?? ''
-    if (!contentType.includes('application/json')) return next()
+    const db = c.get('db')
 
+    // Repeat offenders are blocked before parsing any body.
+    if (await isUserBlocked(db, userId)) {
+      return c.json({ success: false, error: 'forbidden' }, 403)
+    }
+
+    // Parse regardless of Content-Type: attacker can send a JSON payload with
+    // `text/plain` to skip a header-gated scan, but Hono's zValidator parses
+    // JSON anyway. If the body is not JSON-parseable, there's nothing to scan.
     let body: unknown
     try {
       body = await c.req.json()
@@ -64,15 +71,10 @@ export function securityScan() {
     const detections = scanBody(body)
     if (detections.length === 0) return next()
 
-    const db = c.get('db')
     const route = c.req.path
-
-    // Log all detections, check block only on HIGH
-    const hasHigh = detections.some((d) => d.severity === 'high')
-
     await Promise.allSettled(detections.map((d) => logSecurityEvent(db, { userId, route, ...d })))
 
-    if (hasHigh && (await isUserBlocked(db, userId))) {
+    if (detections.some((d) => d.severity === 'high')) {
       return c.json({ success: false, error: 'forbidden' }, 403)
     }
 

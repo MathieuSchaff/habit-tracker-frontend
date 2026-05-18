@@ -42,6 +42,10 @@ export const users = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
     isDemo: boolean('is_demo').notNull().default(false),
     expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
+    // Brute-force defense: incremented on every failed login, reset on success.
+    // When >= LOGIN_LOCKOUT_THRESHOLD, lockedUntil is set; login() refuses until expiry.
+    failedLoginAttempts: integer('failed_login_attempts').notNull().default(0),
+    lockedUntil: timestamp('locked_until', { withTimezone: true, mode: 'string' }),
   },
   (t) => [
     // Case-insensitive unique email, only for active accounts

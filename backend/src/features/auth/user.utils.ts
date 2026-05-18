@@ -29,6 +29,8 @@ function mapUserRow(row: Record<string, unknown> | undefined): User | null {
     deletedAt: (row.deleted_at as string | null) ?? null,
     isDemo: row.is_demo as boolean,
     expiresAt: (row.expires_at as string | null) ?? null,
+    failedLoginAttempts: (row.failed_login_attempts as number | null) ?? 0,
+    lockedUntil: (row.locked_until as string | null) ?? null,
   }
 }
 
