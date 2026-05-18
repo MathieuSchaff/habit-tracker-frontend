@@ -25,7 +25,7 @@ import { and, eq, isNotNull, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
-import { mapKindToContext } from '../../../dermo-score/profile-mapping'
+import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 
 const JSON_OUT = process.env.JSON_OUT
 const SLUG_FILTER = process.env.SLUG

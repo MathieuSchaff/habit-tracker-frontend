@@ -4,7 +4,7 @@ import { SKINCARE_PRODUCT_TAG_SLUGS } from '@habit-tracker/shared'
 
 import { analyzeINCI } from 'algo-derm'
 
-import { mapKindToContext } from '../../dermo-score/profile-mapping'
+import { mapKindToContext } from '../../../lib/algo-derm-product-context'
 import {
   detectCrossSignalAvoidTags,
   detectCrossSignalTags,

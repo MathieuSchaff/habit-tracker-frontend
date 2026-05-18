@@ -45,7 +45,7 @@ import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
-import { mapKindToContext } from '../../../dermo-score/profile-mapping'
+import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectAutoTags, TAG_CONFIG, type TagRule } from '../../passes/auto-tag-detection'
 import { type BudgetCategory, TAG_HIT_RATE_BUDGET } from '../../passes/tag-budgets'

@@ -1,11 +1,41 @@
+import type { SkinConcern, SkinType } from '@habit-tracker/shared'
+
 import { analyzeINCI, type ProductAssessment, type UserProfile } from 'algo-derm'
 import { eq } from 'drizzle-orm'
 
 import { type Database, db } from '../../db'
 import { userDermoProfiles } from '../../db/schema/auth/users'
 import { products } from '../../db/schema/products/products'
+import { mapKindToContext } from '../../lib/algo-derm-product-context'
 import { ProductError } from '../products/product-error'
-import { mapKindToContext, mapToAlgoDermProfile } from './profile-mapping'
+
+const SENSITIVE_SKIN_TYPES: ReadonlyArray<SkinType> = ['peau-sensible']
+
+const ROSACEA_CONCERNS: ReadonlyArray<SkinConcern> = [
+  'rosacee',
+  'couperose',
+  'flushs',
+  'anti-rougeurs',
+]
+
+const ACNE_CONCERNS: ReadonlyArray<SkinConcern> = [
+  'anti-acne',
+  'post-acne',
+  'pores-dilates',
+  'brillance',
+]
+
+function mapToAlgoDermProfile(
+  skinTypes: ReadonlyArray<SkinType>,
+  skinConcerns: ReadonlyArray<SkinConcern>
+): UserProfile {
+  return {
+    sensitiveSkin: skinTypes.some((t) => SENSITIVE_SKIN_TYPES.includes(t)),
+    acneProne: skinConcerns.some((c) => ACNE_CONCERNS.includes(c)),
+    rosacea: skinConcerns.some((c) => ROSACEA_CONCERNS.includes(c)),
+    pregnant: false,
+  }
+}
 
 export type DermoScoreOutcome =
   | { ok: true; assessment: ProductAssessment }

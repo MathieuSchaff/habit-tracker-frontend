@@ -13,4 +13,11 @@ export {
   type OrchestratorInput,
   type OrchestratorOptions,
 } from './orchestrator'
-export { type WriteTagsResult, writeTagsForProduct } from './write'
+export {
+  AUTOTAG_SKIP_EVENT_KIND,
+  type AutoTagSkipMeta,
+  recordAutoTagSkip,
+  type WriteTagsResult,
+  writeTagsForProduct,
+  writeTagsForProductFailSoft,
+} from './write'

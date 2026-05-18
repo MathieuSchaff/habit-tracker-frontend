@@ -27,6 +27,7 @@ import {
   productTagsDefs,
   tagProducts,
 } from '../../db/schema'
+import { trackError } from '../errors'
 import { detectAllAutoTags } from './orchestrator'
 
 export interface WriteTagsResult {
@@ -120,4 +121,45 @@ export async function writeTagsForProduct(
   await database.insert(tagProducts).values(rows).onConflictDoNothing()
 
   return { inserted: rows.length, detected: pairs.length }
+}
+
+// Frozen contract — `computeFingerprint` keys on this string. See ADR-0002.
+export const AUTOTAG_SKIP_EVENT_KIND = 'product_autotag_skipped' as const
+
+export interface AutoTagSkipMeta {
+  operation: 'create' | 'update'
+  userId: string
+}
+
+export async function recordAutoTagSkip(
+  database: DB,
+  productId: string,
+  meta: AutoTagSkipMeta,
+  err: unknown
+): Promise<void> {
+  await trackError(database, {
+    source: 'backend',
+    message: AUTOTAG_SKIP_EVENT_KIND,
+    stack: err instanceof Error ? (err.stack ?? null) : null,
+    userId: meta.userId,
+    context: {
+      productId,
+      operation: meta.operation,
+      cause: err instanceof Error ? err.message : String(err),
+    },
+  })
+}
+
+// Intake-only fail-soft wrapper. Seed-core and the backfill runner still call
+// `writeTagsForProduct` directly so failures propagate to their operator.
+export async function writeTagsForProductFailSoft(
+  database: DB,
+  productId: string,
+  meta: AutoTagSkipMeta
+): Promise<void> {
+  try {
+    await writeTagsForProduct(productId, database)
+  } catch (err) {
+    await recordAutoTagSkip(database, productId, meta, err)
+  }
 }
