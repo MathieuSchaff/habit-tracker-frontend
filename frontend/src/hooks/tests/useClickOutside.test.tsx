@@ -33,18 +33,6 @@ describe('useClickOutside', () => {
     document.body.removeChild(ref.current)
   })
 
-  it('should call handler when pressing Escape key', () => {
-    const handler = vi.fn()
-    const ref = { current: document.createElement('div') }
-
-    renderHook(() => useClickOutside(ref, handler))
-
-    const event = new KeyboardEvent('keydown', { key: 'Escape' })
-    document.dispatchEvent(event)
-
-    expect(handler).toHaveBeenCalledTimes(1)
-  })
-
   it('should cleanup event listeners on unmount', () => {
     const removeSpy = vi.spyOn(document, 'removeEventListener')
     const handler = vi.fn()
@@ -55,7 +43,6 @@ describe('useClickOutside', () => {
 
     expect(removeSpy).toHaveBeenCalledWith('mousedown', expect.any(Function))
     expect(removeSpy).toHaveBeenCalledWith('touchstart', expect.any(Function))
-    expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function))
 
     removeSpy.mockRestore()
   })

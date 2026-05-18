@@ -13,6 +13,7 @@ import {
 } from 'react'
 
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 import './DropdownMenu.css'
 
@@ -68,6 +69,9 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
   }, [])
 
   useClickOutside(wrapperRef, () => setIsOpen(false))
+  useEscapeKey(() => {
+    if (isOpen) close()
+  })
 
   return (
     <DropdownMenuContext
@@ -171,7 +175,7 @@ function DropdownMenuContent({
     } else if (e.key === 'End') {
       e.preventDefault()
       items[items.length - 1]?.focus()
-    } else if (e.key === 'Escape' || e.key === 'Tab') {
+    } else if (e.key === 'Tab') {
       e.preventDefault()
       close()
     }

@@ -1,66 +1,27 @@
 import type { IngredientType } from '@habit-tracker/shared'
 import { INGREDIENT_TYPE_LABELS, INGREDIENT_TYPE_VALUES } from '@habit-tracker/shared'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, ClipboardCopy, Save, X as XIcon } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
-import { Input } from '@/component/Input/Input'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
-import { Textarea } from '@/component/Input/Textarea/Textarea'
-import { type TagState, useFormTags } from '@/hooks/useFormTags'
-import { extractFormError } from '@/lib/helpers/apiError'
-import { isHttpError } from '@/lib/helpers/isHttpError'
-import { useAuthStore } from '@/store/auth'
 import {
-  ingredientQueries,
-  useCreateIngredient,
-  useUpdateIngredient,
-  useUpdateIngredientTags,
-} from '../../../../lib/queries/ingredients'
-import { tagQueries } from '../../../../lib/queries/tags'
-import { INGREDIENT_FORM_ERRORS, type IngredientFormField } from './formErrors'
+  type BaseIngredient,
+  type IngredientFormData,
+  type IngredientFormFieldKey,
+  useIngredientFormSubmit,
+} from '@/features/ingredients/hooks/useIngredientFormSubmit'
+import { type TagState, useFormTags } from '@/hooks/useFormTags'
+import { productTagQueries } from '@/lib/queries/product-tags'
+import { useAuthStore } from '@/store/auth'
+import { ConflictBanner } from './ConflictBanner'
+import { IngredientInputField, IngredientTextareaField } from './fields'
 import '../IngredientPageEditable.css'
-
-interface BaseIngredient {
-  id: string
-  slug: string
-  name: string | null
-  type: IngredientType
-  category: string | null
-  description: string | null
-  content: string | null
-  updatedAt: string
-}
-
-type FormData = {
-  name: string
-  slug: string
-  category: string
-  description: string
-  content: string
-}
-
-const FORM_FIELDS = ['name', 'slug', 'category', 'description', 'content'] as const
-type FormFieldKey = (typeof FORM_FIELDS)[number]
-
-const FIELD_LABELS: Record<FormFieldKey, string> = {
-  name: 'Nom',
-  slug: 'Slug',
-  category: 'Catégorie',
-  description: 'Description',
-  content: 'Contenu',
-}
-
-// On 409 we keep the user's draft so they can recover their work after refresh.
-type ConflictState = {
-  draft: FormData
-  freshUpdatedAt: string
-}
 
 type IngredientFormProps =
   | {
@@ -82,21 +43,16 @@ export function IngredientForm({
   initialTags = [],
   onSuccess,
 }: IngredientFormProps) {
-  const qc = useQueryClient()
-  const { data: allTags } = useQuery(tagQueries.list())
-  const createIngredient = useCreateIngredient()
-  const updateIngredient = useUpdateIngredient()
-  const updateTags = useUpdateIngredientTags()
-
+  const { data: allTags } = useQuery(productTagQueries.list())
   const { isAdmin } = useAuthStore()
-  const [form, setForm] = useState<FormData>({
+
+  const [form, setForm] = useState<IngredientFormData>({
     name: ingredient?.name ?? '',
     slug: ingredient?.slug ?? '',
     category: ingredient?.category ?? '',
     description: ingredient?.description ?? '',
     content: ingredient?.content ?? '',
   })
-
   const [ingredientType, setIngredientType] = useState<IngredientType>(
     ingredient?.type ?? 'skincare'
   )
@@ -106,163 +62,50 @@ export function IngredientForm({
     allTags,
   })
 
-  const [error, setError] = useState<string | null>(null)
-  const [fieldError, setFieldError] = useState<{
-    field: IngredientFormField
-    message: string
-  } | null>(null)
-  const [conflict, setConflict] = useState<ConflictState | null>(null)
-
-  // Next save uses the fresh updatedAt so the optimistic lock doesn't trip again.
-  const [updatedAtOverride, setUpdatedAtOverride] = useState<string | null>(null)
+  const submitArgs =
+    mode === 'edit'
+      ? ({ mode: 'edit' as const, ingredient } as const)
+      : ({ mode: 'create' as const } as const)
+  const {
+    handleSubmit,
+    error,
+    fieldError,
+    conflict,
+    dismissConflict,
+    restoreField,
+    clearError,
+    isPending,
+    submitLabel,
+  } = useIngredientFormSubmit({
+    ...submitArgs,
+    form,
+    setForm,
+    ingredientType,
+    tags,
+    isAdmin,
+    onSuccess,
+  })
 
   const handleChange = useCallback(
-    (field: FormFieldKey) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }))
-      setError(null)
-      setFieldError(null)
-    },
-    []
+    (field: IngredientFormFieldKey) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+        clearError()
+      },
+    [clearError]
   )
 
-  const isDirty =
-    form.name !== (ingredient?.name ?? '') ||
-    form.slug !== (ingredient?.slug ?? '') ||
-    form.category !== (ingredient?.category ?? '') ||
-    form.description !== (ingredient?.description ?? '') ||
-    form.content !== (ingredient?.content ?? '') ||
-    ingredientType !== (ingredient?.type ?? 'skincare') ||
-    isTagsDirty
+  const handleTypeChange = useCallback((vals: IngredientType[]) => {
+    if (vals[0]) setIngredientType(vals[0])
+  }, [])
 
-  const isPending = createIngredient.isPending || updateIngredient.isPending || updateTags.isPending
-
-  const isSubmitDisabled =
-    mode === 'create' ? isPending || !form.name.trim() : isPending || !isDirty
-
-  const submitLabel =
-    mode === 'create'
-      ? createIngredient.isPending
-        ? 'Création…'
-        : "Créer l'ingrédient"
-      : updateIngredient.isPending || updateTags.isPending
-        ? 'Enregistrement…'
-        : 'Enregistrer'
-
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault()
-
-    if (!form.name.trim()) {
-      setError("Le nom de l'ingrédient est obligatoire.")
-      return
-    }
-
-    try {
-      if (mode === 'create') {
-        const created = await createIngredient.mutateAsync({
-          name: form.name.trim(),
-          type: ingredientType,
-          slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
-          category: form.category.trim() || undefined,
-          description: form.description.trim() || undefined,
-          content: form.content.trim() || undefined,
-        })
-        if (tags.length > 0) {
-          await updateTags.mutateAsync({
-            ingredientId: created.id,
-            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-          })
-        }
-        onSuccess(created.slug)
-      } else {
-        const [updated] = await Promise.all([
-          updateIngredient.mutateAsync({
-            id: ingredient.id,
-            data: {
-              name: form.name.trim(),
-              slug: isAdmin && form.slug.trim() ? form.slug.trim() : undefined,
-              category: form.category.trim() || undefined,
-              description: form.description.trim() || undefined,
-              content: form.content.trim() || undefined,
-              expectedUpdatedAt: updatedAtOverride ?? ingredient.updatedAt,
-            },
-          }),
-          updateTags.mutateAsync({
-            ingredientId: ingredient.id,
-            tags: tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance })),
-          }),
-        ])
-        setConflict(null)
-        setUpdatedAtOverride(null)
-        onSuccess(updated.slug)
-      }
-    } catch (err: unknown) {
-      if (isHttpError(err, 409) && mode === 'edit') {
-        const draft = { ...form }
-
-        const fresh = (await qc.fetchQuery({
-          ...ingredientQueries.bySlug(ingredient.slug),
-          staleTime: 0,
-        })) as BaseIngredient
-        setForm({
-          name: fresh.name ?? '',
-          slug: fresh.slug ?? '',
-          category: fresh.category ?? '',
-          description: fresh.description ?? '',
-          content: fresh.content ?? '',
-        })
-
-        setConflict({ draft, freshUpdatedAt: fresh.updatedAt })
-        setUpdatedAtOverride(fresh.updatedAt)
-        setError(null)
-      } else {
-        const { field, message } = extractFormError(err, INGREDIENT_FORM_ERRORS)
-        setError(message)
-        setFieldError(field ? { field, message } : null)
-      }
-    }
-  }
-
-  function restoreField(field: FormFieldKey) {
-    setConflict((prev) => {
-      if (!prev) return null
-      setForm((f) => ({ ...f, [field]: prev.draft[field] }))
-      return prev
-    })
-  }
-
-  function dismissConflict() {
-    setConflict(null)
-  }
-
-  const hasFieldConflict = (field: FormFieldKey): boolean => {
-    if (!conflict) return false
-    return conflict.draft[field] !== form[field]
-  }
+  const isDirty = computeIsDirty({ form, ingredient, ingredientType, isTagsDirty })
+  const isSubmitDisabled = computeSubmitDisabled({ mode, form, isDirty, isPending })
 
   return (
     <form className="ingredient-edit-form" onSubmit={handleSubmit}>
-      {error && !fieldError && <FormMessage variant="error">{error}</FormMessage>}
-
-      {conflict && (
-        <div className="ingredient-edit-form__conflict-banner">
-          <div className="ingredient-edit-form__conflict-banner-header">
-            <AlertTriangle size={16} />
-            <span>
-              <strong>Conflit détecté</strong> — quelqu'un a modifié cet ingrédient pendant ton
-              édition. Le formulaire affiche maintenant la version à jour. Ton brouillon est affiché
-              sous chaque champ modifié.
-            </span>
-          </div>
-          <button
-            type="button"
-            className="ingredient-edit-form__conflict-dismiss"
-            onClick={dismissConflict}
-          >
-            <XIcon size={14} />
-            Fermer les brouillons
-          </button>
-        </div>
-      )}
+      <FormError error={error} fieldError={fieldError} />
+      <ConflictBanner conflict={conflict} onDismiss={dismissConflict} />
 
       <FormField label="Type">
         <ChipGroup
@@ -271,56 +114,51 @@ export function IngredientForm({
             label: INGREDIENT_TYPE_LABELS[v],
           }))}
           selected={[ingredientType]}
-          onChange={([v]) => v && setIngredientType(v)}
+          onChange={handleTypeChange}
           mode="exclusive"
           aria-label="Type d'ingrédient"
         />
       </FormField>
 
-      <FormField label="Nom" htmlFor="ingredient-name" required>
-        <Input
-          id="ingredient-name"
-          value={form.name}
-          onChange={handleChange('name')}
-          placeholder="Nom de l'ingrédient"
-          autoFocus
-          error={fieldError?.field === 'name' ? fieldError.message : undefined}
-        />
-        {hasFieldConflict('name') && (
-          <DraftHint field="name" value={conflict?.draft.name ?? ''} onRestore={restoreField} />
-        )}
-      </FormField>
+      <IngredientInputField
+        label="Nom"
+        id="ingredient-name"
+        value={form.name}
+        onChange={handleChange('name')}
+        placeholder="Nom de l'ingrédient"
+        required
+        autoFocus
+        fieldError={fieldError?.field === 'name' ? fieldError.message : undefined}
+        fieldKey="name"
+        conflict={conflict}
+        onRestoreField={restoreField}
+      />
 
       {isAdmin && (
-        <FormField label="Slug" htmlFor="ingredient-slug" hint="Lien URL unique (admin uniquement)">
-          <Input
-            id="ingredient-slug"
-            value={form.slug}
-            onChange={handleChange('slug')}
-            placeholder="Ex: mon-ingredient-slug"
-            error={fieldError?.field === 'slug' ? fieldError.message : undefined}
-          />
-          {hasFieldConflict('slug') && (
-            <DraftHint field="slug" value={conflict?.draft.slug ?? ''} onRestore={restoreField} />
-          )}
-        </FormField>
+        <IngredientInputField
+          label="Slug"
+          id="ingredient-slug"
+          value={form.slug}
+          onChange={handleChange('slug')}
+          placeholder="Ex: mon-ingredient-slug"
+          hint="Lien URL unique (admin uniquement)"
+          fieldError={fieldError?.field === 'slug' ? fieldError.message : undefined}
+          fieldKey="slug"
+          conflict={conflict}
+          onRestoreField={restoreField}
+        />
       )}
 
-      <FormField label="Catégorie" htmlFor="ingredient-category">
-        <Input
-          id="ingredient-category"
-          value={form.category}
-          onChange={handleChange('category')}
-          placeholder="Ex : Actif, Émollient, Conservateur…"
-        />
-        {hasFieldConflict('category') && (
-          <DraftHint
-            field="category"
-            value={conflict?.draft.category ?? ''}
-            onRestore={restoreField}
-          />
-        )}
-      </FormField>
+      <IngredientInputField
+        label="Catégorie"
+        id="ingredient-category"
+        value={form.category}
+        onChange={handleChange('category')}
+        placeholder="Ex : Actif, Émollient, Conservateur…"
+        fieldKey="category"
+        conflict={conflict}
+        onRestoreField={restoreField}
+      />
 
       <FormField label="Tags">
         <TagManager
@@ -332,76 +170,122 @@ export function IngredientForm({
         />
       </FormField>
 
-      <Textarea
+      <IngredientTextareaField
         label="Description"
         id="ingredient-description"
-        hint="Markdown supporté"
         value={form.description}
         onChange={handleChange('description')}
         placeholder="Description de l'ingrédient (Markdown supporté)"
+        hint="Markdown supporté"
         rows={5}
+        fieldKey="description"
+        conflict={conflict}
+        onRestoreField={restoreField}
       />
-      {hasFieldConflict('description') && (
-        <DraftHint
-          field="description"
-          value={conflict?.draft.description ?? ''}
-          onRestore={restoreField}
-        />
-      )}
 
-      <Textarea
+      <IngredientTextareaField
         label="Contenu"
         id="ingredient-content"
-        hint="Markdown supporté"
         value={form.content}
         onChange={handleChange('content')}
         placeholder="Contenu détaillé (Markdown supporté)"
+        hint="Markdown supporté"
         rows={8}
+        fieldKey="content"
+        conflict={conflict}
+        onRestoreField={restoreField}
       />
-      {hasFieldConflict('content') && (
-        <DraftHint field="content" value={conflict?.draft.content ?? ''} onRestore={restoreField} />
-      )}
 
-      <div className="ingredient-edit-form__actions">
-        {mode === 'edit' ? (
-          <Button to="/ingredients/$slug" params={{ slug: ingredient?.slug }} variant="outline">
-            <XIcon size={16} />
-            Annuler
-          </Button>
-        ) : (
-          <Button to="/ingredients" variant="outline">
-            <XIcon size={16} />
-            Annuler
-          </Button>
-        )}
-        <Button type="submit" variant="primary" disabled={isSubmitDisabled} loading={isPending}>
-          {!isPending && <Save size={16} />}
-          {submitLabel}
-        </Button>
-      </div>
+      <IngredientFormActions
+        mode={mode}
+        ingredientSlug={ingredient?.slug}
+        submitLabel={submitLabel}
+        disabled={isSubmitDisabled}
+        isPending={isPending}
+      />
     </form>
   )
 }
 
-function DraftHint({
-  field,
-  value,
-  onRestore,
+function FormError({
+  error,
+  fieldError,
 }: {
-  field: FormFieldKey
-  value: string
-  onRestore: (field: FormFieldKey) => void
+  error: string | null
+  fieldError: { field: unknown; message: string } | null
+}) {
+  if (!error || fieldError) return null
+  return <FormMessage variant="error">{error}</FormMessage>
+}
+
+function IngredientFormActions({
+  mode,
+  ingredientSlug,
+  submitLabel,
+  disabled,
+  isPending,
+}: {
+  mode: 'create' | 'edit'
+  ingredientSlug: string | undefined
+  submitLabel: string
+  disabled: boolean
+  isPending: boolean
 }) {
   return (
-    <div className="draft-hint">
-      <div className="draft-hint__header">
-        <span className="draft-hint__label">Ton brouillon ({FIELD_LABELS[field]})</span>
-        <button type="button" className="draft-hint__restore" onClick={() => onRestore(field)}>
-          <ClipboardCopy size={12} />
-          Restaurer
-        </button>
-      </div>
-      <pre className="draft-hint__value">{value || '(vide)'}</pre>
+    <div className="ingredient-edit-form__actions">
+      {mode === 'edit' ? (
+        <Button to="/ingredients/$slug" params={{ slug: ingredientSlug }} variant="outline">
+          <XIcon size={16} />
+          Annuler
+        </Button>
+      ) : (
+        <Button to="/ingredients" variant="outline">
+          <XIcon size={16} />
+          Annuler
+        </Button>
+      )}
+      <Button type="submit" variant="primary" disabled={disabled} loading={isPending}>
+        {!isPending && <Save size={16} />}
+        {submitLabel}
+      </Button>
     </div>
+  )
+}
+
+function computeSubmitDisabled({
+  mode,
+  form,
+  isDirty,
+  isPending,
+}: {
+  mode: 'create' | 'edit'
+  form: IngredientFormData
+  isDirty: boolean
+  isPending: boolean
+}): boolean {
+  if (isPending) return true
+  if (mode === 'create') return !form.name.trim()
+  return !isDirty
+}
+
+function computeIsDirty({
+  form,
+  ingredient,
+  ingredientType,
+  isTagsDirty,
+}: {
+  form: IngredientFormData
+  ingredient: BaseIngredient | undefined
+  ingredientType: IngredientType
+  isTagsDirty: boolean
+}): boolean {
+  if (isTagsDirty) return true
+  return (
+    form.name !== (ingredient?.name ?? '') ||
+    form.slug !== (ingredient?.slug ?? '') ||
+    form.category !== (ingredient?.category ?? '') ||
+    form.description !== (ingredient?.description ?? '') ||
+    form.content !== (ingredient?.content ?? '') ||
+    ingredientType !== (ingredient?.type ?? 'skincare')
   )
 }

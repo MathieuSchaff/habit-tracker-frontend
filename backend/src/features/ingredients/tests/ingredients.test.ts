@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 
 import { users } from '../../../db/schema'
-import { addTagToIngredient, createIngredientTag } from '../../../features/tags/tags.service'
+import { addTagToIngredient, createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { IngredientError } from '../ingredients-error'

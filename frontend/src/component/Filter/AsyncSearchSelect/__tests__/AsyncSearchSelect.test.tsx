@@ -342,7 +342,6 @@ describe('AsyncSearchSelect — positionnement', () => {
     if (originalOffsetHeight) {
       Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
     } else {
-      // biome-ignore lint/performance/noDelete: restoring jsdom default
       delete (HTMLElement.prototype as unknown as { offsetHeight?: number }).offsetHeight
     }
   })

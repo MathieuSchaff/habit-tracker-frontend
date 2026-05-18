@@ -1,7 +1,8 @@
 import { PanelLeftOpen } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { useClickOutside } from '../../hooks/useClickOutside'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { AuroreLogo } from '../Logo/Logo'
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
 import { NavSideList } from './NavItem/NavItem'
@@ -15,17 +16,9 @@ export const Header = () => {
   const toggleMenu = () => setIsOpen((prev) => !prev)
 
   useClickOutside(navRef, closeMenu)
-
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeMenu()
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, closeMenu])
+  useEscapeKey(() => {
+    if (isOpen) closeMenu()
+  })
 
   return (
     <header className="main-header">

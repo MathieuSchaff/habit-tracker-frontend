@@ -43,7 +43,7 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const tagRes = await authPost(app, '/tags', token, {
+      const tagRes = await authPost(app, '/product-tags', token, {
         name: 'Anti-acné',
         category: 'concern',
         slug: 'acne',
@@ -79,7 +79,10 @@ describe('Product Tags Routes', () => {
       })
       const { data: p2 } = await p2Res.json()
 
-      const tagRes = await authPost(app, '/tags', token, { name: 'Hydratant', category: 'concern' })
+      const tagRes = await authPost(app, '/product-tags', token, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
       const { data: tag } = await tagRes.json()
 
       await authPut(app, `/products/${p2.id}/tags`, token, {
@@ -105,9 +108,12 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const t1Res = await authPost(app, '/tags', token, { name: 'Anti-âge', category: 'concern' })
+      const t1Res = await authPost(app, '/product-tags', token, {
+        name: 'Anti-âge',
+        category: 'concern',
+      })
       const { data: t1 } = await t1Res.json()
-      const t2Res = await authPost(app, '/tags', token, {
+      const t2Res = await authPost(app, '/product-tags', token, {
         name: 'Peau grasse',
         category: 'skin_type',
       })
@@ -131,9 +137,15 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const t1Res = await authPost(app, '/tags', token, { name: 'Tag A', category: 'concern' })
+      const t1Res = await authPost(app, '/product-tags', token, {
+        name: 'Tag A',
+        category: 'concern',
+      })
       const { data: t1 } = await t1Res.json()
-      const t2Res = await authPost(app, '/tags', token, { name: 'Tag B', category: 'concern' })
+      const t2Res = await authPost(app, '/product-tags', token, {
+        name: 'Tag B',
+        category: 'concern',
+      })
       const { data: t2 } = await t2Res.json()
 
       await authPut(app, `/products/${product.id}/tags`, token, {
@@ -155,7 +167,10 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const tagRes = await authPost(app, '/tags', token, { name: 'Rides', category: 'concern' })
+      const tagRes = await authPost(app, '/product-tags', token, {
+        name: 'Rides',
+        category: 'concern',
+      })
       const { data: tag } = await tagRes.json()
 
       await authPut(app, `/products/${product.id}/tags`, token, {
@@ -180,7 +195,10 @@ describe('Product Tags Routes', () => {
       const p2Res = await authPost(app, '/products', token, { ...VALID_PRODUCT, name: 'Autre' })
       const { data: p2 } = await p2Res.json()
 
-      const tagRes = await authPost(app, '/tags', token, { name: 'Hydratant', category: 'concern' })
+      const tagRes = await authPost(app, '/product-tags', token, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
       const { data: tag } = await tagRes.json()
 
       await authPut(app, `/products/${p1.id}/tags`, token, { tags: [{ tagId: tag.id }] })
@@ -229,7 +247,7 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const tagRes = await authPost(app, '/tags', token, {
+      const tagRes = await authPost(app, '/product-tags', token, {
         name: 'Cheveux bouclés',
         category: 'hair_type',
       })
@@ -252,7 +270,7 @@ describe('Product Tags Routes', () => {
       const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
       const { data: product } = await productRes.json()
 
-      const seedRes = await authPost(app, '/tags', token, {
+      const seedRes = await authPost(app, '/product-tags', token, {
         name: 'Hydratation',
         category: 'concern',
       })
@@ -261,12 +279,12 @@ describe('Product Tags Routes', () => {
         tags: [{ tagId: seedTag.id }],
       })
 
-      const validRes = await authPost(app, '/tags', token, {
+      const validRes = await authPost(app, '/product-tags', token, {
         name: 'Anti-âge',
         category: 'concern',
       })
       const { data: validTag } = await validRes.json()
-      const invalidRes = await authPost(app, '/tags', token, {
+      const invalidRes = await authPost(app, '/product-tags', token, {
         name: 'Cheveux fins',
         category: 'hair_type',
       })

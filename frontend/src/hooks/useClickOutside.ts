@@ -2,9 +2,9 @@ import { type RefObject, useEffect, useRef } from 'react'
 
 export const useClickOutside = (
   ref: RefObject<HTMLElement | null>,
-  handleOnClickOutside: (event: MouseEvent | TouchEvent | KeyboardEvent) => void
+  handleOnClickOutside: (event: MouseEvent | TouchEvent) => void
 ) => {
-  // Keep latest handler in a ref so listeners stay attached across renders.
+  // Keep latest handler in a ref so the listener stays attached across renders.
   const callbackRef = useRef(handleOnClickOutside)
   callbackRef.current = handleOnClickOutside
 
@@ -16,20 +16,12 @@ export const useClickOutside = (
       callbackRef.current(event)
     }
 
-    const keyListener = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        callbackRef.current(event)
-      }
-    }
-
     document.addEventListener('mousedown', listener)
     document.addEventListener('touchstart', listener)
-    document.addEventListener('keydown', keyListener)
 
     return () => {
       document.removeEventListener('mousedown', listener)
       document.removeEventListener('touchstart', listener)
-      document.removeEventListener('keydown', keyListener)
     }
   }, [ref])
 }

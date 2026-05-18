@@ -7,7 +7,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../../app-env'
 import { requireJwtAuth } from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
-import { listTagsByProduct, replaceProductTags } from '../../tags/tags.service'
+import { listTagsByProduct, replaceProductTags } from '../../product-tags/service'
 import { assertTagsMatchProductDomain } from './domain-validation'
 
 const productParams = z.object({ productId: z.uuid() })

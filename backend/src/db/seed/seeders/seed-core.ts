@@ -4,10 +4,11 @@ import slugify from '@sindresorhus/slugify'
 import { count, sql } from 'drizzle-orm'
 
 import { detectAllAutoTags } from '../../../features/auto-tagging'
+import { addTagToIngredient } from '../../../features/ingredient-tags/service'
 import { createIngredient } from '../../../features/ingredients/service'
+import { addTagToProduct } from '../../../features/product-tags/service'
 import { addIngredientToProduct } from '../../../features/products/product-ingredients/product-ingredients.service'
 import { createProduct } from '../../../features/products/service'
-import { addTagToIngredient, addTagToProduct } from '../../../features/tags/tags.service'
 import { db } from '../..'
 import {
   brandCertifications,
