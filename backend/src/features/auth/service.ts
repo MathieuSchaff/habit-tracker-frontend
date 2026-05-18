@@ -52,6 +52,31 @@ export type AuthContext = {
 // Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
 
+// Account lockout: lock the user after N consecutive failed logins for D ms.
+// Defense-in-depth alongside the per-IP loginRateLimiter — caught attacker
+// rotating IPs against a single account.
+const LOGIN_LOCKOUT_THRESHOLD = 5
+const LOGIN_LOCKOUT_DURATION_MS = 15 * 60 * 1000
+
+async function registerFailedLogin(db: DB, userId: string, currentAttempts: number): Promise<void> {
+  const nextAttempts = currentAttempts + 1
+  const lockedUntil =
+    nextAttempts >= LOGIN_LOCKOUT_THRESHOLD
+      ? new Date(Date.now() + LOGIN_LOCKOUT_DURATION_MS).toISOString()
+      : null
+  await db
+    .update(users)
+    .set({ failedLoginAttempts: nextAttempts, lockedUntil })
+    .where(eq(users.id, userId))
+}
+
+async function resetFailedLogins(db: DB, userId: string): Promise<void> {
+  await db
+    .update(users)
+    .set({ failedLoginAttempts: 0, lockedUntil: null })
+    .where(eq(users.id, userId))
+}
+
 export async function createTokenPair(ctx: AuthContext, userId: string, role: 'user' | 'admin') {
   const accessToken = await generateAccessToken(userId, role, ctx.jwtSecret)
   const {
@@ -133,11 +158,26 @@ export async function login(
 
     // Always verify against DUMMY_HASH if user doesn't exist (prevents timing attacks)
     const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
-    if (!user || !isValid) return err('invalid_credentials')
+
+    // Locked accounts: refuse even a correct password until the lockout expires.
+    // Order matters — runs after the dummy hash to keep timing uniform across
+    // (locked vs unknown email) paths.
+    if (user?.lockedUntil && Date.parse(user.lockedUntil) > Date.now()) {
+      return err('account_locked')
+    }
+
+    if (!user || !isValid) {
+      if (user) await registerFailedLogin(ctx.db, user.id, user.failedLoginAttempts)
+      return err('invalid_credentials')
+    }
 
     if (!user.emailVerifiedAt) {
       const graceCutoffMs = Date.now() - 24 * 60 * 60 * 1000
       if (Date.parse(user.createdAt) < graceCutoffMs) return err('email_not_verified')
+    }
+
+    if (user.failedLoginAttempts > 0 || user.lockedUntil !== null) {
+      await resetFailedLogins(ctx.db, user.id)
     }
 
     const tokens = await createTokenPair(ctx, user.id, user.role)

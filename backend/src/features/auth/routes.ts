@@ -22,7 +22,7 @@ import { csrf } from 'hono/csrf'
 import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
 import { usersSafe } from '../../db/schema'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
+import { loginRateLimiterFunc, rateLimiterFunc } from '../../utils/rateLimiter'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
@@ -88,7 +88,7 @@ app.use('/resend-verification', requireJwtAuth)
 
 export const jwtAuthRoutes = app
 
-  .post('/login', zValidator('json', authBodySchema), async (c) => {
+  .post('/login', loginRateLimiterFunc, zValidator('json', authBodySchema), async (c) => {
     const env = c.get('env')
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
@@ -256,7 +256,7 @@ export const jwtAuthRoutes = app
     return c.json(ok(null), HTTP_STATUS.OK)
   })
 
-  .post('/mobile/login', zValidator('json', authBodySchema), async (c) => {
+  .post('/mobile/login', loginRateLimiterFunc, zValidator('json', authBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
 

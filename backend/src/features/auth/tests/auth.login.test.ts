@@ -342,3 +342,83 @@ describe('login', () => {
     expect(result.success).toBe(true)
   })
 })
+
+describe('login lockout', () => {
+  it('devrait verrouiller le compte après 5 tentatives consécutives ratées', async () => {
+    const creds = TEST_CREDENTIALS.toto
+    await createTestUser(creds.rawEmail, creds.rawPassword)
+
+    for (let i = 0; i < 5; i++) {
+      const result = await login(
+        createCtx(),
+        creds.email,
+        TEST_CREDENTIALS.invalide.mauvaisMotDePasse
+      )
+      expect(result.success).toBe(false)
+      if (!result.success) expect(result.error).toBe('invalid_credentials')
+    }
+
+    const sixth = await login(createCtx(), creds.email, TEST_CREDENTIALS.invalide.mauvaisMotDePasse)
+    expect(sixth.success).toBe(false)
+    if (!sixth.success) expect(sixth.error).toBe('account_locked')
+  })
+
+  it('devrait bloquer même un bon mot de passe pendant la fenêtre de lockout', async () => {
+    const creds = TEST_CREDENTIALS.toto
+    await createTestUser(creds.rawEmail, creds.rawPassword)
+
+    for (let i = 0; i < 5; i++) {
+      await login(createCtx(), creds.email, TEST_CREDENTIALS.invalide.mauvaisMotDePasse)
+    }
+
+    const result = await login(createCtx(), creds.email, creds.password)
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('account_locked')
+  })
+
+  it('devrait autoriser le login après expiration du lockout et réinitialiser le compteur', async () => {
+    const { users: usersTable } = await import('../../../db/schema')
+    const creds = TEST_CREDENTIALS.toto
+    const created = await createTestUser(creds.rawEmail, creds.rawPassword)
+
+    await testDb
+      .update(usersTable)
+      .set({
+        failedLoginAttempts: 5,
+        lockedUntil: new Date(Date.now() - 60 * 1000).toISOString(),
+      })
+      .where(eq(usersTable.id, created.id))
+
+    const result = await login(createCtx(), creds.email, creds.password)
+    expect(result.success).toBe(true)
+
+    const [row] = await testDb
+      .select({
+        failedLoginAttempts: usersTable.failedLoginAttempts,
+        lockedUntil: usersTable.lockedUntil,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, created.id))
+    expect(row?.failedLoginAttempts).toBe(0)
+    expect(row?.lockedUntil).toBeNull()
+  })
+
+  it('devrait réinitialiser le compteur de tentatives sur un login réussi', async () => {
+    const { users: usersTable } = await import('../../../db/schema')
+    const creds = TEST_CREDENTIALS.toto
+    const created = await createTestUser(creds.rawEmail, creds.rawPassword)
+
+    for (let i = 0; i < 3; i++) {
+      await login(createCtx(), creds.email, TEST_CREDENTIALS.invalide.mauvaisMotDePasse)
+    }
+
+    const result = await login(createCtx(), creds.email, creds.password)
+    expect(result.success).toBe(true)
+
+    const [row] = await testDb
+      .select({ failedLoginAttempts: usersTable.failedLoginAttempts })
+      .from(usersTable)
+      .where(eq(usersTable.id, created.id))
+    expect(row?.failedLoginAttempts).toBe(0)
+  })
+})
