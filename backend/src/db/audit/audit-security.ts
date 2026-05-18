@@ -10,7 +10,6 @@
 
 import { writeFile } from 'node:fs/promises'
 
-import { sanitizeUrl } from '@braintree/sanitize-url'
 import { eq } from 'drizzle-orm'
 
 import type { DB } from '..'
@@ -18,6 +17,15 @@ import { db } from '..'
 import { profiles } from '../schema/auth/users'
 import { articles } from '../schema/blog/articles'
 import { products } from '../schema/products/products'
+import {
+  EMBEDDED_URL_RE,
+  hasDangerousHtmlContent,
+  hasSuspiciousHtml,
+  isHttpUrl,
+  isMaliciousUrl,
+  preview,
+  stripHtml,
+} from './audit-security-helpers'
 
 // Types
 
@@ -38,55 +46,6 @@ type Finding = {
 
 type CheckResult = { name: string; findings: Finding[] }
 type Checker = (db: DB) => Promise<CheckResult>
-
-// Helpers
-
-function isMaliciousUrl(value: string | null | undefined): value is string {
-  if (!value) return false
-  return sanitizeUrl(value) === 'about:blank'
-}
-
-function isHttpUrl(value: string | null | undefined): value is string {
-  if (!value) return false
-  return /^http:\/\//i.test(value)
-}
-
-// Requires a letter after < so chemistry notation (<1%, <5°C, <3 ans) is not
-// flagged as a false positive. Encoded variants (&#60;script) are safe in JSX
-// text nodes — React does not decode HTML entities there.
-const HTML_TAG_RE = /<[a-z][^>]*>/i
-
-function hasSuspiciousHtml(value: string | null | undefined): value is string {
-  if (!value) return false
-  return HTML_TAG_RE.test(value)
-}
-
-// Article content is intentionally HTML — look for dangerous patterns specifically.
-const DANGEROUS_CONTENT_PATTERNS = [
-  /<script[\s>]/i,
-  /\bon\w+\s*=/i,
-  /href\s*=\s*["']?\s*javascript:/i,
-  /src\s*=\s*["']?\s*(javascript:|data:)/i,
-]
-
-function hasDangerousHtmlContent(value: string | null | undefined): value is string {
-  if (!value) return false
-  return DANGEROUS_CONTENT_PATTERNS.some((re) => re.test(value))
-}
-
-// Bare URLs in text fields: spam vector, and dangerous if the frontend ever auto-links.
-const EMBEDDED_URL_RE = /https?:\/\/[^\s]{5,}/i
-
-function preview(value: string, max = 80): string {
-  return value.length > max ? `${value.slice(0, max)}…` : value
-}
-
-function stripHtml(value: string): string {
-  return value
-    .replace(/<[^>]*>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
 
 // Checkers
 

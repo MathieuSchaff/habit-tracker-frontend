@@ -5,7 +5,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createIngredientTag } from '../../../features/tags/tags.service'
+import { createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import {

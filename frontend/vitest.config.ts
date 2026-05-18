@@ -11,6 +11,14 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     exclude: ['node_modules', 'dist', 'e2e/**'],
+    coverage: {
+      // istanbul (not v8) — fallow `--coverage` requires coverage-final.json
+      provider: 'istanbul',
+      reporter: ['text-summary', 'json', 'lcov', 'html'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**', 'src/routes/**'],
+    },
   },
   resolve: {
     alias: {

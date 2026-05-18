@@ -48,9 +48,9 @@ export function renderWithProviders(
 // Routes `useQuery` results by `queryKey[0]`. Tests must `vi.mock('@tanstack/react-query', ...)`
 // to expose `useQuery` as a vi.fn before calling this.
 export function mockUseQueryByKey(map: Record<string, unknown>): void {
-  vi.mocked(useQuery).mockImplementation((options: any) => {
-    const key = options.queryKey?.[0]
-    return { data: map[key], isLoading: false } as any
+  vi.mocked(useQuery).mockImplementation((options: Parameters<typeof useQuery>[0]) => {
+    const key = options.queryKey?.[0] as string
+    return { data: map[key], isLoading: false } as unknown as ReturnType<typeof useQuery>
   })
 }
 

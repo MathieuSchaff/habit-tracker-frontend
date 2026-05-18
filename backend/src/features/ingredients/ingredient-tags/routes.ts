@@ -18,8 +18,8 @@ import {
   listTagsByIngredient,
   removeTagFromIngredient,
   replaceIngredientTags,
-} from '../../tags/tags.service'
-import { TagError } from '../../tags/tags-error'
+} from '../../ingredient-tags/service'
+import { TagError } from '../../product-tags/tag-error'
 
 const ingredientParams = z.object({ ingredientId: z.uuid() })
 const ingredientTagParams = z.object({ ingredientId: z.uuid(), tagId: z.uuid() })

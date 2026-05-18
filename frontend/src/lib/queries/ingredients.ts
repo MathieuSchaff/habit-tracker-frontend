@@ -54,6 +54,22 @@ const TAG_AXES: readonly AllIngredientTagCategory[] = [
   'shared_label',
 ]
 
+// Extracted (was inlined in `list.queryFn`) so the filter → query mapping
+// can be unit-tested without spinning up react-query / msw.
+export function buildListIngredientsQuery(filters: ListIngredientsFilters): Record<string, string> {
+  const query: Record<string, string> = {}
+  for (const axis of TAG_AXES) {
+    const values = filters[axis]
+    if (values?.length) query[axis] = values.join(',')
+  }
+  if (filters.type) query.ingredient_type = filters.type
+  if (filters.avoid_for?.length) query.avoid_for = filters.avoid_for.join(',')
+  if (filters.sort !== undefined) query.sort = filters.sort
+  if (filters.page) query.page = String(filters.page)
+  if (filters.limit) query.limit = String(filters.limit)
+  return query
+}
+
 export const ingredientQueries = {
   all: () =>
     queryOptions({
@@ -71,19 +87,7 @@ export const ingredientQueries = {
     queryOptions({
       queryKey: ingredientKeys.list(filters),
       queryFn: async () => {
-        const query: Record<string, string> = {}
-
-        for (const axis of TAG_AXES) {
-          const values = filters[axis]
-          if (values?.length) query[axis] = values.join(',')
-        }
-        if (filters.type) query.ingredient_type = filters.type
-        if (filters.avoid_for?.length) query.avoid_for = filters.avoid_for.join(',')
-        if (filters.sort !== undefined) query.sort = filters.sort
-        if (filters.page) query.page = String(filters.page)
-        if (filters.limit) query.limit = String(filters.limit)
-
-        const res = await api.ingredients.$get({ query })
+        const res = await api.ingredients.$get({ query: buildListIngredientsQuery(filters) })
         if (!res.ok) throw new Error('Failed to fetch ingredients')
         const json = await res.json()
         return json.data

@@ -44,7 +44,7 @@ import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { writeTagsForProduct } from '../auto-tagging'
-import { listTagsByProduct } from '../tags/tags.service'
+import { listTagsByProduct } from '../product-tags/service'
 import { ProductError } from './product-error'
 import { listIngredientsByProduct } from './product-ingredients/product-ingredients.service'
 

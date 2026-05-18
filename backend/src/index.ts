@@ -13,12 +13,13 @@ import { articleRoutes } from './features/blog'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
 import { healthRoute } from './features/health/routes'
+import { ingredientTagDefRoutes } from './features/ingredient-tags/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
 import { ingredientRoutes } from './features/ingredients/routes'
 import { productComparisonRoutes } from './features/product-comparisons'
+import { productTagDefRoutes } from './features/product-tags/routes'
 import { productsFeature } from './features/products'
 import { profileRoute } from './features/profile'
-import { tagRoutes } from './features/tags/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
@@ -72,7 +73,8 @@ const routes = app
   .route('/api/ingredients', ingredientRoutes)
   .route('/api/ingredients', ingredientTagRoutes)
   .route('/api/ingredients', ingredientDiscussionRoutes)
-  .route('/api/tags', tagRoutes)
+  .route('/api/product-tags', productTagDefRoutes)
+  .route('/api/ingredient-tags', ingredientTagDefRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
   .route('/api/uploads', uploadsRoutes)

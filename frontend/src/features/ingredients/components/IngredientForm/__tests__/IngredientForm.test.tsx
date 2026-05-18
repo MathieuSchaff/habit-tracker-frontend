@@ -35,10 +35,10 @@ vi.mock('@/lib/queries/ingredients', () => ({
   },
 }))
 
-vi.mock('@/lib/queries/tags', () => ({
-  tagQueries: {
+vi.mock('@/lib/queries/product-tags', () => ({
+  productTagQueries: {
     list: vi.fn(() => ({
-      queryKey: ['tags', 'list'],
+      queryKey: ['product-tags', 'list'],
       queryFn: vi.fn(),
       data: [],
     })),
