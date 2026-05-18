@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 
 import { sql } from 'drizzle-orm'
 
-import type { Database } from '../../db/index'
+import type { DB } from '../../db/index'
 import { errorGroups, errorOccurrences } from '../../db/schema'
 import { nowISO } from '../../utils/dates'
 
@@ -22,7 +22,7 @@ function computeFingerprint(source: string, message: string, stack?: string | nu
   return createHash('sha256').update(`${source}|${message}|${normalized}`).digest('hex')
 }
 
-export async function trackError(db: Database, input: TrackErrorInput): Promise<void> {
+export async function trackError(db: DB, input: TrackErrorInput): Promise<void> {
   const { source, message, stack, context, userId } = input
   const fingerprint = computeFingerprint(source, message, stack)
 

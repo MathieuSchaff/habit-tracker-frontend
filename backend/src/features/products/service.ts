@@ -43,7 +43,7 @@ import { userProducts } from '../../db/schema/products/user-products'
 import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
-import { writeTagsForProduct } from '../auto-tagging'
+import { writeTagsForProductFailSoft } from '../auto-tagging'
 import { listTagsByProduct } from '../product-tags/service'
 import { ProductError } from './product-error'
 import { listIngredientsByProduct } from './product-ingredients/product-ingredients.service'
@@ -75,18 +75,7 @@ export async function createProduct(userId: string, input: CreateProductInput, d
 
     if (!product) throw new ProductError('product_creation_failed')
 
-    // Auto-tag inline. Fail-soft: orchestrator errors (bad INCI, missing
-    // brand_certifications row, transient query failure) never block product
-    // creation — the product is the source of truth, tags are derived state
-    // and can be re-derived via the backfill runner.
-    try {
-      await writeTagsForProduct(product.id, database)
-    } catch (err) {
-      console.warn(
-        `[auto-tag] writeTagsForProduct failed for product ${product.id}:`,
-        err instanceof Error ? err.message : err
-      )
-    }
+    await writeTagsForProductFailSoft(database, product.id, { operation: 'create', userId })
 
     return product
   } catch (e) {
@@ -253,17 +242,8 @@ export async function updateProduct(
     changes,
   })
 
-  // Re-derive tags when the INCI formula changes. Fail-soft: tag errors never
-  // block the update — tags are derived state, re-derivable via backfill runner.
   if (changes.inci !== undefined) {
-    try {
-      await writeTagsForProduct(id, database)
-    } catch (err) {
-      console.warn(
-        `[auto-tag] writeTagsForProduct failed for product ${id} after inci update:`,
-        err instanceof Error ? err.message : err
-      )
-    }
+    await writeTagsForProductFailSoft(database, id, { operation: 'update', userId })
   }
 
   return newProduct as Product

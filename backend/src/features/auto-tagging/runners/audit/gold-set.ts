@@ -38,7 +38,7 @@ import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
-import { mapKindToContext } from '../../../dermo-score/profile-mapping'
+import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
 import {
   computePerTagMetrics,
