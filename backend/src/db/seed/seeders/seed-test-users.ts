@@ -15,6 +15,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { signup } from '../../../features/auth/service'
 import { getUser } from '../../../features/auth/user.utils'
 import type { DB } from '../..'
+import { userBans } from '../../schema/auth/user-bans'
 import { profiles, userDermoProfiles, users } from '../../schema/auth/users'
 import { userProductReviews, userProducts } from '../../schema/products/user-products'
 import { createCtx } from './create-user'
@@ -334,6 +335,16 @@ const PERSONAS: Persona[] = [
     ],
   },
   {
+    email: 'banned@seed.local',
+    password: SHARED_PASSWORD,
+    username: 'banned-test',
+    skinTypes: ['peau-normale'] as SkinType[],
+    fitzpatrickType: 2,
+    skinConcerns: [] as SkinConcern[],
+    privateNotes: 'Persona seed — ban global actif (test).',
+    collection: [],
+  },
+  {
     email: 'camille@seed.local',
     password: SHARED_PASSWORD,
     username: 'camille-test',
@@ -426,7 +437,7 @@ async function getOrCreateTestUser(persona: Persona) {
 }
 
 export async function seedTestUsers(tx: DB, productSlugToId: Map<string, string>) {
-  console.log('\n👥 Seed users de test (5 personas)...')
+  console.log('\n👥 Seed users de test (6 personas)...')
 
   for (const persona of PERSONAS) {
     const user = await getOrCreateTestUser(persona)
@@ -439,6 +450,19 @@ export async function seedTestUsers(tx: DB, productSlugToId: Map<string, string>
         updatedAt: new Date().toISOString(),
       })
       .where(eq(profiles.userId, user.id))
+
+    if (persona.email === 'banned@seed.local') {
+      await tx
+        .insert(userBans)
+        .values({
+          userId: user.id,
+          scope: 'global',
+          reason: 'Compte de test banni (seed)',
+          // bannedBy must reference a valid user — self-referencing is acceptable for seed fixtures.
+          bannedBy: user.id,
+        })
+        .onConflictDoNothing()
+    }
 
     const now = new Date().toISOString()
     await tx

@@ -137,6 +137,36 @@ test.describe('Auth — signup', () => {
   })
 })
 
+test.describe('Auth — banned user', () => {
+  test('login as banned user redirects to /auth/banned with suspension message', async ({
+    page,
+  }) => {
+    await page.goto('/auth/login')
+
+    await page.getByLabel('Email', { exact: true }).fill('banned@seed.local')
+    await page.getByLabel('Mot de passe', { exact: true }).fill('Azerty123!seed')
+    await page.getByRole('button', { name: 'Se connecter', exact: true }).click()
+
+    await expect(page).toHaveURL(/\/auth\/banned/, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Compte suspendu' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Se déconnecter' })).toBeVisible()
+  })
+
+  test('banned page shows fallback message when no query params', async ({ page }) => {
+    await page.goto('/auth/banned')
+
+    await expect(page.getByText('Votre compte est suspendu.')).toBeVisible()
+    await expect(page.getByText(/contactez le support/i)).toBeVisible()
+  })
+
+  test('banned page shows reason from query params', async ({ page }) => {
+    await page.goto('/auth/banned?reason=Comportement+abusif&expires=2026-06-01T00%3A00%3A00.000Z')
+
+    await expect(page.getByText(/suspendu jusqu'au/i)).toBeVisible()
+    await expect(page.getByText('Comportement abusif')).toBeVisible()
+  })
+})
+
 test.describe('Auth — demo', () => {
   test('demo button creates a demo session and lands on /collection with banner', async ({
     page,

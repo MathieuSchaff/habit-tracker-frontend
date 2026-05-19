@@ -12,6 +12,10 @@ import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profil
 import { sanitizeUrl } from '../../../../lib/url'
 import { EditableSection } from '../../components/EditableSection/EditableSection'
 import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
+import {
+  type CompletionSection,
+  ProfileCompletionHint,
+} from '../../components/ProfileCompletionHint/ProfileCompletionHint'
 import { ProfileForm } from '../../components/ProfileForm/ProfileForm'
 import { SkinProfileRead } from '../../components/SkinProfileRead/SkinProfileRead'
 import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
@@ -35,6 +39,15 @@ export const ProfileDashboard = () => {
   const handleProfileUpdate = (data: ProfileUpdateInput) => {
     updateProfile.mutate(data, {
       onSuccess: () => setEditingSection(null),
+    })
+  }
+
+  const handleEditSection = (section: CompletionSection) => {
+    setEditingSection(section)
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`profile-section-${section}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }
 
@@ -102,68 +115,78 @@ export const ProfileDashboard = () => {
           aria-labelledby="profile-tab-profile"
           hidden={activeTab !== 'profile'}
         >
-          <EditableSection
-            title="Mes informations"
-            isEditing={editingSection === 'hero'}
-            onEdit={() => setEditingSection('hero')}
-            readContent={
-              <div className="profile-info-read">
-                {profile.bio && <p className="profile-info-read__bio">{profile.bio}</p>}
-                {profile.links && profile.links.length > 0 && (
-                  <div className="profile-info-read__links">
-                    {profile.links.map((link) => (
-                      <a
-                        key={link.url}
-                        href={sanitizeUrl(link.url) ?? '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="profile-info-read__link"
-                      >
-                        {link.label || link.url}
-                      </a>
-                    ))}
-                  </div>
-                )}
-                {!profile.bio && (!profile.links || profile.links.length === 0) && (
-                  <p className="profile-info-read__empty">Aucune information renseignée.</p>
-                )}
-              </div>
-            }
-            editContent={
-              <ProfileForm
-                profile={profile}
-                onSubmit={handleProfileUpdate}
-                onCancel={() => {
-                  setEditingSection(null)
-                  updateProfile.reset()
-                }}
-                isPending={updateProfile.isPending}
-                error={errorMessage}
-              />
-            }
+          <ProfileCompletionHint
+            profile={profile}
+            dermo={dermo}
+            onEditSection={handleEditSection}
           />
+
+          <div id="profile-section-hero">
+            <EditableSection
+              title="Mes informations"
+              isEditing={editingSection === 'hero'}
+              onEdit={() => setEditingSection('hero')}
+              readContent={
+                <div className="profile-info-read">
+                  {profile.bio && <p className="profile-info-read__bio">{profile.bio}</p>}
+                  {profile.links && profile.links.length > 0 && (
+                    <div className="profile-info-read__links">
+                      {profile.links.map((link) => (
+                        <a
+                          key={link.url}
+                          href={sanitizeUrl(link.url) ?? '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="profile-info-read__link"
+                        >
+                          {link.label || link.url}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  {!profile.bio && (!profile.links || profile.links.length === 0) && (
+                    <p className="profile-info-read__empty">Aucune information renseignée.</p>
+                  )}
+                </div>
+              }
+              editContent={
+                <ProfileForm
+                  profile={profile}
+                  onSubmit={handleProfileUpdate}
+                  onCancel={() => {
+                    setEditingSection(null)
+                    updateProfile.reset()
+                  }}
+                  isPending={updateProfile.isPending}
+                  error={errorMessage}
+                />
+              }
+            />
+          </div>
 
           <Suspense fallback={<Spinner />}>
             <ProfileStats />
           </Suspense>
 
-          <EditableSection
-            title="Ma peau"
-            isEditing={editingSection === 'skin'}
-            onEdit={() => setEditingSection('skin')}
-            readContent={
-              dermo ? (
-                <SkinProfileRead dermo={dermo} />
-              ) : (
-                <p className="skin-read__empty">Chargement...</p>
-              )
-            }
-            editContent={
-              <Suspense fallback={<Spinner />}>
-                <DermoProfileForm onSave={() => setEditingSection(null)} />
-              </Suspense>
-            }
-          />
+          <div id="profile-section-skin">
+            <EditableSection
+              title="Ma peau"
+              isEditing={editingSection === 'skin'}
+              onEdit={() => setEditingSection('skin')}
+              readContent={
+                dermo ? (
+                  <SkinProfileRead dermo={dermo} />
+                ) : (
+                  <p className="skin-read__empty">Chargement...</p>
+                )
+              }
+              editContent={
+                <Suspense fallback={<Spinner />}>
+                  <DermoProfileForm onSave={() => setEditingSection(null)} />
+                </Suspense>
+              }
+            />
+          </div>
         </div>
 
         <div

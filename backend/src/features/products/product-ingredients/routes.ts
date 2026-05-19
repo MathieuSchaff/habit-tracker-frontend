@@ -11,7 +11,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
-import { requireJwtAuth } from '../../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import {
   addIngredientToProduct,
@@ -42,7 +42,9 @@ const productIngredientsApp = new Hono<AppEnv>()
 
 productIngredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, next)
+  return requireJwtAuth(c, async () => {
+    await requireNotBanned(c, next)
+  })
 })
 productIngredientsApp.use('*', withRlsContext)
 

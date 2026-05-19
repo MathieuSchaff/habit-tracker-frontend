@@ -22,6 +22,7 @@ import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pend
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthBannedRouteImport } from './routes/auth/banned'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
@@ -106,6 +107,11 @@ const AuthSignupRoute = AuthSignupRouteImport.update({
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthBannedRoute = AuthBannedRouteImport.update({
+  id: '/auth/banned',
+  path: '/auth/banned',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/_authenticated/collection': typeof AuthenticatedCollectionRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/profile'
     | '/tasks'
+    | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
     | '/auth/verify-email'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/collection'
     | '/profile'
     | '/tasks'
+    | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
     | '/auth/verify-email'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/_authenticated/collection'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
+    | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
     | '/auth/verify-email'
@@ -440,6 +452,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
   PrivacyRoute: typeof PrivacyRoute
+  AuthBannedRoute: typeof AuthBannedRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
@@ -549,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/banned': {
+      id: '/auth/banned'
+      path: '/auth/banned'
+      fullPath: '/auth/banned'
+      preLoaderRoute: typeof AuthBannedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/tasks': {
@@ -766,6 +786,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
   PrivacyRoute: PrivacyRoute,
+  AuthBannedRoute: AuthBannedRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,

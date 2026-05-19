@@ -10,7 +10,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createComparison,
@@ -24,6 +24,7 @@ const idParam = z.object({ id: z.uuid() })
 
 const app = new Hono<AppEnv>()
 app.use('*', requireJwtAuth)
+app.use('*', requireNotBanned)
 app.use('*', withRlsContext)
 
 export const productComparisonRoutes = app

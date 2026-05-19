@@ -18,7 +18,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { recalculateSignalForUser } from '../../services/dermoSignalService'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   addPurchase,
@@ -42,6 +42,7 @@ import {
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
+app.use('*', requireNotBanned)
 app.use('*', withRlsContext)
 
 export const userProductRoutes = app

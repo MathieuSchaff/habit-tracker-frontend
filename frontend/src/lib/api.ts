@@ -23,6 +23,26 @@ function withAuthHeader(init: RequestInit | undefined, token: string | null): Re
 // Covers clock skew, server-side revocation, backend restart.
 async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const res = await fetch(input, init)
+
+  if (res.status === 403) {
+    try {
+      const body = (await res.clone().json()) as {
+        success?: boolean
+        error?: string
+        details?: { expiresAt?: string | null; reason?: string | null }
+      }
+      if (body?.error === 'banned') {
+        useAuthStore.getState().markBanned({
+          expiresAt: body.details?.expiresAt ?? null,
+          reason: body.details?.reason ?? null,
+        })
+      }
+    } catch {
+      // Non-JSON 403 — ignore, pass through to caller.
+    }
+    return res
+  }
+
   if (res.status !== 401 || isRefreshEndpoint(input)) return res
 
   const hadSession = useAuthStore.getState().accessToken != null

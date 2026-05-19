@@ -12,7 +12,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import {
   createArticle,
   deleteArticle,
@@ -27,7 +27,9 @@ const articlesApp = new Hono<AppEnv>()
 
 articlesApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, next)
+  return requireJwtAuth(c, async () => {
+    await requireNotBanned(c, next)
+  })
 })
 
 export const articleRoutes = articlesApp
