@@ -9,8 +9,28 @@ import { ImageUpload } from '@/component/ImageUpload'
 import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
-import { ProfileLinksEditor } from '../ProfileLinksEditor/ProfileLinksEditor'
+import { type ProfileLinkError, ProfileLinksEditor } from '../ProfileLinksEditor/ProfileLinksEditor'
 import './ProfileForm.css'
+
+const HTTP_URL_RE = /^https?:\/\//
+function isHttpUrl(value: string): boolean {
+  if (!HTTP_URL_RE.test(value)) return false
+  try {
+    new URL(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function validateLinkRow(label: string, url: string): ProfileLinkError | null {
+  if (label === '' && url === '') return null
+  const e: ProfileLinkError = {}
+  if (label === '') e.label = 'Donnez un nom à ce lien'
+  if (url === '') e.url = 'Ajoutez une adresse'
+  else if (!isHttpUrl(url)) e.url = "L'adresse n'a pas l'air valide"
+  return Object.keys(e).length === 0 ? null : e
+}
 
 type ProfileFormProps = {
   profile: ProfilePublic
@@ -32,15 +52,32 @@ export const ProfileForm = ({
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? null)
   const [links, setLinks] = useState<ProfileLink[]>(profile.links ?? [])
+  const [linkErrors, setLinkErrors] = useState<ReadonlyArray<ProfileLinkError | null>>([])
+
+  const handleLinksChange = (next: ProfileLink[]) => {
+    setLinks(next)
+    if (linkErrors.length > 0) setLinkErrors([])
+  }
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
+
+    const trimmedLinks = links.map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+    const rowErrors = trimmedLinks.map((l) => validateLinkRow(l.label, l.url))
+
+    if (rowErrors.some((err) => err !== null)) {
+      setLinkErrors(rowErrors)
+      return
+    }
+
+    // Fully-empty rows are dropped before diffing — keep the editor calm.
+    const cleanLinks = trimmedLinks.filter((l) => l.label !== '' || l.url !== '')
 
     const data: ProfileUpdateInput = {}
 
     if (username !== (profile.username ?? '')) data.username = username
     if (bio !== (profile.bio ?? '')) data.bio = bio
-    if (JSON.stringify(links) !== JSON.stringify(profile.links ?? [])) data.links = links
+    if (JSON.stringify(cleanLinks) !== JSON.stringify(profile.links ?? [])) data.links = cleanLinks
 
     if (Object.keys(data).length === 0) {
       onCancel()
@@ -51,7 +88,7 @@ export const ProfileForm = ({
   }
 
   return (
-    <form className="profile-form" onSubmit={handleSubmit}>
+    <form className="profile-form" onSubmit={handleSubmit} noValidate>
       <Input
         label="Nom d'utilisateur"
         value={username}
@@ -90,7 +127,12 @@ export const ProfileForm = ({
 
       <div className="profile-form__links-group">
         <span className="profile-form__links-label">Liens (max 5)</span>
-        <ProfileLinksEditor links={links} onChange={setLinks} disabled={isPending} />
+        <ProfileLinksEditor
+          links={links}
+          onChange={handleLinksChange}
+          disabled={isPending}
+          errors={linkErrors}
+        />
       </div>
 
       {error && <FormMessage variant="error">{error}</FormMessage>}

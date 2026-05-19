@@ -7,13 +7,21 @@ import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
 import './ProfileLinksEditor.css'
 
+export type ProfileLinkError = { label?: string; url?: string }
+
 type ProfileLinksEditorProps = {
   links: ProfileLink[]
   onChange: (links: ProfileLink[]) => void
   disabled?: boolean
+  errors?: ReadonlyArray<ProfileLinkError | null>
 }
 
-export const ProfileLinksEditor = ({ links, onChange, disabled }: ProfileLinksEditorProps) => {
+export const ProfileLinksEditor = ({
+  links,
+  onChange,
+  disabled,
+  errors,
+}: ProfileLinksEditorProps) => {
   const [announcement, setAnnouncement] = useState('')
   const announcementTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
 
@@ -53,6 +61,7 @@ export const ProfileLinksEditor = ({ links, onChange, disabled }: ProfileLinksEd
                 placeholder="Instagram"
                 maxLength={50}
                 disabled={disabled}
+                error={errors?.[i]?.label}
               />
               <Input
                 label="URL"
@@ -61,6 +70,7 @@ export const ProfileLinksEditor = ({ links, onChange, disabled }: ProfileLinksEd
                 onChange={(e) => updateLink(i, 'url', e.target.value)}
                 placeholder="https://instagram.com/..."
                 disabled={disabled}
+                error={errors?.[i]?.url}
               />
               <Button
                 type="button"

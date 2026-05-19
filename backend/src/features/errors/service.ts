@@ -1,10 +1,9 @@
-import { createHash } from 'node:crypto'
-
 import { sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { errorGroups, errorOccurrences } from '../../db/schema'
 import { nowISO } from '../../utils/dates'
+import { computeFingerprint } from './lib/error-fingerprint'
 
 export interface TrackErrorInput {
   source: 'backend' | 'frontend'
@@ -12,14 +11,6 @@ export interface TrackErrorInput {
   stack?: string | null
   context?: Record<string, unknown> | null
   userId?: string | null
-}
-
-// Normalizes the first "at ..." frame by stripping :<line>:<col> so the same
-// crash at different line numbers still maps to the same fingerprint.
-function computeFingerprint(source: string, message: string, stack?: string | null): string {
-  const firstFrame = stack?.split('\n').find((l) => l.trim().startsWith('at ')) ?? ''
-  const normalized = firstFrame.replace(/:\d+:\d+\)?$/, '').trim()
-  return createHash('sha256').update(`${source}|${message}|${normalized}`).digest('hex')
 }
 
 export async function trackError(db: DB, input: TrackErrorInput): Promise<void> {
