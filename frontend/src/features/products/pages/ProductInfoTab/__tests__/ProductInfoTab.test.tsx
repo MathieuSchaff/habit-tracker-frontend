@@ -21,8 +21,33 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 })
 
 vi.mock('@/lib/queries/products', () => ({
-  productQueries: { bySlug: vi.fn(() => ({ queryKey: ['p', 'bySlug'] })) },
+  productKeys: { all: ['products'] as const },
+  productQueries: {
+    bySlug: vi.fn(() => ({ queryKey: ['p', 'bySlug'] })),
+    publicReviews: vi.fn(() => ({
+      queryKey: ['p', 'publicReviews'],
+      queryFn: async () => ({
+        reviews: [],
+        aggregates: { total: 0, byAxis: {} },
+      }),
+    })),
+  },
 }))
+
+const EMPTY_PUBLIC_REVIEWS = {
+  reviews: [],
+  aggregates: {
+    total: 0,
+    byAxis: {
+      tolerance: { low: 0, mid: 0, high: 0 },
+      efficacy: { low: 0, mid: 0, high: 0 },
+      sensoriality: { low: 0, mid: 0, high: 0 },
+      stability: { low: 0, mid: 0, high: 0 },
+      mixability: { low: 0, mid: 0, high: 0 },
+      valueForMoney: { low: 0, mid: 0, high: 0 },
+    },
+  },
+}
 
 vi.mock('@/lib/queries/profile', () => ({
   profileQueries: { dermo: vi.fn(() => ({ queryKey: ['profile', 'dermo'] })) },
@@ -55,10 +80,17 @@ function setProduct(overrides: Record<string, unknown> = {}) {
 }
 
 function setDermo(profile: { skinTypes?: string[]; skinConcerns?: string[] } | null) {
-  vi.mocked(useQuery).mockReturnValue({
-    data: profile,
-    isLoading: false,
-  } as unknown as ReturnType<typeof useQuery>)
+  // Two useQuery callers in ProductInfoTab now: dermo profile + publicReviews
+  // (added with #7). Dispatch by queryKey so each gets the right payload.
+  vi.mocked(useQuery).mockImplementation((options) => {
+    const key = (options as { queryKey?: unknown[] }).queryKey
+    if (Array.isArray(key) && key[1] === 'publicReviews') {
+      return { data: EMPTY_PUBLIC_REVIEWS, isLoading: false } as unknown as ReturnType<
+        typeof useQuery
+      >
+    }
+    return { data: profile, isLoading: false } as unknown as ReturnType<typeof useQuery>
+  })
 }
 
 describe('ProductInfoTab', () => {

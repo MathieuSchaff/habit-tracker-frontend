@@ -7,6 +7,7 @@ import type {
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { downloadBlobAsFile, parseAttachmentFilename } from '../helpers/download'
 
 export const profileQueries = {
   me: () =>
@@ -41,6 +42,18 @@ export const profileQueries = {
         return json.data
       },
       staleTime: 1000 * 60 * 5,
+    }),
+  publicByUsername: (username: string) =>
+    queryOptions({
+      queryKey: ['profile', 'public', username],
+      queryFn: async () => {
+        const res = await api.profiles[':username'].public.$get({ param: { username } })
+        const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60,
+      enabled: !!username,
     }),
 }
 
@@ -114,5 +127,42 @@ export const useUpdatePrivacySettings = () => {
       queryClient.setQueryData(['profile', 'privacy'], data)
     },
     meta: { errorMessage: 'Mise à jour de la confidentialité impossible.' },
+  })
+}
+
+// RGPD Article 20 portability. The download is a side-effect mutation, not a
+// cacheable query: every call is a fresh server-side dump, and we never want
+// React Query to re-issue it on focus/reconnect.
+export class ExportRateLimitError extends Error {
+  retryAfterSec: number
+  constructor(retryAfterSec: number) {
+    super('rate_limit_exceeded')
+    this.name = 'ExportRateLimitError'
+    this.retryAfterSec = retryAfterSec
+  }
+}
+
+export const useDownloadDataExport = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await api.profile.export.$get()
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string
+          details?: { retryAfter?: number }
+        } | null
+        if (body?.error === 'rate_limit_exceeded') {
+          throw new ExportRateLimitError(body.details?.retryAfter ?? 300)
+        }
+        throw new Error(body?.error ?? 'export_failed')
+      }
+
+      const blob = await res.blob()
+      const filename =
+        parseAttachmentFilename(res.headers.get('Content-Disposition')) ?? 'aurore-export.json'
+      downloadBlobAsFile(blob, filename)
+    },
+    meta: { errorMessage: "Téléchargement de l'export impossible." },
   })
 }

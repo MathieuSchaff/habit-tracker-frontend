@@ -8,10 +8,12 @@ import {
 
 import { sql } from 'drizzle-orm'
 import {
+  boolean,
   check,
   index,
   integer,
   pgEnum,
+  pgPolicy,
   pgTable,
   text,
   uniqueIndex,
@@ -19,6 +21,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { fkTenantPolicies, tenantPolicies } from '../_policies'
+import { appRuntimeRole } from '../_roles'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 import { products } from './products'
@@ -52,6 +55,18 @@ export const userProducts = pgTable(
     index('user_products_status_idx').on(t.status),
     check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 6`),
     ...tenantPolicies('user_products', t.userId),
+    // #7 — let anon traverse user_products when a public review hangs off the
+    // row. Without it, `listPublicReviewsForProduct` (joins) and
+    // `profiles_select_for_public_review` (EXISTS sub-join) silently filter
+    // every row. Wrapping the EXISTS check in `user_product_has_public_review`
+    // (SECURITY DEFINER, migration 0067) breaks the cycle with
+    // user_product_reviews_tenant_isolation, which itself reads user_products.
+    pgPolicy('user_products_select_for_public_review', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`public.user_product_has_public_review(${t.id})`,
+    }),
   ]
 ).enableRLS()
 
@@ -70,10 +85,15 @@ export const userProductReviews = pgTable(
     mixability: integer('mixability'), // 1-5
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
+    isPublic: boolean('is_public').notNull().default(false),
     ...timestamps,
   },
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),
+    // Speeds up the public product reviews surface (#7); only public rows hit it.
+    index('user_product_reviews_public_idx')
+      .on(t.userProductId)
+      .where(sql`${t.isPublic} = true`),
     check('upr_tolerance_range', sql`${t.tolerance} BETWEEN 1 AND 5`),
     check('upr_efficacy_range', sql`${t.efficacy} BETWEEN 1 AND 5`),
     check('upr_sensoriality_range', sql`${t.sensoriality} BETWEEN 1 AND 5`),
@@ -88,6 +108,14 @@ export const userProductReviews = pgTable(
           AND p.user_id = (SELECT auth.uid())
       )`
     ),
+    // Additive SELECT-only policy: any role can read rows opted-in as public.
+    // Owner CRUD still funneled through fkTenantPolicies above.
+    pgPolicy('user_product_reviews_select_public', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`${t.isPublic} = true`,
+    }),
   ]
 ).enableRLS()
 

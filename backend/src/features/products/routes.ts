@@ -17,6 +17,7 @@ import type { AppEnv } from '../../app-env'
 import { optionalJwtAuth, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
+import { listPublicReviewsForProduct } from '../user-products/service'
 import {
   createProduct,
   deleteProduct,
@@ -106,6 +107,13 @@ export const productRoutes = productsApp
     const { slug } = c.req.valid('param')
     const product = await getProductFullBySlug(slug, db)
     return c.json(ok(product), HTTP_STATUS.OK)
+  })
+
+  .get('/:slug/reviews/public', zValidator('param', slugParam), async (c) => {
+    const db = c.get('db')
+    const { slug } = c.req.valid('param')
+    const result = await listPublicReviewsForProduct(db, slug)
+    return c.json(ok(result), HTTP_STATUS.OK)
   })
 
   .patch(

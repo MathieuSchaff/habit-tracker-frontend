@@ -9,6 +9,7 @@ import type { InferResponseType } from 'hono/client'
 
 import { api } from '../api'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
+import { productKeys } from './products'
 
 export type UserProduct = Extract<
   InferResponseType<(typeof api)['user-products']['$get']>,
@@ -197,9 +198,18 @@ export const useUpsertUserProductReview = () => {
     onError: (_error, _variables, context) => {
       context?.rollback()
     },
-    onSettled: (_, __, { id }) => {
+    onSettled: (_, __, { id, input }) => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
+      // Public-reviews surface depends on isPublic flips — refetch whenever the
+      // toggle is part of the patch. Predicate scoping avoids nuking unrelated
+      // product caches (bySlug, lists, ingredients...).
+      if (input.isPublic !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: productKeys.all,
+          predicate: (q) => q.queryKey.includes('reviews') && q.queryKey.includes('public'),
+        })
+      }
     },
     meta: { errorMessage: 'Note non enregistrée — réessayez plus tard.' },
   })

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ExternalLink, LogOut, ShieldCheck, Trash2 } from 'lucide-react'
+import { Download, ExternalLink, LogOut, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '../../../../component/Button/Button'
@@ -9,8 +9,10 @@ import { Toggle } from '../../../../component/Input/Toggle/Toggle'
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
 import { useLogout } from '../../../../lib/queries/auth'
 import {
+  ExportRateLimitError,
   privacySettingsQueries,
   useDeleteUser,
+  useDownloadDataExport,
   useUpdatePrivacySettings,
 } from '../../../../lib/queries/profile'
 import { ChangePasswordForm } from './ChangePasswordForm'
@@ -22,6 +24,7 @@ export const AccountSettings = () => {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const logout = useLogout()
   const deleteUser = useDeleteUser()
+  const downloadExport = useDownloadDataExport()
 
   const { data: privacy, isLoading: privacyLoading } = useQuery(privacySettingsQueries.get())
   const updatePrivacy = useUpdatePrivacySettings()
@@ -33,7 +36,18 @@ export const AccountSettings = () => {
     })
   }
 
-  const handlePrivacyToggle = (key: 'profilePublic' | 'aiConsent', value: boolean) => {
+  const handlePrivacyToggle = (
+    key:
+      | 'profilePublic'
+      | 'bioPublic'
+      | 'avatarPublic'
+      | 'linksPublic'
+      | 'skinTypesPublic'
+      | 'fitzpatrickPublic'
+      | 'skinConcernsPublic'
+      | 'aiConsent',
+    value: boolean
+  ) => {
     updatePrivacy.mutate({ [key]: value })
   }
 
@@ -75,11 +89,55 @@ export const AccountSettings = () => {
           <div className="privacy-toggles">
             <Toggle
               label="Profil public"
-              hint="Votre nom et avatar visibles par les autres utilisateurs."
+              hint="Si activé, votre nom d'utilisateur peut apparaître sur les pages publiques. Choisissez ensuite ce que vous souhaitez partager."
               checked={privacy.profilePublic}
               onChange={(checked) => handlePrivacyToggle('profilePublic', checked)}
               disabled={updatePrivacy.isPending}
             />
+
+            <div className="privacy-subgroup">
+              <p className="privacy-subgroup-title">Informations à partager</p>
+              <Toggle
+                label="Bio"
+                checked={privacy.bioPublic}
+                onChange={(checked) => handlePrivacyToggle('bioPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+              <Toggle
+                label="Avatar"
+                checked={privacy.avatarPublic}
+                onChange={(checked) => handlePrivacyToggle('avatarPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+              <Toggle
+                label="Liens"
+                checked={privacy.linksPublic}
+                onChange={(checked) => handlePrivacyToggle('linksPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+            </div>
+
+            <div className="privacy-subgroup">
+              <p className="privacy-subgroup-title">Profil de peau</p>
+              <Toggle
+                label="Types de peau"
+                checked={privacy.skinTypesPublic}
+                onChange={(checked) => handlePrivacyToggle('skinTypesPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+              <Toggle
+                label="Phototype"
+                checked={privacy.fitzpatrickPublic}
+                onChange={(checked) => handlePrivacyToggle('fitzpatrickPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+              <Toggle
+                label="Préoccupations"
+                checked={privacy.skinConcernsPublic}
+                onChange={(checked) => handlePrivacyToggle('skinConcernsPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+            </div>
 
             <div className="privacy-ai-section">
               <p className="privacy-section-desc">
@@ -108,6 +166,33 @@ export const AccountSettings = () => {
             )}
           </div>
         ) : null}
+      </SettingsSection>
+
+      <SettingsSection
+        title="Mes données"
+        description="Téléchargez une copie complète de vos données au format JSON (droit à la portabilité, RGPD article 20)."
+      >
+        <div className="account-actions">
+          <Button
+            type="button"
+            variant="outline"
+            className="account-action-btn"
+            onClick={() => downloadExport.mutate()}
+            disabled={downloadExport.isPending}
+          >
+            <Download size={18} />
+            {downloadExport.isPending ? 'Préparation…' : 'Télécharger mes données'}
+          </Button>
+          {downloadExport.isError && (
+            <FormMessage variant="error">
+              {downloadExport.error instanceof ExportRateLimitError
+                ? `Trop de demandes. Réessayez dans environ ${Math.ceil(
+                    downloadExport.error.retryAfterSec / 60
+                  )} min.`
+                : 'Le téléchargement a échoué. Veuillez réessayer.'}
+            </FormMessage>
+          )}
+        </div>
       </SettingsSection>
 
       <SettingsSection title="Session" description="Déconnectez-vous de cet appareil.">

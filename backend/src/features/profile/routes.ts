@@ -15,6 +15,8 @@ import type { AppEnv } from '../../app-env'
 import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
+import { logSecurityEvent } from '../security/security.service'
+import { checkExportRateLimit, exportFilename, exportUserData } from './export.service'
 import {
   deleteUser,
   getDermoProfile,
@@ -122,4 +124,40 @@ export const profileRoute = app
     const userId = c.get('userId')
     await deleteUser(db, userId)
     return c.body(null, 204)
+  })
+
+  // RGPD Article 20 — data portability. JSON dump of every tenant-scoped row
+  // the user owns. RLS narrows reads to auth.uid(); discussions are filtered
+  // by author_id explicitly (no RLS on those tables).
+  .get('/export', async (c) => {
+    const userId = c.get('userId')
+
+    const rate = checkExportRateLimit(userId)
+    if (!rate.ok) {
+      return c.json(
+        err('rate_limit_exceeded', { retryAfter: rate.retryAfterSec }),
+        HTTP_STATUS.RATE_LIMIT_EXCEEDED
+      )
+    }
+
+    const db = c.get('db')
+    const data = await exportUserData(db, userId)
+
+    // Audit trail (RGPD traceability). Best-effort: a logging failure must not
+    // shadow the user's right of access. Same tx as the read, so it rolls
+    // back if the export itself fails.
+    await logSecurityEvent(db, {
+      userId,
+      severity: 'low',
+      eventType: 'data_export_requested',
+      field: 'export',
+      payload: 'json',
+      route: '/profile/export',
+    }).catch(() => {})
+
+    return c.body(JSON.stringify(data, null, 2), HTTP_STATUS.OK, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${exportFilename(userId)}"`,
+      'Cache-Control': 'no-store',
+    })
   })

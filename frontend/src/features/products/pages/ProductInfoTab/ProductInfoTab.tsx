@@ -13,6 +13,7 @@ import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
+import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
@@ -187,6 +188,8 @@ export function ProductInfoTab() {
           <p className="product-notes-block__body">{product.notes}</p>
         </aside>
       )}
+
+      <PublicReviewsSection slug={slug} />
 
       {sanitizeUrl(product.url) !== null && (
         <div className="product-section product-section--cta">

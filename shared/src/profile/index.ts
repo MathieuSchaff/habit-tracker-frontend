@@ -104,17 +104,44 @@ const profileStatsSchema = z.object({
 
 // privacy
 
+// Master `profilePublic` gates all field-level flags: when false, no field is
+// exposed regardless of its sub-flag. Username is implicit (URL identifier).
 const privacySettingsSchema = z.object({
   profilePublic: z.boolean(),
+  bioPublic: z.boolean(),
+  avatarPublic: z.boolean(),
+  linksPublic: z.boolean(),
+  skinTypesPublic: z.boolean(),
+  fitzpatrickPublic: z.boolean(),
+  skinConcernsPublic: z.boolean(),
   aiConsent: z.boolean(),
 })
 
 export const updatePrivacySettingsSchema = z
   .object({
     profilePublic: z.boolean().optional(),
+    bioPublic: z.boolean().optional(),
+    avatarPublic: z.boolean().optional(),
+    linksPublic: z.boolean().optional(),
+    skinTypesPublic: z.boolean().optional(),
+    fitzpatrickPublic: z.boolean().optional(),
+    skinConcernsPublic: z.boolean().optional(),
     aiConsent: z.boolean().optional(),
   })
   .strict()
+
+// Projection returned for public profile lookups. Each nullable field is
+// null when the corresponding `*_public` flag is false (or master is off).
+// `links` uses null (not []) to distinguish "hidden" from "user has none".
+const publicProfileViewSchema = z.object({
+  username: z.string().max(USERNAME_MAX_LENGTH),
+  bio: z.string().max(BIO_MAX_LENGTH).nullable(),
+  avatarUrl: safeUrl.nullable(),
+  links: profileLinkSchema.array().nullable(),
+  skinTypes: z.array(z.enum(SKIN_TYPES)).nullable(),
+  fitzpatrickType: z.number().int().min(1).max(6).nullable(),
+  skinConcerns: z.array(z.enum(SKIN_CONCERNS)).nullable(),
+})
 
 // user-preferences
 
@@ -169,6 +196,7 @@ export type ProfileStats = z.infer<typeof profileStatsSchema>
 
 export type PrivacySettings = z.infer<typeof privacySettingsSchema>
 export type UpdatePrivacySettingsInput = z.infer<typeof updatePrivacySettingsSchema>
+export type PublicProfileView = z.infer<typeof publicProfileViewSchema>
 
 // user-preferences inferred types
 
@@ -184,3 +212,24 @@ export type ProfilePublic = z.infer<typeof profilePublicSchema>
 // concern → product tag translation
 
 export { resolveAvoidSlugs, USER_CONCERN_TO_PRODUCT_TAGS } from './concern-mapping'
+
+// RGPD export (Article 20 portability)
+
+export {
+  type ExportDermoProfile,
+  type ExportDiscussionReply,
+  type ExportDiscussionThread,
+  type ExportPreferences,
+  type ExportProfile,
+  type ExportPurchase,
+  type ExportRowMeta,
+  type ExportSubtask,
+  type ExportTask,
+  type ExportUser,
+  type ExportUserIngredientAnalysisScore,
+  type ExportUserProduct,
+  type ExportUserProductReview,
+  type ExportUserProductStatusLog,
+  USER_EXPORT_SCHEMA_VERSION,
+  type UserExport,
+} from './export'
