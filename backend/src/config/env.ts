@@ -12,6 +12,8 @@ export const envSchema = z
     APP_DATABASE_URL: z.string(),
     POSTGRES_PASSWORD: z.string().optional(),
     BREVO_API_KEY: z.string(),
+    MAIL_FROM_EMAIL: z.email(),
+    MAIL_FROM_NAME: z.string().min(1).default('Aurore'),
     FRONTEND_URL: z.url(),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),

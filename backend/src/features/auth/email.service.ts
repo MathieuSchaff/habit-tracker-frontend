@@ -8,7 +8,7 @@ export async function sendVerificationEmail(to: string, verificationUrl: string)
 
   try {
     await client.transactionalEmails.sendTransacEmail({
-      sender: { name: 'Aurore', email: 'noreply@votre-domaine.com' },
+      sender: { name: env.MAIL_FROM_NAME, email: env.MAIL_FROM_EMAIL },
       to: [{ email: to }],
       subject: 'Confirmez votre adresse email — Aurore',
       htmlContent: `

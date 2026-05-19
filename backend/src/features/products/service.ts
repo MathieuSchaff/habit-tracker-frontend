@@ -13,6 +13,7 @@ import {
   HAIRCARE_PRODUCT_TAG_CATEGORIES,
   PRODUCT_DOMAIN_DB_CATEGORIES,
   type ProductDomainTab,
+  resolveAvoidSlugs,
   SKINCARE_PRODUCT_TAG_CATEGORIES,
   SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
 } from '@habit-tracker/shared'
@@ -419,7 +420,13 @@ export async function listProducts(
 
   // avoid_for is computed post-fetch as per-product profileMatches (badge UX)
   // rather than excluding rows — keeps the catalog visible while flagging risks.
-  const avoidSlugs = filters.avoid_for ? filters.avoid_for.split(',').filter(Boolean) : []
+  // Raw payload mixes skin types + user concern slugs (lay vocab). `resolveAvoidSlugs`
+  // remaps concern slugs to product tag concern slugs (clinical vocab); skin
+  // types pass through unchanged. Without it ~70% of avoid badges stay invisible
+  // due to vocab drift between SKIN_CONCERNS and the product_tags taxonomy.
+  const avoidSlugs = filters.avoid_for
+    ? resolveAvoidSlugs(filters.avoid_for.split(',').filter(Boolean))
+    : []
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 

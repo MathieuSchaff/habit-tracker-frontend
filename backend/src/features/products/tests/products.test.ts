@@ -553,6 +553,50 @@ describe('Product Service', () => {
         const result = await listProducts({ category: 'skincare', page: 1, limit: 10 }, testDb)
         expect(result.items[0]?.profileMatches).toEqual([])
       })
+
+      // User concern slug (anti-acne) ≠ product tag slug (acne-imperfections).
+      // resolveAvoidSlugs bridges the drift; without it the badge stays dark
+      // even when relevant `avoid` tags exist.
+      it('translates user concern slugs to product tag slugs before matching', async () => {
+        const acne = await createProductTag(testDb, {
+          name: 'Acné / Imperfections',
+          category: 'concern',
+          slug: 'acne-imperfections',
+        })
+        const risky = await makeProduct('Sérum risqué pour acné', 'A')
+        await replaceProductTags(testDb, risky.id, [{ tagId: acne.id, relevance: 'avoid' }])
+
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 10, avoid_for: 'anti-acne' },
+          testDb
+        )
+        const flagged = result.items.find((p) => p.id === risky.id)
+        expect(flagged?.profileMatches).toEqual(['acne-imperfections'])
+      })
+
+      // 4 user concerns collapse onto rougeurs-vasculaires; one match yields
+      // one slug in profileMatches (deduped by SQL inArray + resolver Set).
+      it('dedupes when multiple user concerns map to the same product tag', async () => {
+        const redness = await createProductTag(testDb, {
+          name: 'Rougeurs vasculaires',
+          category: 'concern',
+          slug: 'rougeurs-vasculaires',
+        })
+        const risky = await makeProduct('Tonique alcool', 'A')
+        await replaceProductTags(testDb, risky.id, [{ tagId: redness.id, relevance: 'avoid' }])
+
+        const result = await listProducts(
+          {
+            category: 'skincare',
+            page: 1,
+            limit: 10,
+            avoid_for: 'anti-rougeurs,rosacee,couperose,flushs',
+          },
+          testDb
+        )
+        const flagged = result.items.find((p) => p.id === risky.id)
+        expect(flagged?.profileMatches).toEqual(['rougeurs-vasculaires'])
+      })
     })
 
     describe('userStatus (shelf flag)', () => {
