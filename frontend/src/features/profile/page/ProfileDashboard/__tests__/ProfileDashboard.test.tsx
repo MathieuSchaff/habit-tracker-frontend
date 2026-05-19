@@ -35,6 +35,9 @@ vi.mock('../../../components/ProfileForm/ProfileForm', () => ({
     </button>
   ),
 }))
+vi.mock('../../../components/ProfileCompletionHint/ProfileCompletionHint', () => ({
+  ProfileCompletionHint: () => <div data-testid="profile-completion-hint" />,
+}))
 vi.mock('../../../tabs/OverviewTab/ProfileStats', () => ({
   ProfileStats: () => <div data-testid="profile-stats" />,
 }))

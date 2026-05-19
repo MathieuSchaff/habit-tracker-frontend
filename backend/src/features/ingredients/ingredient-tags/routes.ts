@@ -11,7 +11,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
-import { requireJwtAuth } from '../../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import {
   addTagToIngredient,
@@ -29,7 +29,9 @@ const ingredientTagsApp = new Hono<AppEnv>()
 // I allow everyone to see the tags, but if you want to change something, you must show your ID card (the JWT).
 ingredientTagsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, next)
+  return requireJwtAuth(c, async () => {
+    await requireNotBanned(c, next)
+  })
 })
 ingredientTagsApp.use('*', withRlsContext)
 

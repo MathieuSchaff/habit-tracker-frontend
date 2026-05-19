@@ -2,6 +2,11 @@ import type { UserPublic } from '@habit-tracker/shared'
 
 import { create } from 'zustand'
 
+interface BanDetails {
+  expiresAt: string | null
+  reason: string | null
+}
+
 interface AuthStore {
   accessToken: string | null
   tokenExpiresAt: number | null
@@ -14,12 +19,17 @@ interface AuthStore {
   bootRefreshAttempted: boolean
   // Set when 401-recovery refresh fails on a live session; RootComponent redirects to /auth/login.
   sessionExpired: boolean
+  // Set when a 403 banned response is received; RootComponent redirects to /auth/banned.
+  banned: boolean
+  bannedDetails: BanDetails | null
 
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
   markBootRefreshAttempted: () => void
   markSessionExpired: () => void
   clearSessionExpired: () => void
+  markBanned: (details: BanDetails) => void
+  clearBanned: () => void
   isTokenExpired: () => boolean
 }
 
@@ -44,6 +54,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isDemo: false,
   bootRefreshAttempted: false,
   sessionExpired: false,
+  banned: false,
+  bannedDetails: null,
 
   setAuth: (token, user) =>
     set({
@@ -74,6 +86,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   markBootRefreshAttempted: () => set({ bootRefreshAttempted: true }),
   markSessionExpired: () => set({ sessionExpired: true }),
   clearSessionExpired: () => set({ sessionExpired: false }),
+  markBanned: (details) => set({ banned: true, bannedDetails: details }),
+  clearBanned: () => set({ banned: false, bannedDetails: null }),
 
   isTokenExpired: () => {
     const exp = get().tokenExpiresAt

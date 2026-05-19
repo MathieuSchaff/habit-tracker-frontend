@@ -4,7 +4,7 @@ import { type Context, Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { uploadAvatar, uploadProductImage } from './service'
 import { UploadError } from './upload-error'
@@ -12,6 +12,7 @@ import { UploadError } from './upload-error'
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
+app.use('*', requireNotBanned)
 app.use('*', withRlsContext)
 app.use('*', bodyLimit({ maxSize: 1_048_576 }))
 

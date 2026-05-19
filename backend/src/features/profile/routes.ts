@@ -12,7 +12,7 @@ import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
 import {
@@ -31,6 +31,7 @@ import {
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
+app.use('*', requireNotBanned)
 app.use('*', withRlsContext)
 
 export const profileRoute = app

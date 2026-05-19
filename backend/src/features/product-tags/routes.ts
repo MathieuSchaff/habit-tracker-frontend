@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createProductTag,
@@ -29,7 +29,9 @@ const productTagsApp = new Hono<AppEnv>()
 
 productTagsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, next)
+  return requireJwtAuth(c, async () => {
+    await requireNotBanned(c, next)
+  })
 })
 productTagsApp.use('*', withRlsContext)
 
