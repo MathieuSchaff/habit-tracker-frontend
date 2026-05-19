@@ -72,6 +72,7 @@ export const productKeys = {
   list: (filters: ListProductsFilters = {}) => [...productKeys.lists(), filters] as const,
   bySlug: (slug: string) => [...productKeys.all, slug] as const,
   ingredients: (id: string) => [...productKeys.all, id, 'ingredients'] as const,
+  publicReviews: (slug: string) => [...productKeys.all, slug, 'reviews', 'public'] as const,
 }
 
 export const productQueries = {
@@ -117,6 +118,19 @@ export const productQueries = {
         return json.data
       },
       enabled: !!slug,
+    }),
+
+  publicReviews: (slug: string) =>
+    queryOptions({
+      queryKey: productKeys.publicReviews(slug),
+      queryFn: async () => {
+        const res = await api.products[':slug'].reviews.public.$get({ param: { slug } })
+        if (!res.ok) throw new Error('Failed to fetch public reviews')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!slug,
+      staleTime: 60 * 1000,
     }),
 
   search: (q: string) =>

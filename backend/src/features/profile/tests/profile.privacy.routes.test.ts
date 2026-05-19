@@ -25,8 +25,16 @@ describe('Privacy Settings Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
-      expect(data.data.profilePublic).toBe(false)
-      expect(data.data.aiConsent).toBe(false)
+      expect(data.data).toEqual({
+        profilePublic: false,
+        bioPublic: false,
+        avatarPublic: false,
+        linksPublic: false,
+        skinTypesPublic: false,
+        fitzpatrickPublic: false,
+        skinConcernsPublic: false,
+        aiConsent: false,
+      })
     })
 
     it('rejects unauthenticated request', async () => {
@@ -130,6 +138,67 @@ describe('Privacy Settings Routes', () => {
         body: JSON.stringify({ profilePublic: true }),
       })
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    })
+
+    it('updates each profile-table sub-flag independently', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+
+      const res = await authPatch(app, '/profile/privacy-settings', token, {
+        bioPublic: true,
+        avatarPublic: true,
+        linksPublic: true,
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.data.bioPublic).toBe(true)
+      expect(data.data.avatarPublic).toBe(true)
+      expect(data.data.linksPublic).toBe(true)
+      expect(data.data.profilePublic).toBe(false)
+    })
+
+    it('updates dermo sub-flags even when dermo row does not exist yet', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+
+      const res = await authPatch(app, '/profile/privacy-settings', token, {
+        skinTypesPublic: true,
+        fitzpatrickPublic: true,
+        skinConcernsPublic: true,
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.data.skinTypesPublic).toBe(true)
+      expect(data.data.fitzpatrickPublic).toBe(true)
+      expect(data.data.skinConcernsPublic).toBe(true)
+    })
+
+    it('updates all 8 flags in a single request', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+
+      const res = await authPatch(app, '/profile/privacy-settings', token, {
+        profilePublic: true,
+        bioPublic: true,
+        avatarPublic: true,
+        linksPublic: true,
+        skinTypesPublic: true,
+        fitzpatrickPublic: true,
+        skinConcernsPublic: true,
+        aiConsent: true,
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.data).toEqual({
+        profilePublic: true,
+        bioPublic: true,
+        avatarPublic: true,
+        linksPublic: true,
+        skinTypesPublic: true,
+        fitzpatrickPublic: true,
+        skinConcernsPublic: true,
+        aiConsent: true,
+      })
     })
   })
 })

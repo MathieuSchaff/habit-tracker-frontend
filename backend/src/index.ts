@@ -19,7 +19,7 @@ import { ingredientRoutes } from './features/ingredients/routes'
 import { productComparisonRoutes } from './features/product-comparisons'
 import { productTagDefRoutes } from './features/product-tags/routes'
 import { productsFeature } from './features/products'
-import { profileRoute } from './features/profile'
+import { profileRoute, publicProfileRoutes } from './features/profile'
 import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
@@ -68,6 +68,7 @@ const routes = app
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
   .route('/api/profile', profileRoute)
+  .route('/api/profiles', publicProfileRoutes)
   .route('/api', productsFeature)
   .route('/api/product-comparisons', productComparisonRoutes)
   .route('/api/ingredients', ingredientRoutes)

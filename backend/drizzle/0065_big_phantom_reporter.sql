@@ -1,0 +1,3 @@
+ALTER TABLE "user_product_reviews" ADD COLUMN "is_public" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE INDEX "user_product_reviews_public_idx" ON "user_product_reviews" USING btree ("user_product_id") WHERE "user_product_reviews"."is_public" = true;--> statement-breakpoint
+CREATE POLICY "user_product_reviews_select_public" ON "user_product_reviews" AS PERMISSIVE FOR SELECT TO "app_runtime" USING ("user_product_reviews"."is_public" = true);

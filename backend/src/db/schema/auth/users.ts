@@ -70,6 +70,9 @@ export const profiles = pgTable(
     bio: text('bio'),
     links: jsonb('links').$type<ProfileLink[]>().notNull().default(sql`'[]'::jsonb`),
     profilePublic: boolean('profile_public').notNull().default(false),
+    bioPublic: boolean('bio_public').notNull().default(false),
+    avatarPublic: boolean('avatar_public').notNull().default(false),
+    linksPublic: boolean('links_public').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow(),
@@ -94,6 +97,20 @@ export const profiles = pgTable(
       to: appRuntimeRole,
       using: sql`${t.profilePublic}`,
     }),
+    // #7 — expose the pseudonym when the reviewer has opted-in at least one
+    // public review, even if their profile master flag stays false. Leak
+    // surface = "this user has shared a public review" (already inferable
+    // from the review row). No other profile columns become visible here.
+    pgPolicy('profiles_select_for_public_review', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`EXISTS (
+        SELECT 1 FROM user_product_reviews r
+        JOIN user_products up ON up.id = r.user_product_id
+        WHERE r.is_public = TRUE AND up.user_id = ${t.userId}
+      )`,
+    }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',
       for: 'all',
@@ -114,11 +131,23 @@ export const userDermoProfiles = pgTable(
     fitzpatrickType: integer('fitzpatrick_type'),
     skinConcerns: text('skin_concerns').array().notNull().default([]).$type<SkinConcern[]>(),
     privateNotes: text('private_notes'),
+    skinTypesPublic: boolean('skin_types_public').notNull().default(false),
+    fitzpatrickPublic: boolean('fitzpatrick_public').notNull().default(false),
+    skinConcernsPublic: boolean('skin_concerns_public').notNull().default(false),
     ...timestamps,
   },
   (t) => [
     check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),
     ...tenantPolicies('user_dermo_profiles', t.userId),
+    pgPolicy('user_dermo_profiles_select_public', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = ${t.userId} AND p.profile_public = TRUE
+      )`,
+    }),
   ]
 ).enableRLS()
 

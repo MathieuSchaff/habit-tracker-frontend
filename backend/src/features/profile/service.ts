@@ -5,13 +5,14 @@ import type {
   ProfilePublic,
   ProfileStats,
   ProfileUpdateInput,
+  PublicProfileView,
   UpdatePrivacySettingsInput,
   UpdateUserPreferencesInput,
   UserDermoProfile,
   UserDermoProfileUpdateInput,
 } from '@habit-tracker/shared'
 
-import { count, eq } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 
 import type { Database, DB } from '../../db'
 import { userPreferences } from '../../db/schema/auth/user-preferences'
@@ -200,11 +201,29 @@ export async function deleteUser(db: Database, userId: string) {
   return deletedUser
 }
 
+const PROFILE_FLAG_KEYS = ['profilePublic', 'bioPublic', 'avatarPublic', 'linksPublic'] as const
+const DERMO_FLAG_KEYS = ['skinTypesPublic', 'fitzpatrickPublic', 'skinConcernsPublic'] as const
+
 export async function getPrivacySettings(db: DB, userId: string): Promise<PrivacySettings> {
   const [profile] = await db
-    .select({ profilePublic: profiles.profilePublic })
+    .select({
+      profilePublic: profiles.profilePublic,
+      bioPublic: profiles.bioPublic,
+      avatarPublic: profiles.avatarPublic,
+      linksPublic: profiles.linksPublic,
+    })
     .from(profiles)
     .where(eq(profiles.userId, userId))
+    .limit(1)
+
+  const [dermo] = await db
+    .select({
+      skinTypesPublic: userDermoProfiles.skinTypesPublic,
+      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
+      skinConcernsPublic: userDermoProfiles.skinConcernsPublic,
+    })
+    .from(userDermoProfiles)
+    .where(eq(userDermoProfiles.userId, userId))
     .limit(1)
 
   const [prefs] = await db
@@ -215,6 +234,12 @@ export async function getPrivacySettings(db: DB, userId: string): Promise<Privac
 
   return {
     profilePublic: profile?.profilePublic ?? false,
+    bioPublic: profile?.bioPublic ?? false,
+    avatarPublic: profile?.avatarPublic ?? false,
+    linksPublic: profile?.linksPublic ?? false,
+    skinTypesPublic: dermo?.skinTypesPublic ?? false,
+    fitzpatrickPublic: dermo?.fitzpatrickPublic ?? false,
+    skinConcernsPublic: dermo?.skinConcernsPublic ?? false,
     aiConsent: prefs?.aiConsent ?? false,
   }
 }
@@ -224,21 +249,39 @@ export async function updatePrivacySettings(
   userId: string,
   data: UpdatePrivacySettingsInput
 ): Promise<PrivacySettings | null> {
-  let profilePublic: boolean | undefined
+  const profileUpdates: Record<string, boolean> = {}
+  for (const key of PROFILE_FLAG_KEYS) {
+    if (data[key] !== undefined) profileUpdates[key] = data[key] as boolean
+  }
 
-  if (data.profilePublic !== undefined) {
+  if (Object.keys(profileUpdates).length > 0) {
     const [updated] = await db
       .update(profiles)
-      .set({ profilePublic: data.profilePublic, updatedAt: nowISO() })
+      .set({ ...profileUpdates, updatedAt: nowISO() })
       .where(eq(profiles.userId, userId))
-      .returning({ profilePublic: profiles.profilePublic })
+      .returning({ userId: profiles.userId })
 
     // null signals the caller that the profile row was not found
     if (!updated) return null
-    profilePublic = updated.profilePublic
   }
 
-  let aiConsent: boolean | undefined
+  const dermoUpdates: Record<string, boolean> = {}
+  for (const key of DERMO_FLAG_KEYS) {
+    if (data[key] !== undefined) dermoUpdates[key] = data[key] as boolean
+  }
+
+  if (Object.keys(dermoUpdates).length > 0) {
+    // Upsert: dermo row may not exist yet (user hasn't filled skin profile).
+    // Store the visibility intent now; actual data fields stay null until the
+    // user fills them. Projection in getPublicProfile already handles null.
+    await db
+      .insert(userDermoProfiles)
+      .values({ userId, ...dermoUpdates })
+      .onConflictDoUpdate({
+        target: userDermoProfiles.userId,
+        set: { ...dermoUpdates, updatedAt: nowISO() },
+      })
+  }
 
   if (data.aiConsent !== undefined) {
     const [existing] = await db
@@ -262,15 +305,53 @@ export async function updatePrivacySettings(
         target: userPreferences.userId,
         set: { aiConsent: data.aiConsent, updatedAt: nowISO() },
       })
-
-    aiConsent = data.aiConsent
   }
 
-  // Read only the fields that were NOT updated (to get their current values)
-  const current = await getPrivacySettings(db, userId)
+  return getPrivacySettings(db, userId)
+}
+
+// Projects a public profile view by username, masking each field whose
+// `*_public` flag is false. Master `profile_public` gate is enforced by RLS:
+// non-public rows are invisible to app_runtime. Returns null when the username
+// is unknown or the profile is not public.
+export async function getPublicProfileByUsername(
+  db: DB,
+  username: string
+): Promise<PublicProfileView | null> {
+  const [row] = await db
+    .select({
+      username: profiles.username,
+      bio: profiles.bio,
+      bioPublic: profiles.bioPublic,
+      avatarUrl: profiles.avatarUrl,
+      avatarPublic: profiles.avatarPublic,
+      links: profiles.links,
+      linksPublic: profiles.linksPublic,
+      skinTypes: userDermoProfiles.skinTypes,
+      skinTypesPublic: userDermoProfiles.skinTypesPublic,
+      fitzpatrickType: userDermoProfiles.fitzpatrickType,
+      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
+      skinConcerns: userDermoProfiles.skinConcerns,
+      skinConcernsPublic: userDermoProfiles.skinConcernsPublic,
+    })
+    .from(profiles)
+    .leftJoin(userDermoProfiles, eq(profiles.userId, userDermoProfiles.userId))
+    .where(and(eq(profiles.username, username), eq(profiles.profilePublic, true)))
+    .limit(1)
+
+  if (!row || !row.username) return null
 
   return {
-    profilePublic: profilePublic ?? current.profilePublic,
-    aiConsent: aiConsent ?? current.aiConsent,
+    username: row.username,
+    bio: row.bioPublic ? row.bio : null,
+    avatarUrl: row.avatarPublic ? row.avatarUrl : null,
+    links: row.linksPublic ? row.links : null,
+    skinTypes: row.skinTypesPublic
+      ? ((row.skinTypes ?? []) as PublicProfileView['skinTypes'])
+      : null,
+    fitzpatrickType: row.fitzpatrickPublic ? row.fitzpatrickType : null,
+    skinConcerns: row.skinConcernsPublic
+      ? ((row.skinConcerns ?? []) as PublicProfileView['skinConcerns'])
+      : null,
   }
 }

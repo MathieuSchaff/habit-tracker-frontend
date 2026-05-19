@@ -78,6 +78,57 @@ export const updateUserProductReviewSchema = z.object({
   mixability: z.number().int().min(1).max(5).nullable().optional(),
   valueForMoney: z.number().int().min(1).max(5).nullable().optional(),
   comment: z.string().max(5000).nullable().optional(),
+  isPublic: z.boolean().optional(),
+})
+
+// Public reviews surface (#7) — only review fields + reviewer pseudonym.
+// Sentiment/wouldRepurchase/experience tags stay private (live on user_products).
+export const publicReviewViewSchema = z.object({
+  tolerance: z.number().int().min(1).max(5).nullable(),
+  efficacy: z.number().int().min(1).max(5).nullable(),
+  sensoriality: z.number().int().min(1).max(5).nullable(),
+  stability: z.number().int().min(1).max(5).nullable(),
+  mixability: z.number().int().min(1).max(5).nullable(),
+  valueForMoney: z.number().int().min(1).max(5).nullable(),
+  comment: z.string().nullable(),
+  createdAt: z.string(),
+  reviewer: z.object({
+    username: z.string(),
+    profilePublic: z.boolean(),
+  }),
+})
+
+// Qualitative aggregates — counts per bucket, never averages (anti-pattern).
+export const reviewAxisKeys = [
+  'tolerance',
+  'efficacy',
+  'sensoriality',
+  'stability',
+  'mixability',
+  'valueForMoney',
+] as const
+
+export const reviewAxisAggregateSchema = z.object({
+  low: z.number().int().min(0), // votes at 1-2
+  mid: z.number().int().min(0), // votes at 3
+  high: z.number().int().min(0), // votes at 4-5
+})
+
+export const publicReviewAggregatesSchema = z.object({
+  total: z.number().int().min(0),
+  byAxis: z.object({
+    tolerance: reviewAxisAggregateSchema,
+    efficacy: reviewAxisAggregateSchema,
+    sensoriality: reviewAxisAggregateSchema,
+    stability: reviewAxisAggregateSchema,
+    mixability: reviewAxisAggregateSchema,
+    valueForMoney: reviewAxisAggregateSchema,
+  }),
+})
+
+export const publicProductReviewsResponseSchema = z.object({
+  reviews: z.array(publicReviewViewSchema),
+  aggregates: publicReviewAggregatesSchema,
 })
 
 // TYPES
@@ -90,6 +141,11 @@ export type PreferencesTag = z.infer<typeof preferencesTagSchema>
 export type CreateUserProductInput = z.infer<typeof createUserProductSchema>
 export type UpdateUserProductInput = z.infer<typeof updateUserProductSchema>
 export type UpdateUserProductReviewInput = z.infer<typeof updateUserProductReviewSchema>
+export type ReviewAxisKey = (typeof reviewAxisKeys)[number]
+export type ReviewAxisAggregate = z.infer<typeof reviewAxisAggregateSchema>
+export type PublicReviewView = z.infer<typeof publicReviewViewSchema>
+export type PublicReviewAggregates = z.infer<typeof publicReviewAggregatesSchema>
+export type PublicProductReviewsResponse = z.infer<typeof publicProductReviewsResponseSchema>
 
 export type UserProductErrorCode =
   | 'user_product_not_found'

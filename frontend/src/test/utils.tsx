@@ -135,6 +135,7 @@ export function makeUserProduct(
       mixability: number | null
       valueForMoney: number | null
       comment: string | null
+      isPublic: boolean
       createdAt: string
       updatedAt: string
     }
@@ -189,6 +190,7 @@ export function makeUserProduct(
       mixability: null,
       valueForMoney: null,
       comment: null,
+      isPublic: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },

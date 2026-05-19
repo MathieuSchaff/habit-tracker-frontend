@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as UUsernameRouteImport } from './routes/u/$username'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
@@ -77,6 +78,11 @@ const IngredientsIndexRoute = IngredientsIndexRouteImport.update({
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
+  '/u/$username': typeof UUsernameRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
+  '/u/$username': typeof UUsernameRoute
   '/blog': typeof BlogIndexRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
+  '/u/$username': typeof UUsernameRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/auth/verify-pending'
     | '/ingredients/$slug'
     | '/products/$slug'
+    | '/u/$username'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
+    | '/u/$username'
     | '/blog'
     | '/ingredients'
     | '/products'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/auth/verify-pending'
     | '/ingredients/$slug'
     | '/products/$slug'
+    | '/u/$username'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
@@ -459,6 +471,7 @@ export interface RootRouteChildren {
   AuthVerifyPendingRoute: typeof AuthVerifyPendingRoute
   IngredientsSlugRoute: typeof IngredientsSlugRouteWithChildren
   ProductsSlugRoute: typeof ProductsSlugRouteWithChildren
+  UUsernameRoute: typeof UUsernameRoute
   BlogIndexRoute: typeof BlogIndexRoute
   IngredientsIndexRoute: typeof IngredientsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -520,6 +533,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/$slug': {
@@ -793,6 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerifyPendingRoute: AuthVerifyPendingRoute,
   IngredientsSlugRoute: IngredientsSlugRouteWithChildren,
   ProductsSlugRoute: ProductsSlugRouteWithChildren,
+  UUsernameRoute: UUsernameRoute,
   BlogIndexRoute: BlogIndexRoute,
   IngredientsIndexRoute: IngredientsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
