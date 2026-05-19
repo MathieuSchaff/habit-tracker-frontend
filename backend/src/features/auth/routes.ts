@@ -27,7 +27,7 @@ import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
-import { requireJwtAuth } from './middleware'
+import { requireJwtAuth, requireNotBanned } from './middleware'
 import {
   type AuthContext,
   changePassword,
@@ -85,6 +85,13 @@ app.use('/logout', requireJwtAuth)
 app.use('/session', requireJwtAuth)
 app.use('/mobile/logout', requireJwtAuth)
 app.use('/resend-verification', requireJwtAuth)
+// Ban check runs after JWT on every authenticated auth route. /logout still
+// works for banned users — the ban service short-circuits before we reach
+// route handlers, but clearing a refresh token cookie does not require server
+// state (cookie is set client-side). Banned users will see /session return 403
+// 'banned' which the frontend uses to redirect to the banned page.
+app.use('/session', requireNotBanned)
+app.use('/resend-verification', requireNotBanned)
 
 export const jwtAuthRoutes = app
 
@@ -181,23 +188,29 @@ export const jwtAuthRoutes = app
     return c.json(ok(null, 'Disconnected'), HTTP_STATUS.OK)
   })
 
-  .post('/change-password', requireJwtAuth, zValidator('json', changePasswordSchema), async (c) => {
-    const ctx = buildAuthContext(c)
-    const userId = c.get('userId')
-    const { currentPassword, newPassword } = c.req.valid('json')
+  .post(
+    '/change-password',
+    requireJwtAuth,
+    requireNotBanned,
+    zValidator('json', changePasswordSchema),
+    async (c) => {
+      const ctx = buildAuthContext(c)
+      const userId = c.get('userId')
+      const { currentPassword, newPassword } = c.req.valid('json')
 
-    const result = await changePassword(
-      ctx,
-      userId,
-      currentPassword as RawPassword,
-      newPassword as RawPassword
-    )
-    if (!isApiSuccess(result)) {
-      return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+      const result = await changePassword(
+        ctx,
+        userId,
+        currentPassword as RawPassword,
+        newPassword as RawPassword
+      )
+      if (!isApiSuccess(result)) {
+        return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+      }
+
+      return c.json(ok(null), HTTP_STATUS.OK)
     }
-
-    return c.json(ok(null), HTTP_STATUS.OK)
-  })
+  )
 
   .get('/session', async (c) => {
     const userId = c.get('userId')

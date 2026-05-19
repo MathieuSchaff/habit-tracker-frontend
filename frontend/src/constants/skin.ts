@@ -25,7 +25,6 @@ export const SKIN_CONCERN_LABELS: Record<SkinConcern, string> = {
   eclat: 'Éclat',
   'post-acne': 'Marques post-acné',
   cicatrisation: 'Cicatrisation',
-  microbiome: 'Microbiome',
   'photo-vieillissement': 'Photo-vieillissement',
   'teint-terne': 'Teint terne',
   repulpant: 'Repulpant',

@@ -32,6 +32,7 @@ import { cleanDatabase, fetchIdMaps, flattenTagGroups } from '../utils/id-maps'
 import { printValidationReport, validateAllIngredients } from '../utils/markdown-validator'
 import { getOrCreateSeedUser } from './create-user'
 import { seedBlog } from './seed-blog'
+import { seedTestUsers } from './seed-test-users'
 import { seedUserCollection } from './seed-user-collection'
 
 // Utilitaires de Validation
@@ -624,6 +625,9 @@ export async function seedCore(shouldClean = false) {
 
     // 5. User collection
     await seedUserCollection(tx, user.id, productSlugToId)
+
+    // 6. Test personas (5 users × varied dermo profiles + collections + reviews)
+    await seedTestUsers(tx, productSlugToId)
   })
 
   await seedBlog(idempotent)

@@ -19,9 +19,12 @@ export const SKIN_TYPES = [
   'peau-sensible',
 ] as const
 
-// These values are tag slugs from the `concern` category in the tags table.
-// They must stay in sync with seed-tags.ts. Excluded: `lumiere-bleue`,
-// `pollution`, `photo-protection` — product marketing claims, not user conditions.
+// User-facing concern slugs shown in the dermo profile UI. Distinct from the
+// product tag `concern` taxonomy (see USER_CONCERN_TO_PRODUCT_TAGS for the
+// translation): user vocab favors lay terms ("anti-acne") while product tags
+// use clinical names ("acne-imperfections").
+// Excluded: `lumiere-bleue`, `pollution`, `photo-protection` — marketing
+// claims, not user conditions.
 export const SKIN_CONCERNS = [
   'anti-rougeurs',
   'rosacee',
@@ -39,7 +42,6 @@ export const SKIN_CONCERNS = [
   'eclat',
   'post-acne',
   'cicatrisation',
-  'microbiome',
   'photo-vieillissement',
   'teint-terne',
   'repulpant',
@@ -178,3 +180,7 @@ export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSch
 // profile entity types
 
 export type ProfilePublic = z.infer<typeof profilePublicSchema>
+
+// concern → product tag translation
+
+export { resolveAvoidSlugs, USER_CONCERN_TO_PRODUCT_TAGS } from './concern-mapping'

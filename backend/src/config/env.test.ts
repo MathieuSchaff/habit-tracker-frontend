@@ -8,6 +8,7 @@ const baseEnv = {
   DATABASE_URL: 'postgres://app:strongpw@db:5432/appdb',
   APP_DATABASE_URL: 'postgres://app_runtime:strongpw@db:5432/appdb',
   BREVO_API_KEY: 'k',
+  MAIL_FROM_EMAIL: 'noreply@example.com',
   FRONTEND_URL: 'https://example.com',
   GOOGLE_CLIENT_ID: 'g',
   GOOGLE_CLIENT_SECRET: 'g',
