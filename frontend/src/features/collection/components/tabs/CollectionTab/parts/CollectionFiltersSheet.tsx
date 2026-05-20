@@ -13,6 +13,7 @@ import {
   DEFAULT_FILTERS,
   useCollectionFilter,
 } from '@/features/collection/context/CollectionFilterContext'
+import { sentimentEmojis } from '@/utils/sentimentMap'
 
 import './CollectionFiltersSheet.css'
 
@@ -124,17 +125,18 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
           </div>
 
           <fieldset className="coll-adv-group">
-            <legend className="coll-label">Ressenti minimum</legend>
+            <legend className="coll-label">Ressenti</legend>
             <div className="coll-sentiment-row">
-              {['all', 1, 2, 3, 4, 5].map((s) => (
+              {(['all', 1, 2, 3, 4, 5, 6] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   className={clsx('coll-sentiment-btn', draft.sentiment === s && 'active')}
                   aria-pressed={draft.sentiment === s}
+                  aria-label={s === 'all' ? 'Tous les ressentis' : `Ressenti ${s} sur 6`}
                   onClick={() => update('sentiment', s === 'all' ? 'all' : (s as number))}
                 >
-                  {s === 'all' ? 'Tous' : s}
+                  {s === 'all' ? 'Tous' : sentimentEmojis[s]}
                 </button>
               ))}
             </div>

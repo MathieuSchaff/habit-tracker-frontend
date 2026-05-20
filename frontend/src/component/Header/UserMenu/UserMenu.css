@@ -51,25 +51,10 @@
   max-width: 8rem;
 }
 
+/* DropdownMenu handles positioning (portal + fixed). Only visual overrides here. */
 .user-menu__dropdown {
-  position: absolute;
-  bottom: 100%;
-  left: 0.5rem;
-  margin-bottom: 0.5rem;
   background: var(--color-sidebar-bg);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  z-index: var(--z-popover);
   min-width: 10rem;
-  overflow: hidden;
-  animation: slide-up 0.2s ease-out;
-}
-
-.user-menu__dropdown--sidebar-open {
-  left: 0.5rem;
-  right: 0.5rem;
-  width: auto;
 }
 
 .user-menu__dropdown .dropdown-menu__item {

@@ -1,7 +1,51 @@
-.coll-tabs-wrapper {
-  margin: var(--space-2) 0 0;
-}
-
 .coll-page-container {
   padding-bottom: var(--space-8);
+}
+
+.coll-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Soft green pill — primary action without shouting next to the calm subnav. */
+.coll-header-actions .coll-add-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: oklch(from var(--color-primary) l c h / 0.14);
+  color: var(--color-primary-deeper);
+  box-shadow: none;
+  border-radius: var(--radius-full);
+  padding: 0.4rem 0.875rem;
+  min-height: 32px;
+  font-size: 0.875rem;
+  font-weight: var(--font-semibold);
+}
+
+.coll-header-actions .coll-add-btn:hover:not(:disabled) {
+  background: oklch(from var(--color-primary) l c h / 0.22);
+  color: var(--color-primary-deeper);
+  box-shadow: none;
+  transform: none;
+}
+
+@media (--md) {
+  .coll-header-actions {
+    justify-content: flex-end;
+    gap: var(--space-4);
+  }
+}
+
+/* Below 480px drop the label so the action keeps a tappable circle on touch. */
+@media (max-width: 479px) {
+  .coll-header-actions .coll-add-btn > span {
+    display: none;
+  }
+  .coll-header-actions .coll-add-btn {
+    padding: 0;
+    width: 44px;
+    min-height: 44px;
+  }
 }

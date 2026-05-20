@@ -263,6 +263,52 @@ describe('AsyncSearchSelect — empty + error states', () => {
     // Component remains mounted, no thrown error in render.
     expect(screen.getByRole('combobox')).toBeInTheDocument()
   })
+
+  it('surfaces explicit error UI on 500 (not silent "Aucun résultat")', async () => {
+    server.use(
+      http.get('*/api/ingredients/search', () =>
+        HttpResponse.json({ error: 'boom' }, { status: 500 })
+      )
+    )
+    const user = userEvent.setup()
+    renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)
+    await user.type(screen.getByRole('combobox'), 'ni')
+
+    // Error state visible to user with explicit message + retry button
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/Erreur de recherche/)
+    })
+    expect(screen.getByRole('button', { name: /Réessayer/i })).toBeInTheDocument()
+    // The misleading "Aucun résultat" must NOT appear when the call failed.
+    expect(screen.queryByText(/^Aucun résultat$/)).not.toBeInTheDocument()
+  })
+
+  it('retry button refetches the search', async () => {
+    let callCount = 0
+    server.use(
+      http.get('*/api/ingredients/search', () => {
+        callCount += 1
+        if (callCount === 1) {
+          return HttpResponse.json({ error: 'boom' }, { status: 500 })
+        }
+        return HttpResponse.json({
+          success: true,
+          data: [{ slug: 'niacinamide', name: 'Niacinamide' }],
+        })
+      })
+    )
+    const user = userEvent.setup()
+    renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)
+    await user.type(screen.getByRole('combobox'), 'ni')
+
+    const retry = await screen.findByRole('button', { name: /Réessayer/i })
+    await user.click(retry)
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Niacinamide/i })).toBeInTheDocument()
+    })
+    expect(callCount).toBe(2)
+  })
 })
 
 describe('AsyncSearchSelect — click outside', () => {

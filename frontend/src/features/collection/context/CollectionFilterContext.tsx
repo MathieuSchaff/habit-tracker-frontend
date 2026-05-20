@@ -6,9 +6,9 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useSta
 import { applyFilters, sortProducts } from '@/features/collection/filterLogic'
 import type { UserPreferences } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
-import type { CollectionSearch } from '@/routes/_authenticated/collection'
+import type { CollectionSearch } from '@/routes/_authenticated/collection.index'
 
-const routeApi = getRouteApi('/_authenticated/collection')
+const routeApi = getRouteApi('/_authenticated/collection/')
 
 export type CollectionFilterValues = {
   brand: string

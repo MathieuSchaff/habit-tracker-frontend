@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
-import { useFlipPlacement } from '@/component/Search/useFlipPlacement'
+import { useClickOutside } from '@/hooks/useClickOutside'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFlipPlacement } from '@/hooks/useFlipPlacement'
 import type { AsyncSearchQueryFactory, FilterOption } from '../types'
 import { DismissButton } from './DismissButton'
 import { DropdownStatus } from './DropdownStatus'
@@ -65,9 +66,12 @@ export function AsyncSearchSelect({
     enabled: debouncedQuery.length >= minChars,
   })
 
+  // Batch rapid chip toggles into a single resolve fetch; chips still render
+  // immediately via useLabelCache slug fallback while the debounce holds.
+  const debouncedSelected = useDebounce(selected, 300)
   const resolvedQuery = useQuery({
-    ...resolveValuesQuery(selected),
-    enabled: selected.length > 0,
+    ...resolveValuesQuery(debouncedSelected),
+    enabled: debouncedSelected.length > 0,
   })
 
   const labelCache = useLabelCache(resolvedQuery.data, optionsQuery.data)
@@ -84,6 +88,7 @@ export function AsyncSearchSelect({
 
   const showDropdown = isOpen && debouncedQuery.length >= minChars
   const isLoading = optionsQuery.isFetching && debouncedQuery.length >= minChars
+  const isError = optionsQuery.isError && debouncedQuery.length >= minChars
 
   const dismiss = useCallback(() => {
     setIsOpen(false)
@@ -115,22 +120,19 @@ export function AsyncSearchSelect({
   // filtered.length is a deps trigger: listbox only mounts when results exist,
   // which can lag showDropdown by one render (async query). Without it, ref is
   // null on first run and inline coords stay empty.
-  useFlipPlacement(clickOutsideContainer, dropdownRef, showDropdown, [filtered.length])
+  useFlipPlacement(
+    clickOutsideContainer,
+    dropdownRef,
+    showDropdown,
+    [filtered.length],
+    '.filter-drawer__body'
+  )
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        clickOutsideContainer.current &&
-        !clickOutsideContainer.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false)
-        setQuery('')
-        setActiveIndex(-1)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(clickOutsideContainer, () => {
+    setIsOpen(false)
+    setQuery('')
+    setActiveIndex(-1)
+  })
 
   useEffect(() => {
     if (activeIndex >= 0 && isOpen) {
@@ -187,6 +189,10 @@ export function AsyncSearchSelect({
         <DropdownStatus
           showDropdown={showDropdown}
           isLoading={isLoading}
+          isError={isError}
+          onRetry={() => {
+            optionsQuery.refetch()
+          }}
           filteredCount={filtered.length}
           query={query}
           debouncedQuery={debouncedQuery}

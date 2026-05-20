@@ -105,6 +105,12 @@
   text-align: center;
 }
 
+/* Emoji chips render comfortably at body-text size; "Tous" stays readable. */
+.coll-sentiment-btn {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
 .coll-sentiment-btn.active,
 .coll-repurchase-btn.active,
 .coll-note-btn.active {

@@ -1,6 +1,8 @@
 type Props = {
   showDropdown: boolean
   isLoading: boolean
+  isError: boolean
+  onRetry?: () => void
   filteredCount: number
   query: string
   debouncedQuery: string
@@ -9,8 +11,14 @@ type Props = {
   announcement: string
 }
 
-function liveMessage(showDropdown: boolean, filteredCount: number, isLoading: boolean): string {
+function liveMessage(
+  showDropdown: boolean,
+  filteredCount: number,
+  isLoading: boolean,
+  isError: boolean
+): string {
   if (!showDropdown) return ''
+  if (isError) return 'Erreur de recherche'
   if (filteredCount > 0) {
     const plural = filteredCount > 1 ? 's' : ''
     return `${filteredCount} résultat${plural} disponible${plural}`
@@ -22,6 +30,8 @@ function liveMessage(showDropdown: boolean, filteredCount: number, isLoading: bo
 export function DropdownStatus({
   showDropdown,
   isLoading,
+  isError,
+  onRetry,
   filteredCount,
   query,
   debouncedQuery,
@@ -29,12 +39,23 @@ export function DropdownStatus({
   minChars,
   announcement,
 }: Props) {
-  const showNoResult = showDropdown && !isLoading && filteredCount === 0
+  const showError = showDropdown && isError
+  const showNoResult = showDropdown && !isLoading && !isError && filteredCount === 0
   const showMinChars = isOpen && debouncedQuery.length < minChars && query.length > 0
-  const showLoading = isLoading && filteredCount === 0
+  const showLoading = isLoading && filteredCount === 0 && !isError
 
   return (
     <>
+      {showError && (
+        <p className="search-select__empty search-select__empty--error" role="alert">
+          <span>Erreur de recherche</span>
+          {onRetry && (
+            <button type="button" className="search-select__retry" onClick={onRetry}>
+              Réessayer
+            </button>
+          )}
+        </p>
+      )}
       {showNoResult && <p className="search-select__empty">Aucun résultat</p>}
       {showMinChars && <p className="search-select__empty">Tapez au moins {minChars} caractères</p>}
       {showLoading && <p className="search-select__empty">Recherche…</p>}
@@ -43,7 +64,7 @@ export function DropdownStatus({
         {announcement}
       </div>
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {liveMessage(showDropdown, filteredCount, isLoading)}
+        {liveMessage(showDropdown, filteredCount, isLoading, isError)}
       </div>
     </>
   )

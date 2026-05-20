@@ -5,8 +5,9 @@ import {
   useInfiniteQuery,
 } from '@tanstack/react-query'
 import { Search, X } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
+import { useDebounce } from '@/hooks/useDebounce'
 import {
   ComboboxPrimitive,
   type ComboboxSection,
@@ -63,7 +64,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   debounce = 300,
 }: SearchComboboxProps<TItem, TQueryKey>) {
   const [query, setQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const debouncedQuery = useDebounce(query, debounce)
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -75,17 +76,20 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     setHighlightedIndex(-1)
   }
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), debounce)
-    return () => clearTimeout(timer)
-  }, [query, debounce])
-
-  const { data, isFetching, isPlaceholderData, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      ...queryFn(debouncedQuery),
-      enabled: debouncedQuery.length >= minChars,
-      placeholderData: (prev) => prev,
-    })
+  const {
+    data,
+    isFetching,
+    isPlaceholderData,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    isError,
+    refetch,
+  } = useInfiniteQuery({
+    ...queryFn(debouncedQuery),
+    enabled: debouncedQuery.length >= minChars,
+    placeholderData: (prev) => prev,
+  })
 
   const rawResults = data?.pages.flatMap((p) => p.items) ?? []
   const results = rawResults.map(toResult)
@@ -146,6 +150,10 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       onKeyDown={handleKeyDown}
       isLoading={isFetching && !isFetchingNextPage && !isPlaceholderData}
       isLoadingMore={isFetchingNextPage}
+      isError={isError}
+      onRetry={() => {
+        refetch()
+      }}
       hasMore={!!hasNextPage}
       onLoadMore={() => {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage()

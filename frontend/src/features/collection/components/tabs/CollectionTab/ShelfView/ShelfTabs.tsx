@@ -1,7 +1,7 @@
 import type { UserProductStatus } from '@habit-tracker/shared'
 
 import clsx from 'clsx'
-import { ChevronDown, Gem } from 'lucide-react'
+import { ChevronDown, Gem, type LucideIcon, RefreshCw } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
@@ -62,24 +62,33 @@ export function ShelfTabs({
     }),
   ]
 
-  const secondaryItems: { key: ShelfTabKey; label: string; count: number; color: string }[] = [
+  const secondaryItems: {
+    key: ShelfTabKey
+    label: string
+    count: number
+    color: string
+    icon: LucideIcon
+  }[] = [
     {
       key: 'holy_grail',
       label: 'Saint Graal',
       count: holyGrailCount,
       color: HOLY_GRAIL_COLOR,
+      icon: Gem,
     },
     {
       key: 'repurchase',
       label: 'À racheter',
       count: repurchaseCount,
       color: REPURCHASE_COLOR,
+      icon: RefreshCw,
     },
     ...SECONDARY_SHELF_ORDER.map((s) => ({
       key: s as ShelfTabKey,
       label: statusLabels[s].label,
       count: countsByStatus[s],
       color: NEUTRAL_SECONDARY_COLOR,
+      icon: statusLabels[s].icon,
     })),
   ]
 
@@ -115,18 +124,16 @@ export function ShelfTabs({
           >
             {activeSecondary ? (
               <>
-                <Gem size={14} aria-hidden="true" />
+                <activeSecondary.icon size={14} aria-hidden="true" />
                 <span>{activeSecondary.label}</span>
                 {activeSecondary.count > 0 && (
                   <span className="shelf-tabs-plus-badge">{activeSecondary.count}</span>
                 )}
               </>
             ) : (
-              <>
-                <span>Plus</span>
-                <ChevronDown size={14} aria-hidden="true" />
-              </>
+              <span>Plus</span>
             )}
+            <ChevronDown size={14} aria-hidden="true" className="shelf-tabs-plus-chevron" />
           </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content
@@ -135,8 +142,8 @@ export function ShelfTabs({
           className="shelf-tabs-plus-menu"
           ariaLabel="Filtres secondaires"
         >
-          {secondaryItems.map((item, idx) => (
-            <DropdownMenu.Item key={item.key} index={idx} onSelect={() => onChange(item.key)}>
+          {secondaryItems.map((item) => (
+            <DropdownMenu.Item key={item.key} onSelect={() => onChange(item.key)}>
               <button
                 type="button"
                 className={clsx(
