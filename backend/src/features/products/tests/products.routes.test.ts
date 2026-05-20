@@ -5,14 +5,10 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import {
-  authDelete,
-  authPatch,
-  authPost,
-  setupAndLogin,
-  setupAndLoginAdmin,
-} from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv } from '../../../tests/helpers/createTestClient'
+import type { TestClient } from '../../../tests/helpers/createTestClient'
+import { withAuth } from '../../../tests/helpers/createTestClient'
+import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -21,24 +17,27 @@ const VALID_PRODUCT = {
   category: 'complement',
   kind: 'gelule',
   unit: 'bottle',
-}
+} as const
 
 describe('Product Routes', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('POST /products', () => {
     it('should create a product with required fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/products', token, VALID_PRODUCT)
+      const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('create failed')
       expect(data.data.id).toBeDefined()
       expect(data.data.name).toBe('Vitamine C')
       expect(data.data.brand).toBe('Solgar')
@@ -48,17 +47,23 @@ describe('Product Routes', () => {
     it('should create a product with all optional fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/products', token, {
-        ...VALID_PRODUCT,
-        description: 'Antioxydant puissant',
-        totalAmount: 60,
-        amountUnit: 'capsule',
-        priceCents: 1500,
-        notes: 'À prendre le matin',
-      })
+      const res = await client.products.$post(
+        {
+          json: {
+            ...VALID_PRODUCT,
+            description: 'Antioxydant puissant',
+            totalAmount: 60,
+            amountUnit: 'capsule',
+            priceCents: 1500,
+            notes: 'À prendre le matin',
+          },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
       expect(data.data.description).toBe('Antioxydant puissant')
       expect(data.data.totalAmount).toBe(60)
       expect(data.data.amountUnit).toBe('capsule')
@@ -69,8 +74,9 @@ describe('Product Routes', () => {
     it('should store createdAt and updatedAt', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/products', token, VALID_PRODUCT)
+      const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
 
       expect(data.data.createdAt).toBeDefined()
       expect(data.data.updatedAt).toBeDefined()
@@ -79,11 +85,11 @@ describe('Product Routes', () => {
     it('should return 409 for duplicate name+brand', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      const res = await authPost(app, '/products', token, VALID_PRODUCT)
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.CONFLICT)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.success).toBe(false)
       expect(data.error).toBe('product_already_exists')
     })
@@ -91,44 +97,51 @@ describe('Product Routes', () => {
     it('should allow same name with different brands', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      const res = await authPost(app, '/products', token, { ...VALID_PRODUCT, brand: 'Now Foods' })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const res = await client.products.$post(
+        { json: { ...VALID_PRODUCT, brand: 'Now Foods' } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
     })
 
     it('should reject missing required fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/products', token, { name: 'Zinc' })
+      // Intentional invalid payload to verify schema validation.
+      const res = await client.products.$post(
+        { json: { name: 'Zinc' } as never },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(VALID_PRODUCT),
-      })
+      const res = await client.products.$post({ json: VALID_PRODUCT })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
     it('should reject request with invalid token', async () => {
-      const res = await authPost(app, '/products', 'invalid.token.here', VALID_PRODUCT)
+      const res = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth('invalid.token.here'),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
   describe('GET /products', () => {
     it('should return the correct paginated shape', async () => {
-      const res = await app.request('/products?category=skincare')
+      const res = await client.products.$get({ query: { category: 'skincare' } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveProperty('items')
       expect(data.data).toHaveProperty('total')
       expect(data.data).toHaveProperty('page')
@@ -136,100 +149,140 @@ describe('Product Routes', () => {
     })
 
     it('should return empty items when no products exist', async () => {
-      const res = await app.request('/products?category=skincare')
+      const res = await client.products.$get({ query: { category: 'skincare' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.items).toEqual([])
       expect(data.data.total).toBe(0)
     })
 
     it('should list all products within a domain without filters', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products?category=complement')
+      const res = await client.products.$get({ query: { category: 'complement' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.total).toBe(2)
       expect(data.data.items).toHaveLength(2)
     })
 
     it('should filter by kind', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Sérum C',
-        brand: 'The Ordinary',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum C',
+            brand: 'The Ordinary',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
+
+      const res = await client.products.$get({
+        query: { category: 'skincare', kind: 'serum' },
       })
 
-      const res = await app.request('/products?category=skincare&kind=serum')
-
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.total).toBe(1)
-      expect(data.data.items[0].kind).toBe('serum')
+      expect(data.data.items[0]?.kind).toBe('serum')
     })
 
     it('should reject kind that does not belong to the requested category', async () => {
       // Cross-category leak guard: ?category=skincare&kind=shampoo must 400.
-      const res = await app.request('/products?category=skincare&kind=shampoo')
-      expect(res.status).toBe(400)
+      const res = await client.products.$get({
+        query: { category: 'skincare', kind: 'shampoo' },
+      })
+      expect(res.status as number).toBe(400)
     })
 
     it('should accept solaire kinds on the skincare tab', async () => {
       // Skincare tab spans skincare/solaire/bodycare DB categories; sunscreen must pass.
-      const res = await app.request('/products?category=skincare&kind=sunscreen')
+      const res = await client.products.$get({
+        query: { category: 'skincare', kind: 'sunscreen' },
+      })
       expect(res.status).toBe(200)
     })
 
     it('should filter by brand', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Sérum C',
-        brand: 'CeraVe',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum C',
+            brand: 'CeraVe',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
+
+      const res = await client.products.$get({
+        query: { category: 'skincare', brand: 'CeraVe' },
       })
 
-      const res = await app.request('/products?category=skincare&brand=CeraVe')
-
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.total).toBe(1)
-      expect(data.data.items[0].brand).toBe('CeraVe')
+      expect(data.data.items[0]?.brand).toBe('CeraVe')
     })
 
     it('should paginate results', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
-      await authPost(app, '/products', token, {
-        name: 'Zinc',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Zinc',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products?category=complement&limit=2&page=1')
+      const res = await client.products.$get({
+        query: { category: 'complement', limit: '2', page: '1' },
+      })
 
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.items).toHaveLength(2)
       expect(data.data.total).toBe(3)
       expect(data.data.page).toBe(1)
@@ -238,59 +291,77 @@ describe('Product Routes', () => {
 
     it('should return page 2 correctly', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
-      await authPost(app, '/products', token, {
-        name: 'Zinc',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Zinc',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products?category=complement&limit=2&page=2')
+      const res = await client.products.$get({
+        query: { category: 'complement', limit: '2', page: '2' },
+      })
 
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.items).toHaveLength(1)
       expect(data.data.page).toBe(2)
     })
 
     it('should default to page=1 and limit=20', async () => {
-      const res = await app.request('/products?category=skincare')
+      const res = await client.products.$get({ query: { category: 'skincare' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data.page).toBe(1)
       expect(data.data.limit).toBe(20)
     })
 
     it('should return 400 for invalid limit', async () => {
-      const res = await app.request('/products?category=skincare&limit=999')
+      const res = await client.products.$get({
+        query: { category: 'skincare', limit: '999' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should not require authentication', async () => {
-      const res = await app.request('/products?category=skincare')
+      const res = await client.products.$get({ query: { category: 'skincare' } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
 
     it('should return each item with the correct summary fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, {
-        ...VALID_PRODUCT,
-        priceCents: 1500,
-      })
+      await client.products.$post(
+        { json: { ...VALID_PRODUCT, priceCents: 1500 } },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products?category=complement')
+      const res = await client.products.$get({ query: { category: 'complement' } })
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       const item = data.data.items[0]
+      if (!item) throw new Error('expected at least one item')
 
       expect(item).toHaveProperty('id')
       expect(item).toHaveProperty('slug')
@@ -310,14 +381,17 @@ describe('Product Routes', () => {
     it('should return the product by slug without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await app.request(`/products/${created.slug}`)
+      const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('get failed')
       expect(data.data.id).toBe(created.id)
       expect(data.data.slug).toBe(created.slug)
       expect(data.data.name).toBe('Vitamine C')
@@ -326,23 +400,30 @@ describe('Product Routes', () => {
     it('should also work when authenticated', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await app.request(`/products/${created.slug}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await client.products[':slug'].$get(
+        { param: { slug: created.slug } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.id).toBe(created.id)
     })
 
     it('should return 404 for unknown slug', async () => {
-      const res = await app.request('/products/slug-qui-nexiste-pas')
+      const res = await client.products[':slug'].$get({
+        param: { slug: 'slug-qui-nexiste-pas' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
+      // Error body shape comes from globalErrorHandler, outside the route's success union.
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.success).toBe(false)
       expect(data.error).toBe('product_not_found')
     })
@@ -350,56 +431,74 @@ describe('Product Routes', () => {
 
   describe('GET /products/brands', () => {
     it('returns an empty array when no products exist', async () => {
-      const res = await app.request('/products/brands')
+      const res = await client.products.brands.$get()
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('brands failed')
       expect(data.data).toEqual([])
     })
 
     it('returns distinct brand names sorted A→Z', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, {
-        name: 'Serum C',
-        brand: 'The Ordinary',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'bottle',
-      })
-      await authPost(app, '/products', token, {
-        name: 'SPF 50',
-        brand: 'Avène',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'bottle',
-      })
-      await authPost(app, '/products', token, {
-        name: 'Niacinamide',
-        brand: 'The Ordinary',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'bottle',
-      })
+      await client.products.$post(
+        {
+          json: {
+            name: 'Serum C',
+            brand: 'The Ordinary',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'SPF 50',
+            brand: 'Avène',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Niacinamide',
+            brand: 'The Ordinary',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products/brands')
+      const res = await client.products.brands.$get()
       expect(res.status).toBe(200)
       const data = await res.json()
+      if (!data.success) throw new Error('brands failed')
       expect(data.data).toEqual(['Avène', 'The Ordinary'])
     })
 
     it('does not require authentication', async () => {
-      const res = await app.request('/products/brands')
+      const res = await client.products.brands.$get()
       expect(res.status).toBe(200)
     })
   })
 
   describe('GET /products/filter-options', () => {
     it('should return the correct structure when empty', async () => {
-      const res = await app.request('/products/filter-options')
+      const res = await client.products['filter-options'].$get({ query: {} })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('filter-options failed')
       expect(data.data).toHaveProperty('kinds')
       expect(data.data).toHaveProperty('brands')
       expect(data.data).toHaveProperty('tagCounts')
@@ -410,17 +509,23 @@ describe('Product Routes', () => {
 
     it('should return populated kinds and brands after creating products', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Sérum C',
-        brand: 'CeraVe',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum C',
+            brand: 'CeraVe',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products/filter-options')
+      const res = await client.products['filter-options'].$get({ query: {} })
       const data = await res.json()
+      if (!data.success) throw new Error('filter-options failed')
 
       expect(data.data.kinds).toContain('gelule')
       expect(data.data.kinds).toContain('serum')
@@ -429,97 +534,124 @@ describe('Product Routes', () => {
     })
 
     it('should not require authentication', async () => {
-      const res = await app.request('/products/filter-options')
+      const res = await client.products['filter-options'].$get({ query: {} })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
   })
 
   describe('GET /products/filter-options?category=', () => {
     it('scopes brands and kinds to the requested tab', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, {
-        name: 'Sérum Vitamine C',
-        brand: 'Brand-Skincare',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
-      })
-      await authPost(app, '/products', token, {
-        name: 'Shampoo Doux',
-        brand: 'Brand-Haircare',
-        category: 'haircare',
-        kind: 'shampoo',
-        unit: 'bottle',
-      })
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum Vitamine C',
+            brand: 'Brand-Skincare',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Shampoo Doux',
+            brand: 'Brand-Haircare',
+            category: 'haircare',
+            kind: 'shampoo',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products/filter-options?category=haircare')
+      const res = await client.products['filter-options'].$get({
+        query: { category: 'haircare' },
+      })
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('filter-options failed')
       expect(data.data.brands).toEqual(['Brand-Haircare'])
       expect(data.data.kinds).toEqual(['shampoo'])
     })
 
     it('rejects unknown category value', async () => {
-      const res = await app.request('/products/filter-options?category=nope')
-      expect(res.status).toBe(400)
+      const res = await client.products['filter-options'].$get({
+        query: { category: 'nope' as never },
+      })
+      expect(res.status as number).toBe(400)
     })
   })
 
   describe('GET /products/check-duplicate', () => {
     it('should return an empty array when no similar products exist', async () => {
-      const res = await app.request('/products/check-duplicate?name=Niacinamide&brand=CeraVe')
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'Niacinamide', brand: 'CeraVe' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('check-duplicate failed')
       expect(data.data).toEqual([])
     })
 
     it('should return similar products for an exact name+brand match', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      const res = await app.request(
-        `/products/check-duplicate?name=${encodeURIComponent('Vitamine C')}&brand=Solgar`
-      )
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'Vitamine C', brand: 'Solgar' },
+      })
 
       const data = await res.json()
+      if (!data.success) throw new Error('check-duplicate failed')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].name).toBe('Vitamine C')
-      expect(data.data[0].brand).toBe('Solgar')
+      expect(data.data[0]?.name).toBe('Vitamine C')
+      expect(data.data[0]?.brand).toBe('Solgar')
     })
 
     it('should return 400 when name is missing', async () => {
-      const res = await app.request('/products/check-duplicate?brand=Solgar')
+      const res = await client.products['check-duplicate'].$get({
+        query: { brand: 'Solgar' } as never,
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return 400 when brand is missing', async () => {
-      const res = await app.request('/products/check-duplicate?name=Vitamine C')
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'Vitamine C' } as never,
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return 400 when name is too short', async () => {
-      const res = await app.request('/products/check-duplicate?name=A&brand=Solgar')
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'A', brand: 'Solgar' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return the correct shape for each result (id, name, brand, kind, slug)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      const res = await app.request(
-        `/products/check-duplicate?name=${encodeURIComponent('Vitamine C')}&brand=Solgar`
-      )
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'Vitamine C', brand: 'Solgar' },
+      })
 
       const data = await res.json()
+      if (!data.success) throw new Error('check-duplicate failed')
       expect(data.data).toHaveLength(1)
       const item = data.data[0]
+      if (!item) throw new Error('expected an item')
       expect(item).toHaveProperty('id')
       expect(item).toHaveProperty('name')
       expect(item).toHaveProperty('brand')
@@ -528,107 +660,138 @@ describe('Product Routes', () => {
     })
 
     it('should not require authentication', async () => {
-      const res = await app.request('/products/check-duplicate?name=Niacinamide&brand=CeraVe')
+      const res = await client.products['check-duplicate'].$get({
+        query: { name: 'Niacinamide', brand: 'CeraVe' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
   })
 
   describe('GET /products/search', () => {
     it('should return an empty array when nothing matches', async () => {
-      const res = await app.request('/products/search?q=xyzzyx')
+      const res = await client.products.search.$get({ query: { q: 'xyzzyx' } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toEqual([])
     })
 
     it('should return products matching by name', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}`)
+      const res = await client.products.search.$get({ query: { q: 'Vitamine' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toHaveLength(1)
-      expect(data.data.items[0].name).toBe('Vitamine C')
+      expect(data.data.items[0]?.name).toBe('Vitamine C')
     })
 
     it('should return products matching by brand', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Sérum C',
-        brand: 'CeraVe',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum C',
+            brand: 'CeraVe',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request('/products/search?q=CeraVe')
+      const res = await client.products.search.$get({ query: { q: 'CeraVe' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toHaveLength(1)
-      expect(data.data.items[0].brand).toBe('CeraVe')
+      expect(data.data.items[0]?.brand).toBe('CeraVe')
     })
 
     it('should be case-insensitive', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      const res = await app.request('/products/search?q=VITAMINE')
+      const res = await client.products.search.$get({ query: { q: 'VITAMINE' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toHaveLength(1)
     })
 
     it('should return 400 when q is missing', async () => {
-      const res = await app.request('/products/search')
+      const res = await client.products.search.$get({ query: {} as never })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should respect the limit query param', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
-      await authPost(app, '/products', token, {
-        name: 'Vitamine D',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
-      await authPost(app, '/products', token, {
-        name: 'Vitamine E',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      await client.products.$post(
+        {
+          json: {
+            name: 'Vitamine D',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Vitamine E',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}&limit=2`)
+      const res = await client.products.search.$get({
+        query: { q: 'Vitamine', limit: '2' },
+      })
 
       const data = await res.json()
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toHaveLength(2)
     })
 
     it('should return the correct shape (id, name, brand, kind, slug)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await authPost(app, '/products', token, VALID_PRODUCT)
+      await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
-      const res = await app.request(`/products/search?q=${encodeURIComponent('Vitamine')}`)
+      const res = await client.products.search.$get({ query: { q: 'Vitamine' } })
 
       const data = await res.json()
+      if (!data.success) throw new Error('search failed')
       expect(data.data.items).toHaveLength(1)
       const item = data.data.items[0]
+      if (!item) throw new Error('expected an item')
       expect(item).toHaveProperty('id')
       expect(item).toHaveProperty('name')
       expect(item).toHaveProperty('brand')
@@ -639,50 +802,69 @@ describe('Product Routes', () => {
     })
 
     it('should not require authentication', async () => {
-      const res = await app.request('/products/search?q=test')
+      const res = await client.products.search.$get({ query: { q: 'test' } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
   })
 
   describe('GET /products/by-ids', () => {
     it('should return products matching the requested ids in any order', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const a = await authPost(app, '/products', token, VALID_PRODUCT).then((r) => r.json())
-      const b = await authPost(app, '/products', token, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      }).then((r) => r.json())
+      const aRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const aData = await aRes.json()
+      if (!aData.success) throw new Error('create failed')
+      const bRes = await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token),
+      )
+      const bData = await bRes.json()
+      if (!bData.success) throw new Error('create failed')
 
-      const res = await app.request(`/products/by-ids?ids=${a.data.id},${b.data.id}`)
+      const res = await client.products['by-ids'].$get({
+        query: { ids: `${aData.data.id},${bData.data.id}` },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
-      const ids = data.data.map((p: { id: string }) => p.id).sort()
-      expect(ids).toEqual([a.data.id, b.data.id].sort())
+      if (!data.success) throw new Error('by-ids failed')
+      const ids = data.data.map((p) => p.id).sort()
+      expect(ids).toEqual([aData.data.id, bData.data.id].sort())
       expect(data.data[0]).toHaveProperty('name')
       expect(data.data[0]).toHaveProperty('brand')
     })
 
     it('should return 400 when ids is missing', async () => {
-      const res = await app.request('/products/by-ids')
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const res = await client.products['by-ids'].$get({ query: {} as never })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return 400 when an id is not a uuid', async () => {
-      const res = await app.request('/products/by-ids?ids=not-a-uuid')
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const res = await client.products['by-ids'].$get({ query: { ids: 'not-a-uuid' } })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should not require authentication', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const created = await authPost(app, '/products', token, VALID_PRODUCT).then((r) => r.json())
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
 
-      const res = await app.request(`/products/by-ids?ids=${created.data.id}`)
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      const res = await client.products['by-ids'].$get({
+        query: { ids: createData.data.id },
+      })
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
   })
 
@@ -690,17 +872,26 @@ describe('Product Routes', () => {
     it('should update product fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authPatch(app, `/products/${created.id}`, token, {
-        brand: 'Now Foods',
-        priceCents: 1200,
-      })
+      const res = await client.products[':id'].$patch(
+        {
+          param: { id: created.id },
+          json: { brand: 'Now Foods', priceCents: 1200 },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('patch failed')
       expect(data.data.brand).toBe('Now Foods')
       expect(data.data.priceCents).toBe(1200)
       expect(data.data.name).toBe('Vitamine C')
@@ -709,78 +900,118 @@ describe('Product Routes', () => {
     it('should not affect untouched fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, {
-        ...VALID_PRODUCT,
-        notes: 'Note initiale',
-      })
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: { ...VALID_PRODUCT, notes: 'Note initiale' } },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/products/${created.id}`, token, { brand: 'Now Foods' })
+      await client.products[':id'].$patch(
+        { param: { id: created.id }, json: { brand: 'Now Foods' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/${created.slug}`)
+      const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.notes).toBe('Note initiale')
     })
 
     it('should persist updates across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/products/${created.id}`, token, { notes: 'Mise à jour persistée' })
+      await client.products[':id'].$patch(
+        { param: { id: created.id }, json: { notes: 'Mise à jour persistée' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/${created.slug}`)
+      const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.notes).toBe('Mise à jour persistée')
     })
 
     it('should allow overwriting a previously set field', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/products/${created.id}`, token, { notes: 'première note' })
-      const updateRes = await authPatch(app, `/products/${created.id}`, token, {
-        notes: 'deuxième note',
-      })
-      const { data: updated } = await updateRes.json()
+      await client.products[':id'].$patch(
+        { param: { id: created.id }, json: { notes: 'première note' } },
+        withAuth(token),
+      )
+      const updateRes = await client.products[':id'].$patch(
+        { param: { id: created.id }, json: { notes: 'deuxième note' } },
+        withAuth(token),
+      )
+      const updateData = await updateRes.json()
+      if (!updateData.success) throw new Error('patch failed')
+      const updated = updateData.data
 
-      const res = await app.request(`/products/${updated.slug}`)
+      const res = await client.products[':slug'].$get({ param: { slug: updated.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.notes).toBe('deuxième note')
     })
 
     it('should return 404 for unknown id', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, `/products/${crypto.randomUUID()}`, token, { brand: 'X' })
+      const res = await client.products[':id'].$patch(
+        { param: { id: crypto.randomUUID() }, json: { brand: 'X' } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
       const data = await res.json()
-      expect(data.error).toBe('product_not_found')
+      if (!data.success) expect(data.error).toBe('product_not_found')
     })
 
     it('should reject unknown fields (strict schema)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(token),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authPatch(app, `/products/${created.id}`, token, { hackerField: 'oops' })
+      const res = await client.products[':id'].$patch(
+        {
+          param: { id: created.id },
+          json: { hackerField: 'oops' } as never,
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/products/${crypto.randomUUID()}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brand: 'X' }),
+      const res = await client.products[':id'].$patch({
+        param: { id: crypto.randomUUID() },
+        json: { brand: 'X' },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -789,59 +1020,94 @@ describe('Product Routes', () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(userToken),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authDelete(app, `/products/${created.id}`, adminToken)
+      const res = await client.products[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(adminToken),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.NO_CONTENT)
+      expect(res.status as number).toBe(HTTP_STATUS.NO_CONTENT)
     })
 
     it('should make the product unreachable by slug after deletion', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(userToken),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authDelete(app, `/products/${created.id}`, adminToken)
+      await client.products[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(adminToken),
+      )
 
-      const res = await app.request(`/products/${created.slug}`)
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
     })
 
     it('should not affect other products when deleting one', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await authPost(app, '/products', userToken, VALID_PRODUCT)
-      const r2 = await authPost(app, '/products', userToken, {
-        name: 'Magnésium',
-        brand: 'Solgar',
-        category: 'complement',
-        kind: 'gelule',
-        unit: 'bottle',
-      })
+      const r1 = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+      const r2 = await client.products.$post(
+        {
+          json: {
+            name: 'Magnésium',
+            brand: 'Solgar',
+            category: 'complement',
+            kind: 'gelule',
+            unit: 'bottle',
+          },
+        },
+        withAuth(userToken),
+      )
 
-      const { data: p1 } = await r1.json()
-      const { data: p2 } = await r2.json()
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (!d1.success || !d2.success) throw new Error('create failed')
+      const p1 = d1.data
+      const p2 = d2.data
 
-      await authDelete(app, `/products/${p1.id}`, adminToken)
+      await client.products[':id'].$delete(
+        { param: { id: p1.id } },
+        withAuth(adminToken),
+      )
 
-      const res = await app.request(`/products/${p2.slug}`)
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      const res = await client.products[':slug'].$get({ param: { slug: p2.slug } })
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
 
     it('should return 403 for non-admin user (unauthorized_access)', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/products', userToken, VALID_PRODUCT)
-      const { data: created } = await createRes.json()
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(userToken),
+      )
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authDelete(app, `/products/${created.id}`, userToken)
+      const res = await client.products[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(userToken),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.success).toBe(false)
       expect(data.error).toBe('unauthorized_access')
     })
@@ -849,18 +1115,23 @@ describe('Product Routes', () => {
     it('should return 404 for unknown id (product_not_found)', async () => {
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const res = await authDelete(app, `/products/${crypto.randomUUID()}`, adminToken)
+      const res = await client.products[':id'].$delete(
+        { param: { id: crypto.randomUUID() } },
+        withAuth(adminToken),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.success).toBe(false)
       expect(data.error).toBe('product_not_found')
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/products/${crypto.randomUUID()}`, { method: 'DELETE' })
+      const res = await client.products[':id'].$delete({
+        param: { id: crypto.randomUUID() },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 })

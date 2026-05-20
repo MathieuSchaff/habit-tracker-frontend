@@ -5,14 +5,10 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import {
-  authDelete,
-  authPatch,
-  authPost,
-  authPut,
-  setupAndLogin,
-} from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv } from '../../../tests/helpers/createTestClient'
+import type { TestClient } from '../../../tests/helpers/createTestClient'
+import { withAuth } from '../../../tests/helpers/createTestClient'
+import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -21,57 +17,84 @@ const VALID_PRODUCT = {
   category: 'skincare',
   kind: 'serum',
   unit: 'pump',
-}
+} as const
 
 describe('Product Ingredients Routes', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('GET /products/:productId/ingredients', () => {
     it('should return an empty list without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create failed')
+      const product = productData.data
 
-      const res = await app.request(`/products/${product.id}/ingredients`)
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toEqual([])
     })
 
     it('should return linked ingredients with joined details', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Rétinol',
-        type: 'skincare',
-        description: 'Dérivé de la vitamine A',
-        category: 'actif',
+      const ingredientRes = await client.ingredients.$post(
+        {
+          json: {
+            name: 'Rétinol',
+            type: 'skincare',
+            description: 'Dérivé de la vitamine A',
+            category: 'actif',
+          },
+        },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
+
+      await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: product.id },
+          json: {
+            ingredientId: ingredient.id,
+            concentrationValue: 0.5,
+            concentrationUnit: '%',
+          },
+        },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
       })
-      const { data: ingredient } = await ingredientRes.json()
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-        concentrationValue: 0.5,
-        concentrationUnit: '%',
-      })
-
-      const res = await app.request(`/products/${product.id}/ingredients`)
-
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveLength(1)
 
       const link = data.data[0]
+      if (!link) throw new Error('expected a link')
       expect(link.ingredientId).toBe(ingredient.id)
       expect(link.ingredientName).toBe('Rétinol')
       expect(link.ingredientSlug).toBe('retinol')
@@ -84,35 +107,54 @@ describe('Product Ingredients Routes', () => {
     it('should not return ingredients from other products', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const r1 = await authPost(app, '/products', token, VALID_PRODUCT)
-      const r2 = await authPost(app, '/products', token, {
-        name: 'Autre Sérum',
-        brand: 'CeraVe',
-        category: 'skincare',
-        kind: 'serum',
-        unit: 'pump',
-      })
-      const { data: p1 } = await r1.json()
-      const { data: p2 } = await r2.json()
+      const r1 = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const r2 = await client.products.$post(
+        {
+          json: {
+            name: 'Autre Sérum',
+            brand: 'CeraVe',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token),
+      )
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (!d1.success || !d2.success) throw new Error('create failed')
+      const p1 = d1.data
+      const p2 = d2.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      await authPost(app, `/products/${p1.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
+      await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: p1.id },
+          json: { ingredientId: ingredient.id },
+        },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/${p2.id}/ingredients`)
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: p2.id },
+      })
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveLength(0)
     })
 
     it('should return 400 for an invalid UUID', async () => {
-      const res = await app.request('/products/not-a-uuid/ingredients')
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: 'not-a-uuid' },
+      })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
   })
 
@@ -120,22 +162,31 @@ describe('Product Ingredients Routes', () => {
     it('should add an ingredient with only an ingredientId', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Zinc',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Zinc', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
+      const res = await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: product.id },
+          json: { ingredientId: ingredient.id },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('post failed')
       expect(data.data.productId).toBe(product.id)
       expect(data.data.ingredientId).toBe(ingredient.id)
       expect(data.data.concentrationValue).toBeNull()
@@ -146,25 +197,36 @@ describe('Product Ingredients Routes', () => {
     it('should add an ingredient with concentration details', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Rétinol',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Rétinol', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-        concentrationValue: 0.5,
-        concentrationUnit: '%',
-        concentrationPer: 'mL',
-        notes: 'Encapsulé',
-      })
+      const res = await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: product.id },
+          json: {
+            ingredientId: ingredient.id,
+            concentrationValue: 0.5,
+            concentrationUnit: '%',
+            concentrationPer: 'mL',
+            notes: 'Encapsulé',
+          },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
+      if (!data.success) throw new Error('post failed')
       expect(data.data.concentrationValue).toBe('0.5')
       expect(data.data.concentrationUnit).toBe('%')
       expect(data.data.concentrationPer).toBe('mL')
@@ -174,49 +236,60 @@ describe('Product Ingredients Routes', () => {
     it('should return 409 when adding the same ingredient twice', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
-      const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
+      )
+      const res = await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.CONFLICT)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.error).toBe('product_ingredient_already_exists')
     })
 
     it('should reject missing ingredientId', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const res = await authPost(app, `/products/${product.id}/ingredients`, token, {
-        concentrationValue: 5,
-      })
+      const res = await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: product.id },
+          json: { concentrationValue: 5 } as never,
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
       const fakeId = crypto.randomUUID()
-      const res = await app.request(`/products/${fakeId}/ingredients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredientId: crypto.randomUUID() }),
+      const res = await client.products[':productId'].ingredients.$post({
+        param: { productId: fakeId },
+        json: { ingredientId: crypto.randomUUID() },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -224,29 +297,36 @@ describe('Product Ingredients Routes', () => {
     it('should update concentration and notes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Rétinol',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Rétinol', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
-
-      const res = await authPatch(
-        app,
-        `/products/${product.id}/ingredients/${ingredient.id}`,
-        token,
-        { concentrationValue: 0.3, concentrationUnit: '%', notes: 'Microencapsulé' }
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
       )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$patch(
+        {
+          param: { productId: product.id, ingredientId: ingredient.id },
+          json: { concentrationValue: 0.3, concentrationUnit: '%', notes: 'Microencapsulé' },
+        },
+        withAuth(token),
+      )
+
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('patch failed')
       expect(data.data.concentrationValue).toBe('0.3')
       expect(data.data.concentrationUnit).toBe('%')
       expect(data.data.notes).toBe('Microencapsulé')
@@ -255,80 +335,99 @@ describe('Product Ingredients Routes', () => {
     it('should only update provided fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Rétinol',
-        type: 'skincare',
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Rétinol', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
+
+      await client.products[':productId'].ingredients.$post(
+        {
+          param: { productId: product.id },
+          json: {
+            ingredientId: ingredient.id,
+            concentrationValue: 5,
+            concentrationUnit: '%',
+            notes: 'Note initiale',
+          },
+        },
+        withAuth(token),
+      )
+
+      await client.products[':productId'].ingredients[':ingredientId'].$patch(
+        {
+          param: { productId: product.id, ingredientId: ingredient.id },
+          json: { notes: 'Note mise à jour' },
+        },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
       })
-      const { data: ingredient } = await ingredientRes.json()
-
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-        concentrationValue: 5,
-        concentrationUnit: '%',
-        notes: 'Note initiale',
-      })
-
-      await authPatch(app, `/products/${product.id}/ingredients/${ingredient.id}`, token, {
-        notes: 'Note mise à jour',
-      })
-
-      const res = await app.request(`/products/${product.id}/ingredients`)
       const data = await res.json()
-      expect(data.data[0].notes).toBe('Note mise à jour')
-      expect(data.data[0].concentrationValue).toBe('5')
-      expect(data.data[0].concentrationUnit).toBe('%')
+      if (!data.success) throw new Error('list failed')
+      expect(data.data[0]?.notes).toBe('Note mise à jour')
+      expect(data.data[0]?.concentrationValue).toBe('5')
+      expect(data.data[0]?.concentrationUnit).toBe('%')
     })
 
     it('should return 404 when the link does not exist', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
       const fakeIngredientId = crypto.randomUUID()
 
-      const res = await authPatch(
-        app,
-        `/products/${product.id}/ingredients/${fakeIngredientId}`,
-        token,
-        { notes: 'X' }
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$patch(
+        {
+          param: { productId: product.id, ingredientId: fakeIngredientId },
+          json: { notes: 'X' },
+        },
+        withAuth(token),
       )
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.error).toBe('product_ingredient_not_found')
     })
 
     it('should reject unknown fields (strict schema)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const res = await authPatch(
-        app,
-        `/products/${product.id}/ingredients/${crypto.randomUUID()}`,
-        token,
-        { unknownField: 'oops' }
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$patch(
+        {
+          param: { productId: product.id, ingredientId: crypto.randomUUID() },
+          json: { unknownField: 'oops' } as never,
+        },
+        withAuth(token),
       )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(
-        `/products/${crypto.randomUUID()}/ingredients/${crypto.randomUUID()}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notes: 'X' }),
-        }
-      )
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$patch({
+        param: { productId: crypto.randomUUID(), ingredientId: crypto.randomUUID() },
+        json: { notes: 'X' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -336,99 +435,134 @@ describe('Product Ingredients Routes', () => {
     it('should remove the ingredient link and return null', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
-
-      const res = await authDelete(
-        app,
-        `/products/${product.id}/ingredients/${ingredient.id}`,
-        token
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
       )
 
-      expect(res.status).toBe(HTTP_STATUS.NO_CONTENT)
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$delete(
+        { param: { productId: product.id, ingredientId: ingredient.id } },
+        withAuth(token),
+      )
+
+      expect(res.status as number).toBe(HTTP_STATUS.NO_CONTENT)
     })
 
     it('should make the link disappear from the list', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
+
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
+      )
+      await client.products[':productId'].ingredients[':ingredientId'].$delete(
+        { param: { productId: product.id, ingredientId: ingredient.id } },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
       })
-      const { data: ingredient } = await ingredientRes.json()
-
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
-      await authDelete(app, `/products/${product.id}/ingredients/${ingredient.id}`, token)
-
-      const res = await app.request(`/products/${product.id}/ingredients`)
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveLength(0)
     })
 
     it('should not affect other ingredient links', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const r1 = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
+      const r1 = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const r2 = await client.ingredients.$post(
+        { json: { name: 'Zinc', type: 'skincare' } },
+        withAuth(token),
+      )
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (!d1.success || !d2.success) throw new Error('create ingredient failed')
+      const i1 = d1.data
+      const i2 = d2.data
+
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: i1.id } },
+        withAuth(token),
+      )
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: i2.id } },
+        withAuth(token),
+      )
+
+      await client.products[':productId'].ingredients[':ingredientId'].$delete(
+        { param: { productId: product.id, ingredientId: i1.id } },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
       })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc', type: 'skincare' })
-      const { data: i1 } = await r1.json()
-      const { data: i2 } = await r2.json()
-
-      await authPost(app, `/products/${product.id}/ingredients`, token, { ingredientId: i1.id })
-      await authPost(app, `/products/${product.id}/ingredients`, token, { ingredientId: i2.id })
-
-      await authDelete(app, `/products/${product.id}/ingredients/${i1.id}`, token)
-
-      const res = await app.request(`/products/${product.id}/ingredients`)
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].ingredientId).toBe(i2.id)
+      expect(data.data[0]?.ingredientId).toBe(i2.id)
     })
 
     it('should return 404 when the link does not exist', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const res = await authDelete(
-        app,
-        `/products/${product.id}/ingredients/${crypto.randomUUID()}`,
-        token
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$delete(
+        { param: { productId: product.id, ingredientId: crypto.randomUUID() } },
+        withAuth(token),
       )
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
+      const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.error).toBe('product_ingredient_not_found')
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(
-        `/products/${crypto.randomUUID()}/ingredients/${crypto.randomUUID()}`,
-        { method: 'DELETE' }
-      )
+      const res = await client.products[':productId'].ingredients[':ingredientId'].$delete({
+        param: { productId: crypto.randomUUID(), ingredientId: crypto.randomUUID() },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -436,78 +570,124 @@ describe('Product Ingredients Routes', () => {
     it('should replace all ingredients', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const r1 = await authPost(app, '/ingredients', token, { name: 'Ancien', type: 'skincare' })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Nouveau', type: 'skincare' })
-      const { data: old } = await r1.json()
-      const { data: nouveau } = await r2.json()
+      const r1 = await client.ingredients.$post(
+        { json: { name: 'Ancien', type: 'skincare' } },
+        withAuth(token),
+      )
+      const r2 = await client.ingredients.$post(
+        { json: { name: 'Nouveau', type: 'skincare' } },
+        withAuth(token),
+      )
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (!d1.success || !d2.success) throw new Error('create ingredient failed')
+      const old = d1.data
+      const nouveau = d2.data
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: old.id,
-      })
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: old.id } },
+        withAuth(token),
+      )
 
-      const res = await authPut(app, `/products/${product.id}/ingredients`, token, {
-        ingredients: [{ ingredientId: nouveau.id, concentrationValue: 5, concentrationUnit: '%' }],
-      })
+      const res = await client.products[':productId'].ingredients.$put(
+        {
+          param: { productId: product.id },
+          json: {
+            ingredients: [
+              { ingredientId: nouveau.id, concentrationValue: 5, concentrationUnit: '%' },
+            ],
+          },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('put failed')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].ingredientId).toBe(nouveau.id)
-      expect(data.data[0].concentrationValue).toBe('5')
+      expect(data.data[0]?.ingredientId).toBe(nouveau.id)
+      expect(data.data[0]?.concentrationValue).toBe('5')
     })
 
     it('should clear all ingredients when given an empty array', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const ingredientRes = await authPost(app, '/ingredients', token, {
-        name: 'Rétinol',
-        type: 'skincare',
-      })
-      const { data: ingredient } = await ingredientRes.json()
+      const ingredientRes = await client.ingredients.$post(
+        { json: { name: 'Rétinol', type: 'skincare' } },
+        withAuth(token),
+      )
+      const ingredientData = await ingredientRes.json()
+      if (!ingredientData.success) throw new Error('create ingredient failed')
+      const ingredient = ingredientData.data
 
-      await authPost(app, `/products/${product.id}/ingredients`, token, {
-        ingredientId: ingredient.id,
-      })
+      await client.products[':productId'].ingredients.$post(
+        { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
+        withAuth(token),
+      )
 
-      const res = await authPut(app, `/products/${product.id}/ingredients`, token, {
-        ingredients: [],
-      })
+      const res = await client.products[':productId'].ingredients.$put(
+        { param: { productId: product.id }, json: { ingredients: [] } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('put failed')
       expect(data.data).toEqual([])
 
-      const listRes = await app.request(`/products/${product.id}/ingredients`)
+      const listRes = await client.products[':productId'].ingredients.$get({
+        param: { productId: product.id },
+      })
       const listData = await listRes.json()
+      if (!listData.success) throw new Error('list failed')
       expect(listData.data).toHaveLength(0)
     })
 
     it('should set productId correctly on all replaced entries', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const productData = await productRes.json()
+      if (!productData.success) throw new Error('create product failed')
+      const product = productData.data
 
-      const r1 = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
-      const r2 = await authPost(app, '/ingredients', token, { name: 'Zinc', type: 'skincare' })
-      const { data: i1 } = await r1.json()
-      const { data: i2 } = await r2.json()
+      const r1 = await client.ingredients.$post(
+        { json: { name: 'Niacinamide', type: 'skincare' } },
+        withAuth(token),
+      )
+      const r2 = await client.ingredients.$post(
+        { json: { name: 'Zinc', type: 'skincare' } },
+        withAuth(token),
+      )
+      const d1 = await r1.json()
+      const d2 = await r2.json()
+      if (!d1.success || !d2.success) throw new Error('create ingredient failed')
+      const i1 = d1.data
+      const i2 = d2.data
 
-      const res = await authPut(app, `/products/${product.id}/ingredients`, token, {
-        ingredients: [{ ingredientId: i1.id }, { ingredientId: i2.id }],
-      })
+      const res = await client.products[':productId'].ingredients.$put(
+        {
+          param: { productId: product.id },
+          json: {
+            ingredients: [{ ingredientId: i1.id }, { ingredientId: i2.id }],
+          },
+        },
+        withAuth(token),
+      )
 
       const data = await res.json()
+      if (!data.success) throw new Error('put failed')
       expect(data.data).toHaveLength(2)
       for (const link of data.data) {
         expect(link.productId).toBe(product.id)
@@ -515,13 +695,12 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/products/${crypto.randomUUID()}/ingredients`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients: [] }),
+      const res = await client.products[':productId'].ingredients.$put({
+        param: { productId: crypto.randomUUID() },
+        json: { ingredients: [] },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
 })

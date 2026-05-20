@@ -5,26 +5,30 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authGet, authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 describe('Privacy Settings Routes', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('GET /profile/privacy-settings', () => {
     it('returns default settings for a new user', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authGet(app, '/profile/privacy-settings', token)
+      const res = await client.profile['privacy-settings'].$get({}, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data).toEqual({
         profilePublic: false,
         bioPublic: false,
@@ -46,13 +50,19 @@ describe('Privacy Settings Routes', () => {
       const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
 
-      await authPatch(app, '/profile/privacy-settings', tokenToto, { profilePublic: true })
+      await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true } },
+        withAuth(tokenToto)
+      )
 
-      const resToto = await authGet(app, '/profile/privacy-settings', tokenToto)
-      const resAlice = await authGet(app, '/profile/privacy-settings', tokenAlice)
+      const resToto = await client.profile['privacy-settings'].$get({}, withAuth(tokenToto))
+      const resAlice = await client.profile['privacy-settings'].$get({}, withAuth(tokenAlice))
 
-      expect((await resToto.json()).data.profilePublic).toBe(true)
-      expect((await resAlice.json()).data.profilePublic).toBe(false)
+      const dataToto = await resToto.json()
+      const dataAlice = await resAlice.json()
+      if (!dataToto.success || !dataAlice.success) throw new Error('expected ok')
+      expect(dataToto.data.profilePublic).toBe(true)
+      expect(dataAlice.data.profilePublic).toBe(false)
     })
   })
 
@@ -60,34 +70,43 @@ describe('Privacy Settings Routes', () => {
     it('updates profilePublic', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, { profilePublic: true })
+      const res = await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.profilePublic).toBe(true)
     })
 
     it('updates aiConsent', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, { aiConsent: true })
+      const res = await client.profile['privacy-settings'].$patch(
+        { json: { aiConsent: true } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.aiConsent).toBe(true)
     })
 
     it('updates both fields at once', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, {
-        profilePublic: true,
-        aiConsent: true,
-      })
+      const res = await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true, aiConsent: true } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.profilePublic).toBe(true)
       expect(data.data.aiConsent).toBe(true)
     })
@@ -95,20 +114,32 @@ describe('Privacy Settings Routes', () => {
     it('persists changes across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile/privacy-settings', token, { profilePublic: true })
+      await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true } },
+        withAuth(token)
+      )
 
-      const res = await authGet(app, '/profile/privacy-settings', token)
-      expect((await res.json()).data.profilePublic).toBe(true)
+      const res = await client.profile['privacy-settings'].$get({}, withAuth(token))
+      const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
+      expect(data.data.profilePublic).toBe(true)
     })
 
     it('updating one field does not affect the other', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile/privacy-settings', token, { aiConsent: true })
+      await client.profile['privacy-settings'].$patch(
+        { json: { aiConsent: true } },
+        withAuth(token)
+      )
 
       // PATCH response itself must carry aiConsent: true (partial update must not reset it)
-      const res = await authPatch(app, '/profile/privacy-settings', token, { profilePublic: true })
+      const res = await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true } },
+        withAuth(token)
+      )
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.aiConsent).toBe(true)
       expect(data.data.profilePublic).toBe(true)
     })
@@ -143,14 +174,14 @@ describe('Privacy Settings Routes', () => {
     it('updates each profile-table sub-flag independently', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, {
-        bioPublic: true,
-        avatarPublic: true,
-        linksPublic: true,
-      })
+      const res = await client.profile['privacy-settings'].$patch(
+        { json: { bioPublic: true, avatarPublic: true, linksPublic: true } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.bioPublic).toBe(true)
       expect(data.data.avatarPublic).toBe(true)
       expect(data.data.linksPublic).toBe(true)
@@ -160,14 +191,20 @@ describe('Privacy Settings Routes', () => {
     it('updates dermo sub-flags even when dermo row does not exist yet', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, {
-        skinTypesPublic: true,
-        fitzpatrickPublic: true,
-        skinConcernsPublic: true,
-      })
+      const res = await client.profile['privacy-settings'].$patch(
+        {
+          json: {
+            skinTypesPublic: true,
+            fitzpatrickPublic: true,
+            skinConcernsPublic: true,
+          },
+        },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.skinTypesPublic).toBe(true)
       expect(data.data.fitzpatrickPublic).toBe(true)
       expect(data.data.skinConcernsPublic).toBe(true)
@@ -176,19 +213,25 @@ describe('Privacy Settings Routes', () => {
     it('updates all 8 flags in a single request', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, {
-        profilePublic: true,
-        bioPublic: true,
-        avatarPublic: true,
-        linksPublic: true,
-        skinTypesPublic: true,
-        fitzpatrickPublic: true,
-        skinConcernsPublic: true,
-        aiConsent: true,
-      })
+      const res = await client.profile['privacy-settings'].$patch(
+        {
+          json: {
+            profilePublic: true,
+            bioPublic: true,
+            avatarPublic: true,
+            linksPublic: true,
+            skinTypesPublic: true,
+            fitzpatrickPublic: true,
+            skinConcernsPublic: true,
+            aiConsent: true,
+          },
+        },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data).toEqual({
         profilePublic: true,
         bioPublic: true,

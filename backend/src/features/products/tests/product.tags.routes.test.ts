@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
-import type { Hono } from 'hono'
-
-import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authPost, authPut, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { expectStatus } from '../../../tests/helpers/expectStatus'
+import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
+
+type ApiErrorBody = { success: false; error: string; details?: unknown }
+type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 
 const VALID_PRODUCT = {
   name: 'Sérum Vitamine C',
@@ -15,205 +16,225 @@ const VALID_PRODUCT = {
   category: 'skincare',
   kind: 'serum',
   unit: 'pump',
+} as const
+
+async function createProduct(client: TestClient, token: string, overrides: Record<string, string> = {}) {
+  const res = await client.products.$post(
+    { json: { ...VALID_PRODUCT, ...overrides } },
+    withAuth(token),
+  )
+  const data = await res.json()
+  if (!data.success) throw new Error('create product failed')
+  return data.data
+}
+
+async function createProductTag(
+  client: TestClient,
+  token: string,
+  body: { name: string; category?: string; slug?: string },
+) {
+  const res = await client['product-tags'].$post({ json: body }, withAuth(token))
+  const data = await res.json()
+  if (!data.success) throw new Error('create product-tag failed')
+  return data.data
 }
 
 describe('Product Tags Routes', () => {
-  let app: Hono<AppEnv>
+  let app: TestApp
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    ;({ app, client } = await createTestEnv())
   })
 
   describe('GET /products/:productId/tags', () => {
     it('should return an empty array when no tags are linked (no auth required)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const res = await app.request(`/products/${product.id}/tags`)
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: product.id },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('list tags failed')
       expect(data.data).toEqual([])
     })
 
     it('should return linked tags with the correct shape', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
-
-      const tagRes = await authPost(app, '/product-tags', token, {
+      const product = await createProduct(client, token)
+      const tag = await createProductTag(client, token, {
         name: 'Anti-acné',
         category: 'concern',
         slug: 'acne',
       })
-      const { data: tag } = await tagRes.json()
 
-      await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: tag.id, relevance: 'primary' }],
+      await client.products[':productId'].tags.$put(
+        {
+          param: { productId: product.id },
+          json: { tags: [{ tagId: tag.id, relevance: 'primary' }] },
+        },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: product.id },
       })
-
-      const res = await app.request(`/products/${product.id}/tags`)
       const data = await res.json()
+      if (!data.success) throw new Error('list tags failed')
 
       expect(data.data).toHaveLength(1)
       const item = data.data[0]
-      expect(item.productTagId).toBe(tag.id)
-      expect(item.productId).toBe(product.id)
-      expect(item.relevance).toBe('primary')
-      expect(item.tagName).toBe('Anti-acné')
-      expect(item.tagSlug).toBe('acne')
-      expect(item.tagCategory).toBe('concern')
+      expect(item?.productTagId).toBe(tag.id)
+      expect(item?.productId).toBe(product.id)
+      expect(item?.relevance).toBe('primary')
+      expect(item?.tagName).toBe('Anti-acné')
+      expect(item?.tagSlug).toBe('acne')
+      expect(item?.tagCategory).toBe('concern')
     })
 
     it('should not return tags from other products', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const p1Res = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: p1 } = await p1Res.json()
+      const p1 = await createProduct(client, token)
+      const p2 = await createProduct(client, token, { name: 'Autre Sérum' })
 
-      const p2Res = await authPost(app, '/products', token, {
-        ...VALID_PRODUCT,
-        name: 'Autre Sérum',
+      const tag = await createProductTag(client, token, { name: 'Hydratant', category: 'concern' })
+
+      await client.products[':productId'].tags.$put(
+        { param: { productId: p2.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: p1.id },
       })
-      const { data: p2 } = await p2Res.json()
-
-      const tagRes = await authPost(app, '/product-tags', token, {
-        name: 'Hydratant',
-        category: 'concern',
-      })
-      const { data: tag } = await tagRes.json()
-
-      await authPut(app, `/products/${p2.id}/tags`, token, {
-        tags: [{ tagId: tag.id }],
-      })
-
-      const res = await app.request(`/products/${p1.id}/tags`)
       const data = await res.json()
+      if (!data.success) throw new Error('list tags failed')
 
       expect(data.data).toEqual([])
     })
 
     it('should return 400 for a non-UUID productId', async () => {
-      const res = await app.request('/products/not-a-uuid/tags')
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: 'not-a-uuid' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
   })
 
   describe('PUT /products/:productId/tags', () => {
     it('should replace tags and return inserted rows', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const t1Res = await authPost(app, '/product-tags', token, {
-        name: 'Anti-âge',
-        category: 'concern',
-      })
-      const { data: t1 } = await t1Res.json()
-      const t2Res = await authPost(app, '/product-tags', token, {
+      const t1 = await createProductTag(client, token, { name: 'Anti-âge', category: 'concern' })
+      const t2 = await createProductTag(client, token, {
         name: 'Peau grasse',
         category: 'skin_type',
       })
-      const { data: t2 } = await t2Res.json()
 
-      const res = await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: t1.id }, { tagId: t2.id, relevance: 'avoid' }],
-      })
-
-      expect(res.status).toBe(HTTP_STATUS.OK)
-      const data = await res.json()
-      expect(data.success).toBe(true)
-      expect(data.data).toHaveLength(2)
-      expect(data.data.map((r: { productTagId: string }) => r.productTagId).sort()).toEqual(
-        [t1.id, t2.id].sort()
+      const res = await client.products[':productId'].tags.$put(
+        {
+          param: { productId: product.id },
+          json: { tags: [{ tagId: t1.id }, { tagId: t2.id, relevance: 'avoid' }] },
+        },
+        withAuth(token),
       )
+
+      expectStatus(res, HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('put tags failed')
+      expect(data.data).toHaveLength(2)
+      expect(data.data.map((r) => r.productTagId).sort()).toEqual([t1.id, t2.id].sort())
     })
 
     it('should replace existing tags (not append)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const t1Res = await authPost(app, '/product-tags', token, {
-        name: 'Tag A',
-        category: 'concern',
-      })
-      const { data: t1 } = await t1Res.json()
-      const t2Res = await authPost(app, '/product-tags', token, {
-        name: 'Tag B',
-        category: 'concern',
-      })
-      const { data: t2 } = await t2Res.json()
+      const t1 = await createProductTag(client, token, { name: 'Tag A', category: 'concern' })
+      const t2 = await createProductTag(client, token, { name: 'Tag B', category: 'concern' })
 
-      await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: t1.id }],
-      })
-      await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: t2.id }],
-      })
+      await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: t1.id }] } },
+        withAuth(token),
+      )
+      await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: t2.id }] } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/products/${product.id}/tags`)
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: product.id },
+      })
       const data = await res.json()
+      if (!data.success) throw new Error('list tags failed')
 
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].productTagId).toBe(t2.id)
+      expect(data.data[0]?.productTagId).toBe(t2.id)
     })
 
     it('should clear all tags when given an empty array', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const tagRes = await authPost(app, '/product-tags', token, {
-        name: 'Rides',
-        category: 'concern',
-      })
-      const { data: tag } = await tagRes.json()
+      const tag = await createProductTag(client, token, { name: 'Rides', category: 'concern' })
 
-      await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: tag.id }],
-      })
-      const clearRes = await authPut(app, `/products/${product.id}/tags`, token, { tags: [] })
+      await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(token),
+      )
+      const clearRes = await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [] } },
+        withAuth(token),
+      )
 
-      expect(clearRes.status).toBe(HTTP_STATUS.OK)
+      expectStatus(clearRes, HTTP_STATUS.OK)
       const clearData = await clearRes.json()
+      if (!clearData.success) throw new Error('clear failed')
       expect(clearData.data).toEqual([])
 
-      const getRes = await app.request(`/products/${product.id}/tags`)
+      const getRes = await client.products[':productId'].tags.$get({
+        param: { productId: product.id },
+      })
       const getData = await getRes.json()
+      if (!getData.success) throw new Error('list failed')
       expect(getData.data).toEqual([])
     })
 
     it('should not affect tags of other products', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const p1Res = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: p1 } = await p1Res.json()
-      const p2Res = await authPost(app, '/products', token, { ...VALID_PRODUCT, name: 'Autre' })
-      const { data: p2 } = await p2Res.json()
+      const p1 = await createProduct(client, token)
+      const p2 = await createProduct(client, token, { name: 'Autre' })
 
-      const tagRes = await authPost(app, '/product-tags', token, {
-        name: 'Hydratant',
-        category: 'concern',
+      const tag = await createProductTag(client, token, { name: 'Hydratant', category: 'concern' })
+
+      await client.products[':productId'].tags.$put(
+        { param: { productId: p1.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(token),
+      )
+      await client.products[':productId'].tags.$put(
+        { param: { productId: p2.id }, json: { tags: [] } },
+        withAuth(token),
+      )
+
+      const res = await client.products[':productId'].tags.$get({
+        param: { productId: p1.id },
       })
-      const { data: tag } = await tagRes.json()
-
-      await authPut(app, `/products/${p1.id}/tags`, token, { tags: [{ tagId: tag.id }] })
-      await authPut(app, `/products/${p2.id}/tags`, token, { tags: [] })
-
-      const res = await app.request(`/products/${p1.id}/tags`)
       const data = await res.json()
+      if (!data.success) throw new Error('list failed')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].productTagId).toBe(tag.id)
+      expect(data.data[0]?.productTagId).toBe(tag.id)
     })
 
     it('should reject an unauthenticated request', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
       const res = await app.request(`/products/${product.id}/tags`, {
         method: 'PUT',
@@ -221,44 +242,51 @@ describe('Product Tags Routes', () => {
         body: JSON.stringify({ tags: [] }),
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
 
     it('should return 400 for a non-UUID productId', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPut(app, '/products/not-a-uuid/tags', token, { tags: [] })
+      const res = await client.products[':productId'].tags.$put(
+        { param: { productId: 'not-a-uuid' }, json: { tags: [] } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return 400 when the body is missing the tags field', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const res = await authPut(app, `/products/${product.id}/tags`, token, {})
+      const res = await client.products[':productId'].tags.$put(
+        // @ts-expect-error — missing required tags field; testing schema rejection
+        { param: { productId: product.id }, json: {} },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject a tag whose category does not belong to the product domain', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const tagRes = await authPost(app, '/product-tags', token, {
+      const tag = await createProductTag(client, token, {
         name: 'Cheveux bouclés',
         category: 'hair_type',
       })
-      const { data: tag } = await tagRes.json()
 
-      const res = await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: tag.id }],
-      })
+      const res = await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
-      const body = await res.json()
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
+      const body = (await res.json()) as unknown as ApiErrorBody & {
+        details: { domain: string; invalidTags: Array<{ slug: string; tagType: string }> }
+      }
       expect(body.success).toBe(false)
       expect(body.error).toBe('tag_domain_mismatch')
       expect(body.details.domain).toBe('skincare')
@@ -267,38 +295,42 @@ describe('Product Tags Routes', () => {
 
     it('should reject the whole batch when one tag mismatches and preserve existing links', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const productRes = await authPost(app, '/products', token, VALID_PRODUCT)
-      const { data: product } = await productRes.json()
+      const product = await createProduct(client, token)
 
-      const seedRes = await authPost(app, '/product-tags', token, {
+      const seedTag = await createProductTag(client, token, {
         name: 'Hydratation',
         category: 'concern',
       })
-      const { data: seedTag } = await seedRes.json()
-      await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: seedTag.id }],
-      })
+      await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: seedTag.id }] } },
+        withAuth(token),
+      )
 
-      const validRes = await authPost(app, '/product-tags', token, {
+      const validTag = await createProductTag(client, token, {
         name: 'Anti-âge',
         category: 'concern',
       })
-      const { data: validTag } = await validRes.json()
-      const invalidRes = await authPost(app, '/product-tags', token, {
+      const invalidTag = await createProductTag(client, token, {
         name: 'Cheveux fins',
         category: 'hair_type',
       })
-      const { data: invalidTag } = await invalidRes.json()
 
-      const res = await authPut(app, `/products/${product.id}/tags`, token, {
-        tags: [{ tagId: validTag.id }, { tagId: invalidTag.id }],
+      const res = await client.products[':productId'].tags.$put(
+        {
+          param: { productId: product.id },
+          json: { tags: [{ tagId: validTag.id }, { tagId: invalidTag.id }] },
+        },
+        withAuth(token),
+      )
+
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
+      const getRes = await client.products[':productId'].tags.$get({
+        param: { productId: product.id },
       })
-
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
-      const getRes = await app.request(`/products/${product.id}/tags`)
       const getData = await getRes.json()
+      if (!getData.success) throw new Error('list failed')
       expect(getData.data).toHaveLength(1)
-      expect(getData.data[0].productTagId).toBe(seedTag.id)
+      expect(getData.data[0]?.productTagId).toBe(seedTag.id)
     })
   })
 })

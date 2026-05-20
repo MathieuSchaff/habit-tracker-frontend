@@ -4,7 +4,7 @@ Clés publiques versionnées dans le repo. **Aucune clé privée ne doit jamais 
 
 ## `aurore-backup.pub.asc`
 
-Clé publique GPG utilisée par `just db-backup-prod` pour chiffrer les dumps DB avant écriture disque sur le VPS. Importée sur le VPS au moment du déploiement initial (cf. `docs/02-engineering/ops/runbook.md` — section "Setup chiffrement backups (one-shot)").
+Clé publique GPG utilisée par `just db-backup-prod` pour chiffrer les dumps DB avant écriture disque sur le VPS. Importée sur le VPS au moment du déploiement initial.
 
 - **Recipient** : `backup@aurore.local`
 - **Algorithme** : RSA 4096

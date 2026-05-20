@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import type { Product } from '../../../db/schema/products'
-import type { UserProduct } from '../../../db/schema/user-products'
-import type { User } from '../../../db/schema/users'
 import { createProduct } from '../../../features/products/service'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -11,10 +8,14 @@ import { addPurchase, finishPurchase, getPurchases, openPurchase } from '../purc
 import { PurchaseError } from '../purchase-error'
 import { createUserProduct } from '../service'
 
+// User/Product/UserProduct types kept structural — `createTestUser` returns a
+// union (signup success vs email_exists path) and tests only need `id`.
+type WithId = { id: string }
+
 describe('Purchase Service', () => {
-  let user: User | undefined
-  let product: Product | undefined
-  let userProduct: UserProduct | undefined
+  let user!: WithId
+  let product!: WithId
+  let userProduct!: WithId
 
   beforeEach(async () => {
     await cleanDatabase()

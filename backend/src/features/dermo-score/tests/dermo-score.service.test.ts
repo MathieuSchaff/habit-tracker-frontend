@@ -28,7 +28,7 @@ async function makeProduct(opts: {
       kind: opts.kind ?? 'serum',
       unit: 'pump',
       category: 'skincare',
-      inci: opts.inci,
+      inci: opts.inci ?? undefined,
     },
     testDb
   )

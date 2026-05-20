@@ -37,7 +37,7 @@ describe('Security Middleware — product routes', () => {
         url: 'javascript:alert(document.cookie)',
       })
       expect(res.status).toBe(403)
-      const data = await res.json()
+      const data = (await res.json()) as { success: false; error: string }
       expect(data.success).toBe(false)
       expect(data.error).toBe('forbidden')
     })

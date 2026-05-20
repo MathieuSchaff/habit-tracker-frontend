@@ -6,7 +6,7 @@ import { loginAsSeed } from './helpers/auth'
 // (itemsRef survit aux re-renders), D3 (Escape menu ne ferme pas la Sheet),
 // D15 (focus return même si trigger reparent éventuellement).
 // Site #1 du composant DropdownMenu — celui qui a déclenché l'audit
-// 2026-05-20. Cf docs/02-engineering/audits/2026-05-20-dropdown-menu.md.
+// 2026-05-20.
 
 test.beforeEach(async ({ page }) => {
   await loginAsSeed(page)

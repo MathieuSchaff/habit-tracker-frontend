@@ -1,0 +1,107 @@
+# =========================
+# Configuration DEV (surcharges)
+# Utilisation: docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml up
+# =========================
+
+services:
+  db:
+    # Port exposé pour accès direct depuis l'hôte (DBeaver, pgAdmin, etc.)
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: ../../..
+      dockerfile: infra/docker/images/backend/Dockerfile
+      target: dev
+
+    volumes:
+      # 🔥 Volumes nommés pour isoler node_modules du host
+      - root_node_modules:/app/node_modules
+      - backend_node_modules:/app/backend/node_modules
+      - /app/shared/node_modules
+
+      # 🔥 Bind mounts (src rw pour génération types, dist rw pour écriture)
+      - ../../../package.json:/app/package.json:ro
+      - ../../../bun.lock:/app/bun.lock
+      - ../../../tsconfig.json:/app/tsconfig.json:ro
+      - ../../../backend:/app/backend
+      - ../../../shared/package.json:/app/shared/package.json:ro
+      - ../../../shared/src:/app/shared/src # rw pour hot reload
+      - ../../../shared/dist:/app/shared/dist # rw pour écriture types
+      - ../../../shared/tsconfig.json:/app/shared/tsconfig.json:ro
+      - ../../../backend/tsconfig.json:/app/backend/tsconfig.json:ro
+
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      LOG_LEVEL: debug
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+      FRONTEND_URL: ${FRONTEND_URL}
+
+    ports:
+      - "3000:3000"
+
+    command: sh -c "cd /app/backend && bun --watch src/index.ts"
+
+  frontend:
+    build:
+      context: ../../..
+      dockerfile: infra/docker/images/frontend/Dockerfile.dev
+
+    ports:
+      - "5173:5173"
+
+    # ─────────────────────────────────────────────────────────────
+    # VOLUMES : Même logique, mais ici c'est backend/ en :ro
+    # ─────────────────────────────────────────────────────────────
+    volumes:
+      # 🔥 Volumes nommés pour isoler node_modules du host
+      - root_node_modules:/app/node_modules
+      - frontend_node_modules:/app/frontend/node_modules
+      - /app/shared/node_modules
+      - /app/backend/node_modules
+
+      # 🔥 Bind mounts (lecture seule pour tout)
+      - ../../../package.json:/app/package.json:ro
+      - ../../../bun.lock:/app/bun.lock:ro
+      - ../../../frontend:/app/frontend
+      - ../../../shared/package.json:/app/shared/package.json:ro
+      - ../../../shared/src:/app/shared/src:ro
+      - ../../../shared/dist:/app/shared/dist:ro
+      - ../../../backend/dist:/app/backend/dist:ro
+      - ../../../shared/tsconfig.json:/app/shared/tsconfig.json:ro
+      - ../../../backend/tsconfig.json:/app/backend/tsconfig.json:ro
+
+    environment:
+      - VITE_API_URL=http://api:3000
+
+    # command: sh -c "cd /app/backend && bun --watch src/index.ts"
+    # command: sh -c "cd /app && bun install && cd /app/frontend && bun run dev --host 0.0.0.0"
+    command: sh -c "cd /app/frontend && bun run dev --host 0.0.0.0"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Désactive nginx en dev (accès direct à l'API et au frontend)
+  nginx:
+    profiles: ["disabled"]
+
+  # Désactive certbot en dev (pas besoin de SSL en local)
+  certbot:
+    profiles: ["disabled"]
+
+# Déclaration obligatoire des volumes nommés utilisés dans les services.
+# Sans cette section, Docker Compose refuse de démarrer.
+# Docker les préfixe automatiquement avec le nom du projet : habit-tracker_<nom>
+# Contrairement aux bind mounts (./dossier), ces volumes sont gérés par Docker
+# et stockés dans /var/lib/docker/volumes/ — jamais écrasés par tes fichiers locaux.
+volumes:
+  root_node_modules:
+  backend_node_modules:
+  frontend_node_modules:

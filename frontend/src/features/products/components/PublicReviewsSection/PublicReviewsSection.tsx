@@ -13,7 +13,7 @@ interface PublicReviewsSectionProps {
   slug: string
 }
 
-// Doc-prescribed neutral labels (cf docs/04-design-ux/ux-writing.md).
+// Doc-prescribed neutral labels.
 // Tight wording, no medical, no winners, no scores.
 const AXIS_LABELS: Record<ReviewAxisKey, string> = {
   tolerance: 'Tolérance',

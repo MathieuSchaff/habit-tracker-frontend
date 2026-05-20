@@ -3,38 +3,29 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
-import type { Hono } from 'hono'
 
-import type { AppEnv } from '../../../app-env'
 import { userBans } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
+import { createTestClient, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestAdminUser, createTestUser } from '../../../tests/helpers/test-factories'
 import { _banCacheSize, clearBanCache } from '../ban.service'
 
-function jsonPost(app: Hono<AppEnv>, path: string, body: object, headers?: Record<string, string>) {
-  return app.request(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify(body),
-  })
-}
-
-async function login(app: Hono<AppEnv>, email: string, password: string) {
-  const res = await jsonPost(app, '/auth/login', { email, password })
+async function login(client: TestClient, email: string, password: string): Promise<string> {
+  const res = await client.auth.login.$post({ json: { email, password } })
   const data = await res.json()
-  return data.data.accessToken as string
+  if (!data.success) throw new Error('login failed in ban-test setup')
+  return data.data.accessToken
 }
 
 describe('Ban enforcement (requireNotBanned)', () => {
-  let app: Hono<AppEnv>
+  let client: TestClient
   let userId: string
   let adminId: string
   let token: string
 
   beforeEach(async () => {
-    app = await createTestApp()
+    client = await createTestClient()
     clearBanCache()
     const toto = TEST_CREDENTIALS.toto
     const admin = TEST_CREDENTIALS.admin
@@ -42,7 +33,7 @@ describe('Ban enforcement (requireNotBanned)', () => {
     const adminUser = await createTestAdminUser(admin.rawEmail, admin.rawPassword)
     userId = user.id
     adminId = adminUser.id
-    token = await login(app, toto.rawEmail, toto.rawPassword)
+    token = await login(client, toto.rawEmail, toto.rawPassword)
   })
 
   afterEach(() => {
@@ -57,11 +48,10 @@ describe('Ban enforcement (requireNotBanned)', () => {
       reason: 'spam',
     })
 
-    const res = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await client.auth.session.$get({}, withAuth(token))
 
-    expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+    // Middleware-issued 403 is outside the route's inferred status union.
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
     const body = await res.json()
     expect(body).toMatchObject({
       success: false,
@@ -79,17 +69,13 @@ describe('Ban enforcement (requireNotBanned)', () => {
       expiresAt: pastIso,
     })
 
-    const res = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await client.auth.session.$get({}, withAuth(token))
 
     expect(res.status).toBe(HTTP_STATUS.OK)
   })
 
   it('allows /session when user is not banned', async () => {
-    const res = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await client.auth.session.$get({}, withAuth(token))
 
     expect(res.status).toBe(HTTP_STATUS.OK)
   })
@@ -101,9 +87,7 @@ describe('Ban enforcement (requireNotBanned)', () => {
       bannedBy: adminId,
     })
 
-    const res = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await client.auth.session.$get({}, withAuth(token))
 
     expect(res.status).toBe(HTTP_STATUS.OK)
   })
@@ -115,24 +99,18 @@ describe('Ban enforcement (requireNotBanned)', () => {
       bannedBy: adminId,
     })
 
-    const first = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    expect(first.status).toBe(HTTP_STATUS.FORBIDDEN)
+    const first = await client.auth.session.$get({}, withAuth(token))
+    expect(first.status as number).toBe(HTTP_STATUS.FORBIDDEN)
     expect(_banCacheSize()).toBe(1)
 
     // Delete the row out-of-band: cache should still return banned within TTL.
     await testDb.delete(userBans).where(eq(userBans.userId, userId))
-    const second = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    expect(second.status).toBe(HTTP_STATUS.FORBIDDEN)
+    const second = await client.auth.session.$get({}, withAuth(token))
+    expect(second.status as number).toBe(HTTP_STATUS.FORBIDDEN)
 
     // Invalidate cache: request now reads fresh state.
     clearBanCache()
-    const third = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const third = await client.auth.session.$get({}, withAuth(token))
     expect(third.status).toBe(HTTP_STATUS.OK)
   })
 
@@ -144,12 +122,17 @@ describe('Ban enforcement (requireNotBanned)', () => {
       { userId, scope: 'global', bannedBy: adminId, reason: 'recent', createdAt: recentIso },
     ])
 
-    const res = await app.request('/auth/session', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await client.auth.session.$get({}, withAuth(token))
 
-    expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
     const body = await res.json()
-    expect(body.details.reason).toBe('recent')
+    // Banned-shape response is delivered by middleware, outside the route's
+    // inferred response union — narrow with a runtime cast.
+    const bannedBody = body as unknown as {
+      success: false
+      error: 'banned'
+      details: { reason: string | null; expiresAt: string | null }
+    }
+    expect(bannedBody.details.reason).toBe('recent')
   })
 })

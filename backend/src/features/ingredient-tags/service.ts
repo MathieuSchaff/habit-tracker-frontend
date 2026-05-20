@@ -12,7 +12,6 @@ import { createTagService } from '../_tags/lib/createTagService'
 // groupings) and regenerating Drizzle wrappers later costs more than
 // the ~60 LOC kept. KEEP BY DESIGN: if a future audit re-flags them,
 // the correct fix is to wire admin routes (Phase 2), NOT to delete.
-// Rationale: docs/02-engineering/audits/2026-05-16/p2-2.2-ingredient-tags-routes.md
 
 type IngredientTagLink = typeof tagIngredients.$inferSelect
 

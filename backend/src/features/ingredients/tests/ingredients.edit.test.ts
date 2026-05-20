@@ -19,14 +19,14 @@ let user: any
 async function makeIngredient(
   name: string,
   extra: {
-    type?: string
+    type?: 'skincare' | 'haircare' | 'dental' | 'supplement'
     description?: string
     content?: string
     category?: string
     slug?: string
   } = {}
 ) {
-  return createIngredient(testDb, user.id, { name, type: 'skincare', ...extra })
+  return createIngredient(testDb, user.id, { name, type: 'skincare' as const, ...extra })
 }
 
 describe('updateIngredient — exhaustive', () => {

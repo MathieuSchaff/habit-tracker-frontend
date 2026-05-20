@@ -79,11 +79,13 @@ frontend/.playwright/
 pgdata/
 
 # =========================
-docs/
 !backend/src/db/seed/docs/
 !backend/src/features/auto-tagging/docs/
 frontend/.tanstack/tmp/
 scripts/*
+!scripts/just/
+!scripts/just/**
+!scripts/*.sh
 
 # =========================
 backend/src/db/seed/output/

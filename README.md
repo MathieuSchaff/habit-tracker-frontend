@@ -48,7 +48,7 @@ collect products → understand formulas → compare candidates
 
 - Email + password (Argon2 via Bun) or Google OAuth
 - Short-lived access token (15 min, memory) + refresh token (7 d, HttpOnly cookie, rotated)
-- Row-Level Security at the Postgres level — see [`SECURITY.md`](./SECURITY.md)
+- Row-Level Security at the Postgres level — see [`SECURITY.md`](./docs/SECURITY.md)
 
 ---
 
@@ -167,10 +167,10 @@ aurore/
 ├── frontend/           # React SPA (Vite + TanStack Router/Query)
 ├── shared/             # Shared Zod schemas (source of truth)
 ├── vendor/             # Vendored deps (algo-derm tarball)
-├── nginx/              # Reverse proxy (production)
+├── infra/              # Docker, Nginx, keys, ops config
 ├── backups/            # DB backups
-├── just/               # Command entry point
-└── docker-compose.yml  # PostgreSQL 18
+├── scripts/            # Automation scripts (incl. just recipes)
+├── docs/               # Public project docs
 ```
 
 ---
@@ -231,7 +231,7 @@ just clean && just dev-fresh  # nuclear reset
 ## Production
 
 1. Create `.env.prod` from `.env.example`
-2. Update the domain and email in `just/ops.just` (`ssl-init`)
+2. Update the domain and email in `scripts/just/ops.just` (`ssl-init`)
 3. `just prod-migrate` — apply migrations
 4. `just prod` — start services
 5. `just ssl-init` — generate SSL certificate
@@ -240,5 +240,5 @@ just clean && just dev-fresh  # nuclear reset
 
 ## Related docs
 
-- [`SECURITY.md`](./SECURITY.md) — auth model, RLS, DB role separation
-- [`PRIVACY.md`](./PRIVACY.md) — RGPD policy, data handling
+- [`SECURITY.md`](./docs/SECURITY.md) — auth model, RLS, DB role separation
+- [`PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy, data handling

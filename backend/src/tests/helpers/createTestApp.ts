@@ -49,7 +49,8 @@ export async function createTestApp() {
   // Register all routes.
   // Note: Project has inconsistent test path conventions (/api prefix vs no prefix).
   // This baseline follows the original structure to minimize breakage.
-  app
+  // Chain reassigned to preserve route types for testClient<typeof app>() RPC inference.
+  const routedApp = app
     .route('/auth', jwtAuthRoutes)
     .route('/health', healthRoute)
     .route('/profile', profileRoute)
@@ -70,5 +71,7 @@ export async function createTestApp() {
     .route('/articles', articleRoutes)
     .route('/api/uploads', uploadsRoutes)
 
-  return app
+  return routedApp
 }
+
+export type TestAppType = Awaited<ReturnType<typeof createTestApp>>
