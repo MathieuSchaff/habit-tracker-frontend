@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { createProductSchema } from '@habit-tracker/shared'
 import type { CreateProductInput } from '@habit-tracker/shared'
+import { createProductSchema } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
@@ -201,7 +201,10 @@ describe('Product Service', () => {
     it('should filter by brand', async () => {
       await makeProduct('Sérum A', 'The Ordinary')
       await makeProduct('Sérum B', 'CeraVe')
-      const result = await listProducts({ category: 'skincare', brand: 'CeraVe', page: 1, limit: 20 }, testDb)
+      const result = await listProducts(
+        { category: 'skincare', brand: 'CeraVe', page: 1, limit: 20 },
+        testDb
+      )
       expect(result.total).toBe(1)
       expect(result.items[0]?.brand).toBe('CeraVe')
     })
@@ -209,7 +212,10 @@ describe('Product Service', () => {
     it('should filter by kind', async () => {
       await makeProduct('Sérum A', 'Brand', 'serum')
       await makeProduct('Zinc', 'Brand', 'gelule', 'capsule', { category: 'complement' })
-      const result = await listProducts({ category: 'skincare', kind: 'serum', page: 1, limit: 20 }, testDb)
+      const result = await listProducts(
+        { category: 'skincare', kind: 'serum', page: 1, limit: 20 },
+        testDb
+      )
       expect(result.total).toBe(1)
     })
 
@@ -217,20 +223,29 @@ describe('Product Service', () => {
       it('should match products whose name contains q (case-insensitive)', async () => {
         await makeProduct('Sérum Matifiant', 'BrandA')
         await makeProduct('Crème hydratante', 'BrandB')
-        const result = await listProducts({ category: 'skincare', q: 'matifi', page: 1, limit: 20 }, testDb)
+        const result = await listProducts(
+          { category: 'skincare', q: 'matifi', page: 1, limit: 20 },
+          testDb
+        )
         expect(result.items.map((p) => p.name)).toEqual(['Sérum Matifiant'])
       })
 
       it('should match products whose brand contains q', async () => {
         await makeProduct('Crème jour', 'Matifico')
         await makeProduct('Crème nuit', 'OtherBrand')
-        const result = await listProducts({ category: 'skincare', q: 'matifi', page: 1, limit: 20 }, testDb)
+        const result = await listProducts(
+          { category: 'skincare', q: 'matifi', page: 1, limit: 20 },
+          testDb
+        )
         expect(result.items.map((p) => p.name)).toEqual(['Crème jour'])
       })
 
       it('should return empty when q matches nothing', async () => {
         await makeProduct('Sérum', 'Brand')
-        const result = await listProducts({ category: 'skincare', q: 'xyzqwerty', page: 1, limit: 20 }, testDb)
+        const result = await listProducts(
+          { category: 'skincare', q: 'xyzqwerty', page: 1, limit: 20 },
+          testDb
+        )
         expect(result.items).toHaveLength(0)
       })
     })
@@ -506,7 +521,10 @@ describe('Product Service', () => {
         })
         await replaceProductTags(testDb, product.id, [{ tagId: tag.id, relevance: 'primary' }])
 
-        const result = await listProducts({ category: 'skincare', concern: 'acne', page: 1, limit: 20 }, testDb)
+        const result = await listProducts(
+          { category: 'skincare', concern: 'acne', page: 1, limit: 20 },
+          testDb
+        )
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Sérum acné')
       })
@@ -615,7 +633,11 @@ describe('Product Service', () => {
         const unshelved = await makeProduct('Pas sur étagère', 'B')
         await createUserProduct(user.id, { productId: shelved.id, status: 'in_stock' }, testDb)
 
-        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb, user.id)
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 20 },
+          testDb,
+          user.id
+        )
         const flagged = result.items.find((p) => p.id === shelved.id)
         const plain = result.items.find((p) => p.id === unshelved.id)
         expect(flagged?.userStatus).toBe('in_stock')
@@ -628,7 +650,11 @@ describe('Product Service', () => {
         const product = await makeProduct('Produit partagé', 'A')
         await createUserProduct(other.id, { productId: product.id, status: 'in_stock' }, testDb)
 
-        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb, user.id)
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 20 },
+          testDb,
+          user.id
+        )
         expect(result.items[0]?.userStatus).toBeNull()
       })
     })

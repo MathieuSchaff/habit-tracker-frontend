@@ -18,10 +18,14 @@ const VALID_PRODUCT = {
   unit: 'pump',
 } as const
 
-async function createProduct(client: TestClient, token: string, overrides: Record<string, string> = {}) {
+async function createProduct(
+  client: TestClient,
+  token: string,
+  overrides: Record<string, string> = {}
+) {
   const res = await client.products.$post(
     { json: { ...VALID_PRODUCT, ...overrides } },
-    withAuth(token),
+    withAuth(token)
   )
   const data = await res.json()
   if (!data.success) throw new Error('create product failed')
@@ -31,7 +35,7 @@ async function createProduct(client: TestClient, token: string, overrides: Recor
 async function createProductTag(
   client: TestClient,
   token: string,
-  body: { name: string; category?: string; slug?: string },
+  body: { name: string; category?: string; slug?: string }
 ) {
   const res = await client['product-tags'].$post({ json: body }, withAuth(token))
   const data = await res.json()
@@ -76,7 +80,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: tag.id, relevance: 'primary' }] },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -105,7 +109,7 @@ describe('Product Tags Routes', () => {
 
       await client.products[':productId'].tags.$put(
         { param: { productId: p2.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -142,7 +146,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: t1.id }, { tagId: t2.id, relevance: 'avoid' }] },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -161,11 +165,11 @@ describe('Product Tags Routes', () => {
 
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: t1.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: t2.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -186,11 +190,11 @@ describe('Product Tags Routes', () => {
 
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
       const clearRes = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(clearRes, HTTP_STATUS.OK)
@@ -216,11 +220,11 @@ describe('Product Tags Routes', () => {
 
       await client.products[':productId'].tags.$put(
         { param: { productId: p1.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products[':productId'].tags.$put(
         { param: { productId: p2.id }, json: { tags: [] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -250,7 +254,7 @@ describe('Product Tags Routes', () => {
 
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: 'not-a-uuid' }, json: { tags: [] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -263,7 +267,7 @@ describe('Product Tags Routes', () => {
       const res = await client.products[':productId'].tags.$put(
         // @ts-expect-error — missing required tags field; testing schema rejection
         { param: { productId: product.id }, json: {} },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -280,7 +284,7 @@ describe('Product Tags Routes', () => {
 
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -303,7 +307,7 @@ describe('Product Tags Routes', () => {
       })
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: seedTag.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const validTag = await createProductTag(client, token, {
@@ -320,7 +324,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: validTag.id }, { tagId: invalidTag.id }] },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)

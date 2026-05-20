@@ -61,10 +61,7 @@ describe('Dermo Profile Routes', () => {
 
     it('should persist dermo profile across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await client.profile.dermo.$patch(
-        { json: { skinTypes: ['peau-grasse'] } },
-        withAuth(token)
-      )
+      await client.profile.dermo.$patch({ json: { skinTypes: ['peau-grasse'] } }, withAuth(token))
       const res = await client.profile.dermo.$get({}, withAuth(token))
       const data = await res.json()
       if (!data.success) throw new Error('expected ok')
@@ -82,10 +79,7 @@ describe('Dermo Profile Routes', () => {
         },
         withAuth(token)
       )
-      await client.profile.dermo.$patch(
-        { json: { fitzpatrickType: 3 } },
-        withAuth(token)
-      )
+      await client.profile.dermo.$patch({ json: { fitzpatrickType: 3 } }, withAuth(token))
       const res = await client.profile.dermo.$get({}, withAuth(token))
       const data = await res.json()
       if (!data.success) throw new Error('expected ok')

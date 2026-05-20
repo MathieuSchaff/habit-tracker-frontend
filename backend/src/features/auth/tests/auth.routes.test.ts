@@ -5,7 +5,11 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import { testDb } from '../../../tests/db.test.config'
-import { createTestClient, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import {
+  createTestClient,
+  type TestClient,
+  withAuth,
+} from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 
@@ -409,10 +413,7 @@ describe('Auth Routes (browser)', () => {
         creds.rawPassword
       )
 
-      const res = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: loginCookie } },
-      )
+      const res = await client.auth.refresh.$post({}, { headers: { Cookie: loginCookie } })
 
       expect(res.status).toBe(HTTP_STATUS.OK)
 
@@ -437,7 +438,7 @@ describe('Auth Routes (browser)', () => {
     it('should fail with invalid refresh cookie', async () => {
       const res = await client.auth.refresh.$post(
         {},
-        { headers: { Cookie: 'refresh_token=invalid.token.here' } },
+        { headers: { Cookie: 'refresh_token=invalid.token.here' } }
       )
 
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
@@ -455,16 +456,10 @@ describe('Auth Routes (browser)', () => {
         creds.rawPassword
       )
 
-      const res1 = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: loginCookie } },
-      )
+      const res1 = await client.auth.refresh.$post({}, { headers: { Cookie: loginCookie } })
       expect(res1.status).toBe(HTTP_STATUS.OK)
 
-      const res2 = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: loginCookie } },
-      )
+      const res2 = await client.auth.refresh.$post({}, { headers: { Cookie: loginCookie } })
       expect(res2.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
@@ -478,10 +473,7 @@ describe('Auth Routes (browser)', () => {
       )
 
       for (let i = 0; i < 3; i++) {
-        const res = await client.auth.refresh.$post(
-          {},
-          { headers: { Cookie: currentCookie } },
-        )
+        const res = await client.auth.refresh.$post({}, { headers: { Cookie: currentCookie } })
         expect(res.status).toBe(HTTP_STATUS.OK)
 
         const data = await res.json()
@@ -499,10 +491,7 @@ describe('Auth Routes (browser)', () => {
       await createTestUser(creds.rawEmail, creds.rawPassword)
       const { cookie } = await loginAndGetCookies(client, creds.rawEmail, creds.rawPassword)
 
-      const res = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: cookie } },
-      )
+      const res = await client.auth.refresh.$post({}, { headers: { Cookie: cookie } })
 
       const data = await res.json()
       if (!data.success) throw new Error('refresh failed')
@@ -527,7 +516,7 @@ describe('Auth Routes (browser)', () => {
             Cookie: cookie,
             Authorization: `Bearer ${accessToken}`,
           },
-        },
+        }
       )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
@@ -548,7 +537,7 @@ describe('Auth Routes (browser)', () => {
     it('should reject logout with invalid access token', async () => {
       const res = await client.auth.logout.$post(
         {},
-        { headers: { Authorization: 'Bearer invalid.token.here' } },
+        { headers: { Authorization: 'Bearer invalid.token.here' } }
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
@@ -570,13 +559,10 @@ describe('Auth Routes (browser)', () => {
             Cookie: cookie,
             Authorization: `Bearer ${accessToken}`,
           },
-        },
+        }
       )
 
-      const refreshRes = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: cookie } },
-      )
+      const refreshRes = await client.auth.refresh.$post({}, { headers: { Cookie: cookie } })
       expect(refreshRes.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
@@ -596,7 +582,7 @@ describe('Auth Routes (browser)', () => {
             Cookie: cookie,
             Authorization: `Bearer ${accessToken}`,
           },
-        },
+        }
       )
 
       const reloginRes = await client.auth.login.$post({
@@ -626,12 +612,12 @@ describe('Auth Routes (browser)', () => {
             Cookie: totoSession.cookie,
             Authorization: `Bearer ${totoSession.accessToken}`,
           },
-        },
+        }
       )
 
       const aliceRefresh = await client.auth.refresh.$post(
         {},
-        { headers: { Cookie: aliceSession.cookie } },
+        { headers: { Cookie: aliceSession.cookie } }
       )
       expect(aliceRefresh.status).toBe(HTTP_STATUS.OK)
     })
@@ -663,7 +649,7 @@ describe('Auth Routes (browser)', () => {
     it('should reject request with invalid access token', async () => {
       const res = await client.auth.session.$get(
         {},
-        { headers: { Authorization: 'Bearer invalid.token.here' } },
+        { headers: { Authorization: 'Bearer invalid.token.here' } }
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
@@ -685,7 +671,7 @@ describe('Auth Routes (browser)', () => {
             Cookie: cookie,
             Authorization: `Bearer ${accessToken}`,
           },
-        },
+        }
       )
     })
 
@@ -811,8 +797,7 @@ describe('Auth Routes (browser)', () => {
       await createTestUser(creds.rawEmail, creds.rawPassword)
       const { accessToken } = await loginAndGetCookies(client, creds.rawEmail, creds.rawPassword)
 
-      const makeRequest = () =>
-        client.auth['resend-verification'].$post({}, withAuth(accessToken))
+      const makeRequest = () => client.auth['resend-verification'].$post({}, withAuth(accessToken))
 
       await makeRequest()
       await makeRequest()
@@ -875,10 +860,7 @@ describe('Auth Routes (browser)', () => {
       )
       expect(accessToken).toBeDefined()
 
-      const refreshRes = await client.auth.refresh.$post(
-        {},
-        { headers: { Cookie: cookie } },
-      )
+      const refreshRes = await client.auth.refresh.$post({}, { headers: { Cookie: cookie } })
       expect(refreshRes.status).toBe(HTTP_STATUS.OK)
       const refreshData = await refreshRes.json()
       if (!refreshData.success) throw new Error('refresh failed')
@@ -898,13 +880,13 @@ describe('Auth Routes (browser)', () => {
             Cookie: newCookie,
             Authorization: `Bearer ${newAccessToken}`,
           },
-        },
+        }
       )
       expect(logoutRes.status).toBe(HTTP_STATUS.OK)
 
       const postLogoutRefresh = await client.auth.refresh.$post(
         {},
-        { headers: { Cookie: newCookie } },
+        { headers: { Cookie: newCookie } }
       )
       expect(postLogoutRefresh.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })

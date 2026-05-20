@@ -15,12 +15,9 @@ type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 async function createIngredient(
   client: TestClient,
   token: string,
-  name = 'Rétinol',
+  name = 'Rétinol'
 ): Promise<IngredientHandle> {
-  const res = await client.ingredients.$post(
-    { json: { name, type: 'skincare' } },
-    withAuth(token),
-  )
+  const res = await client.ingredients.$post({ json: { name, type: 'skincare' } }, withAuth(token))
   const data = await res.json()
   if (!data.success) throw new Error('create ingredient failed')
   return { id: data.data.id, slug: data.data.slug }
@@ -63,7 +60,7 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
@@ -101,7 +98,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CREATED)
@@ -118,11 +115,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
@@ -134,7 +131,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: 'not-a-uuid' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -162,11 +159,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client.ingredients[':ingredientId'].tags[':tagId'].$delete(
         { param: { ingredientId: ingredient.id, tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NO_CONTENT)
@@ -179,11 +176,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.ingredients[':ingredientId'].tags[':tagId'].$delete(
         { param: { ingredientId: ingredient.id, tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
@@ -215,11 +212,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag1.id } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client.ingredients[':ingredientId'].tags.$put(
         { param: { ingredientId: ingredient.id }, json: { tags: [{ tagId: tag2.id }] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -236,11 +233,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client.ingredients[':ingredientId'].tags.$put(
         { param: { ingredientId: ingredient.id }, json: { tags: [] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)

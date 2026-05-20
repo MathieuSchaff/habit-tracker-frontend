@@ -40,7 +40,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'].$post(
         { json: { name: 'Peau grasse', category: 'skin_type' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CREATED)
@@ -55,7 +55,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'].$post(
         { json: { name: 'Rides et Ridules' } },
-        withAuth(token),
+        withAuth(token)
       )
       const data = await res.json()
       if (!data.success) throw new Error('create tag failed')
@@ -68,7 +68,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'].$post(
         { json: { name: 'Éclat', slug: 'eclat-custom' } },
-        withAuth(token),
+        withAuth(token)
       )
       const data = await res.json()
       if (!data.success) throw new Error('create tag failed')
@@ -89,13 +89,10 @@ describe('Product Tag Routes', () => {
     it('should return 409 for duplicate slug', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await client['product-tags'].$post(
-        { json: { name: 'Acné', slug: 'acne' } },
-        withAuth(token),
-      )
+      await client['product-tags'].$post({ json: { name: 'Acné', slug: 'acne' } }, withAuth(token))
       const res = await client['product-tags'].$post(
         { json: { name: 'Acné Bis', slug: 'acne' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
@@ -110,7 +107,7 @@ describe('Product Tag Routes', () => {
       const res = await client['product-tags'].$post(
         // @ts-expect-error — missing required name; testing schema rejection
         { json: { category: 'skin_type' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -129,7 +126,7 @@ describe('Product Tag Routes', () => {
     it('should reject request with invalid token', async () => {
       const res = await client['product-tags'].$post(
         { json: VALID_TAG },
-        withAuth('invalid.token.here'),
+        withAuth('invalid.token.here')
       )
 
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
@@ -164,7 +161,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$get(
         { param: { id: created.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -197,7 +194,7 @@ describe('Product Tag Routes', () => {
 
       const createRes = await client['product-tags'].$post(
         { json: { name: 'Rides' } },
-        withAuth(token),
+        withAuth(token)
       )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create tag failed')
@@ -205,7 +202,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$patch(
         { param: { id: created.id }, json: { name: 'Rides et Ridules', category: 'concern' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -225,7 +222,7 @@ describe('Product Tag Routes', () => {
 
       await client['product-tags'][':id'].$patch(
         { param: { id: created.id }, json: { name: 'Anti-âge Pro' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client['product-tags'][':id'].$get({ param: { id: created.id } })
@@ -239,7 +236,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$patch(
         { param: { id: crypto.randomUUID() }, json: { name: 'X' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -252,11 +249,11 @@ describe('Product Tag Routes', () => {
 
       await client['product-tags'].$post(
         { json: { name: 'Éclat', slug: 'eclat' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2 = await client['product-tags'].$post(
         { json: { name: 'Luminosité' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2Data = await r2.json()
       if (!r2Data.success) throw new Error('create tag failed')
@@ -264,7 +261,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$patch(
         { param: { id: t2.id }, json: { name: 'Éclat', slug: 'eclat' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
@@ -294,7 +291,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$delete(
         { param: { id: created.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -312,10 +309,7 @@ describe('Product Tag Routes', () => {
       if (!createData.success) throw new Error('create tag failed')
       const created = createData.data
 
-      await client['product-tags'][':id'].$delete(
-        { param: { id: created.id } },
-        withAuth(token),
-      )
+      await client['product-tags'][':id'].$delete({ param: { id: created.id } }, withAuth(token))
 
       const res = await client['product-tags'][':id'].$get({ param: { id: created.id } })
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -327,7 +321,7 @@ describe('Product Tag Routes', () => {
       const r1 = await client['product-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const r2 = await client['product-tags'].$post(
         { json: { name: 'Hydratation' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const r1Data = await r1.json()
@@ -336,10 +330,7 @@ describe('Product Tag Routes', () => {
       const t1 = r1Data.data
       const t2 = r2Data.data
 
-      await client['product-tags'][':id'].$delete(
-        { param: { id: t1.id } },
-        withAuth(token),
-      )
+      await client['product-tags'][':id'].$delete({ param: { id: t1.id } }, withAuth(token))
 
       const res = await client['product-tags'][':id'].$get({ param: { id: t2.id } })
       expectStatus(res, HTTP_STATUS.OK)
@@ -350,7 +341,7 @@ describe('Product Tag Routes', () => {
 
       const res = await client['product-tags'][':id'].$delete(
         { param: { id: crypto.randomUUID() } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NOT_FOUND)

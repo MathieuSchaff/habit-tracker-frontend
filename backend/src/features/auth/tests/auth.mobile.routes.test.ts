@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
-import { createTestClient, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import {
+  createTestClient,
+  type TestClient,
+  withAuth,
+} from '../../../tests/helpers/createTestClient'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 
 async function mobileLogin(client: TestClient, email: string, password: string) {
@@ -191,7 +195,7 @@ describe('Auth Routes (mobile)', () => {
 
       const res = await client.auth.mobile.logout.$post(
         { json: { refreshToken: loginData.data.refreshToken } },
-        withAuth(loginData.data.accessToken),
+        withAuth(loginData.data.accessToken)
       )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
@@ -214,7 +218,7 @@ describe('Auth Routes (mobile)', () => {
 
       await client.auth.mobile.logout.$post(
         { json: { refreshToken: loginData.data.refreshToken } },
-        withAuth(loginData.data.accessToken),
+        withAuth(loginData.data.accessToken)
       )
 
       const refreshRes = await client.auth.mobile.refresh.$post({
@@ -230,7 +234,7 @@ describe('Auth Routes (mobile)', () => {
 
       const res = await client.auth.mobile.logout.$post(
         { json: {} },
-        withAuth(loginData.data.accessToken),
+        withAuth(loginData.data.accessToken)
       )
 
       expect(res.status).toBe(HTTP_STATUS.OK)

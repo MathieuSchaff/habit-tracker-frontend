@@ -176,10 +176,7 @@ describe('Profile Routes', () => {
     it('should not affect other fields when updating one', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await client.profile.$patch(
-        { json: { username: 'myname', bio: 'my bio' } },
-        withAuth(token)
-      )
+      await client.profile.$patch({ json: { username: 'myname', bio: 'my bio' } }, withAuth(token))
       await client.profile.$patch({ json: { username: 'updated' } }, withAuth(token))
 
       const res = await client.profile.$get({}, withAuth(token))
@@ -244,10 +241,7 @@ describe('Profile Routes', () => {
 
     it('should accept bio at exactly 500 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await client.profile.$patch(
-        { json: { bio: 'a'.repeat(500) } },
-        withAuth(token)
-      )
+      const res = await client.profile.$patch({ json: { bio: 'a'.repeat(500) } }, withAuth(token))
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 

@@ -80,10 +80,7 @@ describe('Tasks API', () => {
 
   describe('POST /tasks', () => {
     it('creates a task with title only', async () => {
-      const res = await client.tasks.$post(
-        { json: { title: 'Écrire le plan' } },
-        withAuth(token)
-      )
+      const res = await client.tasks.$post({ json: { title: 'Écrire le plan' } }, withAuth(token))
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const json = await res.json()
       expect(json.success).toBe(true)
@@ -195,10 +192,7 @@ describe('Tasks API', () => {
       if (!createData.success) throw new Error('expected ok')
       const task = createData.data
 
-      const res = await client.tasks[':id'].$delete(
-        { param: { id: task.id } },
-        withAuth(token)
-      )
+      const res = await client.tasks[':id'].$delete({ param: { id: task.id } }, withAuth(token))
       expect(res.status).toBe(HTTP_STATUS.OK)
 
       const listRes = await client.tasks.$get({}, withAuth(token))
@@ -210,10 +204,7 @@ describe('Tasks API', () => {
 
   describe('Subtasks', () => {
     it('creates and lists subtasks with correct order', async () => {
-      const createRes = await client.tasks.$post(
-        { json: { title: 'Projet' } },
-        withAuth(token)
-      )
+      const createRes = await client.tasks.$post({ json: { title: 'Projet' } }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('expected ok')
       const task = createData.data

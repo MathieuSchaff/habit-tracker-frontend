@@ -5,9 +5,8 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestEnv } from '../../../tests/helpers/createTestClient'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
-import { withAuth } from '../../../tests/helpers/createTestClient'
+import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
 import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
@@ -58,7 +57,7 @@ describe('Product Routes', () => {
             notes: 'À prendre le matin',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.CREATED)
@@ -100,7 +99,7 @@ describe('Product Routes', () => {
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const res = await client.products.$post(
         { json: { ...VALID_PRODUCT, brand: 'Now Foods' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.CREATED)
@@ -110,10 +109,7 @@ describe('Product Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       // Intentional invalid payload to verify schema validation.
-      const res = await client.products.$post(
-        { json: { name: 'Zinc' } as never },
-        withAuth(token),
-      )
+      const res = await client.products.$post({ json: { name: 'Zinc' } as never }, withAuth(token))
 
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
@@ -127,7 +123,7 @@ describe('Product Routes', () => {
     it('should reject request with invalid token', async () => {
       const res = await client.products.$post(
         { json: VALID_PRODUCT },
-        withAuth('invalid.token.here'),
+        withAuth('invalid.token.here')
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
@@ -170,7 +166,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.$get({ query: { category: 'complement' } })
@@ -194,7 +190,7 @@ describe('Product Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.$get({
@@ -236,7 +232,7 @@ describe('Product Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.$get({
@@ -262,7 +258,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -274,7 +270,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.$get({
@@ -302,7 +298,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -314,7 +310,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.$get({
@@ -352,10 +348,7 @@ describe('Product Routes', () => {
 
     it('should return each item with the correct summary fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      await client.products.$post(
-        { json: { ...VALID_PRODUCT, priceCents: 1500 } },
-        withAuth(token),
-      )
+      await client.products.$post({ json: { ...VALID_PRODUCT, priceCents: 1500 } }, withAuth(token))
 
       const res = await client.products.$get({ query: { category: 'complement' } })
       const data = await res.json()
@@ -407,7 +400,7 @@ describe('Product Routes', () => {
 
       const res = await client.products[':slug'].$get(
         { param: { slug: created.slug } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -451,7 +444,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -463,7 +456,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -475,7 +468,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.brands.$get()
@@ -520,7 +513,7 @@ describe('Product Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products['filter-options'].$get({ query: {} })
@@ -553,7 +546,7 @@ describe('Product Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -565,7 +558,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products['filter-options'].$get({
@@ -692,7 +685,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.search.$get({ query: { q: 'Vitamine' } })
@@ -716,7 +709,7 @@ describe('Product Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.search.$get({ query: { q: 'CeraVe' } })
@@ -757,7 +750,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products.$post(
         {
@@ -769,7 +762,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products.search.$get({
@@ -824,7 +817,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       const bData = await bRes.json()
       if (!bData.success) throw new Error('create failed')
@@ -854,10 +847,7 @@ describe('Product Routes', () => {
 
     it('should not require authentication', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(token),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
 
@@ -872,10 +862,7 @@ describe('Product Routes', () => {
     it('should update product fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(token),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -885,7 +872,7 @@ describe('Product Routes', () => {
           param: { id: created.id },
           json: { brand: 'Now Foods', priceCents: 1200 },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -902,7 +889,7 @@ describe('Product Routes', () => {
 
       const createRes = await client.products.$post(
         { json: { ...VALID_PRODUCT, notes: 'Note initiale' } },
-        withAuth(token),
+        withAuth(token)
       )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
@@ -910,7 +897,7 @@ describe('Product Routes', () => {
 
       await client.products[':id'].$patch(
         { param: { id: created.id }, json: { brand: 'Now Foods' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
@@ -922,17 +909,14 @@ describe('Product Routes', () => {
     it('should persist updates across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(token),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       await client.products[':id'].$patch(
         { param: { id: created.id }, json: { notes: 'Mise à jour persistée' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
@@ -944,21 +928,18 @@ describe('Product Routes', () => {
     it('should allow overwriting a previously set field', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(token),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       await client.products[':id'].$patch(
         { param: { id: created.id }, json: { notes: 'première note' } },
-        withAuth(token),
+        withAuth(token)
       )
       const updateRes = await client.products[':id'].$patch(
         { param: { id: created.id }, json: { notes: 'deuxième note' } },
-        withAuth(token),
+        withAuth(token)
       )
       const updateData = await updateRes.json()
       if (!updateData.success) throw new Error('patch failed')
@@ -975,7 +956,7 @@ describe('Product Routes', () => {
 
       const res = await client.products[':id'].$patch(
         { param: { id: crypto.randomUUID() }, json: { brand: 'X' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
@@ -986,10 +967,7 @@ describe('Product Routes', () => {
     it('should reject unknown fields (strict schema)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(token),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -999,7 +977,7 @@ describe('Product Routes', () => {
           param: { id: created.id },
           json: { hackerField: 'oops' } as never,
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -1020,17 +998,14 @@ describe('Product Routes', () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(userToken),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       const res = await client.products[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(adminToken),
+        withAuth(adminToken)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NO_CONTENT)
@@ -1040,18 +1015,12 @@ describe('Product Routes', () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(userToken),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
-      await client.products[':id'].$delete(
-        { param: { id: created.id } },
-        withAuth(adminToken),
-      )
+      await client.products[':id'].$delete({ param: { id: created.id } }, withAuth(adminToken))
 
       const res = await client.products[':slug'].$get({ param: { slug: created.slug } })
       expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
@@ -1072,7 +1041,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(userToken),
+        withAuth(userToken)
       )
 
       const d1 = await r1.json()
@@ -1081,10 +1050,7 @@ describe('Product Routes', () => {
       const p1 = d1.data
       const p2 = d2.data
 
-      await client.products[':id'].$delete(
-        { param: { id: p1.id } },
-        withAuth(adminToken),
-      )
+      await client.products[':id'].$delete({ param: { id: p1.id } }, withAuth(adminToken))
 
       const res = await client.products[':slug'].$get({ param: { slug: p2.slug } })
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -1093,17 +1059,14 @@ describe('Product Routes', () => {
     it('should return 403 for non-admin user (unauthorized_access)', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth(userToken),
-      )
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       const res = await client.products[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(userToken),
+        withAuth(userToken)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
@@ -1117,7 +1080,7 @@ describe('Product Routes', () => {
 
       const res = await client.products[':id'].$delete(
         { param: { id: crypto.randomUUID() } },
-        withAuth(adminToken),
+        withAuth(adminToken)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)

@@ -5,9 +5,8 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestEnv } from '../../../tests/helpers/createTestClient'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
-import { withAuth } from '../../../tests/helpers/createTestClient'
+import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
@@ -66,7 +65,7 @@ describe('Product Ingredients Routes', () => {
             category: 'actif',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -81,7 +80,7 @@ describe('Product Ingredients Routes', () => {
             concentrationUnit: '%',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$get({
@@ -118,7 +117,7 @@ describe('Product Ingredients Routes', () => {
             unit: 'pump',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
       const d1 = await r1.json()
       const d2 = await r2.json()
@@ -128,7 +127,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -139,7 +138,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: p1.id },
           json: { ingredientId: ingredient.id },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$get({
@@ -169,7 +168,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Zinc', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -180,7 +179,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id },
           json: { ingredientId: ingredient.id },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.CREATED)
@@ -204,7 +203,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Rétinol', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -221,7 +220,7 @@ describe('Product Ingredients Routes', () => {
             notes: 'Encapsulé',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.CREATED)
@@ -243,7 +242,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -251,11 +250,11 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.CONFLICT)
@@ -276,7 +275,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id },
           json: { concentrationValue: 5 } as never,
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -304,7 +303,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Rétinol', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -312,7 +311,7 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients[':ingredientId'].$patch(
@@ -320,7 +319,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id, ingredientId: ingredient.id },
           json: { concentrationValue: 0.3, concentrationUnit: '%', notes: 'Microencapsulé' },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -342,7 +341,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Rétinol', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -358,7 +357,7 @@ describe('Product Ingredients Routes', () => {
             notes: 'Note initiale',
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       await client.products[':productId'].ingredients[':ingredientId'].$patch(
@@ -366,7 +365,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id, ingredientId: ingredient.id },
           json: { notes: 'Note mise à jour' },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$get({
@@ -394,7 +393,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id, ingredientId: fakeIngredientId },
           json: { notes: 'X' },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
@@ -415,7 +414,7 @@ describe('Product Ingredients Routes', () => {
           param: { productId: product.id, ingredientId: crypto.randomUUID() },
           json: { unknownField: 'oops' } as never,
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -442,7 +441,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -450,12 +449,12 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients[':ingredientId'].$delete(
         { param: { productId: product.id, ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NO_CONTENT)
@@ -471,7 +470,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -479,11 +478,11 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products[':productId'].ingredients[':ingredientId'].$delete(
         { param: { productId: product.id, ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$get({
@@ -504,11 +503,11 @@ describe('Product Ingredients Routes', () => {
 
       const r1 = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2 = await client.ingredients.$post(
         { json: { name: 'Zinc', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const d1 = await r1.json()
       const d2 = await r2.json()
@@ -518,16 +517,16 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: i1.id } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: i2.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       await client.products[':productId'].ingredients[':ingredientId'].$delete(
         { param: { productId: product.id, ingredientId: i1.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$get({
@@ -549,7 +548,7 @@ describe('Product Ingredients Routes', () => {
 
       const res = await client.products[':productId'].ingredients[':ingredientId'].$delete(
         { param: { productId: product.id, ingredientId: crypto.randomUUID() } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
@@ -577,11 +576,11 @@ describe('Product Ingredients Routes', () => {
 
       const r1 = await client.ingredients.$post(
         { json: { name: 'Ancien', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2 = await client.ingredients.$post(
         { json: { name: 'Nouveau', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const d1 = await r1.json()
       const d2 = await r2.json()
@@ -591,7 +590,7 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: old.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$put(
@@ -603,7 +602,7 @@ describe('Product Ingredients Routes', () => {
             ],
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -625,7 +624,7 @@ describe('Product Ingredients Routes', () => {
 
       const ingredientRes = await client.ingredients.$post(
         { json: { name: 'Rétinol', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const ingredientData = await ingredientRes.json()
       if (!ingredientData.success) throw new Error('create ingredient failed')
@@ -633,12 +632,12 @@ describe('Product Ingredients Routes', () => {
 
       await client.products[':productId'].ingredients.$post(
         { param: { productId: product.id }, json: { ingredientId: ingredient.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.products[':productId'].ingredients.$put(
         { param: { productId: product.id }, json: { ingredients: [] } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
@@ -664,11 +663,11 @@ describe('Product Ingredients Routes', () => {
 
       const r1 = await client.ingredients.$post(
         { json: { name: 'Niacinamide', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2 = await client.ingredients.$post(
         { json: { name: 'Zinc', type: 'skincare' } },
-        withAuth(token),
+        withAuth(token)
       )
       const d1 = await r1.json()
       const d2 = await r2.json()
@@ -683,7 +682,7 @@ describe('Product Ingredients Routes', () => {
             ingredients: [{ ingredientId: i1.id }, { ingredientId: i2.id }],
           },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       const data = await res.json()
