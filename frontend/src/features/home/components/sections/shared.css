@@ -73,7 +73,7 @@
   line-height: var(--leading-relaxed);
   text-wrap: pretty;
 }
-@media (min-width: 600px) {
+@media (--sm) {
   .aur-section-lede {
     font-size: var(--text-lg);
   }
@@ -85,7 +85,7 @@
   gap: var(--space-3);
   margin-bottom: var(--space-8);
 }
-@media (min-width: 600px) {
+@media (--sm) {
   .aur-section__head {
     gap: var(--space-4);
     margin-bottom: var(--space-10);
@@ -98,13 +98,14 @@
   --section-pad-y: var(--space-12);
   --card-pad: var(--space-4);
 }
-@media (min-width: 600px) {
+@media (--sm) {
   :where(html) {
     --page-gutter: var(--space-5);
     --section-pad-y: var(--space-16);
     --card-pad: var(--space-5);
   }
 }
+/* 880px: hero-grid pivot — keep page-gutter widening aligned with hero side-by-side. */
 @media (min-width: 880px) {
   :where(html) {
     --page-gutter: var(--space-8);

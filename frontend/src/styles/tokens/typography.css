@@ -18,12 +18,14 @@
 
   /* Tighter leading on titles for an editorial feel. */
   --leading-tight: 1.15;
+  --leading-snug: 1.3;
   --leading-normal: 1.5;
   --leading-relaxed: 1.75;
 
   --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
   /* Widest tracking for uppercase labels — luxurious / editorial. */
   --tracking-widest: 0.2em;
 

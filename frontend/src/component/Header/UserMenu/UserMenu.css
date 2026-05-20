@@ -60,7 +60,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  z-index: 1000;
+  z-index: var(--z-popover);
   min-width: 10rem;
   overflow: hidden;
   animation: slide-up 0.2s ease-out;

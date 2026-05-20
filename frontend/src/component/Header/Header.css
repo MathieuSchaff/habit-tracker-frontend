@@ -15,10 +15,9 @@
     left: 0;
     width: var(--nav-width-collapsed);
     height: 100dvh;
-    z-index: var(--z-nav, 100);
+    z-index: var(--z-nav);
     background: var(--color-sidebar-bg);
-    box-shadow: 4px 0 12px oklch(0% 0 0 / 0.18);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s var(--ease-standard);
   }
 }
 
@@ -72,7 +71,7 @@
   padding: 0.6rem;
   border-radius: var(--radius-md);
   color: var(--color-sidebar-icon);
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow) ease;
 
   &:hover {
     background: var(--color-sidebar-item-hover);
@@ -97,7 +96,7 @@
   left: 0;
   width: var(--nav-width-open);
   height: 100dvh;
-  z-index: var(--z-nav, 100);
+  z-index: var(--z-nav);
   background: var(--color-sidebar-bg);
   box-shadow: 20px 0 60px oklch(0% 0 0 / 0.4);
   padding: 0 var(--space-1);

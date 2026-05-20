@@ -42,7 +42,7 @@
   color: var(--text-muted);
 }
 
-.dose-field__input:focus {
+.dose-field__input:focus-visible {
   outline: none;
 }
 
@@ -69,6 +69,6 @@
   background-repeat: no-repeat;
 }
 
-.dose-field__unit:focus {
+.dose-field__unit:focus-visible {
   outline: none;
 }

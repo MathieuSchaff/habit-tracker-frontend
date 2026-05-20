@@ -38,7 +38,7 @@
     box-shadow:
       inset 0 1px 1px oklch(100% 0 0 / 0.3),
       0 4px 12px oklch(0% 0 0 / 0.05);
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-slow) ease;
   }
 
   .first-empty-bottle--b1 {
@@ -161,7 +161,7 @@
     flex-shrink: 0;
   }
 
-  @media (max-width: 640px) {
+  @media (--sm-only) {
     .first-empty {
       padding: var(--space-6) var(--space-3) var(--space-10);
     }

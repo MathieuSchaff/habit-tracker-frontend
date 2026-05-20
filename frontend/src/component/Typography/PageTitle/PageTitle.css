@@ -76,7 +76,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .page-title-container {
     flex-direction: column;
     align-items: flex-start;

@@ -60,31 +60,28 @@
   font-weight: var(--font-semibold);
   border-radius: var(--radius-full);
   width: fit-content;
+  background: var(--_fitz-bg);
+  /* Auto-contrast: black above 60% lightness, white below. Same trick as DermoProfileForm. */
+  color: oklch(from var(--_fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0);
 }
 
 .skin-read__fitz-badge--1 {
-  background: oklch(88% 0.06 50);
-  color: oklch(25% 0 0);
+  --_fitz-bg: var(--fitz-1);
 }
 .skin-read__fitz-badge--2 {
-  background: oklch(78% 0.1 45);
-  color: oklch(25% 0 0);
+  --_fitz-bg: var(--fitz-2);
 }
 .skin-read__fitz-badge--3 {
-  background: oklch(66% 0.13 40);
-  color: oklch(25% 0 0);
+  --_fitz-bg: var(--fitz-3);
 }
 .skin-read__fitz-badge--4 {
-  background: oklch(52% 0.14 35);
-  color: oklch(95% 0 0);
+  --_fitz-bg: var(--fitz-4);
 }
 .skin-read__fitz-badge--5 {
-  background: oklch(36% 0.1 30);
-  color: oklch(95% 0 0);
+  --_fitz-bg: var(--fitz-5);
 }
 .skin-read__fitz-badge--6 {
-  background: oklch(22% 0.06 25);
-  color: oklch(95% 0 0);
+  --_fitz-bg: var(--fitz-6);
 }
 
 .skin-read__notes--collapsed {
@@ -106,7 +103,7 @@
 .skin-read__notes-text {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: var(--leading-normal);
   white-space: pre-line;
   margin: 0;
 }

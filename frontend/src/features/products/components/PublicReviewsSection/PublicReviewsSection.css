@@ -46,7 +46,7 @@
   gap: var(--space-2);
 }
 
-@media (min-width: 640px) {
+@media (--sm) {
   .public-reviews__axis-list {
     grid-template-columns: repeat(2, 1fr);
     column-gap: var(--space-5);
@@ -58,7 +58,7 @@
   flex-direction: column;
   gap: var(--space-1);
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: var(--rule-section);
 }
 
 .public-reviews__axis:last-child {

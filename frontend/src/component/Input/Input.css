@@ -42,7 +42,7 @@
   border-color: var(--border-strong);
 }
 
-.input-wrapper input:focus {
+.input-wrapper input:focus-visible {
   outline: none;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
@@ -57,7 +57,7 @@
   border-color: var(--color-error);
 }
 
-.input-wrapper input[data-error]:focus {
+.input-wrapper input[data-error]:focus-visible {
   border-color: var(--color-error);
   box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
 }

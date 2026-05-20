@@ -115,7 +115,7 @@ describe('CollectionPage', () => {
 
     await userEvent.click(sortBtn)
     rerender(<CollectionPage />)
-    expect(screen.getByTitle(/Tri : Note/i)).toBeInTheDocument()
+    expect(screen.getByTitle(/Tri : Évaluation/i)).toBeInTheDocument()
   })
 
   it('permet de changer d\'onglet vers "Achats"', async () => {

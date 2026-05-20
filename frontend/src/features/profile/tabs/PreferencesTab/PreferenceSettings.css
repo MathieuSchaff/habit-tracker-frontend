@@ -77,7 +77,7 @@
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition:
-    transform var(--transition-fast) cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform var(--transition-fast) var(--ease-bounce),
     box-shadow var(--transition-fast);
 }
 
@@ -106,7 +106,7 @@
   border: 2px solid var(--bg-card);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform var(--transition-fast) cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform var(--transition-fast) var(--ease-bounce);
 }
 
 .pref-weight-slider:hover::-moz-range-thumb {

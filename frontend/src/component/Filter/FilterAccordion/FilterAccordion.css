@@ -1,6 +1,6 @@
 .filter-accordion {
   background: var(--bg-card);
-  border-bottom: 1px solid oklch(from var(--color-primary) l c h / 0.18);
+  border-bottom: var(--rule-section);
 }
 
 .filter-accordion__trigger {
@@ -71,7 +71,7 @@
   padding: 0 var(--space-1);
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: var(--color-primary-text, var(--text-inverse));
+  color: var(--color-primary-text);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   line-height: 1;

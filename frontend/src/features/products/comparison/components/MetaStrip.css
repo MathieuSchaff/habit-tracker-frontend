@@ -20,7 +20,6 @@
   padding: var(--space-4);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-md);
   scroll-snap-align: start;
   min-width: 0;

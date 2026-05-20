@@ -19,7 +19,7 @@
   margin: 0;
   max-width: 48ch;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: var(--leading-normal);
 }
 
 .public-profile__section {
@@ -35,7 +35,7 @@
 .public-profile__section-title {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
@@ -79,7 +79,7 @@
   font-size: var(--text-xs);
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-wide);
 }
 
 .public-profile__skin-value {

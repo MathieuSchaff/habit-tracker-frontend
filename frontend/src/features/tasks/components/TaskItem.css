@@ -57,7 +57,7 @@
   color: inherit;
 }
 
-.task-item__title-input:focus {
+.task-item__title-input:focus-visible {
   outline: none;
 }
 
@@ -152,7 +152,7 @@
 
 .task-item__details {
   padding: 0 var(--space-3) var(--space-2) var(--space-3);
-  border-top: 1px solid oklch(from var(--color-primary) l c h / 0.15);
+  border-top: var(--rule-section);
   background: var(--bg-muted);
 }
 
@@ -213,7 +213,7 @@
   color: var(--text-primary);
 }
 
-.subtask-add-input:focus {
+.subtask-add-input:focus-visible {
   outline: none;
   border-bottom-color: var(--color-primary);
 }

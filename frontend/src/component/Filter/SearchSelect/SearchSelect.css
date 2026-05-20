@@ -65,7 +65,7 @@
   color: var(--text-muted);
 }
 
-.search-select__input:focus {
+.search-select__input:focus-visible {
   outline: none;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
@@ -73,7 +73,7 @@
 
 .search-select__dropdown {
   position: fixed;
-  z-index: 200;
+  z-index: var(--z-sheet);
   list-style: none;
   margin: 0;
   padding: var(--space-2);

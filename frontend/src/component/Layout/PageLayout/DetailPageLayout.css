@@ -29,7 +29,7 @@
   margin-top: -3rem;
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .detail-page-layout__content {
     padding: var(--space-4);
   }

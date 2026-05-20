@@ -12,7 +12,7 @@
   gap: var(--space-3);
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .page-top-actions {
     flex-direction: column;
     align-items: flex-start;

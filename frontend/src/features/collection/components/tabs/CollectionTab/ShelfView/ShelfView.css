@@ -6,11 +6,12 @@
     padding-bottom: var(--space-20); /* room for BulkBar */
   }
 
+  /* The inner .underline-tabs already paints a baseline border + active indicator.
+     A second border on this wrapper stacks visually, so the row stays borderless. */
   .shelf-tabs-row {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    border-bottom: 1px solid var(--border-default);
   }
 
   .shelf-tabs-primary {

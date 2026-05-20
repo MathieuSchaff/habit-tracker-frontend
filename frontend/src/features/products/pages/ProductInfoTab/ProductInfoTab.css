@@ -244,7 +244,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid oklch(from var(--color-info) l c h / 0.15);
   border-left: 3px solid var(--color-info);
-  transition: all var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-base) var(--ease-standard);
 }
 
 .ingredient-item:hover {
@@ -346,7 +346,7 @@
   box-shadow: 0 8px 24px oklch(from var(--color-primary) l c h / 0.4);
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .product-hero {
     flex-direction: column;
     padding: var(--space-5);

@@ -77,7 +77,7 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--card-footer-padding, var(--space-3) var(--space-4));
-  border-top: 1px solid var(--card-footer-border, var(--border-default));
+  border-top: var(--rule-section);
   background: var(--card-footer-bg, var(--bg-sunken));
   color: var(--card-footer-color, var(--text-primary));
 }

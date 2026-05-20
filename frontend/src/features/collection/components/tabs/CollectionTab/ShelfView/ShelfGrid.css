@@ -10,7 +10,7 @@
     }
   }
 
-  @media (max-width: 640px) {
+  @media (--sm-only) {
     .shelf-grid {
       grid-template-columns: 1fr;
       gap: var(--space-3);

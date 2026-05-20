@@ -156,6 +156,29 @@ function DropdownMenuContent({
     return () => cancelAnimationFrame(id)
   }, [isOpen, itemsRef])
 
+  // Clamp into the viewport so triggers near the left/right edges (mobile
+  // toolbars) don't push the menu off-screen. Runs once per open + on resize.
+  useEffect(() => {
+    if (!isOpen) return
+    const el = contentRef.current
+    if (!el) return
+
+    const clamp = () => {
+      el.style.setProperty('--dd-shift', '0px')
+      const rect = el.getBoundingClientRect()
+      const margin = 8
+      if (rect.left < margin) {
+        el.style.setProperty('--dd-shift', `${margin - rect.left}px`)
+      } else if (rect.right > window.innerWidth - margin) {
+        el.style.setProperty('--dd-shift', `${-(rect.right - (window.innerWidth - margin))}px`)
+      }
+    }
+
+    clamp()
+    window.addEventListener('resize', clamp, { passive: true })
+    return () => window.removeEventListener('resize', clamp)
+  }, [isOpen, contentRef])
+
   if (!isOpen) return null
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

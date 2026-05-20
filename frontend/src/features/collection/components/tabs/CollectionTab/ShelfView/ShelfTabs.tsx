@@ -25,6 +25,11 @@ interface ShelfTabsProps {
 
 const HOLY_GRAIL_COLOR = 'var(--status-color-holy-grail)'
 const REPURCHASE_COLOR = 'var(--status-color-repurchase)'
+// Negative-framing statuses (archived, avoided) lose their accent in the
+// Plus dropdown to keep it calm. Same reasoning as the .pds-repurchase-btn.no
+// neutralization (anti-patterns.md #18): a personal decision shouldn't be
+// color-encoded as a warning.
+const NEUTRAL_SECONDARY_COLOR = 'var(--text-muted)'
 
 export function ShelfTabs({
   active,
@@ -74,7 +79,7 @@ export function ShelfTabs({
       key: s as ShelfTabKey,
       label: statusLabels[s].label,
       count: countsByStatus[s],
-      color: statusLabels[s].color,
+      color: NEUTRAL_SECONDARY_COLOR,
     })),
   ]
 

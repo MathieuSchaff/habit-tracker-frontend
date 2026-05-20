@@ -45,7 +45,7 @@
   border-color: var(--border-strong);
 }
 
-.textarea-wrapper textarea:focus {
+.textarea-wrapper textarea:focus-visible {
   outline: none;
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px oklch(from var(--color-focus) l c h / 0.2);
@@ -60,7 +60,7 @@
   border-color: var(--color-error);
 }
 
-.textarea-wrapper textarea[data-error]:focus {
+.textarea-wrapper textarea[data-error]:focus-visible {
   box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
 }
 
