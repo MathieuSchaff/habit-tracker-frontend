@@ -1,1 +1,14 @@
-purged from history
+.ingredients-page__card-arrow {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--card-footer-color, var(--text-muted));
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.ingredients-page .card:hover .ingredients-page__card-arrow {
+  transform: translateX(3px);
+  color: var(--color-primary);
+}

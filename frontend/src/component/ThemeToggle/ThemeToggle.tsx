@@ -33,6 +33,14 @@ export const ThemeToggle = () => {
     el.style.left = `${rect.left}px`
     el.style.bottom = `${window.innerHeight - rect.top + 8}px`
     el.showPopover()
+    // Clamp into the viewport once the popover is measurable.
+    const margin = 8
+    const popRect = el.getBoundingClientRect()
+    if (popRect.right > window.innerWidth - margin) {
+      el.style.left = `${Math.max(margin, window.innerWidth - margin - popRect.width)}px`
+    } else if (popRect.left < margin) {
+      el.style.left = `${margin}px`
+    }
   }
 
   const close = () => popoverRef.current?.hidePopover()

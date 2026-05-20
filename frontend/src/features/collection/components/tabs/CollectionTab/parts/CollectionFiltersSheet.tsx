@@ -7,6 +7,7 @@ import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { Input } from '@/component/Input/Input'
+import { SCORE_THRESHOLDS } from '@/features/collection/constants'
 import {
   type CollectionFilterValues,
   DEFAULT_FILTERS,
@@ -14,6 +15,16 @@ import {
 } from '@/features/collection/context/CollectionFilterContext'
 
 import './CollectionFiltersSheet.css'
+
+// Qualitative tiers map onto the same thresholds that drive the card corner
+// ornaments (gold/rare/good) without exposing the raw /20 number — keeps the
+// filter calm per design-system.md "no product scores" rule.
+const NOTE_TIERS: { value: number; label: string }[] = [
+  { value: 0, label: 'Toutes' },
+  { value: SCORE_THRESHOLDS.good, label: 'Bonne' },
+  { value: SCORE_THRESHOLDS.rare, label: 'Très bonne' },
+  { value: SCORE_THRESHOLDS.gold, label: 'Excellente' },
+]
 
 interface CollectionFiltersSheetProps {
   onClose: () => void
@@ -149,25 +160,22 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
             </div>
           </fieldset>
 
-          <div className="coll-adv-group">
-            <div className="coll-label-row">
-              <label htmlFor="coll-min-note">Note minimum</label>
-              <span className="coll-range-val" id="coll-min-note-val">
-                {draft.minNote}/20
-              </span>
+          <fieldset className="coll-adv-group">
+            <legend className="coll-label">Évaluation minimale</legend>
+            <div className="coll-note-row">
+              {NOTE_TIERS.map((tier) => (
+                <button
+                  key={tier.value}
+                  type="button"
+                  className={clsx('coll-note-btn', draft.minNote === tier.value && 'active')}
+                  aria-pressed={draft.minNote === tier.value}
+                  onClick={() => update('minNote', tier.value)}
+                >
+                  {tier.label}
+                </button>
+              ))}
             </div>
-            <input
-              id="coll-min-note"
-              type="range"
-              min="0"
-              max="20"
-              step="1"
-              value={draft.minNote}
-              aria-describedby="coll-min-note-val"
-              aria-valuetext={`${draft.minNote} sur 20`}
-              onChange={(e) => update('minNote', Number.parseInt(e.target.value, 10))}
-            />
-          </div>
+          </fieldset>
 
           <div className="coll-adv-group">
             <Input

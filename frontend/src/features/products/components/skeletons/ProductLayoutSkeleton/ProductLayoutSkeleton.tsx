@@ -29,20 +29,6 @@ export function ProductInfoSkeleton() {
   return (
     <>
       <div className="product-info-skeleton__section">
-        <Skeleton width="8rem" height="1rem" />
-        <div className="product-info-skeleton__grid">
-          <div className="product-info-skeleton__card">
-            <Skeleton width="5rem" height="0.75rem" />
-            <Skeleton width="4rem" height="1rem" />
-          </div>
-          <div className="product-info-skeleton__card">
-            <Skeleton width="3rem" height="0.75rem" />
-            <Skeleton width="100%" height="2.5rem" />
-          </div>
-        </div>
-      </div>
-
-      <div className="product-info-skeleton__section">
         <Skeleton width="7rem" height="1rem" />
         <Skeleton width="100%" height="5rem" radius="var(--radius-lg)" />
       </div>

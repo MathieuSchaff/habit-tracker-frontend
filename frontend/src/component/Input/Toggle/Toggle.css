@@ -92,7 +92,7 @@
 
 .toggle input:checked ~ .toggle__switch::after {
   transform: translateY(-50%) translateX(var(--toggle-travel));
-  background: white;
+  background: oklch(100% 0 0);
 }
 
 .toggle input:focus-visible ~ .toggle__switch {

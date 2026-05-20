@@ -36,7 +36,6 @@
   padding: var(--space-5);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   transition:
@@ -105,7 +104,7 @@
   display: flex;
   justify-content: flex-end;
   padding-top: var(--space-3);
-  border-top: 1px solid var(--border-default);
+  border-top: var(--rule-section);
   position: relative;
   z-index: 1;
 }

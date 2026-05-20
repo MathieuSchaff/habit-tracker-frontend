@@ -24,7 +24,7 @@
   gap: var(--space-4);
   padding-block: var(--space-5) var(--space-4);
   background: var(--bg-page);
-  box-shadow: 0 2px 0 oklch(60% 0.13 154);
+  border-block-end: var(--rule-section);
 }
 
 .list-page-layout__header--transparent {
@@ -35,12 +35,6 @@
 .list-page-layout__header--centered {
   align-items: center;
   text-align: center;
-}
-
-/* Full-bleed: escape root padding to render edge-to-edge. */
-.list-page-layout__header--full-bleed {
-  margin-inline: calc(-1 * var(--page-gutter));
-  width: calc(100% + 2 * var(--page-gutter));
 }
 
 .list-page-layout__header-info {
@@ -150,5 +144,5 @@
 .list-page-layout__body--syncing {
   opacity: 0.6;
   pointer-events: none;
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity var(--transition-base) ease-in-out;
 }

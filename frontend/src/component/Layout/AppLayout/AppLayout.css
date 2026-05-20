@@ -13,15 +13,14 @@
   flex-direction: column;
 }
 
-@media (min-width: 768px) {
+@media (--md) {
   .app-layout {
     padding-left: var(--nav-width-collapsed);
-    transition: padding-left 280ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-@media (max-width: 767px) {
+@media (--mobile) {
   .content {
-    padding-bottom: var(--bottom-nav-height, 4.5rem);
+    padding-bottom: calc(var(--bottom-nav-height, 4.5rem) + env(safe-area-inset-bottom, 0));
   }
 }

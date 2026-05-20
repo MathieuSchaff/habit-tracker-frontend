@@ -49,7 +49,6 @@
   padding: var(--space-6) var(--space-6) var(--space-8);
   background: var(--bg-card);
   border: 1px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
-  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow:
     0 4px 24px color-mix(in oklch, var(--color-primary) 12%, transparent),
@@ -80,11 +79,11 @@
 }
 
 .auth-footer__link:hover,
-.auth-footer__link:focus {
+.auth-footer__link:focus-visible {
   color: var(--color-primary-hover);
 }
 
-@media (min-width: 640px) {
+@media (--sm) {
   .auth-card {
     padding: var(--space-8) var(--space-8) var(--space-10);
   }

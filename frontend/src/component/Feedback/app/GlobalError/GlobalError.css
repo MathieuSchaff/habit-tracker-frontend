@@ -70,7 +70,7 @@
   justify-content: center;
 }
 
-@media (max-width: 480px) {
+@media (--xs-only) {
   .global-error-actions {
     flex-direction: column;
     width: 100%;

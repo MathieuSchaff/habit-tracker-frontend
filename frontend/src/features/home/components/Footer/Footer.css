@@ -1,5 +1,5 @@
 .aur-footer {
-  border-top: 1px solid var(--border-default);
+  border-top: var(--rule-section);
   padding-block: var(--space-8);
   font-size: var(--text-sm);
   color: var(--text-muted);
@@ -12,7 +12,7 @@
   text-align: center;
   flex-wrap: wrap;
 }
-@media (min-width: 768px) {
+@media (--md) {
   .aur-footer__inner {
     flex-direction: row;
     justify-content: space-between;

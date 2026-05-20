@@ -5,7 +5,6 @@
   padding: var(--space-6);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-top: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
 }
 
@@ -13,7 +12,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--color-warning-light);
   color: var(--color-warning-text);
-  border: 1px solid var(--color-warning-border);
+  border: 1px solid oklch(from var(--color-warning) l c h / 0.4);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
 }
@@ -58,7 +57,7 @@
   justify-content: flex-end;
   gap: var(--space-3);
   padding-top: var(--space-4);
-  border-top: 1px solid oklch(from var(--color-primary) l c h / 0.2);
+  border-top: var(--rule-section);
 }
 
 .product-edit-ingredients {
@@ -127,12 +126,12 @@
 
 .product-edit-form__slug-value {
   font-family: var(--font-mono);
-  background: var(--bg-subtle, rgba(0, 0, 0, 0.04));
+  background: var(--bg-muted);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .product-edit-form {
     padding: var(--space-4);
   }

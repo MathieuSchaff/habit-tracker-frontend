@@ -29,12 +29,14 @@
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
   color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 .aur-compare__name {
   font-family: var(--font-display);
   font-size: var(--text-base);
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 .aur-compare__row {
   display: flex;
@@ -42,6 +44,11 @@
   justify-content: space-between;
   gap: var(--space-2);
   font-size: var(--text-xs);
+  min-width: 0;
+}
+.aur-compare__row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .aur-compare__row-key {
   color: var(--text-muted);
@@ -57,4 +64,13 @@
 }
 .aur-compare__row-val--warn {
   color: var(--color-accent);
+}
+
+@media (--xs-only) {
+  .aur-compare__label {
+    letter-spacing: 0.08em;
+  }
+  .aur-compare__name {
+    font-size: var(--text-sm);
+  }
 }

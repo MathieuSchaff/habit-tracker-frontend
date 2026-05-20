@@ -1,13 +1,13 @@
+/* Mirrors .ingredient-hero (IngredientInfoTab.css): same padding/radius to avoid layout shift on load. */
 .ingredient-layout-skeleton__hero {
   display: flex;
   gap: var(--space-5);
   align-items: flex-start;
-  padding: var(--space-5);
+  padding: var(--space-6);
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border-default);
-  border-top: 3px solid var(--border-default);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .ingredient-layout-skeleton__info {
@@ -70,7 +70,7 @@
   gap: var(--space-3);
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .ingredient-layout-skeleton__hero {
     flex-direction: column;
     gap: var(--space-3);

@@ -16,7 +16,7 @@
   font-size: 0.9375rem;
   font-weight: 500;
   border-radius: var(--radius-md);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s var(--ease-standard);
   padding: 0.7rem;
   text-decoration: none;
 
@@ -55,7 +55,7 @@
   opacity: 0;
   white-space: nowrap;
   transition:
-    max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.25s var(--ease-standard),
     opacity 0.2s ease,
     margin 0.25s ease;
 }

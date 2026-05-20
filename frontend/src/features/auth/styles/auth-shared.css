@@ -59,7 +59,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
@@ -85,11 +85,11 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 1rem;
+  font-size: var(--text-base);
   line-height: 1.4;
   color: var(--text-primary);
-  font-weight: 500;
-  padding: 0.5rem 0.25rem;
+  font-weight: var(--font-medium);
+  padding: var(--space-2) var(--space-1);
 }
 
 .auth-field__input::placeholder {
@@ -132,7 +132,7 @@
 }
 
 .auth-field__error {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-error);
   margin-top: calc(var(--space-1) * -0.5);
 }
@@ -144,8 +144,8 @@
 .auth-divider {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0.5rem 0;
+  gap: var(--space-3);
+  margin: var(--space-2) 0;
 }
 
 .auth-divider::before,
@@ -157,6 +157,6 @@
 }
 
 .auth-divider span {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }

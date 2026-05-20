@@ -3,7 +3,12 @@
   grid-template-columns: 1fr;
   gap: var(--space-4);
 }
-@media (min-width: 768px) {
+@media (--md) {
+  .aur-philo {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (--lg) {
   .aur-philo {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -17,7 +22,7 @@
   flex-direction: column;
   gap: var(--space-3);
 }
-@media (min-width: 600px) {
+@media (--sm) {
   .aur-philo__card {
     padding: var(--space-6);
   }

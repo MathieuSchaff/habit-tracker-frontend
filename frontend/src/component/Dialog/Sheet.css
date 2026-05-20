@@ -4,7 +4,7 @@
   width: 100%;
   background: var(--bg-card);
   border-radius: 1.25rem 1.25rem 0 0;
-  border-top: 3px solid var(--color-primary);
+  border-top: var(--rule-bold);
   max-height: 90dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -14,7 +14,7 @@
     0 -4px 24px oklch(from var(--color-primary) l c h / 0.1);
 }
 
-@media (min-width: 640px) {
+@media (--sm) {
   .dialog-sheet {
     margin: auto;
     max-width: 680px;

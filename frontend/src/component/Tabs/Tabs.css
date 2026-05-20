@@ -24,8 +24,8 @@
   border-radius: var(--radius-full);
   box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15);
   transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.3s var(--ease-standard),
+    width 0.3s var(--ease-standard);
   z-index: 1;
 }
 
@@ -42,12 +42,22 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color var(--transition-base) ease;
   border-radius: 10px;
   position: relative;
   z-index: 2;
   min-height: 40px;
   white-space: nowrap;
+}
+
+/* Below 380px the pill segmented control overflows ("Compte" tab clipped).
+   Shrink gap + padding before resorting to min-width:0, which would break the
+   indicator measurement on wider viewports. */
+@media (max-width: 379px) {
+  .icon-tab {
+    gap: var(--space-1);
+    padding-inline: var(--space-1);
+  }
 }
 
 .icon-tab:hover {
@@ -83,16 +93,29 @@
     position: relative;
     display: flex;
     gap: 2px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: var(--rule-section);
     padding: 0 var(--space-1);
     margin: 0 calc(var(--space-1) * -1);
-  }
-
-  .underline-tabs.tabs-scrollable {
-    overflow-x: scroll;
+    /* Tabs wider than the viewport must scroll within themselves instead of pushing
+       the document; the explicit .tabs-scrollable variant just adds snap + grab UX. */
+    overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--border-default) transparent;
+  }
+
+  .underline-tabs::-webkit-scrollbar {
+    height: 2px;
+  }
+  .underline-tabs::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 3px;
+  }
+  .underline-tabs::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .underline-tabs.tabs-scrollable {
     scroll-snap-type: x proximity;
     touch-action: pan-y;
     cursor: grab;
@@ -101,19 +124,6 @@
 
   .underline-tabs.tabs-scrollable:active {
     cursor: grabbing;
-  }
-
-  .underline-tabs.tabs-scrollable::-webkit-scrollbar {
-    height: 2px;
-  }
-
-  .underline-tabs.tabs-scrollable::-webkit-scrollbar-thumb {
-    background: var(--border-default);
-    border-radius: 3px;
-  }
-
-  .underline-tabs.tabs-scrollable::-webkit-scrollbar-track {
-    background: transparent;
   }
 
   .underline-tab {
@@ -128,7 +138,7 @@
     background: transparent;
     color: var(--text-muted);
     font: inherit;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     font-weight: var(--font-medium);
     cursor: pointer;
     white-space: nowrap;
@@ -165,7 +175,7 @@
     min-width: 20px;
     height: 18px;
     padding: 0 6px;
-    font-size: 0.7rem;
+    font-size: var(--text-xs);
     font-variant-numeric: tabular-nums;
     border-radius: 999px;
     transition:
@@ -186,16 +196,16 @@
     background: var(--active-tab-color);
     border-radius: 2px 2px 0 0;
     transition:
-      transform 280ms cubic-bezier(0.34, 1.2, 0.64, 1),
-      width 280ms cubic-bezier(0.34, 1.2, 0.64, 1),
+      transform 280ms var(--ease-soft-bounce),
+      width 280ms var(--ease-soft-bounce),
       background-color 200ms ease;
     pointer-events: none;
   }
 
-  @media (max-width: 640px) {
+  @media (--sm-only) {
     .underline-tab {
       padding: 12px;
-      font-size: 0.85rem;
+      font-size: var(--text-sm);
       min-height: 44px;
     }
     .underline-tab > span:not(.tab-badge) {

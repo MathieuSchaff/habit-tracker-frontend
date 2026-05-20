@@ -27,7 +27,7 @@
 
 .list-card--product .list-card__icon-wrap {
   flex-shrink: 0;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -56,7 +56,7 @@
   display: inline-flex;
   align-items: center;
   font-size: var(--text-xs);
-  font-weight: var(--font-medium, 500);
+  font-weight: var(--font-medium);
   color: var(--text-muted);
   background: transparent;
   border: 1px dashed oklch(from var(--text-muted) l c h / 0.45);
@@ -112,7 +112,9 @@
   border-radius: var(--radius-full);
   padding: 3px 10px;
   line-height: 1.4;
-  white-space: nowrap;
+  /* nowrap fights narrow columns — allow long chip labels to break instead of
+     pushing the card width past its grid cell. */
+  overflow-wrap: anywhere;
 }
 
 /* benefit (concern/goal): kind-color tint echoes the kind pill. */
@@ -152,7 +154,7 @@
 }
 
 .list-card--product .list-card__price--empty {
-  color: var(--card-footer-color-muted, var(--text-muted));
+  color: var(--card-footer-color-muted);
 }
 
 .list-card--product .list-card__amount {
@@ -172,7 +174,7 @@
   align-items: center;
   gap: 4px;
   font-size: var(--text-xs);
-  font-weight: var(--font-medium, 500);
+  font-weight: var(--font-medium);
   color: var(--text-muted);
   white-space: nowrap;
   flex-shrink: 0;

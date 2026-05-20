@@ -61,7 +61,7 @@
 
 .button.primary {
   background: var(--color-primary);
-  color: var(--color-primary-text, var(--text-inverse));
+  color: var(--color-primary-text);
   border: none;
   box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.3);
 }
@@ -81,7 +81,7 @@
 
 .button.secondary:hover:not(:disabled),
 .button.default:hover:not(:disabled) {
-  color: var(--color-primary-text, var(--text-inverse));
+  color: var(--color-primary-text);
   background: var(--color-primary);
   box-shadow:
     inset 0 0 0 1px var(--color-primary),

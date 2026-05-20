@@ -41,7 +41,7 @@
 
 .delete-btn:hover:not(:disabled) {
   background-color: var(--color-error);
-  color: white;
+  color: oklch(100% 0 0);
 }
 
 .delete-confirm {

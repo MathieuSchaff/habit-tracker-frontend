@@ -1,18 +1,13 @@
+/* Mirrors .list-grid (ListPage.css) so skeleton column count matches the real list once content loads. */
 .blog-list-skeleton__grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(var(--list-grid-min, 280px), 1fr));
   gap: var(--space-3);
 }
 
 @media (--sm) {
   .blog-list-skeleton__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (--lg) {
-  .blog-list-skeleton__grid {
-    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
   }
 }
 
@@ -41,7 +36,7 @@
 
 .blog-list-skeleton__footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--border-default);
+  border-top: var(--rule-section);
   background: var(--bg-sunken);
 }
 

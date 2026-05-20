@@ -1,6 +1,6 @@
 .comparison-header {
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: var(--rule-section);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-6);
 }

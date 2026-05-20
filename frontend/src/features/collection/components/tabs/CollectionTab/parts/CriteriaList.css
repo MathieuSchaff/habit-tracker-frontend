@@ -1,1 +1,155 @@
-purged from history
+.pds-criteria-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pds-criterion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pds-criterion-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.pds-criterion-label {
+  font-size: 0.8125rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Help button & tooltip */
+
+.pds-tooltip-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pds-help-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.pds-help-btn:hover {
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  color: var(--color-primary);
+}
+
+.pds-help-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pds-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: -8px;
+  width: 220px;
+  background: var(--bg-card);
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-default);
+  z-index: var(--z-elevated);
+  font-size: 0.75rem;
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  animation: pdsTooltipIn var(--transition-base) ease-out;
+}
+
+@keyframes pdsTooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pds-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  border: 5px solid transparent;
+  border-top-color: var(--bg-card);
+}
+
+@media (--xs-only) {
+  .pds-tooltip {
+    left: -100px;
+    width: 200px;
+  }
+
+  .pds-tooltip::after {
+    left: 105px;
+  }
+}
+
+/* Stars */
+
+.pds-stars {
+  display: flex;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.pds-star {
+  background: none;
+  border: none;
+  padding: 0.15rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pds-star::before {
+  content: "★";
+  font-size: 1rem;
+  color: var(--border-default);
+  transition: color var(--transition-fast);
+  line-height: 1;
+}
+
+.pds-star.filled::before {
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 3px oklch(from var(--color-accent) l c h / 0.4));
+}
+
+.pds-star:hover {
+  transform: scale(1.2);
+}
+
+.pds-star:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.pds-star:not(.filled):hover::before {
+  color: oklch(from var(--color-accent) l c h / 0.5);
+}

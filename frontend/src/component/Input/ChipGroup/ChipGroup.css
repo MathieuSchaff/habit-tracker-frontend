@@ -41,14 +41,14 @@
 .chip--active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary-text, var(--text-inverse));
+  color: var(--color-primary-text);
   box-shadow: 0 2px 10px oklch(from var(--color-primary) l c h / 0.3);
 }
 
 .chip--active:hover:not(:disabled) {
   background: var(--color-primary-hover, var(--color-primary));
   border-color: var(--color-primary-hover, var(--color-primary));
-  color: var(--color-primary-text, var(--text-inverse));
+  color: var(--color-primary-text);
   box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.4);
 }
 

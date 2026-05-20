@@ -3,12 +3,12 @@
   grid-template-columns: 1fr;
   gap: var(--space-4);
 }
-@media (min-width: 600px) {
+@media (--sm) {
   .aur-entries {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-@media (min-width: 960px) {
+@media (--lg) {
   .aur-entries {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -26,7 +26,7 @@
   color: inherit;
   transition: all var(--transition-base);
 }
-@media (min-width: 600px) {
+@media (--sm) {
   .aur-entry {
     padding: var(--space-6);
     min-height: 220px;
@@ -62,7 +62,8 @@
 .aur-entry__example {
   margin-top: auto;
   padding-top: var(--space-4);
-  border-top: 1px dashed var(--border-default);
+  border-top: var(--rule-section);
+  border-top-style: dashed;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -113,8 +114,7 @@
   cursor: not-allowed;
 }
 
-/* Smallest phones: hide example to keep cards scannable. */
-@media (max-width: 479px) {
+@media (--xs-only) {
   .aur-entry__example {
     display: none;
   }

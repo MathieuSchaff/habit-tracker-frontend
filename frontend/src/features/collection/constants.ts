@@ -90,7 +90,7 @@ export const sortOptions: SortOption[] = [
 
 export const sortLabels: Record<SortOption, string> = {
   name: 'Nom',
-  note: 'Note',
+  note: 'Évaluation',
   sentiment: 'Ressenti',
   date: 'Date',
   price_asc: 'Prix ↑',
