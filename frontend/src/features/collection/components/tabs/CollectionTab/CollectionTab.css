@@ -1,23 +1,9 @@
-/* Full-width row: search pill + Add button side-by-side */
 .coll-toolbar {
   --coll-green: var(--color-primary);
   display: flex;
   align-items: stretch;
-  gap: var(--space-2);
   width: 100%;
   margin-bottom: var(--space-3);
-}
-
-.coll-toolbar .coll-add-btn {
-  flex-shrink: 0;
-  white-space: nowrap;
-  min-height: 0;
-  height: auto;
-  align-self: stretch;
-  /* Slightly shorter than the search pill. */
-  margin: 2px 0;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
 }
 
 .coll-controls {
@@ -160,15 +146,5 @@
 @keyframes coll-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Below 480px the "Ajouter" label crowds out the search input — keep the icon, drop the word. */
-@media (max-width: 479px) {
-  .coll-toolbar .coll-add-btn > span {
-    display: none;
-  }
-  .coll-toolbar .coll-add-btn {
-    padding: 0 var(--space-3);
   }
 }

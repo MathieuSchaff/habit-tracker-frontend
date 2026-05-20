@@ -31,6 +31,7 @@ import { Route as AuthenticatedCollectionRouteImport } from './routes/_authentic
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
 import { Route as BlogCategoryIndexRouteImport } from './routes/blog/$category/index'
+import { Route as AuthenticatedCollectionIndexRouteImport } from './routes/_authenticated/collection.index'
 import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug_/edit'
 import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug_/edit'
 import { Route as BlogAdminNewRouteImport } from './routes/blog/admin/new'
@@ -38,6 +39,8 @@ import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$s
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
 import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
+import { Route as AuthenticatedCollectionMotifsRouteImport } from './routes/_authenticated/collection.motifs'
+import { Route as AuthenticatedCollectionAchatsRouteImport } from './routes/_authenticated/collection.achats'
 import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
 import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
 import { Route as AuthenticatedProductsCompareIndexRouteImport } from './routes/_authenticated/products/compare/index'
@@ -156,6 +159,12 @@ const BlogCategoryIndexRoute = BlogCategoryIndexRouteImport.update({
   path: '/blog/$category/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCollectionIndexRoute =
+  AuthenticatedCollectionIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCollectionRoute,
+  } as any)
 const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
   id: '/products/$slug_/edit',
   path: '/products/$slug/edit',
@@ -192,6 +201,18 @@ const AuthenticatedIngredientsNewRoute =
     id: '/ingredients/new',
     path: '/ingredients/new',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCollectionMotifsRoute =
+  AuthenticatedCollectionMotifsRouteImport.update({
+    id: '/motifs',
+    path: '/motifs',
+    getParentRoute: () => AuthenticatedCollectionRoute,
+  } as any)
+const AuthenticatedCollectionAchatsRoute =
+  AuthenticatedCollectionAchatsRouteImport.update({
+    id: '/achats',
+    path: '/achats',
+    getParentRoute: () => AuthenticatedCollectionRoute,
   } as any)
 const ProductsSlugDiscussionsIndexRoute =
   ProductsSlugDiscussionsIndexRouteImport.update({
@@ -246,7 +267,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
-  '/collection': typeof AuthenticatedCollectionRoute
+  '/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -260,6 +281,8 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/collection/achats': typeof AuthenticatedCollectionAchatsRoute
+  '/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
@@ -267,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/blog/admin/new': typeof BlogAdminNewRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
   '/products/$slug/edit': typeof ProductsSlugEditRoute
+  '/collection/': typeof AuthenticatedCollectionIndexRoute
   '/blog/$category/': typeof BlogCategoryIndexRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
@@ -284,7 +308,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
-  '/collection': typeof AuthenticatedCollectionRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -296,6 +319,8 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/collection/achats': typeof AuthenticatedCollectionAchatsRoute
+  '/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
@@ -303,6 +328,7 @@ export interface FileRoutesByTo {
   '/blog/admin/new': typeof BlogAdminNewRoute
   '/ingredients/$slug/edit': typeof IngredientsSlugEditRoute
   '/products/$slug/edit': typeof ProductsSlugEditRoute
+  '/collection': typeof AuthenticatedCollectionIndexRoute
   '/blog/$category': typeof BlogCategoryIndexRoute
   '/ingredients/$slug': typeof IngredientsSlugIndexRoute
   '/products/$slug': typeof ProductsSlugIndexRoute
@@ -322,7 +348,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
-  '/_authenticated/collection': typeof AuthenticatedCollectionRoute
+  '/_authenticated/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -336,6 +362,8 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/_authenticated/collection/achats': typeof AuthenticatedCollectionAchatsRoute
+  '/_authenticated/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/_authenticated/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
@@ -343,6 +371,7 @@ export interface FileRoutesById {
   '/blog/admin/new': typeof BlogAdminNewRoute
   '/ingredients/$slug_/edit': typeof IngredientsSlugEditRoute
   '/products/$slug_/edit': typeof ProductsSlugEditRoute
+  '/_authenticated/collection/': typeof AuthenticatedCollectionIndexRoute
   '/blog/$category/': typeof BlogCategoryIndexRoute
   '/ingredients/$slug/': typeof IngredientsSlugIndexRoute
   '/products/$slug/': typeof ProductsSlugIndexRoute
@@ -376,6 +405,8 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/ingredients/'
     | '/products/'
+    | '/collection/achats'
+    | '/collection/motifs'
     | '/ingredients/new'
     | '/products/new'
     | '/auth/google/callback'
@@ -383,6 +414,7 @@ export interface FileRouteTypes {
     | '/blog/admin/new'
     | '/ingredients/$slug/edit'
     | '/products/$slug/edit'
+    | '/collection/'
     | '/blog/$category/'
     | '/ingredients/$slug/'
     | '/products/$slug/'
@@ -400,7 +432,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/privacy'
     | '/settings'
-    | '/collection'
     | '/profile'
     | '/tasks'
     | '/auth/banned'
@@ -412,6 +443,8 @@ export interface FileRouteTypes {
     | '/blog'
     | '/ingredients'
     | '/products'
+    | '/collection/achats'
+    | '/collection/motifs'
     | '/ingredients/new'
     | '/products/new'
     | '/auth/google/callback'
@@ -419,6 +452,7 @@ export interface FileRouteTypes {
     | '/blog/admin/new'
     | '/ingredients/$slug/edit'
     | '/products/$slug/edit'
+    | '/collection'
     | '/blog/$category'
     | '/ingredients/$slug'
     | '/products/$slug'
@@ -451,6 +485,8 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/ingredients/'
     | '/products/'
+    | '/_authenticated/collection/achats'
+    | '/_authenticated/collection/motifs'
     | '/_authenticated/ingredients/new'
     | '/_authenticated/products/new'
     | '/auth/google/callback'
@@ -458,6 +494,7 @@ export interface FileRouteTypes {
     | '/blog/admin/new'
     | '/ingredients/$slug_/edit'
     | '/products/$slug_/edit'
+    | '/_authenticated/collection/'
     | '/blog/$category/'
     | '/ingredients/$slug/'
     | '/products/$slug/'
@@ -653,6 +690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogCategoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/collection/': {
+      id: '/_authenticated/collection/'
+      path: '/'
+      fullPath: '/collection/'
+      preLoaderRoute: typeof AuthenticatedCollectionIndexRouteImport
+      parentRoute: typeof AuthenticatedCollectionRoute
+    }
     '/products/$slug_/edit': {
       id: '/products/$slug_/edit'
       path: '/products/$slug/edit'
@@ -701,6 +745,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/ingredients/new'
       preLoaderRoute: typeof AuthenticatedIngredientsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/collection/motifs': {
+      id: '/_authenticated/collection/motifs'
+      path: '/motifs'
+      fullPath: '/collection/motifs'
+      preLoaderRoute: typeof AuthenticatedCollectionMotifsRouteImport
+      parentRoute: typeof AuthenticatedCollectionRoute
+    }
+    '/_authenticated/collection/achats': {
+      id: '/_authenticated/collection/achats'
+      path: '/achats'
+      fullPath: '/collection/achats'
+      preLoaderRoute: typeof AuthenticatedCollectionAchatsRouteImport
+      parentRoute: typeof AuthenticatedCollectionRoute
     }
     '/products/$slug/discussions/': {
       id: '/products/$slug/discussions/'
@@ -761,8 +819,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedCollectionRouteChildren {
+  AuthenticatedCollectionAchatsRoute: typeof AuthenticatedCollectionAchatsRoute
+  AuthenticatedCollectionMotifsRoute: typeof AuthenticatedCollectionMotifsRoute
+  AuthenticatedCollectionIndexRoute: typeof AuthenticatedCollectionIndexRoute
+}
+
+const AuthenticatedCollectionRouteChildren: AuthenticatedCollectionRouteChildren =
+  {
+    AuthenticatedCollectionAchatsRoute: AuthenticatedCollectionAchatsRoute,
+    AuthenticatedCollectionMotifsRoute: AuthenticatedCollectionMotifsRoute,
+    AuthenticatedCollectionIndexRoute: AuthenticatedCollectionIndexRoute,
+  }
+
+const AuthenticatedCollectionRouteWithChildren =
+  AuthenticatedCollectionRoute._addFileChildren(
+    AuthenticatedCollectionRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRoute
+  AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedIngredientsNewRoute: typeof AuthenticatedIngredientsNewRoute
@@ -773,7 +849,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedCollectionRoute: AuthenticatedCollectionRoute,
+  AuthenticatedCollectionRoute: AuthenticatedCollectionRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedIngredientsNewRoute: AuthenticatedIngredientsNewRoute,

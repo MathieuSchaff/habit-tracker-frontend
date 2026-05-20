@@ -3,10 +3,12 @@
   display: inline-flex;
 }
 
+/* The component portals the menu to document.body and computes its fixed
+   position from the trigger rect, so positioning lives in TS (not CSS).
+   This frees the menu from any ancestor `overflow: hidden` (e.g. cards).
+   Uses --z-popover (1000) so it sits above the sticky header/nav (--z-nav: 100). */
 .dropdown-menu__content {
-  --dd-shift: 0px;
-  position: absolute;
-  z-index: var(--z-dropdown);
+  z-index: var(--z-popover);
   min-width: 10rem;
   max-width: calc(100vw - 16px);
   padding: 0.25rem;
@@ -15,24 +17,7 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  transform: translateX(var(--dd-shift));
   animation: dropdown-menu-in 0.18s ease-out;
-}
-
-.dropdown-menu__content--side-bottom {
-  top: calc(100% + 4px);
-}
-
-.dropdown-menu__content--side-top {
-  bottom: calc(100% + 4px);
-}
-
-.dropdown-menu__content--align-start {
-  left: 0;
-}
-
-.dropdown-menu__content--align-end {
-  right: 0;
 }
 
 .dropdown-menu__item {
@@ -40,6 +25,10 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  /* WCAG 2.5.5 AAA — guarantees a 44×44px tap target on mobile even though
+     the padding alone reads ~34px with a 14px line. Padding stays for the
+     visual rhythm; min-height just floors the hit zone. */
+  min-height: 44px;
   padding: 0.6rem 0.75rem;
   font-size: 0.875rem;
   font-weight: var(--font-medium);
@@ -50,6 +39,8 @@
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  /* Skip the 300ms double-tap zoom delay on iOS Safari / older Android Chrome. */
+  touch-action: manipulation;
   transition: background var(--transition-fast) ease;
 }
 
@@ -73,10 +64,14 @@
 @keyframes dropdown-menu-in {
   from {
     opacity: 0;
-    transform: translate(var(--dd-shift, 0), 4px);
   }
   to {
     opacity: 1;
-    transform: translate(var(--dd-shift, 0), 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-menu__content {
+    animation: none;
   }
 }

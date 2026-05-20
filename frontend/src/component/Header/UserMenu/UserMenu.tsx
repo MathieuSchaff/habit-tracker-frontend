@@ -50,13 +50,13 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
       >
         {isAuthenticated ? (
           <>
-            <DropdownMenu.Item index={0} onSelect={onItemClick}>
+            <DropdownMenu.Item onSelect={onItemClick}>
               <Link to="/profile">
                 <User size={16} aria-hidden="true" />
                 <span>Profil</span>
               </Link>
             </DropdownMenu.Item>
-            <DropdownMenu.Item index={1} variant="danger" onSelect={handleLogout}>
+            <DropdownMenu.Item variant="danger" onSelect={handleLogout}>
               <button type="button" disabled={logout.isPending}>
                 <LogOut size={16} aria-hidden="true" />
                 <span>{logout.isPending ? 'Déconnexion...' : 'Déconnexion'}</span>
@@ -65,13 +65,13 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
           </>
         ) : (
           <>
-            <DropdownMenu.Item index={0} onSelect={onItemClick}>
+            <DropdownMenu.Item onSelect={onItemClick}>
               <Link to="/auth/login" search={{ redirect: undefined }}>
                 <LogIn size={16} aria-hidden="true" />
                 <span>Connexion</span>
               </Link>
             </DropdownMenu.Item>
-            <DropdownMenu.Item index={1} onSelect={onItemClick}>
+            <DropdownMenu.Item onSelect={onItemClick}>
               <Link to="/auth/signup">
                 <UserPlus size={16} aria-hidden="true" />
                 <span>S'inscrire</span>

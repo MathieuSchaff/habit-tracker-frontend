@@ -1,7 +1,7 @@
 import { PanelLeftOpen } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { useClickOutside } from '../../hooks/useClickOutside'
+import { useCaptureDismiss } from '../../hooks/useCaptureDismiss'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { AuroreLogo } from '../Logo/Logo'
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
@@ -15,7 +15,10 @@ export const Header = () => {
   const closeMenu = useCallback(() => setIsOpen(false), [])
   const toggleMenu = () => setIsOpen((prev) => !prev)
 
-  useClickOutside(navRef, closeMenu)
+  // Nav drawer floats over the main app content (Links, cards). Tap outside
+  // must dismiss WITHOUT triggering the underlying card — see useCaptureDismiss
+  // docs. Gated on isOpen so a closed nav never intercepts clicks app-wide.
+  useCaptureDismiss(navRef, closeMenu, { enabled: isOpen })
   useEscapeKey(() => {
     if (isOpen) closeMenu()
   })

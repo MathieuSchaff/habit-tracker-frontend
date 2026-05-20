@@ -286,6 +286,71 @@ describe('SearchCombobox — keyboard', () => {
   })
 })
 
+describe('SearchCombobox — error state', () => {
+  it('renders explicit error UI when the query fails (not silent "Aucun résultat")', async () => {
+    const queryFn = (q: string) => ({
+      queryKey: ['test-search-err', q] as const,
+      queryFn: async (): Promise<{ items: TestItem[]; hasMore: boolean; nextOffset: number }> => {
+        throw new Error('boom')
+      },
+      initialPageParam: 0,
+      getNextPageParam: () => undefined,
+    })
+    render(
+      <SearchCombobox
+        label="Search"
+        queryFn={queryFn}
+        toResult={toResult}
+        onSelect={vi.fn()}
+        debounce={0}
+      />,
+      { wrapper: makeWrapper() }
+    )
+    await userEvent.type(screen.getByRole('combobox'), 'ab')
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/Erreur de recherche/)
+    })
+    expect(screen.getByRole('button', { name: /Réessayer/i })).toBeInTheDocument()
+    expect(screen.queryByText(/^Aucun résultat$/)).not.toBeInTheDocument()
+  })
+
+  it('retry button refetches the query', async () => {
+    let callCount = 0
+    const queryFn = (q: string) => ({
+      queryKey: ['test-search-retry', q] as const,
+      queryFn: async () => {
+        callCount += 1
+        if (callCount === 1) {
+          throw new Error('boom')
+        }
+        return { items: ITEMS_AB, hasMore: false, nextOffset: 0 }
+      },
+      initialPageParam: 0,
+      getNextPageParam: () => undefined,
+    })
+    render(
+      <SearchCombobox
+        label="Search"
+        queryFn={queryFn}
+        toResult={toResult}
+        onSelect={vi.fn()}
+        debounce={0}
+      />,
+      { wrapper: makeWrapper() }
+    )
+    await userEvent.type(screen.getByRole('combobox'), 'ab')
+
+    const retry = await screen.findByRole('button', { name: /Réessayer/i })
+    await userEvent.click(retry)
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Item A' })).toBeInTheDocument()
+    })
+    expect(callCount).toBe(2)
+  })
+})
+
 describe('SearchCombobox — sections', () => {
   it('renders section header label and items', async () => {
     const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })

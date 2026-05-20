@@ -71,6 +71,23 @@ describe('SearchSelect — filter', () => {
     const options = screen.getAllByRole('option')
     expect(options).toHaveLength(2)
   })
+
+  it('matches diacritic-insensitively (crème ≈ creme)', async () => {
+    const user = userEvent.setup()
+    const accented: FilterOption[] = [
+      { value: 'creme', label: 'Crème hydratante' },
+      { value: 'acai', label: 'Açaï' },
+      { value: 'plain', label: 'Plain text' },
+    ]
+    renderSelect(<SearchSelect {...baseProps} options={accented} onToggle={vi.fn()} />)
+
+    await user.type(screen.getByRole('combobox'), 'creme')
+    expect(screen.getByRole('option', { name: 'Crème hydratante' })).toBeInTheDocument()
+
+    await user.clear(screen.getByRole('combobox'))
+    await user.type(screen.getByRole('combobox'), 'acai')
+    expect(screen.getByRole('option', { name: 'Açaï' })).toBeInTheDocument()
+  })
 })
 
 describe('SearchSelect — selection', () => {

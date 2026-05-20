@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
-import { useFlipPlacement } from './useFlipPlacement'
+import { useCaptureDismiss } from '@/hooks/useCaptureDismiss'
+import { useFlipPlacement } from '@/hooks/useFlipPlacement'
 import './ComboboxPrimitive.css'
 
 export interface ComboboxAriaProps {
@@ -34,8 +35,11 @@ interface ComboboxPrimitiveProps<T> {
   inputValue: string
   onKeyDown?: (e: React.KeyboardEvent) => void
   isLoading?: boolean
+  isError?: boolean
+  onRetry?: () => void
+  errorMessage?: string
   emptyMessage?: string
-  keyExtractor?: (item: T, index: number) => string | number
+  keyExtractor: (item: T, index: number) => string | number
   footer?: ReactNode
   /** Infinite scroll: sentinel intersection triggers onLoadMore. */
   hasMore?: boolean
@@ -57,6 +61,9 @@ export function ComboboxPrimitive<T>({
   inputValue,
   onKeyDown,
   isLoading,
+  isError,
+  onRetry,
+  errorMessage = 'Erreur de recherche',
   emptyMessage = 'Aucun résultat',
   keyExtractor,
   footer,
@@ -78,23 +85,10 @@ export function ComboboxPrimitive<T>({
   // totalEntries in deps so flip recalculates as async results stream in.
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
-  useEffect(() => {
-    if (!isOpen) return
-    function handleClickOutside(e: MouseEvent) {
-      const target = e.target as Node
-      const inTrigger = containerRef.current?.contains(target)
-      // Dropdown is portaled; exempt its clicks from "outside".
-      const inDropdown = dropdownRef.current?.contains(target)
-      if (!inTrigger && !inDropdown) {
-        // Capture-phase intercept so an outside tap dismisses without firing the underlying link/button (matters on mobile, no Escape).
-        e.preventDefault()
-        e.stopPropagation()
-        onClose()
-      }
-    }
-    document.addEventListener('click', handleClickOutside, true)
-    return () => document.removeEventListener('click', handleClickOutside, true)
-  }, [isOpen, onClose])
+  // useCaptureDismiss (not useClickOutside) because the dropdown is portaled
+  // over real click targets — see hook docs for the tap-block rationale.
+  // Multi-ref: both the trigger container and the portaled dropdown count as "inside".
+  useCaptureDismiss([containerRef, dropdownRef], onClose, { enabled: isOpen })
 
   useEffect(() => {
     if (highlightedIndex >= 0 && isOpen) {
@@ -174,7 +168,16 @@ export function ComboboxPrimitive<T>({
       {isOpen &&
         createPortal(
           <div ref={dropdownRef} className="combobox-primitive__dropdown">
-            {isLoading ? (
+            {isError ? (
+              <div className="combobox-primitive__error" role="alert">
+                <span>{errorMessage}</span>
+                {onRetry && (
+                  <button type="button" className="combobox-primitive__retry" onClick={onRetry}>
+                    Réessayer
+                  </button>
+                )}
+              </div>
+            ) : isLoading ? (
               <output className="combobox-primitive__status">Chargement...</output>
             ) : (
               <>
@@ -226,7 +229,7 @@ export function ComboboxPrimitive<T>({
                   {items.map((item, index) => {
                     const globalIdx = sectionEntries.length + index
                     const isActive = globalIdx === highlightedIndex
-                    const key = keyExtractor ? keyExtractor(item, index) : index
+                    const key = keyExtractor(item, index)
                     return (
                       // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav handled on container
                       <div
@@ -266,7 +269,11 @@ export function ComboboxPrimitive<T>({
         )}
 
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {isOpen ? `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.` : ''}
+        {isOpen
+          ? isError
+            ? errorMessage
+            : `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.`
+          : ''}
       </span>
     </div>
   )

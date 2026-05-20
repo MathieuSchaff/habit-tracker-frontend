@@ -1,7 +1,9 @@
 import { ChevronDown, X } from 'lucide-react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
-import { useFlipPlacement } from '@/component/Search/useFlipPlacement'
+import { foldText } from '@/component/Search/text-fold'
+import { useClickOutside } from '@/hooks/useClickOutside'
+import { useFlipPlacement } from '@/hooks/useFlipPlacement'
 import type { FilterOption } from '../types'
 
 import './SearchSelect.css'
@@ -40,15 +42,21 @@ export function SearchSelect({
   // Lazy load long lists to keep the DOM small on first render.
   const PAGE_SIZE = 50
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  useEffect(() => setVisibleCount(PAGE_SIZE), [])
+
+  // Pre-fold labels once per options change to avoid re-normalizing on each keystroke.
+  const foldedOptions = useMemo(
+    () => options.map((o) => ({ option: o, foldedLabel: foldText(o.label) })),
+    [options]
+  )
 
   const filtered = useMemo(() => {
-    const unselected = options.filter((o) => !selected.includes(o.value))
-    const result = query
-      ? unselected.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
+    const folded = foldText(query)
+    const unselected = foldedOptions.filter(({ option }) => !selected.includes(option.value))
+    const result = folded
+      ? unselected.filter(({ foldedLabel }) => foldedLabel.includes(folded))
       : unselected
-    return result.slice(0, visibleCount)
-  }, [options, selected, query, visibleCount])
+    return result.slice(0, visibleCount).map(({ option }) => option)
+  }, [foldedOptions, selected, query, visibleCount])
 
   const selectedOptions = options.filter((o) => selected.includes(o.value))
 
@@ -108,22 +116,13 @@ export function SearchSelect({
     [isOpen, activeIndex, filtered, onToggle]
   )
 
-  useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen)
+  useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen, [], '.filter-drawer__body')
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        clickOutsideContainer.current &&
-        !clickOutsideContainer.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false)
-        setQuery('')
-        setActiveIndex(-1)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(clickOutsideContainer, () => {
+    setIsOpen(false)
+    setQuery('')
+    setActiveIndex(-1)
+  })
 
   useEffect(() => {
     if (activeIndex >= 0 && isOpen) {

@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import type { FilterOption, GroupedFilterField } from '../types'
 
@@ -19,6 +21,13 @@ export function SubGroupedChips<T extends string>({
     if (value) onToggle(value)
   }
 
+  // 70+ chip categories per FilterAccordion: rebuild on every render is the cost
+  // the native <details> opt-out was meant to avoid.
+  const optionsBySlug = useMemo(
+    () => new Map(field.options.map((o) => [o.value, o])),
+    [field.options]
+  )
+
   if (!field.subGroups) {
     return (
       <ChipGroup
@@ -32,8 +41,6 @@ export function SubGroupedChips<T extends string>({
       />
     )
   }
-
-  const optionsBySlug = new Map(field.options.map((o) => [o.value, o]))
 
   return (
     <div className="filter-subgroups">

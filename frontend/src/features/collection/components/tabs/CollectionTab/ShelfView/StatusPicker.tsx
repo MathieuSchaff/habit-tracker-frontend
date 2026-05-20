@@ -20,12 +20,12 @@ export function StatusPicker({ current, title = 'Déplacer vers…', onPick }: S
     <div className="status-picker">
       <div className="status-picker-title">{title}</div>
       <div className="status-picker-grid">
-        {SHELF_ORDER.map((s, idx) => {
+        {SHELF_ORDER.map((s) => {
           const cfg = statusLabels[s]
           const Icon = cfg.icon
           const active = s === current
           return (
-            <DropdownMenu.Item key={s} index={idx} onSelect={() => onPick(s)}>
+            <DropdownMenu.Item key={s} onSelect={() => onPick(s)}>
               <button
                 type="button"
                 className={clsx('status-option', active && 'active')}

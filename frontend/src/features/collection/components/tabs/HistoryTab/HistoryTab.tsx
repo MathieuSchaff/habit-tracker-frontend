@@ -1,4 +1,5 @@
-import { History, MoreHorizontal } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { ArrowRight, History, MoreHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
@@ -46,7 +47,11 @@ export function HistoryTab({ userProducts }: HistoryTabProps) {
       <div className="coll-empty-state">
         <History size={44} className="coll-empty-icon" />
         <h3>Aucun achat enregistré</h3>
-        <p>Vos achats apparaîtront ici dès que vous en ajouterez un.</p>
+        <p>Vos achats apparaîtront ici dès que vous en saisirez un depuis une fiche produit.</p>
+        <Link to="/collection" className="coll-empty-link">
+          <span>Aller à ma collection</span>
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
       </div>
     )
   }
@@ -86,15 +91,14 @@ export function HistoryTab({ userProducts }: HistoryTabProps) {
                       <MoreHorizontal size={16} aria-hidden="true" />
                     </button>
                   </DropdownMenu.Trigger>
-                  <DropdownMenu.Content align="end">
-                    <DropdownMenu.Item index={0} onSelect={() => setEditingPurchase(entry)}>
+                  <DropdownMenu.Content
+                    align="end"
+                    ariaLabel={`Options pour l'achat de ${entry.product.name}`}
+                  >
+                    <DropdownMenu.Item onSelect={() => setEditingPurchase(entry)}>
                       <button type="button">Modifier</button>
                     </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      index={1}
-                      variant="danger"
-                      onSelect={() => setDeletingPurchase(entry)}
-                    >
+                    <DropdownMenu.Item variant="danger" onSelect={() => setDeletingPurchase(entry)}>
                       <button type="button">Supprimer</button>
                     </DropdownMenu.Item>
                   </DropdownMenu.Content>

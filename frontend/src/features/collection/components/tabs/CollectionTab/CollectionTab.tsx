@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { ArrowUpDown, Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpDown, Search, SlidersHorizontal } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
@@ -105,17 +105,6 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
             <SlidersHorizontal size={16} aria-hidden="true" />
           </Button>
         </div>
-        <Button
-          type="button"
-          variant="primary"
-          size="md"
-          className="coll-add-btn"
-          onClick={onAddClick}
-          aria-label="Ajouter un produit"
-        >
-          <Plus size={16} aria-hidden="true" />
-          <span>Ajouter</span>
-        </Button>
       </div>
 
       <ShelfView

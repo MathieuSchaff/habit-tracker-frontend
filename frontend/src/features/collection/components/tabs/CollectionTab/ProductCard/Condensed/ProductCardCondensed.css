@@ -1,1 +1,337 @@
-purged from history
+@layer components {
+  :root {
+    --shelf-color-skincare: var(--color-success);
+    --shelf-color-complement: var(--color-primary);
+    --shelf-color-huile: var(--color-warning);
+    --shelf-color-vitamine: var(--color-info);
+    --shelf-color-default: var(--color-accent);
+  }
+
+  .prod-card-wrapper {
+    --pcc-accent: var(--color-primary);
+    position: relative;
+    /* Scope inner badge/checkbox z-index so values stay local even when not selected. */
+    isolation: isolate;
+    transition:
+      transform var(--transition-fast) ease,
+      filter var(--transition-fast) ease;
+  }
+
+  .prod-card-wrapper.pcc--select-mode:not(.pcc--selected) {
+    opacity: 0.88;
+  }
+
+  .prod-card-wrapper.pcc--selected {
+    transform: scale(0.98);
+  }
+
+  .prod-card {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    touch-action: manipulation;
+    width: 100%;
+    border-top: 3px solid var(--pcc-accent);
+    /*biome-ignore lint: this feature exist*/
+    corner-top-right-shape: scoop;
+    transition:
+      box-shadow var(--transition-fast) ease,
+      border-color var(--transition-fast) ease;
+  }
+
+  .prod-card-wrapper.pcc--selected .prod-card {
+    border-color: var(--pcc-accent);
+    box-shadow:
+      0 0 0 1.5px var(--pcc-accent),
+      0 6px 18px color-mix(in oklch, var(--pcc-accent) 22%, transparent);
+  }
+
+  .prod-card-top {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    min-height: 4.75rem;
+  }
+
+  .prod-icon-wrap {
+    flex-shrink: 0;
+    transition: transform var(--transition-base) ease;
+  }
+
+  .prod-card:hover .prod-card-top .prod-icon-wrap {
+    transform: scale(1.1);
+  }
+
+  .prod-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: oklch(from var(--pcc-accent) l c h / 0.08);
+    border: 2px solid oklch(from var(--pcc-accent) l c h / 0.3);
+    color: var(--pcc-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .prod-sentiment-badge {
+    position: absolute;
+    top: -13px;
+    right: -13px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    z-index: 100;
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: all var(--transition-base) var(--ease-bounce);
+  }
+
+  .prod-sentiment-badge.empty {
+    opacity: 0.4;
+  }
+
+  .prod-sentiment-badge:hover {
+    transform: scale(1.2);
+    border-color: var(--color-primary);
+    z-index: 10;
+  }
+
+  /* Select-mode checkbox overlay (top-left) */
+  .pcc-check {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-strong);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: oklch(100% 0 0);
+    opacity: 0;
+    transform: scale(0.85);
+    transition:
+      opacity var(--transition-fast) ease,
+      transform var(--transition-fast) ease,
+      background var(--transition-fast) ease,
+      border-color var(--transition-fast) ease;
+    z-index: 99;
+    pointer-events: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pcc-check--visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .pcc--selected .pcc-check {
+    background: var(--pcc-accent);
+    border-color: var(--pcc-accent);
+  }
+
+  .prod-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: left;
+    gap: 6px;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .prod-card .card__footer {
+    background: transparent;
+    border-top: var(--rule-section);
+    color: var(--text-primary);
+    padding: var(--space-3) var(--space-5);
+    position: relative;
+  }
+
+  .prod-brand {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-secondary);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1.2;
+    min-height: 1.2em;
+  }
+
+  .prod-name {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: var(--font-medium);
+    color: var(--text-primary);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  .prod-comment {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-style: italic;
+  }
+
+  .prod-chips {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .pcc-status-wrap {
+    display: inline-flex;
+  }
+
+  .pcc-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: color-mix(in oklch, var(--pcc-accent) 12%, transparent);
+    color: var(--pcc-accent);
+    border: 1px solid color-mix(in oklch, var(--pcc-accent) 25%, transparent);
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background var(--transition-fast) ease,
+      transform var(--transition-fast) ease;
+  }
+
+  .pcc-status-pill:hover,
+  .pcc-status-pill:focus-visible {
+    background: color-mix(in oklch, var(--pcc-accent) 20%, transparent);
+    outline: none;
+  }
+
+  .pcc-status-pill:active {
+    transform: scale(0.96);
+  }
+
+  /* Chevron = "is-expandable" affordance so users discover the picker.
+     Dimmed so it whispers rather than competes with the status icon + label. */
+  .pcc-status-pill-chevron {
+    opacity: 0.6;
+    margin-left: 1px;
+  }
+
+  .pcc-picker {
+    /* Cap width on narrow viewports to avoid overflow past the card edge. */
+    max-width: calc(100vw - 32px);
+  }
+
+  .prod-price {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-weight: var(--font-semibold);
+  }
+
+  .prod-card.status-archived {
+    filter: saturate(0.4);
+    opacity: 0.65;
+  }
+
+  .prod-score-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    pointer-events: none;
+  }
+  .prod-score-corner.score-gold {
+    border-width: 0 28px 28px 0;
+    border-color: transparent oklch(80% 0.18 80) transparent transparent;
+  }
+  .prod-score-corner.score-rare {
+    border-width: 0 28px 28px 0;
+    border-color: transparent oklch(75% 0.18 300) transparent transparent;
+  }
+
+  .prod-card.status-holy-grail {
+    background: var(--bg-card);
+    box-shadow:
+      0 6px 20px oklch(from var(--card-accent, var(--color-primary)) l c h / 0.22),
+      0 2px 6px oklch(from var(--card-accent, var(--color-primary)) l c h / 0.1);
+  }
+
+  @keyframes sentimentPop {
+    0% {
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1.6) rotate(-10deg);
+    }
+    60% {
+      transform: scale(0.85) rotate(5deg);
+    }
+    100% {
+      transform: scale(1) rotate(0);
+    }
+  }
+
+  .prod-sentiment-badge.popping {
+    animation: sentimentPop 0.35s var(--ease-bounce);
+  }
+
+  @media (--reduced-motion) {
+    .prod-sentiment-badge.popping {
+      animation: none;
+    }
+    .prod-card,
+    .prod-card-wrapper,
+    .prod-sentiment-badge,
+    .pcc-check,
+    .pcc-status-pill {
+      transition: none;
+    }
+    .prod-card:hover .prod-icon-wrap {
+      transform: none;
+    }
+  }
+}

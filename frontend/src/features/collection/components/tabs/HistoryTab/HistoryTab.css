@@ -237,3 +237,30 @@
   margin-bottom: 1.25rem;
   opacity: 0.3;
 }
+
+/* Subtle text link — calm CTA without a filled-button shout. */
+.coll-empty-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 1.25rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary-deeper);
+  font-size: 0.875rem;
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition:
+    background var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+}
+
+.coll-empty-link:hover {
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  color: var(--color-primary-deeper);
+}
+
+.coll-empty-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
