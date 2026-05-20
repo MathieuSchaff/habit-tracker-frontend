@@ -19,11 +19,18 @@ const VALID_INGREDIENT = { name: 'Rétinol', type: 'skincare' } as const
 async function createIngredient(
   client: TestClient,
   token: string,
-  body: { name: string; type?: 'skincare'; description?: string; content?: string; category?: string; slug?: string },
+  body: {
+    name: string
+    type?: 'skincare'
+    description?: string
+    content?: string
+    category?: string
+    slug?: string
+  }
 ) {
   const res = await client.ingredients.$post(
     { json: { type: 'skincare' as const, ...body } },
-    withAuth(token),
+    withAuth(token)
   )
   return res
 }
@@ -113,7 +120,10 @@ describe('Ingredient Routes', () => {
       await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profileData.data.userId))
 
       await createIngredient(client, token, { name: 'Magnésium', slug: 'magnesium' })
-      const res = await createIngredient(client, token, { name: 'Magnésium Bis', slug: 'magnesium' })
+      const res = await createIngredient(client, token, {
+        name: 'Magnésium Bis',
+        slug: 'magnesium',
+      })
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
       const body = (await res.json()) as unknown as ApiErrorBody
@@ -127,7 +137,7 @@ describe('Ingredient Routes', () => {
       const res = await client.ingredients.$post(
         // @ts-expect-error — missing required name; testing schema rejection
         { json: { description: 'orphan' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -224,7 +234,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':slug'].$get(
         { param: { slug: created.slug } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -296,7 +306,7 @@ describe('Ingredient Routes', () => {
           param: { id: created.id },
           json: { description: 'Alternative naturelle au rétinol', category: 'actif' },
         },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -320,7 +330,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { category: 'actif' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
@@ -339,7 +349,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Description persistée' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
@@ -358,7 +368,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { name: 'Vitamine E Tocopherol' } },
-        withAuth(token),
+        withAuth(token)
       )
       const data = await res.json()
       if (!data.success) throw new Error('patch failed')
@@ -371,7 +381,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':id'].$patch(
         { param: { id: fakeId }, json: { description: 'X' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -390,7 +400,7 @@ describe('Ingredient Routes', () => {
       const res = await client.ingredients[':id'].$patch(
         // @ts-expect-error — hackerField rejected by strict schema
         { param: { id: created.id }, json: { hackerField: 'oops' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -420,7 +430,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(adminToken),
+        withAuth(adminToken)
       )
 
       expectStatus(res, 204)
@@ -435,10 +445,7 @@ describe('Ingredient Routes', () => {
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
-      await client.ingredients[':id'].$delete(
-        { param: { id: created.id } },
-        withAuth(adminToken),
-      )
+      await client.ingredients[':id'].$delete({ param: { id: created.id } }, withAuth(adminToken))
 
       const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -457,10 +464,7 @@ describe('Ingredient Routes', () => {
       const i1 = r1Data.data
       const i2 = r2Data.data
 
-      await client.ingredients[':id'].$delete(
-        { param: { id: i1.id } },
-        withAuth(adminToken),
-      )
+      await client.ingredients[':id'].$delete({ param: { id: i1.id } }, withAuth(adminToken))
 
       const res = await client.ingredients[':slug'].$get({ param: { slug: i2.slug } })
       expectStatus(res, HTTP_STATUS.OK)
@@ -476,7 +480,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(userToken),
+        withAuth(userToken)
       )
 
       expectStatus(res, HTTP_STATUS.FORBIDDEN)
@@ -490,7 +494,7 @@ describe('Ingredient Routes', () => {
 
       const res = await client.ingredients[':id'].$delete(
         { param: { id: fakeId } },
-        withAuth(adminToken),
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.INTERNAL_SERVER_ERROR)
@@ -533,7 +537,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Première description' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
@@ -556,11 +560,11 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Première description' } },
-        withAuth(token),
+        withAuth(token)
       )
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { content: 'Deuxième modification' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
@@ -594,7 +598,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: i1.id }, json: { description: 'Edit sur i1' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: i2.slug } })
@@ -616,7 +620,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Nouvelle description' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
@@ -641,7 +645,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Description inchangée' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
@@ -660,7 +664,7 @@ describe('Ingredient Routes', () => {
 
       const patchRes = await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { name: 'Vitamine C Pure' } },
-        withAuth(token),
+        withAuth(token)
       )
       const patchData = await patchRes.json()
       if (!patchData.success) throw new Error('patch failed')
@@ -690,7 +694,7 @@ describe('Ingredient Routes', () => {
 
       await client.ingredients[':id'].$patch(
         { param: { id: created.id }, json: { description: 'Edit tracée' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })

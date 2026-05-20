@@ -6,7 +6,11 @@ import { eq } from 'drizzle-orm'
 
 import { userBans } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
-import { createTestClient, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import {
+  createTestClient,
+  type TestClient,
+  withAuth,
+} from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestAdminUser, createTestUser } from '../../../tests/helpers/test-factories'
 import { _banCacheSize, clearBanCache } from '../ban.service'

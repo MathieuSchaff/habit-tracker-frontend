@@ -29,7 +29,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
       {
         json: { currentPassword: oldPassword, newPassword },
       },
-      { headers: { Authorization: `Bearer ${userToken}` } },
+      { headers: { Authorization: `Bearer ${userToken}` } }
     )
 
     expect(res.status).toBe(HTTP_STATUS.OK)
@@ -57,7 +57,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
           newPassword: 'EvenNewerPassword123!',
         },
       },
-      { headers: { Authorization: `Bearer ${userToken}` } },
+      { headers: { Authorization: `Bearer ${userToken}` } }
     )
 
     expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
@@ -78,7 +78,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
       {
         json: { currentPassword: oldPassword, newPassword: 'weak' },
       },
-      { headers: { Authorization: `Bearer ${userToken}` } },
+      { headers: { Authorization: `Bearer ${userToken}` } }
     )
 
     expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)

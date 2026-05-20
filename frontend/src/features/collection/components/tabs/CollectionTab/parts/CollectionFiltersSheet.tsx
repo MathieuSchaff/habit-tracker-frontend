@@ -2,11 +2,11 @@ import { getProductTagLabel } from '@habit-tracker/shared'
 
 import clsx from 'clsx'
 import { FilterX, X } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
-import { Input } from '@/component/Input/Input'
+import { Select, type SelectOption } from '@/component/Input/Select/Select'
 import { SCORE_THRESHOLDS } from '@/features/collection/constants'
 import {
   type CollectionFilterValues,
@@ -49,6 +49,26 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
   })
 
   const closeBtnRef = useRef<HTMLButtonElement>(null)
+  const priceId = useId()
+
+  const brandOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: 'all', label: 'Toutes les marques' },
+      ...filterOptions.brands.map((b) => ({ value: b, label: b })),
+    ],
+    [filterOptions.brands]
+  )
+
+  const productTypeOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: 'all', label: 'Tous les types' },
+      ...filterOptions.productTypes.map((slug) => ({
+        value: slug,
+        label: getProductTagLabel(slug) ?? slug,
+      })),
+    ],
+    [filterOptions.productTypes]
+  )
 
   const update = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }))
@@ -65,73 +85,80 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
 
   return (
     <Sheet onClose={onClose} initialFocusRef={closeBtnRef} className="coll-sheet">
-      <div className="coll-sheet-handle" />
-      <div className="coll-sheet-header">
-        <Sheet.Title>FILTRES AVANCÉS</Sheet.Title>
-        <div className="coll-sheet-actions">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            title="Réinitialiser tous les filtres"
-          >
-            <FilterX size={18} />
-            <span>Réinitialiser</span>
-          </Button>
-          <Button
-            ref={closeBtnRef}
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            aria-label="Fermer les filtres sans appliquer"
-          >
-            <X size={20} />
-          </Button>
+      <div className="coll-sheet-handle" aria-hidden="true" />
+
+      <header className="coll-sheet-header">
+        <div className="coll-eyebrow">
+          <span className="coll-eyebrow-dot" aria-hidden="true" />
+          Aurore · Collection
         </div>
-      </div>
+        <div className="coll-titlerow">
+          <Sheet.Title className="coll-title">Filtres</Sheet.Title>
+          <div className="coll-sheet-actions">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              title="Réinitialiser tous les filtres"
+            >
+              <FilterX size={14} aria-hidden="true" />
+              <span>Réinitialiser</span>
+            </Button>
+            <Button
+              ref={closeBtnRef}
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              aria-label="Fermer les filtres sans appliquer"
+              className="coll-icon-btn"
+            >
+              <X size={18} aria-hidden="true" />
+            </Button>
+          </div>
+        </div>
+        <p className="coll-lede">Affinez l'affichage de votre collection.</p>
+      </header>
 
       <div className="coll-sheet-body">
         <div className="coll-adv-grid">
-          <div className="coll-adv-group">
-            <label htmlFor="coll-brand">Marque</label>
-            <select
-              id="coll-brand"
+          <div className="coll-field">
+            <span className="coll-field-label" id="coll-brand-label">
+              Marque
+            </span>
+            <Select
+              className="coll-select"
+              aria-labelledby="coll-brand-label"
+              options={brandOptions}
               value={draft.brand}
-              onChange={(e) => update('brand', e.target.value)}
-            >
-              <option value="all">Toutes les marques</option>
-              {filterOptions.brands.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
+              onValueChange={(v) => update('brand', v || 'all')}
+            />
           </div>
 
-          <div className="coll-adv-group">
-            <label htmlFor="coll-product-type">Type de produit</label>
-            <select
-              id="coll-product-type"
+          <div className="coll-field">
+            <span className="coll-field-label" id="coll-product-type-label">
+              Type de produit
+            </span>
+            <Select
+              className="coll-select"
+              aria-labelledby="coll-product-type-label"
+              options={productTypeOptions}
               value={draft.productType}
-              onChange={(e) => update('productType', e.target.value)}
-            >
-              <option value="all">Tous les types</option>
-              {filterOptions.productTypes.map((slug) => (
-                <option key={slug} value={slug}>
-                  {getProductTagLabel(slug) ?? slug}
-                </option>
-              ))}
-            </select>
+              onValueChange={(v) => update('productType', v || 'all')}
+            />
           </div>
 
-          <fieldset className="coll-adv-group">
-            <legend className="coll-label">Ressenti</legend>
-            <div className="coll-sentiment-row">
+          <fieldset className="coll-field">
+            <legend className="coll-field-label">Ressenti</legend>
+            <div className="coll-rail">
               {(['all', 1, 2, 3, 4, 5, 6] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
-                  className={clsx('coll-sentiment-btn', draft.sentiment === s && 'active')}
+                  className={clsx(
+                    'coll-chip',
+                    s === 'all' && 'is-text',
+                    draft.sentiment === s && 'is-active'
+                  )}
                   aria-pressed={draft.sentiment === s}
                   aria-label={s === 'all' ? 'Tous les ressentis' : `Ressenti ${s} sur 6`}
                   onClick={() => update('sentiment', s === 'all' ? 'all' : (s as number))}
@@ -142,16 +169,16 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
             </div>
           </fieldset>
 
-          <fieldset className="coll-adv-group">
-            <legend className="coll-label">Prêt à racheter ?</legend>
-            <div className="coll-repurchase-row">
-              {['all', 'yes', 'no', 'unsure'].map((r) => (
+          <fieldset className="coll-field">
+            <legend className="coll-field-label">Prêt à racheter ?</legend>
+            <div className="coll-rail coll-rail--equal">
+              {(['all', 'yes', 'no', 'unsure'] as const).map((r) => (
                 <button
                   key={r}
                   type="button"
-                  className={clsx('coll-repurchase-btn', draft.repurchase === r && 'active')}
+                  className={clsx('coll-chip is-text', draft.repurchase === r && 'is-active')}
                   aria-pressed={draft.repurchase === r}
-                  onClick={() => update('repurchase', r as 'yes' | 'no' | 'unsure' | 'all')}
+                  onClick={() => update('repurchase', r)}
                 >
                   {r === 'all' && 'Tous'}
                   {r === 'yes' && 'Oui'}
@@ -162,14 +189,14 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
             </div>
           </fieldset>
 
-          <fieldset className="coll-adv-group">
-            <legend className="coll-label">Évaluation minimale</legend>
-            <div className="coll-note-row">
+          <fieldset className="coll-field">
+            <legend className="coll-field-label">Évaluation minimale</legend>
+            <div className="coll-rail coll-rail--equal">
               {NOTE_TIERS.map((tier) => (
                 <button
                   key={tier.value}
                   type="button"
-                  className={clsx('coll-note-btn', draft.minNote === tier.value && 'active')}
+                  className={clsx('coll-chip is-text', draft.minNote === tier.value && 'is-active')}
                   aria-pressed={draft.minNote === tier.value}
                   onClick={() => update('minNote', tier.value)}
                 >
@@ -179,17 +206,26 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
             </div>
           </fieldset>
 
-          <div className="coll-adv-group">
-            <Input
-              id="coll-max-price"
-              label="Prix maximum (€)"
-              type="number"
-              placeholder="Ex: 50"
-              value={draft.maxPrice}
-              onChange={(e) =>
-                update('maxPrice', e.target.value === '' ? '' : Number.parseFloat(e.target.value))
-              }
-            />
+          <div className="coll-field">
+            <label className="coll-field-label" htmlFor={priceId}>
+              Prix maximum
+            </label>
+            <div className="coll-priceinput">
+              <input
+                id={priceId}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="—"
+                value={draft.maxPrice}
+                onChange={(e) =>
+                  update('maxPrice', e.target.value === '' ? '' : Number.parseFloat(e.target.value))
+                }
+              />
+              <span className="coll-priceinput-suffix" aria-hidden="true">
+                €
+              </span>
+            </div>
           </div>
         </div>
       </div>

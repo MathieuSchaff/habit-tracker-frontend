@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import type { Hono } from 'hono'
+
+import type { AppEnv } from '../../../app-env'
 import {
   createTestEnv,
   signupAndGetToken,
@@ -10,10 +13,6 @@ import {
 } from '../../../tests/helpers/createTestClient'
 import { authPostMultipart } from '../../../tests/helpers/route-test-helpers'
 import { unsafeEmail } from '../../../tests/helpers/unsafe'
-
-import type { Hono } from 'hono'
-
-import type { AppEnv } from '../../../app-env'
 
 function buildVp8l(width: number, height: number, padBytes: number): Buffer {
   const w = width - 1

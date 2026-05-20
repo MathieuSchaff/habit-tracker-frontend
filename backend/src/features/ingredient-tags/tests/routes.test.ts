@@ -43,7 +43,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Apaisant', category: 'effect' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CREATED)
@@ -58,7 +58,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Acide Salicylique' } },
-        withAuth(token),
+        withAuth(token)
       )
       const data = await res.json()
       if (!data.success) throw new Error('create tag failed')
@@ -71,7 +71,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Niacinamide', slug: 'niacinamide-custom' } },
-        withAuth(token),
+        withAuth(token)
       )
       const data = await res.json()
       if (!data.success) throw new Error('create tag failed')
@@ -84,11 +84,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Acide', slug: 'acide' } },
-        withAuth(token),
+        withAuth(token)
       )
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Acide Bis', slug: 'acide' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
@@ -104,7 +104,7 @@ describe('Ingredient Tag Routes', () => {
       const res = await client['ingredient-tags'].$post(
         // @ts-expect-error — missing required name; testing schema rejection
         { json: { category: 'effect' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -141,11 +141,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Hydratant', category: 'effect' } },
-        withAuth(token),
+        withAuth(token)
       )
       await client['ingredient-tags'].$post(
         { json: { name: 'Acide', category: 'type' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       const res = await client['ingredient-tags'].$get({ query: { category: 'effect' } })
@@ -161,10 +161,7 @@ describe('Ingredient Tag Routes', () => {
     it('should return the tag without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client['ingredient-tags'].$post(
-        { json: VALID_TAG },
-        withAuth(token),
-      )
+      const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create tag failed')
       const created = createData.data
@@ -201,7 +198,7 @@ describe('Ingredient Tag Routes', () => {
 
       const createRes = await client['ingredient-tags'].$post(
         { json: { name: 'Vieux' } },
-        withAuth(token),
+        withAuth(token)
       )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create tag failed')
@@ -209,7 +206,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'][':id'].$patch(
         { param: { id: created.id }, json: { name: 'Neuf', category: 'type' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -224,7 +221,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'][':id'].$patch(
         { param: { id: crypto.randomUUID() }, json: { name: 'X' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -237,11 +234,11 @@ describe('Ingredient Tag Routes', () => {
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Premier', slug: 'premier' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2 = await client['ingredient-tags'].$post(
         { json: { name: 'Deuxième' } },
-        withAuth(token),
+        withAuth(token)
       )
       const r2Data = await r2.json()
       if (!r2Data.success) throw new Error('create tag failed')
@@ -249,7 +246,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'][':id'].$patch(
         { param: { id: t2.id }, json: { name: 'Premier', slug: 'premier' } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
@@ -272,17 +269,14 @@ describe('Ingredient Tag Routes', () => {
     it('should delete the tag and return null data', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client['ingredient-tags'].$post(
-        { json: VALID_TAG },
-        withAuth(token),
-      )
+      const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create tag failed')
       const created = createData.data
 
       const res = await client['ingredient-tags'][':id'].$delete(
         { param: { id: created.id } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -293,18 +287,12 @@ describe('Ingredient Tag Routes', () => {
     it('should make the tag unreachable after deletion', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await client['ingredient-tags'].$post(
-        { json: VALID_TAG },
-        withAuth(token),
-      )
+      const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create tag failed')
       const created = createData.data
 
-      await client['ingredient-tags'][':id'].$delete(
-        { param: { id: created.id } },
-        withAuth(token),
-      )
+      await client['ingredient-tags'][':id'].$delete({ param: { id: created.id } }, withAuth(token))
 
       const res = await client['ingredient-tags'][':id'].$get({ param: { id: created.id } })
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -315,7 +303,7 @@ describe('Ingredient Tag Routes', () => {
 
       const res = await client['ingredient-tags'][':id'].$delete(
         { param: { id: crypto.randomUUID() } },
-        withAuth(token),
+        withAuth(token)
       )
 
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
@@ -335,7 +323,7 @@ describe('Ingredient Tag Routes', () => {
 
       const tagRes = await client['ingredient-tags'].$post(
         { json: { name: 'Apaisant' } },
-        withAuth(token),
+        withAuth(token)
       )
       const tagData = await tagRes.json()
       if (!tagData.success) throw new Error('create tag failed')
