@@ -1,0 +1,28 @@
+# =========================
+# Configuration E2E (overlay sur dev)
+# Usage:
+#   docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml \
+#                  -f infra/docker/compose/docker-compose.e2e.yml --env-file .env.dev up -d
+#
+# Swap la DB dev (volume persistant) → DB tmpfs avec creds testpassword.
+# API pointe sur cette DB éphémère. Frontend inchangé (toujours sur :5173).
+# Dev stack doit être stoppé avant (ports 5432/3000/5173 partagés).
+# =========================
+
+services:
+  db:
+    environment: !override
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: appdb
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    volumes: !override
+      - ../../../backend/drizzle-init:/docker-entrypoint-initdb.d:ro
+    tmpfs:
+      - /var/lib/postgresql
+
+  api:
+    environment:
+      DATABASE_URL: postgres://app:testpassword@db:5432/appdb
+      APP_DATABASE_URL: postgres://app_runtime:testpassword@db:5432/appdb
+      LOG_LEVEL: info

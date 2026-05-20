@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import type { BrandCertificationSources } from '../../../schema/products/brand-certifications'
 import {
   aggregateBrandClaims,
   brandToObfSlug,
@@ -107,6 +108,7 @@ describe('aggregateBrandClaims', () => {
     const out = aggregateBrandClaims(rows, {
       ratioThreshold: 0.5,
       minProducts: 2,
+      minLabelCount: 999,
       brandWhitelist: new Set(['foo']),
     })
     expect(out.get('foo')).toBeDefined()
@@ -199,7 +201,7 @@ describe('mergeObfSourcesIntoExisting', () => {
   })
 
   test('leaves untouched claims that OBF did not assert', () => {
-    const existing = { vegan: ['manual'], cruelty_free: ['peta'] }
+    const existing: BrandCertificationSources = { vegan: ['manual'], cruelty_free: ['peta'] }
     const merged = mergeObfSourcesIntoExisting(existing, {
       obfSlug: 'foo',
       total: 3,

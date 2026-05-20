@@ -2,10 +2,8 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { eq } from 'drizzle-orm'
 
-import type { Product } from '../../../db/schema/products'
 import { userProductStatusLog } from '../../../db/schema/products/user-product-status-log'
 import { userProductReviews, userProducts } from '../../../db/schema/user-products'
-import type { User } from '../../../db/schema/users'
 import { createProduct } from '../../../features/products/service'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -22,9 +20,13 @@ import {
 } from '../service'
 import { UserProductError } from '../user-product-error'
 
+// User/Product types kept structural — `createTestUser`/`createProduct` return
+// shape varies (signup success vs email_exists path) and we only need `id`.
+type WithId = { id: string }
+
 describe('User Products Service', () => {
-  let user: User | undefined
-  let product: Product | undefined
+  let user!: WithId
+  let product!: WithId
 
   beforeEach(async () => {
     await cleanDatabase()

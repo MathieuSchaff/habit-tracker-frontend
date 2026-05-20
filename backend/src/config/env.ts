@@ -32,7 +32,7 @@ export const envSchema = z
         ctx.addIssue({
           code: 'custom',
           path: [field],
-          message: `${field} contains the default password "${leaked}". Rotate the Postgres role password and update the env var before booting in production. See docs/02-engineering/ops/env-management.md §5.`,
+          message: `${field} contains the default password "${leaked}". Rotate the Postgres role password and update the env var before booting in production.`,
         })
       }
     }

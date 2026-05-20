@@ -5,8 +5,8 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authDelete, authPost, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -15,7 +15,7 @@ const VALID_PRODUCT = {
   category: 'complement',
   kind: 'gelule',
   unit: 'bottle',
-}
+} as const
 const VALID_THREAD = {
   title: "Ce produit m'a fait des boutons",
   content: 'Détail de mon expérience ici.',
@@ -24,15 +24,19 @@ const VALID_REPLY = { content: 'Pareil pour moi.' }
 
 describe('Product Discussion Routes', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   async function createProductAndGetSlug(token: string) {
-    const res = await authPost(app, '/products', token, VALID_PRODUCT)
+    const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
     const data = await res.json()
-    return data.data.slug as string
+    if (!data.success) throw new Error('product creation failed')
+    return data.data.slug
   }
 
   describe('POST /products/:slug/discussions', () => {
@@ -40,11 +44,15 @@ describe('Product Discussion Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const slug = await createProductAndGetSlug(token)
 
-      const res = await authPost(app, `/products/${slug}/discussions`, token, VALID_THREAD)
+      const res = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.title).toBe(VALID_THREAD.title)
       expect(data.data.productId).toBeDefined()
     })
@@ -67,15 +75,19 @@ describe('Product Discussion Routes', () => {
     it('should list threads without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const slug = await createProductAndGetSlug(token)
-      await authPost(app, `/products/${slug}/discussions`, token, VALID_THREAD)
+      await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
 
-      const res = await app.request(`/products/${slug}/discussions`)
+      const res = await client.products[':slug'].discussions.$get({ param: { slug } })
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].title).toBe(VALID_THREAD.title)
-      expect(data.data[0].replyCount).toBe(0)
+      expect(data.data[0]?.title).toBe(VALID_THREAD.title)
+      expect(data.data[0]?.replyCount).toBe(0)
     })
   })
 
@@ -83,19 +95,22 @@ describe('Product Discussion Routes', () => {
     it('should add a reply to a thread', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const slug = await createProductAndGetSlug(token)
-      const threadRes = await authPost(app, `/products/${slug}/discussions`, token, VALID_THREAD)
+      const threadRes = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
       const threadData = await threadRes.json()
+      if (!threadData.success) throw new Error('thread creation failed')
       const threadId = threadData.data.id
 
-      const res = await authPost(
-        app,
-        `/products/${slug}/discussions/${threadId}/replies`,
-        token,
-        VALID_REPLY
+      const res = await client.products[':slug'].discussions[':threadId'].replies.$post(
+        { json: VALID_REPLY, param: { slug, threadId } },
+        withAuth(token)
       )
 
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.content).toBe(VALID_REPLY.content)
       expect(data.data.threadId).toBe(threadId)
     })
@@ -105,17 +120,28 @@ describe('Product Discussion Routes', () => {
     it('should return thread with replies', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const slug = await createProductAndGetSlug(token)
-      const threadRes = await authPost(app, `/products/${slug}/discussions`, token, VALID_THREAD)
-      const { data: thread } = await threadRes.json()
-      await authPost(app, `/products/${slug}/discussions/${thread.id}/replies`, token, VALID_REPLY)
+      const threadRes = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
+      const threadJson = await threadRes.json()
+      if (!threadJson.success) throw new Error('thread creation failed')
+      const thread = threadJson.data
+      await client.products[':slug'].discussions[':threadId'].replies.$post(
+        { json: VALID_REPLY, param: { slug, threadId: thread.id } },
+        withAuth(token)
+      )
 
-      const res = await app.request(`/products/${slug}/discussions/${thread.id}`)
+      const res = await client.products[':slug'].discussions[':threadId'].$get({
+        param: { slug, threadId: thread.id },
+      })
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.id).toBe(thread.id)
       expect(data.data.replies).toHaveLength(1)
-      expect(data.data.replies[0].content).toBe(VALID_REPLY.content)
+      expect(data.data.replies[0]?.content).toBe(VALID_REPLY.content)
     })
   })
 
@@ -123,10 +149,18 @@ describe('Product Discussion Routes', () => {
     it('should delete own thread', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const slug = await createProductAndGetSlug(token)
-      const threadRes = await authPost(app, `/products/${slug}/discussions`, token, VALID_THREAD)
-      const { data: thread } = await threadRes.json()
+      const threadRes = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
+      const threadJson = await threadRes.json()
+      if (!threadJson.success) throw new Error('thread creation failed')
+      const thread = threadJson.data
 
-      const res = await authDelete(app, `/products/${slug}/discussions/${thread.id}`, token)
+      const res = await client.products[':slug'].discussions[':threadId'].$delete(
+        { param: { slug, threadId: thread.id } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(204)
     })
@@ -135,10 +169,19 @@ describe('Product Discussion Routes', () => {
       const token1 = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const token2 = await setupAndLogin(app, TEST_CREDENTIALS.alice)
       const slug = await createProductAndGetSlug(token1)
-      const threadRes = await authPost(app, `/products/${slug}/discussions`, token1, VALID_THREAD)
-      const { data: thread } = await threadRes.json()
+      const threadRes = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token1)
+      )
+      const threadJson = await threadRes.json()
+      if (!threadJson.success) throw new Error('thread creation failed')
+      const thread = threadJson.data
 
-      const res = await authDelete(app, `/products/${slug}/discussions/${thread.id}`, token2)
+      // Cross-user delete → 403 from service via errorHandler, not in typed response.
+      const res = await app.request(`/products/${slug}/discussions/${thread.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token2}` },
+      })
 
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })

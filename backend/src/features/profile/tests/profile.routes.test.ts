@@ -5,26 +5,30 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authGet, authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 describe('Profile Routes', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('GET /profile', () => {
     it('should return profile for authenticated user', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authGet(app, '/profile', token)
+      const res = await client.profile.$get({}, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.userId).toBeDefined()
     })
 
@@ -32,12 +36,13 @@ describe('Profile Routes', () => {
       const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
 
-      const resToto = await authGet(app, '/profile', tokenToto)
-      const resAlice = await authGet(app, '/profile', tokenAlice)
+      const resToto = await client.profile.$get({}, withAuth(tokenToto))
+      const resAlice = await client.profile.$get({}, withAuth(tokenAlice))
 
       const dataToto = await resToto.json()
       const dataAlice = await resAlice.json()
 
+      if (!dataToto.success || !dataAlice.success) throw new Error('expected ok')
       expect(dataToto.data.userId).toBeDefined()
       expect(dataAlice.data.userId).toBeDefined()
       expect(dataToto.data.userId).not.toBe(dataAlice.data.userId)
@@ -47,12 +52,14 @@ describe('Profile Routes', () => {
       const res = await app.request('/profile')
 
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-      const data = await res.json()
+      const data = (await res.json()) as { success: boolean }
       expect(data.success).toBe(false)
     })
 
     it('should reject request with invalid token', async () => {
-      const res = await authGet(app, '/profile', 'invalid.token.here')
+      const res = await app.request('/profile', {
+        headers: { Authorization: 'Bearer invalid.token.here' },
+      })
 
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
@@ -76,11 +83,14 @@ describe('Profile Routes', () => {
     it('should not expose sensitive fields in profile response', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authGet(app, '/profile', token)
+      const res = await client.profile.$get({}, withAuth(token))
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
 
-      expect(data.data.passwordHash).toBeUndefined()
-      expect(data.data.password).toBeUndefined()
+      // passwordHash / password are not in the typed response — assert via untyped lookup
+      const raw = data.data as Record<string, unknown>
+      expect(raw.passwordHash).toBeUndefined()
+      expect(raw.password).toBeUndefined()
     })
   })
 
@@ -88,49 +98,54 @@ describe('Profile Routes', () => {
     it('should update username', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile', token, { username: 'newname' })
+      const res = await client.profile.$patch({ json: { username: 'newname' } }, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.username).toBe('newname')
     })
 
     it('should update bio', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile', token, { bio: 'Hello world' })
+      const res = await client.profile.$patch({ json: { bio: 'Hello world' } }, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.bio).toBe('Hello world')
     })
 
     it('should update avatarUrl', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile', token, {
-        avatarUrl: 'https://example.com/avatar.png',
-      })
+      const res = await client.profile.$patch(
+        { json: { avatarUrl: 'https://example.com/avatar.png' } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.avatarUrl).toBe('https://example.com/avatar.png')
     })
 
     it('should update multiple fields at once', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile', token, {
-        username: 'multi',
-        bio: 'Updated bio',
-      })
+      const res = await client.profile.$patch(
+        { json: { username: 'multi', bio: 'Updated bio' } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.username).toBe('multi')
       expect(data.data.bio).toBe('Updated bio')
     })
@@ -138,32 +153,38 @@ describe('Profile Routes', () => {
     it('should persist updates across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile', token, { username: 'persisted' })
+      await client.profile.$patch({ json: { username: 'persisted' } }, withAuth(token))
 
-      const res = await authGet(app, '/profile', token)
+      const res = await client.profile.$get({}, withAuth(token))
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.username).toBe('persisted')
     })
 
     it('should allow overwriting a previously set field', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile', token, { username: 'first' })
-      await authPatch(app, '/profile', token, { username: 'second' })
+      await client.profile.$patch({ json: { username: 'first' } }, withAuth(token))
+      await client.profile.$patch({ json: { username: 'second' } }, withAuth(token))
 
-      const res = await authGet(app, '/profile', token)
+      const res = await client.profile.$get({}, withAuth(token))
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.username).toBe('second')
     })
 
     it('should not affect other fields when updating one', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile', token, { username: 'myname', bio: 'my bio' })
-      await authPatch(app, '/profile', token, { username: 'updated' })
+      await client.profile.$patch(
+        { json: { username: 'myname', bio: 'my bio' } },
+        withAuth(token)
+      )
+      await client.profile.$patch({ json: { username: 'updated' } }, withAuth(token))
 
-      const res = await authGet(app, '/profile', token)
+      const res = await client.profile.$get({}, withAuth(token))
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.username).toBe('updated')
       expect(data.data.bio).toBe('my bio')
     })
@@ -172,13 +193,20 @@ describe('Profile Routes', () => {
       const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
 
-      await authPatch(app, '/profile', tokenToto, { username: 'toto_name', bio: 'toto bio' })
-      await authPatch(app, '/profile', tokenAlice, { username: 'alice_name', bio: 'alice bio' })
+      await client.profile.$patch(
+        { json: { username: 'toto_name', bio: 'toto bio' } },
+        withAuth(tokenToto)
+      )
+      await client.profile.$patch(
+        { json: { username: 'alice_name', bio: 'alice bio' } },
+        withAuth(tokenAlice)
+      )
 
-      const resToto = await authGet(app, '/profile', tokenToto)
-      const resAlice = await authGet(app, '/profile', tokenAlice)
+      const resToto = await client.profile.$get({}, withAuth(tokenToto))
+      const resAlice = await client.profile.$get({}, withAuth(tokenAlice))
       const dataToto = await resToto.json()
       const dataAlice = await resAlice.json()
+      if (!dataToto.success || !dataAlice.success) throw new Error('expected ok')
 
       expect(dataToto.data.username).toBe('toto_name')
       expect(dataToto.data.bio).toBe('toto bio')
@@ -186,59 +214,52 @@ describe('Profile Routes', () => {
       expect(dataAlice.data.bio).toBe('alice bio')
     })
 
+    // Validator failures return 400 via middleware, not in the typed response.
     it('should reject empty username', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile', token, { username: '' })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject username over 32 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile', token, { username: 'a'.repeat(33) })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should accept username at exactly 32 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const res = await authPatch(app, '/profile', token, { username: 'a'.repeat(32) })
-
+      const res = await client.profile.$patch(
+        { json: { username: 'a'.repeat(32) } },
+        withAuth(token)
+      )
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 
     it('should reject bio over 500 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile', token, { bio: 'a'.repeat(501) })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should accept bio at exactly 500 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const res = await authPatch(app, '/profile', token, { bio: 'a'.repeat(500) })
-
+      const res = await client.profile.$patch(
+        { json: { bio: 'a'.repeat(500) } },
+        withAuth(token)
+      )
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
 
     it('should reject invalid avatarUrl', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile', token, { avatarUrl: 'not-a-url' })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unknown fields (strict mode)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile', token, { hackerField: 'oops' })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
@@ -254,7 +275,6 @@ describe('Profile Routes', () => {
 
     it('should reject request with invalid token', async () => {
       const res = await authPatch(app, '/profile', 'invalid.token.here', { username: 'nope' })
-
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
@@ -263,11 +283,12 @@ describe('Profile Routes', () => {
     it('returns zeroed stats for a new user', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authGet(app, '/profile/stats', token)
+      const res = await client.profile.stats.$get({}, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.totalHabits).toBe(0)
       expect(data.data.totalChecks).toBe(0)
       expect(data.data.bestStreak).toBe(0)
@@ -284,11 +305,12 @@ describe('Profile Routes', () => {
     it('returns default preferences for a new user', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authGet(app, '/profile/preferences', token)
+      const res = await client.profile.preferences.$get({}, withAuth(token))
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.displayScale).toBe('out_of_20')
       expect(data.data.criteriaWeights).toBeDefined()
       expect(data.data.criteriaWeights.tolerance).toBe(1)
@@ -304,22 +326,26 @@ describe('Profile Routes', () => {
     it('updates displayScale', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/preferences', token, {
-        displayScale: 'out_of_10',
-      })
+      const res = await client.profile.preferences.$patch(
+        { json: { displayScale: 'out_of_10' } },
+        withAuth(token)
+      )
 
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.displayScale).toBe('out_of_10')
     })
 
     it('updates criteriaWeights and merges with existing values', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/preferences', token, {
-        criteriaWeights: { tolerance: 8, efficacy: 3 },
-      })
+      const res = await client.profile.preferences.$patch(
+        { json: { criteriaWeights: { tolerance: 8, efficacy: 3 } } },
+        withAuth(token)
+      )
       const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
       expect(data.data.criteriaWeights.tolerance).toBe(8)
       expect(data.data.criteriaWeights.efficacy).toBe(3)
     })
@@ -327,29 +353,30 @@ describe('Profile Routes', () => {
     it('persists changes across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      await authPatch(app, '/profile/preferences', token, { displayScale: 'percentage' })
+      await client.profile.preferences.$patch(
+        { json: { displayScale: 'percentage' } },
+        withAuth(token)
+      )
 
-      const res = await authGet(app, '/profile/preferences', token)
-      expect((await res.json()).data.displayScale).toBe('percentage')
+      const res = await client.profile.preferences.$get({}, withAuth(token))
+      const data = await res.json()
+      if (!data.success) throw new Error('expected ok')
+      expect(data.data.displayScale).toBe('percentage')
     })
 
     it('rejects invalid displayScale', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile/preferences', token, {
         displayScale: 'out_of_100',
       })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('rejects weight outside 0-10 range', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await authPatch(app, '/profile/preferences', token, {
         criteriaWeights: { tolerance: 11 },
       })
-
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 

@@ -1,0 +1,30 @@
+# =========================
+# Configuration pour les TESTS uniquement
+# Utilisation: docker compose -f infra/docker/compose/docker-compose.test.yml up -d
+# =========================
+
+services:
+  db-test:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: appdb_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - testnet
+    # Pas de volume = données perdues au redémarrage (voulu pour les tests)
+    tmpfs:
+      - /var/lib/postgresql
+    volumes:
+      - ../../../backend/drizzle-init:/docker-entrypoint-initdb.d:ro
+
+networks:
+  testnet:
+    driver: bridge

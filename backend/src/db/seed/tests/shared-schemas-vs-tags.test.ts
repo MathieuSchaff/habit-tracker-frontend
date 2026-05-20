@@ -18,25 +18,27 @@ import { allProductTagsMap } from '../data/products'
 import { ingredientTagData, productTagData } from '../data/tags'
 
 // Tags from seed grouped by category, used to check cross-refs with shared schemas.
-const productTypeTagSlugs = new Set(
+// Sets are typed as `Set<string>` so cross-taxonomy `has(...)` calls accept any
+// slug literal union without TS narrowing complaints.
+const productTypeTagSlugs = new Set<string>(
   productTagData.filter((t) => t.tagType === 'product_type').map((t) => t.slug)
 )
 // "attribute-ish" categories — the old single 'attribute' bucket was split
 // into ingredient_attribute + skin_effect + product_label + shared_label.
 // SKINCARE_INGREDIENT_CATEGORY_VALUES still lives in the ingredient_attribute slice.
-const ingredientAttributeTagSlugs = new Set(
+const ingredientAttributeTagSlugs = new Set<string>(
   ingredientTagData.filter((t) => t.tagType === 'ingredient_attribute').map((t) => t.slug)
 )
 // skin_type and concern slugs exist in both taxonomies — use ingredient side.
-const skinTypeTagSlugs = new Set(
+const skinTypeTagSlugs = new Set<string>(
   ingredientTagData.filter((t) => t.tagType === 'skin_type').map((t) => t.slug)
 )
-const concernTagSlugs = new Set(
+const concernTagSlugs = new Set<string>(
   ingredientTagData.filter((t) => t.tagType === 'concern').map((t) => t.slug)
 )
 // Haircare equivalent of skin_type — used in `avoid` to express
 // "contraindicated for dry hair / curly hair / colored hair…".
-const hairTypeTagSlugs = new Set(
+const hairTypeTagSlugs = new Set<string>(
   ingredientTagData.filter((t) => t.tagType === 'hair_type').map((t) => t.slug)
 )
 
@@ -124,7 +126,7 @@ describe('Shared schemas ↔ seed tags integrity', () => {
     // `restriction` slugs (supplement) act as the supplement equivalent of
     // skincare `skin_type` / `concern` for the `avoid` bucket — they mark
     // "do not take if the user matches X".
-    const restrictionTagSlugs = new Set(
+    const restrictionTagSlugs = new Set<string>(
       ingredientTagData.filter((t) => t.tagType === 'restriction').map((t) => t.slug)
     )
 

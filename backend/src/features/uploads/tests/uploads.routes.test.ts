@@ -2,12 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import {
+  createTestEnv,
+  signupAndGetToken,
+  type TestClient,
+  withAuth,
+} from '../../../tests/helpers/createTestClient'
+import { authPostMultipart } from '../../../tests/helpers/route-test-helpers'
+import { unsafeEmail } from '../../../tests/helpers/unsafe'
+
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authPostMultipart, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
-import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 function buildVp8l(width: number, height: number, padBytes: number): Buffer {
   const w = width - 1
@@ -29,12 +35,18 @@ function buildVp8l(width: number, height: number, padBytes: number): Buffer {
 }
 
 describe('Upload Routes', () => {
+  // Upload routes use c.req.parseBody() with no zValidator, so the typed
+  // client cannot reach them with multipart bodies. Fall back to raw
+  // app.request via the existing authPostMultipart helper.
   let app: Hono<AppEnv>
+  let client: TestClient
   const ORIGINAL_FETCH = globalThis.fetch
   let bunnyMock: ReturnType<typeof mock>
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
     bunnyMock = mock(async () => new Response(null, { status: 201 }))
     globalThis.fetch = bunnyMock as unknown as typeof fetch
   })
@@ -50,48 +62,61 @@ describe('Upload Routes', () => {
     })
 
     it('uploads a valid 1024×1024 WebP and updates user', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upload-avatar@example.com'),
+        'Password123!'
+      )
       const buf = buildVp8l(1024, 1024, 100)
       const blob = new Blob([buf], { type: 'image/webp' })
-      const res = await authPostMultipart(app, '/api/uploads/avatar', token, {
-        image: blob,
-      })
+      const res = await authPostMultipart(app, '/api/uploads/avatar', token, { image: blob })
       expect(res.status).toBe(HTTP_STATUS.CREATED)
-      const body = await res.json()
+      const body = (await res.json()) as
+        | { success: true; data: { url: string } }
+        | { success: false; error: string }
       expect(body.success).toBe(true)
+      if (!body.success) throw new Error('avatar upload failed')
       expect(body.data.url).toMatch(/^https:\/\/.+\/avatars\/.+\.webp\?v=\d+$/)
       expect(bunnyMock).toHaveBeenCalledTimes(1)
     })
 
     it('rejects wrong magic bytes', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upload-bad-magic@example.com'),
+        'Password123!'
+      )
       const blob = new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0])], {
         type: 'image/webp',
       })
-      const res = await authPostMultipart(app, '/api/uploads/avatar', token, {
-        image: blob,
-      })
+      const res = await authPostMultipart(app, '/api/uploads/avatar', token, { image: blob })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
-      const body = await res.json()
+      const body = (await res.json()) as { success: boolean; error?: string }
       expect(body.error).toBe('upload_invalid_format')
     })
 
     it('rejects wrong dimensions', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upload-bad-dim@example.com'),
+        'Password123!'
+      )
       const buf = buildVp8l(800, 800, 50)
       const blob = new Blob([buf], { type: 'image/webp' })
-      const res = await authPostMultipart(app, '/api/uploads/avatar', token, {
-        image: blob,
-      })
+      const res = await authPostMultipart(app, '/api/uploads/avatar', token, { image: blob })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
-      const body = await res.json()
+      const body = (await res.json()) as { success: boolean; error?: string }
       expect(body.error).toBe('upload_invalid_dimensions')
     })
   })
 
   describe('POST /api/uploads/product/:slug', () => {
     it('returns 404 for unknown slug', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upload-prod-404@example.com'),
+        'Password123!'
+      )
       const buf = buildVp8l(1200, 1200, 100)
       const blob = new Blob([buf], { type: 'image/webp' })
       const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
@@ -101,7 +126,11 @@ describe('Upload Routes', () => {
     })
 
     it('returns 404 for unknown slug even when payload is invalid', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upload-prod-bad-payload@example.com'),
+        'Password123!'
+      )
       // PNG header — would fail validation
       const blob = new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0])], {
         type: 'image/webp',

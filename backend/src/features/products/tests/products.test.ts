@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { createProductSchema } from '@habit-tracker/shared'
+import type { CreateProductInput } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
@@ -28,14 +29,16 @@ import {
 
 let user: any
 
+type MakeProductExtra = Partial<Omit<CreateProductInput, 'name' | 'brand' | 'kind' | 'unit'>>
+
 async function makeProduct(
   name: string,
   brand: string,
-  kind = 'serum',
-  unit = 'pump',
-  extra: Record<string, unknown> = {}
+  kind: CreateProductInput['kind'] = 'serum',
+  unit: CreateProductInput['unit'] = 'pump',
+  extra: MakeProductExtra = {}
 ) {
-  const category = extra.category ?? 'skincare'
+  const category: CreateProductInput['category'] = extra.category ?? 'skincare'
   return createProduct(user.id, { name, brand, kind, unit, category, ...extra }, testDb)
 }
 
@@ -190,7 +193,7 @@ describe('Product Service', () => {
   describe('listProducts', () => {
     it('should return paginated items', async () => {
       await makeProduct('Sérum A', 'BrandA')
-      const result = await listProducts({ category: 'skincare' }, testDb)
+      const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
       expect(result.items).toHaveLength(1)
       expect(result.total).toBe(1)
     })
@@ -198,7 +201,7 @@ describe('Product Service', () => {
     it('should filter by brand', async () => {
       await makeProduct('Sérum A', 'The Ordinary')
       await makeProduct('Sérum B', 'CeraVe')
-      const result = await listProducts({ category: 'skincare', brand: 'CeraVe' }, testDb)
+      const result = await listProducts({ category: 'skincare', brand: 'CeraVe', page: 1, limit: 20 }, testDb)
       expect(result.total).toBe(1)
       expect(result.items[0]?.brand).toBe('CeraVe')
     })
@@ -206,7 +209,7 @@ describe('Product Service', () => {
     it('should filter by kind', async () => {
       await makeProduct('Sérum A', 'Brand', 'serum')
       await makeProduct('Zinc', 'Brand', 'gelule', 'capsule', { category: 'complement' })
-      const result = await listProducts({ category: 'skincare', kind: 'serum' }, testDb)
+      const result = await listProducts({ category: 'skincare', kind: 'serum', page: 1, limit: 20 }, testDb)
       expect(result.total).toBe(1)
     })
 
@@ -214,20 +217,20 @@ describe('Product Service', () => {
       it('should match products whose name contains q (case-insensitive)', async () => {
         await makeProduct('Sérum Matifiant', 'BrandA')
         await makeProduct('Crème hydratante', 'BrandB')
-        const result = await listProducts({ category: 'skincare', q: 'matifi' }, testDb)
+        const result = await listProducts({ category: 'skincare', q: 'matifi', page: 1, limit: 20 }, testDb)
         expect(result.items.map((p) => p.name)).toEqual(['Sérum Matifiant'])
       })
 
       it('should match products whose brand contains q', async () => {
         await makeProduct('Crème jour', 'Matifico')
         await makeProduct('Crème nuit', 'OtherBrand')
-        const result = await listProducts({ category: 'skincare', q: 'matifi' }, testDb)
+        const result = await listProducts({ category: 'skincare', q: 'matifi', page: 1, limit: 20 }, testDb)
         expect(result.items.map((p) => p.name)).toEqual(['Crème jour'])
       })
 
       it('should return empty when q matches nothing', async () => {
         await makeProduct('Sérum', 'Brand')
-        const result = await listProducts({ category: 'skincare', q: 'xyzqwerty' }, testDb)
+        const result = await listProducts({ category: 'skincare', q: 'xyzqwerty', page: 1, limit: 20 }, testDb)
         expect(result.items).toHaveLength(0)
       })
     })
@@ -459,7 +462,7 @@ describe('Product Service', () => {
         await makeProduct('Lait corps', 'C', 'body-lotion', 'pump', { category: 'bodycare' })
         await makeProduct('Shampoing', 'D', 'shampoo', 'bottle', { category: 'haircare' })
 
-        const result = await listProducts({ category: 'skincare' }, testDb)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
         expect(result.total).toBe(3)
         expect(result.items.map((p) => p.name).sort()).toEqual(['Lait corps', 'SPF 50', 'Sérum'])
       })
@@ -468,7 +471,7 @@ describe('Product Service', () => {
         await makeProduct('Sérum', 'A', 'serum', 'pump', { category: 'skincare' })
         await makeProduct('Shampoing', 'B', 'shampoo', 'bottle', { category: 'haircare' })
 
-        const result = await listProducts({ category: 'haircare' }, testDb)
+        const result = await listProducts({ category: 'haircare', page: 1, limit: 20 }, testDb)
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Shampoing')
       })
@@ -477,7 +480,7 @@ describe('Product Service', () => {
         await makeProduct('Sérum', 'A', 'serum', 'pump', { category: 'skincare' })
         await makeProduct('Dentifrice', 'B', 'toothpaste', 'tube', { category: 'dental' })
 
-        const result = await listProducts({ category: 'dental' }, testDb)
+        const result = await listProducts({ category: 'dental', page: 1, limit: 20 }, testDb)
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Dentifrice')
       })
@@ -486,7 +489,7 @@ describe('Product Service', () => {
         await makeProduct('Sérum', 'A', 'serum', 'pump', { category: 'skincare' })
         await makeProduct('Zinc', 'B', 'gelule', 'jar', { category: 'complement' })
 
-        const result = await listProducts({ category: 'complement' }, testDb)
+        const result = await listProducts({ category: 'complement', page: 1, limit: 20 }, testDb)
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Zinc')
       })
@@ -503,7 +506,7 @@ describe('Product Service', () => {
         })
         await replaceProductTags(testDb, product.id, [{ tagId: tag.id, relevance: 'primary' }])
 
-        const result = await listProducts({ category: 'skincare', concern: 'acne' }, testDb)
+        const result = await listProducts({ category: 'skincare', concern: 'acne', page: 1, limit: 20 }, testDb)
         expect(result.total).toBe(1)
         expect(result.items[0]?.name).toBe('Sérum acné')
       })
@@ -602,7 +605,7 @@ describe('Product Service', () => {
     describe('userStatus (shelf flag)', () => {
       it('returns null userStatus for anonymous callers', async () => {
         await makeProduct('Anon visible', 'A')
-        const result = await listProducts({ category: 'skincare' }, testDb)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
         expect(result.items[0]?.userStatus).toBeNull()
       })
 
@@ -612,7 +615,7 @@ describe('Product Service', () => {
         const unshelved = await makeProduct('Pas sur étagère', 'B')
         await createUserProduct(user.id, { productId: shelved.id, status: 'in_stock' }, testDb)
 
-        const result = await listProducts({ category: 'skincare' }, testDb, user.id)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb, user.id)
         const flagged = result.items.find((p) => p.id === shelved.id)
         const plain = result.items.find((p) => p.id === unshelved.id)
         expect(flagged?.userStatus).toBe('in_stock')
@@ -625,7 +628,7 @@ describe('Product Service', () => {
         const product = await makeProduct('Produit partagé', 'A')
         await createUserProduct(other.id, { productId: product.id, status: 'in_stock' }, testDb)
 
-        const result = await listProducts({ category: 'skincare' }, testDb, user.id)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb, user.id)
         expect(result.items[0]?.userStatus).toBeNull()
       })
     })
@@ -645,7 +648,7 @@ describe('Product Service', () => {
           { tagId: vegan.id, relevance: 'secondary' },
         ])
 
-        const result = await listProducts({ category: 'skincare' }, testDb)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
         const tags = result.items[0]?.tags ?? []
         expect(tags).toContainEqual({
           slug: acne.slug,
@@ -672,13 +675,13 @@ describe('Product Service', () => {
         const product = await makeProduct('Rétinol', 'A')
         await replaceProductTags(testDb, product.id, [{ tagId: reactive.id, relevance: 'avoid' }])
 
-        const result = await listProducts({ category: 'skincare' }, testDb)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
         expect(result.items[0]?.tags).toEqual([])
       })
 
       it('returns empty tags array for products without any tags', async () => {
         await makeProduct('Sans tag', 'A')
-        const result = await listProducts({ category: 'skincare' }, testDb)
+        const result = await listProducts({ category: 'skincare', page: 1, limit: 20 }, testDb)
         expect(result.items[0]?.tags).toEqual([])
       })
     })

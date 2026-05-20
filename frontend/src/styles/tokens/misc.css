@@ -38,7 +38,7 @@
   /* Derived — auto-adapts to the active theme's --color-accent. */
   --color-accent-subtle: oklch(from var(--color-accent) l c h / 0.1);
 
-  /* Separator rules — see docs/04-design-ux/separators.md for doctrine. Two levels only. */
+  /* Separator rules. Two levels only. */
   --rule-section: 1px solid var(--border-default);
   --rule-bold: 3px solid var(--color-primary);
 }

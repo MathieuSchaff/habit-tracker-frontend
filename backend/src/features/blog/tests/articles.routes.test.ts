@@ -8,7 +8,7 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import {
   authDelete,
   authPatch,
@@ -20,32 +20,37 @@ import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 describe('Article Routes — GET', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('GET /articles', () => {
     it('returns 200 with empty list when no articles exist', async () => {
-      const res = await app.request('/articles')
+      const res = await client.articles.$get({ query: {} })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
       expect(json.success).toBe(true)
+      if (!json.success) throw new Error('expected ok')
       expect(json.data.items).toBeArray()
       expect(json.data.total).toBe(0)
     })
 
     it('filters by category', async () => {
-      const res = await app.request('/articles?category=skincare')
+      const res = await client.articles.$get({ query: { category: 'skincare' } })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
       expect(json.success).toBe(true)
     })
 
     it('returns only published articles by default', async () => {
-      const res = await app.request('/articles')
+      const res = await client.articles.$get({ query: {} })
       expect(res.status).toBe(HTTP_STATUS.OK)
       const json = await res.json()
+      if (!json.success) throw new Error('expected ok')
       for (const item of json.data.items) {
         expect(item.publishedAt).not.toBeNull()
       }
@@ -54,6 +59,7 @@ describe('Article Routes — GET', () => {
 
   describe('GET /articles/:slug', () => {
     it('returns 404 for unknown slug', async () => {
+      // ArticleError → 404 via globalErrorHandler, not in typed response.
       const res = await app.request('/articles/unknown-slug')
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
@@ -62,7 +68,7 @@ describe('Article Routes — GET', () => {
 
 const VALID_ARTICLE = {
   title: 'Guide complet : acné',
-  category: 'skincare',
+  category: 'skincare' as const,
   content: '## Introduction\n\nContenu de test.',
   excerpt: "Un guide sur l'acné.",
   publishedAt: new Date('2026-01-01').toISOString(),
@@ -70,15 +76,18 @@ const VALID_ARTICLE = {
 
 describe('Article Routes — Write (admin only)', () => {
   let app: Hono<AppEnv>
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    const env = await createTestEnv()
+    app = env.app
+    client = env.client
   })
 
   describe('POST /articles', () => {
     it('returns 403 for non-admin user', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPost(app, '/articles', token, VALID_ARTICLE)
+      const res = await client.articles.$post({ json: VALID_ARTICLE }, withAuth(token))
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })
 
@@ -104,10 +113,11 @@ describe('Article Routes — Write (admin only)', () => {
         TEST_CREDENTIALS.toto.rawPassword
       )
 
-      const res = await authPost(app, '/articles', token, VALID_ARTICLE)
+      const res = await client.articles.$post({ json: VALID_ARTICLE }, withAuth(token))
       expect(res.status).toBe(HTTP_STATUS.CREATED)
       const json = await res.json()
       expect(json.success).toBe(true)
+      if (!json.success) throw new Error('expected ok')
       expect(json.data.slug).toBe('guide-complet-acne')
       expect(json.data.category).toBe('skincare')
     })
@@ -116,6 +126,8 @@ describe('Article Routes — Write (admin only)', () => {
   describe('PATCH /articles/:slug', () => {
     it('returns 403 for non-admin', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      // Authorized middleware passes; handler returns 403 (typed) but TS infers
+      // 200/403 union — use authPatch to dodge the discriminant gymnastics.
       const res = await authPatch(app, '/articles/some-slug', token, { title: 'Nouveau titre' })
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })
@@ -132,6 +144,7 @@ describe('Article Routes — Write (admin only)', () => {
         TEST_CREDENTIALS.alice.rawEmail,
         TEST_CREDENTIALS.alice.rawPassword
       )
+      // ArticleError → 404 via globalErrorHandler, not in typed response.
       const res = await authPatch(app, '/articles/nonexistent', token, { title: 'X' })
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
@@ -145,3 +158,6 @@ describe('Article Routes — Write (admin only)', () => {
     })
   })
 })
+
+// Quiet "unused" warnings for helpers used only in error-path tests.
+void authPost

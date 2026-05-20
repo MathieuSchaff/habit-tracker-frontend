@@ -1,0 +1,144 @@
+# =========================
+# Configuration de base commune à dev et prod
+# =========================
+# Explication:
+# On crée 5 linux containeurs isolés, chacun fait tourner différent services
+# Il y a 3 storage volumes qui sont persistants même quand on restart un conteneur
+# 1 network privé, comme ça les conteneurs peuvent communiquer entre eux.
+# Aucun fichier sur l'ordinateur hôte, a part la config nginx
+#
+services:
+  # =========================
+  # Base de données PostgreSQL
+  # PostgreSQL 18 serveur
+  # Ca crée un volume appelé pgdata qui contient les fichiers de la db
+  # Est monté dans /var/lib/docker/volumes sur l'ordi
+  # =========================
+  db:
+    image: postgres:18
+    container_name: app_db
+    # Au final : DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: appdb
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      # https://hub.docker.com/_/postgres
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+    networks:
+      - appnet
+
+  # =========================
+  # API Backend (Bun + Hono)
+  # ca cherche un fichier : infra/docker/images/backend/Dockerfile
+  # et build une image à partir de ça
+  #
+  # =========================
+  api:
+    container_name: app_api
+    build:
+      context: ../../..
+      dockerfile: infra/docker/images/backend/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy # Attends que la DB soit "en forme" avant de démarrer
+    environment:
+      DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
+      APP_DATABASE_URL: postgres://app_runtime:${APP_RUNTIME_PASSWORD}@db:5432/appdb
+      JWT_SECRET: ${JWT_SECRET}
+      REFRESH_SECRET: ${REFRESH_SECRET}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+      FRONTEND_URL: ${FRONTEND_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      BUNNY_STORAGE_ZONE: ${BUNNY_STORAGE_ZONE}
+      BUNNY_STORAGE_HOSTNAME: ${BUNNY_STORAGE_HOSTNAME}
+      BUNNY_STORAGE_PASSWORD: ${BUNNY_STORAGE_PASSWORD}
+      IMAGE_CDN_BASE: ${IMAGE_CDN_BASE}
+
+    networks:
+      - appnet
+
+  # =========================
+  # Frontend React (Vite)
+  # ca cherche un fichier : infra/docker/images/frontend/Dockerfile
+  #
+  # =========================
+  frontend:
+    container_name: app_frontend
+    build:
+      context: ../../..
+      dockerfile: infra/docker/images/frontend/Dockerfile
+    depends_on:
+      - api # On a besoin de l'API pour que le site serve à quelque chose
+    networks:
+      - appnet
+
+  # =========================
+  # Reverse Proxy (Nginx)
+  # =========================
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: app_nginx
+    restart: unless-stopped
+    depends_on:
+      - api
+      - frontend
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../nginx/templates:/etc/nginx/templates:ro
+      - ../../nginx/reload-certs.sh:/reload-certs.sh:ro
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    command: ["/bin/sh", "/reload-certs.sh"]
+    networks:
+      - appnet
+
+  # =========================
+  # Certbot (Let's Encrypt)
+  # =========================
+  certbot:
+    image: certbot/certbot
+    container_name: app_certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: /bin/sh
+    command: >
+      -c "trap exit TERM;
+          while :;
+          do
+            certbot renew;
+            sleep 12h & wait $${!};
+          done;"
+    networks:
+      - appnet
+
+# =========================
+# Volumes persistants
+# =========================
+volumes:
+  pgdata:
+  certbot_data:
+  certbot_www:
+
+# =========================
+# Réseau Docker privé
+# =========================
+networks:
+  appnet:
+    driver: bridge

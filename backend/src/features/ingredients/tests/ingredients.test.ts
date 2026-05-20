@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
+import { listIngredientsSearchSchema } from '@habit-tracker/shared'
+
 import { eq } from 'drizzle-orm'
 
 import { users } from '../../../db/schema'
@@ -18,12 +20,18 @@ import {
   updateIngredient,
 } from '../service'
 
-let user: any
+type TestUser = Awaited<ReturnType<typeof createTestUser>>
+let user: TestUser
+
+// Helper: page/limit have schema defaults, so we parse to satisfy the non-optional types.
+function filters(input: Record<string, string> = {}) {
+  return listIngredientsSearchSchema.parse(input)
+}
 
 async function makeIngredient(
   name: string,
   extra: {
-    type?: string
+    type?: 'skincare' | 'haircare' | 'dental' | 'supplement'
     category?: string
     description?: string
     slug?: string
@@ -200,7 +208,7 @@ describe('Ingredient Service', () => {
   describe('listIngredients', () => {
     it('should return the correct shape with defaults', async () => {
       await makeIngredient('Rétinol')
-      const result = await listIngredients(testDb, {})
+      const result = await listIngredients(testDb, filters())
 
       expect(result).toHaveProperty('items')
       expect(result).toHaveProperty('total')
@@ -213,7 +221,7 @@ describe('Ingredient Service', () => {
       await makeIngredient('Acide Azélaïque')
       await makeIngredient('Niacinamide')
 
-      const result = await listIngredients(testDb, {})
+      const result = await listIngredients(testDb, filters())
       expect(result.items[0]?.name).toBe('Acide Azélaïque')
       expect(result.items[1]?.name).toBe('Niacinamide')
       expect(result.items[2]?.name).toBe('Zinc PCA')
@@ -224,7 +232,7 @@ describe('Ingredient Service', () => {
       const tag = await makeTag('Anti-âge', 'concern')
       await addTagToIngredient(testDb, i1.id, tag.id)
 
-      const result = await listIngredients(testDb, { concern: 'anti-age' })
+      const result = await listIngredients(testDb, filters({ concern: 'anti-age' }))
       expect(result.total).toBe(1)
       expect(result.items[0]?.name).toBe('Rétinol')
     })
@@ -236,7 +244,7 @@ describe('Ingredient Service', () => {
         const gentle = await makeIngredient('Hydratant doux')
         await addTagToIngredient(testDb, retinol.id, reactive.id, 'avoid')
 
-        const result = await listIngredients(testDb, { avoid_for: reactive.slug })
+        const result = await listIngredients(testDb, filters({ avoid_for: reactive.slug }))
         expect(result.items.map((i) => i.name).sort()).toEqual(['Hydratant doux', 'Rétinol'])
         const flagged = result.items.find((i) => i.id === retinol.id)
         expect(flagged?.profileMatches).toEqual([reactive.slug])
@@ -249,13 +257,13 @@ describe('Ingredient Service', () => {
         const dedicated = await makeIngredient('Allantoïne')
         await addTagToIngredient(testDb, dedicated.id, reactive.id, 'primary')
 
-        const result = await listIngredients(testDb, { avoid_for: reactive.slug })
+        const result = await listIngredients(testDb, filters({ avoid_for: reactive.slug }))
         expect(result.items[0]?.profileMatches).toEqual([])
       })
 
       it('returns empty profileMatches when no avoid_for filter is provided', async () => {
         await makeIngredient('Niacinamide')
-        const result = await listIngredients(testDb, {})
+        const result = await listIngredients(testDb, filters())
         expect(result.items[0]?.profileMatches).toEqual([])
       })
     })

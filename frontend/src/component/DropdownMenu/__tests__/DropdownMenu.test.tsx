@@ -7,8 +7,6 @@ import { DropdownMenu } from '../DropdownMenu'
 // Tests d'oracle pour le composant DropdownMenu partagé.
 // Couvrent le contrat post-refacto Option B (DOM-order roving focus,
 // hook useClickOutside multi-ref). Tous actifs, aucun `it.skip` résiduel.
-// Cf docs/02-engineering/audits/2026-05-20-dropdown-menu.md (audit principal)
-// et 2026-05-20-dropdown-menu-hook-refactor-result.md (refacto Option B).
 
 function Sample({ ariaLabel = 'Test menu' }: { ariaLabel?: string } = {}) {
   return (

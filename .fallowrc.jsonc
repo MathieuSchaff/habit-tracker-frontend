@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.fallow.tools/schema/v1/fallowrc.json",
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
 
   // Extra entry points beyond package.json scripts (seed scripts are run directly)
   "entry": [

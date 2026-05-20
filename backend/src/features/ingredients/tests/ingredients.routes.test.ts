@@ -3,39 +3,48 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
-import type { Hono } from 'hono'
 
-import type { AppEnv } from '../../../app-env'
 import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
-import { createTestApp } from '../../../tests/helpers/createTestApp'
-import {
-  authDelete,
-  authPatch,
-  authPost,
-  setupAndLogin,
-  setupAndLoginAdmin,
-} from '../../../tests/helpers/route-test-helpers'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { expectStatus } from '../../../tests/helpers/expectStatus'
+import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
-const VALID_INGREDIENT = { name: 'Rétinol', type: 'skincare' }
+type ApiErrorBody = { success: false; error: string }
+type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
+
+const VALID_INGREDIENT = { name: 'Rétinol', type: 'skincare' } as const
+
+async function createIngredient(
+  client: TestClient,
+  token: string,
+  body: { name: string; type?: 'skincare'; description?: string; content?: string; category?: string; slug?: string },
+) {
+  const res = await client.ingredients.$post(
+    { json: { type: 'skincare' as const, ...body } },
+    withAuth(token),
+  )
+  return res
+}
 
 describe('Ingredient Routes', () => {
-  let app: Hono<AppEnv>
+  let app: TestApp
+  let client: TestClient
 
   beforeEach(async () => {
-    app = await createTestApp()
+    ;({ app, client } = await createTestEnv())
   })
 
   describe('POST /ingredients', () => {
     it('should create an ingredient with only a name', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
+      const res = await createIngredient(client, token, VALID_INGREDIENT)
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expectStatus(res, HTTP_STATUS.CREATED)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('create failed')
       expect(data.data.id).toBeDefined()
       expect(data.data.name).toBe('Rétinol')
       expect(data.data.slug).toBe('retinol')
@@ -47,16 +56,16 @@ describe('Ingredient Routes', () => {
     it('should create an ingredient with all optional fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, {
+      const res = await createIngredient(client, token, {
         name: 'Acide Ascorbique',
-        type: 'skincare',
         description: 'Forme pure de la vitamine C',
         content: '## Description\n\nActif antioxydant.',
         category: 'humectant',
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expectStatus(res, HTTP_STATUS.CREATED)
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
       expect(data.data.description).toBe('Forme pure de la vitamine C')
       expect(data.data.content).toBe('## Description\n\nActif antioxydant.')
       expect(data.data.category).toBe('humectant')
@@ -65,29 +74,23 @@ describe('Ingredient Routes', () => {
     it('should auto-generate slug from name', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, {
-        name: 'Acide Hyaluronique',
-        type: 'skincare',
-      })
+      const res = await createIngredient(client, token, { name: 'Acide Hyaluronique' })
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
 
       expect(data.data.slug).toBe('acide-hyaluronique')
     })
 
     it('should use custom slug when provided by admin', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const profileRes = await app.request('/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const { data: profile } = await profileRes.json()
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profile.userId))
+      const profileRes = await client.profile.$get({}, withAuth(token))
+      const profileData = await profileRes.json()
+      if (!profileData.success) throw new Error('profile fetch failed')
+      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profileData.data.userId))
 
-      const res = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-        slug: 'niacin',
-      })
+      const res = await createIngredient(client, token, { name: 'Niacinamide', slug: 'niacin' })
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
 
       expect(data.data.slug).toBe('niacin')
     })
@@ -95,47 +98,39 @@ describe('Ingredient Routes', () => {
     it('should NOT use custom slug when provided by non-admin', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-        slug: 'niacin',
-      })
+      const res = await createIngredient(client, token, { name: 'Niacinamide', slug: 'niacin' })
       const data = await res.json()
+      if (!data.success) throw new Error('create failed')
 
-      expect(data.data.slug).toBe('niacinamide') // auto-generated
+      expect(data.data.slug).toBe('niacinamide')
     })
 
     it('should return 409 for duplicate slug (admin)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const profileRes = await app.request('/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const { data: profile } = await profileRes.json()
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profile.userId))
+      const profileRes = await client.profile.$get({}, withAuth(token))
+      const profileData = await profileRes.json()
+      if (!profileData.success) throw new Error('profile fetch failed')
+      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profileData.data.userId))
 
-      await authPost(app, '/ingredients', token, {
-        name: 'Magnésium',
-        type: 'skincare',
-        slug: 'magnesium',
-      })
-      const res = await authPost(app, '/ingredients', token, {
-        name: 'Magnésium Bis',
-        type: 'skincare',
-        slug: 'magnesium',
-      })
+      await createIngredient(client, token, { name: 'Magnésium', slug: 'magnesium' })
+      const res = await createIngredient(client, token, { name: 'Magnésium Bis', slug: 'magnesium' })
 
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
-      const data = await res.json()
-      expect(data.success).toBe(false)
-      expect(data.error).toBe('ingredient_already_exists')
+      expectStatus(res, HTTP_STATUS.CONFLICT)
+      const body = (await res.json()) as unknown as ApiErrorBody
+      expect(body.success).toBe(false)
+      expect(body.error).toBe('ingredient_already_exists')
     })
 
     it('should reject missing name', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPost(app, '/ingredients', token, { description: 'orphan' })
+      const res = await client.ingredients.$post(
+        // @ts-expect-error — missing required name; testing schema rejection
+        { json: { description: 'orphan' } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
@@ -145,13 +140,13 @@ describe('Ingredient Routes', () => {
         body: JSON.stringify(VALID_INGREDIENT),
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
 
     it('should reject request with invalid token', async () => {
-      const res = await authPost(app, '/ingredients', 'invalid.token.here', VALID_INGREDIENT)
+      const res = await createIngredient(client, 'invalid.token.here', VALID_INGREDIENT)
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
 
     it('should reject invalid slug formats and malicious strings', async () => {
@@ -194,11 +189,8 @@ describe('Ingredient Routes', () => {
       ]
 
       for (const slug of badSlugs) {
-        const res = await authPost(app, '/ingredients', token, {
-          name: 'Security Test',
-          slug,
-        })
-        expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+        const res = await createIngredient(client, token, { name: 'Security Test', slug })
+        expectStatus(res, HTTP_STATUS.BAD_REQUEST)
       }
     })
   })
@@ -207,14 +199,16 @@ describe('Ingredient Routes', () => {
     it('should return the ingredient by slug without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await app.request(`/ingredients/${created.slug}`)
+      const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('get failed')
       expect(data.data.id).toBe(created.id)
       expect(data.data.slug).toBe(created.slug)
       expect(data.data.name).toBe('Rétinol')
@@ -223,57 +217,68 @@ describe('Ingredient Routes', () => {
     it('should also work when authenticated', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await app.request(`/ingredients/${created.slug}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await client.ingredients[':slug'].$get(
+        { param: { slug: created.slug } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.id).toBe(created.id)
     })
 
     it('should return 404 for unknown slug', async () => {
-      const res = await app.request('/ingredients/slug-inexistant')
+      const res = await client.ingredients[':slug'].$get({ param: { slug: 'slug-inexistant' } })
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
-      expect(data.success).toBe(false)
-      expect(data.error).toBe('ingredient_not_found')
+      expectStatus(res, HTTP_STATUS.NOT_FOUND)
+      const body = (await res.json()) as unknown as ApiErrorBody
+      expect(body.success).toBe(false)
+      expect(body.error).toBe('ingredient_not_found')
     })
   })
 
   describe('GET /ingredients/by-slugs', () => {
     it('returns name+slug for known slugs and skips unknown ones', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const a = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
+      const a = await createIngredient(client, token, { name: 'Niacinamide' })
+      const b = await createIngredient(client, token, { name: 'Rétinol' })
+      const aData = await a.json()
+      const bData = await b.json()
+      if (!aData.success || !bData.success) throw new Error('create failed')
+      const niac = aData.data
+      const retinol = bData.data
+
+      const res = await client.ingredients['by-slugs'].$get({
+        query: { slugs: `${niac.slug},${retinol.slug},nope` },
       })
-      const b = await authPost(app, '/ingredients', token, { name: 'Rétinol', type: 'skincare' })
-      const { data: niac } = await a.json()
-      const { data: retinol } = await b.json()
 
-      const res = await app.request(`/ingredients/by-slugs?slugs=${niac.slug},${retinol.slug},nope`)
-
-      expect(res.status).toBe(HTTP_STATUS.OK)
-      const { data } = await res.json()
-      const slugs = data.map((d: { slug: string }) => d.slug).sort()
+      expectStatus(res, HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('by-slugs failed')
+      const slugs = data.data.map((d) => d.slug).sort()
       expect(slugs).toEqual([niac.slug, retinol.slug].sort())
     })
 
     it('returns an empty list when slugs is comma-only', async () => {
-      const res = await app.request('/ingredients/by-slugs?slugs=,,,')
-      expect(res.status).toBe(HTTP_STATUS.OK)
-      const { data } = await res.json()
-      expect(data).toEqual([])
+      const res = await client.ingredients['by-slugs'].$get({ query: { slugs: ',,,' } })
+      expectStatus(res, HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('by-slugs failed')
+      expect(data.data).toEqual([])
     })
 
     it('rejects when slugs param is missing', async () => {
-      const res = await app.request('/ingredients/by-slugs')
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const res = await client.ingredients['by-slugs'].$get({
+        // @ts-expect-error — missing required slugs; testing schema rejection
+        query: {},
+      })
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
   })
 
@@ -281,17 +286,22 @@ describe('Ingredient Routes', () => {
     it('should update ingredient fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Alternative naturelle au rétinol',
-        category: 'actif',
-      })
+      const res = await client.ingredients[':id'].$patch(
+        {
+          param: { id: created.id },
+          json: { description: 'Alternative naturelle au rétinol', category: 'actif' },
+        },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('patch failed')
       expect(data.data.description).toBe('Alternative naturelle au rétinol')
       expect(data.data.category).toBe('actif')
       expect(data.data.name).toBe('Rétinol')
@@ -300,47 +310,58 @@ describe('Ingredient Routes', () => {
     it('should not affect untouched fields', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, {
+      const createRes = await createIngredient(client, token, {
         ...VALID_INGREDIENT,
         content: 'Contenu initial',
       })
-      const { data: created } = await createRes.json()
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, { category: 'actif' })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { category: 'actif' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}`)
+      const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.content).toBe('Contenu initial')
     })
 
     it('should persist updates across requests', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Description persistée',
-      })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Description persistée' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}`)
+      const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('get failed')
       expect(data.data.description).toBe('Description persistée')
     })
 
     it('should auto-update slug when name changes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, {
-        name: 'Vitamine E',
-        type: 'skincare',
-      })
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, { name: 'Vitamine E' })
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authPatch(app, `/ingredients/${created.id}`, token, {
-        name: 'Vitamine E Tocopherol',
-      })
+      const res = await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { name: 'Vitamine E Tocopherol' } },
+        withAuth(token),
+      )
       const data = await res.json()
+      if (!data.success) throw new Error('patch failed')
       expect(data.data.slug).toBe('vitamine-e-tocopherol')
     })
 
@@ -348,24 +369,31 @@ describe('Ingredient Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const fakeId = crypto.randomUUID()
 
-      const res = await authPatch(app, `/ingredients/${fakeId}`, token, { description: 'X' })
+      const res = await client.ingredients[':id'].$patch(
+        { param: { id: fakeId }, json: { description: 'X' } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
-      const data = await res.json()
-      expect(data.error).toBe('ingredient_not_found')
+      expectStatus(res, HTTP_STATUS.NOT_FOUND)
+      const body = (await res.json()) as unknown as ApiErrorBody
+      expect(body.error).toBe('ingredient_not_found')
     })
 
     it('should reject unknown fields (strict schema)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authPatch(app, `/ingredients/${created.id}`, token, {
-        hackerField: 'oops',
-      })
+      const res = await client.ingredients[':id'].$patch(
+        // @ts-expect-error — hackerField rejected by strict schema
+        { param: { id: created.id }, json: { hackerField: 'oops' } },
+        withAuth(token),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
@@ -376,7 +404,7 @@ describe('Ingredient Routes', () => {
         body: JSON.stringify({ description: 'X' }),
       })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -385,75 +413,96 @@ describe('Ingredient Routes', () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authDelete(app, `/ingredients/${created.id}`, adminToken)
+      const res = await client.ingredients[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(adminToken),
+      )
 
-      expect(res.status).toBe(204)
+      expectStatus(res, 204)
     })
 
     it('should make the ingredient unreachable by slug after deletion', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authDelete(app, `/ingredients/${created.id}`, adminToken)
+      await client.ingredients[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(adminToken),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}`)
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      const res = await client.ingredients[':slug'].$get({ param: { slug: created.slug } })
+      expectStatus(res, HTTP_STATUS.NOT_FOUND)
     })
 
     it('should not affect other ingredients when deleting one', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
-      const r2 = await authPost(app, '/ingredients', userToken, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
+      const r1 = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const r2 = await createIngredient(client, userToken, { name: 'Niacinamide' })
 
-      const { data: i1 } = await r1.json()
-      const { data: i2 } = await r2.json()
+      const r1Data = await r1.json()
+      const r2Data = await r2.json()
+      if (!r1Data.success || !r2Data.success) throw new Error('create failed')
+      const i1 = r1Data.data
+      const i2 = r2Data.data
 
-      await authDelete(app, `/ingredients/${i1.id}`, adminToken)
+      await client.ingredients[':id'].$delete(
+        { param: { id: i1.id } },
+        withAuth(adminToken),
+      )
 
-      const res = await app.request(`/ingredients/${i2.slug}`)
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      const res = await client.ingredients[':slug'].$get({ param: { slug: i2.slug } })
+      expectStatus(res, HTTP_STATUS.OK)
     })
 
     it('should return 403 for non-admin user (unauthorized_access)', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', userToken, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await authDelete(app, `/ingredients/${created.id}`, userToken)
+      const res = await client.ingredients[':id'].$delete(
+        { param: { id: created.id } },
+        withAuth(userToken),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
-      const data = await res.json()
-      expect(data.error).toBe('unauthorized_access')
+      expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      const body = (await res.json()) as unknown as ApiErrorBody
+      expect(body.error).toBe('unauthorized_access')
     })
 
     it('should return 500 for unknown id (ingredient_delete_failed)', async () => {
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
       const fakeId = crypto.randomUUID()
 
-      const res = await authDelete(app, `/ingredients/${fakeId}`, adminToken)
+      const res = await client.ingredients[':id'].$delete(
+        { param: { id: fakeId } },
+        withAuth(adminToken),
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
-      const data = await res.json()
-      expect(data.error).toBe('ingredient_delete_failed')
+      expectStatus(res, HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      const body = (await res.json()) as unknown as ApiErrorBody
+      expect(body.error).toBe('ingredient_delete_failed')
     })
 
     it('should reject unauthenticated request', async () => {
       const fakeId = crypto.randomUUID()
       const res = await app.request(`/ingredients/${fakeId}`, { method: 'DELETE' })
 
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
   })
 
@@ -461,162 +510,194 @@ describe('Ingredient Routes', () => {
     it('should return an empty list for a new ingredient', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('edits failed')
       expect(data.data).toEqual([])
     })
 
     it('should return edits after an update without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Première description',
-      })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Première description' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
 
-      expect(res.status).toBe(HTTP_STATUS.OK)
+      expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].ingredientId).toBe(created.id)
-      expect(data.data[0].changes).toHaveProperty('description')
+      expect(data.data[0]?.ingredientId).toBe(created.id)
+      expect(data.data[0]?.changes).toHaveProperty('description')
     })
 
     it('should return edits newest first', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Première description',
-      })
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        content: 'Deuxième modification',
-      })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Première description' } },
+        withAuth(token),
+      )
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { content: 'Deuxième modification' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
 
       expect(data.data).toHaveLength(2)
-      expect(data.data[0].changes).toHaveProperty('content')
-      expect(data.data[1].changes).toHaveProperty('description')
+      expect(data.data[0]?.changes).toHaveProperty('content')
+      expect(data.data[1]?.changes).toHaveProperty('description')
     })
 
     it('should return 404 for unknown slug', async () => {
-      const res = await app.request('/ingredients/slug-inexistant/edits')
+      const res = await client.ingredients[':slug'].edits.$get({
+        param: { slug: 'slug-inexistant' },
+      })
 
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expectStatus(res, HTTP_STATUS.NOT_FOUND)
     })
 
     it('should not return edits from other ingredients', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const r1 = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const r2 = await authPost(app, '/ingredients', token, {
-        name: 'Niacinamide',
-        type: 'skincare',
-      })
+      const r1 = await createIngredient(client, token, VALID_INGREDIENT)
+      const r2 = await createIngredient(client, token, { name: 'Niacinamide' })
 
-      const { data: i1 } = await r1.json()
-      const { data: i2 } = await r2.json()
+      const r1Data = await r1.json()
+      const r2Data = await r2.json()
+      if (!r1Data.success || !r2Data.success) throw new Error('create failed')
+      const i1 = r1Data.data
+      const i2 = r2Data.data
 
-      await authPatch(app, `/ingredients/${i1.id}`, token, { description: 'Edit sur i1' })
+      await client.ingredients[':id'].$patch(
+        { param: { id: i1.id }, json: { description: 'Edit sur i1' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${i2.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: i2.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
       expect(data.data).toHaveLength(0)
     })
 
     it('should record old and new values in changes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, {
+      const createRes = await createIngredient(client, token, {
         name: 'Rétinol',
-        type: 'skincare',
         description: 'Ancienne description',
       })
-      const { data: created } = await createRes.json()
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Nouvelle description',
-      })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Nouvelle description' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
 
-      const change = data.data[0].changes.description
-      expect(change.old).toBe('Ancienne description')
-      expect(change.new).toBe('Nouvelle description')
+      const change = data.data[0]?.changes.description
+      expect(change?.old).toBe('Ancienne description')
+      expect(change?.new).toBe('Nouvelle description')
     })
 
     it('should not create an edit when values are unchanged', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, {
+      const createRes = await createIngredient(client, token, {
         name: 'Rétinol',
-        type: 'skincare',
         description: 'Description inchangée',
       })
-      const { data: created } = await createRes.json()
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, {
-        description: 'Description inchangée',
-      })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Description inchangée' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
       expect(data.data).toHaveLength(0)
     })
 
     it('should not track slug in edits when name changes', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const createRes = await authPost(app, '/ingredients', token, {
-        name: 'Vitamine C',
-        type: 'skincare',
-      })
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, { name: 'Vitamine C' })
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      const patchRes = await authPatch(app, `/ingredients/${created.id}`, token, {
-        name: 'Vitamine C Pure',
-      })
-      const { data: updated } = await patchRes.json()
+      const patchRes = await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { name: 'Vitamine C Pure' } },
+        withAuth(token),
+      )
+      const patchData = await patchRes.json()
+      if (!patchData.success) throw new Error('patch failed')
+      const updated = patchData.data
 
-      const res = await app.request(`/ingredients/${updated.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: updated.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
 
       expect(data.data).toHaveLength(1)
-      expect(data.data[0].changes).toHaveProperty('name')
-      expect(data.data[0].changes).not.toHaveProperty('slug')
+      expect(data.data[0]?.changes).toHaveProperty('name')
+      expect(data.data[0]?.changes).not.toHaveProperty('slug')
     })
 
     it('should record editedBy with the authenticated user id', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const profileRes = await app.request('/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const { data: profile } = await profileRes.json()
+      const profileRes = await client.profile.$get({}, withAuth(token))
+      const profileData = await profileRes.json()
+      if (!profileData.success) throw new Error('profile fetch failed')
+      const profile = profileData.data
 
-      const createRes = await authPost(app, '/ingredients', token, VALID_INGREDIENT)
-      const { data: created } = await createRes.json()
+      const createRes = await createIngredient(client, token, VALID_INGREDIENT)
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
 
-      await authPatch(app, `/ingredients/${created.id}`, token, { description: 'Edit tracée' })
+      await client.ingredients[':id'].$patch(
+        { param: { id: created.id }, json: { description: 'Edit tracée' } },
+        withAuth(token),
+      )
 
-      const res = await app.request(`/ingredients/${created.slug}/edits`)
+      const res = await client.ingredients[':slug'].edits.$get({ param: { slug: created.slug } })
       const data = await res.json()
+      if (!data.success) throw new Error('edits failed')
 
-      expect(data.data[0].editedBy).toBe(profile.userId)
+      expect(data.data[0]?.editedBy).toBe(profile.userId)
     })
   })
 })
