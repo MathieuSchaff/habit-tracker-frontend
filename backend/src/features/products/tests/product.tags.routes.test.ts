@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
@@ -42,6 +43,8 @@ async function createProductTag(
   if (!data.success) throw new Error('create product-tag failed')
   return data.data
 }
+
+setupDbTests()
 
 describe('Product Tags Routes', () => {
   let app: TestApp

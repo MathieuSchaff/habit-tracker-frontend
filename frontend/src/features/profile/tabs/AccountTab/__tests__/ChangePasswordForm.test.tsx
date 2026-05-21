@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useChangePassword } from '@/lib/queries/auth'
-import { ChangePasswordForm } from '../ChangePasswordForm'
+import { CHANGE_PASSWORD_ERRORS, ChangePasswordForm } from '../ChangePasswordForm'
 
 vi.mock('@/lib/queries/auth', () => ({
   useChangePassword: vi.fn(),
@@ -86,6 +86,6 @@ describe('ChangePasswordForm', () => {
       error: new Error('invalid_credentials'),
     })
     renderForm()
-    expect(screen.getByText('Mot de passe actuel incorrect')).toBeInTheDocument()
+    expect(screen.getByText(CHANGE_PASSWORD_ERRORS.invalid_credentials)).toBeInTheDocument()
   })
 })

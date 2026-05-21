@@ -8,6 +8,7 @@ import { Button } from '@/component/Button/Button'
 import { useDeleteReply, useDeleteThread } from '@/lib/queries/discussions'
 import { AuthorLine } from './AuthorLine'
 import { ReplyForm } from './ReplyForm'
+import { ReportContentButton } from './ReportContentButton'
 
 interface ThreadDetailProps {
   thread: DiscussionThreadWithReplies
@@ -49,6 +50,13 @@ function ReplyItem({
             <Trash2 size={14} />
           </Button>
         )}
+        {currentUserId && (
+          <ReportContentButton
+            targetType="reply"
+            targetId={reply.id}
+            hidden={reply.authorId === currentUserId}
+          />
+        )}
       </div>
     </div>
   )
@@ -77,6 +85,13 @@ export function ThreadDetail({ thread, entityType, slug, currentUserId }: Thread
             >
               <Trash2 size={14} />
             </Button>
+          )}
+          {currentUserId && (
+            <ReportContentButton
+              targetType="thread"
+              targetId={thread.id}
+              hidden={thread.authorId === currentUserId}
+            />
           )}
         </div>
       </div>

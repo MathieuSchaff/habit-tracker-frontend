@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { REFRESH_SECRET } from '../../../tests/helpers/secrets'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -7,6 +8,8 @@ import { verifyRefreshToken } from '../jwt.utils'
 import { findValidRefreshToken, revokeAllUserRefreshTokens } from '../refresh-token.service'
 import { login, logout } from '../service'
 import { createCtx, testDb } from './auth-test.setup'
+
+setupDbTests()
 
 describe('Sessions multiples (multi-appareils)', () => {
   it('devrait permettre plusieurs refresh tokens actifs pour le même utilisateur', async () => {

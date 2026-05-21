@@ -9,6 +9,8 @@ export const banScopeEnum = pgEnum('ban_scope', [
   'product_edit',
   'product_create',
   'global',
+  'discussion_post',
+  'review_publish',
 ])
 
 export const userBans = pgTable(

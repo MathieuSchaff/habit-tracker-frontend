@@ -10,15 +10,17 @@ import './SkinProfileRead.css'
 
 type SkinProfileReadProps = {
   dermo: UserDermoProfile
+  hideFitzpatrick?: boolean
 }
 
-export function SkinProfileRead({ dermo }: SkinProfileReadProps) {
+export function SkinProfileRead({ dermo, hideFitzpatrick = false }: SkinProfileReadProps) {
   const [notesExpanded, setNotesExpanded] = useState(false)
   const hasSkinTypes = dermo.skinTypes && dermo.skinTypes.length > 0
   const hasConcerns = dermo.skinConcerns && dermo.skinConcerns.length > 0
   const fitzItem = FITZPATRICK_ITEMS.find((f) => f.value === dermo.fitzpatrickType)
   const hasNotes = dermo.privateNotes && dermo.privateNotes.trim().length > 0
-  const isEmpty = !hasSkinTypes && !fitzItem && !hasConcerns && !hasNotes
+  const showFitz = fitzItem && !hideFitzpatrick
+  const isEmpty = !hasSkinTypes && !showFitz && !hasConcerns && !hasNotes
 
   if (isEmpty) {
     return <p className="skin-read__empty">Aucun profil peau renseigné.</p>
@@ -39,7 +41,7 @@ export function SkinProfileRead({ dermo }: SkinProfileReadProps) {
         </div>
       )}
 
-      {fitzItem && (
+      {fitzItem && !hideFitzpatrick && (
         <div className="skin-read__row">
           <span className="skin-read__label">Phototype</span>
           <span

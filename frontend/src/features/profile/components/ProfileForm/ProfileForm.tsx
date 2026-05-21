@@ -59,7 +59,7 @@ export const ProfileForm = ({
     if (linkErrors.length > 0) setLinkErrors([])
   }
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const trimmedLinks = links.map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
@@ -77,7 +77,14 @@ export const ProfileForm = ({
 
     if (username !== (profile.username ?? '')) data.username = username
     if (bio !== (profile.bio ?? '')) data.bio = bio
-    if (JSON.stringify(cleanLinks) !== JSON.stringify(profile.links ?? [])) data.links = cleanLinks
+
+    const originalLinks = profile.links ?? []
+    const linksChanged =
+      cleanLinks.length !== originalLinks.length ||
+      cleanLinks.some(
+        (l, i) => l.label !== originalLinks[i]?.label || l.url !== originalLinks[i]?.url
+      )
+    if (linksChanged) data.links = cleanLinks
 
     if (Object.keys(data).length === 0) {
       onCancel()

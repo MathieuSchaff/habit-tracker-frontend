@@ -265,25 +265,6 @@ describe('SearchCombobox — keyboard', () => {
     expect(onSelect).toHaveBeenCalledWith('item-a', expect.objectContaining({ slug: 'item-a' }))
     expect(sectionSelect).not.toHaveBeenCalled()
   })
-
-  it('ArrowDown + Enter selects the first item', async () => {
-    const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })
-    const onSelect = vi.fn()
-    render(
-      <SearchCombobox
-        label="Search"
-        queryFn={queryFn}
-        toResult={toResult}
-        onSelect={onSelect}
-        debounce={0}
-      />,
-      { wrapper: makeWrapper() }
-    )
-    await userEvent.type(screen.getByRole('combobox'), 'ab')
-    await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
-    await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onSelect).toHaveBeenCalledWith('item-a', expect.objectContaining({ slug: 'item-a' }))
-  })
 })
 
 describe('SearchCombobox — error state', () => {

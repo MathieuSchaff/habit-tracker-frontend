@@ -4,6 +4,7 @@ import type { Email, RawPassword } from '@habit-tracker/shared'
 
 import { eq } from 'drizzle-orm'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { JWT_SECRET, REFRESH_SECRET } from '../../../tests/helpers/secrets'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -25,6 +26,8 @@ async function connecterEtRecupererTokens(
   if (!result.success) throw new Error(`Login échoué pour ${rawEmail}`)
   return result.data
 }
+
+setupDbTests()
 
 describe('refresh', () => {
   it('devrait faire une rotation de tokens avec succès', async () => {

@@ -14,7 +14,12 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { optionalJwtAuth, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import {
+  optionalJwtAuth,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
 import { listPublicReviewsForProduct } from '../user-products/service'
@@ -41,11 +46,15 @@ const checkDuplicateQuery = z.object({
 
 const productsApp = new Hono<AppEnv>()
 
+// Split into two middleware so each one's return value (a short-circuit 403 from
+// requireNotBanned, for instance) propagates back through Hono compose. A single
+// wrapper that calls `await requireNotBanned(c, next)` inside an inline lambda
+// silently discards the Response and triggers "Context is not finalized".
 productsApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return optionalJwtAuth(c, next)
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return c.req.method === 'GET' ? optionalJwtAuth(c, next) : requireJwtAuth(c, next)
+})
+productsApp.use('*', async (c, next) => {
+  return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
 })
 productsApp.use('*', withRlsContext)
 
@@ -94,13 +103,19 @@ export const productRoutes = productsApp
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  .post('/', securityScan(), zValidator('json', createProductSchema), async (c) => {
-    const db = c.get('db')
-    const userId = c.get('userId')
-    const input = c.req.valid('json')
-    const product = await createProduct(userId, input, db)
-    return c.json(ok(product), HTTP_STATUS.CREATED)
-  })
+  .post(
+    '/',
+    requireNotBannedScope('product_create'),
+    securityScan(),
+    zValidator('json', createProductSchema),
+    async (c) => {
+      const db = c.get('db')
+      const userId = c.get('userId')
+      const input = c.req.valid('json')
+      const product = await createProduct(userId, input, db)
+      return c.json(ok(product), HTTP_STATUS.CREATED)
+    }
+  )
 
   .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
@@ -118,6 +133,7 @@ export const productRoutes = productsApp
 
   .patch(
     '/:id',
+    requireNotBannedScope('product_edit'),
     zValidator('param', idParam),
     securityScan(),
     zValidator('json', updateProductSchema),
@@ -131,10 +147,15 @@ export const productRoutes = productsApp
     }
   )
 
-  .delete('/:id', zValidator('param', idParam), async (c) => {
-    const db = c.get('db')
-    const role = c.get('userRole')
-    const { id } = c.req.valid('param')
-    await deleteProduct(role, id, db)
-    return c.body(null, 204)
-  })
+  .delete(
+    '/:id',
+    requireNotBannedScope('product_edit'),
+    zValidator('param', idParam),
+    async (c) => {
+      const db = c.get('db')
+      const role = c.get('userRole')
+      const { id } = c.req.valid('param')
+      await deleteProduct(role, id, db)
+      return c.body(null, 204)
+    }
+  )

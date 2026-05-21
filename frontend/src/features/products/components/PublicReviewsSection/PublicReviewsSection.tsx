@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { productQueries } from '@/lib/queries/products'
+import { useAuthStore } from '@/store/auth'
 
 import './PublicReviewsSection.css'
 
@@ -70,6 +72,7 @@ function ReviewerName({ reviewer }: { reviewer: PublicReviewView['reviewer'] }) 
 
 export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
   const { data, isLoading, isError } = useQuery(productQueries.publicReviews(slug))
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken)
 
   if (isLoading) {
     return (
@@ -132,15 +135,15 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
           {reviewsWithComment.length > 0 ? (
             <ul className="public-reviews__verbatims">
               {reviewsWithComment.map((review) => (
-                <li
-                  key={`${review.reviewer.username}-${review.createdAt}`}
-                  className="public-reviews__verbatim"
-                >
+                <li key={review.id} className="public-reviews__verbatim">
                   <header className="public-reviews__verbatim-header">
                     <ReviewerName reviewer={review.reviewer} />
                     <time className="public-reviews__verbatim-date" dateTime={review.createdAt}>
                       {formatReviewDate(review.createdAt)}
                     </time>
+                    {isAuthenticated && (
+                      <ReportContentButton targetType="review" targetId={review.id} />
+                    )}
                   </header>
                   <p className="public-reviews__verbatim-body">{review.comment}</p>
                 </li>

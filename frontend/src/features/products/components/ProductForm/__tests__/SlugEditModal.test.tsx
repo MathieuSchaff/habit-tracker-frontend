@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { SlugEditModal } from '../SlugEditModal'
+import { SLUG_EDIT_LABELS, SlugEditModal } from '../SlugEditModal'
 
 function renderModal(overrides: Partial<Parameters<typeof SlugEditModal>[0]> = {}) {
   const onClose = vi.fn()
@@ -24,7 +24,7 @@ function renderModal(overrides: Partial<Parameters<typeof SlugEditModal>[0]> = {
 describe('SlugEditModal', () => {
   it('keeps confirm disabled while the slug is unchanged', () => {
     renderModal()
-    expect(screen.getByRole('button', { name: 'Confirmer le changement' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: SLUG_EDIT_LABELS.confirm })).toBeDisabled()
   })
 
   it('surfaces a format error when the slug contains invalid chars', () => {
@@ -33,17 +33,15 @@ describe('SlugEditModal', () => {
       target: { value: 'INVALID Slug!' },
     })
 
-    expect(
-      screen.getByText('Slug invalide : minuscules, chiffres et tirets uniquement.')
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Confirmer le changement' })).toBeDisabled()
+    expect(screen.getByText(SLUG_EDIT_LABELS.formatError)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: SLUG_EDIT_LABELS.confirm })).toBeDisabled()
   })
 
   it('surfaces the empty-slug error after the field is cleared', () => {
     renderModal()
     fireEvent.change(screen.getByLabelText(/Nouveau slug/), { target: { value: '' } })
 
-    expect(screen.getByText('Le slug ne peut pas être vide.')).toBeInTheDocument()
+    expect(screen.getByText(SLUG_EDIT_LABELS.emptyError)).toBeInTheDocument()
   })
 
   it('emits the trimmed slug through onConfirm when valid', () => {
@@ -52,7 +50,7 @@ describe('SlugEditModal', () => {
     fireEvent.change(screen.getByLabelText(/Nouveau slug/), {
       target: { value: '  cerave-foaming-cleanser  ' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmer le changement' }))
+    fireEvent.click(screen.getByRole('button', { name: SLUG_EDIT_LABELS.confirm }))
 
     expect(onConfirm).toHaveBeenCalledWith('cerave-foaming-cleanser')
   })
@@ -67,7 +65,7 @@ describe('SlugEditModal', () => {
 
   it('calls onClose when cancel is clicked', () => {
     const { onClose } = renderModal()
-    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    fireEvent.click(screen.getByRole('button', { name: SLUG_EDIT_LABELS.cancel }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

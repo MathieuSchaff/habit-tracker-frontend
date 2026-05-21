@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UUsernameRouteImport } from './routes/u/$username'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
@@ -25,6 +27,8 @@ import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthBannedRouteImport } from './routes/auth/banned'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
@@ -37,6 +41,7 @@ import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$s
 import { Route as BlogAdminNewRouteImport } from './routes/blog/admin/new'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$slug'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin/users_.$userId'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
 import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
 import { Route as AuthenticatedCollectionMotifsRouteImport } from './routes/_authenticated/collection.motifs'
@@ -65,7 +70,12 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -88,6 +98,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const UUsernameRoute = UUsernameRouteImport.update({
   id: '/u/$username',
@@ -129,20 +144,30 @@ const AuthBannedRoute = AuthBannedRouteImport.update({
   path: '/auth/banned',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ProductsSlugIndexRoute = ProductsSlugIndexRouteImport.update({
   id: '/',
@@ -190,17 +215,22 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   path: '/auth/google/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: '/users_/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AuthenticatedProductsNewRoute =
   AuthenticatedProductsNewRouteImport.update({
     id: '/products/new',
     path: '/products/new',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedIngredientsNewRoute =
   AuthenticatedIngredientsNewRouteImport.update({
     id: '/ingredients/new',
     path: '/ingredients/new',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCollectionMotifsRoute =
   AuthenticatedCollectionMotifsRouteImport.update({
@@ -230,7 +260,7 @@ const AuthenticatedProductsCompareIndexRoute =
   AuthenticatedProductsCompareIndexRouteImport.update({
     id: '/products/compare/',
     path: '/products/compare/',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ProductsSlugDiscussionsThreadIdRoute =
   ProductsSlugDiscussionsThreadIdRouteImport.update({
@@ -253,23 +283,26 @@ const AuthenticatedProductsCompareNewRoute =
   AuthenticatedProductsCompareNewRouteImport.update({
     id: '/products/compare/new',
     path: '/products/compare/new',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProductsCompareIdRoute =
   AuthenticatedProductsCompareIdRouteImport.update({
     id: '/products/compare/$id',
     path: '/products/compare/$id',
-    getParentRoute: () => AuthenticatedRoute,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -278,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/u/$username': typeof UUsernameRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -285,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/blog/admin/new': typeof BlogAdminNewRoute
@@ -310,12 +345,15 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
   '/u/$username': typeof UUsernameRoute
+  '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/ingredients': typeof IngredientsIndexRoute
   '/products': typeof ProductsIndexRoute
@@ -323,6 +361,7 @@ export interface FileRoutesByTo {
   '/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/blog/admin/new': typeof BlogAdminNewRoute
@@ -344,13 +383,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -359,6 +401,7 @@ export interface FileRoutesById {
   '/ingredients/$slug': typeof IngredientsSlugRouteWithChildren
   '/products/$slug': typeof ProductsSlugRouteWithChildren
   '/u/$username': typeof UUsernameRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/ingredients/': typeof IngredientsIndexRoute
   '/products/': typeof ProductsIndexRoute
@@ -366,6 +409,7 @@ export interface FileRoutesById {
   '/_authenticated/collection/motifs': typeof AuthenticatedCollectionMotifsRoute
   '/_authenticated/ingredients/new': typeof AuthenticatedIngredientsNewRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
+  '/admin/users_/$userId': typeof AdminUsersUserIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/blog/$category/$slug': typeof BlogCategorySlugRoute
   '/blog/admin/new': typeof BlogAdminNewRoute
@@ -388,12 +432,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/about'
     | '/privacy'
     | '/settings'
     | '/collection'
     | '/profile'
     | '/tasks'
+    | '/admin/reports'
+    | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
@@ -402,6 +449,7 @@ export interface FileRouteTypes {
     | '/ingredients/$slug'
     | '/products/$slug'
     | '/u/$username'
+    | '/admin/'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
@@ -409,6 +457,7 @@ export interface FileRouteTypes {
     | '/collection/motifs'
     | '/ingredients/new'
     | '/products/new'
+    | '/admin/users/$userId'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/blog/admin/new'
@@ -434,12 +483,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/profile'
     | '/tasks'
+    | '/admin/reports'
+    | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
     | '/u/$username'
+    | '/admin'
     | '/blog'
     | '/ingredients'
     | '/products'
@@ -447,6 +499,7 @@ export interface FileRouteTypes {
     | '/collection/motifs'
     | '/ingredients/new'
     | '/products/new'
+    | '/admin/users/$userId'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/blog/admin/new'
@@ -468,12 +521,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/about'
     | '/privacy'
     | '/settings'
     | '/_authenticated/collection'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
+    | '/admin/reports'
+    | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
     | '/auth/signup'
@@ -482,6 +538,7 @@ export interface FileRouteTypes {
     | '/ingredients/$slug'
     | '/products/$slug'
     | '/u/$username'
+    | '/admin/'
     | '/blog/'
     | '/ingredients/'
     | '/products/'
@@ -489,6 +546,7 @@ export interface FileRouteTypes {
     | '/_authenticated/collection/motifs'
     | '/_authenticated/ingredients/new'
     | '/_authenticated/products/new'
+    | '/admin/users_/$userId'
     | '/auth/google/callback'
     | '/blog/$category/$slug'
     | '/blog/admin/new'
@@ -510,7 +568,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
@@ -557,11 +616,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -591,6 +657,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/u/$username': {
       id: '/u/$username'
@@ -648,26 +721,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthBannedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/collection': {
       id: '/_authenticated/collection'
       path: '/collection'
       fullPath: '/collection'
       preLoaderRoute: typeof AuthenticatedCollectionRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/products/$slug/': {
       id: '/products/$slug/'
@@ -732,19 +819,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users_/$userId': {
+      id: '/admin/users_/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/_authenticated/products/new': {
       id: '/_authenticated/products/new'
       path: '/products/new'
       fullPath: '/products/new'
       preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ingredients/new': {
       id: '/_authenticated/ingredients/new'
       path: '/ingredients/new'
       fullPath: '/ingredients/new'
       preLoaderRoute: typeof AuthenticatedIngredientsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/collection/motifs': {
       id: '/_authenticated/collection/motifs'
@@ -779,7 +873,7 @@ declare module '@tanstack/react-router' {
       path: '/products/compare'
       fullPath: '/products/compare/'
       preLoaderRoute: typeof AuthenticatedProductsCompareIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/products/$slug/discussions/$threadId': {
       id: '/products/$slug/discussions/$threadId'
@@ -807,14 +901,14 @@ declare module '@tanstack/react-router' {
       path: '/products/compare/new'
       fullPath: '/products/compare/new'
       preLoaderRoute: typeof AuthenticatedProductsCompareNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products/compare/$id': {
       id: '/_authenticated/products/compare/$id'
       path: '/products/compare/$id'
       fullPath: '/products/compare/$id'
       preLoaderRoute: typeof AuthenticatedProductsCompareIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -837,7 +931,7 @@ const AuthenticatedCollectionRouteWithChildren =
     AuthenticatedCollectionRouteChildren,
   )
 
-interface AuthenticatedRouteChildren {
+interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -848,7 +942,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedProductsCompareIndexRoute: typeof AuthenticatedProductsCompareIndexRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
@@ -860,8 +954,25 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedProductsCompareIndexRoute,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface AdminRouteRouteChildren {
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminReportsRoute: AdminReportsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
 )
 
 interface IngredientsSlugRouteChildren {
@@ -899,7 +1010,8 @@ const ProductsSlugRouteWithChildren = ProductsSlugRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,

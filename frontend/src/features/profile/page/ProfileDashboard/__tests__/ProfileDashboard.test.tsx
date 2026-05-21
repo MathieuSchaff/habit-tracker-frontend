@@ -10,6 +10,12 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   return { ...actual, useQuery: vi.fn(), useSuspenseQuery: vi.fn() }
 })
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
+}))
+
 vi.mock('@/lib/queries/profile', () => ({
   profileQueries: {
     me: vi.fn(() => ({ queryKey: ['profile', 'me'] })),
@@ -18,37 +24,58 @@ vi.mock('@/lib/queries/profile', () => ({
   useUpdateProfile: vi.fn(),
 }))
 
-// Sub-components are composition leaves; stub them out so the dashboard's
-// own wiring (hero, tabs, edit state) is what's under test.
+// Sub-components are composition leaves; stub them so the dashboard's own
+// wiring (hero, tabs, edit state, scroll-to-section) is what's under test.
 vi.mock('../../../components/ProfileAvatar/ProfileAvatar', () => ({
   ProfileAvatar: ({ username }: { username?: string }) => (
     <div data-testid="profile-avatar">{username}</div>
   ),
 }))
-vi.mock('../../../components/SkinProfileRead/SkinProfileRead', () => ({
-  SkinProfileRead: () => <div data-testid="skin-read" />,
-}))
-vi.mock('../../../components/ProfileForm/ProfileForm', () => ({
-  ProfileForm: ({ onSubmit }: { onSubmit: (data: { bio: string }) => void }) => (
-    <button type="button" onClick={() => onSubmit({ bio: 'new bio' })}>
-      submit-profile-form
-    </button>
+vi.mock('../../../components/IdentityCard/IdentityCard', () => ({
+  IdentityCard: ({
+    isEditing,
+    onEdit,
+    onSubmit,
+  }: {
+    isEditing: boolean
+    onEdit: () => void
+    onSubmit: (data: { bio: string }) => void
+  }) => (
+    <div data-testid="identity-card">
+      {isEditing ? (
+        <button type="button" onClick={() => onSubmit({ bio: 'new bio' })}>
+          submit-identity
+        </button>
+      ) : (
+        <button type="button" onClick={onEdit}>
+          Modifier mes informations
+        </button>
+      )}
+    </div>
   ),
 }))
-vi.mock('../../../components/ProfileCompletionHint/ProfileCompletionHint', () => ({
-  ProfileCompletionHint: () => <div data-testid="profile-completion-hint" />,
+vi.mock('../../../components/SkinPortraitCard/SkinPortraitCard', () => ({
+  SkinPortraitCard: ({ isEditing, onEdit }: { isEditing: boolean; onEdit: () => void }) => (
+    <div data-testid="skin-portrait-card">
+      {isEditing ? null : (
+        <button type="button" onClick={onEdit}>
+          Modifier le portrait de peau
+        </button>
+      )}
+    </div>
+  ),
 }))
-vi.mock('../../../tabs/OverviewTab/ProfileStats', () => ({
-  ProfileStats: () => <div data-testid="profile-stats" />,
+vi.mock('../../../components/ShelfPulse/ShelfPulse', () => ({
+  ShelfPulse: () => <div data-testid="shelf-pulse" />,
+}))
+vi.mock('../../../components/CompletionStrip/CompletionStrip', () => ({
+  CompletionStrip: () => <div data-testid="completion-strip" />,
 }))
 vi.mock('../../../tabs/AccountTab/AccountSettings', () => ({
   AccountSettings: () => <div data-testid="account-settings" />,
 }))
 vi.mock('../../../tabs/PreferencesTab/PreferenceSettings', () => ({
   PreferenceSettings: () => <div data-testid="preference-settings" />,
-}))
-vi.mock('../../../tabs/SkinTab/DermoProfileForm', () => ({
-  DermoProfileForm: () => <div data-testid="dermo-form" />,
 }))
 
 function setProfile(profile: {
@@ -102,14 +129,12 @@ describe('ProfileDashboard', () => {
     render(<ProfileDashboard />)
 
     expect(screen.getByRole('heading', { name: 'mathieu' })).toBeInTheDocument()
-    // The bio renders both in the hero and in the read view of EditableSection.
-    expect(screen.getAllByText('Skincare nerd').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Skincare nerd')).toBeInTheDocument()
   })
 
   it('switches tab panels when a tab is clicked', () => {
     render(<ProfileDashboard />)
 
-    // Account tab hidden by default.
     expect(screen.getByTestId('account-settings').closest('[role="tabpanel"]')).toHaveAttribute(
       'hidden'
     )
@@ -121,14 +146,12 @@ describe('ProfileDashboard', () => {
     )
   })
 
-  it('fires updateProfile.mutate when the inline ProfileForm submits', () => {
+  it('fires updateProfile.mutate when the IdentityCard form submits', () => {
     const { mutate } = setUpdateProfile()
     render(<ProfileDashboard />)
 
-    // Two EditableSections render their own edit button — first one is the hero.
-    const [editHero] = screen.getAllByRole('button', { name: /Modifier/ })
-    fireEvent.click(editHero)
-    fireEvent.click(screen.getByText('submit-profile-form'))
+    fireEvent.click(screen.getByRole('button', { name: 'Modifier mes informations' }))
+    fireEvent.click(screen.getByRole('button', { name: 'submit-identity' }))
 
     expect(mutate).toHaveBeenCalledTimes(1)
     expect(mutate.mock.calls[0][0]).toEqual({ bio: 'new bio' })

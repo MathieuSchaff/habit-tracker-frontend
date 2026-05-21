@@ -1,5 +1,7 @@
 import { AlertTriangle, X as XIcon } from 'lucide-react'
 
+import { ingredientLabels } from '@/features/ingredients/constants'
+
 export function ConflictBanner({
   conflict,
   onDismiss,
@@ -13,9 +15,9 @@ export function ConflictBanner({
       <div className="ingredient-edit-form__conflict-banner-header">
         <AlertTriangle size={16} />
         <span>
-          <strong>Conflit détecté</strong> — quelqu'un a modifié cet ingrédient pendant ton édition.
-          Le formulaire affiche maintenant la version à jour. Ton brouillon est affiché sous chaque
-          champ modifié.
+          <strong>{ingredientLabels.conflictDetected}</strong> — quelqu'un a modifié cet ingrédient
+          pendant ton édition. Le formulaire affiche maintenant la version à jour. Ton brouillon est
+          affiché sous chaque champ modifié.
         </span>
       </div>
       <button type="button" className="ingredient-edit-form__conflict-dismiss" onClick={onDismiss}>

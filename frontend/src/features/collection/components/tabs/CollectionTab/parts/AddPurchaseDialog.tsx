@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { Input } from '@/component/Input/Input'
+import { pdsLabels } from '@/features/collection/constants'
 import { fromDateInputValue, toDateInputValue, todayDateInputValue } from '@/lib/dates'
 import { useAddPurchase, useUpdatePurchase } from '@/lib/queries/purchases'
 
@@ -87,7 +88,7 @@ export function AddPurchaseDialog({ userProductId, purchase, onClose }: AddPurch
         <div className="apd-header-title">
           <Euro size={16} />
           <Modal.Title className="apd-title">
-            {isEditMode ? "MODIFIER L'ACHAT" : 'ENREGISTRER UN ACHAT'}
+            {isEditMode ? pdsLabels.editPurchaseTitle : pdsLabels.addPurchaseTitle}
           </Modal.Title>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Fermer">

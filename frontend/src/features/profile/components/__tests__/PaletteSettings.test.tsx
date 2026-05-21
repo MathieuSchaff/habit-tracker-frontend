@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useThemeStore } from '../../../../store/theme'
 import { renderWithProviders } from '../../../../test/utils'
-import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
+import { PALETTE_LABEL, PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 
 vi.mock('../../../../lib/queries/user-preferences', () => ({
   userPreferenceQueries: {
@@ -41,18 +41,18 @@ describe('PreferenceSettings — palette section', () => {
 
   it('shows palette section in light mode', async () => {
     renderWithProviders(<PreferenceSettings />)
-    expect(await screen.findByText('Palette (mode clair)')).toBeInTheDocument()
+    expect(await screen.findByText(PALETTE_LABEL)).toBeInTheDocument()
   })
 
   it('shows palette section in dark mode too', async () => {
     useThemeStore.setState({ theme: 'dark', variant: 'terracota' })
     renderWithProviders(<PreferenceSettings />)
-    expect(await screen.findByText('Palette (mode clair)')).toBeInTheDocument()
+    expect(await screen.findByText(PALETTE_LABEL)).toBeInTheDocument()
   })
 
   it('marks Terracota as active when variant is terracota', async () => {
     renderWithProviders(<PreferenceSettings />)
-    await screen.findByText('Palette (mode clair)')
+    await screen.findByText(PALETTE_LABEL)
     const paletteGroup = screen.getByRole('radiogroup', { name: /palette/i })
     expect(within(paletteGroup).getByRole('radio', { name: /terracota/i })).toBeChecked()
 
@@ -63,7 +63,7 @@ describe('PreferenceSettings — palette section', () => {
   it('marks the active swatch as checked', async () => {
     useThemeStore.setState({ theme: 'light', variant: 'ardoise' })
     renderWithProviders(<PreferenceSettings />)
-    await screen.findByText('Palette (mode clair)')
+    await screen.findByText(PALETTE_LABEL)
     expect(screen.getByRole('radio', { name: /ardoise/i })).toBeChecked()
   })
 
@@ -71,7 +71,7 @@ describe('PreferenceSettings — palette section', () => {
     const setVariant = vi.fn()
     useThemeStore.setState({ theme: 'light', variant: 'terracota', setVariant })
     renderWithProviders(<PreferenceSettings />)
-    await screen.findByText('Palette (mode clair)')
+    await screen.findByText(PALETTE_LABEL)
     fireEvent.click(screen.getByRole('radio', { name: /forêt/i }))
     expect(setVariant).toHaveBeenCalledWith('foret')
   })

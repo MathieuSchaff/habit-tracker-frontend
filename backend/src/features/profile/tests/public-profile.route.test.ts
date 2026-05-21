@@ -5,6 +5,7 @@ import { HTTP_STATUS, type PublicProfileView } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -24,6 +25,8 @@ async function seedOwner(app: Hono<AppEnv>, username: string) {
   })
   return token
 }
+
+setupDbTests()
 
 describe('GET /profiles/:username/public', () => {
   let app: Hono<AppEnv>

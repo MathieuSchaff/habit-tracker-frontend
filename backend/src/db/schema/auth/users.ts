@@ -2,6 +2,7 @@ import type { ProfileLink, SkinConcern, SkinType } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -73,6 +74,15 @@ export const profiles = pgTable(
     bioPublic: boolean('bio_public').notNull().default(false),
     avatarPublic: boolean('avatar_public').notNull().default(false),
     linksPublic: boolean('links_public').notNull().default(false),
+    // Admin override: when true, every public surface for this profile is
+    // hidden regardless of the user's own profilePublic toggle. Reviews and
+    // pseudonyms exposed via public-review joins disappear as a consequence.
+    forcedPrivateByAdmin: boolean('forced_private_by_admin').notNull().default(false),
+    forcedPrivateBy: uuid('forced_private_by').references((): AnyPgColumn => users.id, {
+      onDelete: 'set null',
+    }),
+    forcedPrivateAt: timestamp('forced_private_at', { withTimezone: true, mode: 'string' }),
+    forcedPrivateReason: text('forced_private_reason'),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow(),
@@ -95,20 +105,27 @@ export const profiles = pgTable(
       as: 'permissive',
       for: 'select',
       to: appRuntimeRole,
-      using: sql`${t.profilePublic}`,
+      using: sql`${t.profilePublic} AND NOT ${t.forcedPrivateByAdmin}`,
     }),
     // #7 — expose the pseudonym when the reviewer has opted-in at least one
     // public review, even if their profile master flag stays false. Leak
     // surface = "this user has shared a public review" (already inferable
     // from the review row). No other profile columns become visible here.
+    // Force-private blocks this path too — admin moderation is final.
+    // Moderation_status='visible' guard: once every public review of a user
+    // is hidden by admin moderation, the profile must stop appearing through
+    // this path too (otherwise the pseudonym leaks via a hypothetical future
+    // join that forgets the moderation filter at the service layer).
     pgPolicy('profiles_select_for_public_review', {
       as: 'permissive',
       for: 'select',
       to: appRuntimeRole,
-      using: sql`EXISTS (
+      using: sql`NOT ${t.forcedPrivateByAdmin} AND EXISTS (
         SELECT 1 FROM user_product_reviews r
         JOIN user_products up ON up.id = r.user_product_id
-        WHERE r.is_public = TRUE AND up.user_id = ${t.userId}
+        WHERE r.is_public = TRUE
+          AND r.moderation_status = 'visible'
+          AND up.user_id = ${t.userId}
       )`,
     }),
     pgPolicy('profiles_admin_bypass', {
@@ -145,7 +162,9 @@ export const userDermoProfiles = pgTable(
       to: appRuntimeRole,
       using: sql`EXISTS (
         SELECT 1 FROM profiles p
-        WHERE p.user_id = ${t.userId} AND p.profile_public = TRUE
+        WHERE p.user_id = ${t.userId}
+          AND p.profile_public = TRUE
+          AND p.forced_private_by_admin = FALSE
       )`,
     }),
   ]

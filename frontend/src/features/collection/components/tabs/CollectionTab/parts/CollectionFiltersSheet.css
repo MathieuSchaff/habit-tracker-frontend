@@ -16,8 +16,6 @@
   flex: 0 0 auto;
 }
 
-/* === Header — eyebrow + serif title + lede === */
-
 .coll-sheet-header {
   padding: var(--space-2) var(--space-5) var(--space-4);
   border-bottom: var(--rule-section);
@@ -70,8 +68,6 @@
   align-self: center;
 }
 
-/* Icon-only Button override: keep ghost variant but drop the text padding so
-   the X sits in a compact square pill. */
 .coll-icon-btn.button {
   padding: var(--space-1);
   min-width: var(--space-8);
@@ -87,8 +83,6 @@
   max-width: 32ch;
 }
 
-/* === Body === */
-
 .coll-sheet-body {
   overflow-y: auto;
   max-height: 70dvh;
@@ -102,8 +96,6 @@
   flex-direction: column;
   gap: var(--space-5);
 }
-
-/* === Field group === */
 
 .coll-field {
   display: flex;
@@ -126,8 +118,6 @@
   display: block;
 }
 
-/* === Select wrapper override — bumps padding and switches bg to card === */
-
 .coll-select.select-wrapper {
   gap: 0;
 }
@@ -139,8 +129,6 @@
   font-size: 0.9375rem;
   font-weight: var(--font-medium);
 }
-
-/* === Chip rail — sage-tinted inset tray === */
 
 .coll-rail {
   display: flex;
@@ -204,8 +192,6 @@
     inset 0 1px 0 0 oklch(100% 0 0 / 0.18);
 }
 
-/* === Price input — pill with € suffix === */
-
 .coll-priceinput {
   position: relative;
   display: flex;
@@ -253,8 +239,6 @@
   pointer-events: none;
   line-height: 1;
 }
-
-/* === Footer === */
 
 .coll-sheet-footer {
   padding: var(--space-3) var(--space-5) var(--space-5);

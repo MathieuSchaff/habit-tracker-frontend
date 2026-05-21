@@ -21,9 +21,12 @@ export const Route = createFileRoute('/blog/')({
   },
   loaderDeps: ({ search: { page, q } }) => ({ page, q }),
   loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(
-      articleQueries.list({ page: deps.page, q: deps.q, limit: 20 })
-    ),
+    Promise.all([
+      context.queryClient.ensureQueryData(
+        articleQueries.list({ page: deps.page, q: deps.q, limit: 20 })
+      ),
+      context.queryClient.ensureQueryData(articleQueries.categoryCounts()),
+    ]),
   component: BlogIndexRoute,
   pendingComponent: BlogListSkeleton,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,

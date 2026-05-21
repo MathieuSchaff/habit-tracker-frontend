@@ -49,8 +49,16 @@ export type AuthContext = {
   userAgent?: string
 }
 
+// Tests hash hundreds of fixture users; argon2id default (~70 ms) dominated the
+// wall-time. bcrypt cost=4 (~1-2 ms) keeps the real signup → hash → verify path
+// exercised end-to-end while cutting the cost ~50× in tests only.
+// Bun.password.verify auto-detects algorithm from the hash prefix, so verify
+// works across prod and test hashes interchangeably.
+const PASSWORD_HASH_OPTIONS: Parameters<typeof Bun.password.hash>[1] =
+  process.env.NODE_ENV === 'test' ? { algorithm: 'bcrypt', cost: 4 } : undefined
+
 // Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
-const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy')
+const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy', PASSWORD_HASH_OPTIONS)
 
 // Account lockout: lock the user after N consecutive failed logins for D ms.
 // Defense-in-depth alongside the per-IP loginRateLimiter — caught attacker
@@ -105,7 +113,10 @@ export async function signup(
     const existingUser = await getUser(ctx.db, email)
     if (existingUser) return err('email_exists')
 
-    const passwordHash = (await Bun.password.hash(password)) as HashedPassword
+    const passwordHash = (await Bun.password.hash(
+      password,
+      PASSWORD_HASH_OPTIONS
+    )) as HashedPassword
 
     const user = await ctx.db.transaction(async (tx) => {
       const user = await createUser(tx, {
@@ -275,7 +286,10 @@ export async function changePassword(
       return err('invalid_credentials')
     }
 
-    const newPasswordHash = (await Bun.password.hash(newPassword)) as HashedPassword
+    const newPasswordHash = (await Bun.password.hash(
+      newPassword,
+      PASSWORD_HASH_OPTIONS
+    )) as HashedPassword
 
     await ctx.db
       .update(users)

@@ -1,5 +1,5 @@
 .profile-dashboard {
-  max-width: 42rem;
+  max-width: 64rem;
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -15,13 +15,14 @@
   }
 }
 
+/* --- Hero --- */
+
 .profile-hero {
+  --hero-tint: var(--color-primary);
   position: relative;
   background-color: var(--bg-card);
-  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
-  box-shadow:
-    var(--shadow-sm),
-    0 8px 32px oklch(from var(--color-primary) l c h / 0.08);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.18);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -29,41 +30,98 @@
   border-radius: 1.5rem;
 }
 
+/* Skin-tone tint adjusts the Aurora horizon's warmth so the hero subtly echoes
+   the user's phototype. data-fitz="0" (unknown) keeps the default brand tint. */
+.profile-hero[data-fitz="1"] {
+  --hero-tint: var(--fitz-1);
+}
+.profile-hero[data-fitz="2"] {
+  --hero-tint: var(--fitz-2);
+}
+.profile-hero[data-fitz="3"] {
+  --hero-tint: var(--fitz-3);
+}
+.profile-hero[data-fitz="4"] {
+  --hero-tint: var(--fitz-4);
+}
+.profile-hero[data-fitz="5"] {
+  --hero-tint: var(--fitz-5);
+}
+.profile-hero[data-fitz="6"] {
+  --hero-tint: var(--fitz-6);
+}
+
 .profile-hero__banner {
-  height: 4rem;
-  width: 100%;
-  border-radius: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-accent) 50%,
-    var(--color-secondary) 100%
-  );
   position: relative;
+  height: 5.5rem;
+  width: 100%;
+  background:
+    linear-gradient(
+      180deg,
+      oklch(from var(--hero-tint) calc(l + 0.06) c h / 0.55) 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      120deg,
+      var(--color-primary) 0%,
+      var(--color-accent) 45%,
+      var(--color-secondary, var(--color-accent)) 100%
+    );
+  isolation: isolate;
+}
+
+.profile-hero__banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 20% 110%,
+      oklch(from var(--hero-tint) calc(l + 0.12) c h / 0.45) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 80% 0%,
+      oklch(from var(--color-accent) calc(l + 0.1) c h / 0.35) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
 }
 
 .profile-hero__banner::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(
-      circle at 20% 30%,
-      oklch(from var(--text-inverse) l c h / 0.15) 0%,
-      transparent 50%
-    ),
-    radial-gradient(circle at 80% 70%, oklch(0% 0 0 / 0.05) 0%, transparent 50%);
-  opacity: 0.4;
+  background:
+    radial-gradient(circle at 18% 32%, oklch(100% 0 0 / 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 78% 68%, oklch(0% 0 0 / 0.06) 0%, transparent 45%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.profile-hero__banner-glow {
+  position: absolute;
+  inset: auto 0 -40% 0;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(from var(--hero-tint) calc(l + 0.1) c h / 0.3) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  filter: blur(8px);
 }
 
 .profile-hero__content {
   position: relative;
   z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-4) var(--space-5);
-  margin-top: -2.5rem;
+  margin-top: -2.25rem;
+  text-align: center;
 }
 
 .profile-hero__avatar-wrapper {
@@ -71,9 +129,11 @@
   position: relative;
   z-index: 2;
   border-radius: var(--radius-full);
-  padding: 3px;
+  padding: 4px;
   background: var(--bg-card);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    0 0 0 1px oklch(from var(--color-primary) l c h / 0.2),
+    var(--shadow-md);
 }
 
 .profile-hero__avatar-wrapper .profile-avatar--xl {
@@ -86,6 +146,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-1);
   padding-top: var(--space-1);
 }
@@ -105,20 +166,26 @@
 .profile-hero__bio {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: var(--leading-normal);
-  margin-top: var(--space-2);
-  max-width: 100%;
+  line-height: var(--leading-relaxed);
+  margin-top: var(--space-3);
+  max-width: 52ch;
   white-space: pre-line;
+  font-style: italic;
 }
 
 .profile-hero__since {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: var(--space-2);
-  margin-top: var(--space-3);
-  font-size: var(--text-sm);
+  margin: 0;
+  font-size: var(--text-xs);
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.profile-hero__since > [aria-hidden="true"] {
+  color: oklch(from var(--color-primary) l c h / 0.6);
 }
 
 @media (--sm) {
@@ -127,19 +194,24 @@
   }
 
   .profile-hero__banner {
-    height: 6rem;
+    height: 8rem;
   }
 
   .profile-hero__content {
     flex-direction: row;
     align-items: flex-end;
-    padding: 0 var(--space-6) var(--space-6);
-    margin-top: -3.5rem;
+    padding: 0 var(--space-7, var(--space-6)) var(--space-6);
+    margin-top: -2.75rem;
     gap: var(--space-5);
+    text-align: left;
   }
 
+  /* Padding-top matches the negative content margin so the text column lands
+     fully on the white card area instead of overlapping the gradient banner. */
   .profile-hero__main {
-    padding-top: 3.5rem;
+    align-items: flex-start;
+    padding-top: 2.75rem;
+    padding-bottom: var(--space-1);
     gap: 0;
   }
 
@@ -150,32 +222,33 @@
   }
 
   .profile-hero__bio {
-    margin-top: var(--space-4);
+    margin-top: var(--space-3);
   }
 
   .profile-hero__since {
-    justify-content: flex-start;
-    margin-top: var(--space-4);
+    margin-top: var(--space-2);
   }
 }
 
+/* --- Tabs --- */
+
 .profile-tabs-container {
   padding: 0;
-  margin: var(--space-6) 0 var(--space-2);
+  margin: var(--space-4) 0 var(--space-2);
 }
 
 .profile-tab-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  animation: fadeIn var(--transition-slow) ease;
+  animation: profile-fade-in var(--transition-slow) ease;
 }
 
 .profile-tab-content[hidden] {
   display: none;
 }
 
-@keyframes fadeIn {
+@keyframes profile-fade-in {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -195,65 +268,33 @@
 .profile-dashboard__body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
   min-height: 32rem;
   width: 100%;
 }
 
-.profile-info-read {
+/* --- Profil tab card grid --- */
+
+.profile-tab-content__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.profile-tab-content__cell {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
 }
 
-.profile-info-read__bio {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  line-height: var(--leading-normal);
-  white-space: pre-line;
-  margin: 0;
+.profile-tab-content__cell > * {
+  flex: 1;
+  width: 100%;
 }
 
-.profile-info-read__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.profile-info-read__link {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
-  color: var(--color-primary);
-  background: oklch(from var(--color-primary) l c h / 0.08);
-  border: 1px solid oklch(from var(--color-primary) l c h / 0.2);
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  transition:
-    background-color var(--transition-fast) ease,
-    border-color var(--transition-fast) ease;
-}
-
-.profile-info-read__link:hover {
-  text-decoration: underline;
-  background: oklch(from var(--color-primary) l c h / 0.15);
-  border-color: var(--color-primary);
-}
-
-.profile-info-read__empty {
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-  font-style: italic;
-  margin: 0;
-}
-
-@media (--xs-only) {
-  .profile-hero__bio {
-    max-width: 100%;
-  }
-
-  .profile-hero__since {
-    justify-content: center;
+@media (--md) {
+  .profile-tab-content__grid {
+    /* Identity column slightly wider — bio + links tend to be the chattier side. */
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--space-5);
   }
 }

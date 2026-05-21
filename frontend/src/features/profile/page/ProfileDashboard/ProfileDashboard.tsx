@@ -1,7 +1,7 @@
 import type { ProfileUpdateInput } from '@habit-tracker/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { Calendar, Settings, UserCircle } from 'lucide-react'
+import { Settings, Shield, Sparkles } from 'lucide-react'
 import { Suspense, useState } from 'react'
 
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
@@ -9,30 +9,26 @@ import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { formatInstant } from '@/lib/dates'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
-import { sanitizeUrl } from '../../../../lib/url'
-import { EditableSection } from '../../components/EditableSection/EditableSection'
-import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
 import {
-  type CompletionSection,
-  ProfileCompletionHint,
-} from '../../components/ProfileCompletionHint/ProfileCompletionHint'
-import { ProfileForm } from '../../components/ProfileForm/ProfileForm'
-import { SkinProfileRead } from '../../components/SkinProfileRead/SkinProfileRead'
+  type CompletionStep,
+  CompletionStrip,
+} from '../../components/CompletionStrip/CompletionStrip'
+import { IdentityCard } from '../../components/IdentityCard/IdentityCard'
+import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
+import { ShelfPulse } from '../../components/ShelfPulse/ShelfPulse'
+import { SkinPortraitCard } from '../../components/SkinPortraitCard/SkinPortraitCard'
 import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
-import { ProfileStats } from '../../tabs/OverviewTab/ProfileStats'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
-import { DermoProfileForm } from '../../tabs/SkinTab/DermoProfileForm'
 import './ProfileDashboard.css'
 
 type TabType = 'profile' | 'preferences' | 'account'
-type EditingSection = 'hero' | 'skin' | null
 
 export const ProfileDashboard = () => {
   const { data: profile } = useSuspenseQuery(profileQueries.me())
   const { data: dermo } = useQuery(profileQueries.dermo())
   const updateProfile = useUpdateProfile()
   const [activeTab, setActiveTab] = useState<TabType>('profile')
-  const [editingSection, setEditingSection] = useState<EditingSection>(null)
+  const [editingSection, setEditingSection] = useState<CompletionStep | null>(null)
 
   const displayName = profile.username ?? 'Utilisateur'
 
@@ -42,13 +38,18 @@ export const ProfileDashboard = () => {
     })
   }
 
-  const handleEditSection = (section: CompletionSection) => {
+  const handleEditSection = (section: CompletionStep) => {
     setEditingSection(section)
     requestAnimationFrame(() => {
       document
         .getElementById(`profile-section-${section}`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
+  }
+
+  const handleCloseEdit = () => {
+    setEditingSection(null)
+    updateProfile.reset()
   }
 
   const errorMessage = updateProfile.isError
@@ -59,7 +60,7 @@ export const ProfileDashboard = () => {
     {
       id: 'profile',
       label: 'Profil',
-      icon: <UserCircle size={18} />,
+      icon: <Sparkles size={18} />,
     },
     {
       id: 'preferences',
@@ -69,14 +70,16 @@ export const ProfileDashboard = () => {
     {
       id: 'account',
       label: 'Compte',
-      icon: <UserCircle size={18} />,
+      icon: <Shield size={18} />,
     },
   ]
 
   return (
     <main className="profile-dashboard">
-      <div className="profile-hero">
-        <div className="profile-hero__banner" />
+      <div className="profile-hero" data-fitz={dermo?.fitzpatrickType ?? 0}>
+        <div className="profile-hero__banner" aria-hidden="true">
+          <div className="profile-hero__banner-glow" />
+        </div>
         <div className="profile-hero__content">
           <div className="profile-hero__avatar-wrapper">
             <ProfileAvatar avatarUrl={profile.avatarUrl} username={profile.username} size="xl" />
@@ -87,14 +90,14 @@ export const ProfileDashboard = () => {
               <PageTitle title={displayName} className="profile-hero__info" />
             </div>
 
-            {profile.bio && <p className="profile-hero__bio">{profile.bio}</p>}
-
             {profile.createdAt && (
               <p className="profile-hero__since">
-                <Calendar size={13} aria-hidden="true" />
+                <span aria-hidden="true">·</span>
                 <span>Membre depuis {formatInstant(profile.createdAt, 'monthYear')}</span>
               </p>
             )}
+
+            {profile.bio && <p className="profile-hero__bio">{profile.bio}</p>}
           </div>
         </div>
       </div>
@@ -115,78 +118,34 @@ export const ProfileDashboard = () => {
           aria-labelledby="profile-tab-profile"
           hidden={activeTab !== 'profile'}
         >
-          <ProfileCompletionHint
-            profile={profile}
-            dermo={dermo}
-            onEditSection={handleEditSection}
-          />
+          <CompletionStrip profile={profile} dermo={dermo} onEditSection={handleEditSection} />
 
-          <div id="profile-section-hero">
-            <EditableSection
-              title="Mes informations"
-              isEditing={editingSection === 'hero'}
-              onEdit={() => setEditingSection('hero')}
-              readContent={
-                <div className="profile-info-read">
-                  {profile.bio && <p className="profile-info-read__bio">{profile.bio}</p>}
-                  {profile.links && profile.links.length > 0 && (
-                    <div className="profile-info-read__links">
-                      {profile.links.map((link) => (
-                        <a
-                          key={link.url}
-                          href={sanitizeUrl(link.url) ?? '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="profile-info-read__link"
-                        >
-                          {link.label || link.url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  {!profile.bio && (!profile.links || profile.links.length === 0) && (
-                    <p className="profile-info-read__empty">Aucune information renseignée.</p>
-                  )}
-                </div>
-              }
-              editContent={
-                <ProfileForm
-                  profile={profile}
-                  onSubmit={handleProfileUpdate}
-                  onCancel={() => {
-                    setEditingSection(null)
-                    updateProfile.reset()
-                  }}
-                  isPending={updateProfile.isPending}
-                  error={errorMessage}
-                />
-              }
-            />
+          <div className="profile-tab-content__grid">
+            <div id="profile-section-hero" className="profile-tab-content__cell">
+              <IdentityCard
+                profile={profile}
+                isEditing={editingSection === 'hero'}
+                onEdit={() => setEditingSection('hero')}
+                onCloseEdit={handleCloseEdit}
+                onSubmit={handleProfileUpdate}
+                isPending={updateProfile.isPending}
+                errorMessage={errorMessage}
+              />
+            </div>
+
+            <div id="profile-section-skin" className="profile-tab-content__cell">
+              <SkinPortraitCard
+                dermo={dermo}
+                isEditing={editingSection === 'skin'}
+                onEdit={() => setEditingSection('skin')}
+                onCloseEdit={() => setEditingSection(null)}
+              />
+            </div>
           </div>
 
           <Suspense fallback={<Spinner />}>
-            <ProfileStats />
+            <ShelfPulse />
           </Suspense>
-
-          <div id="profile-section-skin">
-            <EditableSection
-              title="Ma peau"
-              isEditing={editingSection === 'skin'}
-              onEdit={() => setEditingSection('skin')}
-              readContent={
-                dermo ? (
-                  <SkinProfileRead dermo={dermo} />
-                ) : (
-                  <p className="skin-read__empty">Chargement...</p>
-                )
-              }
-              editContent={
-                <Suspense fallback={<Spinner />}>
-                  <DermoProfileForm onSave={() => setEditingSection(null)} />
-                </Suspense>
-              }
-            />
-          </div>
         </div>
 
         <div

@@ -46,6 +46,20 @@ export const statusLabels: Record<
   },
 }
 
+// Product Detail Sheet section + dialog wording, centralized so tests and
+// production import the same string. Renaming a section here updates both —
+// removes the historical pattern where a wording rename silently broke tests
+// (e.g. "Votre expérience" → "Mon expérience", 2026-05-21 audit).
+export const pdsLabels = {
+  experience: 'Mon expérience',
+  sentimentQuick: 'Ressenti rapide',
+  decision: 'Ma décision',
+  lifecycle: 'Cycle de vie',
+  statusGroupAria: 'Statut du produit',
+  addPurchaseTitle: 'ENREGISTRER UN ACHAT',
+  editPurchaseTitle: "MODIFIER L'ACHAT",
+} as const
+
 // Holy Grail is sentiment=6, not a status — orthogonal to these tabs.
 export const PRIMARY_SHELF_ORDER: UserProductStatus[] = ['in_stock', 'wishlist', 'watched']
 

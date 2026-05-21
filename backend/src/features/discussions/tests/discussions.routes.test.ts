@@ -5,7 +5,9 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
+import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
@@ -21,6 +23,8 @@ const VALID_THREAD = {
   content: 'Détail de mon expérience ici.',
 }
 const VALID_REPLY = { content: 'Pareil pour moi.' }
+
+setupDbTests()
 
 describe('Product Discussion Routes', () => {
   let app: Hono<AppEnv>
@@ -113,6 +117,38 @@ describe('Product Discussion Routes', () => {
       if (!data.success) throw new Error('expected ok')
       expect(data.data.content).toBe(VALID_REPLY.content)
       expect(data.data.threadId).toBe(threadId)
+    })
+
+    it('rejects replies on a thread hidden by admin moderation', async () => {
+      const { eq } = await import('drizzle-orm')
+      const { discussionThreads } = await import('../../../db/schema/products/discussions')
+      const { testDb } = await import('../../../tests/db.test.config')
+
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const slug = await createProductAndGetSlug(token)
+      const threadRes = await client.products[':slug'].discussions.$post(
+        { json: VALID_THREAD, param: { slug } },
+        withAuth(token)
+      )
+      const threadData = await threadRes.json()
+      if (!threadData.success) throw new Error('thread creation failed')
+      const threadId = threadData.data.id
+
+      // Simulate admin moderation hiding the thread.
+      await testDb
+        .update(discussionThreads)
+        .set({ moderationStatus: 'hidden' })
+        .where(eq(discussionThreads.id, threadId))
+
+      const res = await client.products[':slug'].discussions[':threadId'].replies.$post(
+        { json: VALID_REPLY, param: { slug, threadId } },
+        withAuth(token)
+      )
+
+      // Service throws DiscussionError('thread_not_found') → 404. Route would
+      // otherwise silently accept the reply (the response would be 201) which
+      // is the bug the moderation_status filter now blocks.
+      expectStatus(res, HTTP_STATUS.NOT_FOUND)
     })
   })
 

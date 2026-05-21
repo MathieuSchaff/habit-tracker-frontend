@@ -14,6 +14,8 @@ import { useThemeStore } from '../../../../store/theme'
 
 import './PreferenceSettings.css'
 
+export const PALETTE_LABEL = 'Palette (mode clair)'
+
 const PALETTE_SWATCHES: Array<{ variant: Variant; label: string; color: string }> = [
   { variant: 'terracota', label: 'Terracota', color: 'oklch(52% 0.13 32)' },
   { variant: 'foret', label: 'Forêt', color: 'oklch(40% 0.16 140)' },
@@ -103,7 +105,7 @@ export function PreferenceSettings() {
       </SettingsSection>
 
       <SettingsSection
-        title="Palette (mode clair)"
+        title={PALETTE_LABEL}
         description="Choisissez la palette de couleurs pour le mode clair."
       >
         <div className="pref-palette-swatches" role="radiogroup" aria-label="Palette de couleurs">

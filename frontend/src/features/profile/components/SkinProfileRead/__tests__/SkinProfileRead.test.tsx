@@ -3,6 +3,7 @@ import type { UserDermoProfile } from '@habit-tracker/shared'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { FITZPATRICK_ITEMS, SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { SkinProfileRead } from '../SkinProfileRead'
 
 function makeDermo(overrides: Partial<UserDermoProfile> = {}): UserDermoProfile {
@@ -31,15 +32,20 @@ describe('SkinProfileRead', () => {
       />
     )
 
-    expect(screen.getByText('Mixte')).toBeInTheDocument()
-    expect(screen.getByText('Sensible')).toBeInTheDocument()
-    expect(screen.getByText('Rosacée')).toBeInTheDocument()
-    expect(screen.getByText('Acné')).toBeInTheDocument()
+    expect(screen.getByText(SKIN_TYPE_LABELS['peau-mixte'])).toBeInTheDocument()
+    expect(screen.getByText(SKIN_TYPE_LABELS['peau-sensible'])).toBeInTheDocument()
+    expect(screen.getByText(SKIN_CONCERN_LABELS.rosacee)).toBeInTheDocument()
+    expect(screen.getByText(SKIN_CONCERN_LABELS['anti-acne'])).toBeInTheDocument()
   })
 
   it('renders the fitzpatrick badge with its long-form description', () => {
     render(<SkinProfileRead dermo={makeDermo({ fitzpatrickType: 3 })} />)
-    expect(screen.getByText(/III — Brûle modérément, bronze/)).toBeInTheDocument()
+    // Composite badge: "${label} — ${description}". Both pieces come from FITZPATRICK_ITEMS[2].
+    const fitz3 = FITZPATRICK_ITEMS.find((f) => f.value === 3)
+    expect(fitz3).toBeDefined()
+    expect(
+      screen.getByText(new RegExp(`${fitz3?.label} — ${fitz3?.description}`))
+    ).toBeInTheDocument()
   })
 
   it('hides the notes toggle when the note is short (≤150 chars)', () => {

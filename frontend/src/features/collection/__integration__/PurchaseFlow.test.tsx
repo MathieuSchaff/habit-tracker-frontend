@@ -1,12 +1,11 @@
-/** @vitest-environment jsdom */
-
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAddPurchase } from '../../../lib/queries/purchases'
 import { useUpdateUserProduct } from '../../../lib/queries/user-products'
 import { mockUseQueryByKey, renderWithProviders } from '../../../test/utils'
+import { pdsLabels } from '../constants'
 import { CollectionPage } from '../page/CollectionPage'
 import { makeUserProductMock, mockPrefs } from './__fixtures__'
 
@@ -109,11 +108,19 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
     })
     await userEvent.click(productBtn)
 
+    // Sheet is React.lazy — first mount can exceed the default 1s findBy* timeout
+    // under full-suite parallel load. Wait explicitly for the dialog to render.
+    await screen.findByRole('dialog', {}, { timeout: 3000 })
+    // "Cycle de vie" accordion is collapsed by default; expand it first.
+    await userEvent.click(
+      await screen.findByRole('button', { name: new RegExp(pdsLabels.lifecycle, 'i') })
+    )
+
     // Lazy component; findByRole waits for resolve.
     const addPurchaseBtn = await screen.findByRole('button', { name: /Enregistrer un achat/i })
     await userEvent.click(addPurchaseBtn)
 
-    expect(screen.getByText('ENREGISTRER UN ACHAT')).toBeInTheDocument()
+    expect(screen.getByText(pdsLabels.addPurchaseTitle)).toBeInTheDocument()
     expect(screen.getByLabelText(/Date d'achat/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Prix payé/i)).toBeInTheDocument()
   })
@@ -123,6 +130,9 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
 
     await userEvent.click(
       await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
+    )
+    await userEvent.click(
+      await screen.findByRole('button', { name: new RegExp(pdsLabels.lifecycle, 'i') })
     )
     await userEvent.click(await screen.findByRole('button', { name: /Enregistrer un achat/i }))
 
@@ -150,9 +160,17 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
       await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
     )
 
-    const statusButtons = await screen.findAllByRole('button', { name: /En stock/i })
-    const inStockBtn = statusButtons.find((btn) => btn.className.includes('pds-status-chip'))
-    if (!inStockBtn) throw new Error('In Stock status button not found')
+    // "Ma décision" accordion holds the status chips; expand it first.
+    await userEvent.click(
+      await screen.findByRole('button', { name: new RegExp(pdsLabels.decision, 'i') })
+    )
+
+    // Scope to the StatusChips fieldset to disambiguate from other "En stock"
+    // occurrences in the sheet (history badges, accessible names elsewhere).
+    const statusGroup = await screen.findByRole('group', {
+      name: new RegExp(pdsLabels.statusGroupAria, 'i'),
+    })
+    const inStockBtn = within(statusGroup).getByRole('button', { name: /En stock/i })
     await userEvent.click(inStockBtn)
 
     expect(mockUpdateProduct).toHaveBeenCalled()

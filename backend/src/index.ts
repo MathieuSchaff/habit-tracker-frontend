@@ -8,6 +8,9 @@ import { secureHeaders } from 'hono/secure-headers'
 import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
+import { adminBansRoutes } from './features/admin/bans.routes'
+import { adminModerationRoutes } from './features/admin/moderation.routes'
+import { adminReportsRoutes } from './features/admin/reports.routes'
 import { jwtAuthRoutes } from './features/auth'
 import { articleRoutes } from './features/blog'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
@@ -20,6 +23,7 @@ import { productComparisonRoutes } from './features/product-comparisons'
 import { productTagDefRoutes } from './features/product-tags/routes'
 import { productsFeature } from './features/products'
 import { profileRoute, publicProfileRoutes } from './features/profile'
+import { reportsRoutes } from './features/reports/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
@@ -81,6 +85,10 @@ const routes = app
   .route('/api/uploads', uploadsRoutes)
   .route('/api/errors', errorsRoute)
   .route('/api/articles', articleRoutes)
+  .route('/api/admin', adminBansRoutes)
+  .route('/api/admin/moderation', adminModerationRoutes)
+  .route('/api/admin/reports', adminReportsRoutes)
+  .route('/api/reports', reportsRoutes)
 
 app.notFound((c) => c.json({ success: false, error: 'not_found' }, 404))
 

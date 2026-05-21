@@ -1,5 +1,32 @@
 // Schemas (runtime validators + inferred types)
 export {
+  type AdminBanErrorCode,
+  type AdminDashboard,
+  type AdminUserListItem,
+  adminBanErrorMapping,
+  type BanScope,
+  banScopeSchema,
+  type ContentPreview,
+  type ContentPreviewResult,
+  type CreateBanInput,
+  type CreateBanResponse,
+  type CreateBanResult,
+  createBanBodySchema,
+  type ListUsersResponse,
+  type ModerateContentInput,
+  type ModerateContentResult,
+  type ModerateProfileInput,
+  type ModerateProfileResult,
+  type ModerationStatus,
+  type ModerationTarget,
+  moderateContentBodySchema,
+  moderateProfileBodySchema,
+  moderationStatusSchema,
+  type UpdateBanInput,
+  type UpdateBanResult,
+  updateBanBodySchema,
+} from './admin'
+export {
   type AuthInput,
   accessTokenPayloadSchema,
   authSchema,
@@ -18,10 +45,12 @@ export {
 } from './auth'
 export {
   type Article,
+  type ArticleCategoryCounts,
   type ArticleErrorCode,
   type ArticleListItem,
   type ArticleResponse,
   type ArticleSearchFilters,
+  articleCategoryCountsSchema,
   articleErrorMapping,
   articleListItemSchema,
   articleResponseSchema,
@@ -330,6 +359,20 @@ export {
   type UpdatePurchaseInput,
   updatePurchaseSchema,
 } from './purchases'
+export {
+  type CreateReportInput,
+  createReportBodySchema,
+  type ListReportsQuery,
+  type ListReportsResponse,
+  listReportsQuerySchema,
+  type ReportStatus,
+  type ReportTargetType,
+  type ReportView,
+  type ResolveReportInput,
+  reportStatusSchema,
+  reportTargetTypeSchema,
+  resolveReportBodySchema,
+} from './reports'
 export {
   addIngredientTagSchema,
   type CreateTagInput,

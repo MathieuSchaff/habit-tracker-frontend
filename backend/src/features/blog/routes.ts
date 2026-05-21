@@ -17,6 +17,7 @@ import {
   createArticle,
   deleteArticle,
   getArticleBySlug,
+  getCategoryCounts,
   listArticles,
   updateArticle,
 } from './service'
@@ -39,6 +40,12 @@ export const articleRoutes = articlesApp
     const isAdmin = c.get('userRole') === 'admin'
     const { items, total } = await listArticles(db, query, isAdmin)
     return c.json(ok({ items, total }), HTTP_STATUS.OK)
+  })
+
+  .get('/categories', async (c) => {
+    const db = c.get('db')
+    const counts = await getCategoryCounts(db)
+    return c.json(ok(counts), HTTP_STATUS.OK)
   })
 
   .get('/:slug', zValidator('param', slugParam), async (c) => {

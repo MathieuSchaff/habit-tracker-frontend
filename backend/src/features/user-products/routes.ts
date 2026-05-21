@@ -12,12 +12,15 @@ import {
 } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { userProductReviews } from '../../db/schema/products/user-products'
 import { logger } from '../../lib/logger'
 import { recalculateSignalForUser } from '../../services/dermoSignalService'
+import { isUserBannedForScope } from '../auth/ban.service'
 import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
@@ -110,6 +113,32 @@ export const userProductRoutes = app
       const userId = c.get('userId')
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
+
+      // review_publish gates only writes that leave the review public; upsert
+      // preserves existing isPublic when input omits it, so resolve first.
+      let resultingPublic = input.isPublic
+      if (resultingPublic === undefined) {
+        const existing = await db.query.userProductReviews.findFirst({
+          where: eq(userProductReviews.userProductId, id),
+          columns: { isPublic: true },
+        })
+        resultingPublic = existing?.isPublic ?? false
+      }
+
+      if (resultingPublic) {
+        const ban = await isUserBannedForScope(db, userId, 'review_publish')
+        if (ban) {
+          return c.json(
+            err('banned', {
+              expiresAt: ban.expiresAt,
+              reason: ban.reason,
+              scope: 'review_publish',
+            }),
+            HTTP_STATUS.FORBIDDEN
+          )
+        }
+      }
+
       const result = await upsertUserProductReview(userId, id, input, db)
 
       // Fire-and-forget: recalculate dermo signal after review save.

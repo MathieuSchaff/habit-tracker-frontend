@@ -12,7 +12,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned, requireNotBannedScope } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { listProductsByIngredient } from '../products/product-ingredients/product-ingredients.service'
 import {
@@ -50,13 +50,16 @@ const MAX_SLUG_LOOKUP = 50
 
 const ingredientsApp = new Hono<AppEnv>()
 
-// For ingredients, I let people look at them (GET) without asking who they are.
-// but if they want to create or change something, they must login first.
+// GET = anonymous OK. Non-GET = auth + ban-check. Split into two middleware so
+// requireNotBanned's short-circuit 403 propagates back through Hono compose
+// (see products/routes.ts for the same fix).
 ingredientsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return requireJwtAuth(c, next)
+})
+ingredientsApp.use('*', async (c, next) => {
+  if (c.req.method === 'GET') return next()
+  return requireNotBanned(c, next)
 })
 ingredientsApp.use('*', withRlsContext)
 
@@ -120,6 +123,7 @@ export const ingredientRoutes = ingredientsApp
 
   .patch(
     '/:id',
+    requireNotBannedScope('ingredient_edit'),
     zValidator('param', idParam),
     zValidator('json', updateIngredientRouteSchema),
     async (c) => {
@@ -131,13 +135,18 @@ export const ingredientRoutes = ingredientsApp
       return c.json(ok(ingredient), HTTP_STATUS.OK)
     }
   )
-  .delete('/:id', zValidator('param', idParam), async (c) => {
-    const db = c.get('db')
-    const role = c.get('userRole')
-    const { id } = c.req.valid('param')
-    await deleteIngredient(db, role, id)
-    return c.body(null, 204)
-  })
+  .delete(
+    '/:id',
+    requireNotBannedScope('ingredient_edit'),
+    zValidator('param', idParam),
+    async (c) => {
+      const db = c.get('db')
+      const role = c.get('userRole')
+      const { id } = c.req.valid('param')
+      await deleteIngredient(db, role, id)
+      return c.body(null, 204)
+    }
+  )
 
   .get('/:slug/edits', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')

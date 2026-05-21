@@ -8,6 +8,7 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { securityEvents } from '../../../db/schema/monitoring/security-events'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import { authGet, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -40,6 +41,8 @@ const EXPECTED_TOP_LEVEL_KEYS = [
   'discussionThreads',
   'discussionReplies',
 ] as const
+
+setupDbTests()
 
 describe('GET /profile/export', () => {
   let app: Hono<AppEnv>

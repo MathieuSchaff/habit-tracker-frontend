@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
 import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
 import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
@@ -17,6 +18,8 @@ const VALID_PRODUCT = {
   kind: 'gelule',
   unit: 'bottle',
 } as const
+
+setupDbTests()
 
 describe('Product Routes', () => {
   let app: Hono<AppEnv>

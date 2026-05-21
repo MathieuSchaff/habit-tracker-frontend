@@ -1,0 +1,57 @@
+.cmp-hero {
+  text-align: center;
+  padding: var(--space-6) var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.cmp-hero__rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-primary-dark, var(--color-primary));
+  font-weight: var(--font-bold);
+  margin: 0 0 var(--space-4);
+}
+
+.cmp-hero__rule::before,
+.cmp-hero__rule::after {
+  content: "";
+  flex: 0 0 5rem;
+  height: 1px;
+  background: oklch(from var(--color-primary) l c h / 0.35);
+}
+
+.cmp-hero__title {
+  font-family: var(--font-display);
+  font-feature-settings: var(--font-features-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: var(--font-normal);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--color-primary-deeper, var(--text-primary));
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+
+.cmp-hero__title em {
+  font-style: italic;
+  color: var(--color-accent);
+  font-weight: var(--font-normal);
+}
+
+.cmp-hero__sub {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--text-secondary);
+  max-width: 52ch;
+  margin: 0 auto;
+  line-height: var(--leading-snug);
+  font-weight: var(--font-normal);
+  letter-spacing: var(--tracking-tight);
+}

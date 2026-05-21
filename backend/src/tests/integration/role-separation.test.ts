@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import { SQL } from 'bun'
 
+import { setupDbTests } from '../db-setup'
+
 const APP_DATABASE_URL = process.env.APP_DATABASE_URL
 if (!APP_DATABASE_URL) throw new Error('APP_DATABASE_URL not set')
+
+setupDbTests()
 
 describe('runtime role (app_runtime)', () => {
   // Bun 1.3.12: .rejects.toThrow() hangs with SQL tagged templates — use try/catch instead.

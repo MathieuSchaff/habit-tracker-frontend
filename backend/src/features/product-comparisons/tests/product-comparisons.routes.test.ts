@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -37,6 +38,8 @@ async function createProduct(client: TestClient, token: string, body: ProductBod
   if (!data.success) throw new Error('product creation failed')
   return data.data
 }
+
+setupDbTests()
 
 describe('Product Comparison Routes', () => {
   let app: Hono<AppEnv>

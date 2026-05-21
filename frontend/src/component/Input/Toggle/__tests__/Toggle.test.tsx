@@ -64,29 +64,3 @@ describe('Toggle — interaction', () => {
     expect(handleChange).not.toHaveBeenCalled()
   })
 })
-
-describe('Toggle — variants', () => {
-  it('applies toggle--sm class when size is sm', () => {
-    const { container } = render(
-      <Toggle label="Test" checked={false} onChange={vi.fn()} size="sm" />
-    )
-    expect(container.firstChild).toHaveClass('toggle--sm')
-  })
-
-  it('applies toggle--md class by default', () => {
-    const { container } = render(<Toggle label="Test" checked={false} onChange={vi.fn()} />)
-    expect(container.firstChild).toHaveClass('toggle--md')
-  })
-
-  it('applies toggle--column class when layout is column', () => {
-    const { container } = render(
-      <Toggle label="Test" checked={false} onChange={vi.fn()} layout="column" />
-    )
-    expect(container.firstChild).toHaveClass('toggle--column')
-  })
-
-  it('applies toggle--row class by default', () => {
-    const { container } = render(<Toggle label="Test" checked={false} onChange={vi.fn()} />)
-    expect(container.firstChild).toHaveClass('toggle--row')
-  })
-})

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { check, index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
+import { moderationColumns } from '../_moderation'
 import { users } from '../auth/users'
 import { ingredients } from '../ingredients/ingredients'
 import { products } from './products'
@@ -17,6 +18,7 @@ export const discussionThreads = pgTable(
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     content: text('content').notNull(),
+    ...moderationColumns,
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow(),
@@ -43,6 +45,7 @@ export const discussionReplies = pgTable(
     // null when account is deleted (soft-delete anonymization)
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
     content: text('content').notNull(),
+    ...moderationColumns,
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow(),

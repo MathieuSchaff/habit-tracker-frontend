@@ -30,3 +30,10 @@
 .product-image--flat .product-image__img {
   padding: 0;
 }
+
+/* Fill variant — stretches to container width and locks 1:1 aspect ratio. */
+.product-image--fill {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+}

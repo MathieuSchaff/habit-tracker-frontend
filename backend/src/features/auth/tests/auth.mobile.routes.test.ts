@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import {
   createTestClient,
   type TestClient,
@@ -20,6 +21,8 @@ async function mobileSignup(client: TestClient, email: string, password: string)
   const data = await res.json()
   return { res, data }
 }
+
+setupDbTests()
 
 describe('Auth Routes (mobile)', () => {
   let client: TestClient

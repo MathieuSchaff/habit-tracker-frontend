@@ -16,6 +16,7 @@ import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 import { globalErrorHandler } from '../../utils/errors/error-handler'
+import { setupDbTests } from '../db-setup'
 import { cleanDatabase } from '../helpers/db-cleaner'
 import { JWT_SECRET, REFRESH_SECRET } from '../helpers/secrets'
 
@@ -31,6 +32,8 @@ const appRuntimeDb = drizzle(appRuntimePool, {
 afterAll(async () => {
   await appRuntimePool.close()
 })
+
+setupDbTests()
 
 describe('POST /auth/demo — RLS enforcement via app_runtime', () => {
   beforeEach(async () => {

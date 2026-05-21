@@ -84,6 +84,9 @@ export const updateUserProductReviewSchema = z.object({
 // Public reviews surface (#7) — only review fields + reviewer pseudonym.
 // Sentiment/wouldRepurchase/experience tags stay private (live on user_products).
 export const publicReviewViewSchema = z.object({
+  // Exposed so user-facing UI can "report" a review. Already public per
+  // user_product_reviews_select_public RLS policy — no extra leak.
+  id: z.uuid(),
   tolerance: z.number().int().min(1).max(5).nullable(),
   efficacy: z.number().int().min(1).max(5).nullable(),
   sensoriality: z.number().int().min(1).max(5).nullable(),

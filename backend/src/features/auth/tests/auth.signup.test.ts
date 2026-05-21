@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 
 import { eq } from 'drizzle-orm'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { JWT_SECRET, REFRESH_SECRET } from '../../../tests/helpers/secrets'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -9,6 +10,8 @@ import { verifyAccessToken, verifyRefreshToken } from '../jwt.utils'
 import { findValidRefreshToken } from '../refresh-token.service'
 import { signup } from '../service'
 import { createCtx, testDb } from './auth-test.setup'
+
+setupDbTests()
 
 describe('signup', () => {
   it('devrait inscrire Toto avec des identifiants valides', async () => {

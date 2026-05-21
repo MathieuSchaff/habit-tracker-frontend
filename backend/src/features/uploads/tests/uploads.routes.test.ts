@@ -5,11 +5,11 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import {
   createTestEnv,
   signupAndGetToken,
   type TestClient,
-  withAuth,
 } from '../../../tests/helpers/createTestClient'
 import { authPostMultipart } from '../../../tests/helpers/route-test-helpers'
 import { unsafeEmail } from '../../../tests/helpers/unsafe'
@@ -32,6 +32,8 @@ function buildVp8l(width: number, height: number, padBytes: number): Buffer {
   riffSize.writeUInt32LE(riffPayload.length, 0)
   return Buffer.concat([Buffer.from('RIFF', 'ascii'), riffSize, riffPayload])
 }
+
+setupDbTests()
 
 describe('Upload Routes', () => {
   // Upload routes use c.req.parseBody() with no zValidator, so the typed
