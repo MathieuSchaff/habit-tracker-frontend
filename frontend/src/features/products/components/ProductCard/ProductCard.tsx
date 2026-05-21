@@ -25,22 +25,6 @@ const KNOWN_UNITS = new Set<string>(
   Object.values(PRODUCT_UNITS).flatMap((domain) => Object.values(domain))
 )
 
-// tagType → chip CSS variant. Concern/goal in accent, audience neutral, labels flagged.
-const TAG_VARIANT: Record<string, string> = {
-  concern: 'benefit',
-  goal: 'benefit',
-  skin_type: 'audience',
-  hair_type: 'audience',
-  age_group: 'audience',
-  restriction: 'audience',
-  product_label: 'label',
-  product_characteristic: 'label',
-}
-
-function tagVariant(tagType: string): string {
-  return TAG_VARIANT[tagType] ?? 'neutral'
-}
-
 function kindClass(kind: string): string {
   const category = KIND_TO_CATEGORY[kind]
   return category && CATEGORIES_WITH_HUE.has(category) ? `kind--${category}` : 'kind--default'
@@ -53,7 +37,7 @@ function unitClass(unit: string | null | undefined): string {
 
 const eurFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
 
-const MAX_PRIMARY_CHIPS = 3
+const MAX_PRIMARY_CHIPS = 1
 
 export type AddToCollectionTarget = {
   id: string
@@ -77,9 +61,9 @@ function ProductCardImpl({ product, onAdd }: Props) {
     })
   }, [onAdd, product.id, product.name, product.brand, product.priceCents])
 
-  const primaryTags = product.tags
-    .filter((t) => t.relevance === 'primary')
-    .slice(0, MAX_PRIMARY_CHIPS)
+  const allPrimaryTags = product.tags.filter((t) => t.relevance === 'primary')
+  const primaryTags = allPrimaryTags.slice(0, MAX_PRIMARY_CHIPS)
+  const extraTagsCount = allPrimaryTags.length - primaryTags.length
 
   const avoidLabels = product.profileMatches.map(
     (s) =>
@@ -101,8 +85,8 @@ function ProductCardImpl({ product, onAdd }: Props) {
             kind={product.kind}
             unit={product.unit}
             imageUrl={product.imageUrl}
-            size={140}
-            className="list-card__icon-wrap"
+            fill
+            className="list-card__icon-wrap product-image--flat"
           />
 
           <div className="list-card__body">
@@ -115,72 +99,78 @@ function ProductCardImpl({ product, onAdd }: Props) {
             >
               {product.name}
             </Card.Title>
-
-            {primaryTags.length > 0 && (
-              <ul className="list-card__chips">
-                {primaryTags.map((t) => (
-                  <li
-                    key={t.slug}
-                    className={`list-card__chip list-card__chip--${tagVariant(t.tagType)}`}
-                  >
-                    {tagLabel(t.slug)}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </Link>
 
         <Card.Footer>
-          {product.profileMatches.length > 0 && (
-            <span
-              className="list-card__preference-flag"
-              role="note"
-              aria-label={`Pour vous. Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
-              title={`Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
-            >
-              Pour vous
-            </span>
+          {primaryTags.length > 0 && (
+            <ul className="list-card__chips">
+              {primaryTags.map((t) => (
+                <li key={t.slug} className="list-card__chip" title={tagLabel(t.slug)}>
+                  {tagLabel(t.slug)}
+                </li>
+              ))}
+              {extraTagsCount > 0 && (
+                <li
+                  className="list-card__chip list-card__chip--more"
+                  aria-label={`et ${extraTagsCount} autre${extraTagsCount > 1 ? 's' : ''}`}
+                >
+                  +{extraTagsCount}
+                </li>
+              )}
+            </ul>
           )}
-          <div className="list-card__price-wrap">
-            {product.priceCents != null && product.priceCents > 0 ? (
-              <span className="list-card__price">
-                {eurFormatter.format(product.priceCents / 100)}
+          <div className="list-card__footer-row">
+            {product.profileMatches.length > 0 && (
+              <span
+                className="list-card__preference-flag"
+                role="note"
+                aria-label={`Pour vous. Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
+                title={`Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
+              >
+                Pour vous
+              </span>
+            )}
+            <div className="list-card__price-wrap">
+              {product.priceCents != null && product.priceCents > 0 ? (
+                <span className="list-card__price">
+                  {eurFormatter.format(product.priceCents / 100)}
+                </span>
+              ) : (
+                <>
+                  <span className="list-card__price list-card__price--empty" aria-hidden="true">
+                    —
+                  </span>
+                  <span className="sr-only">Prix non renseigné</span>
+                </>
+              )}
+              {product.totalAmount != null && product.totalAmount > 0 && (
+                <span className="list-card__amount">
+                  · {product.totalAmount} {product.amountUnit ?? product.unit}
+                </span>
+              )}
+            </div>
+            {product.userStatus === null ? (
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label={`Ajouter ${product.name} à la collection`}
+                onClick={handleAdd}
+              >
+                <Plus size={14} aria-hidden="true" />
+                <span>Ajouter</span>
+              </Button>
+            ) : product.userStatus === 'avoided' ? (
+              <span className="list-card__shelf-flag list-card__shelf-flag--avoided">
+                Marqué à éviter pour vous
               </span>
             ) : (
-              <>
-                <span className="list-card__price list-card__price--empty" aria-hidden="true">
-                  —
-                </span>
-                <span className="sr-only">Prix non renseigné</span>
-              </>
-            )}
-            {product.totalAmount != null && product.totalAmount > 0 && (
-              <span className="list-card__amount">
-                · {product.totalAmount} {product.amountUnit ?? product.unit}
+              <span className="list-card__shelf-flag">
+                <Check size={14} aria-hidden="true" />
+                Sur votre étagère
               </span>
             )}
           </div>
-          {product.userStatus === null ? (
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label={`Ajouter ${product.name} à la collection`}
-              onClick={handleAdd}
-            >
-              <Plus size={14} aria-hidden="true" />
-              <span>Ajouter</span>
-            </Button>
-          ) : product.userStatus === 'avoided' ? (
-            <span className="list-card__shelf-flag list-card__shelf-flag--avoided">
-              Marqué à éviter pour vous
-            </span>
-          ) : (
-            <span className="list-card__shelf-flag">
-              <Check size={14} aria-hidden="true" />
-              Sur votre étagère
-            </span>
-          )}
         </Card.Footer>
       </div>
     </Card>

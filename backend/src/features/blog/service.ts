@@ -1,9 +1,14 @@
 import type {
   ArticleSearchFilters,
+  BlogCategory,
   CreateArticleInput,
   UpdateArticleInput,
 } from '@habit-tracker/shared'
-import { articleListItemSchema, articleResponseSchema } from '@habit-tracker/shared'
+import {
+  articleListItemSchema,
+  articleResponseSchema,
+  BLOG_CATEGORY_VALUES,
+} from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, asc, eq, ilike, isNotNull, type SQL, sql } from 'drizzle-orm'
@@ -89,6 +94,24 @@ export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmi
   ])
 
   return { items: rows.map(toApiArticleListItem), total }
+}
+
+export async function getCategoryCounts(db: DB): Promise<Record<BlogCategory, number>> {
+  const rows = await db
+    .select({
+      category: articles.category,
+      count: sql<number>`cast(count(*) as integer)`,
+    })
+    .from(articles)
+    .where(isNotNull(articles.publishedAt))
+    .groupBy(articles.category)
+
+  const counts = Object.fromEntries(BLOG_CATEGORY_VALUES.map((c) => [c, 0])) as Record<
+    BlogCategory,
+    number
+  >
+  for (const row of rows) counts[row.category] = row.count
+  return counts
 }
 
 export async function getArticleBySlug(db: DB, slug: string) {

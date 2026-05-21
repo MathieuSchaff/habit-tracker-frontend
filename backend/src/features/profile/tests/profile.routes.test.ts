@@ -5,9 +5,12 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
+
+setupDbTests()
 
 describe('Profile Routes', () => {
   let app: Hono<AppEnv>
@@ -270,6 +273,50 @@ describe('Profile Routes', () => {
     it('should reject request with invalid token', async () => {
       const res = await authPatch(app, '/profile', 'invalid.token.here', { username: 'nope' })
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    })
+
+    // Defense-in-depth: profileUpdateSchema is .strict() so the route layer
+    // already rejects unknown keys with 400. This service-level test bypasses
+    // zod to lock the explicit whitelist in updateProfile — a future schema
+    // loosen-up must not become a moderation-flag escalation.
+    it('updateProfile service ignores moderation columns when called with extras', async () => {
+      const { eq } = await import('drizzle-orm')
+      const { profiles } = await import('../../../db/schema/auth/users')
+      const { testDb } = await import('../../../tests/db.test.config')
+      const { updateProfile } = await import('../service')
+      const { createTestUser } = await import('../../../tests/helpers/test-factories')
+
+      const user = await createTestUser('wl-attacker@test.local', 'Azerty123!')
+
+      // Simulates a future schema regression that lets extra keys through.
+      // Cast through unknown so the call type-checks; the service MUST drop
+      // the unwhitelisted keys at runtime.
+      type ProfileUpdateInput = Parameters<typeof updateProfile>[2]
+      const malicious = {
+        username: 'attacker-name',
+        forcedPrivateByAdmin: false,
+        forcedPrivateReason: 'cleared by attacker',
+        profilePublic: true,
+      } as unknown as ProfileUpdateInput
+
+      await updateProfile(testDb, user.id, malicious)
+
+      const [row] = await testDb
+        .select({
+          username: profiles.username,
+          forcedPrivateByAdmin: profiles.forcedPrivateByAdmin,
+          forcedPrivateReason: profiles.forcedPrivateReason,
+          profilePublic: profiles.profilePublic,
+        })
+        .from(profiles)
+        .where(eq(profiles.userId, user.id))
+
+      // Whitelisted field flows through.
+      expect(row?.username).toBe('attacker-name')
+      // Moderation + privacy flags untouched (defaults from signup).
+      expect(row?.forcedPrivateByAdmin).toBe(false) // default false, but attacker tried to confirm-clear; semantically untouched
+      expect(row?.forcedPrivateReason).toBeNull()
+      expect(row?.profilePublic).toBe(false) // signup default — proves the malicious 'true' did not land
     })
   })
 

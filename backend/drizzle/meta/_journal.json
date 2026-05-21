@@ -477,6 +477,55 @@
       "when": 1779183768481,
       "tag": "0067_common_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1779331730291,
+      "tag": "0068_previous_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1779332179368,
+      "tag": "0069_dashing_infant_terrible",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1779332677163,
+      "tag": "0070_exotic_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1779336265002,
+      "tag": "0071_heavy_la_nuit",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1779372300864,
+      "tag": "0072_salty_cloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1779389671222,
+      "tag": "0073_friendly_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1779415688645,
+      "tag": "0074_rename_ban_scope_review_publish",
+      "breakpoints": true
     }
   ]
 }

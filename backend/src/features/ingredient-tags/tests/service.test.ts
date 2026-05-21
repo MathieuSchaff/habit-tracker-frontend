@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { createIngredient } from '../../../features/ingredients/service'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import {
   addManyTagsToIngredient,
@@ -16,6 +17,8 @@ import {
 async function makeIngredient(userId: string, name = 'Ingrédient Test') {
   return createIngredient(testDb, userId, { name, type: 'skincare' })
 }
+
+setupDbTests()
 
 describe('Ingredient Tags Service', () => {
   let user: any

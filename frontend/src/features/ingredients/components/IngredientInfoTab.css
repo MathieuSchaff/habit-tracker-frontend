@@ -1,1 +1,172 @@
-purged from history
+.detail-hero.ingredient-hero .ingredient-hero__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-lg);
+  background: oklch(from var(--color-primary) l c h / 0.12);
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.ingredient-section {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.ingredient-section .ingredient-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition:
+    color var(--transition-fast) ease,
+    border-color var(--transition-fast) ease,
+    background var(--transition-fast) ease;
+}
+
+.tag-pill:hover {
+  color: var(--color-primary);
+  border-color: oklch(from var(--color-primary) l c h / 0.4);
+}
+
+.tag-pill--primary {
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  border-color: oklch(from var(--color-primary) l c h / 0.3);
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.ingredient-section .rich-text {
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+}
+
+.ingredient-products {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+
+.ingredient-product-link {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background var(--transition-fast) ease,
+    border-color var(--transition-fast) ease;
+}
+
+.ingredient-product-link:hover {
+  background: var(--color-primary-subtle, var(--bg-muted));
+  border-color: oklch(from var(--color-primary) l c h / 0.4);
+}
+
+.ingredient-product-link:hover .nav-arrow {
+  transform: translateX(2px);
+  color: var(--color-primary);
+}
+
+.ingredient-product-link__icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background: oklch(from var(--color-primary) l c h / 0.1);
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.ingredient-product-link__name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+  min-width: 0;
+}
+
+.ingredient-products-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-primary);
+  text-decoration: none;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast) ease;
+}
+
+.ingredient-products-more:hover {
+  background: var(--color-primary-subtle, var(--bg-muted));
+}
+
+.ingredient-products-empty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  padding: var(--space-4);
+  text-align: center;
+  font-style: italic;
+}
+
+.ingredient-famille {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.ingredient-tags-list--spaced {
+  margin-bottom: var(--space-3);
+}
+
+.ingredient-reading-note {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--text-secondary);
+  background: oklch(from var(--color-warning) l c h / 0.06);
+  border: 1px dashed oklch(from var(--color-warning) l c h / 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+  max-width: 65ch;
+}
+
+.ingredient-updated-at {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: var(--rule-section);
+}
+
+@media (--sm-only) {
+  .detail-hero.ingredient-hero .ingredient-hero__icon {
+    width: 3rem;
+    height: 3rem;
+  }
+}

@@ -4,6 +4,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -29,6 +30,8 @@ async function setupOwner(app: Hono<AppEnv>, username: string) {
   })
   return token
 }
+
+setupDbTests()
 
 describe('getPublicProfileByUsername', () => {
   let app: Hono<AppEnv>

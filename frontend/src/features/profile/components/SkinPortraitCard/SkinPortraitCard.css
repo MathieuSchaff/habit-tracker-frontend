@@ -1,0 +1,228 @@
+.skin-portrait-card {
+  position: relative;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl, 1.25rem);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.skin-portrait-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 85% -10%,
+      oklch(from var(--color-accent) l c h / 0.18) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 0% 110%,
+      oklch(from var(--color-primary) l c h / 0.12) 0%,
+      transparent 45%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.skin-portrait-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.skin-portrait-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.skin-portrait-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.skin-portrait-card__overline {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--color-primary);
+}
+
+.skin-portrait-card__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.skin-portrait-card__edit {
+  flex-shrink: 0;
+}
+
+.skin-portrait-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+.skin-portrait-card__halo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-1);
+}
+
+.skin-portrait-card__halo {
+  --_fitz: var(--fitz-3);
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 32% 28%,
+    oklch(from var(--_fitz) calc(l + 0.1) c h) 0%,
+    var(--_fitz) 55%,
+    oklch(from var(--_fitz) calc(l - 0.06) c h) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 oklch(from var(--_fitz) calc(l + 0.18) c h / 0.6),
+    inset 0 -1px 2px oklch(from var(--_fitz) calc(l - 0.12) c h / 0.45),
+    0 0 0 1px oklch(from var(--_fitz) calc(l - 0.12) c h / 0.35),
+    0 0 0 10px oklch(from var(--_fitz) l c h / 0.1),
+    0 0 0 11px oklch(from var(--_fitz) l c h / 0.05),
+    0 18px 36px oklch(from var(--_fitz) l c h / 0.28);
+  position: relative;
+  isolation: isolate;
+}
+
+.skin-portrait-card__halo::after {
+  content: "";
+  position: absolute;
+  inset: 8% 18% auto 18%;
+  height: 14%;
+  border-radius: 50%;
+  background: linear-gradient(
+    to bottom,
+    oklch(from var(--_fitz) calc(l + 0.2) c h / 0.5),
+    transparent
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.skin-portrait-card__halo--1 {
+  --_fitz: var(--fitz-1);
+}
+.skin-portrait-card__halo--2 {
+  --_fitz: var(--fitz-2);
+}
+.skin-portrait-card__halo--3 {
+  --_fitz: var(--fitz-3);
+}
+.skin-portrait-card__halo--4 {
+  --_fitz: var(--fitz-4);
+}
+.skin-portrait-card__halo--5 {
+  --_fitz: var(--fitz-5);
+}
+.skin-portrait-card__halo--6 {
+  --_fitz: var(--fitz-6);
+}
+
+.skin-portrait-card__halo--empty {
+  --_fitz: var(--bg-muted);
+  background: radial-gradient(
+    circle at 32% 28%,
+    var(--bg-card) 0%,
+    var(--bg-muted) 60%,
+    var(--bg-sunken) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px var(--border-default),
+    0 8px 22px oklch(0% 0 0 / 0.05);
+}
+
+.skin-portrait-card__halo-numeral {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  /* Auto-contrast: black above 60% lightness, white below. Same trick as DermoProfileForm. */
+  color: oklch(from var(--_fitz) clamp(0, (l - 0.6) * -999, 1) 0 0);
+  line-height: 1;
+  text-shadow: 0 1px 1px oklch(from var(--_fitz) calc(l - 0.12) c h / 0.35);
+  z-index: 1;
+}
+
+.skin-portrait-card__halo-placeholder {
+  font-size: var(--text-2xl);
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.skin-portrait-card__halo-caption {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: var(--tracking-wide);
+  margin: 0;
+  max-width: 18ch;
+}
+
+.skin-portrait-card__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: center;
+  max-width: 32ch;
+  margin: 0 auto;
+}
+
+.skin-portrait-card__empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.skin-portrait-card__empty-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+.skin-portrait-card--editing {
+  padding: var(--space-5);
+}
+
+.skin-portrait-card--editing::before {
+  opacity: 0.4;
+}
+
+@media (--sm) {
+  .skin-portrait-card {
+    padding: var(--space-6) var(--space-6) var(--space-7, var(--space-6));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skin-portrait-card__halo {
+    transition: none;
+  }
+}

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { LogIn, LogOut, User, UserPlus } from 'lucide-react'
+import { LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { profileQueries } from '@/lib/queries/profile'
@@ -18,6 +18,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
   const navigate = useNavigate()
   const { data: profile } = useQuery(profileQueries.me())
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
+  const isAdmin = useAuthStore((state) => state.isAdmin)
   const logout = useLogout()
 
   const handleLogout = () => {
@@ -56,6 +57,14 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
                 <span>Profil</span>
               </Link>
             </DropdownMenu.Item>
+            {isAdmin && (
+              <DropdownMenu.Item onSelect={onItemClick}>
+                <Link to="/admin/users">
+                  <Shield size={16} aria-hidden="true" />
+                  <span>Modération</span>
+                </Link>
+              </DropdownMenu.Item>
+            )}
             <DropdownMenu.Item variant="danger" onSelect={handleLogout}>
               <button type="button" disabled={logout.isPending}>
                 <LogOut size={16} aria-hidden="true" />

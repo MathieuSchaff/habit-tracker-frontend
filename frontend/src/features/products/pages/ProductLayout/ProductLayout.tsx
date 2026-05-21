@@ -6,6 +6,7 @@ import { MessageSquare, Pencil, Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Badge, type BadgeVariant } from '@/component/DataDisplay/Badge/Badge'
+import { DetailHero } from '@/component/Layout/DetailHero/DetailHero'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions, PageTopActionsRight } from '@/component/Layout/PageLayout/PageTopActions'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
@@ -92,27 +93,34 @@ export function ProductLayout() {
         </PageTopActionsRight>
       </PageTopActions>
 
-      <div className="product-hero">
-        <ProductImage
-          kind={product.kind}
-          unit={product.unit}
-          imageUrl={product.imageUrl}
-          size={160}
-          className="product-hero__image"
-        />
-        <div className="product-hero__info">
-          <h1 className="product-hero__name" style={{ viewTransitionName: `product-name-${slug}` }}>
-            {product.name}
-          </h1>
-          <Link
-            to="/products"
-            search={{ brand: [product.brand] }}
-            className="product-hero__brand"
-            aria-label={`Voir tous les produits ${product.brand}`}
-          >
-            {product.brand}
-          </Link>
-          <div className="product-hero__tags">
+      <DetailHero
+        className="product-hero"
+        media={
+          <ProductImage
+            kind={product.kind}
+            unit={product.unit}
+            imageUrl={product.imageUrl}
+            size={132}
+            className="product-hero__image"
+          />
+        }
+        eyebrow={
+          <>
+            <Link
+              to="/products"
+              search={{ brand: [product.brand] }}
+              aria-label={`Voir tous les produits ${product.brand}`}
+            >
+              {product.brand}
+            </Link>
+            <span className="detail-hero__dot" aria-hidden="true" />
+            <span>{getProductKindLabel(product.kind)}</span>
+          </>
+        }
+        title={product.name}
+        titleViewTransition={`product-name-${slug}`}
+        chips={
+          <>
             <Badge variant={getBadgeVariant(product.kind)} className="product-hero__kind">
               {getProductKindLabel(product.kind)}
             </Badge>
@@ -121,10 +129,10 @@ export function ProductLayout() {
                 {product.totalAmount} {product.amountUnit ?? product.unit}
               </span>
             )}
-          </div>
-        </div>
-        {priceFormatted && <span className="product-price">{priceFormatted}</span>}
-      </div>
+          </>
+        }
+        aside={priceFormatted ? <span className="product-price">{priceFormatted}</span> : undefined}
+      />
 
       <Tabs
         options={TAB_OPTIONS}

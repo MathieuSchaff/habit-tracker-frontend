@@ -1,4 +1,3 @@
-/** @vitest-environment jsdom */
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -28,7 +27,7 @@ vi.mock('../../../lib/queries/auth', async (importOriginal) => {
 })
 
 import { useLogin } from '../../../lib/queries/auth'
-import { LoginPage } from '../page/LoginPage/LoginPage'
+import { LOGIN_ERRORS, LoginPage } from '../page/LoginPage/LoginPage'
 
 const mutate = vi.fn()
 
@@ -92,7 +91,7 @@ describe('LoginPage', () => {
     renderWithProviders(<LoginPage />)
     await fillAndSubmit()
 
-    expect(await screen.findByText('Email ou mot de passe incorrect')).toBeVisible()
+    expect(await screen.findByText(LOGIN_ERRORS.invalid_credentials)).toBeVisible()
   })
 
   it('redirects to /auth/verify-pending on email_not_verified instead of showing inline error', async () => {
@@ -106,7 +105,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith({ to: '/auth/verify-pending' })
     })
-    expect(screen.queryByText(/email n'est pas vérifiée/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(LOGIN_ERRORS.email_not_verified)).not.toBeInTheDocument()
   })
 
   it('falls back to server_error label for unknown error codes', async () => {
@@ -117,7 +116,7 @@ describe('LoginPage', () => {
     renderWithProviders(<LoginPage />)
     await fillAndSubmit()
 
-    expect(await screen.findByText(/Une erreur est survenue/i)).toBeVisible()
+    expect(await screen.findByText(LOGIN_ERRORS.server_error)).toBeVisible()
   })
 
   it('navigates to /collection on success when no redirect param', async () => {

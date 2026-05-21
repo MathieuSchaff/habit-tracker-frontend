@@ -1,5 +1,7 @@
 import { mock } from 'bun:test'
 
+import { setupDbTests } from '../../../tests/db-setup'
+
 mock.module('arctic', () => ({
   generateState: mock(() => 'test-state-fixed'),
   generateCodeVerifier: mock(() => 'test-verifier-fixed'),
@@ -30,6 +32,8 @@ import { getGoogleInstance } from '../../../lib/artic'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { getGoogleAuthUrl, handleGoogleCallback } from '../google.service'
 import { createCtx, testDb } from './auth-test.setup'
+
+setupDbTests()
 
 describe('getGoogleAuthUrl', () => {
   it('devrait retourner url, state et codeVerifier', () => {

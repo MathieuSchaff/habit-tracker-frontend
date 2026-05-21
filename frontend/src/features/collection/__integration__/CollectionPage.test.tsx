@@ -1,5 +1,3 @@
-/** @vitest-environment jsdom */
-
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -158,6 +156,10 @@ describe('CollectionPage', () => {
       name: /Voir les détails de Super Serum/i,
     })
     await userEvent.click(cardBody)
+
+    // Sheet is React.lazy — first mount can exceed the default 1s findBy* timeout
+    // under full-suite parallel load. Wait explicitly for the dialog to render.
+    await screen.findByRole('dialog', {}, { timeout: 3000 })
 
     // Clicking the active sentiment button still calls onChange.
     const sentimentBtn = await screen.findByRole('button', { name: /Ressenti 5 sur 5/i })

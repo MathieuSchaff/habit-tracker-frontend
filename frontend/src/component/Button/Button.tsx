@@ -33,9 +33,7 @@ type ButtonAsLinkProps = BaseProps & {
   search?: LinkProps['search']
 }
 
-type ButtonProps = (ButtonAsButtonProps | ButtonAsLinkProps) & {
-  asLink?: boolean
-}
+type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps
 
 export const Button = (props: ButtonProps) => {
   const {
@@ -102,9 +100,8 @@ export const Button = (props: ButtonProps) => {
     fullWidth: _fw,
     className: _cn,
     children: _ch,
-    asLink: _al,
     ...buttonRest
-  } = props as ButtonAsButtonProps & { asLink?: boolean }
+  } = props as ButtonAsButtonProps
 
   return (
     <button

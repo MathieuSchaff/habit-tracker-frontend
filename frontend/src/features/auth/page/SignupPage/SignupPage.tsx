@@ -16,8 +16,9 @@ import { parseAuthForm } from '../../lib/parseAuthForm'
 
 type FieldErrors = Partial<Record<keyof SignupFormInput | 'form', string>>
 
-/* Exhaustive map: TS errors if a SignupErrorCode is added without a label here. */
-const SIGNUP_ERRORS: Record<SignupErrorCode, string> = {
+/* Exhaustive map: TS errors if a SignupErrorCode is added without a label here.
+   Exported so tests assert the same string the user sees. */
+export const SIGNUP_ERRORS: Record<SignupErrorCode, string> = {
   email_exists: 'Un compte existe déjà avec cet email',
   server_error: 'Une erreur est survenue, réessayez plus tard',
 }

@@ -1,0 +1,4 @@
+ALTER TABLE "content_reports" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "content_reports" FORCE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "content_reports_tenant_isolation" ON "content_reports" AS PERMISSIVE FOR ALL TO "app_runtime" USING ("content_reports"."reporter_id" = (SELECT auth.uid())) WITH CHECK ("content_reports"."reporter_id" = (SELECT auth.uid()));--> statement-breakpoint
+CREATE POLICY "content_reports_admin_bypass" ON "content_reports" AS PERMISSIVE FOR ALL TO "app_runtime" USING ((SELECT auth.role()) = 'admin') WITH CHECK ((SELECT auth.role()) = 'admin');

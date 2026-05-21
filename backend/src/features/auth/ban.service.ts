@@ -1,3 +1,5 @@
+import type { BanScope } from '@habit-tracker/shared'
+
 import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 
 import type { Database } from '../../db'
@@ -59,6 +61,31 @@ export async function isUserBanned(
   const ban = rows[0] ?? null
   writeCache(userId, ban)
   return ban
+}
+
+// Per-scope variant used by requireNotBannedScope (no cache — write paths are
+// cold compared to /auth/session, and a per-scope cache key would complicate
+// invalidation when bans are created or lifted).
+export async function isUserBannedForScope(
+  db: Database,
+  userId: string,
+  scope: BanScope
+): Promise<UserBan | null> {
+  const nowIso = new Date().toISOString()
+  const rows = await db
+    .select()
+    .from(userBans)
+    .where(
+      and(
+        eq(userBans.userId, userId),
+        eq(userBans.scope, scope),
+        or(isNull(userBans.expiresAt), gt(userBans.expiresAt, nowIso))
+      )
+    )
+    .orderBy(desc(userBans.createdAt))
+    .limit(1)
+
+  return rows[0] ?? null
 }
 
 // Test/admin helper: invalidate the cache when a ban is created/lifted out-of-band.

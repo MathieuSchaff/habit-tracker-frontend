@@ -28,14 +28,17 @@ export const Route = createFileRoute('/blog/$category/')({
   },
   loaderDeps: ({ search: { page, q } }) => ({ page, q }),
   loader: ({ context, params, deps }) =>
-    context.queryClient.ensureQueryData(
-      articleQueries.list({
-        category: params.category as BlogCategory,
-        page: deps.page,
-        q: deps.q,
-        limit: 20,
-      })
-    ),
+    Promise.all([
+      context.queryClient.ensureQueryData(
+        articleQueries.list({
+          category: params.category as BlogCategory,
+          page: deps.page,
+          q: deps.q,
+          limit: 20,
+        })
+      ),
+      context.queryClient.ensureQueryData(articleQueries.categoryCounts()),
+    ]),
   component: BlogCategoryRoute,
   pendingComponent: BlogListSkeleton,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,

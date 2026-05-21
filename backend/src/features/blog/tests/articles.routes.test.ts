@@ -8,6 +8,7 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import {
   authDelete,
@@ -17,6 +18,8 @@ import {
   setupAndLogin,
 } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
+
+setupDbTests()
 
 describe('Article Routes — GET', () => {
   let app: Hono<AppEnv>
@@ -62,6 +65,18 @@ describe('Article Routes — GET', () => {
       // ArticleError → 404 via globalErrorHandler, not in typed response.
       const res = await app.request('/articles/unknown-slug')
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+    })
+  })
+
+  describe('GET /articles/categories', () => {
+    it('returns zero counts for every category when DB is empty', async () => {
+      const res = await client.articles.categories.$get()
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const json = await res.json()
+      if (!json.success) throw new Error('expected ok')
+      expect(json.data.skincare).toBe(0)
+      expect(json.data.lifestyle).toBe(0)
+      expect(json.data.routines).toBe(0)
     })
   })
 })

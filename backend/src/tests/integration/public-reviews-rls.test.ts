@@ -15,6 +15,7 @@ import { profiles } from '../../db/schema/auth/users'
 import { products } from '../../db/schema/products/products'
 import { userProductReviews, userProducts } from '../../db/schema/products/user-products'
 import { testDb } from '../db.test.config'
+import { setupDbTests } from '../db-setup'
 import { cleanDatabase } from '../helpers/db-cleaner'
 import { createTestUser } from '../helpers/test-factories'
 
@@ -33,6 +34,8 @@ afterAll(async () => {
 beforeEach(async () => {
   await cleanDatabase()
 })
+
+setupDbTests()
 
 describe('public reviews RLS — anonymous app_runtime', () => {
   it('exposes only is_public=true reviews and the reviewer pseudonym', async () => {
@@ -132,6 +135,55 @@ describe('public reviews RLS — anonymous app_runtime', () => {
     await testDb
       .update(userProductReviews)
       .set({ isPublic: false })
+      .where(eq(userProductReviews.id, review.id))
+
+    visible = await appRuntimeDb.select().from(profiles)
+    expect(visible).toHaveLength(0)
+  })
+
+  // Regression: profiles_select_for_public_review must require
+  // r.moderation_status = 'visible' in the EXISTS, otherwise the reviewer
+  // pseudonym leaks via the policy even after every public review is hidden
+  // by admin moderation.
+  it('hides reviewer profile when their only public review is moderated hidden', async () => {
+    const bob = await createTestUser('bob-mod@test.local', 'Azerty123!')
+
+    await testDb.update(profiles).set({ username: 'bob-mod' }).where(eq(profiles.userId, bob.id))
+
+    const [product] = await testDb
+      .insert(products)
+      .values({
+        createdBy: bob.id,
+        name: 'Mod Filter Serum',
+        brand: 'ModFilterBrand',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'dropper',
+        slug: 'mod-filter-serum',
+      })
+      .returning()
+    if (!product) throw new Error('product seed failed')
+
+    const [up] = await testDb
+      .insert(userProducts)
+      .values({ userId: bob.id, productId: product.id, status: 'in_stock' })
+      .returning()
+    if (!up) throw new Error('user_product seed failed')
+
+    const [review] = await testDb
+      .insert(userProductReviews)
+      .values({ userProductId: up.id, tolerance: 5, isPublic: true })
+      .returning()
+    if (!review) throw new Error('review seed failed')
+
+    let visible = await appRuntimeDb.select().from(profiles)
+    expect(visible.map((p) => p.userId)).toEqual([bob.id])
+
+    // Admin moderation hides the review — profile must stop appearing through
+    // profiles_select_for_public_review.
+    await testDb
+      .update(userProductReviews)
+      .set({ moderationStatus: 'hidden' })
       .where(eq(userProductReviews.id, review.id))
 
     visible = await appRuntimeDb.select().from(profiles)

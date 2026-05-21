@@ -17,6 +17,7 @@ const articleKeys = {
   lists: () => [...articleKeys.all, 'list'] as const,
   list: (filters: ListArticlesFilters = {}) => [...articleKeys.all, 'list', filters] as const,
   bySlug: (slug: string) => [...articleKeys.all, slug] as const,
+  categoryCounts: () => [...articleKeys.all, 'categoryCounts'] as const,
 }
 
 export const articleQueries = {
@@ -50,6 +51,19 @@ export const articleQueries = {
       },
       enabled: !!slug,
     }),
+
+  categoryCounts: () =>
+    queryOptions({
+      queryKey: articleKeys.categoryCounts(),
+      queryFn: async () => {
+        const res = await api.articles.categories.$get()
+        if (!res.ok) throw new Error('Failed to fetch category counts')
+        const json = await res.json()
+        return json.data
+      },
+      // Counts shift slowly; avoid re-fetching on every nav.
+      staleTime: 60_000,
+    }),
 }
 
 export function useCreateArticle() {
@@ -65,6 +79,7 @@ export function useCreateArticle() {
     onSuccess: (article) => {
       qc.setQueryData(articleKeys.bySlug(article.slug), article)
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
+      qc.invalidateQueries({ queryKey: articleKeys.categoryCounts() })
     },
     meta: { errorMessage: "Création de l'article impossible." },
   })
@@ -88,6 +103,7 @@ export function useUpdateArticle() {
       qc.setQueryData(articleKeys.bySlug(article.slug), article)
       if (article.slug !== slug) qc.removeQueries({ queryKey: articleKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
+      qc.invalidateQueries({ queryKey: articleKeys.categoryCounts() })
     },
     meta: { errorMessage: "Mise à jour de l'article impossible." },
   })
@@ -103,6 +119,7 @@ export function useDeleteArticle() {
     onSuccess: (_, slug) => {
       qc.removeQueries({ queryKey: articleKeys.bySlug(slug) })
       qc.invalidateQueries({ queryKey: articleKeys.lists() })
+      qc.invalidateQueries({ queryKey: articleKeys.categoryCounts() })
     },
     meta: { errorMessage: "Suppression de l'article impossible." },
   })

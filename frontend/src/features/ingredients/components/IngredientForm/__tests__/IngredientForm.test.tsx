@@ -9,6 +9,7 @@ import {
 } from '@/lib/queries/ingredients'
 import { useAuthStore } from '@/store/auth'
 import { createTestQueryClient } from '@/test/utils'
+import { ingredientLabels } from '../../../constants'
 import { IngredientForm } from '../IngredientForm'
 
 vi.mock('@/store/auth', () => ({
@@ -98,7 +99,7 @@ describe('IngredientForm - Conflict Resolution', () => {
     fireEvent.click(saveButton)
 
     await waitFor(() => {
-      expect(screen.getByText(/Conflit détecté/i)).toBeInTheDocument()
+      expect(screen.getByText(ingredientLabels.conflictDetected)).toBeInTheDocument()
     })
 
     expect(descriptionField).toHaveValue('Server edited description')

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
@@ -11,6 +12,8 @@ type ApiErrorBody = { success: false; error: string }
 type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 
 const VALID_TAG = { name: 'Anti-âge' }
+
+setupDbTests()
 
 describe('Product Tag Routes', () => {
   let app: TestApp

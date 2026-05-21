@@ -36,6 +36,10 @@ export async function createTestApp() {
   )
   const { articleRoutes } = await import('../../features/blog/routes')
   const { uploadsRoutes } = await import('../../features/uploads/routes')
+  const { adminBansRoutes } = await import('../../features/admin/bans.routes')
+  const { adminModerationRoutes } = await import('../../features/admin/moderation.routes')
+  const { adminReportsRoutes } = await import('../../features/admin/reports.routes')
+  const { reportsRoutes } = await import('../../features/reports/routes')
 
   app.use('*', async (c, next) => {
     c.set('db', testDb)
@@ -70,6 +74,10 @@ export async function createTestApp() {
     .route('/errors', errorsRoute)
     .route('/articles', articleRoutes)
     .route('/api/uploads', uploadsRoutes)
+    .route('/admin', adminBansRoutes)
+    .route('/admin/moderation', adminModerationRoutes)
+    .route('/admin/reports', adminReportsRoutes)
+    .route('/api/reports', reportsRoutes)
 
   return routedApp
 }

@@ -9,6 +9,11 @@ import { FormActions } from '../../../../component/Input/FormActions/FormActions
 import { Input } from '../../../../component/Input/Input'
 import { useChangePassword } from '../../../../lib/queries/auth'
 
+/* Server-error → FR label map. Exported so tests assert the same string the user sees. */
+export const CHANGE_PASSWORD_ERRORS = {
+  invalid_credentials: 'Mot de passe actuel incorrect',
+} as const
+
 type ChangePasswordFormProps = {
   onSuccess: () => void
   onCancel: () => void
@@ -103,7 +108,7 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
       {changePassword.isError && (
         <FormMessage variant="error">
           {changePassword.error.message === 'invalid_credentials'
-            ? 'Mot de passe actuel incorrect'
+            ? CHANGE_PASSWORD_ERRORS.invalid_credentials
             : changePassword.error.message}
         </FormMessage>
       )}

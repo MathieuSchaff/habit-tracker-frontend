@@ -1,4 +1,3 @@
-/** @vitest-environment jsdom */
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -27,7 +26,7 @@ vi.mock('../../../lib/queries/auth', async (importOriginal) => {
 })
 
 import { useSignup } from '../../../lib/queries/auth'
-import { SignupPage } from '../page/SignupPage/SignupPage'
+import { SIGNUP_ERRORS, SignupPage } from '../page/SignupPage/SignupPage'
 
 const mutate = vi.fn()
 const VALID_PASSWORD = 'Abcdef12!'
@@ -136,7 +135,7 @@ describe('SignupPage', () => {
     await fillForm()
     await submit()
 
-    expect(await screen.findByText(/Un compte existe déjà avec cet email/i)).toBeVisible()
+    expect(await screen.findByText(SIGNUP_ERRORS.email_exists)).toBeVisible()
   })
 
   it('falls back to server_error label for unknown server codes', async () => {
@@ -148,7 +147,7 @@ describe('SignupPage', () => {
     await fillForm()
     await submit()
 
-    expect(await screen.findByText(/Une erreur est survenue/i)).toBeVisible()
+    expect(await screen.findByText(SIGNUP_ERRORS.server_error)).toBeVisible()
   })
 
   it('navigates to /collection on success', async () => {

@@ -2,8 +2,11 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestClient, type TestClient } from '../../../tests/helpers/createTestClient'
 import { unsafeEmail } from '../../../tests/helpers/unsafe'
+
+setupDbTests()
 
 describe('Auth Routes > POST /auth/change-password', () => {
   let client: TestClient

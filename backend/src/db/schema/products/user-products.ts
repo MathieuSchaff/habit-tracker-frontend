@@ -20,6 +20,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { moderationColumns } from '../_moderation'
 import { fkTenantPolicies, tenantPolicies } from '../_policies'
 import { appRuntimeRole } from '../_roles'
 import { timestamps } from '../_timestamps'
@@ -86,6 +87,7 @@ export const userProductReviews = pgTable(
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
     isPublic: boolean('is_public').notNull().default(false),
+    ...moderationColumns,
     ...timestamps,
   },
   (t) => [

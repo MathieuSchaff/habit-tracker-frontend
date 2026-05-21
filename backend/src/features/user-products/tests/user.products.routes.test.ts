@@ -6,11 +6,14 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { loginAndGetToken } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { createProduct } from '../../products/service'
+
+setupDbTests()
 
 describe('User Products API', () => {
   let app: Hono<AppEnv>

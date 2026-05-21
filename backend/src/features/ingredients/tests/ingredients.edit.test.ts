@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 
 import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { IngredientError } from '../ingredients-error'
 import {
@@ -28,6 +29,8 @@ async function makeIngredient(
 ) {
   return createIngredient(testDb, user.id, { name, type: 'skincare' as const, ...extra })
 }
+
+setupDbTests()
 
 describe('updateIngredient — exhaustive', () => {
   beforeEach(async () => {

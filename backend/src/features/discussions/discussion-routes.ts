@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { requireJwtAuth, requireNotBanned, requireNotBannedScope } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createReply,
@@ -30,12 +30,16 @@ const replyParam = z.object({
 export function createDiscussionRoutes(entityType: EntityType) {
   const app = new Hono<AppEnv>()
 
-  // GET routes are public; write routes require auth.
+  // GET = anonymous OK. Non-GET = auth + ban-check. Split into two middleware so
+  // requireNotBanned's short-circuit 403 propagates back through Hono compose
+  // (see products/routes.ts for the same fix).
   app.use('*', async (c, next) => {
     if (c.req.method === 'GET') return next()
-    return requireJwtAuth(c, async () => {
-      await requireNotBanned(c, next)
-    })
+    return requireJwtAuth(c, next)
+  })
+  app.use('*', async (c, next) => {
+    if (c.req.method === 'GET') return next()
+    return requireNotBanned(c, next)
   })
   app.use('*', withRlsContext)
 
@@ -49,6 +53,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
 
     .post(
       '/:slug/discussions',
+      requireNotBannedScope('discussion_post'),
       zValidator('param', slugParam),
       zValidator('json', createThreadSchema),
       async (c) => {
@@ -78,6 +83,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
 
     .post(
       '/:slug/discussions/:threadId/replies',
+      requireNotBannedScope('discussion_post'),
       zValidator('param', threadParam),
       zValidator('json', createReplySchema),
       async (c) => {

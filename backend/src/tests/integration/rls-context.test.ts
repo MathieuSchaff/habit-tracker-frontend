@@ -9,9 +9,12 @@ import { generateAccessToken } from '../../features/auth/jwt.utils'
 import { requireJwtAuth } from '../../features/auth/middleware'
 import { withRlsContext } from '../../features/auth/rls-context.middleware'
 import { testDb } from '../db.test.config'
+import { setupDbTests } from '../db-setup'
 import { createTestApp } from '../helpers/createTestApp'
 import { JWT_SECRET } from '../helpers/secrets'
 import { createTestUser } from '../helpers/test-factories'
+
+setupDbTests()
 
 describe('withRlsContext', () => {
   it('binds app.user_id for the duration of the request', async () => {

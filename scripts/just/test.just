@@ -72,6 +72,26 @@ test-only pattern: test-db-up
 test-db-studio:
     cd backend && DATABASE_URL="{{TEST_DB_URL}}" bun x drizzle-kit studio --port 4982
 
+# Bench backend test suite — captures wall-time + full log to /tmp/aurore-backend-test.log
+# Use with test-clean-count to measure cleanDatabase impact across PRs.
+test-bench: test-db-up
+    @printf "{{CYAN}}Benching backend tests (output → /tmp/aurore-backend-test.log)...{{NC}}\n"
+    cd backend && /usr/bin/time -f "wall=%es cpu=%P max-rss=%MKB" -o /tmp/aurore-backend-test.time \
+        env DATABASE_URL={{TEST_DB_URL}} APP_DATABASE_URL={{APP_TEST_DB_URL}} \
+        bun test 2>&1 | tee /tmp/aurore-backend-test.log
+    @printf "{{GREEN}}--- timing ---{{NC}}\n"
+    @cat /tmp/aurore-backend-test.time
+
+# Count how many times cleanDatabase fired in the last test-bench run.
+# Baseline (2026-05-22) = ~1559 (one per test). Target after PR2 ≈ 927 (DB tests only).
+test-clean-count:
+    @if [ ! -f /tmp/aurore-backend-test.log ]; then \
+        printf "{{CYAN}}No log yet — run 'just test-bench' first.{{NC}}\n"; \
+        exit 1; \
+    fi
+    @printf "{{CYAN}}cleanDatabase fires in last run:{{NC}} "
+    @grep -c "Cleaning database" /tmp/aurore-backend-test.log
+
 # Seed CORE into test DB — requires test-db-up
 test-db-seed:
     @printf "{{CYAN}}Seeding CORE into test DB...{{NC}}\n"

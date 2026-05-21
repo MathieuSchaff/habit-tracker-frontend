@@ -3,6 +3,7 @@ import { describe, expect, it } from 'bun:test'
 import { and, eq, isNull } from 'drizzle-orm'
 
 import { emailVerifications } from '../../../db/schema'
+import { setupDbTests } from '../../../tests/db-setup'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import {
@@ -11,6 +12,8 @@ import {
   verifyEmailToken,
 } from '../email-verification.service'
 import { testDb } from './auth-test.setup'
+
+setupDbTests()
 
 describe('email-verification.service', () => {
   describe('createVerificationToken', () => {

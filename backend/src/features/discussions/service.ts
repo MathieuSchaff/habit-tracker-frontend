@@ -1,6 +1,6 @@
 import type { CreateReplyInput, CreateThreadInput } from '@habit-tracker/shared'
 
-import { count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { db } from '../../db'
@@ -54,8 +54,14 @@ export async function listThreads(slug: string, entityType: EntityType, database
     })
     .from(discussionThreads)
     .leftJoin(profiles, eq(discussionThreads.authorId, profiles.userId))
-    .leftJoin(discussionReplies, eq(discussionReplies.threadId, discussionThreads.id))
-    .where(condition)
+    .leftJoin(
+      discussionReplies,
+      and(
+        eq(discussionReplies.threadId, discussionThreads.id),
+        eq(discussionReplies.moderationStatus, 'visible')
+      )
+    )
+    .where(and(condition, eq(discussionThreads.moderationStatus, 'visible')))
     .groupBy(discussionThreads.id, profiles.username)
     .orderBy(desc(discussionThreads.createdAt))
 }
@@ -96,7 +102,9 @@ export async function getThreadWithReplies(threadId: string, database: DB = db) 
     })
     .from(discussionThreads)
     .leftJoin(profiles, eq(discussionThreads.authorId, profiles.userId))
-    .where(eq(discussionThreads.id, threadId))
+    .where(
+      and(eq(discussionThreads.id, threadId), eq(discussionThreads.moderationStatus, 'visible'))
+    )
 
   if (!thread) throw new DiscussionError('thread_not_found')
 
@@ -111,7 +119,12 @@ export async function getThreadWithReplies(threadId: string, database: DB = db) 
     })
     .from(discussionReplies)
     .leftJoin(profiles, eq(discussionReplies.authorId, profiles.userId))
-    .where(eq(discussionReplies.threadId, threadId))
+    .where(
+      and(
+        eq(discussionReplies.threadId, threadId),
+        eq(discussionReplies.moderationStatus, 'visible')
+      )
+    )
     .orderBy(discussionReplies.createdAt)
 
   return { ...thread, replyCount: replies.length, replies }
@@ -135,10 +148,16 @@ export async function createReply(
   input: CreateReplyInput,
   database: DB = db
 ) {
+  // Filter on moderationStatus so a hidden thread cannot accept new replies.
+  // Without it the insert succeeds, the reply stays invisible (parent is
+  // filtered in listThreads/getThreadWithReplies) but contradicts the intent
+  // of moderation and pollutes the DB with reply rows on stale threads.
   const [thread] = await database
     .select({ id: discussionThreads.id })
     .from(discussionThreads)
-    .where(eq(discussionThreads.id, threadId))
+    .where(
+      and(eq(discussionThreads.id, threadId), eq(discussionThreads.moderationStatus, 'visible'))
+    )
 
   if (!thread) throw new DiscussionError('thread_not_found')
 

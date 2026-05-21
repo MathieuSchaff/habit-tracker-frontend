@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 
 import { createIngredient } from '../../../features/ingredients/service'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
@@ -14,6 +15,8 @@ import { addTagToIngredient } from '../service'
 type ApiErrorBody = { success: false; error: string }
 
 const VALID_TAG = { name: 'Hydratant' }
+
+setupDbTests()
 
 describe('Ingredient Tag Routes', () => {
   let app: Awaited<ReturnType<typeof createTestEnv>>['app']

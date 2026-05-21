@@ -5,8 +5,11 @@ import type { Email, HashedPassword } from '@habit-tracker/shared'
 import { emailSchema } from '@habit-tracker/shared'
 
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { getProfile } from '../../profile'
 import { createProfile, createUser, getUser } from '../user.utils'
+
+setupDbTests()
 
 describe('User Utils', () => {
   describe('getUser', () => {

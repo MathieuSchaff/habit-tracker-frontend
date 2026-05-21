@@ -26,7 +26,7 @@ describe('ShelfTabs', () => {
     expect(tout).toHaveTextContent('4')
   })
 
-  it('renders the renamed watched label "Garde un œil" with dimmed class when empty', () => {
+  it('exposes count=0 in the watched tab accessible name when the shelf is empty', () => {
     render(
       <ShelfTabs
         active="all"
@@ -37,8 +37,7 @@ describe('ShelfTabs', () => {
       />
     )
     const watched = screen.getByRole('tab', { name: /garde un œil/i })
-    expect(watched).toBeInTheDocument()
-    expect(watched.className).toMatch(/dimmed/)
+    expect(watched).toHaveAccessibleName('Garde un œil (0)')
   })
 
   it('invokes onChange("holy_grail") when Saint Graal is picked from the Plus menu', () => {

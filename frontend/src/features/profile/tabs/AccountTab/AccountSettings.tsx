@@ -141,8 +141,8 @@ export const AccountSettings = () => {
 
             <div className="privacy-ai-section">
               <p className="privacy-section-desc">
-                Autoriser Aurore à analyser votre routine avec Mistral AI — hébergé en France, vos
-                données ne quittent pas l'Europe.{' '}
+                Autoriser Aurore à analyser des produits en fonction de votre profil avec Mistral AI
+                — hébergé en France, vos données ne quittent pas l'Europe.{' '}
                 <span className="privacy-badge">Fonctionnalité à venir</span>
               </p>
               <Toggle

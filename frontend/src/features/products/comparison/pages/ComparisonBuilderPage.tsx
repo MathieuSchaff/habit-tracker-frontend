@@ -102,7 +102,11 @@ function EditComparisonBuilder({ id }: { id: string }) {
         {comparison.products.length < COMPARISON_MIN_PRODUCTS ? (
           <EmptyComparisonState count={comparison.products.length} />
         ) : (
-          <ComparisonBody products={comparison.products} />
+          <ComparisonBody
+            products={comparison.products}
+            comparisonName={comparison.name}
+            reference={`N° ${comparison.id.slice(0, 4).toUpperCase()}`}
+          />
         )}
       </div>
     </section>

@@ -16,8 +16,9 @@ import { parseAuthForm } from '../../lib/parseAuthForm'
 
 type FieldErrors = Partial<Record<keyof AuthInput | 'form', string>>
 
-/* Exhaustive map: TS errors if a LoginErrorCode is added without a label here. */
-const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
+/* Exhaustive map: TS errors if a LoginErrorCode is added without a label here.
+   Exported so tests assert the same string the user sees. */
+export const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
   invalid_credentials: 'Email ou mot de passe incorrect',
   email_not_verified: "Votre adresse email n'est pas vérifiée",
   account_locked: 'Trop de tentatives. Réessayez dans 15 minutes.',

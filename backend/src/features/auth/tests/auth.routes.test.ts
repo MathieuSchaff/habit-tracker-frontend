@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import {
   createTestClient,
   type TestClient,
@@ -24,6 +25,8 @@ async function loginAndGetCookies(client: TestClient, email: string, password: s
   const accessToken = data.success ? data.data.accessToken : ''
   return { res, data, cookie, accessToken }
 }
+
+setupDbTests()
 
 describe('Auth Routes (browser)', () => {
   let client: TestClient

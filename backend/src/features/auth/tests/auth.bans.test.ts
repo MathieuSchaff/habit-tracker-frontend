@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 
 import { userBans } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import {
   createTestClient,
   type TestClient,
@@ -21,6 +22,8 @@ async function login(client: TestClient, email: string, password: string): Promi
   if (!data.success) throw new Error('login failed in ban-test setup')
   return data.data.accessToken
 }
+
+setupDbTests()
 
 describe('Ban enforcement (requireNotBanned)', () => {
   let client: TestClient

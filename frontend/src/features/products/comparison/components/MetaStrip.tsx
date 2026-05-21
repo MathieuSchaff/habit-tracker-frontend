@@ -1,5 +1,6 @@
 import type { EnrichedComparisonProduct, SkincareProductTagCategory } from '@habit-tracker/shared'
 
+import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import { tagLabel } from '@/features/products/filters'
 
 import './MetaStrip.css'
@@ -29,64 +30,65 @@ export function MetaStrip({ products }: Props) {
   const mixed = allUnits.size > 1
 
   return (
-    <ul className="meta-strip">
-      {products.map((p) => {
-        const tags = p.tags.filter((t) => TAG_TYPES_SET.has(t.tagType) && t.relevance === 'primary')
+    <section className="cmp-shelf" aria-label="Produits comparés">
+      <ol className="cmp-shelf__row">
+        {products.map((p, i) => {
+          const tags = p.tags.filter(
+            (t) => TAG_TYPES_SET.has(t.tagType) && t.relevance === 'primary'
+          )
+          const activeCount = p.ingredients.filter((x) => x.signals.includes('active')).length
 
-        const activeCount = p.ingredients.filter((i) => i.signals.includes('active')).length
-
-        return (
-          <li key={p.id} className="meta-strip__card">
-            <div className="meta-strip__img-wrap">
-              {p.imageUrl ? (
-                <img src={p.imageUrl} alt={p.name} className="meta-strip__image" />
-              ) : (
-                <div className="meta-strip__image-placeholder" aria-hidden>
-                  🧴
-                </div>
-              )}
-            </div>
-
-            <p className="meta-strip__brand">{p.brand}</p>
-            <p className="meta-strip__name">{p.name}</p>
-
-            <div className="meta-strip__info-row">
-              {p.totalAmount && p.amountUnit ? (
-                <span className="meta-strip__amount">
-                  {p.totalAmount} {p.amountUnit}
+          return (
+            <li key={p.id} className="cmp-shelf__item">
+              <span className="cmp-shelf__num">N° {String(i + 1).padStart(2, '0')}</span>
+              <ProductImage
+                kind={p.kind}
+                unit={p.amountUnit}
+                imageUrl={p.imageUrl}
+                size={96}
+                className="cmp-shelf__photo"
+              />
+              <p className="cmp-shelf__brand">{p.brand}</p>
+              <h3 className="cmp-shelf__name">{p.name}</h3>
+              <p className="cmp-shelf__meta">
+                {p.totalAmount && p.amountUnit ? (
+                  <span className="cmp-shelf__amount">
+                    {p.totalAmount} {p.amountUnit}
+                  </span>
+                ) : (
+                  <span className="cmp-shelf__amount">—</span>
+                )}
+                <span className="cmp-shelf__sep" aria-hidden="true">
+                  ·
                 </span>
-              ) : (
-                <span className="meta-strip__amount">—</span>
-              )}
-              {(p.totalAmount || p.pricePer) && <span className="meta-strip__separator">·</span>}
-              <span className={`meta-strip__price${mixed ? ' meta-strip__price--mixed' : ''}`}>
-                {mixed ? 'Prix non comparable' : formatPricePer(p)}
-              </span>
-            </div>
-
-            <div className="meta-strip__badges">
-              {activeCount > 0 && (
-                <span className="meta-strip__badge meta-strip__badge--actives">
-                  {activeCount} actif{activeCount > 1 ? 's' : ''}
+                <span className={`cmp-shelf__price${mixed ? ' cmp-shelf__price--mixed' : ''}`}>
+                  {mixed ? 'Prix non comparable' : formatPricePer(p)}
                 </span>
+              </p>
+              <div className="cmp-shelf__badges">
+                {activeCount > 0 && (
+                  <span className="cmp-shelf__badge cmp-shelf__badge--actives">
+                    {activeCount} actif{activeCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                <span className="cmp-shelf__badge cmp-shelf__badge--count">
+                  {p.ingredients.length} ingr.
+                </span>
+              </div>
+              {tags.length > 0 && (
+                <ul className="cmp-shelf__tags">
+                  {tags.slice(0, 3).map((t) => (
+                    <li key={t.slug} className="cmp-shelf__tag">
+                      {tagLabel(t.slug)}
+                    </li>
+                  ))}
+                </ul>
               )}
-              <span className="meta-strip__badge meta-strip__badge--count">
-                {p.ingredients.length} ingr.
-              </span>
-            </div>
-
-            {tags.length > 0 && (
-              <ul className="meta-strip__tags">
-                {tags.map((t) => (
-                  <li key={t.slug} className="meta-strip__tag">
-                    {tagLabel(t.slug)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        )
-      })}
-    </ul>
+            </li>
+          )
+        })}
+      </ol>
+      <div className="cmp-shelf__plank" aria-hidden="true" />
+    </section>
   )
 }

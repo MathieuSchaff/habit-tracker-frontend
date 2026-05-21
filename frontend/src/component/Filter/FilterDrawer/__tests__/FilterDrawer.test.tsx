@@ -568,7 +568,12 @@ describe('FilterDrawer — a11y attributes', () => {
 })
 
 describe('FilterDrawer — Apply button label', () => {
-  it('reads "Appliquer" when previewCount is undefined', () => {
+  it.each([
+    ['undefined', undefined, 'Appliquer'],
+    ['0 (singular)', 0, 'Voir 0 produit'],
+    ['1 (singular)', 1, 'Voir 1 produit'],
+    ['>1 (plural)', 42, 'Voir 42 produits'],
+  ])('reads %s label when previewCount=%s', (_label, previewCount, expected) => {
     render(
       <FilterDrawer
         open={true}
@@ -578,64 +583,12 @@ describe('FilterDrawer — Apply button label', () => {
         initialFilters={EMPTY}
         onApply={vi.fn()}
         onReset={vi.fn()}
-      />
-    )
-    const apply = screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
-    expect(apply).toHaveTextContent('Appliquer')
-  })
-
-  it('reads "Voir 1 produit" (singular) when previewCount=1', () => {
-    render(
-      <FilterDrawer
-        open={true}
-        onClose={vi.fn()}
-        groups={GROUPS}
-        currentFilters={EMPTY}
-        initialFilters={EMPTY}
-        onApply={vi.fn()}
-        onReset={vi.fn()}
-        previewCount={1}
+        previewCount={previewCount}
       />
     )
     expect(
       screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
-    ).toHaveTextContent('Voir 1 produit')
-  })
-
-  it('reads "Voir N produits" (plural) when previewCount > 1', () => {
-    render(
-      <FilterDrawer
-        open={true}
-        onClose={vi.fn()}
-        groups={GROUPS}
-        currentFilters={EMPTY}
-        initialFilters={EMPTY}
-        onApply={vi.fn()}
-        onReset={vi.fn()}
-        previewCount={42}
-      />
-    )
-    expect(
-      screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
-    ).toHaveTextContent('Voir 42 produits')
-  })
-
-  it('reads "Voir 0 produit" (singular) when previewCount=0', () => {
-    render(
-      <FilterDrawer
-        open={true}
-        onClose={vi.fn()}
-        groups={GROUPS}
-        currentFilters={EMPTY}
-        initialFilters={EMPTY}
-        onApply={vi.fn()}
-        onReset={vi.fn()}
-        previewCount={0}
-      />
-    )
-    expect(
-      screen.getByRole('button', { name: /Appliquer les filtres sélectionnés/i })
-    ).toHaveTextContent('Voir 0 produit')
+    ).toHaveTextContent(expected)
   })
 })
 

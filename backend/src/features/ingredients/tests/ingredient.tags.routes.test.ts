@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 
 import { createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
@@ -29,6 +30,8 @@ async function createTag(_client: TestClient, _token: string, name = 'Anti-âge'
   const tag = await createIngredientTag(testDb, { name })
   return { id: tag.id, slug: tag.slug }
 }
+
+setupDbTests()
 
 describe('Ingredient Tag Routes', () => {
   let app: TestApp

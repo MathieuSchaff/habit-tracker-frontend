@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm'
 import { users } from '../../../db/schema'
 import { addTagToIngredient, createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { IngredientError } from '../ingredients-error'
 import {
@@ -44,6 +45,8 @@ async function makeIngredient(
 async function makeTag(name: string, category?: string) {
   return createIngredientTag(testDb, { name, category })
 }
+
+setupDbTests()
 
 describe('Ingredient Service', () => {
   beforeEach(async () => {

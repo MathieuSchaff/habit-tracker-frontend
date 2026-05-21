@@ -7,7 +7,10 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { errorGroups, errorOccurrences } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
+
+setupDbTests()
 
 describe('POST /errors', () => {
   let app: Hono<AppEnv>

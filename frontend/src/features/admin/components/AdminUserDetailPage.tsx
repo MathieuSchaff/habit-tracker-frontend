@@ -1,0 +1,324 @@
+import type { BanScope, CreateBanInput } from '@habit-tracker/shared'
+
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
+
+import { Button } from '@/component/Button/Button'
+import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { Input } from '@/component/Input/Input'
+import { Select } from '@/component/Input/Select/Select'
+import { Textarea } from '@/component/Input/Textarea/Textarea'
+import { Toggle } from '@/component/Input/Toggle/Toggle'
+import { useConfirm } from '@/features/admin/useConfirm'
+import { formatInstant, formatRelative } from '@/lib/dates'
+import {
+  adminQueries,
+  useCreateBan,
+  useLiftBan,
+  useModerateProfileVisibility,
+} from '@/lib/queries/admin'
+import { adminLabels } from '../constants'
+
+const routeApi = getRouteApi('/admin/users_/$userId')
+
+const SCOPE_OPTIONS: ReadonlyArray<{ value: BanScope; label: string }> = [
+  { value: 'global', label: 'Global (toutes les actions)' },
+  { value: 'product_create', label: 'Création de produits' },
+  { value: 'product_edit', label: 'Édition de produits' },
+  { value: 'ingredient_edit', label: 'Édition d’ingrédients' },
+  { value: 'discussion_post', label: 'Publication dans les discussions' },
+  { value: 'review_publish', label: 'Publication d’avis' },
+]
+
+// Hold success FormMessage banners for a moment so the user notices them.
+const SUCCESS_FEEDBACK_MS = 3500
+
+function useTransientMessage(): [string | null, (msg: string | null) => void] {
+  const [msg, setMsg] = useState<string | null>(null)
+  useEffect(() => {
+    if (!msg) return
+    const t = setTimeout(() => setMsg(null), SUCCESS_FEEDBACK_MS)
+    return () => clearTimeout(t)
+  }, [msg])
+  return [msg, setMsg]
+}
+
+export function AdminUserDetailPage() {
+  const { userId } = routeApi.useParams()
+  const usersQuery = useSuspenseQuery(adminQueries.users())
+  const bansQuery = useSuspenseQuery(adminQueries.userBans(userId))
+
+  const user = useMemo(
+    () => usersQuery.data.items.find((u) => u.id === userId),
+    [usersQuery.data, userId]
+  )
+
+  if (!user) {
+    return (
+      <section>
+        <p className="admin-table__empty">{adminLabels.userNotFound}</p>
+        <Link to="/admin/users">← Liste des utilisateurs</Link>
+      </section>
+    )
+  }
+
+  return (
+    <section>
+      <header className="admin-page__header">
+        <div>
+          <h1 className="admin-page__title">{user.email}</h1>
+          <p className="admin-page__lede">
+            {user.role === 'admin' ? 'Administrateur' : 'Utilisateur'} —{' '}
+            {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'} — créé{' '}
+            <time dateTime={user.createdAt} title={formatInstant(user.createdAt, 'long')}>
+              {formatRelative(user.createdAt)}
+            </time>
+          </p>
+        </div>
+        <Link to="/admin/users" className="admin-table__row-link">
+          ← Liste
+        </Link>
+      </header>
+
+      <CreateBanCard userId={userId} />
+      <BansListCard userId={userId} bans={bansQuery.data} />
+      <ProfileVisibilityCard userId={userId} initialForced={user.forcedPrivateByAdmin} />
+    </section>
+  )
+}
+
+function CreateBanCard({ userId }: { userId: string }) {
+  const createBan = useCreateBan(userId)
+  const { confirm, dialog } = useConfirm()
+  const [scope, setScope] = useState<BanScope>('global')
+  const [reason, setReason] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useTransientMessage()
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    const body: CreateBanInput = { scope }
+    if (reason.trim().length > 0) body.reason = reason.trim()
+    if (expiresAt) {
+      body.expiresAt = new Date(expiresAt).toISOString()
+    }
+    const ok = await confirm({
+      title: 'Appliquer ce ban ?',
+      message: `Scope : ${scope}. Le compte sera bloqué immédiatement.`,
+      confirmLabel: 'Bannir',
+      variant: 'danger',
+    })
+    if (!ok) return
+    createBan.mutate(body, {
+      onSuccess: () => {
+        setReason('')
+        setExpiresAt('')
+        setSuccess('Ban appliqué.')
+      },
+      onError: (err) => setError(err.message),
+    })
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Créer un ban</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="admin-form__grid">
+          <Select<BanScope>
+            label="Scope"
+            options={SCOPE_OPTIONS}
+            value={scope}
+            onValueChange={(v) => v && setScope(v)}
+          />
+          <Input
+            label="Expire le (optionnel)"
+            type="datetime-local"
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+          />
+          <div className="admin-form__field-wide">
+            <Textarea
+              label="Raison (optionnel)"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              maxLength={500}
+            />
+          </div>
+        </div>
+        <div aria-live="polite" aria-atomic="true">
+          {error && <FormMessage variant="error">{error}</FormMessage>}
+          {success && <FormMessage variant="success">{success}</FormMessage>}
+        </div>
+        <div className="admin-form__actions">
+          <Button type="submit" loading={createBan.isPending}>
+            Bannir
+          </Button>
+        </div>
+      </form>
+      {dialog}
+    </div>
+  )
+}
+
+type Ban = {
+  id: string
+  scope: BanScope
+  reason: string | null
+  expiresAt: string | null
+  createdAt: string
+  bannedBy: string
+}
+
+function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
+  const liftBan = useLiftBan(userId)
+  const { confirm, dialog } = useConfirm()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [success, setSuccess] = useTransientMessage()
+
+  async function handleLift(banId: string, scope: BanScope) {
+    const ok = await confirm({
+      title: 'Lever ce ban ?',
+      message: `Scope : ${scope}. L’accès est restauré immédiatement.`,
+      confirmLabel: 'Lever',
+    })
+    if (!ok) return
+    setPendingId(banId)
+    liftBan.mutate(banId, {
+      onSuccess: () => setSuccess('Ban levé.'),
+      onSettled: () => setPendingId(null),
+    })
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Bans en cours et historique</h2>
+      <div aria-live="polite" aria-atomic="true">
+        {success && <FormMessage variant="success">{success}</FormMessage>}
+      </div>
+      {bans.length === 0 ? (
+        <p className="admin-table__empty">{adminLabels.emptyBans}</p>
+      ) : (
+        <table className="admin-table">
+          <caption className="sr-only">Bans (actifs et historique)</caption>
+          <thead>
+            <tr>
+              <th>Scope</th>
+              <th>Raison</th>
+              <th>Expire</th>
+              <th>Créé</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bans.map((b) => (
+              <tr key={b.id}>
+                <td>
+                  <span className="admin-pill admin-pill--banned">{b.scope}</span>
+                </td>
+                <td>{b.reason ?? <em>—</em>}</td>
+                <td>
+                  {b.expiresAt ? (
+                    <time dateTime={b.expiresAt} title={formatInstant(b.expiresAt, 'long')}>
+                      {formatRelative(b.expiresAt)}
+                    </time>
+                  ) : (
+                    'Permanent'
+                  )}
+                </td>
+                <td>
+                  <time dateTime={b.createdAt} title={formatInstant(b.createdAt, 'long')}>
+                    {formatRelative(b.createdAt)}
+                  </time>
+                </td>
+                <td>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    loading={pendingId === b.id && liftBan.isPending}
+                    onClick={() => handleLift(b.id, b.scope)}
+                  >
+                    Lever
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {dialog}
+    </div>
+  )
+}
+
+function ProfileVisibilityCard({
+  userId,
+  initialForced,
+}: {
+  userId: string
+  initialForced: boolean
+}) {
+  const moderate = useModerateProfileVisibility(userId)
+  const { confirm, dialog } = useConfirm()
+  const [forced, setForced] = useState(initialForced)
+  const [reason, setReason] = useState('')
+  const [success, setSuccess] = useTransientMessage()
+
+  async function apply(next: boolean) {
+    const ok = await confirm({
+      title: next ? 'Forcer ce profil en privé ?' : 'Lever le forçage privé ?',
+      message: next
+        ? 'Le profil sera invisible et ses reviews publiques cachées. Action à utiliser après une modération individuelle insuffisante.'
+        : 'Le profil retrouvera la visibilité décidée par son auteur.',
+      confirmLabel: next ? 'Forcer privé' : 'Lever',
+      variant: next ? 'danger' : 'default',
+    })
+    if (!ok) return
+    moderate.mutate(
+      {
+        forcedPrivate: next,
+        reason: next && reason.trim().length > 0 ? reason.trim() : undefined,
+      },
+      {
+        onSuccess: (data) => {
+          setForced(data.forcedPrivateByAdmin)
+          setSuccess(next ? 'Profil forcé en privé.' : 'Forçage levé.')
+        },
+      }
+    )
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Visibilité du profil</h2>
+      <p className="admin-page__lede">
+        Action exceptionnelle. À utiliser uniquement quand la modération par-ligne (review,
+        discussion) ne suffit plus.
+      </p>
+      <div className="admin-card__field">
+        <Toggle
+          label="Forcer privé (admin override)"
+          hint="Le toggle utilisateur est ignoré tant que le forçage est actif."
+          checked={forced}
+          disabled={moderate.isPending}
+          onChange={(next) => apply(next)}
+        />
+      </div>
+      <div className="admin-card__field">
+        <Input
+          label="Raison (optionnel)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          maxLength={500}
+        />
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        {success && <FormMessage variant="success">{success}</FormMessage>}
+      </div>
+      {dialog}
+    </div>
+  )
+}

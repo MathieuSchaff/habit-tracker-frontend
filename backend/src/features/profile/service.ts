@@ -55,14 +55,30 @@ export async function getProfile(db: DB, userId: string): Promise<ProfilePublic 
   return profile ? toProfilePublic(profile) : null
 }
 
+// Explicit whitelist — never spread `data` straight into the UPDATE. RLS lets
+// the owner write any column of their own profile row (tenant_isolation), so
+// the API layer is the only thing between an attacker and the moderation
+// columns (forcedPrivateByAdmin, moderatedBy, …). profileUpdateSchema is
+// .strict() today but a future loosen-up must not become a silent escalation.
 export async function updateProfile(
   db: DB,
   userId: string,
   data: ProfileUpdateInput
 ): Promise<ProfilePublic | null> {
+  const updates: Partial<Pick<Profile, 'username' | 'bio' | 'avatarUrl' | 'links'>> = {}
+  if (data.username !== undefined) updates.username = data.username
+  if (data.bio !== undefined) updates.bio = data.bio
+  if (data.avatarUrl !== undefined) updates.avatarUrl = data.avatarUrl
+  if (data.links !== undefined) updates.links = data.links
+
+  if (Object.keys(updates).length === 0) {
+    const [current] = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1)
+    return current ? toProfilePublic(current) : null
+  }
+
   const [profile] = await db
     .update(profiles)
-    .set({ ...data, updatedAt: nowISO() })
+    .set({ ...updates, updatedAt: nowISO() })
     .where(eq(profiles.userId, userId))
     .returning()
   return profile ? toProfilePublic(profile) : null
@@ -336,7 +352,13 @@ export async function getPublicProfileByUsername(
     })
     .from(profiles)
     .leftJoin(userDermoProfiles, eq(profiles.userId, userDermoProfiles.userId))
-    .where(and(eq(profiles.username, username), eq(profiles.profilePublic, true)))
+    .where(
+      and(
+        eq(profiles.username, username),
+        eq(profiles.profilePublic, true),
+        eq(profiles.forcedPrivateByAdmin, false)
+      )
+    )
     .limit(1)
 
   if (!row || !row.username) return null

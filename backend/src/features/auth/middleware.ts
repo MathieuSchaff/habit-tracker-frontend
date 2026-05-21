@@ -1,9 +1,9 @@
-import { err, HTTP_STATUS } from '@habit-tracker/shared'
+import { type BanScope, err, HTTP_STATUS } from '@habit-tracker/shared'
 
 import type { Context, Next } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { isUserBanned } from './ban.service'
+import { isUserBanned, isUserBannedForScope } from './ban.service'
 import { verifyAccessToken } from './jwt.utils'
 
 /**
@@ -49,6 +49,34 @@ export const requireNotBanned = async (c: Context<AppEnv>, next: Next) => {
   }
   await next()
 }
+
+// Gates admin-only routes. Must run after requireJwtAuth (needs userRole).
+// 403 forbidden when caller is not an admin.
+export const requireAdmin = async (c: Context<AppEnv>, next: Next) => {
+  if (c.get('userRole') !== 'admin') {
+    return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
+  }
+  await next()
+}
+
+// Route-level gate for per-action bans (e.g. 'product_create', 'product_edit',
+// 'ingredient_edit'). The global 'global' scope is already enforced by
+// requireNotBanned upstream — this checks the action-specific scope only.
+// Pair with requireJwtAuth + requireNotBanned in the router chain.
+export const requireNotBannedScope =
+  (scope: Exclude<BanScope, 'global'>) => async (c: Context<AppEnv>, next: Next) => {
+    const userId = c.get('userId')
+    if (!userId) return c.json(err('unauthorized'), HTTP_STATUS.UNAUTHORIZED)
+
+    const ban = await isUserBannedForScope(c.get('db'), userId, scope)
+    if (ban) {
+      return c.json(
+        err('banned', { expiresAt: ban.expiresAt, reason: ban.reason, scope }),
+        HTTP_STATUS.FORBIDDEN
+      )
+    }
+    await next()
+  }
 
 // Populates userId/userRole when a valid bearer is present; otherwise lets the
 // request through anonymously. Use on public reads that personalize when the

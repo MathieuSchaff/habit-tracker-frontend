@@ -7,6 +7,15 @@ import { Input } from '@/component/Input/Input'
 
 import './SlugEditModal.css'
 
+/* Wording for the slug-edit flow. Exported so tests assert the same strings
+   the user sees and a copy tweak updates both. */
+export const SLUG_EDIT_LABELS = {
+  confirm: 'Confirmer le changement',
+  cancel: 'Annuler',
+  emptyError: 'Le slug ne peut pas être vide.',
+  formatError: 'Slug invalide : minuscules, chiffres et tirets uniquement.',
+} as const
+
 interface SlugEditModalProps {
   currentSlug: string
   productName: string
@@ -38,9 +47,9 @@ export function SlugEditModal({
   const validFormat = trimmed.length > 0 && SLUG_RE.test(trimmed)
   const error =
     trimmed.length === 0
-      ? 'Le slug ne peut pas être vide.'
+      ? SLUG_EDIT_LABELS.emptyError
       : !validFormat
-        ? 'Slug invalide : minuscules, chiffres et tirets uniquement.'
+        ? SLUG_EDIT_LABELS.formatError
         : null
 
   return (
@@ -90,7 +99,7 @@ export function SlugEditModal({
 
       <div className="slug-edit-modal__actions">
         <Button type="button" variant="outline" onClick={onClose}>
-          Annuler
+          {SLUG_EDIT_LABELS.cancel}
         </Button>
         <Button
           type="button"
@@ -98,7 +107,7 @@ export function SlugEditModal({
           disabled={!changed || !validFormat}
           onClick={() => onConfirm(trimmed)}
         >
-          Confirmer le changement
+          {SLUG_EDIT_LABELS.confirm}
         </Button>
       </div>
     </Modal>

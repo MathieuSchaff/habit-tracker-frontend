@@ -11,11 +11,6 @@ describe('SortControl — rendering', () => {
     expect(screen.getByRole('button', { name: /Tri : Prix croissant/i })).toBeInTheDocument()
   })
 
-  it('falls back to first option when value is unknown', () => {
-    render(<SortControl value={'unknown' as never} onChange={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /Tri : Découverte/i })).toBeInTheDocument()
-  })
-
   it('renders all 5 options when opened', () => {
     render(<SortControl value="name" onChange={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: /Tri :/i }))

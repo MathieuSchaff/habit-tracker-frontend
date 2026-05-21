@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import { authPost, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -20,6 +21,8 @@ const VALID_PRODUCT = {
 async function postProduct(app: Hono<AppEnv>, token: string, body: object) {
   return authPost(app, '/products', token, body)
 }
+
+setupDbTests()
 
 describe('Security Middleware — product routes', () => {
   let app: Hono<AppEnv>

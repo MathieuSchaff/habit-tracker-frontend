@@ -3,23 +3,15 @@ import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { computeCommon, computeSpecifics } from '../helpers/aggregations'
+import { computeSpecifics } from '../helpers/aggregations'
 import './DiffSection.css'
 
 type Props = { products: EnrichedComparisonProduct[] }
 
 const VISIBLE_DEFAULT = 8
 
-function computeOverlap(products: EnrichedComparisonProduct[]) {
-  const common = computeCommon(products)
-  const allSlugs = new Set(products.flatMap((p) => p.ingredients.map((i) => i.slug)))
-  const jaccard = allSlugs.size > 0 ? Math.round((common.length / allSlugs.size) * 100) : 0
-  return { commonCount: common.length, totalUnique: allSlugs.size, jaccard }
-}
-
 export function DiffSection({ products }: Props) {
   const specifics = computeSpecifics(products)
-  const { commonCount, totalUnique, jaccard } = computeOverlap(products)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   const toggleExpand = (id: string) => {
@@ -30,25 +22,20 @@ export function DiffSection({ products }: Props) {
   }
 
   const colStyle: React.CSSProperties = {
-    gridTemplateColumns: `repeat(${products.length}, minmax(min(100%, 200px), 1fr))`,
+    gridTemplateColumns: `repeat(${products.length}, minmax(min(100%, 12.5rem), 1fr))`,
   }
 
   return (
     <section className="diff-section">
-      <div className="diff-section__header">
+      <header className="diff-section__header">
         <h2 className="diff-section__title">Différences</h2>
-        <div className="diff-section__overlap">
-          <div className="diff-section__overlap-bar" aria-hidden>
-            <div className="diff-section__overlap-fill" style={{ width: `${jaccard}%` }} />
-          </div>
-          <span className="diff-section__overlap-label">
-            {jaccard}% similaires · {commonCount}/{totalUnique} ingrédients en commun
-          </span>
-        </div>
-      </div>
+        <p className="diff-section__lede">
+          Ce que chaque formule porte en propre. Différent ne veut pas dire mieux.
+        </p>
+      </header>
 
       <div className="diff-section__grid" style={colStyle}>
-        {products.map((p) => {
+        {products.map((p, i) => {
           // Ascending position = most concentrated first.
           const list = [...(specifics.get(p.id) ?? [])].sort((a, b) => a.position - b.position)
           const isExpanded = expanded.has(p.id)
@@ -58,6 +45,7 @@ export function DiffSection({ products }: Props) {
           return (
             <div key={p.id} className="diff-section__col">
               <p className="diff-section__col-header">
+                <span className="diff-section__col-num">N° {String(i + 1).padStart(2, '0')}</span>
                 <span className="diff-section__col-brand">{p.brand}</span>
                 <span className="diff-section__col-count">{list.length} exclusifs</span>
               </p>

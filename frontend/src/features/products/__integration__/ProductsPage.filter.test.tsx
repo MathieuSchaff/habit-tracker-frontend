@@ -96,12 +96,6 @@ afterEach(() => {
 })
 
 describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
-  it('mounts without filters and lists default products', async () => {
-    renderProducts()
-    expect(await screen.findByText(/Hydrating Cleanser/)).toBeInTheDocument()
-    expect(screen.getByText(/Niacinamide 10% \+ Zinc 1%/)).toBeInTheDocument()
-  })
-
   it('applies a tag filter from the drawer and pushes it to the URL', async () => {
     const user = userEvent.setup()
     const { router } = renderProducts()

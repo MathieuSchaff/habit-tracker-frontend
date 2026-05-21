@@ -76,6 +76,7 @@ describe('PublicReviewsSection', () => {
     const queryClient = seedQuery({
       reviews: [
         {
+          id: 'rev-lea',
           tolerance: 5,
           efficacy: 3,
           sensoriality: 4,
@@ -118,6 +119,7 @@ describe('PublicReviewsSection', () => {
     const queryClient = seedQuery({
       reviews: [
         {
+          id: 'rev-discret',
           tolerance: 2,
           efficacy: null,
           sensoriality: null,
@@ -153,6 +155,7 @@ describe('PublicReviewsSection', () => {
     const queryClient = seedQuery({
       reviews: [
         {
+          id: 'rev-silent',
           tolerance: 4,
           efficacy: 5,
           sensoriality: null,
@@ -164,6 +167,7 @@ describe('PublicReviewsSection', () => {
           reviewer: { username: 'silent-rev', profilePublic: false },
         },
         {
+          id: 'rev-whitespace',
           tolerance: 5,
           efficacy: null,
           sensoriality: null,

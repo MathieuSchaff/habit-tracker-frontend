@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { ComparisonBody } from '../components/ComparisonBody'
+import { META_STRIP_LABELS } from '../components/MetaStrip'
+import { SIGNALS_LABELS } from '../components/SignalsSection'
 
 type Ingredient = EnrichedComparisonProduct['ingredients'][number]
 
@@ -35,7 +37,7 @@ describe('ComparisonBody', () => {
     const a = make('a', [ing('water'), ing('niacinamide', ['active'])])
     const b = make('b', [ing('water'), ing('niacinamide', ['active'])])
     render(<ComparisonBody products={[a, b]} />)
-    expect(screen.getByText('Actifs partagés')).toBeDefined()
+    expect(screen.getByText(SIGNALS_LABELS.sharedActives)).toBeDefined()
     // Renders both as a shared-active pill and in the common ingredients section.
     expect(screen.getAllByText('niacinamide').length).toBeGreaterThan(0)
   })
@@ -56,6 +58,6 @@ describe('ComparisonBody', () => {
       pricePer: { unit: 'g', cents: 50 },
     }
     render(<ComparisonBody products={[a, b]} />)
-    expect(screen.getAllByText('Prix non comparable').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(META_STRIP_LABELS.priceMixed).length).toBeGreaterThan(0)
   })
 })

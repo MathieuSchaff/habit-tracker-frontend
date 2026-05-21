@@ -18,11 +18,21 @@ import { userProductReviews, userProducts } from '../../db/schema/user-products'
 import { nowISO } from '../../utils/dates'
 import { UserProductError } from './user-product-error'
 
+// Moderation columns are admin-internal — keep them out of every Review-on-the-wire
+// projection so frontend types never see them. Admin moderation surfaces query
+// them explicitly via the moderation service.
+const REVIEW_PUBLIC_EXCLUDE = {
+  moderationStatus: false,
+  moderatedBy: false,
+  moderatedAt: false,
+  moderationReason: false,
+} as const
+
 export async function getUserProducts(userId: string, db: DB) {
   return await db.query.userProducts.findMany({
     where: eq(userProducts.userId, userId),
     with: {
-      review: true,
+      review: { columns: REVIEW_PUBLIC_EXCLUDE },
       purchases: true,
       product: {
         with: {
@@ -46,7 +56,7 @@ export async function getUserProductById(userId: string, userProductId: string, 
   return await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
     with: {
-      review: true,
+      review: { columns: REVIEW_PUBLIC_EXCLUDE },
       purchases: true,
       product: {
         with: {
@@ -70,7 +80,7 @@ export async function getUserProductByProductId(userId: string, productId: strin
   return await db.query.userProducts.findFirst({
     where: and(eq(userProducts.productId, productId), eq(userProducts.userId, userId)),
     with: {
-      review: true,
+      review: { columns: REVIEW_PUBLIC_EXCLUDE },
       purchases: true,
       product: {
         with: {
@@ -249,7 +259,20 @@ export async function upsertUserProductReview(
         updatedAt: nowISO(),
       },
     })
-    .returning()
+    .returning({
+      id: userProductReviews.id,
+      userProductId: userProductReviews.userProductId,
+      tolerance: userProductReviews.tolerance,
+      efficacy: userProductReviews.efficacy,
+      sensoriality: userProductReviews.sensoriality,
+      stability: userProductReviews.stability,
+      mixability: userProductReviews.mixability,
+      valueForMoney: userProductReviews.valueForMoney,
+      comment: userProductReviews.comment,
+      isPublic: userProductReviews.isPublic,
+      createdAt: userProductReviews.createdAt,
+      updatedAt: userProductReviews.updatedAt,
+    })
 
   return result
 }
@@ -268,6 +291,7 @@ export async function listPublicReviewsForProduct(
 ): Promise<PublicProductReviewsResponse> {
   const rows = await db
     .select({
+      id: userProductReviews.id,
       tolerance: userProductReviews.tolerance,
       efficacy: userProductReviews.efficacy,
       sensoriality: userProductReviews.sensoriality,
@@ -286,8 +310,13 @@ export async function listPublicReviewsForProduct(
     .where(
       and(
         eq(userProductReviews.isPublic, true),
+        eq(userProductReviews.moderationStatus, 'visible'),
         eq(products.slug, slug),
-        isNotNull(profiles.username)
+        isNotNull(profiles.username),
+        // Defense-in-depth: RLS already hides force-private profiles for
+        // app_runtime; the explicit filter covers admin-pool paths (tests,
+        // backfill scripts, future privileged callers).
+        eq(profiles.forcedPrivateByAdmin, false)
       )
     )
     .orderBy(desc(userProductReviews.createdAt))
@@ -310,6 +339,7 @@ export async function listPublicReviewsForProduct(
       else byAxis[key].high += 1
     }
     return {
+      id: row.id,
       tolerance: row.tolerance,
       efficacy: row.efficacy,
       sensoriality: row.sensoriality,

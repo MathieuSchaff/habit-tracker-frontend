@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 
 import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
+import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
@@ -34,6 +35,8 @@ async function createIngredient(
   )
   return res
 }
+
+setupDbTests()
 
 describe('Ingredient Routes', () => {
   let app: TestApp
