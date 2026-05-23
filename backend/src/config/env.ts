@@ -38,6 +38,4 @@ export const envSchema = z
     }
   })
 
-export type Env = z.infer<typeof envSchema>
-
 export const env = envSchema.parse(Bun.env)

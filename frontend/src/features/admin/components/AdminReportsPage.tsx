@@ -5,9 +5,9 @@ import { Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
-import { formatInstant, formatRelative } from '@/lib/dates'
 import { adminQueries, useModerateContent, useResolveReport } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
 
@@ -160,9 +160,7 @@ export function AdminReportsPage() {
                     <td>{r.reason}</td>
                     <td>{reporterEmail ?? <em>—</em>}</td>
                     <td>
-                      <time dateTime={r.createdAt} title={formatInstant(r.createdAt, 'long')}>
-                        {formatRelative(r.createdAt)}
-                      </time>
+                      <Time iso={r.createdAt} relative />
                     </td>
                     <td>
                       <span className={`admin-pill admin-pill--${r.status}`}>{r.status}</span>
@@ -293,10 +291,7 @@ function ContentPreviewPanel({
           {data.moderationStatus}
         </span>
         <span className="admin-reports-meta">
-          par {data.authorUsername ?? '—'} ·{' '}
-          <time dateTime={data.createdAt} title={formatInstant(data.createdAt, 'long')}>
-            {formatRelative(data.createdAt)}
-          </time>
+          par {data.authorUsername ?? '—'} · <Time iso={data.createdAt} relative />
         </span>
       </header>
       <div className="admin-preview__body">

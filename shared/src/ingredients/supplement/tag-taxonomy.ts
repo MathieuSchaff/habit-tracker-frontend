@@ -9,7 +9,7 @@ export const SUPPLEMENT_INGREDIENT_TAG_CATEGORIES = [
 
 export type SupplementIngredientTagCategory = (typeof SUPPLEMENT_INGREDIENT_TAG_CATEGORIES)[number]
 
-export interface SupplementIngredientTagMeta {
+interface SupplementIngredientTagMeta {
   category: SupplementIngredientTagCategory
 }
 
@@ -80,9 +80,3 @@ export const SUPPLEMENT_INGREDIENT_TAG_TAXONOMY = Object.fromEntries(entries) as
   SupplementIngredientTagSlug,
   SupplementIngredientTagMeta
 >
-
-export function getSupplementIngredientTagCategory(
-  slug: SupplementIngredientTagSlug
-): SupplementIngredientTagCategory | undefined {
-  return SUPPLEMENT_INGREDIENT_TAG_TAXONOMY[slug]?.category
-}

@@ -13,8 +13,8 @@ export { detectPigmentsVerts } from './pigments-verts'
 export { detectPrebiotique } from './prebiotique'
 export { detectReparationCutanee } from './reparation-cutanee'
 export { detectRepulpant } from './repulpant'
-export { detectSolaireTags, SOLAIRE_KINDS } from './solaire'
-export { detectStepNettoyage1, IONIC_SURFACTANT_PATTERNS } from './step-nettoyage-1'
+export { detectSolaireTags } from './solaire'
+export { detectStepNettoyage1 } from './step-nettoyage-1'
 export {
   detectNonGras,
   detectTextureBaumeFromName,

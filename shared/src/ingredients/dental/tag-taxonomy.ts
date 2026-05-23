@@ -9,7 +9,7 @@ export const DENTAL_INGREDIENT_TAG_CATEGORIES = [
 
 export type DentalIngredientTagCategory = (typeof DENTAL_INGREDIENT_TAG_CATEGORIES)[number]
 
-export interface DentalIngredientTagMeta {
+interface DentalIngredientTagMeta {
   category: DentalIngredientTagCategory
 }
 
@@ -71,9 +71,3 @@ export const DENTAL_INGREDIENT_TAG_TAXONOMY = Object.fromEntries(entries) as Rec
   DentalIngredientTagSlug,
   DentalIngredientTagMeta
 >
-
-export function getDentalIngredientTagCategory(
-  slug: DentalIngredientTagSlug
-): DentalIngredientTagCategory | undefined {
-  return DENTAL_INGREDIENT_TAG_TAXONOMY[slug]?.category
-}

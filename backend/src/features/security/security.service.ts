@@ -6,7 +6,7 @@ import { securityEvents } from '../../db/schema'
 const HIGH_SEVERITY_BLOCK_THRESHOLD = 3
 const BLOCK_WINDOW_DAYS = 7
 
-export type SecuritySeverity = 'high' | 'low'
+type SecuritySeverity = 'high' | 'low'
 
 export interface SecurityEventInput {
   userId: string

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "ignore": [
+    "**/dist/**",
+    "**/.audit-out/**",
+    "vendor/**",
+    "frontend/src/routeTree.gen.ts",
+    "backend/drizzle.config.ts",
+    "docs/**"
+  ],
+  "ignoreDependencies": ["algo-derm"],
+  "ignoreBinaries": ["biome", "fallow", "knip", "madge", "drizzle-kit"],
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/**/*.{ts,js,mjs}"],
+      "ignoreDependencies": ["@biomejs/biome", "madge"]
+    },
+    "backend": {
+      "entry": [
+        "src/index.ts",
+        "src/db/migrate.ts",
+        "src/**/main.ts",
+        "src/db/seed/seeders/*.ts",
+        "src/db/seed/maintenance/*.ts",
+        "src/db/seed/inci/**/*.ts",
+        "src/db/seed/**/audit-*.ts",
+        "src/db/seed/**/benchmark-*.ts",
+        "src/db/seed/**/scan-*.ts",
+        "src/db/seed/**/fix-*.ts",
+        "src/db/seed/**/index.ts",
+        "src/db/audit/*.ts",
+        "src/features/auto-tagging/runners/**/*.ts",
+        "src/images/audit/*.ts",
+        "src/images/maintenance/*.ts",
+        "src/images/upload/*.ts",
+        "src/tests/**/*.ts",
+        "scripts/*.ts",
+        "**/*.test.ts"
+      ],
+      "project": ["src/**/*.ts", "scripts/**/*.ts"],
+      "ignoreDependencies": ["@types/bun", "pino-pretty"]
+    },
+    "frontend": {
+      "entry": [
+        "index.html",
+        "src/main.tsx",
+        "src/routeTree.gen.ts",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "playwright.config.ts",
+        "postcss.config.js",
+        "e2e/**/*.spec.ts",
+        "e2e/helpers/*.ts",
+        "**/*.test.{ts,tsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts"],
+      "vite": true,
+      "vitest": true,
+      "playwright": true,
+      "ignoreDependencies": ["@tanstack/router-cli", "@tanstack/react-router-devtools", "katex"]
+    },
+    "shared": {
+      "entry": ["src/index.ts", "**/*.test.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

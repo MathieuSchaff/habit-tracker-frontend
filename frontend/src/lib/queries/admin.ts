@@ -4,7 +4,6 @@ import type {
   ModerateProfileInput,
   ReportStatus,
   ResolveReportInput,
-  UpdateBanInput,
 } from '@habit-tracker/shared'
 
 type ModerateTarget = 'reviews' | 'threads' | 'replies'
@@ -122,25 +121,6 @@ export function useLiftBan(userId: string) {
       const res = await api.admin.bans[':banId'].$delete({ param: { banId } })
       if (!res.ok) throw new Error('Failed to lift ban')
       return banId
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: adminKeys.userBans(userId) })
-    },
-  })
-}
-
-export function useUpdateBan(userId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ banId, body }: { banId: string; body: UpdateBanInput }) => {
-      const res = await api.admin.bans[':banId'].$patch({
-        param: { banId },
-        json: body,
-      })
-      if (!res.ok) throw new Error('Failed to update ban')
-      const json = await res.json()
-      if (!json.success) throw new Error('Update ban error')
-      return json.data
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.userBans(userId) })

@@ -11,7 +11,7 @@ export const SKINCARE_INGREDIENT_TAG_CATEGORIES = [
 
 export type SkincareIngredientTagCategory = (typeof SKINCARE_INGREDIENT_TAG_CATEGORIES)[number]
 
-export interface SkincareIngredientTagMeta {
+interface SkincareIngredientTagMeta {
   category: SkincareIngredientTagCategory
 }
 

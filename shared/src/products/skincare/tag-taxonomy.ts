@@ -143,7 +143,7 @@ const SKINCARE_PRODUCT_TAG_LABELS: Record<SkincareProductTagSlug, string> = {
 
 // Concern groups are display-only — DB stores flat concern slugs.
 // Frontend reads SKINCARE_PRODUCT_CONCERN_GROUPS to render two sub-sections.
-export const SKINCARE_PRODUCT_CONCERN_GROUP_KEYS = ['functional', 'aesthetic'] as const
+const SKINCARE_PRODUCT_CONCERN_GROUP_KEYS = ['functional', 'aesthetic'] as const
 export type SkincareProductConcernGroup = (typeof SKINCARE_PRODUCT_CONCERN_GROUP_KEYS)[number]
 
 const CONCERN_FUNCTIONAL: SkincareProductTagSlug[] = [
@@ -263,7 +263,7 @@ const SENSATION: SkincareProductTagSlug[] = [
 // product_characteristic groups are display-only — DB stores flat slugs with
 // type='product_characteristic'. Frontend reads SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS
 // to render four sub-sections (tolerance / ethique / technique / comedogenicite).
-export const SKINCARE_PRODUCT_CHARACTERISTIC_GROUP_KEYS = [
+const SKINCARE_PRODUCT_CHARACTERISTIC_GROUP_KEYS = [
   'tolerance',
   'ethique',
   'technique',

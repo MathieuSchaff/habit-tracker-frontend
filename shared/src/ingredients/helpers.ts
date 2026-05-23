@@ -82,8 +82,8 @@ export function getIngredientTagsByCategory(
 // Tag axes are the union of all four domains so a single endpoint serves any
 // selected `ingredient_type`. Coerce because query params arrive as strings.
 
-export const INGREDIENT_SORT_VALUES = ['name', 'random'] as const
-export const ingredientSortEnum = z.enum(INGREDIENT_SORT_VALUES)
+const INGREDIENT_SORT_VALUES = ['name', 'random'] as const
+const ingredientSortEnum = z.enum(INGREDIENT_SORT_VALUES)
 export type IngredientSort = z.infer<typeof ingredientSortEnum>
 
 export const listIngredientsSearchSchema = z.object({
@@ -117,12 +117,12 @@ export type ListIngredientsSearchFilters = z.infer<typeof listIngredientsSearchS
 // Flat array — each tag row carries its category + count. One shape works for
 // every domain; frontend partitions by `category` to drive drawer chips.
 
-export const ingredientFilterOptionsTagSchema = tagItemSchema.extend({
+const ingredientFilterOptionsTagSchema = tagItemSchema.extend({
   category: z.string(),
   count: z.number().int().nonnegative(),
 })
 
-export const ingredientFilterOptionsSchema = z.object({
+const ingredientFilterOptionsSchema = z.object({
   tags: z.array(ingredientFilterOptionsTagSchema),
 })
 

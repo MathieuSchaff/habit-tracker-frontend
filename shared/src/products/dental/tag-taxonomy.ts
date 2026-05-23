@@ -11,11 +11,6 @@ export const DENTAL_PRODUCT_TAG_CATEGORIES = [
 
 export type DentalProductTagCategory = (typeof DENTAL_PRODUCT_TAG_CATEGORIES)[number]
 
-export interface DentalProductTagMeta {
-  category: DentalProductTagCategory
-  label: string
-}
-
 const DENTAL_PRODUCT_TAG_LABELS: Record<DentalProductTagSlug, string> = {
   // Concerns
   [DENTAL_PRODUCT_TAG_SLUGS.CARIE]: 'Carie',

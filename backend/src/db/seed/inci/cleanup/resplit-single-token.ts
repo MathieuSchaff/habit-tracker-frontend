@@ -1,4 +1,3 @@
-// fallow-ignore-file unused-file
 // One-shot: re-tokenize single-line INCI strings whose scraper lost separators.
 // Two strategies: (1) trivial-separator split for " - " / " • " / " / " forms,
 // (2) longest-match against algo-derm alias index for uppercase blobs.
@@ -56,7 +55,6 @@ function trivialSplit(inci: string): string[] | null {
 // words into a single trailing token until next match.
 const MAX_WINDOW = 5
 
-// fallow-ignore-next-line cognitive_crap
 function longestMatchSplit(inci: string): string[] | null {
   const stripped = inci.replace(LEADING_PREFIX_RX, '').trim()
   const words = stripped.split(/\s+/).filter((w) => w.length > 0)

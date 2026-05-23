@@ -5,13 +5,14 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
 import { Select } from '@/component/Input/Select/Select'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { useConfirm } from '@/features/admin/useConfirm'
-import { formatInstant, formatRelative } from '@/lib/dates'
+import { parseDatetimeLocalAsUTC } from '@/lib/dates'
 import {
   adminQueries,
   useCreateBan,
@@ -71,9 +72,7 @@ export function AdminUserDetailPage() {
           <p className="admin-page__lede">
             {user.role === 'admin' ? 'Administrateur' : 'Utilisateur'} —{' '}
             {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'} — créé{' '}
-            <time dateTime={user.createdAt} title={formatInstant(user.createdAt, 'long')}>
-              {formatRelative(user.createdAt)}
-            </time>
+            <Time iso={user.createdAt} relative />
           </p>
         </div>
         <Link to="/admin/users" className="admin-table__row-link">
@@ -103,7 +102,7 @@ function CreateBanCard({ userId }: { userId: string }) {
     const body: CreateBanInput = { scope }
     if (reason.trim().length > 0) body.reason = reason.trim()
     if (expiresAt) {
-      body.expiresAt = new Date(expiresAt).toISOString()
+      body.expiresAt = parseDatetimeLocalAsUTC(expiresAt)
     }
     const ok = await confirm({
       title: 'Appliquer ce ban ?',
@@ -220,19 +219,9 @@ function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
                   <span className="admin-pill admin-pill--banned">{b.scope}</span>
                 </td>
                 <td>{b.reason ?? <em>—</em>}</td>
+                <td>{b.expiresAt ? <Time iso={b.expiresAt} relative /> : 'Permanent'}</td>
                 <td>
-                  {b.expiresAt ? (
-                    <time dateTime={b.expiresAt} title={formatInstant(b.expiresAt, 'long')}>
-                      {formatRelative(b.expiresAt)}
-                    </time>
-                  ) : (
-                    'Permanent'
-                  )}
-                </td>
-                <td>
-                  <time dateTime={b.createdAt} title={formatInstant(b.createdAt, 'long')}>
-                    {formatRelative(b.createdAt)}
-                  </time>
+                  <Time iso={b.createdAt} relative />
                 </td>
                 <td>
                   <Button

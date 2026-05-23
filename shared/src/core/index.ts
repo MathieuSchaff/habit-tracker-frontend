@@ -47,7 +47,7 @@ export type ApiError<E extends string = string> = {
   details?: unknown
 }
 
-/* Always narrow with isApiSuccess/isApiError before accessing data or error. */
+/* Always narrow with isApiSuccess before accessing data or error. */
 export type ApiResponse<T, E extends string = string> = ApiSuccess<T> | ApiError<E>
 
 export type CommonErrorCode = keyof typeof baseErrorMapping
@@ -128,9 +128,3 @@ export const safeUrl = z
   .url()
   .max(2000)
   .refine((v) => /^https?:\/\//.test(v), { message: 'URL must use http or https protocol' })
-
-export const isApiError = <T, E extends string>(
-  response: ApiResponse<T, E>
-): response is ApiError<E> => {
-  return response.success === false
-}

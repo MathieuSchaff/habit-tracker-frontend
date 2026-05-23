@@ -37,7 +37,7 @@ const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
 
 const DEFAULT_DISPLAY_SCALE: DisplayScale = 'out_of_20'
 
-export function toProfilePublic(profile: Profile): ProfilePublic {
+function toProfilePublic(profile: Profile): ProfilePublic {
   return {
     userId: profile.userId,
     username: profile.username,

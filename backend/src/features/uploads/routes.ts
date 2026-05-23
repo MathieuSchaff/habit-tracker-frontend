@@ -25,7 +25,7 @@ app.use('*', withRlsContext)
 app.use('*', bodyLimit({ maxSize: 1_048_576 }))
 
 function appendCacheBust(url: string, updatedAt: string): string {
-  return `${url}?v=${Math.floor(new Date(updatedAt).getTime() / 1000)}`
+  return `${url}?v=${Math.floor(Date.parse(updatedAt) / 1000)}`
 }
 
 function handleUploadError(c: Context<AppEnv>, e: unknown) {

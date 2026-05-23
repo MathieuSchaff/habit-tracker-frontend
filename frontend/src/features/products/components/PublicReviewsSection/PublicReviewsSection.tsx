@@ -4,6 +4,7 @@ import { reviewAxisKeys } from '@habit-tracker/shared'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { productQueries } from '@/lib/queries/products'
@@ -42,17 +43,6 @@ function formatBucketLine(agg: ReviewAxisAggregate): string {
   if (agg.mid > 0) parts.push(`${agg.mid} ${BUCKET_LABELS.mid}${agg.mid > 1 ? 's' : ''}`)
   if (agg.low > 0) parts.push(`${agg.low} ${BUCKET_LABELS.low}${agg.low > 1 ? 's' : ''}`)
   return parts.join(', ')
-}
-
-function formatReviewDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-    })
-  } catch {
-    return ''
-  }
 }
 
 function ReviewerName({ reviewer }: { reviewer: PublicReviewView['reviewer'] }) {
@@ -138,9 +128,11 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
                 <li key={review.id} className="public-reviews__verbatim">
                   <header className="public-reviews__verbatim-header">
                     <ReviewerName reviewer={review.reviewer} />
-                    <time className="public-reviews__verbatim-date" dateTime={review.createdAt}>
-                      {formatReviewDate(review.createdAt)}
-                    </time>
+                    <Time
+                      iso={review.createdAt}
+                      style="monthYear"
+                      className="public-reviews__verbatim-date"
+                    />
                     {isAuthenticated && (
                       <ReportContentButton targetType="review" targetId={review.id} />
                     )}

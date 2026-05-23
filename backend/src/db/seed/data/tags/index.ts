@@ -31,12 +31,9 @@ import {
 // `@habit-tracker/shared` directly. Each consumer imports only the maps whose
 // keys it actually uses — TS catches wrong-domain slugs at compile time.
 export {
-  DENTAL_INGREDIENT_TAG_SLUGS,
   DENTAL_PRODUCT_TAG_SLUGS,
-  HAIRCARE_INGREDIENT_TAG_SLUGS,
   HAIRCARE_PRODUCT_TAG_SLUGS,
   SKINCARE_INGREDIENT_TAG_SLUGS,
-  SKINCARE_PRODUCT_TAG_SLUGS,
   SUPPLEMENT_INGREDIENT_TAG_SLUGS,
   SUPPLEMENT_PRODUCT_TAG_SLUGS,
 } from '@habit-tracker/shared'
