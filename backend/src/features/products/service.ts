@@ -158,6 +158,20 @@ const TRACKED_FIELDS = [
   'priceCents',
 ] as const
 
+// Fields consumed by the auto-tag orchestrator (`OrchestratorInput`). A change
+// to any of these can shift the detected tag set, so updateProduct retags
+// whenever one moves. Keep in sync with `OrchestratorInput` in
+// backend/src/features/auto-tagging/orchestrator.ts.
+const AUTOTAG_INPUT_FIELDS = [
+  'inci',
+  'kind',
+  'category',
+  'brand',
+  'texture',
+  'name',
+  'description',
+] as const satisfies readonly (typeof TRACKED_FIELDS)[number][]
+
 function isColumnLike(obj: unknown): obj is { name: string } {
   return (
     typeof obj === 'object' &&
@@ -243,7 +257,7 @@ export async function updateProduct(
     changes,
   })
 
-  if (changes.inci !== undefined) {
+  if (AUTOTAG_INPUT_FIELDS.some((f) => changes[f] !== undefined)) {
     await writeTagsForProductFailSoft(database, id, { operation: 'update', userId })
   }
 

@@ -1,0 +1,1 @@
+ALTER TABLE "tag_products" ADD COLUMN "source" text DEFAULT 'manual' NOT NULL;

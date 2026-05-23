@@ -1,4 +1,4 @@
-import { relevanceValues } from '@habit-tracker/shared'
+import { relevanceValues, type TagSource } from '@habit-tracker/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -79,6 +79,12 @@ export const tagProducts = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     relevance: relevanceEnum('relevance').notNull().default('secondary'),
+    // Origin of the row — `manual` (any product-tags CRUD path) or one of the
+    // AutoTagSource values produced by the auto-tag orchestrator. Auto-tag
+    // intake deletes only rows where source != 'manual' before re-inserting,
+    // so manual curation survives retag cycles. Default 'manual' makes the
+    // pre-existing rows safe through the migration.
+    source: text('source').$type<TagSource>().notNull().default('manual'),
   },
   (t) => [primaryKey({ columns: [t.productTagId, t.productId] })]
 )

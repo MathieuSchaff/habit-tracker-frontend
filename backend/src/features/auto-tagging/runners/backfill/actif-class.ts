@@ -104,7 +104,12 @@ async function main() {
       .from(products)
       .where(eq(products.category, 'skincare'))
 
-    const prodPairs: { productId: string; productTagId: string; relevance: 'secondary' }[] = []
+    const prodPairs: {
+      productId: string
+      productTagId: string
+      relevance: 'secondary'
+      source: 'actif-class'
+    }[] = []
     let withClusters = 0
     for (const p of skincareProducts) {
       const clusters = detectActifClasses(p.inci)
@@ -112,7 +117,12 @@ async function main() {
       for (const slug of clusters) {
         const tId = productTagIdBySlug.get(slug)
         if (!tId) continue
-        prodPairs.push({ productId: p.id, productTagId: tId, relevance: 'secondary' })
+        prodPairs.push({
+          productId: p.id,
+          productTagId: tId,
+          relevance: 'secondary',
+          source: 'actif-class',
+        })
       }
     }
 

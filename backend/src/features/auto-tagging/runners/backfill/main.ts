@@ -417,10 +417,11 @@ async function insertNewPairs(toInsert: Candidate[]): Promise<number> {
     await db
       .insert(tagProducts)
       .values(
-        chunk.map(({ productId, productTagId, relevance }) => ({
+        chunk.map(({ productId, productTagId, relevance, source }) => ({
           productId,
           productTagId,
           relevance,
+          source,
         }))
       )
       .onConflictDoNothing()
@@ -437,7 +438,7 @@ async function insertNewPairs(toInsert: Candidate[]): Promise<number> {
 //    - avoid over secondary/primary  (safety signal must win)
 //    - primary over secondary        (kind-derived headline promotion)
 // Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
-// EXCLUDED.relevance so the upserted value matches what we inserted.
+// EXCLUDED.{relevance, source} so the upserted values match what we inserted.
 async function upsertExistingPairs(toUpsert: Candidate[]): Promise<number> {
   let upserted = 0
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
@@ -445,15 +446,16 @@ async function upsertExistingPairs(toUpsert: Candidate[]): Promise<number> {
     await db
       .insert(tagProducts)
       .values(
-        chunk.map(({ productId, productTagId, relevance }) => ({
+        chunk.map(({ productId, productTagId, relevance, source }) => ({
           productId,
           productTagId,
           relevance,
+          source,
         }))
       )
       .onConflictDoUpdate({
         target: [tagProducts.productTagId, tagProducts.productId],
-        set: { relevance: sql`excluded.relevance` },
+        set: { relevance: sql`excluded.relevance`, source: sql`excluded.source` },
       })
     upserted += chunk.length
   }

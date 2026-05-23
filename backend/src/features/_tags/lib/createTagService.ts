@@ -29,7 +29,14 @@ export interface TagServiceConfig {
 
   // Insert payload shape for the link table (renames generic ownerId/tagId to
   // domain columns: productId/productTagId vs ingredientId/ingredientTagId).
-  buildLinkValues: (ownerId: string, tagId: string, relevance: Relevance) => Record<string, unknown>
+  // `source` is product-only — the ingredient impl drops it. Default 'manual'
+  // when omitted so non-auto-tag callers don't have to opt in.
+  buildLinkValues: (
+    ownerId: string,
+    tagId: string,
+    relevance: Relevance,
+    source?: string
+  ) => Record<string, unknown>
 
   // Drizzle select map for listTagsByOwner — encodes the projection
   // key-renames that the public surface contract requires.
@@ -114,12 +121,13 @@ export function createTagService<TDef, TOwnerRow, TProjectionRow, TLinkRow>(cfg:
     db: DB,
     ownerId: string,
     tagId: string,
-    relevance: Relevance = 'secondary'
+    relevance: Relevance = 'secondary',
+    source?: string
   ): Promise<TLinkRow> {
     const [link] = await db
       // biome-ignore lint/suspicious/noExplicitAny: generic Drizzle link table.
       .insert(cfg.links as any)
-      .values(cfg.buildLinkValues(ownerId, tagId, relevance))
+      .values(cfg.buildLinkValues(ownerId, tagId, relevance, source))
       .returning()
     return link as TLinkRow
   }
@@ -127,12 +135,13 @@ export function createTagService<TDef, TOwnerRow, TProjectionRow, TLinkRow>(cfg:
   async function addManyToOwner(
     db: DB,
     ownerId: string,
-    tagsInput: TagInputItem[]
+    tagsInput: TagInputItem[],
+    source?: string
   ): Promise<TLinkRow[]> {
     if (tagsInput.length === 0) return []
     const values = tagsInput.map((t) => {
-      if (typeof t === 'string') return cfg.buildLinkValues(ownerId, t, 'secondary')
-      return cfg.buildLinkValues(ownerId, t.tagId, t.relevance ?? 'secondary')
+      if (typeof t === 'string') return cfg.buildLinkValues(ownerId, t, 'secondary', source)
+      return cfg.buildLinkValues(ownerId, t.tagId, t.relevance ?? 'secondary', source)
     })
     const rows = await db
       // biome-ignore lint/suspicious/noExplicitAny: generic Drizzle link table.
@@ -173,14 +182,15 @@ export function createTagService<TDef, TOwnerRow, TProjectionRow, TLinkRow>(cfg:
   async function replaceOwnerTags(
     db: DB,
     ownerId: string,
-    tagsInput: TagInputItem[]
+    tagsInput: TagInputItem[],
+    source?: string
   ): Promise<TLinkRow[]> {
     return db.transaction(async (tx) => {
       await tx.delete(cfg.links).where(eq(cfg.linkOwnerIdCol, ownerId))
       if (tagsInput.length === 0) return [] as TLinkRow[]
       const values = tagsInput.map((t) => {
-        if (typeof t === 'string') return cfg.buildLinkValues(ownerId, t, 'secondary')
-        return cfg.buildLinkValues(ownerId, t.tagId, t.relevance ?? 'secondary')
+        if (typeof t === 'string') return cfg.buildLinkValues(ownerId, t, 'secondary', source)
+        return cfg.buildLinkValues(ownerId, t.tagId, t.relevance ?? 'secondary', source)
       })
       const rows = await tx
         // biome-ignore lint/suspicious/noExplicitAny: generic Drizzle link table.
