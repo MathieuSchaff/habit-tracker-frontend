@@ -15,7 +15,7 @@ import {
   type ProductTexture,
 } from '@habit-tracker/shared'
 
-import { eq } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { DB } from '../../db/index'
@@ -105,19 +105,35 @@ async function writeTagsForProduct(productId: string, database: DB = db): Promis
     { brandCertifications: brandCertMap }
   )
 
-  if (pairs.length === 0) return { inserted: 0, detected: 0 }
-
   const rows = pairs.flatMap((pair) => {
     const info = tagSlugToInfo.get(pair.tagSlug)
     if (!info || !validTagTypes.includes(info.tagType)) return []
-    return [{ productId: product.id, productTagId: info.id, relevance: pair.relevance }]
+    return [
+      {
+        productId: product.id,
+        productTagId: info.id,
+        relevance: pair.relevance,
+        source: pair.source,
+      },
+    ]
   })
 
-  if (rows.length === 0) return { inserted: 0, detected: pairs.length }
+  // Replace this product's auto-tag rows atomically so a shrunk INCI drops
+  // the now-invalid tags. Manual rows (source = 'manual') are preserved —
+  // they live under a separate CRUD path (createTagService) and must not be
+  // wiped by a retag. Inside a transaction so a partial state is never
+  // visible to readers.
+  return database.transaction(async (tx) => {
+    await tx
+      .delete(tagProducts)
+      .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
 
-  await database.insert(tagProducts).values(rows).onConflictDoNothing()
+    if (rows.length === 0) return { inserted: 0, detected: pairs.length }
 
-  return { inserted: rows.length, detected: pairs.length }
+    await tx.insert(tagProducts).values(rows).onConflictDoNothing()
+
+    return { inserted: rows.length, detected: pairs.length }
+  })
 }
 
 // Frozen contract — `computeFingerprint` keys on this string. See ADR-0002.

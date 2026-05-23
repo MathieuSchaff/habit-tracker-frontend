@@ -12,6 +12,7 @@ import type {
   RoutineTag,
   SkincareIngredientCategory,
   SupplementCategory,
+  TagSource,
   UserProductStatus,
 } from '@habit-tracker/shared'
 
@@ -116,6 +117,7 @@ export function makeUserProduct(
         productTagId: string
         productId: string
         relevance: 'primary' | 'secondary' | 'avoid'
+        source: TagSource
         productTag: {
           id: string
           slug: string

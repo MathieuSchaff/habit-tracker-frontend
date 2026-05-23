@@ -348,6 +348,8 @@ export {
   relevanceValues,
   replaceIngredientTagsSchema,
   replaceProductTagsSchema,
+  type TagSource,
+  tagSourceValues,
   type UpdateTagInput,
   updateTagSchema,
 } from './tags'

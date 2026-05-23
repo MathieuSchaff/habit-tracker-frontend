@@ -219,10 +219,12 @@ export async function seedCore(shouldClean = false) {
     }
     const correctedIngredientData = ingredientValidation.fixed
 
-    // Prepare relation pairs (pure data, no DB) so we can validate before the transaction
+    // Prepare relation pairs (pure data, no DB) so we can validate before the transaction.
+    // `source: 'manual'` marks curated rows so a later auto-tag retag preserves them
+    // (write.ts deletes only `source != 'manual'` for the product).
     const manualProductTagPairs = flattenTagGroups(
       allProductTagsMap as Record<string, ProductTagGroups>
-    )
+    ).map((p) => ({ ...p, source: 'manual' as const }))
 
     // Auto-derive product tags via the shared orchestrator: 6 detection passes
     // (algo-derm, actif-class, kind, formula, cross-signal, avoid) running on
@@ -268,8 +270,18 @@ export async function seedCore(shouldClean = false) {
       'cross-signal': 0,
       interaction: 0,
     }
-    const autoSecondaryPairs: { slug: string; tagSlug: string; relevance: 'secondary' }[] = []
-    const avoidPairs: { slug: string; tagSlug: string; relevance: 'avoid' }[] = []
+    const autoSecondaryPairs: {
+      slug: string
+      tagSlug: string
+      relevance: 'secondary'
+      source: string
+    }[] = []
+    const avoidPairs: {
+      slug: string
+      tagSlug: string
+      relevance: 'avoid'
+      source: string
+    }[] = []
     const percentClaimsByProduct = new Map<
       string,
       {
@@ -307,13 +319,19 @@ export async function seedCore(shouldClean = false) {
       for (const p of pairs) {
         if (p.relevance === 'avoid') {
           avoidBySource[p.source] = (avoidBySource[p.source] ?? 0) + 1
-          avoidPairs.push({ slug: product.slug, tagSlug: p.tagSlug, relevance: 'avoid' })
+          avoidPairs.push({
+            slug: product.slug,
+            tagSlug: p.tagSlug,
+            relevance: 'avoid',
+            source: p.source,
+          })
         } else {
           secondaryBySource[p.source] = (secondaryBySource[p.source] ?? 0) + 1
           autoSecondaryPairs.push({
             slug: product.slug,
             tagSlug: p.tagSlug,
             relevance: 'secondary',
+            source: p.source,
           })
         }
       }
@@ -505,12 +523,13 @@ export async function seedCore(shouldClean = false) {
     await seedBatch(
       'productTags',
       productTagPairsToInsert,
-      ({ slug, tagSlug, relevance }) =>
+      ({ slug, tagSlug, relevance, source }) =>
         addTagToProduct(
           tx,
           requireId(productSlugToId, slug, 'product'),
           requireId(productTagSlugToId, tagSlug, 'productTag'),
-          relevance
+          relevance,
+          source
         ),
       ({ slug, tagSlug }) => `${slug} ↔ ${tagSlug}`
     )

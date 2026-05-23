@@ -29,10 +29,14 @@ const service = createTagService<ProductTagDef, Product, ProductTagProjection, P
   ownerIdCol: products.id,
   ownerNameCol: products.name,
 
-  buildLinkValues: (productId, productTagId, relevance) => ({
+  // Default 'manual' covers the CRUD route + tests that don't opt into a
+  // source; auto-tag callers (write.ts, seed-core, backfill runner) pass
+  // the originating AutoTagSource explicitly.
+  buildLinkValues: (productId, productTagId, relevance, source) => ({
     productId,
     productTagId,
     relevance,
+    source: source ?? 'manual',
   }),
   linkProjection: {
     productTagId: tagProducts.productTagId,
