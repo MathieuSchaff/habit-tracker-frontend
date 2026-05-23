@@ -3,7 +3,7 @@ import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
 import { computeCommon } from './aggregations'
 
 // Aurore UX doctrine: never show a percentage or score. Qualitative bands only.
-export type CompatibilityBand = 'close' | 'mixed' | 'distinct'
+type CompatibilityBand = 'close' | 'mixed' | 'distinct'
 
 export type CompatibilitySummary = {
   band: CompatibilityBand

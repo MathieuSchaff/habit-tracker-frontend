@@ -15,7 +15,7 @@ import { createTagService } from '../_tags/lib/createTagService'
 
 type IngredientTagLink = typeof tagIngredients.$inferSelect
 
-export interface IngredientTagProjection {
+interface IngredientTagProjection {
   ingredientTagId: string
   ingredientId: string
   relevance: 'primary' | 'secondary' | 'avoid'

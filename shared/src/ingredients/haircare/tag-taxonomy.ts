@@ -9,7 +9,7 @@ export const HAIRCARE_INGREDIENT_TAG_CATEGORIES = [
 
 export type HaircareIngredientTagCategory = (typeof HAIRCARE_INGREDIENT_TAG_CATEGORIES)[number]
 
-export interface HaircareIngredientTagMeta {
+interface HaircareIngredientTagMeta {
   category: HaircareIngredientTagCategory
 }
 
@@ -85,9 +85,3 @@ export const HAIRCARE_INGREDIENT_TAG_TAXONOMY = Object.fromEntries(entries) as R
   HaircareIngredientTagSlug,
   HaircareIngredientTagMeta
 >
-
-export function getHaircareIngredientTagCategory(
-  slug: HaircareIngredientTagSlug
-): HaircareIngredientTagCategory | undefined {
-  return HAIRCARE_INGREDIENT_TAG_TAXONOMY[slug]?.category
-}

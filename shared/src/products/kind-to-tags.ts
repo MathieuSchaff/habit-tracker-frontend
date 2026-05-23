@@ -1,11 +1,8 @@
 // Deterministic kind → product tag mapping. 1:1 (with shared TYPE_* targets):
 // every `products.kind` value maps to a fixed list of `SkincareProductTagSlug`
-// where index 0 is always the headline TYPE_* slug. Consumed by:
-//   - backend orchestrator (secondary auto-tags via detectKindTags +
-//     primary promotion via detectKindPrimaryType)
-//   - frontend/backend filter pipeline (kindsForTypeSlug — reverse lookup so
-//     `WHERE kind IN (...)` queries can filter by TYPE_* axis without a tag
-//     join)
+// where index 0 is always the headline TYPE_* slug. Consumed by the backend
+// orchestrator: `detectKindTags` (secondary auto-tags) and
+// `detectKindPrimaryType` (primary promotion).
 //
 // Single source of truth — adding a kind without a row here means it gets no
 // type tag and is invisible to TYPE_* filters.
@@ -15,7 +12,7 @@ import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from './skinc
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-export const KIND_TO_TAGS: Partial<Record<ProductKind, SkincareProductTagSlug[]>> = {
+const KIND_TO_TAGS: Partial<Record<ProductKind, SkincareProductTagSlug[]>> = {
   // Face skincare
   serum: [S.TYPE_SERUM, S.STEP_TRAITEMENT, S.ZONE_VISAGE],
   moisturizer: [S.TYPE_HYDRATANT, S.STEP_HYDRATATION, S.ZONE_VISAGE],
@@ -60,35 +57,4 @@ export function detectKindPrimaryType(kind: ProductKind): SkincareProductTagSlug
   const slugs = KIND_TO_TAGS[kind]
   const first = slugs?.[0]
   return first?.startsWith('type-') ? first : null
-}
-
-// Reverse lookup — drives the P2 filter swap: a request asking for `type-serum`
-// resolves to `kind IN ('serum', 'oil')`. Built lazily on first call.
-let kindsByTypeCache: Map<SkincareProductTagSlug, ProductKind[]> | null = null
-
-function buildKindsByType(): Map<SkincareProductTagSlug, ProductKind[]> {
-  const map = new Map<SkincareProductTagSlug, ProductKind[]>()
-  for (const [kind, slugs] of Object.entries(KIND_TO_TAGS) as [
-    ProductKind,
-    SkincareProductTagSlug[],
-  ][]) {
-    const headline = slugs[0]
-    if (!headline?.startsWith('type-')) continue
-    const list = map.get(headline) ?? []
-    list.push(kind)
-    map.set(headline, list)
-  }
-  return map
-}
-
-export function kindsForTypeSlug(typeSlug: SkincareProductTagSlug): ProductKind[] {
-  if (!kindsByTypeCache) kindsByTypeCache = buildKindsByType()
-  return kindsByTypeCache.get(typeSlug) ?? []
-}
-
-// Type slugs that the catalogue can serve (i.e. at least one kind maps to it).
-// Drives filter dropdown options + zod enum validation for the query param.
-export function availableTypeSlugs(): SkincareProductTagSlug[] {
-  if (!kindsByTypeCache) kindsByTypeCache = buildKindsByType()
-  return [...kindsByTypeCache.keys()]
 }

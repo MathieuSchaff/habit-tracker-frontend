@@ -30,15 +30,12 @@ import {
 import { trackError } from '../errors'
 import { detectAllAutoTags } from './orchestrator'
 
-export interface WriteTagsResult {
+interface WriteTagsResult {
   inserted: number
   detected: number
 }
 
-export async function writeTagsForProduct(
-  productId: string,
-  database: DB = db
-): Promise<WriteTagsResult> {
+async function writeTagsForProduct(productId: string, database: DB = db): Promise<WriteTagsResult> {
   const [product] = await database
     .select({
       id: products.id,
@@ -150,8 +147,8 @@ export async function recordAutoTagSkip(
   })
 }
 
-// Intake-only fail-soft wrapper. Seed-core and the backfill runner still call
-// `writeTagsForProduct` directly so failures propagate to their operator.
+// Intake-only fail-soft wrapper. Seed-core and the backfill runner call
+// `detectAllAutoTags` directly so their failures still propagate.
 export async function writeTagsForProductFailSoft(
   database: DB,
   productId: string,

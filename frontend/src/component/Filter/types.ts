@@ -15,7 +15,7 @@ export type AsyncSearchQueryFactory<TInput, TFnData = FilterOption[]> = (
   // biome-ignore lint/suspicious/noExplicitAny: see comment above
 ) => UseQueryOptions<TFnData, Error, FilterOption[], any>
 
-export type FilterFieldConfig<T extends string> = {
+type FilterFieldConfig<T extends string> = {
   key: T
   label: string
   placeholder: string

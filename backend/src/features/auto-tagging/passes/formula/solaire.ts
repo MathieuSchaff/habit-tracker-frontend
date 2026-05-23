@@ -38,7 +38,7 @@ const CHEMICAL_FILTER_PATTERNS = [
 const MINERAL_FILTER_PATTERNS = ['zinc oxide', 'titanium dioxide']
 
 // `kind` values that are sunscreen products
-export const SOLAIRE_KINDS = new Set<ProductKind>(['sunscreen', 'after-sun', 'self-tanner'])
+const SOLAIRE_KINDS = new Set<ProductKind>(['sunscreen', 'after-sun', 'self-tanner'])
 
 export function detectSolaireTags(
   inci: string | null | undefined,

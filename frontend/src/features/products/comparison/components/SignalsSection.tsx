@@ -9,6 +9,10 @@ import './SignalsSection.css'
 
 type Props = { products: EnrichedComparisonProduct[] }
 
+export const SIGNALS_LABELS = {
+  sharedActives: 'Actifs partagés',
+} as const
+
 type CardProps = {
   tone: 'actives' | 'alerts' | 'conflicts'
   title: string
@@ -56,7 +60,7 @@ export function SignalsSection({ products }: Props) {
         {actives.length > 0 && (
           <SignalCard
             tone="actives"
-            title="Actifs partagés"
+            title={SIGNALS_LABELS.sharedActives}
             hint="Présents dans toutes les formules"
             count={actives.length}
             icon={<Sparkle size={16} aria-hidden="true" />}

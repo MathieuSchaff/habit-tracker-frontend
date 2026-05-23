@@ -1,6 +1,6 @@
 // Product Categories
 
-export const PRODUCT_CATEGORIES = {
+const PRODUCT_CATEGORIES = {
   SKINCARE: 'skincare',
   SOLAIRE: 'solaire',
   COMPLEMENT: 'complement',

@@ -2,10 +2,9 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/component/Button/Button'
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { comparisonQueries, useDeleteComparison } from '@/lib/queries/comparisons'
 import './ComparisonsListPage.css'
-
-const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' })
 
 export function ComparisonsListPage() {
   const { data: comparisons } = useSuspenseQuery(comparisonQueries.list())
@@ -43,9 +42,7 @@ export function ComparisonsListPage() {
                   <span className="comparison-card__count-badge">
                     {c.productCount} produit{c.productCount > 1 ? 's' : ''}
                   </span>
-                  <span className="comparison-card__date">
-                    {dateFormatter.format(new Date(c.createdAt))}
-                  </span>
+                  <Time iso={c.createdAt} style="medium" className="comparison-card__date" />
                 </div>
               </Link>
               <div className="comparison-card__footer">

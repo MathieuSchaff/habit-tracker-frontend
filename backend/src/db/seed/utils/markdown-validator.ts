@@ -31,7 +31,7 @@ export interface IngredientSeed {
   content: string
 }
 
-export interface ValidationResult {
+interface ValidationResult {
   name: string
   slug: string
   valid: boolean

@@ -3,7 +3,6 @@ import type { z } from 'zod'
 import type {
   createIngredientSchema,
   ingredientChangesSchema,
-  ingredientResponseSchema,
   updateIngredientRouteSchema,
   updateIngredientSchema,
 } from './schemas'
@@ -13,7 +12,6 @@ import type {
 // z.infer<> aliases for all ingredient schemas
 export type CreateIngredientInput = z.infer<typeof createIngredientSchema>
 export type UpdateIngredientInput = z.infer<typeof updateIngredientSchema>
-export type IngredientResponse = z.infer<typeof ingredientResponseSchema>
 // IngredientChanges = the Zod-validated change payload (used for API + DB column type)
 export type IngredientChanges = z.infer<typeof ingredientChangesSchema>
 export type UpdateIngredientRouteInput = z.infer<typeof updateIngredientRouteSchema>

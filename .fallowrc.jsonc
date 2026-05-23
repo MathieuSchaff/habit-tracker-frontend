@@ -1,7 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
 
-  // Extra entry points beyond package.json scripts (seed scripts are run directly)
+  // Entry points beyond package.json scripts: bun:test / vitest / playwright discover their files
+  // implicitly, and many CLI scripts are launched via `bun run path/to/script.ts` (justfile recipes,
+  // ad-hoc tooling). Listing them explicitly stops fallow from treating them as unreachable.
   "entry": [
     "backend/src/db/seed/runners/*.ts",
     "backend/src/db/seed/scripts/**/*.ts",
@@ -9,10 +11,38 @@
     "backend/src/db/migrate.ts",
     "backend/drizzle.config.ts",
     "frontend/src/main.tsx",
-    "frontend/src/router.tsx"
+    "frontend/src/router.tsx",
+
+    // bun:test discovers these
+    "backend/src/**/*.test.ts",
+    "backend/src/tests/**/*.ts",
+
+    // vitest frontend
+    "frontend/src/**/*.test.{ts,tsx}",
+    "frontend/vitest.config.ts",
+
+    // playwright e2e
+    "frontend/e2e/**/*.spec.ts",
+    "frontend/playwright.config.ts",
+
+    // CLI scripts run via bun directly or justfile recipes
+    "backend/src/db/audit/**/*.ts",
+    "backend/src/db/seed/maintenance/**/*.ts",
+    "backend/src/db/seed/ingest/**/main.ts",
+    "backend/src/db/seed/inci/**/*.ts",
+    "backend/src/db/seed/seeders/**/*.ts",
+    "backend/src/images/**/*.ts",
+    "backend/src/features/auto-tagging/runners/**/*.ts",
+
+    // CSS chargé via postcss-global-data (postcss.config.js), pas via import
+    "frontend/src/styles/tokens/breakpoints.css"
   ],
 
-  // workspace packages (bun symlink) + pino-pretty (string reference in transport config)
+  // workspace packages (bun symlink), pino-pretty (string reference in transport config),
+  // NB: fallow 2.77 does not resolve the @habit-tracker/shared symlink — every export
+  // consumed via `@habit-tracker/shared` appears unused even though it isn't.
+  // Removing the flag makes it worse (fallow then flags the dependency itself as unused).
+  // Verify shared/src/* findings via grep before acting. See:
   "ignoreDependencies": ["@habit-tracker/shared", "pino-pretty"],
 
   "ignorePatterns": ["vendor/**", ".fallow/**", "**/*.d.ts", "node_modules/**"],

@@ -2,8 +2,8 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { Input } from '@/component/Input/Input'
-import { formatInstant } from '@/lib/dates'
 import { adminQueries } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
 
@@ -80,7 +80,9 @@ export function AdminUsersPage() {
                     <em>—</em>
                   )}
                 </td>
-                <td>{formatInstant(u.createdAt, 'short')}</td>
+                <td>
+                  <Time iso={u.createdAt} style="short" />
+                </td>
                 <td>
                   <Link to="/admin/users/$userId" params={{ userId: u.id }}>
                     Détails

@@ -250,7 +250,7 @@ export async function updateProduct(
   return newProduct as Product
 }
 
-export type ProductSummary = Pick<
+type ProductSummary = Pick<
   Product,
   | 'id'
   | 'slug'

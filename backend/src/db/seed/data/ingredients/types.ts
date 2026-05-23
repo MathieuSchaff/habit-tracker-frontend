@@ -8,8 +8,8 @@ import type {
 
 import type { INGREDIENT_SLUGS } from './ingredient-slugs'
 
-export type IngredientSlug = (typeof INGREDIENT_SLUGS)[keyof typeof INGREDIENT_SLUGS]
-export type IngredientCategory =
+type IngredientSlug = (typeof INGREDIENT_SLUGS)[keyof typeof INGREDIENT_SLUGS]
+type IngredientCategory =
   | SkincareIngredientCategory
   | HaircareIngredientCategory
   | DentalIngredientCategory

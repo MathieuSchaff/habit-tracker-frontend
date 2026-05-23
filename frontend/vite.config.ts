@@ -15,7 +15,8 @@ export default defineConfig({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
       quoteStyle: 'single',
-      routeFileIgnorePattern: /\.(test|spec)\.[tj]sx?$/,
+      // string pattern, not RegExp: router-generator schema is z.string() only
+      routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
     }),
     react(),
   ],

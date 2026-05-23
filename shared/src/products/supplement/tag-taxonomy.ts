@@ -11,11 +11,6 @@ export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [
 
 export type SupplementProductTagCategory = (typeof SUPPLEMENT_PRODUCT_TAG_CATEGORIES)[number]
 
-export interface SupplementProductTagMeta {
-  category: SupplementProductTagCategory
-  label: string
-}
-
 const SUPPLEMENT_PRODUCT_TAG_LABELS: Record<SupplementProductTagSlug, string> = {
   // Goals
   [SUPPLEMENT_PRODUCT_TAG_SLUGS.SOMMEIL]: 'Sommeil',

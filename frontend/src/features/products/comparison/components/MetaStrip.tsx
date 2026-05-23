@@ -7,6 +7,10 @@ import './MetaStrip.css'
 
 type Props = { products: EnrichedComparisonProduct[] }
 
+export const META_STRIP_LABELS = {
+  priceMixed: 'Prix non comparable',
+} as const
+
 const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
 
 function formatPricePer(p: EnrichedComparisonProduct): string {
@@ -62,7 +66,7 @@ export function MetaStrip({ products }: Props) {
                   ·
                 </span>
                 <span className={`cmp-shelf__price${mixed ? ' cmp-shelf__price--mixed' : ''}`}>
-                  {mixed ? 'Prix non comparable' : formatPricePer(p)}
+                  {mixed ? META_STRIP_LABELS.priceMixed : formatPricePer(p)}
                 </span>
               </p>
               <div className="cmp-shelf__badges">

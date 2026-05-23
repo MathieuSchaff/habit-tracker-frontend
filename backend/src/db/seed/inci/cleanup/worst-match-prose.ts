@@ -1,4 +1,3 @@
-// fallow-ignore-file unused-file
 // One-shot: targeted fixes for worst-match products carrying marketing prose
 // instead of real INCI content.
 //

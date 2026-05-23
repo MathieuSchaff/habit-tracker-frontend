@@ -4,10 +4,10 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Settings, Shield, Sparkles } from 'lucide-react'
 import { Suspense, useState } from 'react'
 
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
-import { formatInstant } from '@/lib/dates'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
 import {
   type CompletionStep,
@@ -93,7 +93,9 @@ export const ProfileDashboard = () => {
             {profile.createdAt && (
               <p className="profile-hero__since">
                 <span aria-hidden="true">·</span>
-                <span>Membre depuis {formatInstant(profile.createdAt, 'monthYear')}</span>
+                <span>
+                  Membre depuis <Time iso={profile.createdAt} style="monthYear" />
+                </span>
               </p>
             )}
 

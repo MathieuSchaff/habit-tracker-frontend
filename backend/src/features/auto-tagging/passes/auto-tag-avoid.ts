@@ -18,7 +18,7 @@ import {
   detectInteractionAvoidTags,
 } from './cross-signal-detection'
 
-export type AvoidSource = 'cross-signal' | 'interaction' | 'concentration'
+type AvoidSource = 'cross-signal' | 'interaction' | 'concentration'
 
 export interface AvoidCandidate {
   tagSlug: SkincareProductTagSlug

@@ -36,7 +36,7 @@ import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../orchestrator'
 const BUDGET_CATEGORIES = AUTO_TAG_ELIGIBLE_CATEGORIES
 export type BudgetCategory = (typeof BUDGET_CATEGORIES)[number]
 
-export interface TagBudget {
+interface TagBudget {
   min?: number
   max: number
 }

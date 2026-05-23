@@ -9,8 +9,6 @@ import { SUPPLEMENT_CATEGORY_VALUES } from './supplement/categories'
 
 // SCHEMAS
 
-const uuid = z.uuid()
-
 const slugSchema = z
   .string()
   .max(100)
@@ -69,19 +67,6 @@ export const updateIngredientSchema = z
   })
   .strict()
   .superRefine((data, ctx) => refineTypeCategory(data.type, data.category, ctx))
-
-export const ingredientResponseSchema = z.object({
-  id: uuid,
-  createdBy: uuid,
-  name: z.string(),
-  slug: z.string(),
-  description: z.string(),
-  content: z.string(),
-  type: ingredientTypeSchema,
-  category: z.string().nullable(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
-})
 
 // partial because an edit can touch only some fields, but at least one is required
 export const ingredientChangesSchema = z

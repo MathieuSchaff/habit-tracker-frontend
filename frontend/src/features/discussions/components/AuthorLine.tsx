@@ -1,4 +1,4 @@
-import { formatInstant } from '@/lib/dates'
+import { Time } from '@/component/DataDisplay/Time/Time'
 
 interface AuthorLineProps {
   authorId: string | null
@@ -13,7 +13,7 @@ export function AuthorLine({ authorId, authorName, createdAt }: AuthorLineProps)
     <span className="author-line">
       <span className="author-line__name">{displayName}</span>
       <span>·</span>
-      <span>{formatInstant(createdAt, 'medium')}</span>
+      <Time iso={createdAt} style="medium" />
     </span>
   )
 }

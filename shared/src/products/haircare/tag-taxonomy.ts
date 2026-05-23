@@ -12,11 +12,6 @@ export const HAIRCARE_PRODUCT_TAG_CATEGORIES = [
 
 export type HaircareProductTagCategory = (typeof HAIRCARE_PRODUCT_TAG_CATEGORIES)[number]
 
-export interface HaircareProductTagMeta {
-  category: HaircareProductTagCategory
-  label: string
-}
-
 const HAIRCARE_PRODUCT_TAG_LABELS: Record<HaircareProductTagSlug, string> = {
   // Concerns
   [HAIRCARE_PRODUCT_TAG_SLUGS.PELLICULES]: 'Pellicules',

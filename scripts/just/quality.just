@@ -16,10 +16,6 @@ format:
 fallow:
     npx fallow audit --format compact
 
-# Global dead-code scan
-fallow-scan:
-    npx fallow dead-code --production --include-dupes --summary
-
 # Find duplications
 fallow-dupes:
     npx fallow dupes
@@ -33,6 +29,38 @@ fallow-baseline:
     npx fallow dead-code --save-baseline .fallow/audit-dead-code.json --quiet
     npx fallow health --save-baseline .fallow/audit-health.json --quiet
     npx fallow dupes --save-baseline .fallow/audit-dupes.json --quiet
+
+# Dead-code scan via knip (re-export aware, less false positives than fallow).
+# DATABASE_URL stub évite l'erreur de drizzle.config.ts au load (knip ne run pas le code, juste parse imports).
+knip:
+    DATABASE_URL=postgres://x bunx knip --reporter compact
+
+# Strict mode: also reports unlisted deps, types-only, etc.
+knip-strict:
+    DATABASE_URL=postgres://x bunx knip --strict --reporter compact
+
+# Cycles d'imports
+cycles:
+    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src
+
+# Audit code complet (knip + biome + tsc + cycles + fallow health/dupes). Rapports → .audit-out/
+audit-code:
+    #!/usr/bin/env bash
+    set +e
+    mkdir -p .audit-out
+    printf "{{CYAN}}=== knip (dead code/exports/deps) ==={{NC}}\n"
+    DATABASE_URL=postgres://x bunx knip --reporter compact 2>&1 | tee .audit-out/knip.txt
+    printf "{{CYAN}}=== biome (lint + unused locals) ==={{NC}}\n"
+    bunx biome check . 2>&1 | tee .audit-out/biome.txt
+    printf "{{CYAN}}=== tsc -b (types) ==={{NC}}\n"
+    bunx tsc -b --pretty false 2>&1 | tee .audit-out/tsc.txt
+    printf "{{CYAN}}=== madge (cycles) ==={{NC}}\n"
+    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src 2>&1 | tee .audit-out/cycles.txt
+    printf "{{CYAN}}=== fallow health (complexity/CRAP) ==={{NC}}\n"
+    npx fallow health 2>&1 | tee .audit-out/health.txt
+    printf "{{CYAN}}=== fallow dupes ==={{NC}}\n"
+    npx fallow dupes 2>&1 | tee .audit-out/dupes.txt
+    printf "{{GREEN}}Done. Rapports → .audit-out/{{NC}}\n"
 
 # Check only test files
 lint-tests:

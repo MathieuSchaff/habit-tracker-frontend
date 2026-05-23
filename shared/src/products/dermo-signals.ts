@@ -51,7 +51,7 @@ export function classifyIngredientSignals(slug: string): DermoSignal[] {
 
 // EU 1223/2009 fragrance allergens + raw fragrance markers. Names checked
 // lowercased — INCI seed normalises casing, but UI may pass either slug or name.
-export const FRAGRANCE_COMPONENT_SLUGS: ReadonlySet<string> = new Set([
+const FRAGRANCE_COMPONENT_SLUGS: ReadonlySet<string> = new Set([
   'parfum',
   'fragrance',
   'limonene',

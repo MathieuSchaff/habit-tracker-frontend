@@ -4,6 +4,7 @@ import { createTagService } from '../_tags/lib/createTagService'
 
 type ProductTagLink = typeof tagProducts.$inferSelect
 
+// Export required: leaks via inferred return of listTagsByProduct → getProductFullBySlug (TS4058).
 export interface ProductTagProjection {
   productTagId: string
   productId: string

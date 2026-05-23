@@ -2,8 +2,9 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, History, MoreHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { Time } from '@/component/DataDisplay/Time/Time'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
-import { compareInstant, formatInstant } from '@/lib/dates'
+import { compareInstant, nowInstant } from '@/lib/dates'
 import { useDeletePurchase } from '@/lib/queries/purchases'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { AddPurchaseDialog } from '../CollectionTab/parts/AddPurchaseDialog'
@@ -71,7 +72,7 @@ export function HistoryTab({ userProducts }: HistoryTabProps) {
           {allPurchases.map((entry) => (
             <tr key={entry.id} className="coll-history-row">
               <td className="coll-hist-date">
-                {entry.purchasedAt ? formatInstant(entry.purchasedAt, 'short') : '—'}
+                {entry.purchasedAt ? <Time iso={entry.purchasedAt} style="short" /> : '—'}
               </td>
               <td className="coll-hist-prod">
                 <span className="coll-hist-name">{entry.product.name}</span>
@@ -114,7 +115,7 @@ export function HistoryTab({ userProducts }: HistoryTabProps) {
           userProductId={editingPurchase.userProductId}
           purchase={{
             id: editingPurchase.id,
-            purchasedAt: editingPurchase.purchasedAt ?? new Date().toISOString(),
+            purchasedAt: editingPurchase.purchasedAt ?? nowInstant(),
             pricePaidCents: editingPurchase.pricePaidCents,
           }}
           onClose={() => setEditingPurchase(null)}

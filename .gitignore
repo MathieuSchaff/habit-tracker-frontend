@@ -111,3 +111,6 @@ backend/src/db/seed/data/image-fetchers/
 backend/src/images/fetchers/*.ts
 !backend/src/images/fetchers/README.md
 
+
+# Audit outputs (knip + biome + tsc + cycles + fallow)
+.audit-out/

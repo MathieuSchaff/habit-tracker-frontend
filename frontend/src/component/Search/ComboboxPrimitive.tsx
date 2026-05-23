@@ -5,7 +5,7 @@ import { useCaptureDismiss } from '@/hooks/useCaptureDismiss'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
 import './ComboboxPrimitive.css'
 
-export interface ComboboxAriaProps {
+interface ComboboxAriaProps {
   listboxId: string
   activeDescendant: string | undefined
 }

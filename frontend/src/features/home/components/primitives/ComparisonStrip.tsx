@@ -1,6 +1,6 @@
 import './ComparisonStrip.css'
 
-export type CompareRow = {
+type CompareRow = {
   key: string
   a: string
   b: string
@@ -9,7 +9,7 @@ export type CompareRow = {
   bHint?: 'ok' | 'warn'
 }
 
-export type CompareSideMeta = {
+type CompareSideMeta = {
   label?: string
   name: string
 }
