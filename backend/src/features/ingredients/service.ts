@@ -304,7 +304,11 @@ export async function updateIngredient(
   }
 }
 
-export async function deleteIngredient(database: DB, role: 'user' | 'admin', id: string) {
+export async function deleteIngredient(
+  database: DB,
+  role: 'user' | 'admin' | 'contributor',
+  id: string
+) {
   if (role !== 'admin') throw new IngredientError('unauthorized_access')
 
   const rows = await database

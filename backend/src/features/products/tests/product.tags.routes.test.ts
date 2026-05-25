@@ -5,7 +5,11 @@ import { HTTP_STATUS } from '@habit-tracker/shared'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 type ApiErrorBody = { success: false; error: string; details?: unknown }
@@ -49,15 +53,18 @@ setupDbTests()
 describe('Product Tags Routes', () => {
   let app: TestApp
   let client: TestClient
+  let contributorToken: string
+  let adminToken: string
 
   beforeEach(async () => {
     ;({ app, client } = await createTestEnv())
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
+    adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
   })
 
   describe('GET /products/:productId/tags', () => {
     it('should return an empty array when no tags are linked (no auth required)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
       const res = await client.products[':productId'].tags.$get({
         param: { productId: product.id },
@@ -70,9 +77,8 @@ describe('Product Tags Routes', () => {
     })
 
     it('should return linked tags with the correct shape', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
-      const tag = await createProductTag(client, token, {
+      const product = await createProduct(client, contributorToken)
+      const tag = await createProductTag(client, adminToken, {
         name: 'Anti-acné',
         category: 'concern',
         slug: 'acne',
@@ -83,7 +89,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: tag.id, relevance: 'primary' }] },
         },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -103,16 +109,17 @@ describe('Product Tags Routes', () => {
     })
 
     it('should not return tags from other products', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const p1 = await createProduct(client, contributorToken)
+      const p2 = await createProduct(client, contributorToken, { name: 'Autre Sérum' })
 
-      const p1 = await createProduct(client, token)
-      const p2 = await createProduct(client, token, { name: 'Autre Sérum' })
-
-      const tag = await createProductTag(client, token, { name: 'Hydratant', category: 'concern' })
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
 
       await client.products[':productId'].tags.$put(
         { param: { productId: p2.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -135,11 +142,13 @@ describe('Product Tags Routes', () => {
 
   describe('PUT /products/:productId/tags', () => {
     it('should replace tags and return inserted rows', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
-      const t1 = await createProductTag(client, token, { name: 'Anti-âge', category: 'concern' })
-      const t2 = await createProductTag(client, token, {
+      const t1 = await createProductTag(client, adminToken, {
+        name: 'Anti-âge',
+        category: 'concern',
+      })
+      const t2 = await createProductTag(client, adminToken, {
         name: 'Peau grasse',
         category: 'skin_type',
       })
@@ -149,7 +158,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: t1.id }, { tagId: t2.id, relevance: 'avoid' }] },
         },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -160,19 +169,18 @@ describe('Product Tags Routes', () => {
     })
 
     it('should replace existing tags (not append)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
-      const t1 = await createProductTag(client, token, { name: 'Tag A', category: 'concern' })
-      const t2 = await createProductTag(client, token, { name: 'Tag B', category: 'concern' })
+      const t1 = await createProductTag(client, adminToken, { name: 'Tag A', category: 'concern' })
+      const t2 = await createProductTag(client, adminToken, { name: 'Tag B', category: 'concern' })
 
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: t1.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: t2.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -186,18 +194,20 @@ describe('Product Tags Routes', () => {
     })
 
     it('should clear all tags when given an empty array', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
-      const tag = await createProductTag(client, token, { name: 'Rides', category: 'concern' })
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Rides',
+        category: 'concern',
+      })
 
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
       const clearRes = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(clearRes, HTTP_STATUS.OK)
@@ -214,20 +224,21 @@ describe('Product Tags Routes', () => {
     })
 
     it('should not affect tags of other products', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const p1 = await createProduct(client, contributorToken)
+      const p2 = await createProduct(client, contributorToken, { name: 'Autre' })
 
-      const p1 = await createProduct(client, token)
-      const p2 = await createProduct(client, token, { name: 'Autre' })
-
-      const tag = await createProductTag(client, token, { name: 'Hydratant', category: 'concern' })
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
 
       await client.products[':productId'].tags.$put(
         { param: { productId: p1.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
       await client.products[':productId'].tags.$put(
         { param: { productId: p2.id }, json: { tags: [] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       const res = await client.products[':productId'].tags.$get({
@@ -240,8 +251,7 @@ describe('Product Tags Routes', () => {
     })
 
     it('should reject an unauthenticated request', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
       const res = await app.request(`/products/${product.id}/tags`, {
         method: 'PUT',
@@ -253,41 +263,37 @@ describe('Product Tags Routes', () => {
     })
 
     it('should return 400 for a non-UUID productId', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: 'not-a-uuid' }, json: { tags: [] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should return 400 when the body is missing the tags field', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
       const res = await client.products[':productId'].tags.$put(
         // @ts-expect-error — missing required tags field; testing schema rejection
         { param: { productId: product.id }, json: {} },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject a tag whose category does not belong to the product domain', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
-      const tag = await createProductTag(client, token, {
+      const tag = await createProductTag(client, adminToken, {
         name: 'Cheveux bouclés',
         category: 'hair_type',
       })
 
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -301,23 +307,22 @@ describe('Product Tags Routes', () => {
     })
 
     it('should reject the whole batch when one tag mismatches and preserve existing links', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, token)
+      const product = await createProduct(client, contributorToken)
 
-      const seedTag = await createProductTag(client, token, {
+      const seedTag = await createProductTag(client, adminToken, {
         name: 'Hydratation',
         category: 'concern',
       })
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: seedTag.id }] } },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
-      const validTag = await createProductTag(client, token, {
+      const validTag = await createProductTag(client, adminToken, {
         name: 'Anti-âge',
         category: 'concern',
       })
-      const invalidTag = await createProductTag(client, token, {
+      const invalidTag = await createProductTag(client, adminToken, {
         name: 'Cheveux fins',
         category: 'hair_type',
       })
@@ -327,7 +332,7 @@ describe('Product Tags Routes', () => {
           param: { productId: product.id },
           json: { tags: [{ tagId: validTag.id }, { tagId: invalidTag.id }] },
         },
-        withAuth(token)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -338,6 +343,48 @@ describe('Product Tags Routes', () => {
       if (!getData.success) throw new Error('list failed')
       expect(getData.data).toHaveLength(1)
       expect(getData.data[0]?.productTagId).toBe(seedTag.id)
+    })
+  })
+
+  describe('PUT /products/:productId/tags — role enforcement', () => {
+    it('403 for a plain user', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const product = await createProduct(client, contributorToken)
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
+      const res = await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(userToken)
+      )
+      expectStatus(res, HTTP_STATUS.FORBIDDEN)
+    })
+
+    it('200 for a contributor', async () => {
+      const product = await createProduct(client, contributorToken)
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
+      const res = await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(contributorToken)
+      )
+      expectStatus(res, HTTP_STATUS.OK)
+    })
+
+    it('200 for an admin', async () => {
+      const product = await createProduct(client, contributorToken)
+      const tag = await createProductTag(client, adminToken, {
+        name: 'Hydratant',
+        category: 'concern',
+      })
+      const res = await client.products[':productId'].tags.$put(
+        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
+        withAuth(adminToken)
+      )
+      expectStatus(res, HTTP_STATUS.OK)
     })
   })
 })

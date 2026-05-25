@@ -1,13 +1,14 @@
 // Gold-set benchmark runner — measures per-tag precision/recall/F1/Brier/ECE
-// of the orchestrator output against a hand-annotated 60-80 product corpus.
+// of the orchestrator output against a hand-annotated corpus (~260 products
+// as of 2026-05-23).
 //
 // Read-only on the DB. The annotations live in
 // `backend/src/features/auto-tagging/data/gold-set/annotations.json` (loaded with the
 // validator from `gold-set/fixtures.ts`) and stand-in for ground truth on
-// the 16 focus tags listed in `GOLD_SET_FOCUS_TAGS`.
+// the 15 focus tags listed in `GOLD_SET_FOCUS_TAGS`.
 //
 // Pipeline per product:
-//   1. detectAllAutoTags(product) — orchestrator output (16 focus tags or
+//   1. detectAllAutoTags(product) — orchestrator output (15 focus tags or
 //      none). Source is `algo-derm` when the tag came from passe 1; that's
 //      the only deterministic-confidence source. Other passes emit a tag
 //      with no probabilistic confidence — we record p=1.0 for emitted and
@@ -40,6 +41,7 @@ import { db } from '../../../../db'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
+import { summarizeByLayer } from '../../gold-set/layers'
 import {
   computePerTagMetrics,
   macroAverage,
@@ -268,6 +270,23 @@ async function main() {
     `   macro  P=${fmt(macro.precision)}  R=${fmt(macro.recall)}  F1=${fmt(macro.f1)}  Brier=${fmt(macro.brier)}  ECE=${fmt(macro.ece)}`
   )
   console.log(`   micro  P=${fmt(micro.precision)}  R=${fmt(micro.recall)}  F1=${fmt(micro.f1)}`)
+
+  // Per-layer breakdown — makes coverage gaps explicit (a layer with 0 focus
+  // tags is unmeasured, a target for gold-set expansion). Macro per layer.
+  console.log(`\n🧱 Par couche`)
+  console.log(
+    `   ${pad('couche', 12)} ${rpad('tags', 4)} ${rpad('rated', 5)} ${rpad('P', 6)} ${rpad('R', 6)} ${rpad('F1', 6)} ${rpad('Brier', 6)} ${rpad('ECE', 6)}`
+  )
+  console.log(
+    `   ${'─'.repeat(12)} ${'─'.repeat(4)} ${'─'.repeat(5)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
+  )
+  for (const l of summarizeByLayer(perTag)) {
+    const flag =
+      l.focusTagCount === 0 ? '  ← non couvert' : l.rated === 0 ? '  ← 0 produit rated' : ''
+    console.log(
+      `   ${pad(l.layer, 12)} ${rpad(String(l.focusTagCount), 4)} ${rpad(String(l.rated), 5)} ${rpad(fmt(l.macro.precision), 6)} ${rpad(fmt(l.macro.recall), 6)} ${rpad(fmt(l.macro.f1), 6)} ${rpad(fmt(l.macro.brier), 6)} ${rpad(fmt(l.macro.ece), 6)}${flag}`
+    )
+  }
 
   // Surface tags with no rated samples — annotators may have skipped them.
   const unrated = perTag.filter((m) => m.rated === 0).map((m) => m.tagSlug)

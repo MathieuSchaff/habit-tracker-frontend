@@ -11,7 +11,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
-import { requireJwtAuth, requireNotBanned } from '../../auth/middleware'
+import { requireAdmin, requireJwtAuth, requireNotBanned } from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import {
   addTagToIngredient,
@@ -26,7 +26,6 @@ const ingredientTagParams = z.object({ ingredientId: z.uuid(), tagId: z.uuid() }
 
 const ingredientTagsApp = new Hono<AppEnv>()
 
-// I allow everyone to see the tags, but if you want to change something, you must show your ID card (the JWT).
 ingredientTagsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()
   return requireJwtAuth(c, async () => {
@@ -46,6 +45,7 @@ export const ingredientTagRoutes = ingredientTagsApp
 
   .post(
     '/:ingredientId/tags',
+    requireAdmin,
     zValidator('param', ingredientParams),
     zValidator('json', addIngredientTagSchema),
     async (c) => {
@@ -67,17 +67,23 @@ export const ingredientTagRoutes = ingredientTagsApp
     }
   )
 
-  .delete('/:ingredientId/tags/:tagId', zValidator('param', ingredientTagParams), async (c) => {
-    const db = c.get('db')
-    const { ingredientId, tagId } = c.req.valid('param')
-    const removed = await removeTagFromIngredient(db, ingredientId, tagId)
-    // I check if I actually removed something. If not, maybe the tag was never there.
-    if (!removed) throw new TagError('tag_not_found')
-    return c.body(null, 204)
-  })
+  .delete(
+    '/:ingredientId/tags/:tagId',
+    requireAdmin,
+    zValidator('param', ingredientTagParams),
+    async (c) => {
+      const db = c.get('db')
+      const { ingredientId, tagId } = c.req.valid('param')
+      const removed = await removeTagFromIngredient(db, ingredientId, tagId)
+      // I check if I actually removed something. If not, maybe the tag was never there.
+      if (!removed) throw new TagError('tag_not_found')
+      return c.body(null, 204)
+    }
+  )
 
   .put(
     '/:ingredientId/tags',
+    requireAdmin,
     zValidator('param', ingredientParams),
     zValidator('json', replaceIngredientTagsSchema),
     async (c) => {

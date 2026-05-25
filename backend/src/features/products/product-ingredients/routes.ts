@@ -11,7 +11,12 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
-import { requireJwtAuth, requireNotBanned } from '../../auth/middleware'
+import {
+  requireCatalogWrite,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import {
   addIngredientToProduct,
@@ -59,6 +64,8 @@ export const productIngredientRoutes = productIngredientsApp
 
   .post(
     '/:productId/ingredients',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', productParams),
     zValidator('json', createProductIngredientSchema),
     async (c) => {
@@ -89,6 +96,8 @@ export const productIngredientRoutes = productIngredientsApp
 
   .patch(
     '/:productId/ingredients/:ingredientId',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', ingredientLinkParams),
     zValidator('json', updateProductIngredientSchema),
     async (c) => {
@@ -113,6 +122,8 @@ export const productIngredientRoutes = productIngredientsApp
 
   .delete(
     '/:productId/ingredients/:ingredientId',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', ingredientLinkParams),
     async (c) => {
       const db = c.get('db')
@@ -125,6 +136,8 @@ export const productIngredientRoutes = productIngredientsApp
 
   .put(
     '/:productId/ingredients',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', productParams),
     zValidator('json', replaceIngredientsSchema),
     async (c) => {

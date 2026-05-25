@@ -16,6 +16,8 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import {
   optionalJwtAuth,
+  requireAdmin,
+  requireCatalogWrite,
   requireJwtAuth,
   requireNotBanned,
   requireNotBannedScope,
@@ -106,6 +108,7 @@ export const productRoutes = productsApp
   .post(
     '/',
     requireNotBannedScope('product_create'),
+    requireCatalogWrite,
     securityScan(),
     zValidator('json', createProductSchema),
     async (c) => {
@@ -134,6 +137,7 @@ export const productRoutes = productsApp
   .patch(
     '/:id',
     requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', idParam),
     securityScan(),
     zValidator('json', updateProductSchema),
@@ -150,6 +154,7 @@ export const productRoutes = productsApp
   .delete(
     '/:id',
     requireNotBannedScope('product_edit'),
+    requireAdmin,
     zValidator('param', idParam),
     async (c) => {
       const db = c.get('db')

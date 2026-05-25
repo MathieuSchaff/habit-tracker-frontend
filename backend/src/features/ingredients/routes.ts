@@ -12,7 +12,13 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned, requireNotBannedScope } from '../auth/middleware'
+import {
+  requireAdmin,
+  requireCatalogWrite,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { listProductsByIngredient } from '../products/product-ingredients/product-ingredients.service'
 import {
@@ -102,7 +108,8 @@ export const ingredientRoutes = ingredientsApp
     return c.json(ok({ items, total }), HTTP_STATUS.OK)
   })
 
-  .post('/', zValidator('json', createIngredientSchema), async (c) => {
+  // No ingredient_create ban scope exists (only ingredient_edit); create is role-gated only.
+  .post('/', requireCatalogWrite, zValidator('json', createIngredientSchema), async (c) => {
     const db = c.get('db')
     const userId = c.get('userId')
     const input = c.req.valid('json')
@@ -124,6 +131,7 @@ export const ingredientRoutes = ingredientsApp
   .patch(
     '/:id',
     requireNotBannedScope('ingredient_edit'),
+    requireCatalogWrite,
     zValidator('param', idParam),
     zValidator('json', updateIngredientRouteSchema),
     async (c) => {
@@ -138,6 +146,7 @@ export const ingredientRoutes = ingredientsApp
   .delete(
     '/:id',
     requireNotBannedScope('ingredient_edit'),
+    requireAdmin,
     zValidator('param', idParam),
     async (c) => {
       const db = c.get('db')

@@ -6,9 +6,9 @@
 //
 // Dry-run by default. Set APPLY=1 to commit the deletes.
 
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
 
 const APPLY = process.env.APPLY === '1'
@@ -128,61 +128,66 @@ async function main() {
     `🧹 Cleanup ${TO_DELETE.length} drift tag-products (${APPLY ? 'APPLY' : 'DRY-RUN'})\n`
   )
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
   let removed = 0
   let missing = 0
 
-  for (const row of TO_DELETE) {
-    const product = await db
-      .select({ id: products.id })
-      .from(products)
-      .where(eq(products.slug, row.product))
-      .limit(1)
-    if (product.length === 0) {
-      console.log(`  ⚠️  product not found: ${row.product}`)
-      missing++
-      continue
-    }
-    const tagDef = await db
-      .select({ id: productTagsDefs.id })
-      .from(productTagsDefs)
-      .where(eq(productTagsDefs.slug, row.tag))
-      .limit(1)
-    if (tagDef.length === 0) {
-      console.log(`  ⚠️  tag def not found: ${row.tag}`)
-      missing++
-      continue
-    }
-
-    if (APPLY) {
-      const result = await db
-        .delete(tagProducts)
-        .where(
-          and(
-            eq(tagProducts.productId, product[0]?.id),
-            eq(tagProducts.productTagId, tagDef[0]?.id)
-          )
-        )
-      const count = (result as unknown as { count: number }).count ?? 0
-      console.log(`  ${count > 0 ? '✓' : '○'} ${row.product} ← ${row.tag} (${row.reason})`)
-      removed += count
-    } else {
-      // Dry-run: just check existence
-      const exists = await db
-        .select({ pId: tagProducts.productId })
-        .from(tagProducts)
-        .where(
-          and(
-            eq(tagProducts.productId, product[0]?.id),
-            eq(tagProducts.productTagId, tagDef[0]?.id)
-          )
-        )
+  // Wrap the delete loop in one admin tx so RLS accepts the DELETEs (bare
+  // SET LOCAL outside a tx is a no-op). Catalog SELECTs are public, but reading
+  // them on `tx` keeps the loop single-connection.
+  await withAdminRls(async (tx) => {
+    for (const row of TO_DELETE) {
+      const product = await tx
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.slug, row.product))
         .limit(1)
-      console.log(`  ${exists.length > 0 ? '→' : '○'} ${row.product} ← ${row.tag} (${row.reason})`)
-      if (exists.length > 0) removed++
+      if (product.length === 0) {
+        console.log(`  ⚠️  product not found: ${row.product}`)
+        missing++
+        continue
+      }
+      const tagDef = await tx
+        .select({ id: productTagsDefs.id })
+        .from(productTagsDefs)
+        .where(eq(productTagsDefs.slug, row.tag))
+        .limit(1)
+      if (tagDef.length === 0) {
+        console.log(`  ⚠️  tag def not found: ${row.tag}`)
+        missing++
+        continue
+      }
+
+      if (APPLY) {
+        const result = await tx
+          .delete(tagProducts)
+          .where(
+            and(
+              eq(tagProducts.productId, product[0]?.id),
+              eq(tagProducts.productTagId, tagDef[0]?.id)
+            )
+          )
+        const count = (result as unknown as { count: number }).count ?? 0
+        console.log(`  ${count > 0 ? '✓' : '○'} ${row.product} ← ${row.tag} (${row.reason})`)
+        removed += count
+      } else {
+        // Dry-run: just check existence
+        const exists = await tx
+          .select({ pId: tagProducts.productId })
+          .from(tagProducts)
+          .where(
+            and(
+              eq(tagProducts.productId, product[0]?.id),
+              eq(tagProducts.productTagId, tagDef[0]?.id)
+            )
+          )
+          .limit(1)
+        console.log(
+          `  ${exists.length > 0 ? '→' : '○'} ${row.product} ← ${row.tag} (${row.reason})`
+        )
+        if (exists.length > 0) removed++
+      }
     }
-  }
+  })
 
   console.log(
     `\n${APPLY ? '✅ Removed' : '🔎 Would remove'}: ${removed}/${TO_DELETE.length}  ·  not found: ${missing}`

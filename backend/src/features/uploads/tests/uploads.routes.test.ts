@@ -11,7 +11,11 @@ import {
   signupAndGetToken,
   type TestClient,
 } from '../../../tests/helpers/createTestClient'
-import { authPostMultipart } from '../../../tests/helpers/route-test-helpers'
+import {
+  authPostMultipart,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
+import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { unsafeEmail } from '../../../tests/helpers/unsafe'
 
 function buildVp8l(width: number, height: number, padBytes: number): Buffer {
@@ -113,11 +117,7 @@ describe('Upload Routes', () => {
 
   describe('POST /api/uploads/product/:slug', () => {
     it('returns 404 for unknown slug', async () => {
-      const { token } = await signupAndGetToken(
-        client,
-        unsafeEmail('upload-prod-404@example.com'),
-        'Password123!'
-      )
+      const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
       const buf = buildVp8l(1200, 1200, 100)
       const blob = new Blob([buf], { type: 'image/webp' })
       const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
@@ -127,15 +127,36 @@ describe('Upload Routes', () => {
     })
 
     it('returns 404 for unknown slug even when payload is invalid', async () => {
-      const { token } = await signupAndGetToken(
-        client,
-        unsafeEmail('upload-prod-bad-payload@example.com'),
-        'Password123!'
-      )
+      const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
       // PNG header — would fail validation
       const blob = new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0])], {
         type: 'image/webp',
       })
+      const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
+        image: blob,
+      })
+      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+    })
+  })
+
+  describe('POST /api/uploads/product/:slug — role enforcement', () => {
+    it('403 for a plain user', async () => {
+      const { token } = await signupAndGetToken(
+        client,
+        unsafeEmail('upl-user@example.com'),
+        'Password123!'
+      )
+      const buf = buildVp8l(1200, 1200, 100)
+      const blob = new Blob([buf], { type: 'image/webp' })
+      const res = await authPostMultipart(app, '/api/uploads/product/whatever', token, {
+        image: blob,
+      })
+      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+    })
+    it('not 403 for a contributor (404 unknown slug)', async () => {
+      const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
+      const buf = buildVp8l(1200, 1200, 100)
+      const blob = new Blob([buf], { type: 'image/webp' })
       const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
         image: blob,
       })

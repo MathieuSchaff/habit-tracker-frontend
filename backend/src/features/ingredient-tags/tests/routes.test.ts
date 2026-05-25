@@ -7,7 +7,11 @@ import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { addTagToIngredient } from '../service'
@@ -28,7 +32,7 @@ describe('Ingredient Tag Routes', () => {
 
   describe('POST /ingredient-tags', () => {
     it('should create a tag with only a name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
 
@@ -42,7 +46,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should create a tag with a category', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Apaisant', category: 'effect' } },
@@ -57,7 +61,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should auto-generate slug from name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Acide Salicylique' } },
@@ -70,7 +74,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should use custom slug when provided', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post(
         { json: { name: 'Niacinamide', slug: 'niacinamide-custom' } },
@@ -83,7 +87,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should return 409 for duplicate slug', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Acide', slug: 'acide' } },
@@ -102,7 +106,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should reject missing name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post(
         // @ts-expect-error — missing required name; testing schema rejection
@@ -122,11 +126,40 @@ describe('Ingredient Tag Routes', () => {
 
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
+
+    describe('role enforcement', () => {
+      it('403 for a plain user', async () => {
+        const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+        const res = await client['ingredient-tags'].$post(
+          { json: { name: 'X', category: 'effect' } },
+          withAuth(userToken)
+        )
+        expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      })
+
+      it('403 for a contributor', async () => {
+        const contribToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
+        const res = await client['ingredient-tags'].$post(
+          { json: { name: 'X', category: 'effect' } },
+          withAuth(contribToken)
+        )
+        expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      })
+
+      it('201 for an admin', async () => {
+        const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+        const res = await client['ingredient-tags'].$post(
+          { json: { name: 'X', category: 'effect' } },
+          withAuth(adminToken)
+        )
+        expectStatus(res, HTTP_STATUS.CREATED)
+      })
+    })
   })
 
   describe('GET /ingredient-tags', () => {
     it('should list tags without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await client['ingredient-tags'].$post({ json: { name: 'Tag 1' } }, withAuth(token))
       await client['ingredient-tags'].$post({ json: { name: 'Tag 2' } }, withAuth(token))
@@ -140,7 +173,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should filter by category', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Hydratant', category: 'effect' } },
@@ -162,7 +195,7 @@ describe('Ingredient Tag Routes', () => {
 
   describe('GET /ingredient-tags/:id', () => {
     it('should return the tag without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
@@ -197,7 +230,7 @@ describe('Ingredient Tag Routes', () => {
 
   describe('PATCH /ingredient-tags/:id', () => {
     it('should update tag fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const createRes = await client['ingredient-tags'].$post(
         { json: { name: 'Vieux' } },
@@ -220,7 +253,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should return 404 for unknown id', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'][':id'].$patch(
         { param: { id: crypto.randomUUID() }, json: { name: 'X' } },
@@ -233,7 +266,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should return 409 when updating to a conflicting slug', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await client['ingredient-tags'].$post(
         { json: { name: 'Premier', slug: 'premier' } },
@@ -270,7 +303,7 @@ describe('Ingredient Tag Routes', () => {
 
   describe('DELETE /ingredient-tags/:id', () => {
     it('should delete the tag and return null data', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
@@ -288,7 +321,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should make the tag unreachable after deletion', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const createRes = await client['ingredient-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const createData = await createRes.json()
@@ -302,7 +335,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should return 404 for unknown id', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'][':id'].$delete(
         { param: { id: crypto.randomUUID() } },
@@ -321,7 +354,7 @@ describe('Ingredient Tag Routes', () => {
 
   describe('GET /ingredient-tags/:slug/ingredients', () => {
     it('should return ingredients linked to a tag', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
       const ingOwner = await createTestUser('inger-tag-owner@test.com')
 
       const tagRes = await client['ingredient-tags'].$post(

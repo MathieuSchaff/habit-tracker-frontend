@@ -5,7 +5,7 @@ export type AppEnv = {
     db: Database
     env: 'development' | 'production'
     userId: string
-    userRole: 'user' | 'admin'
+    userRole: 'user' | 'admin' | 'contributor'
     jwtSecret: string
     refreshSecret: string
     frontendUrl: string

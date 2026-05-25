@@ -64,7 +64,7 @@ export type UpdateBanResult = ApiResponse<CreateBanResponse, AdminBanErrorCode>
 export type AdminUserListItem = {
   id: string
   email: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'contributor'
   emailVerifiedAt: string | null
   createdAt: string
   // From profiles.forcedPrivateByAdmin (LEFT JOIN, defaulted to false if no

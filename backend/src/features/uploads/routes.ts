@@ -8,7 +8,12 @@ import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
 import { products } from '../../db/schema/products'
 import { profiles } from '../../db/schema/users'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import {
+  requireCatalogWrite,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { putToBunny } from './bunny-client'
 import { UploadError } from './upload-error'
@@ -69,9 +74,10 @@ export const uploadsRoutes = app
       return handleUploadError(c, e)
     }
   })
-  .post('/product/:slug', async (c) => {
+  .post('/product/:slug', requireNotBannedScope('product_edit'), requireCatalogWrite, async (c) => {
     const db = c.get('db')
-    const slug = c.req.param('slug')
+    // Non-null safe: `:slug` is required by route pattern; middleware args widen Hono's param inference
+    const slug = c.req.param('slug') as string
     const body = await c.req.parseBody()
     const file = body.image
     if (!(file instanceof File)) {

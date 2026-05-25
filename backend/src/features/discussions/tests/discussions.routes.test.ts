@@ -8,7 +8,7 @@ import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { setupAndLogin, setupAndLoginContributor } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -29,15 +29,19 @@ setupDbTests()
 describe('Product Discussion Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
+  // Creating the product fixture now needs contributor+ (catalog-authz); the
+  // discussion routes themselves stay open to any authenticated user.
+  let contributorToken: string
 
   beforeEach(async () => {
     const env = await createTestEnv()
     app = env.app
     client = env.client
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
-  async function createProductAndGetSlug(token: string) {
-    const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+  async function createProductAndGetSlug() {
+    const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(contributorToken))
     const data = await res.json()
     if (!data.success) throw new Error('product creation failed')
     return data.data.slug
@@ -46,7 +50,7 @@ describe('Product Discussion Routes', () => {
   describe('POST /products/:slug/discussions', () => {
     it('should create a thread when authenticated', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
 
       const res = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
@@ -62,8 +66,7 @@ describe('Product Discussion Routes', () => {
     })
 
     it('should return 401 when unauthenticated', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
 
       const res = await app.request(`/products/${slug}/discussions`, {
         method: 'POST',
@@ -78,7 +81,7 @@ describe('Product Discussion Routes', () => {
   describe('GET /products/:slug/discussions', () => {
     it('should list threads without auth', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
       await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token)
@@ -98,7 +101,7 @@ describe('Product Discussion Routes', () => {
   describe('POST /products/:slug/discussions/:threadId/replies', () => {
     it('should add a reply to a thread', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
       const threadRes = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token)
@@ -125,7 +128,7 @@ describe('Product Discussion Routes', () => {
       const { testDb } = await import('../../../tests/db.test.config')
 
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
       const threadRes = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token)
@@ -155,7 +158,7 @@ describe('Product Discussion Routes', () => {
   describe('GET /products/:slug/discussions/:threadId', () => {
     it('should return thread with replies', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
       const threadRes = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token)
@@ -184,7 +187,7 @@ describe('Product Discussion Routes', () => {
   describe('DELETE /products/:slug/discussions/:threadId', () => {
     it('should delete own thread', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const slug = await createProductAndGetSlug(token)
+      const slug = await createProductAndGetSlug()
       const threadRes = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token)
@@ -204,7 +207,7 @@ describe('Product Discussion Routes', () => {
     it("should return 403 when trying to delete another user's thread", async () => {
       const token1 = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const token2 = await setupAndLogin(app, TEST_CREDENTIALS.alice)
-      const slug = await createProductAndGetSlug(token1)
+      const slug = await createProductAndGetSlug()
       const threadRes = await client.products[':slug'].discussions.$post(
         { json: VALID_THREAD, param: { slug } },
         withAuth(token1)

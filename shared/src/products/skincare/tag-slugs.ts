@@ -103,6 +103,7 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   SANS_HUILES_ESSENTIELLES: 'sans-huiles-essentielles',
   SANS_HUILES_MINERALES: 'sans-huiles-minerales',
   SANS_ALLERGENES_PARFUMANTS: 'sans-allergenes-parfumants',
+  SANS_ALCOOL_DENATURE: 'sans-alcool-denature',
   BIO_NATUREL: 'bio-naturel',
   VEGAN: 'vegan',
   CRUELTY_FREE: 'cruelty-free',

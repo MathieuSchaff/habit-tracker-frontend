@@ -4,7 +4,7 @@
 // Consumed by:
 //   - `db/seed/seeders/seed-core.ts`                  (initial seed, fresh DB)
 //   - `features/auto-tagging/runners/backfill/main.ts` (post-snapshot rehydrate, idempotent)
-//   - `features/products/service.ts createProduct()`   (per-product, inline)
+//   - `features/products/service.ts create/updateProduct()` (per-product, inline)
 //
 // Parity contract (`tests/auto-tag-orchestrator-parity.test.ts`) keeps all
 // three consumers' output identical for the same input. ADR-0001 describes

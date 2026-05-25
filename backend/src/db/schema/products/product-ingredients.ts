@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { index, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
+import { catalogPolicies } from '../_policies'
 import { ingredients } from '../ingredients/ingredients'
 import { products } from './products'
 
@@ -28,7 +29,8 @@ export const productIngredients = pgTable(
     uniqueIndex('product_ingredients_unique').on(t.productId, t.ingredientId),
     index('product_ingredients_product_idx').on(t.productId),
     index('product_ingredients_ingredient_idx').on(t.ingredientId),
+    ...catalogPolicies('product_ingredients', 'contributor'),
   ]
-)
+).enableRLS()
 
 export type ProductIngredient = typeof productIngredients.$inferSelect

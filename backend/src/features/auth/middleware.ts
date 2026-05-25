@@ -59,6 +59,17 @@ export const requireAdmin = async (c: Context<AppEnv>, next: Next) => {
   await next()
 }
 
+// Gates catalog-write routes: admin OR contributor. Runs after requireJwtAuth
+// (needs userRole). Applied per-route on write verbs, so a wrong-role caller gets
+// a clean 403 before the handler writes; RLS is the DB-level backstop (VULN-5).
+export const requireCatalogWrite = async (c: Context<AppEnv>, next: Next) => {
+  const role = c.get('userRole')
+  if (role !== 'admin' && role !== 'contributor') {
+    return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
+  }
+  await next()
+}
+
 // Route-level gate for per-action bans (e.g. 'product_create', 'product_edit',
 // 'ingredient_edit'). The global 'global' scope is already enforced by
 // requireNotBanned upstream — this checks the action-specific scope only.

@@ -23,7 +23,7 @@ export interface ExportRowMeta {
 export interface ExportUser {
   _meta: ExportRowMeta
   email: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'contributor'
   emailVerifiedAt: string | null
   deletedAt: string | null
   isDemo: boolean

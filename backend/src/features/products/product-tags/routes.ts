@@ -5,7 +5,12 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../../auth/middleware'
+import {
+  requireCatalogWrite,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../../auth/middleware'
 import { withRlsContext } from '../../auth/rls-context.middleware'
 import { listTagsByProduct, replaceProductTags } from '../../product-tags/service'
 import { assertTagsMatchProductDomain } from './domain-validation'
@@ -33,6 +38,8 @@ export const productTagRoutes = productTagsApp
 
   .put(
     '/:productId/tags',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
     zValidator('param', productParams),
     zValidator('json', replaceProductTagsSchema),
     async (c) => {

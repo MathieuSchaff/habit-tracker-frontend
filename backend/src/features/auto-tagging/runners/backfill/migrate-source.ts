@@ -7,8 +7,8 @@
 // emit (manualProductTagPairs from seed-core, admin PUTs, etc.) stay marked
 // 'manual'. Idempotent: re-running over a corrected DB is a no-op.
 //
-// Run inside Docker: `WRITE=1 just migrate-source` (TODO recipe) or
-// `bun run src/features/auto-tagging/runners/backfill/migrate-source.ts --write`.
+// Run inside Docker: `bun run src/features/auto-tagging/runners/backfill/migrate-source.ts --write`.
+// No `just` recipe on purpose (one-shot maintenance script).
 //
 // Env:
 //   --write   apply UPDATEs (default = dry-run, reports per-source counts)
@@ -19,6 +19,7 @@ import type { ProductKind, ProductTexture, TagSource } from '@habit-tracker/shar
 import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import {
   brandCertifications,
   ingredients,
@@ -42,8 +43,6 @@ interface PercentClaim {
 
 async function main() {
   console.log(`🏷  Migrate tag_products.source (${WRITE ? 'WRITE' : 'DRY-RUN'})\n`)
-
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
 
   const allProducts = await db
     .select({
@@ -170,24 +169,26 @@ async function main() {
     return
   }
 
-  for (const [source, pairs] of updatesBySource) {
-    let done = 0
-    for (let i = 0; i < pairs.length; i += CHUNK) {
-      const chunk = pairs.slice(i, i + CHUNK)
-      const values = sql.join(
-        chunk.map(([p, t]) => sql`(${p}::uuid, ${t}::uuid)`),
-        sql`, `
-      )
-      await db.execute(sql`
-        UPDATE tag_products
-        SET source = ${source}
-        WHERE (product_id, product_tag_id) IN (${values})
-      `)
-      done += chunk.length
-      process.stdout.write(`\r   ${source.padEnd(14)} : ${done}/${pairs.length}`)
+  await withAdminRls(async (tx) => {
+    for (const [source, pairs] of updatesBySource) {
+      let done = 0
+      for (let i = 0; i < pairs.length; i += CHUNK) {
+        const chunk = pairs.slice(i, i + CHUNK)
+        const values = sql.join(
+          chunk.map(([p, t]) => sql`(${p}::uuid, ${t}::uuid)`),
+          sql`, `
+        )
+        await tx.execute(sql`
+          UPDATE tag_products
+          SET source = ${source}
+          WHERE (product_id, product_tag_id) IN (${values})
+        `)
+        done += chunk.length
+        process.stdout.write(`\r   ${source.padEnd(14)} : ${done}/${pairs.length}`)
+      }
+      console.log()
     }
-    console.log()
-  }
+  })
   console.log('\n✨ Migration source terminée.')
 }
 

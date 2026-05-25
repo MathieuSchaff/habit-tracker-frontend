@@ -226,11 +226,12 @@ export async function seedCore(shouldClean = false) {
       allProductTagsMap as Record<string, ProductTagGroups>
     ).map((p) => ({ ...p, source: 'manual' as const }))
 
-    // Auto-derive product tags via the shared orchestrator: 6 detection passes
-    // (algo-derm, actif-class, kind, formula, cross-signal, avoid) running on
-    // every skincare/solaire/bodycare product. Single source of truth shared
-    // with `features/auto-tagging/runners/backfill/main.ts` — seed-core followed by
-    // a backfill re-run is a no-op on auto-tag pairs (parity test
+    // Auto-derive product tags via the shared orchestrator (10 ordered layers,
+    // including percent-claim, interaction, brand, and peau-normale in addition
+    // to algo-derm/actif-class/kind/formula/cross-signal/avoid) running on every
+    // skincare/solaire/bodycare product. Single source of truth shared with
+    // `features/auto-tagging/runners/backfill/main.ts` — seed-core followed by a
+    // backfill re-run is a no-op on auto-tag pairs (parity test
     // `features/auto-tagging/tests/auto-tag-orchestrator-parity.test.ts`
     // enforces this contract).
     // Brand certifications are inserted later in this same transaction, but
