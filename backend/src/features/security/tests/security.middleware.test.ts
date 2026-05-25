@@ -7,7 +7,7 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
-import { authPost, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { authPost, setupAndLoginContributor } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -30,7 +30,9 @@ describe('Security Middleware — product routes', () => {
 
   beforeEach(async () => {
     app = await createTestApp()
-    token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+    // Product creation requires contributor+ (catalog-authz); the security
+    // middleware under test runs regardless of role.
+    token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
   describe('detection', () => {

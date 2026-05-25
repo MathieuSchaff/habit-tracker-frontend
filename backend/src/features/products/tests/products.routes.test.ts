@@ -8,7 +8,11 @@ import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
 import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
-import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 const VALID_PRODUCT = {
@@ -24,16 +28,20 @@ setupDbTests()
 describe('Product Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
+  // Catalog record routes require contributor+ since the catalog-authz work;
+  // record CRUD here runs as a contributor, deletes still require admin.
+  let contributorToken: string
 
   beforeEach(async () => {
     const env = await createTestEnv()
     app = env.app
     client = env.client
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
   describe('POST /products', () => {
     it('should create a product with required fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
@@ -47,7 +55,7 @@ describe('Product Routes', () => {
     })
 
     it('should create a product with all optional fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await client.products.$post(
         {
@@ -74,7 +82,7 @@ describe('Product Routes', () => {
     })
 
     it('should store createdAt and updatedAt', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const data = await res.json()
@@ -85,7 +93,7 @@ describe('Product Routes', () => {
     })
 
     it('should return 409 for duplicate name+brand', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
@@ -97,7 +105,7 @@ describe('Product Routes', () => {
     })
 
     it('should allow same name with different brands', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const res = await client.products.$post(
@@ -109,7 +117,7 @@ describe('Product Routes', () => {
     })
 
     it('should reject missing required fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       // Intentional invalid payload to verify schema validation.
       const res = await client.products.$post({ json: { name: 'Zinc' } as never }, withAuth(token))
@@ -130,6 +138,19 @@ describe('Product Routes', () => {
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    })
+  })
+
+  describe('role enforcement (records)', () => {
+    it('403 for a plain user on POST /products', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+      expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+    })
+
+    it('201 for a contributor on POST /products', async () => {
+      const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(contributorToken))
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
     })
   })
 
@@ -157,7 +178,7 @@ describe('Product Routes', () => {
     })
 
     it('should list all products within a domain without filters', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -181,7 +202,7 @@ describe('Product Routes', () => {
     })
 
     it('should filter by kind', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -223,7 +244,7 @@ describe('Product Routes', () => {
     })
 
     it('should filter by brand', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -249,7 +270,7 @@ describe('Product Routes', () => {
     })
 
     it('should paginate results', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -289,7 +310,7 @@ describe('Product Routes', () => {
     })
 
     it('should return page 2 correctly', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -350,7 +371,7 @@ describe('Product Routes', () => {
     })
 
     it('should return each item with the correct summary fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: { ...VALID_PRODUCT, priceCents: 1500 } }, withAuth(token))
 
       const res = await client.products.$get({ query: { category: 'complement' } })
@@ -375,7 +396,7 @@ describe('Product Routes', () => {
 
   describe('GET /products/:slug', () => {
     it('should return the product by slug without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -394,7 +415,7 @@ describe('Product Routes', () => {
     })
 
     it('should also work when authenticated', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -436,7 +457,7 @@ describe('Product Routes', () => {
     })
 
     it('returns distinct brand names sorted A→Z', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post(
         {
           json: {
@@ -504,7 +525,7 @@ describe('Product Routes', () => {
     })
 
     it('should return populated kinds and brands after creating products', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -538,7 +559,7 @@ describe('Product Routes', () => {
 
   describe('GET /products/filter-options?category=', () => {
     it('scopes brands and kinds to the requested tab', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post(
         {
           json: {
@@ -597,7 +618,7 @@ describe('Product Routes', () => {
     })
 
     it('should return similar products for an exact name+brand match', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
       const res = await client.products['check-duplicate'].$get({
@@ -636,7 +657,7 @@ describe('Product Routes', () => {
     })
 
     it('should return the correct shape for each result (id, name, brand, kind, slug)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
       const res = await client.products['check-duplicate'].$get({
@@ -676,7 +697,7 @@ describe('Product Routes', () => {
     })
 
     it('should return products matching by name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -700,7 +721,7 @@ describe('Product Routes', () => {
     })
 
     it('should return products matching by brand', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -724,7 +745,7 @@ describe('Product Routes', () => {
     })
 
     it('should be case-insensitive', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
       const res = await client.products.search.$get({ query: { q: 'VITAMINE' } })
@@ -741,7 +762,7 @@ describe('Product Routes', () => {
     })
 
     it('should respect the limit query param', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       await client.products.$post(
         {
@@ -778,7 +799,7 @@ describe('Product Routes', () => {
     })
 
     it('should return the correct shape (id, name, brand, kind, slug)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
 
       const res = await client.products.search.$get({ query: { q: 'Vitamine' } })
@@ -806,7 +827,7 @@ describe('Product Routes', () => {
 
   describe('GET /products/by-ids', () => {
     it('should return products matching the requested ids in any order', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       const aRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const aData = await aRes.json()
       if (!aData.success) throw new Error('create failed')
@@ -849,7 +870,7 @@ describe('Product Routes', () => {
     })
 
     it('should not require authentication', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
@@ -863,7 +884,7 @@ describe('Product Routes', () => {
 
   describe('PATCH /products/:id', () => {
     it('should update product fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -888,7 +909,7 @@ describe('Product Routes', () => {
     })
 
     it('should not affect untouched fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post(
         { json: { ...VALID_PRODUCT, notes: 'Note initiale' } },
@@ -910,7 +931,7 @@ describe('Product Routes', () => {
     })
 
     it('should persist updates across requests', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -929,7 +950,7 @@ describe('Product Routes', () => {
     })
 
     it('should allow overwriting a previously set field', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -955,7 +976,7 @@ describe('Product Routes', () => {
     })
 
     it('should return 404 for unknown id', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await client.products[':id'].$patch(
         { param: { id: crypto.randomUUID() }, json: { brand: 'X' } },
@@ -968,7 +989,7 @@ describe('Product Routes', () => {
     })
 
     it('should reject unknown fields (strict schema)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const createData = await createRes.json()
@@ -998,10 +1019,12 @@ describe('Product Routes', () => {
 
   describe('DELETE /products/:id', () => {
     it('should delete the product and return null data', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(contributorToken)
+      )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -1015,10 +1038,12 @@ describe('Product Routes', () => {
     })
 
     it('should make the product unreachable by slug after deletion', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(contributorToken)
+      )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -1030,10 +1055,9 @@ describe('Product Routes', () => {
     })
 
     it('should not affect other products when deleting one', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+      const r1 = await client.products.$post({ json: VALID_PRODUCT }, withAuth(contributorToken))
       const r2 = await client.products.$post(
         {
           json: {
@@ -1044,7 +1068,7 @@ describe('Product Routes', () => {
             unit: 'bottle',
           },
         },
-        withAuth(userToken)
+        withAuth(contributorToken)
       )
 
       const d1 = await r1.json()
@@ -1059,23 +1083,27 @@ describe('Product Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
 
-    it('should return 403 for non-admin user (unauthorized_access)', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+    it('should return 403 for a contributor (admin-only DELETE, route guard)', async () => {
+      // requireAdmin on the DELETE route blocks a contributor with 'forbidden'
+      // before the handler; the service-layer unauthorized_access check remains
+      // as the backstop. Documented boundary: contributors create/edit, not delete.
+      const createRes = await client.products.$post(
+        { json: VALID_PRODUCT },
+        withAuth(contributorToken)
+      )
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       const res = await client.products[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(userToken)
+        withAuth(contributorToken)
       )
 
       expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
       const data = (await res.json()) as { success: boolean; error?: string }
       expect(data.success).toBe(false)
-      expect(data.error).toBe('unauthorized_access')
+      expect(data.error).toBe('forbidden')
     })
 
     it('should return 404 for unknown id (product_not_found)', async () => {

@@ -1,7 +1,7 @@
 // Gold-set annotations for auto-tag precision/recall measurement (audit O2).
 //
-// A small (60-80 product) corpus where each product is hand-judged on the 16
-// focus tags listed below. Used to compute precision / recall / F1 / Brier /
+// A hand-maintained corpus (~1226 products as of 2026-05-25) where each product
+// is hand-judged on the 26 focus tags listed below. Used to compute precision / recall / F1 / Brier /
 // ECE per tag from the orchestrator output, so calibration moves can be
 // verified against a stable ground truth instead of running blind.
 //
@@ -20,11 +20,13 @@ import type { ProductKind, SkincareProductTagSlug } from '@habit-tracker/shared'
 
 export const GOLD_SET_SCHEMA_VERSION = '2026-05-08' as const
 
-// 16 tags in scope for the focus-calibration gold set. Mirrors the
+// 29 tags in scope for the focus-calibration gold set. Mirrors the
 // "calibrated 2026-05-08" subset documented in AUTO-TAGS.md §"Récap reprise":
 //   - 9 actif-class clusters recalibrated to recall=100% (positionCap: ∞)
-//   - 4 sensoriels Tier-1 (formula heuristics)
+//   - 3 sensoriels Tier-1 (formula heuristics)
 //   - 3 acid clusters carrying the design-conserved positionCap=10 drift
+//   - 10 algo-derm concerns (acne-imperfections, anti-age, hyperpigmentation, barriere-cutanee, apaisant, deshydratation, pores-sebum, rougeurs-vasculaires, eclat-teint-uniforme, protection) — §20 piste f pilot
+//   - 4 formula-pass concerns (keratose-pilaire, eczema-atopie, reparation-cutanee, cernes-poches) — §20 piste f, formula-layer expansion
 //
 // `satisfies` enforces every entry resolves to a real Aurore tag slug at
 // compile time — drift on a renamed slug shows up as a TS error here, not
@@ -42,9 +44,25 @@ export const GOLD_SET_FOCUS_TAGS = [
   'fini-mat',
   'texture-legere',
   'texture-riche',
+  // formula-pass concern layer — §20 piste f
+  'keratose-pilaire',
+  'eczema-atopie',
+  'reparation-cutanee',
+  'cernes-poches',
   'aha',
   'bha',
   'pha',
+  // algo-derm concern layer — §20 piste f pilot
+  'acne-imperfections',
+  'anti-age',
+  'hyperpigmentation',
+  'barriere-cutanee',
+  'apaisant',
+  'deshydratation',
+  'pores-sebum',
+  'rougeurs-vasculaires',
+  'eclat-teint-uniforme',
+  'protection',
 ] as const satisfies readonly SkincareProductTagSlug[]
 
 export type GoldSetFocusTag = (typeof GOLD_SET_FOCUS_TAGS)[number]

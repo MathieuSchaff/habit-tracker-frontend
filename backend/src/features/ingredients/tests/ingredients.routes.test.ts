@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { HTTP_STATUS } from '@habit-tracker/shared'
 
-import { eq } from 'drizzle-orm'
-
-import { users } from '../../../db/schema'
-import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import { setupAndLogin, setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 type ApiErrorBody = { success: false; error: string }
@@ -41,14 +41,18 @@ setupDbTests()
 describe('Ingredient Routes', () => {
   let app: TestApp
   let client: TestClient
+  // Catalog record routes require contributor+ since the catalog-authz work;
+  // record CRUD here runs as a contributor, deletes still require admin.
+  let contributorToken: string
 
   beforeEach(async () => {
     ;({ app, client } = await createTestEnv())
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
   describe('POST /ingredients', () => {
     it('should create an ingredient with only a name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await createIngredient(client, token, VALID_INGREDIENT)
 
@@ -64,7 +68,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should create an ingredient with all optional fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await createIngredient(client, token, {
         name: 'Acide Ascorbique',
@@ -82,7 +86,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should auto-generate slug from name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await createIngredient(client, token, { name: 'Acide Hyaluronique' })
       const data = await res.json()
@@ -92,11 +96,9 @@ describe('Ingredient Routes', () => {
     })
 
     it('should use custom slug when provided by admin', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const profileRes = await client.profile.$get({}, withAuth(token))
-      const profileData = await profileRes.json()
-      if (!profileData.success) throw new Error('profile fetch failed')
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profileData.data.userId))
+      // Custom slug requires the DB role to be admin; the JWT role must also be
+      // admin to clear requireCatalogWrite, so log in as an admin from the start.
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await createIngredient(client, token, { name: 'Niacinamide', slug: 'niacin' })
       const data = await res.json()
@@ -106,7 +108,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should NOT use custom slug when provided by non-admin', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await createIngredient(client, token, { name: 'Niacinamide', slug: 'niacin' })
       const data = await res.json()
@@ -116,11 +118,9 @@ describe('Ingredient Routes', () => {
     })
 
     it('should return 409 for duplicate slug (admin)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const profileRes = await client.profile.$get({}, withAuth(token))
-      const profileData = await profileRes.json()
-      if (!profileData.success) throw new Error('profile fetch failed')
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, profileData.data.userId))
+      // Duplicate-slug guard only triggers for admins (only they set slugs);
+      // log in as admin so the JWT clears requireCatalogWrite too.
+      const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await createIngredient(client, token, { name: 'Magnésium', slug: 'magnesium' })
       const res = await createIngredient(client, token, {
@@ -135,7 +135,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should reject missing name', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const res = await client.ingredients.$post(
         // @ts-expect-error — missing required name; testing schema rejection
@@ -163,7 +163,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should reject invalid slug formats and malicious strings', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       const badSlugs = [
         'UPPERCASE',
         'with spaces',
@@ -208,9 +208,22 @@ describe('Ingredient Routes', () => {
     })
   })
 
+  describe('role enforcement (records)', () => {
+    it('403 for a plain user on POST /ingredients', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const res = await createIngredient(client, userToken, VALID_INGREDIENT)
+      expectStatus(res, HTTP_STATUS.FORBIDDEN)
+    })
+
+    it('201 for a contributor on POST /ingredients', async () => {
+      const res = await createIngredient(client, contributorToken, VALID_INGREDIENT)
+      expectStatus(res, HTTP_STATUS.CREATED)
+    })
+  })
+
   describe('GET /ingredients/:slug', () => {
     it('should return the ingredient by slug without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -228,7 +241,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should also work when authenticated', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -258,7 +271,7 @@ describe('Ingredient Routes', () => {
 
   describe('GET /ingredients/by-slugs', () => {
     it('returns name+slug for known slugs and skips unknown ones', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       const a = await createIngredient(client, token, { name: 'Niacinamide' })
       const b = await createIngredient(client, token, { name: 'Rétinol' })
       const aData = await a.json()
@@ -297,7 +310,7 @@ describe('Ingredient Routes', () => {
 
   describe('PATCH /ingredients/:id', () => {
     it('should update ingredient fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -321,7 +334,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should not affect untouched fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, {
         ...VALID_INGREDIENT,
@@ -343,7 +356,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should persist updates across requests', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -362,7 +375,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should auto-update slug when name changes', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, { name: 'Vitamine E' })
       const createData = await createRes.json()
@@ -379,7 +392,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should return 404 for unknown id', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
       const fakeId = crypto.randomUUID()
 
       const res = await client.ingredients[':id'].$patch(
@@ -393,7 +406,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should reject unknown fields (strict schema)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -423,10 +436,9 @@ describe('Ingredient Routes', () => {
 
   describe('DELETE /ingredients/:id', () => {
     it('should delete the ingredient and return null data', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const createRes = await createIngredient(client, contributorToken, VALID_INGREDIENT)
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -440,10 +452,9 @@ describe('Ingredient Routes', () => {
     })
 
     it('should make the ingredient unreachable by slug after deletion', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+      const createRes = await createIngredient(client, contributorToken, VALID_INGREDIENT)
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
@@ -455,11 +466,10 @@ describe('Ingredient Routes', () => {
     })
 
     it('should not affect other ingredients when deleting one', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      const r1 = await createIngredient(client, userToken, VALID_INGREDIENT)
-      const r2 = await createIngredient(client, userToken, { name: 'Niacinamide' })
+      const r1 = await createIngredient(client, contributorToken, VALID_INGREDIENT)
+      const r2 = await createIngredient(client, contributorToken, { name: 'Niacinamide' })
 
       const r1Data = await r1.json()
       const r2Data = await r2.json()
@@ -473,22 +483,22 @@ describe('Ingredient Routes', () => {
       expectStatus(res, HTTP_STATUS.OK)
     })
 
-    it('should return 403 for non-admin user (unauthorized_access)', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const createRes = await createIngredient(client, userToken, VALID_INGREDIENT)
+    it('should return 403 for a contributor (admin-only DELETE, route guard)', async () => {
+      // requireAdmin on the DELETE route blocks a contributor with 'forbidden'
+      // before the handler; the service unauthorized_access check is the backstop.
+      const createRes = await createIngredient(client, contributorToken, VALID_INGREDIENT)
       const createData = await createRes.json()
       if (!createData.success) throw new Error('create failed')
       const created = createData.data
 
       const res = await client.ingredients[':id'].$delete(
         { param: { id: created.id } },
-        withAuth(userToken)
+        withAuth(contributorToken)
       )
 
       expectStatus(res, HTTP_STATUS.FORBIDDEN)
       const body = (await res.json()) as unknown as ApiErrorBody
-      expect(body.error).toBe('unauthorized_access')
+      expect(body.error).toBe('forbidden')
     })
 
     it('should return 500 for unknown id (ingredient_delete_failed)', async () => {
@@ -515,7 +525,7 @@ describe('Ingredient Routes', () => {
 
   describe('GET /ingredients/:slug/edits', () => {
     it('should return an empty list for a new ingredient', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -531,7 +541,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should return edits after an update without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -554,7 +564,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should return edits newest first', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, VALID_INGREDIENT)
       const createData = await createRes.json()
@@ -588,7 +598,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should not return edits from other ingredients', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const r1 = await createIngredient(client, token, VALID_INGREDIENT)
       const r2 = await createIngredient(client, token, { name: 'Niacinamide' })
@@ -611,7 +621,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should record old and new values in changes', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, {
         name: 'Rétinol',
@@ -636,7 +646,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should not create an edit when values are unchanged', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, {
         name: 'Rétinol',
@@ -658,7 +668,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should not track slug in edits when name changes', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const createRes = await createIngredient(client, token, { name: 'Vitamine C' })
       const createData = await createRes.json()
@@ -683,7 +693,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should record editedBy with the authenticated user id', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const profileRes = await client.profile.$get({}, withAuth(token))
       const profileData = await profileRes.json()

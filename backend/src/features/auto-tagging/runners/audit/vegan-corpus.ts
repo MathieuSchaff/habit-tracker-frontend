@@ -23,9 +23,10 @@
 // Run: bun run backend/src/features/auto-tagging/runners/audit/vegan-corpus.ts
 
 import { normalize, splitINCI } from 'algo-derm'
-import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm'
+import { and, eq, ilike, inArray, or } from 'drizzle-orm'
 
 import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
 
 const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 30
@@ -89,8 +90,6 @@ async function main() {
   if (Number.isNaN(SAMPLE_SIZE) || SAMPLE_SIZE <= 0) {
     throw new Error(`SAMPLE_SIZE must be a positive integer, got "${process.env.SAMPLE_SIZE}"`)
   }
-
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
 
   if (PRUNE) {
     await pruneFalsePositives()
@@ -272,10 +271,12 @@ async function pruneFalsePositives(): Promise<void> {
   for (const p of fpProducts) console.log(`   - ${p.slug}`)
 
   const ids = fpProducts.map((p) => p.id)
-  const deleted = await db
-    .delete(tagProducts)
-    .where(and(eq(tagProducts.productTagId, veganTagId), inArray(tagProducts.productId, ids)))
-    .returning({ productId: tagProducts.productId })
+  const deleted = await withAdminRls((tx) =>
+    tx
+      .delete(tagProducts)
+      .where(and(eq(tagProducts.productTagId, veganTagId), inArray(tagProducts.productId, ids)))
+      .returning({ productId: tagProducts.productId })
+  )
 
   console.log(`\n   🗑  ${deleted.length} paires (productId, vegan) supprimées.`)
   console.log(`   ✅ Prune terminé.\n`)

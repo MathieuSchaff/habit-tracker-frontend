@@ -36,6 +36,13 @@ export const TEST_CREDENTIALS = {
     rawPassword: 'Admin123!super',
   },
 
+  contributor: {
+    email: unsafeEmail('contributor@exemple.fr'),
+    rawEmail: 'contributor@exemple.fr',
+    password: unsafePassword('Contrib123!ok'),
+    rawPassword: 'Contrib123!ok',
+  },
+
   // Un autre utilisateur classique (pour les tests avec plusieurs comptes)
   alice: {
     email: unsafeEmail('alice.dupont@gmail.fr'),

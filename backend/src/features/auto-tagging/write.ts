@@ -1,6 +1,6 @@
 // Runtime auto-tag writer. Single-product wrapper used by
-// `features/products/service.ts createProduct()` to derive tags inline at
-// product creation time. Same orchestrator as the batch backfill — diverges
+// `features/products/service.ts create/updateProduct()` to derive tags inline
+// at intake. Same orchestrator as the batch backfill — diverges
 // only in I/O shape (one product, fetch what's needed, insert pairs).
 //
 // Idempotent via `onConflictDoNothing` on the (productId, productTagId) PK.
@@ -35,7 +35,10 @@ interface WriteTagsResult {
   detected: number
 }
 
-async function writeTagsForProduct(productId: string, database: DB = db): Promise<WriteTagsResult> {
+export async function writeTagsForProduct(
+  productId: string,
+  database: DB = db
+): Promise<WriteTagsResult> {
   const [product] = await database
     .select({
       id: products.id,

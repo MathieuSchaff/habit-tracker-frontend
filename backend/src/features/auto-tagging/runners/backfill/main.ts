@@ -1,15 +1,19 @@
 // Backfill INCI-derived and kind-derived tags for all skincare/solaire/bodycare
-// products already in DB. Detection logic lives in `auto-tag-orchestrator.ts` —
-// shared with `runners/seed-core.ts` so the two runners cannot drift on which
+// products already in DB. Detection logic lives in `features/auto-tagging/orchestrator.ts` —
+// shared with `db/seed/seeders/seed-core.ts` so the two runners cannot drift on which
 // passes run or what relevance precedence applies.
 //
-// Six detection passes per product (see orchestrator for details):
-//   1. algo-derm tagProduct — concern, skin_type, comedogenicity, absences
-//   2. actif-class clusters — RETINOIDS, VITAMIN_C, AHA, ...
-//   3. kind-derived         — TYPE_*, ZONE_*, STEP_*, MOMENT_*, TEXTURE_*
-//   4. formula              — occlusif, solaire, sensoriel, ...
-//   5. cross-signal         — MOMENT_SOIR/MATIN/CRISE from actif × kind
-//   6. avoid                — grossesse + stack-irritation + interaction
+// The shared orchestrator currently runs 10 ordered layers:
+//   1) algo-derm
+//   2) actif-class
+//   3) kind
+//   4) formula family (22 detectors)
+//   5) cross-signal
+//   6) percent-claim fallback
+//   7) interaction secondary
+//   8) brand labels
+//   9) avoid
+//  10) peau-normale abstention pass
 //
 // Relevance precedence: avoid > primary > secondary. When both signals fire for
 // the same (product, tag), the higher precedence wins. Detected `primary` (kind-
@@ -39,6 +43,8 @@ import {
 import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
+import type { Transaction } from '../../../../db/index'
+import { withAdminRls } from '../../../../db/rls'
 import {
   brandCertifications,
   ingredients,
@@ -143,7 +149,6 @@ async function fetchProductsAndCerts(): Promise<{
   allProducts: ProductRow[]
   brandCertMap: BrandCertMap
 }> {
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const allProducts = await db
     .select({
       id: products.id,
@@ -410,11 +415,11 @@ function reportPlan(
 const CHUNK = 500
 
 // Insert new pairs (secondary/actif/kind/formula) — doNothing preserves manual tags.
-async function insertNewPairs(toInsert: Candidate[]): Promise<number> {
+async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<number> {
   let inserted = 0
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const chunk = toInsert.slice(i, i + CHUNK)
-    await db
+    await tx
       .insert(tagProducts)
       .values(
         chunk.map(({ productId, productTagId, relevance, source }) => ({
@@ -439,11 +444,11 @@ async function insertNewPairs(toInsert: Candidate[]): Promise<number> {
 //    - primary over secondary        (kind-derived headline promotion)
 // Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
 // EXCLUDED.{relevance, source} so the upserted values match what we inserted.
-async function upsertExistingPairs(toUpsert: Candidate[]): Promise<number> {
+async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Promise<number> {
   let upserted = 0
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
     const chunk = toUpsert.slice(i, i + CHUNK)
-    await db
+    await tx
       .insert(tagProducts)
       .values(
         chunk.map(({ productId, productTagId, relevance, source }) => ({
@@ -493,8 +498,11 @@ async function main() {
     return
   }
 
-  const inserted = await insertNewPairs(result.toInsert)
-  await upsertExistingPairs(result.toUpsert)
+  const inserted = await withAdminRls(async (tx) => {
+    const n = await insertNewPairs(tx, result.toInsert)
+    await upsertExistingPairs(tx, result.toUpsert)
+    return n
+  })
 
   const avoidUpserts = result.toUpsert.length - result.primaryUpserts
   const primaryPromotions = result.primaryInserts + result.primaryUpserts

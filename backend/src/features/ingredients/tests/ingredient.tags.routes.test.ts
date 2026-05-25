@@ -7,7 +7,11 @@ import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 type IngredientHandle = { id: string; slug: string }
@@ -26,7 +30,8 @@ async function createIngredient(
 
 async function createTag(_client: TestClient, _token: string, name = 'Anti-âge') {
   // Ingredient↔tag links FK to `ingredient_tags`, not `product_tags_defs`.
-  // Insert directly via service since no public ingredient-tag-creation route exists.
+  // Insert directly via service since the HTTP route requires admin and tests
+  // need the tag as a fixture, not to assert creation behaviour.
   const tag = await createIngredientTag(testDb, { name })
   return { id: tag.id, slug: tag.slug }
 }
@@ -36,15 +41,18 @@ setupDbTests()
 describe('Ingredient Tag Routes', () => {
   let app: TestApp
   let client: TestClient
+  // Ingredient fixtures now require contributor+ (catalog-authz); the
+  // ingredient↔tag link routes under test remain admin-only.
+  let contributorToken: string
 
   beforeEach(async () => {
     ;({ app, client } = await createTestEnv())
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
   describe('GET /ingredients/:ingredientId/tags', () => {
     it('should return empty list when no tags linked', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const ingredient = await createIngredient(client, contributorToken)
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
         param: { ingredientId: ingredient.id },
@@ -57,13 +65,13 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should return tags after adding one', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
@@ -76,8 +84,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should not require authentication', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const ingredient = await createIngredient(client, contributorToken)
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
         param: { ingredientId: ingredient.id },
@@ -95,13 +102,13 @@ describe('Ingredient Tag Routes', () => {
 
   describe('POST /ingredients/:ingredientId/tags', () => {
     it('should add a tag to an ingredient', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.CREATED)
@@ -112,29 +119,29 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should reject duplicate tag link', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
     })
 
     it('should reject invalid tagId (non-UUID)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
 
       const res = await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: 'not-a-uuid' } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -142,7 +149,7 @@ describe('Ingredient Tag Routes', () => {
 
     it('should reject unauthenticated request', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const ingredient = await createIngredient(client, contributorToken)
       const tag = await createTag(client, token)
 
       const res = await app.request(`/ingredients/${ingredient.id}/tags`, {
@@ -152,38 +159,73 @@ describe('Ingredient Tag Routes', () => {
       })
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })
+
+    describe('role enforcement', () => {
+      it('403 for a plain user', async () => {
+        const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+        const ingredient = await createIngredient(client, contributorToken)
+        const tag = await createTag(client, userToken)
+        const res = await client.ingredients[':ingredientId'].tags.$post(
+          { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
+          withAuth(userToken)
+        )
+        expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      })
+
+      it('403 for a contributor', async () => {
+        const contribToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
+        const ingredient = await createIngredient(client, contributorToken)
+        const tag = await createTag(client, contribToken)
+        const res = await client.ingredients[':ingredientId'].tags.$post(
+          { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
+          withAuth(contribToken)
+        )
+        expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      })
+
+      it('201 for an admin', async () => {
+        const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+        const ingredient = await createIngredient(client, contributorToken)
+        const tag = await createTag(client, adminToken)
+        const res = await client.ingredients[':ingredientId'].tags.$post(
+          { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
+          withAuth(adminToken)
+        )
+        expectStatus(res, HTTP_STATUS.CREATED)
+      })
+    })
   })
 
   describe('DELETE /ingredients/:ingredientId/tags/:tagId', () => {
     it('should remove a tag from an ingredient', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
       const res = await client.ingredients[':ingredientId'].tags[':tagId'].$delete(
         { param: { ingredientId: ingredient.id, tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.NO_CONTENT)
     })
 
     it('should no longer appear in list after removal', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
       await client.ingredients[':ingredientId'].tags[':tagId'].$delete(
         { param: { ingredientId: ingredient.id, tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       const res = await client.ingredients[':ingredientId'].tags.$get({
@@ -196,7 +238,7 @@ describe('Ingredient Tag Routes', () => {
 
     it('should reject unauthenticated request', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const ingredient = await createIngredient(client, contributorToken)
       const tag = await createTag(client, token)
 
       const res = await app.request(`/ingredients/${ingredient.id}/tags/${tag.id}`, {
@@ -208,18 +250,18 @@ describe('Ingredient Tag Routes', () => {
 
   describe('PUT /ingredients/:ingredientId/tags', () => {
     it('should replace all tags for an ingredient', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag1 = await createTag(client, token, 'Tag 1')
-      const tag2 = await createTag(client, token, 'Tag 2')
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag1 = await createTag(client, adminToken, 'Tag 1')
+      const tag2 = await createTag(client, adminToken, 'Tag 2')
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag1.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
       const res = await client.ingredients[':ingredientId'].tags.$put(
         { param: { ingredientId: ingredient.id }, json: { tags: [{ tagId: tag2.id }] } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -230,17 +272,17 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should clear all tags when tagIds is empty', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
-      const tag = await createTag(client, token)
+      const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
+      const ingredient = await createIngredient(client, contributorToken)
+      const tag = await createTag(client, adminToken)
 
       await client.ingredients[':ingredientId'].tags.$post(
         { param: { ingredientId: ingredient.id }, json: { tagId: tag.id } },
-        withAuth(token)
+        withAuth(adminToken)
       )
       const res = await client.ingredients[':ingredientId'].tags.$put(
         { param: { ingredientId: ingredient.id }, json: { tags: [] } },
-        withAuth(token)
+        withAuth(adminToken)
       )
 
       expectStatus(res, HTTP_STATUS.OK)
@@ -250,8 +292,7 @@ describe('Ingredient Tag Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const ingredient = await createIngredient(client, token)
+      const ingredient = await createIngredient(client, contributorToken)
 
       const res = await app.request(`/ingredients/${ingredient.id}/tags`, {
         method: 'PUT',

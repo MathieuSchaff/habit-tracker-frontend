@@ -19,6 +19,7 @@ import {
 import { and, eq } from 'drizzle-orm'
 
 import { db } from '../..'
+import { withAdminRls } from '../../rls'
 import { products, productTagsDefs, tagProducts } from '../../schema'
 
 const WRITE = process.argv.includes('--write')
@@ -66,16 +67,19 @@ async function main() {
     return
   }
 
-  // Delete in batches — each row is uniquely identified by (productTagId, productId)
+  // Delete in batches — each row is uniquely identified by (productTagId, productId).
+  // One admin tx so RLS accepts the DELETEs on the app_runtime connection.
   let deleted = 0
-  for (const v of violations) {
-    await db
-      .delete(tagProducts)
-      .where(
-        and(eq(tagProducts.productTagId, v.productTagId), eq(tagProducts.productId, v.productId))
-      )
-    deleted++
-  }
+  await withAdminRls(async (tx) => {
+    for (const v of violations) {
+      await tx
+        .delete(tagProducts)
+        .where(
+          and(eq(tagProducts.productTagId, v.productTagId), eq(tagProducts.productId, v.productId))
+        )
+      deleted++
+    }
+  })
 
   console.log(`Deleted ${deleted} tag_products row(s).`)
   console.log('Run `just audit-db` to verify 0 violations.')

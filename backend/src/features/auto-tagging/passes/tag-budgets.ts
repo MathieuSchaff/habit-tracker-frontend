@@ -61,6 +61,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   skincare: {
     'sans-sulfates': { max: 1.0 }, // hit_rate=82.4%
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=81.6%
+    'sans-alcool-denature': { max: 1.0 }, // hit_rate=79.3%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=74.5%
     'grossesse-compatible': { max: 1.0 }, // hit_rate=72.0%
     'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=69.3%
@@ -93,6 +94,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=85.5%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=83.1%
     'grossesse-compatible': { max: 1.0 }, // hit_rate=80.2%
+    'sans-alcool-denature': { max: 1.0 }, // hit_rate=63.4%
     'sans-silicones': { max: 0.8 }, // hit_rate=51.1%
     'sans-parfum': { max: 0.55 }, // hit_rate=35.2%
     'peau-sensible': { max: 0.35 }, // hit_rate=25.1% · tightened (sensitive)
@@ -118,6 +120,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   },
   bodycare: {
     'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=85.2%
+    'sans-alcool-denature': { max: 1.0 }, // hit_rate=83.1%
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=78.6%
     'grossesse-compatible': { max: 1.0 }, // hit_rate=77.2%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=72.0%

@@ -38,3 +38,12 @@ export async function createTestAdminUser(
   await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
   return user
 }
+
+export async function createTestContributorUser(
+  email: string = 'contributor@toto.com',
+  password: string = 'Azerty123!'
+) {
+  const user = await createTestUser(email, password)
+  await testDb.update(users).set({ role: 'contributor' }).where(eq(users.id, user.id))
+  return user
+}

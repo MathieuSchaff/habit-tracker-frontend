@@ -10,8 +10,8 @@
 //   - new:    hit \ already-present (proposed additions)
 //   - avg_conf: average algo-derm confidence over hits
 //
-// No writes. The companion runner `backfill-auto-tags.ts` (TODO) will do
-// the actual INSERT once thresholds are calibrated.
+// No writes. The companion runner `runners/backfill/main.ts` performs the
+// actual INSERT/UPSERT path once thresholds are calibrated.
 //
 // Tunables via env:
 //   CONF_OVERRIDE    optional       — raises every per-tag confidenceFloor (computed_score only) to this value (debug)
@@ -353,7 +353,7 @@ function reportPerTag(state: AuditState): void {
   )
   // Reverse-lookup auroreSlug → rule for the report column.
   const ruleBySlug = new Map<string, TagRule>()
-  for (const r of Object.values(TAG_CONFIG)) ruleBySlug.set(r.auroreSlug, r)
+  for (const r of Object.values(TAG_CONFIG)) if (r.auroreSlug) ruleBySlug.set(r.auroreSlug, r)
 
   const sorted = [...state.tagFreq.entries()].sort((a, b) => b[1].hit - a[1].hit)
   for (const [slug, s] of sorted) {
@@ -368,7 +368,7 @@ function reportPerTag(state: AuditState): void {
 function reportSilentTags(state: AuditState): void {
   const emittedSlugs = new Set(state.tagFreq.keys())
   const silent = Object.values(TAG_CONFIG)
-    .filter((r) => r.allow && !emittedSlugs.has(r.auroreSlug))
+    .filter((r) => r.allow && r.auroreSlug && !emittedSlugs.has(r.auroreSlug))
     .map((r) => r.auroreSlug)
   if (silent.length > 0) {
     console.log(`\n⚪ Tags allow=true mais 0 hit : ${silent.join(', ')}`)

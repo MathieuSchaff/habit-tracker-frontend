@@ -12,6 +12,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { catalogPolicies } from '../_policies'
 import { ingredients } from '../ingredients/ingredients'
 import { products } from '../products/products'
 
@@ -32,8 +33,9 @@ export const ingredientTagsDefs = pgTable(
   (t) => [
     uniqueIndex('ingredient_tags_slug_unique').on(t.slug),
     index('ingredient_tags_type_idx').on(t.tagType),
+    ...catalogPolicies('ingredient_tags', 'admin'),
   ]
-)
+).enableRLS()
 
 export const productTagsDefs = pgTable(
   'product_tags',
@@ -49,8 +51,9 @@ export const productTagsDefs = pgTable(
   (t) => [
     uniqueIndex('product_tags_slug_unique').on(t.slug),
     index('product_tags_type_idx').on(t.tagType),
+    ...catalogPolicies('product_tags', 'admin'),
   ]
-)
+).enableRLS()
 
 // Junction tables — composite PK = uniqueness constraint
 export const relevanceEnum = pgEnum('relevance', relevanceValues)
@@ -66,8 +69,11 @@ export const tagIngredients = pgTable(
       .references(() => ingredients.id, { onDelete: 'cascade' }),
     relevance: relevanceEnum('relevance').notNull().default('secondary'),
   },
-  (t) => [primaryKey({ columns: [t.ingredientTagId, t.ingredientId] })]
-)
+  (t) => [
+    primaryKey({ columns: [t.ingredientTagId, t.ingredientId] }),
+    ...catalogPolicies('tag_ingredients', 'admin'),
+  ]
+).enableRLS()
 
 export const tagProducts = pgTable(
   'tag_products',
@@ -86,8 +92,11 @@ export const tagProducts = pgTable(
     // pre-existing rows safe through the migration.
     source: text('source').$type<TagSource>().notNull().default('manual'),
   },
-  (t) => [primaryKey({ columns: [t.productTagId, t.productId] })]
-)
+  (t) => [
+    primaryKey({ columns: [t.productTagId, t.productId] }),
+    ...catalogPolicies('tag_products', 'contributor'),
+  ]
+).enableRLS()
 
 export type IngredientTagDef = typeof ingredientTagsDefs.$inferSelect
 export type ProductTagDef = typeof productTagsDefs.$inferSelect

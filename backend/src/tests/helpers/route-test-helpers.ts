@@ -1,7 +1,7 @@
 import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { createTestAdminUser, createTestUser } from './test-factories'
+import { createTestAdminUser, createTestContributorUser, createTestUser } from './test-factories'
 
 export async function loginAndGetToken(app: Hono<AppEnv>, email: string, password: string) {
   const res = await app.request('/auth/mobile/login', {
@@ -27,6 +27,14 @@ export async function setupAndLoginAdmin(
   creds: { rawEmail: string; rawPassword: string }
 ) {
   await createTestAdminUser(creds.rawEmail, creds.rawPassword)
+  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
+}
+
+export async function setupAndLoginContributor(
+  app: Hono<AppEnv>,
+  creds: { rawEmail: string; rawPassword: string }
+) {
+  await createTestContributorUser(creds.rawEmail, creds.rawPassword)
   return loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
 }
 

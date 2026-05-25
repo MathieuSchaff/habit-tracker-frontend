@@ -1,7 +1,7 @@
 // Shared helper for detectors that need a normalized INCI ingredient array.
 //
-// `detectAllAutoTags` (auto-tag-orchestrator.ts) hoists `splitINCI(inci).map(normalize)`
-// once per product so the 6 detection passes share the same array (audit
+// `detectAllAutoTags` (orchestrator.ts) hoists `splitINCI(inci).map(normalize)`
+// once per product so the full pass registry can share the same array (audit
 // O3 D.3 — avoid splitINCI × N when many detectors fire on the same product).
 //
 // Each detector accepts an optional `hoisted` array as last argument:

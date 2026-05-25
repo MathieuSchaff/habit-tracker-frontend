@@ -78,9 +78,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const [manualRow] = await testDb
       .select()
       .from(tagProducts)
-      .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id))
-      )
+      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
     expect(manualRow.source).toBe('manual')
 
     // Trigger retag by emptying the INCI. updateProduct's trigger now fires
@@ -100,9 +98,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const manualAfter = await testDb
       .select()
       .from(tagProducts)
-      .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id))
-      )
+      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
     expect(manualAfter).toHaveLength(1)
     expect(manualAfter[0].source).toBe('manual')
   })
@@ -166,9 +162,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const [manualAfter] = await testDb
       .select()
       .from(tagProducts)
-      .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id))
-      )
+      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
     expect(manualAfter).toBeDefined()
     expect(manualAfter.source).toBe('manual')
   })

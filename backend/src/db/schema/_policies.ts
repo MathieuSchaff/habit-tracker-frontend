@@ -58,3 +58,32 @@ export function fkTenantPolicies(name: string, ownershipExpr: SQL) {
     }),
   ]
 }
+
+// Catalog tables: public SELECT, writes gated by app.role.
+//   - <name>_select_public : USING (true). MUST NOT be gated by auth.role() —
+//     anonymous GETs skip withRlsContext, so app.role is empty; gating SELECT
+//     would break public browsing.
+//   - <name>_write_role : INSERT/UPDATE/DELETE gated by app.role.
+// writeRole 'contributor' → admin OR contributor ; 'admin' → admin only
+// (tag definitions + ingredient↔tag links).
+export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin') {
+  const roleCheck =
+    writeRole === 'admin'
+      ? sql`(SELECT auth.role()) = 'admin'`
+      : sql`(SELECT auth.role()) IN ('admin', 'contributor')`
+  return [
+    pgPolicy(`${name}_select_public`, {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`true`,
+    }),
+    pgPolicy(`${name}_write_role`, {
+      as: 'permissive',
+      for: 'all',
+      to: appRuntimeRole,
+      using: roleCheck,
+      withCheck: roleCheck,
+    }),
+  ]
+}

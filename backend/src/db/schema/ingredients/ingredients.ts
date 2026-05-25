@@ -12,6 +12,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { catalogPolicies } from '../_policies'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
@@ -60,8 +61,9 @@ export const ingredients = pgTable(
         (${t.type} = 'supplement' AND ${t.category} IN ('vitamine','mineral','acide-amine','acide-gras','antioxydant','carotenoide','plante','adaptogene','champignon','probiotique','prebiotique','peptide','collagene','polyphenol','neuroactif','longevite','enzyme','autre'))
       )`
     ),
+    ...catalogPolicies('ingredients', 'contributor'),
   ]
-)
+).enableRLS()
 
 export const ingredientEdits = pgTable(
   'ingredient_edits',

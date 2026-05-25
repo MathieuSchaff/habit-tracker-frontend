@@ -7,7 +7,7 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { setupAndLogin, setupAndLoginContributor } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 type ProductBody = {
@@ -44,16 +44,20 @@ setupDbTests()
 describe('Product Comparison Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
+  // Product fixtures now require contributor+ (catalog-authz); the comparison
+  // routes themselves stay open to any authenticated user.
+  let contributorToken: string
   beforeEach(async () => {
     const env = await createTestEnv()
     app = env.app
     client = env.client
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
   })
 
   it('POST creates a comparison', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const a = await createProduct(client, token, PRODUCT_A)
-    const b = await createProduct(client, token, PRODUCT_B)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
+    const b = await createProduct(client, contributorToken, PRODUCT_B)
 
     const res = await client['product-comparisons'].$post(
       { json: { name: 'Sérums', productIds: [a.id, b.id] } },
@@ -64,7 +68,7 @@ describe('Product Comparison Routes', () => {
 
   it('POST rejects 1 product (too few)', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const a = await createProduct(client, token, PRODUCT_A)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
 
     // Single product fails the zod min(2) → 400 from validator middleware.
     const res = await app.request('/product-comparisons', {
@@ -77,8 +81,8 @@ describe('Product Comparison Routes', () => {
 
   it('GET /:id returns enriched comparison', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const a = await createProduct(client, token, PRODUCT_A)
-    const b = await createProduct(client, token, PRODUCT_B)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
+    const b = await createProduct(client, contributorToken, PRODUCT_B)
     const createdRes = await client['product-comparisons'].$post(
       { json: { productIds: [a.id, b.id] } },
       withAuth(token)
@@ -98,8 +102,8 @@ describe('Product Comparison Routes', () => {
 
   it('PATCH renames a comparison', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const a = await createProduct(client, token, PRODUCT_A)
-    const b = await createProduct(client, token, PRODUCT_B)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
+    const b = await createProduct(client, contributorToken, PRODUCT_B)
     const createdRes = await client['product-comparisons'].$post(
       { json: { productIds: [a.id, b.id] } },
       withAuth(token)
@@ -116,8 +120,8 @@ describe('Product Comparison Routes', () => {
 
   it('DELETE removes a comparison', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const a = await createProduct(client, token, PRODUCT_A)
-    const b = await createProduct(client, token, PRODUCT_B)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
+    const b = await createProduct(client, contributorToken, PRODUCT_B)
     const createdRes = await client['product-comparisons'].$post(
       { json: { productIds: [a.id, b.id] } },
       withAuth(token)

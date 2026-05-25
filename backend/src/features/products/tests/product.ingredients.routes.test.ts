@@ -8,8 +8,20 @@ import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
 import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
-import { setupAndLogin } from '../../../tests/helpers/route-test-helpers'
+import { expectStatus } from '../../../tests/helpers/expectStatus'
+import {
+  setupAndLogin,
+  setupAndLoginAdmin,
+  setupAndLoginContributor,
+} from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
+
+async function createProduct(client: TestClient, token: string) {
+  const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+  const data = await res.json()
+  if (!data.success) throw new Error('create product failed')
+  return data.data
+}
 
 const VALID_PRODUCT = {
   name: 'Sérum Rétinol',
@@ -24,16 +36,18 @@ setupDbTests()
 describe('Product Ingredients Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
+  let contributorToken: string
+  let adminToken: string
 
   beforeEach(async () => {
-    const env = await createTestEnv()
-    app = env.app
-    client = env.client
+    ;({ app, client } = await createTestEnv())
+    contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
+    adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
   })
 
   describe('GET /products/:productId/ingredients', () => {
     it('should return an empty list without auth', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -52,7 +66,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should return linked ingredients with joined details', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -107,7 +121,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should not return ingredients from other products', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const r1 = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const r2 = await client.products.$post(
@@ -162,7 +176,7 @@ describe('Product Ingredients Routes', () => {
 
   describe('POST /products/:productId/ingredients', () => {
     it('should add an ingredient with only an ingredientId', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -197,7 +211,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should add an ingredient with concentration details', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -236,7 +250,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should return 409 when adding the same ingredient twice', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -266,7 +280,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should reject missing ingredientId', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -297,7 +311,7 @@ describe('Product Ingredients Routes', () => {
 
   describe('PATCH /products/:productId/ingredients/:ingredientId', () => {
     it('should update concentration and notes', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -335,7 +349,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should only update provided fields', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -382,7 +396,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should return 404 when the link does not exist', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -405,7 +419,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should reject unknown fields (strict schema)', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -435,7 +449,7 @@ describe('Product Ingredients Routes', () => {
 
   describe('DELETE /products/:productId/ingredients/:ingredientId', () => {
     it('should remove the ingredient link and return null', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -464,7 +478,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should make the link disappear from the list', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -497,7 +511,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should not affect other ingredient links', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -542,7 +556,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should return 404 when the link does not exist', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -570,7 +584,7 @@ describe('Product Ingredients Routes', () => {
 
   describe('PUT /products/:productId/ingredients', () => {
     it('should replace all ingredients', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -618,7 +632,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should clear all ingredients when given an empty array', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -657,7 +671,7 @@ describe('Product Ingredients Routes', () => {
     })
 
     it('should set productId correctly on all replaced entries', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const token = contributorToken
 
       const productRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
       const productData = await productRes.json()
@@ -703,6 +717,35 @@ describe('Product Ingredients Routes', () => {
       })
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    })
+  })
+
+  describe('PUT /products/:productId/ingredients — role enforcement', () => {
+    let product: { id: string }
+    beforeEach(async () => {
+      product = await createProduct(client, contributorToken)
+    })
+    it('403 for a plain user', async () => {
+      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      const res = await client.products[':productId'].ingredients.$put(
+        { param: { productId: product.id }, json: { ingredients: [] } },
+        withAuth(userToken)
+      )
+      expectStatus(res, HTTP_STATUS.FORBIDDEN)
+    })
+    it('200 for a contributor', async () => {
+      const res = await client.products[':productId'].ingredients.$put(
+        { param: { productId: product.id }, json: { ingredients: [] } },
+        withAuth(contributorToken)
+      )
+      expectStatus(res, HTTP_STATUS.OK)
+    })
+    it('200 for an admin', async () => {
+      const res = await client.products[':productId'].ingredients.$put(
+        { param: { productId: product.id }, json: { ingredients: [] } },
+        withAuth(adminToken)
+      )
+      expectStatus(res, HTTP_STATUS.OK)
     })
   })
 })

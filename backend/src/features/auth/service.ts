@@ -85,7 +85,11 @@ async function resetFailedLogins(db: DB, userId: string): Promise<void> {
     .where(eq(users.id, userId))
 }
 
-export async function createTokenPair(ctx: AuthContext, userId: string, role: 'user' | 'admin') {
+export async function createTokenPair(
+  ctx: AuthContext,
+  userId: string,
+  role: 'user' | 'admin' | 'contributor'
+) {
   const accessToken = await generateAccessToken(userId, role, ctx.jwtSecret)
   const {
     token: refreshToken,

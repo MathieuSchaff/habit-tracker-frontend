@@ -21,6 +21,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { catalogPolicies } from '../_policies'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
@@ -89,8 +90,9 @@ export const products = pgTable(
       'products_unit_check',
       sql`${t.unit} IN ('pump','dropper','jar','tube','bottle','spray','pack','roller','bar','aerosol','stick','sachet','cartridge','tablet','capsule','gummy','powder','ampoule')`
     ),
+    ...catalogPolicies('products', 'contributor'),
   ]
-)
+).enableRLS()
 
 export const productEdits = pgTable(
   'product_edits',

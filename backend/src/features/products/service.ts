@@ -615,7 +615,7 @@ export async function getDistinctBrands(database: Database = db): Promise<string
 }
 
 export async function deleteProduct(
-  role: 'user' | 'admin',
+  role: 'user' | 'admin' | 'contributor',
   id: string,
   database: Database = db
 ): Promise<void> {

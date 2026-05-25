@@ -12,7 +12,7 @@ interface AuthStore {
   tokenExpiresAt: number | null
   user: UserPublic | null
   emailVerified: boolean
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'contributor'
   isAdmin: boolean
   isDemo: boolean
   // Latched after the first boot-time silent-refresh probe so unauthenticated nav doesn't re-fire /auth/refresh.

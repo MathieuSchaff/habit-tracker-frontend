@@ -11,7 +11,10 @@ import {
   withAuth,
 } from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
-import { createTestAdminUser, createTestUser } from '../../../tests/helpers/test-factories'
+import {
+  createTestAdminUser,
+  createTestContributorUser,
+} from '../../../tests/helpers/test-factories'
 import { clearBanCache } from '../ban.service'
 
 const ANY_UUID = '019d0000-0000-7000-8000-00000000abcd'
@@ -36,7 +39,9 @@ describe('Per-scope ban enforcement (requireNotBannedScope)', () => {
     clearBanCache()
     const toto = TEST_CREDENTIALS.toto
     const admin = TEST_CREDENTIALS.admin
-    const user = await createTestUser(toto.rawEmail, toto.rawPassword)
+    // Contributor so the actor clears requireCatalogWrite on catalog record
+    // routes; the ban-scope gate under test runs before it and is independent.
+    const user = await createTestContributorUser(toto.rawEmail, toto.rawPassword)
     const adminUser = await createTestAdminUser(admin.rawEmail, admin.rawPassword)
     userId = user.id
     adminId = adminUser.id

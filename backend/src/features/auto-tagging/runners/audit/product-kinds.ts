@@ -16,9 +16,11 @@
 
 import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@habit-tracker/shared'
 
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import { db } from '../../../../db'
+import type { Transaction } from '../../../../db/index'
+import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
 
 // fallow-ignore-next-line code-duplication
@@ -305,7 +307,6 @@ type ProductRow = {
 }
 
 async function loadProducts(): Promise<ProductRow[]> {
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const rows = await db
     .select({
       id: products.id,
@@ -390,12 +391,14 @@ async function applyCertainFixes(certain: Mismatch[]): Promise<void> {
     return
   }
   console.log(`✏️  Applying ${certain.length} certain fixes...`)
-  for (const m of certain) {
-    await db
-      .update(products)
-      .set({ kind: m.expectedKind, category: m.expectedCategory })
-      .where(eq(products.id, m.productId))
-  }
+  await withAdminRls(async (tx: Transaction) => {
+    for (const m of certain) {
+      await tx
+        .update(products)
+        .set({ kind: m.expectedKind, category: m.expectedCategory })
+        .where(eq(products.id, m.productId))
+    }
+  })
   console.log(
     `✅ ${certain.length} products updated. Re-run \`make backfill-auto-tags WRITE=1\` to refresh tags.`
   )

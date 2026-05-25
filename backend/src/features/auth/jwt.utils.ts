@@ -16,7 +16,7 @@ const JWT_CONFIG = {
 
 export async function generateAccessToken(
   userId: string,
-  role: 'user' | 'admin',
+  role: 'user' | 'admin' | 'contributor',
   secret: string
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000)

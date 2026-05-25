@@ -23,7 +23,7 @@ import { tenantPolicies } from '../_policies'
 import { appRuntimeRole } from '../_roles'
 import { timestamps } from '../_timestamps'
 
-export const userRoleEnum = pgEnum('user_role', ['user', 'admin'])
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'contributor'])
 
 export const users = pgTable(
   'users',
