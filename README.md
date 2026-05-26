@@ -6,6 +6,20 @@ Aurore centralises that: a personal database of skincare products and ingredient
 
 ---
 
+## At a glance
+
+Aurore is a full-stack skincare research app for people who compare formulas before buying.
+
+It lets users:
+
+- save skincare products in a personal database;
+- parse and structure INCI ingredient lists;
+- keep notes and decision states beside each product;
+- compare formulas without fake scores or medical claims;
+- preserve the reasoning behind each skincare decision.
+
+Built as a production-grade TypeScript monorepo with React, Hono, PostgreSQL, RLS, Docker, tests and E2E coverage.
+
 ## What Aurore is
 
 A calm skincare shelf and formula notebook for people who **compare formulas before buying** — formula-conscious buyers, INCI readers, AI-skincare overthinkers.
@@ -28,29 +42,76 @@ collect products → understand formulas → compare candidates
 
 ---
 
-## Features
+## Core features
 
 **Products & ingredients**
 
-- Personal database of cosmetic products
-- INCI parsed into structured ingredients (role, family, notes)
-- Tag system for filtering and auto-tagging from formula signals
-- Per-product personal note + decision state
-- Product comparison without winners, scores, or fake precision
+- Personal database of cosmetic products.
+- INCI parsed into structured ingredients: role, family, notes.
+- Tag system for filtering and auto-tagging from formula signals.
+- Per-product personal note and decision state.
+- Product comparison without winners, scores, or fake precision.
 
-**Dermo signal (algo-derm)**
+**Research memory**
 
-- Theoretical dermatological score per product (risk / benefit / confidence axes) computed backend-side from the INCI
-- Calm presentation in the UI: groups before details, no medical claims, no universal verdicts
-- Algo lives in a separate repo (`algo-derm`, MIT) vendored as a tarball — see [§ Vendored `algo-derm`](#vendored-algo-derm)
+- Candidate, wishlist, holy-grail and rejection states.
+- Rejection reasons kept as useful memory, not discarded history.
+- A product page designed around context: formula, notes, decision and assessment.
 
-**Auth**
+**Auth & data boundaries**
 
-- Email + password (Argon2 via Bun) or Google OAuth
-- Short-lived access token (15 min, memory) + refresh token (7 d, HttpOnly cookie, rotated)
-- Row-Level Security at the Postgres level — see [`SECURITY.md`](./docs/SECURITY.md)
+- Email + password auth with Argon2 via Bun.
+- Google OAuth.
+- Short-lived access token plus refresh token rotation in an HttpOnly cookie.
+- Row-Level Security at the Postgres level — see [`SECURITY.md`](./docs/SECURITY.md).
 
----
+## Formula assessment
+
+Aurore computes a backend-side formula assessment from the INCI list, based on risk, benefit and confidence axes.
+
+It is not a medical diagnosis, not a safety score, and not a universal recommendation. Its purpose is to help users structure their own research and compare formulas more calmly.
+
+The assessment logic lives in a separate MIT library (`algo-derm`) vendored as a backend tarball. The frontend receives only the precomputed `ProductAssessment`; the bundled dataset never ships to the browser.
+
+## Technical highlights
+
+- Full-stack TypeScript monorepo with shared Zod contracts between frontend and backend.
+- Hono backend with REST API and typesafe RPC.
+- PostgreSQL 18 with Drizzle migrations and Row-Level Security.
+- Secure auth: Argon2, short-lived access tokens, refresh token rotation, HttpOnly cookies, Google OAuth.
+- Backend-computed formula assessment, kept out of the browser bundle.
+- Isolated backend test database, frontend tests and Playwright E2E suite.
+- Docker Compose environments for development, testing and production.
+- Nginx + SSL production setup.
+
+## Architecture
+
+```text
+React 19 + TanStack Router/Query
+        │
+        │ shared Zod schemas
+        ▼
+Hono API / RPC
+        │
+        ├── Auth: Argon2, JWT, Google OAuth
+        ├── Formula assessment: algo-derm
+        └── Product services
+        │
+        ▼
+PostgreSQL 18 + Drizzle + RLS
+```
+
+```text
+aurore/
+├── backend/            # Hono API (Route → Service → DB)
+├── frontend/           # React SPA (Vite + TanStack Router/Query)
+├── shared/             # Shared Zod schemas (source of truth)
+├── vendor/             # Vendored deps (algo-derm tarball)
+├── infra/              # Docker, Nginx, keys, ops config
+├── backups/            # DB backups
+├── scripts/            # Automation scripts (incl. just recipes)
+└── docs/               # Public project docs
+```
 
 ## Stack
 
@@ -72,173 +133,25 @@ collect products → understand formulas → compare candidates
 > **Important**: the monorepo has a `shared` TypeScript package. Docker doesn't always have the build cache at startup, so build the types locally first.
 
 ```bash
-# 1. First-time setup (deps + hooks + env template) — requires Bun + mise
+# First-time setup: deps, hooks and env template
 just init
 
-# 2. Fill in secrets
+# Fill in secrets
 $EDITOR .env.dev
 
-# 3. Start the full environment
+# Start the full development environment
 just dev-fresh
 ```
 
-**Daily workflow:**
+Daily workflow:
 
-- Terminal 1: `just ts-check` — TypeScript watch mode on the host
-- Terminal 2: `just dev` — Docker
+- `just ts-check` — TypeScript watch mode on the host.
+- `just dev` — Docker development stack.
 
----
+See [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) for commands, tests, database workflows, production notes and troubleshooting.
 
-## Commands
+## Documentation
 
-### Development & types
-
-| Command          | Description                        |
-| :--------------- | :--------------------------------- |
-| `just dev`       | Build types + start Docker         |
-| `just dev-fresh` | Full cleanup + install + start     |
-| `just ts-check`  | TypeScript watch mode (host)       |
-| `just ts-build`  | Generate types and TanStack routes |
-| `just ts-verify` | One-shot type check (host)         |
-| `just diagnose`  | Check types and container state    |
-
-### Quality & tests
-
-| Command              | Description                    |
-| :------------------- | :----------------------------- |
-| `just lint-fix`      | Fix style with Biome           |
-| `just format`        | Format code                    |
-| `just test`          | Backend tests (isolated DB)    |
-| `just test-frontend` | Vitest frontend tests          |
-| `just test-all`      | Full test suite                |
-| `just test-db-reset` | Reset the test DB from scratch |
-
-### Backend tests (recommended workflow)
-
-Keep the test DB running during your session:
-
-```bash
-just test-db-up  # once per session, starts Docker on port 5433
-```
-
-Run targeted tests:
-
-```bash
-just test-dev "products"
-just test-dev "features/products/tests/products.routes.test.ts"
-```
-
-Watch mode (TDD):
-
-```bash
-just test-dev-watch "products"
-```
-
-> Each test (`beforeEach`) cleans tables via `cleanDatabase` — no need to restart Docker between tests.
-
-### E2E (Playwright)
-
-```bash
-just dev-down   # stop the dev stack first
-just e2e-up     # bring up the e2e overlay (swapped DB)
-just e2e        # run Playwright suites
-```
-
-### Database
-
-| Command                             | Description                        |
-| :---------------------------------- | :--------------------------------- |
-| `just db-generate`                  | Generate a SQL migration file      |
-| `just db-migrate`                   | Apply migrations locally           |
-| `just db-push`                      | Sync schema without migration      |
-| `just db-studio`                    | Drizzle UI (http://localhost:4983) |
-| `just db-seed`                      | Inject test data                   |
-| `just db-reset`                     | Wipe + migrate + seed              |
-| `just db-backup`                    | Backup to `./backups/`             |
-| `just db-restore ./backups/xxx.sql` | Restore from a `.sql` file         |
-
----
-
-## Structure
-
-```text
-aurore/
-├── backend/            # Hono API (Route → Service → DB)
-├── frontend/           # React SPA (Vite + TanStack Router/Query)
-├── shared/             # Shared Zod schemas (source of truth)
-├── vendor/             # Vendored deps (algo-derm tarball)
-├── infra/              # Docker, Nginx, keys, ops config
-├── backups/            # DB backups
-├── scripts/            # Automation scripts (incl. just recipes)
-├── docs/               # Public project docs
-```
-
----
-
-## Vendored `algo-derm`
-
-`algo-derm` is a separate MIT lib (`../algo-derm`) that computes the dermo signal from an INCI list. It's vendored into the backend as a tarball because Docker can't read outside the build context:
-
-```bash
-just vendor-algo-derm   # rebuild source, npm pack, drop into vendor/
-just reinstall-backend  # if containers are running, wipe the volume + reinstall
-```
-
-Backend-only — the frontend receives the precomputed `ProductAssessment`. The bundled dataset (~535 KB) never ships to the browser.
-
----
-
-## Configuration
-
-- `.env.dev` — development (do not commit)
-- `.env.prod` — production (do not commit)
-- `.env.example` — template to copy
-
-**Ports:**
-
-| Service        | Port |
-| :------------- | :--- |
-| Frontend       | 5173 |
-| API            | 3000 |
-| DB             | 5432 |
-| Test DB        | 5433 |
-| Drizzle Studio | 4983 |
-
----
-## Troubleshooting
-
-**Editor shows errors / Docker crashes at startup**
-
-Symptom: `Cannot find module '@habit-tracker/shared'` (legacy package name, kept for now to avoid an invasive rename across imports).
-
-```bash
-just ts-clean && just ts-build  # rebuild types
-# then restart Docker
-```
-
-Make sure `just ts-check` is running in a separate terminal on the host.
-
-**Docker issues**
-
-```bash
-just stop          # port already in use
-just dev-rebuild   # after a dependency change
-just clean && just dev-fresh  # nuclear reset
-```
-
----
-
-## Production
-
-1. Create `.env.prod` from `.env.example`
-2. Update the domain and email in `scripts/just/ops.just` (`ssl-init`)
-3. `just prod-migrate` — apply migrations
-4. `just prod` — start services
-5. `just ssl-init` — generate SSL certificate
-
----
-
-## Related docs
-
-- [`SECURITY.md`](./docs/SECURITY.md) — auth model, RLS, DB role separation
-- [`PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy, data handling
+- [`DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — setup, commands, tests, database workflows and troubleshooting.
+- [`SECURITY.md`](./docs/SECURITY.md) — auth model, RLS, DB role separation.
+- [`PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy, data handling.
