@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { and, eq, ne } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../db/rls'
-import { productTagTypes, productTagLinks } from '../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -48,7 +48,9 @@ describe('writeTagsForProduct — transaction safety', () => {
         await testDb
           .select()
           .from(productTagLinks)
-          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
+          .where(
+            and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual'))
+          )
       ).length
 
     // Intake tagged the product via the pooled connection.

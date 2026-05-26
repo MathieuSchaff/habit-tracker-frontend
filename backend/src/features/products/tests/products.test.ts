@@ -6,7 +6,7 @@ import { createProductSchema } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import { productEdits } from '../../../db/schema/products'
-import { productTagTypes, productTagLinks } from '../../../db/schema/tags/tags'
+import { productTagLinks, productTagTypes } from '../../../db/schema/tags/tags'
 import { createIngredient } from '../../../features/ingredients/service'
 import { createProductTag, replaceProductTags } from '../../../features/product-tags/service'
 import { testDb } from '../../../tests/db.test.config'

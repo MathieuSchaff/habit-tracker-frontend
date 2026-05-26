@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { and, eq, ne } from 'drizzle-orm'
 
-import { productTagTypes, productTagLinks } from '../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -58,7 +58,10 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
       .select()
       .from(productTagLinks)
       .where(
-        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, protectionDef.id)
+        )
       )
     expect(autoProtection).toBeDefined()
     expect(autoProtection.source).not.toBe('manual')
@@ -70,7 +73,10 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
       .select()
       .from(productTagLinks)
       .where(
-        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, protectionDef.id)
+        )
       )
     expect(manualBefore.source).toBe('manual')
 
@@ -82,7 +88,10 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
       .select()
       .from(productTagLinks)
       .where(
-        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, protectionDef.id)
+        )
       )
     expect(protectionRows).toHaveLength(1)
     expect(protectionRows[0].source).toBe('manual')

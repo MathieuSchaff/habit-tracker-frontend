@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { and, eq, ne } from 'drizzle-orm'
 
-import { productTagTypes, productTagLinks } from '../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -78,7 +78,12 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const [manualRow] = await testDb
       .select()
       .from(productTagLinks)
-      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
+      .where(
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, manualDef.id)
+        )
+      )
     expect(manualRow.source).toBe('manual')
 
     // Trigger retag by emptying the INCI. updateProduct's trigger now fires
@@ -98,7 +103,12 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const manualAfter = await testDb
       .select()
       .from(productTagLinks)
-      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
+      .where(
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, manualDef.id)
+        )
+      )
     expect(manualAfter).toHaveLength(1)
     expect(manualAfter[0].source).toBe('manual')
   })
@@ -124,7 +134,9 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
         await testDb
           .select({ pTagId: productTagLinks.productTagId })
           .from(productTagLinks)
-          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
+          .where(
+            and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual'))
+          )
       ).map((r) => r.pTagId)
     )
     expect(beforeAutoIds.size).toBeGreaterThan(0)
@@ -153,7 +165,9 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
         await testDb
           .select({ pTagId: productTagLinks.productTagId })
           .from(productTagLinks)
-          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
+          .where(
+            and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual'))
+          )
       ).map((r) => r.pTagId)
     )
     const dropped = [...beforeAutoIds].filter((id) => !afterAutoIds.has(id))
@@ -162,7 +176,12 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const [manualAfter] = await testDb
       .select()
       .from(productTagLinks)
-      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
+      .where(
+        and(
+          eq(productTagLinks.productId, product.id),
+          eq(productTagLinks.productTagId, manualDef.id)
+        )
+      )
     expect(manualAfter).toBeDefined()
     expect(manualAfter.source).toBe('manual')
   })
