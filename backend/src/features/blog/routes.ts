@@ -12,7 +12,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import {
   createArticle,
   deleteArticle,
@@ -26,11 +26,12 @@ const slugParam = z.object({ slug: z.string().min(1).max(150) })
 
 const articlesApp = new Hono<AppEnv>()
 
+// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 articlesApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return c.req.method === 'GET' ? next() : requireJwtAuth(c, next)
+})
+articlesApp.use('*', async (c, next) => {
+  return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
 })
 
 export const articleRoutes = articlesApp
@@ -59,7 +60,7 @@ export const articleRoutes = articlesApp
     const db = c.get('db')
     if (c.get('userRole') !== 'admin')
       return c.json(err('unauthorized_access'), HTTP_STATUS.FORBIDDEN)
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const input = c.req.valid('json')
     const article = await createArticle(db, userId, input)
     return c.json(ok(article), HTTP_STATUS.CREATED)

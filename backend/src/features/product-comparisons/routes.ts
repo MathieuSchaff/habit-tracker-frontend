@@ -10,7 +10,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createComparison,
@@ -29,20 +29,20 @@ app.use('*', withRlsContext)
 
 export const productComparisonRoutes = app
   .get('/', async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const db = c.get('db')
     const items = await listComparisons(userId, db)
     return c.json(ok(items), HTTP_STATUS.OK)
   })
   .post('/', zValidator('json', createComparisonSchema), async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const db = c.get('db')
     const input = c.req.valid('json')
     const created = await createComparison(userId, input, db)
     return c.json(ok(created), HTTP_STATUS.CREATED)
   })
   .get('/:id', zValidator('param', idParam), async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const db = c.get('db')
     const { id } = c.req.valid('param')
     const enriched = await getEnrichedComparison(userId, id, db)
@@ -53,7 +53,7 @@ export const productComparisonRoutes = app
     zValidator('param', idParam),
     zValidator('json', updateComparisonSchema),
     async (c) => {
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const db = c.get('db')
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
@@ -63,7 +63,7 @@ export const productComparisonRoutes = app
     }
   )
   .delete('/:id', zValidator('param', idParam), async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const db = c.get('db')
     const { id } = c.req.valid('param')
     await deleteComparison(userId, id, db)

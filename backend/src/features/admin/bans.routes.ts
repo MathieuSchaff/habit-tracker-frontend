@@ -16,7 +16,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { createBan, liftBan, listUserBans, listUsers, updateBan } from './bans.service'
 import { getAdminDashboard } from './dashboard.service'
@@ -44,7 +44,7 @@ export const adminBansRoutes = app
     async (c) => {
       const { id: targetUserId } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await createBan(c.get('db'), { adminId, targetUserId, body })
 
@@ -66,7 +66,7 @@ export const adminBansRoutes = app
   })
   .delete('/bans/:banId', zValidator('param', banIdParam), async (c) => {
     const { banId } = c.req.valid('param')
-    const adminId = c.get('userId')
+    const adminId = getAuthedUserId(c)
 
     const result = await liftBan(c.get('db'), banId)
 
@@ -84,7 +84,7 @@ export const adminBansRoutes = app
     async (c) => {
       const { banId } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await updateBan(c.get('db'), banId, body)
 

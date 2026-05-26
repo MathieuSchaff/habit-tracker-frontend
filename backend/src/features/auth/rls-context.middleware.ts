@@ -2,6 +2,7 @@ import { sql, TransactionRollbackError } from 'drizzle-orm'
 import type { Context, Next } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+import { getAuthedUserRole } from './middleware'
 
 // Wrap authenticated requests in a tx and bind the request in question with RLS context.
 // Must run AFTER requireJwtAuth so c.get('userId') is set.
@@ -29,7 +30,8 @@ export const withRlsContext = async (c: Context<AppEnv>, next: Next) => {
   }
 
   const baseDb = c.get('db')
-  const role = c.get('userRole') // required per AppEnv; always set by requireJwtAuth before this middleware
+  // Past the !userId guard above, so identity is set; throws rather than feed undefined to set_config.
+  const role = getAuthedUserRole(c)
 
   try {
     await baseDb.transaction(async (tx) => {
@@ -55,26 +57,10 @@ export const withRlsContext = async (c: Context<AppEnv>, next: Next) => {
   }
 }
 
-// 7. Le bloc if (c.error) { tx.rollback() }
-
-// Subtil. Hono a un onError qui attrape les erreurs domain (ex: 409 Conflict). Quand ça arrive :
-// - La route a lancé une erreur (ex: unique violation)
-// - Postgres a aborté la TX automatiquement (état "aborted")
-// - Hono a formé une réponse 409 propre
-// - MAIS Drizzle s'apprête à COMMIT la TX aborted → Postgres renvoie 500
-
-// La solution : si c.error est set, on force tx.rollback(). Drizzle lève TransactionRollbackError → on sort du bloc
-// proprement.
-
-// 8. Le catch (e)
-// On swallow TransactionRollbackError (c'est NOUS qui l'avons déclenché, c'est attendu). Toute autre erreur → on
-// re-throw.
-
-// L'invariant critique (commentaires 17-21)
-
-// ▎ Services that touch the DB MUST re-throw Postgres errors.
-
-// Si un service catch une erreur DB et renvoie un succès applicatif → c.error reste null → le middleware essaie de
-// COMMIT une TX aborted → 500.
-
-// Règle implicite du codebase : jamais avaler silencieusement une erreur DB dans un service.
+// Why the rollback check: Hono's onError runs before this middleware resumes after
+// the route throws. Postgres aborts the TX automatically on error, but Drizzle would
+// still attempt COMMIT → 500. Forcing rollback here lets TransactionRollbackError
+// surface cleanly, which the catch block below swallows (expected).
+//
+// Invariant: services must re-throw DB errors — a swallowed error leaves c.error null,
+// so the middleware commits an already-aborted TX and produces a spurious 500.

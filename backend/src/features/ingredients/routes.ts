@@ -13,6 +13,8 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import {
+  getAuthedUserId,
+  getAuthedUserRole,
   requireAdmin,
   requireCatalogWrite,
   requireJwtAuth,
@@ -111,7 +113,7 @@ export const ingredientRoutes = ingredientsApp
   // No ingredient_create ban scope exists (only ingredient_edit); create is role-gated only.
   .post('/', requireCatalogWrite, zValidator('json', createIngredientSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const input = c.req.valid('json')
 
     const ingredient = await createIngredient(db, userId, input)
@@ -137,7 +139,7 @@ export const ingredientRoutes = ingredientsApp
     async (c) => {
       const db = c.get('db')
       const { id } = c.req.valid('param')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { expectedUpdatedAt, summary, ...data } = c.req.valid('json')
       const ingredient = await updateIngredient(db, userId, id, data, summary, expectedUpdatedAt)
       return c.json(ok(ingredient), HTTP_STATUS.OK)
@@ -150,7 +152,7 @@ export const ingredientRoutes = ingredientsApp
     zValidator('param', idParam),
     async (c) => {
       const db = c.get('db')
-      const role = c.get('userRole')
+      const role = getAuthedUserRole(c)
       const { id } = c.req.valid('param')
       await deleteIngredient(db, role, id)
       return c.body(null, 204)

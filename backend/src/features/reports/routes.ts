@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { createReport } from './service'
 
@@ -20,7 +20,7 @@ export const reportsRoutes = app.post(
   '/',
   zValidator('json', createReportBodySchema),
   async (c) => {
-    const reporterId = c.get('userId')
+    const reporterId = getAuthedUserId(c)
     const body = c.req.valid('json')
 
     const report = await createReport(c.get('db'), { reporterId, body })

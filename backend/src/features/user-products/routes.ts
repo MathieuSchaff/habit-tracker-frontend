@@ -21,7 +21,7 @@ import { userProductReviews } from '../../db/schema/products/user-products'
 import { logger } from '../../lib/logger'
 import { recalculateSignalForUser } from '../../services/dermoSignalService'
 import { isUserBannedForScope } from '../auth/ban.service'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   addPurchase,
@@ -51,14 +51,14 @@ app.use('*', withRlsContext)
 export const userProductRoutes = app
   .get('/', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const result = await getUserProducts(userId, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
   .post('/', zValidator('json', createUserProductSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const input = c.req.valid('json')
     const result = await createUserProduct(userId, input, db)
     return c.json(ok(result), HTTP_STATUS.CREATED)
@@ -66,7 +66,7 @@ export const userProductRoutes = app
 
   .get('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     const result = await getUserProductById(userId, id, db)
     if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
@@ -75,7 +75,7 @@ export const userProductRoutes = app
 
   .get('/product/:productId', zValidator('param', z.object({ productId: z.uuid() })), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const { productId } = c.req.valid('param')
     const result = await getUserProductByProductId(userId, productId, db)
     if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
@@ -88,7 +88,7 @@ export const userProductRoutes = app
     zValidator('json', updateUserProductSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await updateUserProduct(userId, id, input, db)
@@ -98,7 +98,7 @@ export const userProductRoutes = app
 
   .delete('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     await deleteUserProduct(userId, id, db)
     return c.json(ok(null), HTTP_STATUS.OK)
@@ -110,7 +110,7 @@ export const userProductRoutes = app
     zValidator('json', updateUserProductReviewSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
 
@@ -153,7 +153,7 @@ export const userProductRoutes = app
 
   .get('/:id/history', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     const result = await getUserProductStatusHistory(userId, id, db)
     return c.json(ok(result), HTTP_STATUS.OK)
@@ -161,7 +161,7 @@ export const userProductRoutes = app
 
   .get('/:id/purchases', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     const result = await getPurchases(userId, id, db)
     return c.json(ok(result), HTTP_STATUS.OK)
@@ -173,7 +173,7 @@ export const userProductRoutes = app
     zValidator('json', addPurchaseSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await addPurchase(userId, id, input, db)
@@ -187,7 +187,7 @@ export const userProductRoutes = app
     zValidator('json', finishPurchaseSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await finishPurchase(userId, id, input, db)
@@ -201,7 +201,7 @@ export const userProductRoutes = app
     zValidator('json', openPurchaseSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { purchaseId } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await openPurchase(userId, purchaseId, input, db)
@@ -215,7 +215,7 @@ export const userProductRoutes = app
     zValidator('json', updatePurchaseSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { purchaseId } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await updatePurchase(userId, purchaseId, input, db)
@@ -228,7 +228,7 @@ export const userProductRoutes = app
     zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { purchaseId } = c.req.valid('param')
       await deletePurchase(userId, purchaseId, db)
       return c.json(ok(null), HTTP_STATUS.OK)

@@ -12,7 +12,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createSubtask,
@@ -38,14 +38,14 @@ app.use('*', withRlsContext)
 export const taskRoutes = app
   .get('/', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const result = await getActiveTasks(userId, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
   .get('/today', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const result = await getTodayTasks(userId, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
@@ -53,7 +53,7 @@ export const taskRoutes = app
   .post('/', zValidator('json', createTaskSchema), async (c) => {
     const db = c.get('db')
     const input = c.req.valid('json')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const task = await createTask(input, userId, db)
     return c.json(ok(task), HTTP_STATUS.CREATED)
   })
@@ -61,7 +61,7 @@ export const taskRoutes = app
   .patch('/:id', zValidator('param', idParam), zValidator('json', updateTaskSchema), async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const input = c.req.valid('json')
     const task = await updateTask(id, userId, input, db)
     return c.json(ok(task), HTTP_STATUS.OK)
@@ -70,7 +70,7 @@ export const taskRoutes = app
   .delete('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const { id } = c.req.valid('param')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     await deleteTask(id, userId, db)
     return c.json(ok(null), HTTP_STATUS.OK)
   })
