@@ -12,7 +12,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { listReports, resolveReport } from '../reports/service'
 
@@ -41,7 +41,7 @@ export const adminReportsRoutes = app
     async (c) => {
       const { id } = c.req.valid('param')
       const { status } = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const report = await resolveReport(c.get('db'), { id, adminId, status })
       logger.info({ adminId, reportId: id, status }, 'report resolved')

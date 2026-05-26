@@ -9,6 +9,7 @@ import { env } from '../../config/env'
 import { products } from '../../db/schema/products'
 import { profiles } from '../../db/schema/users'
 import {
+  getAuthedUserId,
   requireCatalogWrite,
   requireJwtAuth,
   requireNotBanned,
@@ -44,7 +45,7 @@ function handleUploadError(c: Context<AppEnv>, e: unknown) {
 export const uploadsRoutes = app
   .post('/avatar', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const body = await c.req.parseBody()
     const file = body.image
     if (!(file instanceof File)) {

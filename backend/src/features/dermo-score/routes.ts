@@ -36,7 +36,7 @@ export const dermoScoreRoutes = app.get(
   zValidator('param', slugParam),
   async (c) => {
     const database = c.get('db')
-    const userId = (c.get('userId') as string | undefined) ?? null
+    const userId = c.get('userId') ?? null
     const { slug } = c.req.valid('param')
 
     const outcome = await computeProductDermoScore(slug, userId, database)

@@ -104,3 +104,21 @@ export const optionalJwtAuth = async (c: Context<AppEnv>, next: Next) => {
   }
   return next()
 }
+
+// Read the identity that requireJwtAuth guarantees. Throws if no guard ran — a
+// loud programmer error instead of a silent undefined leaking into a service.
+export function getAuthedUserId(c: Context<AppEnv>): string {
+  const userId = c.get('userId')
+  if (userId === undefined)
+    throw new Error('getAuthedUserId: requireJwtAuth must run before this route')
+  return userId
+}
+
+export function getAuthedUserRole(
+  c: Context<AppEnv>
+): NonNullable<AppEnv['Variables']['userRole']> {
+  const role = c.get('userRole')
+  if (role === undefined)
+    throw new Error('getAuthedUserRole: requireJwtAuth must run before this route')
+  return role
+}

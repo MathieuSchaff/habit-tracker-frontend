@@ -12,7 +12,7 @@ import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
 import { logSecurityEvent } from '../security/security.service'
@@ -40,7 +40,7 @@ export const profileRoute = app
 
   .get('/', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const profile = await getProfile(db, userId)
 
     if (!profile) {
@@ -52,14 +52,14 @@ export const profileRoute = app
 
   .get('/stats', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const stats = await getProfileStats(db, userId)
     return c.json(ok(stats), HTTP_STATUS.OK)
   })
 
   .patch('/', securityScan(), zValidator('json', profileUpdateSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
 
     const data = c.req.valid('json')
     const updated = await updateProfile(db, userId, data)
@@ -73,14 +73,14 @@ export const profileRoute = app
 
   .get('/preferences', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const prefs = await getUserPreferences(db, userId)
     return c.json(ok(prefs), HTTP_STATUS.OK)
   })
 
   .patch('/preferences', zValidator('json', updateUserPreferencesSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const data = c.req.valid('json')
     const updated = await updateUserPreferences(db, userId, data)
     return c.json(ok(updated), HTTP_STATUS.OK)
@@ -88,27 +88,27 @@ export const profileRoute = app
 
   .get('/dermo', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const profile = await getDermoProfile(db, userId)
     return c.json(ok(profile), HTTP_STATUS.OK)
   })
 
   .patch('/dermo', zValidator('json', userDermoProfileUpdateSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const data = c.req.valid('json')
     const updated = await upsertDermoProfile(db, userId, data)
     return c.json(ok(updated), HTTP_STATUS.OK)
   })
   .get('/privacy-settings', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const settings = await getPrivacySettings(db, userId)
     return c.json(ok(settings), HTTP_STATUS.OK)
   })
   .patch('/privacy-settings', zValidator('json', updatePrivacySettingsSchema), async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const data = c.req.valid('json')
     const updated = await updatePrivacySettings(db, userId, data)
 
@@ -121,7 +121,7 @@ export const profileRoute = app
 
   .delete('/deleteUser', async (c) => {
     const db = c.get('db')
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     await deleteUser(db, userId)
     return c.body(null, 204)
   })
@@ -130,7 +130,7 @@ export const profileRoute = app
   // the user owns. RLS narrows reads to auth.uid(); discussions are filtered
   // by author_id explicitly (no RLS on those tables).
   .get('/export', async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
 
     const rate = checkExportRateLimit(userId)
     if (!rate.ok) {

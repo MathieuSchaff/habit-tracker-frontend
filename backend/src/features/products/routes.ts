@@ -15,6 +15,8 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import {
+  getAuthedUserId,
+  getAuthedUserRole,
   optionalJwtAuth,
   requireAdmin,
   requireCatalogWrite,
@@ -99,7 +101,7 @@ export const productRoutes = productsApp
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')
     const filters = c.req.valid('query')
-    const userId = (c.get('userId') as string | undefined) ?? null
+    const userId = c.get('userId') ?? null
 
     const result = await listProducts(filters, db, userId)
     return c.json(ok(result), HTTP_STATUS.OK)
@@ -113,7 +115,7 @@ export const productRoutes = productsApp
     zValidator('json', createProductSchema),
     async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const input = c.req.valid('json')
       const product = await createProduct(userId, input, db)
       return c.json(ok(product), HTTP_STATUS.CREATED)
@@ -144,7 +146,7 @@ export const productRoutes = productsApp
     async (c) => {
       const db = c.get('db')
       const { id } = c.req.valid('param')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const input = c.req.valid('json')
       const product = await updateProduct(userId, id, input, undefined, db)
       return c.json(ok(product), HTTP_STATUS.OK)
@@ -158,9 +160,9 @@ export const productRoutes = productsApp
     zValidator('param', idParam),
     async (c) => {
       const db = c.get('db')
-      const role = c.get('userRole')
+      const role = getAuthedUserRole(c)
       const { id } = c.req.valid('param')
-      await deleteProduct(role, id, db)
+      await deleteProduct(db, role, id)
       return c.body(null, 204)
     }
   )

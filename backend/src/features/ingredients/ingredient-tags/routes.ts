@@ -26,11 +26,12 @@ const ingredientTagParams = z.object({ ingredientId: z.uuid(), tagId: z.uuid() }
 
 const ingredientTagsApp = new Hono<AppEnv>()
 
+// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 ingredientTagsApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return c.req.method === 'GET' ? next() : requireJwtAuth(c, next)
+})
+ingredientTagsApp.use('*', async (c, next) => {
+  return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
 })
 ingredientTagsApp.use('*', withRlsContext)
 

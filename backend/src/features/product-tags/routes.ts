@@ -27,11 +27,12 @@ const listTagsQuery = z.object({
 
 const productTagsApp = new Hono<AppEnv>()
 
+// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 productTagsApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return c.req.method === 'GET' ? next() : requireJwtAuth(c, next)
+})
+productTagsApp.use('*', async (c, next) => {
+  return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
 })
 productTagsApp.use('*', async (c, next) => {
   if (c.req.method === 'GET') return next()

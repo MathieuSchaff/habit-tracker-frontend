@@ -15,7 +15,7 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   moderateProfileVisibility,
@@ -49,7 +49,7 @@ export const adminModerationRoutes = app
     async (c) => {
       const { id } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await moderateReview(c.get('db'), { id, adminId, body })
       if (!isApiSuccess(result)) {
@@ -66,7 +66,7 @@ export const adminModerationRoutes = app
     async (c) => {
       const { id } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await moderateThread(c.get('db'), { id, adminId, body })
       if (!isApiSuccess(result)) {
@@ -83,7 +83,7 @@ export const adminModerationRoutes = app
     async (c) => {
       const { id } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await moderateReply(c.get('db'), { id, adminId, body })
       if (!isApiSuccess(result)) {
@@ -124,7 +124,7 @@ export const adminModerationRoutes = app
     async (c) => {
       const { userId: targetUserId } = c.req.valid('param')
       const body = c.req.valid('json')
-      const adminId = c.get('userId')
+      const adminId = getAuthedUserId(c)
 
       const result = await moderateProfileVisibility(c.get('db'), {
         targetUserId,

@@ -13,10 +13,7 @@ declare module '@tanstack/react-query' {
 }
 
 // Exported for testing the report-vs-silent and toast dedup behaviour.
-export function handleMutationError(
-  error: unknown,
-  mutation: Pick<Mutation, 'meta' | 'options'>
-): void {
+export function handleMutationError(error: unknown, mutation: Pick<Mutation, 'meta' | 'options'>) {
   if (!mutation.meta?.silent) {
     reportError(error as Error, {
       source: 'mutation',

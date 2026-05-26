@@ -45,11 +45,12 @@ const replaceIngredientsSchema = z.object({
 
 const productIngredientsApp = new Hono<AppEnv>()
 
+// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 productIngredientsApp.use('*', async (c, next) => {
-  if (c.req.method === 'GET') return next()
-  return requireJwtAuth(c, async () => {
-    await requireNotBanned(c, next)
-  })
+  return c.req.method === 'GET' ? next() : requireJwtAuth(c, next)
+})
+productIngredientsApp.use('*', async (c, next) => {
+  return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
 })
 productIngredientsApp.use('*', withRlsContext)
 

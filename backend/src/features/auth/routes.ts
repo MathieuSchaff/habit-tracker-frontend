@@ -27,7 +27,7 @@ import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
-import { requireJwtAuth, requireNotBanned } from './middleware'
+import { getAuthedUserId, requireJwtAuth, requireNotBanned } from './middleware'
 import {
   type AuthContext,
   changePassword,
@@ -195,7 +195,7 @@ export const jwtAuthRoutes = app
     zValidator('json', changePasswordSchema),
     async (c) => {
       const ctx = buildAuthContext(c)
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { currentPassword, newPassword } = c.req.valid('json')
 
       const result = await changePassword(
@@ -213,7 +213,7 @@ export const jwtAuthRoutes = app
   )
 
   .get('/session', async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const db = c.get('db')
     const [user] = await db
       .select({ role: usersSafe.role })
@@ -245,7 +245,7 @@ export const jwtAuthRoutes = app
   })
 
   .post('/resend-verification', async (c) => {
-    const userId = c.get('userId')
+    const userId = getAuthedUserId(c)
     const ctx = buildAuthContext(c)
 
     if (!checkResendLimit(userId)) {

@@ -5,7 +5,12 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { requireJwtAuth, requireNotBanned, requireNotBannedScope } from '../auth/middleware'
+import {
+  getAuthedUserId,
+  requireJwtAuth,
+  requireNotBanned,
+  requireNotBannedScope,
+} from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   createReply,
@@ -58,7 +63,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
       zValidator('json', createThreadSchema),
       async (c) => {
         const db = c.get('db')
-        const userId = c.get('userId')
+        const userId = getAuthedUserId(c)
         const { slug } = c.req.valid('param')
         const input = c.req.valid('json')
         const thread = await createThread(userId, slug, entityType, input, db)
@@ -75,7 +80,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
 
     .delete('/:slug/discussions/:threadId', zValidator('param', threadParam), async (c) => {
       const db = c.get('db')
-      const userId = c.get('userId')
+      const userId = getAuthedUserId(c)
       const { threadId } = c.req.valid('param')
       await deleteThread(userId, threadId, db)
       return c.body(null, 204)
@@ -88,7 +93,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
       zValidator('json', createReplySchema),
       async (c) => {
         const db = c.get('db')
-        const userId = c.get('userId')
+        const userId = getAuthedUserId(c)
         const { threadId } = c.req.valid('param')
         const input = c.req.valid('json')
         const reply = await createReply(userId, threadId, input, db)
@@ -101,7 +106,7 @@ export function createDiscussionRoutes(entityType: EntityType) {
       zValidator('param', replyParam),
       async (c) => {
         const db = c.get('db')
-        const userId = c.get('userId')
+        const userId = getAuthedUserId(c)
         const { replyId } = c.req.valid('param')
         await deleteReply(userId, replyId, db)
         return c.body(null, 204)
