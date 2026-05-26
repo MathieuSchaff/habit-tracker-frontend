@@ -1,8 +1,8 @@
 import { type Ingredient, ingredients } from '../../db/schema/ingredients/ingredients'
 import {
-  type IngredientTagDef,
-  ingredientTagsDefs,
-  tagIngredients,
+  type IngredientTagType,
+  ingredientTagLinks,
+  ingredientTagTypes,
 } from '../../db/schema/tags/tags'
 import { createTagService } from '../_tags/lib/createTagService'
 
@@ -13,7 +13,7 @@ import { createTagService } from '../_tags/lib/createTagService'
 // the ~60 LOC kept. KEEP BY DESIGN: if a future audit re-flags them,
 // the correct fix is to wire admin routes (Phase 2), NOT to delete.
 
-type IngredientTagLink = typeof tagIngredients.$inferSelect
+type IngredientTagLink = typeof ingredientTagLinks.$inferSelect
 
 interface IngredientTagProjection {
   ingredientTagId: string
@@ -25,20 +25,20 @@ interface IngredientTagProjection {
 }
 
 const service = createTagService<
-  IngredientTagDef,
+  IngredientTagType,
   Ingredient,
   IngredientTagProjection,
   IngredientTagLink
 >({
-  defs: ingredientTagsDefs,
-  defsId: ingredientTagsDefs.id,
-  defsSlug: ingredientTagsDefs.slug,
-  defsLabel: ingredientTagsDefs.label,
-  defsTagType: ingredientTagsDefs.tagType,
+  defs: ingredientTagTypes,
+  defsId: ingredientTagTypes.id,
+  defsSlug: ingredientTagTypes.slug,
+  defsLabel: ingredientTagTypes.label,
+  defsTagType: ingredientTagTypes.tagType,
 
-  links: tagIngredients,
-  linkTagIdCol: tagIngredients.ingredientTagId,
-  linkOwnerIdCol: tagIngredients.ingredientId,
+  links: ingredientTagLinks,
+  linkTagIdCol: ingredientTagLinks.ingredientTagId,
+  linkOwnerIdCol: ingredientTagLinks.ingredientId,
 
   ownerTable: ingredients,
   ownerIdCol: ingredients.id,
@@ -50,12 +50,12 @@ const service = createTagService<
     relevance,
   }),
   linkProjection: {
-    ingredientTagId: tagIngredients.ingredientTagId,
-    ingredientId: tagIngredients.ingredientId,
-    relevance: tagIngredients.relevance,
-    tagName: ingredientTagsDefs.label,
-    tagSlug: ingredientTagsDefs.slug,
-    tagCategory: ingredientTagsDefs.tagType,
+    ingredientTagId: ingredientTagLinks.ingredientTagId,
+    ingredientId: ingredientTagLinks.ingredientId,
+    relevance: ingredientTagLinks.relevance,
+    tagName: ingredientTagTypes.label,
+    tagSlug: ingredientTagTypes.slug,
+    tagCategory: ingredientTagTypes.tagType,
   },
 })
 

@@ -17,7 +17,7 @@ import { and, count, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-o
 
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
-import { ingredientTagsDefs, tagIngredients } from '../../db/schema/tags/tags'
+import { ingredientTagLinks, ingredientTagTypes } from '../../db/schema/tags/tags'
 import { areEqual, escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, ingredientEditConfig, logEdit } from '../../lib/logs'
 import { normalizeInstant } from '../../utils/dates'
@@ -75,10 +75,13 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
       inArray(
         ingredients.id,
         database
-          .select({ ingredientId: tagIngredients.ingredientId })
-          .from(tagIngredients)
-          .innerJoin(ingredientTagsDefs, eq(tagIngredients.ingredientTagId, ingredientTagsDefs.id))
-          .where(inArray(ingredientTagsDefs.slug, slugs))
+          .select({ ingredientId: ingredientTagLinks.ingredientId })
+          .from(ingredientTagLinks)
+          .innerJoin(
+            ingredientTagTypes,
+            eq(ingredientTagLinks.ingredientTagId, ingredientTagTypes.id)
+          )
+          .where(inArray(ingredientTagTypes.slug, slugs))
       )
     )
   }
@@ -126,14 +129,14 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
   if (items.length > 0 && avoidSlugs.length > 0) {
     const itemIds = items.map((i) => i.id)
     const avoidRows = await database
-      .select({ ingredientId: tagIngredients.ingredientId, slug: ingredientTagsDefs.slug })
-      .from(tagIngredients)
-      .innerJoin(ingredientTagsDefs, eq(tagIngredients.ingredientTagId, ingredientTagsDefs.id))
+      .select({ ingredientId: ingredientTagLinks.ingredientId, slug: ingredientTagTypes.slug })
+      .from(ingredientTagLinks)
+      .innerJoin(ingredientTagTypes, eq(ingredientTagLinks.ingredientTagId, ingredientTagTypes.id))
       .where(
         and(
-          inArray(tagIngredients.ingredientId, itemIds),
-          inArray(ingredientTagsDefs.slug, avoidSlugs),
-          eq(tagIngredients.relevance, 'avoid')
+          inArray(ingredientTagLinks.ingredientId, itemIds),
+          inArray(ingredientTagTypes.slug, avoidSlugs),
+          eq(ingredientTagLinks.relevance, 'avoid')
         )
       )
     for (const row of avoidRows) {
@@ -376,26 +379,26 @@ export async function getIngredientFilterOptions(
 
   const rows = await database
     .select({
-      slug: ingredientTagsDefs.slug,
-      name: ingredientTagsDefs.label,
-      category: ingredientTagsDefs.tagType,
-      count: count(tagIngredients.ingredientId),
+      slug: ingredientTagTypes.slug,
+      name: ingredientTagTypes.label,
+      category: ingredientTagTypes.tagType,
+      count: count(ingredientTagLinks.ingredientId),
     })
-    .from(ingredientTagsDefs)
-    .innerJoin(tagIngredients, eq(ingredientTagsDefs.id, tagIngredients.ingredientTagId))
-    .innerJoin(ingredients, eq(tagIngredients.ingredientId, ingredients.id))
+    .from(ingredientTagTypes)
+    .innerJoin(ingredientTagLinks, eq(ingredientTagTypes.id, ingredientTagLinks.ingredientTagId))
+    .innerJoin(ingredients, eq(ingredientTagLinks.ingredientId, ingredients.id))
     .where(
       ingredientScope
-        ? and(inArray(ingredientTagsDefs.tagType, ALL_FILTER_CATEGORIES), ingredientScope)
-        : inArray(ingredientTagsDefs.tagType, ALL_FILTER_CATEGORIES)
+        ? and(inArray(ingredientTagTypes.tagType, ALL_FILTER_CATEGORIES), ingredientScope)
+        : inArray(ingredientTagTypes.tagType, ALL_FILTER_CATEGORIES)
     )
     .groupBy(
-      ingredientTagsDefs.id,
-      ingredientTagsDefs.slug,
-      ingredientTagsDefs.label,
-      ingredientTagsDefs.tagType
+      ingredientTagTypes.id,
+      ingredientTagTypes.slug,
+      ingredientTagTypes.label,
+      ingredientTagTypes.tagType
     )
-    .orderBy(ingredientTagsDefs.tagType, ingredientTagsDefs.label)
+    .orderBy(ingredientTagTypes.tagType, ingredientTagTypes.label)
 
   const tags = rows
     .filter((r): r is typeof r & { category: AllIngredientTagCategory } => r.category !== null)

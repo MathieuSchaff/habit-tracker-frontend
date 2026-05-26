@@ -9,7 +9,7 @@
 import { and, eq } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../../db/rls'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 
 const APPLY = process.env.APPLY === '1'
 
@@ -147,9 +147,9 @@ async function main() {
         continue
       }
       const tagDef = await tx
-        .select({ id: productTagsDefs.id })
-        .from(productTagsDefs)
-        .where(eq(productTagsDefs.slug, row.tag))
+        .select({ id: productTagTypes.id })
+        .from(productTagTypes)
+        .where(eq(productTagTypes.slug, row.tag))
         .limit(1)
       if (tagDef.length === 0) {
         console.log(`  ⚠️  tag def not found: ${row.tag}`)
@@ -159,11 +159,11 @@ async function main() {
 
       if (APPLY) {
         const result = await tx
-          .delete(tagProducts)
+          .delete(productTagLinks)
           .where(
             and(
-              eq(tagProducts.productId, product[0]?.id),
-              eq(tagProducts.productTagId, tagDef[0]?.id)
+              eq(productTagLinks.productId, product[0]?.id),
+              eq(productTagLinks.productTagId, tagDef[0]?.id)
             )
           )
         const count = (result as unknown as { count: number }).count ?? 0
@@ -172,12 +172,12 @@ async function main() {
       } else {
         // Dry-run: just check existence
         const exists = await tx
-          .select({ pId: tagProducts.productId })
-          .from(tagProducts)
+          .select({ pId: productTagLinks.productId })
+          .from(productTagLinks)
           .where(
             and(
-              eq(tagProducts.productId, product[0]?.id),
-              eq(tagProducts.productTagId, tagDef[0]?.id)
+              eq(productTagLinks.productId, product[0]?.id),
+              eq(productTagLinks.productTagId, tagDef[0]?.id)
             )
           )
           .limit(1)

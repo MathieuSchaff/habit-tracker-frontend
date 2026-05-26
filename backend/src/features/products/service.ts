@@ -41,7 +41,7 @@ import type { Database, DB } from '../../db/index'
 import { ingredients, productIngredients } from '../../db/schema'
 import { type Product, products } from '../../db/schema/products'
 import { userProducts } from '../../db/schema/products/user-products'
-import { productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
+import { productTagLinks, productTagTypes } from '../../db/schema/tags/tags'
 import { escapeLike, isUniqueViolation } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { writeTagsForProductFailSoft } from '../auto-tagging'
@@ -350,13 +350,13 @@ export async function listProducts(
     exists(
       database
         .select({ one: sql`1` })
-        .from(tagProducts)
-        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .from(productTagLinks)
+        .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
         .where(
           and(
-            eq(tagProducts.productId, products.id),
-            inArray(productTagsDefs.slug, raw.split(',')),
-            eq(productTagsDefs.tagType, tagType)
+            eq(productTagLinks.productId, products.id),
+            inArray(productTagTypes.slug, raw.split(',')),
+            eq(productTagTypes.tagType, tagType)
           )
         )
     )
@@ -373,10 +373,13 @@ export async function listProducts(
     const noMomentTag = notExists(
       database
         .select({ one: sql`1` })
-        .from(tagProducts)
-        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+        .from(productTagLinks)
+        .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
         .where(
-          and(eq(tagProducts.productId, products.id), eq(productTagsDefs.tagType, 'routine_moment'))
+          and(
+            eq(productTagLinks.productId, products.id),
+            eq(productTagTypes.tagType, 'routine_moment')
+          )
         )
     )
     return or(strict, noMomentTag) as SQL
@@ -495,14 +498,14 @@ export async function listProducts(
     const [avoidRows, positiveTagRows, shelfRows] = await Promise.all([
       avoidSlugs.length > 0
         ? database
-            .select({ productId: tagProducts.productId, slug: productTagsDefs.slug })
-            .from(tagProducts)
-            .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+            .select({ productId: productTagLinks.productId, slug: productTagTypes.slug })
+            .from(productTagLinks)
+            .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
             .where(
               and(
-                inArray(tagProducts.productId, itemIds),
-                inArray(productTagsDefs.slug, avoidSlugs),
-                eq(tagProducts.relevance, 'avoid')
+                inArray(productTagLinks.productId, itemIds),
+                inArray(productTagTypes.slug, avoidSlugs),
+                eq(productTagLinks.relevance, 'avoid')
               )
             )
         : Promise.resolve([] as { productId: string; slug: string }[]),
@@ -510,14 +513,16 @@ export async function listProducts(
       // already handled by profileMatches above and would otherwise duplicate.
       database
         .select({
-          productId: tagProducts.productId,
-          slug: productTagsDefs.slug,
-          tagType: productTagsDefs.tagType,
-          relevance: tagProducts.relevance,
+          productId: productTagLinks.productId,
+          slug: productTagTypes.slug,
+          tagType: productTagTypes.tagType,
+          relevance: productTagLinks.relevance,
         })
-        .from(tagProducts)
-        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-        .where(and(inArray(tagProducts.productId, itemIds), ne(tagProducts.relevance, 'avoid'))),
+        .from(productTagLinks)
+        .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+        .where(
+          and(inArray(productTagLinks.productId, itemIds), ne(productTagLinks.relevance, 'avoid'))
+        ),
       // Caller's shelf rows for these products. Explicit userId filter is
       // belt-and-suspenders against RLS — tests run as DB owner and bypass RLS.
       userId
@@ -587,14 +592,14 @@ export async function getFilterOptions(
       .orderBy(products.brand),
     database
       .select({
-        slug: productTagsDefs.slug,
-        count: count(tagProducts.productId),
+        slug: productTagTypes.slug,
+        count: count(productTagLinks.productId),
       })
-      .from(productTagsDefs)
-      .innerJoin(tagProducts, eq(productTagsDefs.id, tagProducts.productTagId))
-      .innerJoin(products, eq(tagProducts.productId, products.id))
+      .from(productTagTypes)
+      .innerJoin(productTagLinks, eq(productTagTypes.id, productTagLinks.productTagId))
+      .innerJoin(products, eq(productTagLinks.productId, products.id))
       .where(productScope)
-      .groupBy(productTagsDefs.id, productTagsDefs.slug),
+      .groupBy(productTagTypes.id, productTagTypes.slug),
   ])
 
   const tagCounts: Record<string, number> = {}

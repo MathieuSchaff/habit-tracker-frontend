@@ -36,7 +36,7 @@ import { normalize, splitINCI } from 'algo-derm'
 import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectActifClasses } from '../../passes/actif-class-detection'
 
@@ -223,10 +223,10 @@ async function main() {
   const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
 
   const existingRows = await db
-    .select({ pId: tagProducts.productId, slug: productTagsDefs.slug })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-    .where(inArray(productTagsDefs.slug, [...TARGET_SLUGS]))
+    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+    .where(inArray(productTagTypes.slug, [...TARGET_SLUGS]))
 
   const manualByProduct = new Map<string, Set<TargetSlug>>()
   for (const r of existingRows) {
@@ -503,9 +503,9 @@ async function applyDeletions(): Promise<void> {
     for (const r of productRows) productIdBySlug.set(r.slug, r.id)
 
     const tagDefRows = await tx
-      .select({ id: productTagsDefs.id, slug: productTagsDefs.slug })
-      .from(productTagsDefs)
-      .where(inArray(productTagsDefs.slug, [...TARGET_SLUGS]))
+      .select({ id: productTagTypes.id, slug: productTagTypes.slug })
+      .from(productTagTypes)
+      .where(inArray(productTagTypes.slug, [...TARGET_SLUGS]))
     const tagIdBySlug = new Map<string, string>()
     for (const r of tagDefRows) tagIdBySlug.set(r.slug, r.id)
 
@@ -518,8 +518,10 @@ async function applyDeletions(): Promise<void> {
         continue
       }
       const result = await tx
-        .delete(tagProducts)
-        .where(sql`${tagProducts.productId} = ${pid} AND ${tagProducts.productTagId} = ${tid}`)
+        .delete(productTagLinks)
+        .where(
+          sql`${productTagLinks.productId} = ${pid} AND ${productTagLinks.productTagId} = ${tid}`
+        )
       // Bun-postgres / drizzle returns the executed-row count under `count`
       // (not `rowCount` like node-postgres). Falling back to rowCount keeps
       // the runner portable if the driver swap.

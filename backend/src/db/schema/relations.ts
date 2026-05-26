@@ -8,27 +8,27 @@ import { products } from './products/products'
 import { purchases } from './products/purchases'
 import { userProductStatusLog } from './products/user-product-status-log'
 import { userProductReviews, userProducts } from './products/user-products'
-import { productTagsDefs, tagProducts } from './tags/tags'
+import { productTagLinks, productTagTypes } from './tags/tags'
 
 export const productsRelations = relations(products, ({ many }) => ({
   productIngredients: many(productIngredients),
   userProducts: many(userProducts),
-  tagProducts: many(tagProducts),
+  productTagLinks: many(productTagLinks),
 }))
 
-export const tagProductsRelations = relations(tagProducts, ({ one }) => ({
+export const productTagLinksRelations = relations(productTagLinks, ({ one }) => ({
   product: one(products, {
-    fields: [tagProducts.productId],
+    fields: [productTagLinks.productId],
     references: [products.id],
   }),
-  productTag: one(productTagsDefs, {
-    fields: [tagProducts.productTagId],
-    references: [productTagsDefs.id],
+  productTag: one(productTagTypes, {
+    fields: [productTagLinks.productTagId],
+    references: [productTagTypes.id],
   }),
 }))
 
-export const productTagsDefsRelations = relations(productTagsDefs, ({ many }) => ({
-  tagProducts: many(tagProducts),
+export const productTagTypesRelations = relations(productTagTypes, ({ many }) => ({
+  productTagLinks: many(productTagLinks),
 }))
 
 export const productIngredientsRelations = relations(productIngredients, ({ one }) => ({

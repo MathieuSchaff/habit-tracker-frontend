@@ -6,7 +6,7 @@ import {
 import { eq, inArray } from 'drizzle-orm'
 
 import type { DB } from '../../../db'
-import { products, productTagsDefs } from '../../../db/schema'
+import { products, productTagTypes } from '../../../db/schema'
 import { ProductError } from '../product-error'
 
 // Reject tag links that don't belong to the product's domain — e.g. a
@@ -32,12 +32,12 @@ export async function assertTagsMatchProductDomain(
 
   const tags = await db
     .select({
-      id: productTagsDefs.id,
-      slug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
+      id: productTagTypes.id,
+      slug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
     })
-    .from(productTagsDefs)
-    .where(inArray(productTagsDefs.id, [...tagIds]))
+    .from(productTagTypes)
+    .where(inArray(productTagTypes.id, [...tagIds]))
 
   const invalid = tags.filter((t) => !validTagTypes.has(t.tagType))
   if (invalid.length > 0) {

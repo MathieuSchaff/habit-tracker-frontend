@@ -20,7 +20,7 @@ import { and, eq } from 'drizzle-orm'
 
 import { db } from '../..'
 import { withAdminRls } from '../../rls'
-import { products, productTagsDefs, tagProducts } from '../../schema'
+import { products, productTagLinks, productTagTypes } from '../../schema'
 
 const WRITE = process.argv.includes('--write')
 
@@ -30,13 +30,13 @@ async function main() {
       productId: products.id,
       productSlug: products.slug,
       productCategory: products.category,
-      productTagId: productTagsDefs.id,
-      tagSlug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
+      productTagId: productTagTypes.id,
+      tagSlug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
     })
-    .from(tagProducts)
-    .innerJoin(products, eq(tagProducts.productId, products.id))
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+    .from(productTagLinks)
+    .innerJoin(products, eq(productTagLinks.productId, products.id))
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
 
   const violations = rows.filter((row) => {
     const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[row.productCategory]
@@ -73,9 +73,12 @@ async function main() {
   await withAdminRls(async (tx) => {
     for (const v of violations) {
       await tx
-        .delete(tagProducts)
+        .delete(productTagLinks)
         .where(
-          and(eq(tagProducts.productTagId, v.productTagId), eq(tagProducts.productId, v.productId))
+          and(
+            eq(productTagLinks.productTagId, v.productTagId),
+            eq(productTagLinks.productId, v.productId)
+          )
         )
       deleted++
     }

@@ -113,7 +113,7 @@ export function makeUserProduct(
           updatedAt: string
         }
       }[]
-      tagProducts: {
+      productTagLinks: {
         productTagId: string
         productId: string
         relevance: 'primary' | 'secondary' | 'avoid'
@@ -173,7 +173,7 @@ export function makeUserProduct(
       totalAmount: null,
       priceCents: 1299,
       productIngredients: [],
-      tagProducts: [],
+      productTagLinks: [],
       amountUnit: 'ml',
       slug: 'cerave-hydrating-cleanser',
       url: null,

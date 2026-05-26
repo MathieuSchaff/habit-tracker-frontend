@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { and, eq, ne } from 'drizzle-orm'
 
-import { productTagsDefs, tagProducts } from '../../../db/schema'
+import { productTagTypes, productTagLinks } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -26,7 +26,7 @@ const INCI = 'Aqua, Niacinamide, Glycerin, Phenoxyethanol'
 describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', () => {
   beforeEach(async () => {
     await cleanDatabase()
-    await testDb.insert(productTagsDefs).values(productTagData)
+    await testDb.insert(productTagTypes).values(productTagData)
   })
 
   it('keeps the manual row and skips the competing auto insert on overlap', async () => {
@@ -34,8 +34,8 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
 
     const [protectionDef] = await testDb
       .select()
-      .from(productTagsDefs)
-      .where(eq(productTagsDefs.slug, 'protection'))
+      .from(productTagTypes)
+      .where(eq(productTagTypes.slug, 'protection'))
       .limit(1)
     if (!protectionDef) throw new Error('seed productTagData missing "protection" slug')
 
@@ -56,9 +56,9 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
     )
     const [autoProtection] = await testDb
       .select()
-      .from(tagProducts)
+      .from(productTagLinks)
       .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, protectionDef.id))
+        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
       )
     expect(autoProtection).toBeDefined()
     expect(autoProtection.source).not.toBe('manual')
@@ -68,9 +68,9 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
     await addTagToProduct(testDb, product.id, protectionDef.id, 'primary')
     const [manualBefore] = await testDb
       .select()
-      .from(tagProducts)
+      .from(productTagLinks)
       .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, protectionDef.id))
+        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
       )
     expect(manualBefore.source).toBe('manual')
 
@@ -80,9 +80,9 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
 
     const protectionRows = await testDb
       .select()
-      .from(tagProducts)
+      .from(productTagLinks)
       .where(
-        and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, protectionDef.id))
+        and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, protectionDef.id))
       )
     expect(protectionRows).toHaveLength(1)
     expect(protectionRows[0].source).toBe('manual')
@@ -92,8 +92,8 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
     // rows are still written around the shadowed slug.
     const autoRows = await testDb
       .select()
-      .from(tagProducts)
-      .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
+      .from(productTagLinks)
+      .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
     expect(autoRows.length).toBeGreaterThan(0)
   })
 })

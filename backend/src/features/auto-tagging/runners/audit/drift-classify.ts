@@ -18,7 +18,7 @@ import { normalize, splitINCI, stripPreamble } from 'algo-derm'
 import { eq, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 
 type Bucket = 'pos-cap' | 'false-pos' | 'parse-fail'
@@ -54,9 +54,9 @@ async function main() {
   }
 
   const existingRows = await db
-    .select({ pId: tagProducts.productId, slug: productTagsDefs.slug })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
   const existingByProduct = new Map<string, Set<string>>()
   for (const r of existingRows) {
     if (!clusterSlugs.has(r.slug)) continue

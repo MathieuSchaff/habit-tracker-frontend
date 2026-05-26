@@ -4,12 +4,12 @@ import { db } from '..'
 import {
   articles,
   ingredients,
-  ingredientTagsDefs,
+  ingredientTagLinks,
+  ingredientTagTypes,
   productIngredients,
   products,
-  productTagsDefs,
-  tagIngredients,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
   userProducts,
   usersSafe,
 } from '../schema'
@@ -64,8 +64,8 @@ async function productStats() {
   row('with ingredients', `${withIngredients} / ${total}`)
 
   const [{ withTags }] = await db
-    .select({ withTags: countDistinct(tagProducts.productId) })
-    .from(tagProducts)
+    .select({ withTags: countDistinct(productTagLinks.productId) })
+    .from(productTagLinks)
   row('with tags', `${withTags} / ${total}`)
 
   const [{ avgInci }] = await db
@@ -89,8 +89,8 @@ async function ingredientStats() {
   for (const r of byType) row(r.type, r.n, 2)
 
   const [{ withTags }] = await db
-    .select({ withTags: countDistinct(tagIngredients.ingredientId) })
-    .from(tagIngredients)
+    .select({ withTags: countDistinct(ingredientTagLinks.ingredientId) })
+    .from(ingredientTagLinks)
   row('with tags', `${withTags} / ${total}`)
 
   const [{ avgPerProduct }] = await db.select({ avgPerProduct: sql<string>`round(avg(cnt))` }).from(
@@ -106,28 +106,28 @@ async function ingredientStats() {
 async function tagStats() {
   section('Tags (definitions)')
 
-  const [{ totalProd }] = await db.select({ totalProd: count() }).from(productTagsDefs)
+  const [{ totalProd }] = await db.select({ totalProd: count() }).from(productTagTypes)
   row('product tag defs', totalProd)
 
   const byProdType = await db
-    .select({ tagType: productTagsDefs.tagType, n: count() })
-    .from(productTagsDefs)
-    .groupBy(productTagsDefs.tagType)
+    .select({ tagType: productTagTypes.tagType, n: count() })
+    .from(productTagTypes)
+    .groupBy(productTagTypes.tagType)
     .orderBy(sql`count(*) desc`)
   for (const r of byProdType) row(r.tagType, r.n, 2)
 
-  const [{ totalIng }] = await db.select({ totalIng: count() }).from(ingredientTagsDefs)
+  const [{ totalIng }] = await db.select({ totalIng: count() }).from(ingredientTagTypes)
   row('ingredient tag defs', totalIng)
 
   const byIngType = await db
-    .select({ tagType: ingredientTagsDefs.tagType, n: count() })
-    .from(ingredientTagsDefs)
-    .groupBy(ingredientTagsDefs.tagType)
+    .select({ tagType: ingredientTagTypes.tagType, n: count() })
+    .from(ingredientTagTypes)
+    .groupBy(ingredientTagTypes.tagType)
     .orderBy(sql`count(*) desc`)
   for (const r of byIngType) row(r.tagType, r.n, 2)
 
-  const [{ tagProductLinks }] = await db.select({ tagProductLinks: count() }).from(tagProducts)
-  const [{ tagIngLinks }] = await db.select({ tagIngLinks: count() }).from(tagIngredients)
+  const [{ tagProductLinks }] = await db.select({ tagProductLinks: count() }).from(productTagLinks)
+  const [{ tagIngLinks }] = await db.select({ tagIngLinks: count() }).from(ingredientTagLinks)
   row('product tag assignments', tagProductLinks)
   row('ingredient tag assignments', tagIngLinks)
 }

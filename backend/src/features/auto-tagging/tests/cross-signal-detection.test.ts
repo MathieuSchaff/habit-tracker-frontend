@@ -6,6 +6,7 @@ import { analyzeINCI } from 'algo-derm'
 
 import { mapKindToContext } from '../../../lib/algo-derm-product-context'
 import {
+  detectConcentrationAvoidTags,
   detectCrossSignalAvoidTags,
   detectCrossSignalTags,
   detectInteractionAvoidTags,
@@ -197,6 +198,96 @@ describe('detectInteractionAvoidTags — X3 axis mapping', () => {
   test('rinse-off cleanser → skipped regardless of interactions', () => {
     const a = assess('Aqua, Alcohol Denat, Parfum, Glycerin', 'cleanser')
     expect(detectInteractionAvoidTags(a, 'cleanser')).toEqual([])
+  })
+})
+
+describe('detectConcentrationAvoidTags — dose-gating (3c)', () => {
+  // Drive the real algo-derm solver: `knownConcentrations` pins an ingredient
+  // (claimPct == solverMeanPct == truth); without it the solver only guesses.
+  const assess = (inci: string, kind: 'serum' | 'cleanser', known?: Record<string, number>) =>
+    analyzeINCI(inci, {
+      context: { ...mapKindToContext(kind), ...(known ? { knownConcentrations: known } : {}) },
+    })
+
+  // Capped actives (EU regulatoryCapPct) → gate on solverMeanPct directly.
+  // The solver clamps to the cap, so a pin is NOT required to trust the dose.
+  test('salicylic unpinned (solver clamps to cap 2) → peau-sensible', () => {
+    const a = assess('Aqua, Salicylic Acid, Glycerin, Phenoxyethanol', 'serum')
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('retinol unpinned (solver clamps to cap 0.3) → peau-sensible', () => {
+    const a = assess('Aqua, Retinol, Glycerin, Phenoxyethanol', 'serum')
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('retinol pinned 0.1% (below 0.25 threshold) → no avoid', () => {
+    const a = assess('Aqua, Retinol, Glycerin', 'serum', { retinol: 0.1 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  test('salicylic pinned 0.5% (below 1.5 threshold) → no avoid', () => {
+    const a = assess('Aqua, Salicylic Acid, Glycerin', 'serum', { 'salicylic acid': 0.5 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  // Uncapped actives → require a real pin (claimPct). The unpinned solver
+  // overshoots in trace zones, so we only trust a curated concentration.
+  test('azelaic pinned 15% → peau-sensible', () => {
+    const a = assess('Aqua, Azelaic Acid, Glycerin', 'serum', { 'azelaic acid': 15 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('azelaic pinned 5% (below 10 threshold) → no avoid', () => {
+    const a = assess('Aqua, Azelaic Acid, Glycerin', 'serum', { 'azelaic acid': 5 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  test('azelaic UNPINNED (solver overshoots ~16%) → no avoid (pin-gate safety)', () => {
+    const a = assess('Aqua, Azelaic Acid, Glycerin, Phenoxyethanol', 'serum')
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  test('glycolic UNPINNED (solver overshoots ~15%) → no avoid (pin-gate safety)', () => {
+    const a = assess('Aqua, Glycolic Acid, Glycerin, Phenoxyethanol', 'serum')
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  test('glycolic pinned 10% → peau-sensible', () => {
+    const a = assess('Aqua, Glycolic Acid, Glycerin', 'serum', { 'glycolic acid': 10 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('lactic pinned 8% → peau-sensible', () => {
+    const a = assess('Aqua, Lactic Acid, Glycerin', 'serum', { 'lactic acid': 8 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('mandelic pinned 6% → peau-sensible', () => {
+    const a = assess('Aqua, Mandelic Acid, Glycerin', 'serum', { 'mandelic acid': 6 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('retinal pinned 0.1% → peau-sensible', () => {
+    const a = assess('Aqua, Retinal, Glycerin', 'serum', { retinal: 0.1 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toContain(S.PEAU_SENSIBLE)
+  })
+
+  test('retinal pinned 0.02% (below 0.05 threshold) → no avoid', () => {
+    const a = assess('Aqua, Retinal, Glycerin', 'serum', { retinal: 0.02 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
+  })
+
+  // Kind gating: rinse-off contact time too short for dose to matter.
+  test('azelaic pinned 15% on cleanser (rinse-off) → no avoid', () => {
+    const a = assess('Aqua, Azelaic Acid, Glycerin', 'cleanser', { 'azelaic acid': 15 })
+    expect(detectConcentrationAvoidTags(a, 'cleanser')).toEqual([])
+  })
+
+  // Deliberately excluded: gentle actives must not read as harsh.
+  test('bakuchiol pinned 2% → no avoid (gentle, not an irritant)', () => {
+    const a = assess('Aqua, Bakuchiol, Glycerin', 'serum', { bakuchiol: 2 })
+    expect(detectConcentrationAvoidTags(a, 'serum')).toEqual([])
   })
 })
 

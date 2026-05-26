@@ -1,8 +1,8 @@
 import { type Product, products } from '../../db/schema/products/products'
-import { type ProductTagDef, productTagsDefs, tagProducts } from '../../db/schema/tags/tags'
+import { type ProductTagType, productTagLinks, productTagTypes } from '../../db/schema/tags/tags'
 import { createTagService } from '../_tags/lib/createTagService'
 
-type ProductTagLink = typeof tagProducts.$inferSelect
+type ProductTagLink = typeof productTagLinks.$inferSelect
 
 // Export required: leaks via inferred return of listTagsByProduct → getProductFullBySlug (TS4058).
 export interface ProductTagProjection {
@@ -14,16 +14,16 @@ export interface ProductTagProjection {
   tagCategory: string
 }
 
-const service = createTagService<ProductTagDef, Product, ProductTagProjection, ProductTagLink>({
-  defs: productTagsDefs,
-  defsId: productTagsDefs.id,
-  defsSlug: productTagsDefs.slug,
-  defsLabel: productTagsDefs.label,
-  defsTagType: productTagsDefs.tagType,
+const service = createTagService<ProductTagType, Product, ProductTagProjection, ProductTagLink>({
+  defs: productTagTypes,
+  defsId: productTagTypes.id,
+  defsSlug: productTagTypes.slug,
+  defsLabel: productTagTypes.label,
+  defsTagType: productTagTypes.tagType,
 
-  links: tagProducts,
-  linkTagIdCol: tagProducts.productTagId,
-  linkOwnerIdCol: tagProducts.productId,
+  links: productTagLinks,
+  linkTagIdCol: productTagLinks.productTagId,
+  linkOwnerIdCol: productTagLinks.productId,
 
   ownerTable: products,
   ownerIdCol: products.id,
@@ -39,12 +39,12 @@ const service = createTagService<ProductTagDef, Product, ProductTagProjection, P
     source: source ?? 'manual',
   }),
   linkProjection: {
-    productTagId: tagProducts.productTagId,
-    productId: tagProducts.productId,
-    relevance: tagProducts.relevance,
-    tagName: productTagsDefs.label,
-    tagSlug: productTagsDefs.slug,
-    tagCategory: productTagsDefs.tagType,
+    productTagId: productTagLinks.productTagId,
+    productId: productTagLinks.productId,
+    relevance: productTagLinks.relevance,
+    tagName: productTagTypes.label,
+    tagSlug: productTagTypes.slug,
+    tagCategory: productTagTypes.tagType,
   },
 })
 

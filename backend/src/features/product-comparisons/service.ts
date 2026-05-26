@@ -17,8 +17,8 @@ import {
   productComparisons,
   productIngredients,
   products,
-  productTagsDefs,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../db/schema'
 import { ProductComparisonError } from './product-comparison-error'
 
@@ -132,14 +132,14 @@ export async function getEnrichedComparison(
 
   const tagRows = await database
     .select({
-      productId: tagProducts.productId,
-      slug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
-      relevance: tagProducts.relevance,
+      productId: productTagLinks.productId,
+      slug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
+      relevance: productTagLinks.relevance,
     })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-    .where(inArray(tagProducts.productId, productIds))
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+    .where(inArray(productTagLinks.productId, productIds))
 
   const productById = new Map(productRows.map((p) => [p.id, p]))
 

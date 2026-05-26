@@ -49,6 +49,7 @@ function makeCtx(
     name: input.name ?? null,
     description: input.description ?? null,
     percentClaims: undefined,
+    knownConcentrations: undefined,
     brandCertifications: undefined,
     hasInci,
     cleanedInci,

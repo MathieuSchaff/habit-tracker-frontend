@@ -24,9 +24,10 @@ import {
   ingredients,
   productIngredients,
   products,
-  productTagsDefs,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../db/schema'
+import { buildKnownConcentrations } from '../../lib/known-concentrations'
 import { trackError } from '../errors'
 import { detectAllAutoTags } from './orchestrator'
 import { partitionEczemaReview } from './passes/formula'
@@ -66,6 +67,7 @@ export async function writeTagsForProduct(
   const claimRows = await database
     .select({
       ingredientSlug: ingredients.slug,
+      ingredientName: ingredients.name,
       concentrationValue: productIngredients.concentrationValue,
       concentrationUnit: productIngredients.concentrationUnit,
     })
@@ -74,11 +76,11 @@ export async function writeTagsForProduct(
     .where(eq(productIngredients.productId, productId))
   const tagDefs = await database
     .select({
-      id: productTagsDefs.id,
-      slug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
+      id: productTagTypes.id,
+      slug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
     })
-    .from(productTagsDefs)
+    .from(productTagTypes)
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
@@ -98,6 +100,15 @@ export async function writeTagsForProduct(
     }))
     .filter((c) => Number.isFinite(c.concentrationValue))
 
+  const knownConcentrations = buildKnownConcentrations(
+    claimRows.map((r) => ({
+      name: r.ingredientName,
+      slug: r.ingredientSlug,
+      concentrationValue: r.concentrationValue,
+      concentrationUnit: r.concentrationUnit,
+    }))
+  )
+
   const pairs = detectAllAutoTags(
     {
       inci: product.inci,
@@ -108,6 +119,7 @@ export async function writeTagsForProduct(
       name: product.name,
       description: product.description,
       percentClaims,
+      knownConcentrations,
     },
     { brandCertifications: brandCertMap }
   )
@@ -135,12 +147,12 @@ export async function writeTagsForProduct(
   // visible to readers.
   return database.transaction(async (tx) => {
     await tx
-      .delete(tagProducts)
-      .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
+      .delete(productTagLinks)
+      .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
 
     if (rows.length === 0) return { inserted: 0, detected: pairs.length }
 
-    await tx.insert(tagProducts).values(rows).onConflictDoNothing()
+    await tx.insert(productTagLinks).values(rows).onConflictDoNothing()
 
     return { inserted: rows.length, detected: pairs.length }
   })

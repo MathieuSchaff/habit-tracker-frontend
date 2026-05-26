@@ -211,25 +211,39 @@ export function detectInteractionSecondaryTags(
   return [...tags]
 }
 
-// Concentration-driven avoid — uses algo-derm `concentrationEstimate.solverMeanPct`
-// (Beta posterior + QP solver over sum=100 constraint) to gate per-ingredient
-// dose thresholds. Revisits §6 "skip définitif" decisions for standalone
-// retinoid / standalone BHA → peau-sensible : the previous concern was over-
-// flagging dermo-friendly low-dose products (LRP Retinol B3 0.3 %, Cicaplast
-// Baume B5 trace salicylic). Dose-gating with thresholds tuned to the audit
-// Class A MAE (< 1 % per slug) preserves those products while flagging
-// high-dose standalone leave-on products.
+// Concentration-driven avoid — uses algo-derm `concentrationEstimate` to gate
+// per-ingredient dose thresholds → `peau-sensible` (positioning: a high-dose
+// standalone active is not for sensitive skin). Two robustness regimes:
 //
-// Scope limited to EU-capped actives where the solver is robust:
-//   - retinol      cap = 0.3 % → threshold ≥ 0.25 % (catches at-cap)
-//   - salicylic    cap = 2.0 % → threshold ≥ 1.5 % (catches at-cap)
+// CAPPED actives (EU `regulatoryCapPct` present) — the solver clamps to the
+// cap, so `solverMeanPct` is robust whether or not a curated pin exists; gate
+// directly. Threshold ≥ cap × 0.83 catches at-cap (= high-dose) while sparing
+// dermo-friendly trace formulas (LRP Retinol B3 0.3 %, Cicaplast trace SA):
+//   - retinol      cap = 0.3 % → ≥ 0.25 %
+//   - salicylic    cap = 2.0 % → ≥ 1.5 %
 //
-// Uncapped actives (retinal, hydroxypinacolone retinoate, bakuchiol) currently
-// deferred — solver QP overshoots in trace zones (low position triggers
-// non-monotone estimates: e.g. retinal pos 11/14 → solver 2.58 %, would mis-
-// flag Retrinal-class products). Unblock via algo-derm calibration (Pass 2 V2 §C1).
+// UNCAPPED actives (no EU numeric cap) — the unpinned QP solver overshoots in
+// trace/mid zones (e.g. azelaic at INCI pos 2 → solver ~16 % regardless of the
+// real dose), so we trust the dose ONLY when algo-derm pinned it to a curated
+// concentration (`claimPct` defined ⇒ `solverMeanPct` == truth, Phase 3b).
+// Unpinned uncapped matches are skipped — conservative by design for an avoid
+// tag. Gentle actives (bakuchiol, HPR ester) are intentionally absent: high
+// dose does not make them irritants.
 //
 // Leave-on only — rinse-off contact time is too short for dose to matter.
+const CAPPED_DOSE_RULES: Record<string, number> = {
+  retinol: 0.25,
+  'salicylic acid': 1.5,
+}
+
+const PINNED_DOSE_RULES: Record<string, number> = {
+  'glycolic acid': 8,
+  'lactic acid': 5,
+  'mandelic acid': 5,
+  'azelaic acid': 10,
+  retinal: 0.05,
+}
+
 export function detectConcentrationAvoidTags(
   assessment: ProductAssessment,
   kind: ProductKind
@@ -238,12 +252,23 @@ export function detectConcentrationAvoidTags(
 
   const tags = new Set<SkincareProductTagSlug>()
   for (const m of assessment.matchedEvidence) {
-    const conc = m.concentrationEstimate.solverMeanPct
-    if (conc === undefined) continue
+    const { solverMeanPct, claimPct } = m.concentrationEstimate
+    if (solverMeanPct === undefined) continue
     const lowerInci = m.evidence.inci.toLowerCase()
 
-    if (lowerInci === 'retinol' && conc >= 0.25) tags.add(S.PEAU_SENSIBLE)
-    if (lowerInci === 'salicylic acid' && conc >= 1.5) tags.add(S.PEAU_SENSIBLE)
+    const cappedThreshold = CAPPED_DOSE_RULES[lowerInci]
+    if (cappedThreshold !== undefined) {
+      if (solverMeanPct >= cappedThreshold) tags.add(S.PEAU_SENSIBLE)
+      continue
+    }
+    const pinnedThreshold = PINNED_DOSE_RULES[lowerInci]
+    if (
+      pinnedThreshold !== undefined &&
+      claimPct !== undefined &&
+      solverMeanPct >= pinnedThreshold
+    ) {
+      tags.add(S.PEAU_SENSIBLE)
+    }
   }
   return [...tags]
 }

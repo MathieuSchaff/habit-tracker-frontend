@@ -17,11 +17,11 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import {
   ingredients,
-  ingredientTagsDefs,
+  ingredientTagLinks,
+  ingredientTagTypes,
   products,
-  productTagsDefs,
-  tagIngredients,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../../../db/schema'
 import { ingredientTagMap } from '../../../../db/seed/data/ingredient-tags'
 import { ingredientTagData, productTagData } from '../../../../db/seed/data/tags'
@@ -39,15 +39,15 @@ async function main() {
 
     if (productDefs.length > 0) {
       await tx
-        .insert(productTagsDefs)
+        .insert(productTagTypes)
         .values(productDefs)
-        .onConflictDoNothing({ target: productTagsDefs.slug })
+        .onConflictDoNothing({ target: productTagTypes.slug })
     }
     if (ingredientDefs.length > 0) {
       await tx
-        .insert(ingredientTagsDefs)
+        .insert(ingredientTagTypes)
         .values(ingredientDefs)
-        .onConflictDoNothing({ target: ingredientTagsDefs.slug })
+        .onConflictDoNothing({ target: ingredientTagTypes.slug })
     }
     console.log(
       `✅ defs : ${productDefs.length} product_tags + ${ingredientDefs.length} ingredient_tags (actif_class)`
@@ -55,10 +55,10 @@ async function main() {
 
     // 2. Re-fetch id maps now that the new defs are committed in this tx.
     const [productTagRows, ingredientTagRows, ingredientRows] = await Promise.all([
-      tx.select({ id: productTagsDefs.id, slug: productTagsDefs.slug }).from(productTagsDefs),
+      tx.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
       tx
-        .select({ id: ingredientTagsDefs.id, slug: ingredientTagsDefs.slug })
-        .from(ingredientTagsDefs),
+        .select({ id: ingredientTagTypes.id, slug: ingredientTagTypes.slug })
+        .from(ingredientTagTypes),
       tx.select({ id: ingredients.id, slug: ingredients.slug }).from(ingredients),
     ])
 
@@ -88,7 +88,7 @@ async function main() {
     }
 
     if (ingPairs.length > 0) {
-      await tx.insert(tagIngredients).values(ingPairs).onConflictDoNothing()
+      await tx.insert(ingredientTagLinks).values(ingPairs).onConflictDoNothing()
     }
     console.log(
       `✅ tag_ingredients : ${ingPairs.length} pair(s) (actif_class)${
@@ -127,7 +127,7 @@ async function main() {
     }
 
     if (prodPairs.length > 0) {
-      await tx.insert(tagProducts).values(prodPairs).onConflictDoNothing()
+      await tx.insert(productTagLinks).values(prodPairs).onConflictDoNothing()
     }
     console.log(
       `✅ tag_products : ${prodPairs.length} pair(s) (actif_class) — ${withClusters}/${skincareProducts.length} produits skincare ont au moins 1 cluster`

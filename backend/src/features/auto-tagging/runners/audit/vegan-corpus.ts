@@ -27,7 +27,7 @@ import { and, eq, ilike, inArray, or } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 
 const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 30
 const SEED = process.env.SEED
@@ -109,10 +109,10 @@ async function main() {
       kind: products.kind,
       inci: products.inci,
     })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-    .innerJoin(products, eq(tagProducts.productId, products.id))
-    .where(eq(productTagsDefs.slug, 'vegan'))
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+    .innerJoin(products, eq(productTagLinks.productId, products.id))
+    .where(eq(productTagTypes.slug, 'vegan'))
 
   console.log(`📊 Corpus`)
   console.log(`   ${veganRows.length} produits taggés vegan (tous kinds)`)
@@ -243,9 +243,9 @@ async function pruneFalsePositives(): Promise<void> {
   console.log(`🪦 Prune vegan FP (Tier A INCI match → DELETE tag_products row)`)
 
   const veganDef = await db
-    .select({ id: productTagsDefs.id })
-    .from(productTagsDefs)
-    .where(eq(productTagsDefs.slug, 'vegan'))
+    .select({ id: productTagTypes.id })
+    .from(productTagTypes)
+    .where(eq(productTagTypes.slug, 'vegan'))
     .limit(1)
   const veganTagId = veganDef[0]?.id
   if (!veganTagId) {
@@ -258,9 +258,9 @@ async function pruneFalsePositives(): Promise<void> {
 
   const fpProducts = await db
     .select({ id: products.id, slug: products.slug })
-    .from(tagProducts)
-    .innerJoin(products, eq(tagProducts.productId, products.id))
-    .where(and(eq(tagProducts.productTagId, veganTagId), orFilter))
+    .from(productTagLinks)
+    .innerJoin(products, eq(productTagLinks.productId, products.id))
+    .where(and(eq(productTagLinks.productTagId, veganTagId), orFilter))
 
   console.log(`   ${fpProducts.length} produits vegan + Tier A match`)
   if (fpProducts.length === 0) {
@@ -273,9 +273,11 @@ async function pruneFalsePositives(): Promise<void> {
   const ids = fpProducts.map((p) => p.id)
   const deleted = await withAdminRls((tx) =>
     tx
-      .delete(tagProducts)
-      .where(and(eq(tagProducts.productTagId, veganTagId), inArray(tagProducts.productId, ids)))
-      .returning({ productId: tagProducts.productId })
+      .delete(productTagLinks)
+      .where(
+        and(eq(productTagLinks.productTagId, veganTagId), inArray(productTagLinks.productId, ids))
+      )
+      .returning({ productId: productTagLinks.productId })
   )
 
   console.log(`\n   🗑  ${deleted.length} paires (productId, vegan) supprimées.`)

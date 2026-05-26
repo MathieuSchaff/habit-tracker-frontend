@@ -18,7 +18,7 @@ import { PRODUCT_KIND_LABELS, type ProductKind } from '@habit-tracker/shared'
 import { eq, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { productTagsDefs, tagProducts } from '../../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
 
 const VALID_KINDS = new Set(Object.keys(PRODUCT_KIND_LABELS))
@@ -95,14 +95,14 @@ async function runCounts(): Promise<void> {
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const rows = await db
     .select({
-      slug: productTagsDefs.slug,
-      cluster: productTagsDefs.tagType,
-      relevance: tagProducts.relevance,
+      slug: productTagTypes.slug,
+      cluster: productTagTypes.tagType,
+      relevance: productTagLinks.relevance,
       n: sql<number>`count(*)::int`,
     })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-    .groupBy(productTagsDefs.slug, productTagsDefs.tagType, tagProducts.relevance)
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+    .groupBy(productTagTypes.slug, productTagTypes.tagType, productTagLinks.relevance)
 
   const byLevel = new Map<string, number>()
   const byCluster = new Map<string, number>()

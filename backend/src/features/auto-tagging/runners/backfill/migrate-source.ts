@@ -25,9 +25,10 @@ import {
   ingredients,
   productIngredients,
   products,
-  productTagsDefs,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../../../db/schema'
+import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { detectAllAutoTags } from '../..'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 
@@ -72,7 +73,7 @@ async function main() {
       })
       .from(productIngredients)
       .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId)),
-    db.select({ id: productTagsDefs.id, slug: productTagsDefs.slug }).from(productTagsDefs),
+    db.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
   ])
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
@@ -91,6 +92,7 @@ async function main() {
     })
     claimsByProduct.set(r.productId, arr)
   }
+  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 
   // Pair-keyed source map. Key = `${productId}::${productTagId}` (matches the
   // PK shape on tag_products).
@@ -106,6 +108,7 @@ async function main() {
         name: p.name,
         description: p.description,
         percentClaims: claimsByProduct.get(p.id) ?? [],
+        knownConcentrations: concentrationsByProduct.get(p.id),
       },
       { brandCertifications: brandCertMap }
     )
@@ -122,11 +125,11 @@ async function main() {
   // bumped to the detected source.
   const existing = await db
     .select({
-      pId: tagProducts.productId,
-      tId: tagProducts.productTagId,
-      source: tagProducts.source,
+      pId: productTagLinks.productId,
+      tId: productTagLinks.productTagId,
+      source: productTagLinks.source,
     })
-    .from(tagProducts)
+    .from(productTagLinks)
 
   // Group rows to update by target source so we can issue one UPDATE per
   // (source, chunk). Skip rows where current source already matches.

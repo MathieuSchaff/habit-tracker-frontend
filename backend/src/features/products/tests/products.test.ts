@@ -6,7 +6,7 @@ import { createProductSchema } from '@habit-tracker/shared'
 import { eq } from 'drizzle-orm'
 
 import { productEdits } from '../../../db/schema/products'
-import { productTagsDefs, tagProducts } from '../../../db/schema/tags/tags'
+import { productTagTypes, productTagLinks } from '../../../db/schema/tags/tags'
 import { createIngredient } from '../../../features/ingredients/service'
 import { createProductTag, replaceProductTags } from '../../../features/product-tags/service'
 import { testDb } from '../../../tests/db.test.config'
@@ -82,7 +82,7 @@ describe('Product Service', () => {
     // pass 3 (kind-tag-detection) deterministically for any skincare serum —
     // proves the wiring without depending on INCI parsing.
     it('writes auto-tags when matching defs exist', async () => {
-      await testDb.insert(productTagsDefs).values({
+      await testDb.insert(productTagTypes).values({
         slug: 'type-serum',
         label: 'Sérum',
         tagType: 'product_type_v2',
@@ -91,10 +91,10 @@ describe('Product Service', () => {
       const product = await makeProduct('Serum Test', 'Auto-Tag Brand', 'serum')
 
       const pairs = await testDb
-        .select({ slug: productTagsDefs.slug, relevance: tagProducts.relevance })
-        .from(tagProducts)
-        .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
-        .where(eq(tagProducts.productId, product.id))
+        .select({ slug: productTagTypes.slug, relevance: productTagLinks.relevance })
+        .from(productTagLinks)
+        .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+        .where(eq(productTagLinks.productId, product.id))
 
       expect(pairs).toEqual([{ slug: 'type-serum', relevance: 'primary' }])
     })
@@ -109,8 +109,8 @@ describe('Product Service', () => {
 
       const pairs = await testDb
         .select()
-        .from(tagProducts)
-        .where(eq(tagProducts.productId, product.id))
+        .from(productTagLinks)
+        .where(eq(productTagLinks.productId, product.id))
 
       expect(pairs).toHaveLength(0)
     })

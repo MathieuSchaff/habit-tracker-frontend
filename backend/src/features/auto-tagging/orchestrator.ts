@@ -51,6 +51,11 @@ export interface OrchestratorInput {
   // Structured concentration evidence from product_ingredients. Used only as
   // a strict fallback when INCI quality is fragile.
   percentClaims?: readonly PercentClaimEvidence[]
+  // Curated concentrations (% units) keyed by ingredient NAME. Pin algo-derm's
+  // solver to real values, overriding its INCI-position Bayesian prior. Keyed
+  // by name (not slug) because algo-derm normalize() keeps hyphens — see
+  // lib/known-concentrations.ts. Absent → prior unchanged (byte-for-byte).
+  knownConcentrations?: Record<string, number>
 }
 
 export interface OrchestratorOptions {

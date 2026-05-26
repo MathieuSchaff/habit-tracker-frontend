@@ -5,12 +5,12 @@ import {
   discussionReplies,
   discussionThreads,
   ingredients,
-  ingredientTagsDefs,
+  ingredientTagLinks,
+  ingredientTagTypes,
   productIngredients,
   products,
-  productTagsDefs,
-  tagIngredients,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
   userProductReviews,
   userProducts,
 } from '../../schema'
@@ -37,13 +37,13 @@ export async function cleanDatabase(tx: DB = db) {
   await tx.delete(discussionThreads)
   await tx.delete(userProductReviews)
   await tx.delete(userProducts)
-  await tx.delete(tagProducts)
+  await tx.delete(productTagLinks)
   await tx.delete(productIngredients)
-  await tx.delete(tagIngredients)
+  await tx.delete(ingredientTagLinks)
   await tx.delete(products)
   await tx.delete(ingredients)
-  await tx.delete(productTagsDefs)
-  await tx.delete(ingredientTagsDefs)
+  await tx.delete(productTagTypes)
+  await tx.delete(ingredientTagTypes)
   console.log('✅ Base nettoyée\n')
 }
 
@@ -51,10 +51,10 @@ export async function fetchIdMaps(database: DB) {
   console.log('\n📊 Récupération des IDs...')
   const [allProducts, allProductTags, allIngredientTags, allIngredients] = await Promise.all([
     database.select({ id: products.id, slug: products.slug }).from(products),
-    database.select({ id: productTagsDefs.id, slug: productTagsDefs.slug }).from(productTagsDefs),
+    database.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
     database
-      .select({ id: ingredientTagsDefs.id, slug: ingredientTagsDefs.slug })
-      .from(ingredientTagsDefs),
+      .select({ id: ingredientTagTypes.id, slug: ingredientTagTypes.slug })
+      .from(ingredientTagTypes),
     database.select({ id: ingredients.id, slug: ingredients.slug }).from(ingredients),
   ])
 

@@ -19,8 +19,8 @@ import { products } from '../products/products'
 // Each domain has its own tag table. Slugs can be identical across
 // domains (e.g. 'peau-grasse' exists in both) — they are independent rows.
 
-export const ingredientTagsDefs = pgTable(
-  'ingredient_tags',
+export const ingredientTagTypes = pgTable(
+  'ingredient_tag_types',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     slug: text('slug').notNull(),
@@ -31,14 +31,14 @@ export const ingredientTagsDefs = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex('ingredient_tags_slug_unique').on(t.slug),
-    index('ingredient_tags_type_idx').on(t.tagType),
-    ...catalogPolicies('ingredient_tags', 'admin'),
+    uniqueIndex('ingredient_tag_types_slug_unique').on(t.slug),
+    index('ingredient_tag_types_type_idx').on(t.tagType),
+    ...catalogPolicies('ingredient_tag_types', 'admin'),
   ]
 ).enableRLS()
 
-export const productTagsDefs = pgTable(
-  'product_tags',
+export const productTagTypes = pgTable(
+  'product_tag_types',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
     slug: text('slug').notNull(),
@@ -49,21 +49,21 @@ export const productTagsDefs = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex('product_tags_slug_unique').on(t.slug),
-    index('product_tags_type_idx').on(t.tagType),
-    ...catalogPolicies('product_tags', 'admin'),
+    uniqueIndex('product_tag_types_slug_unique').on(t.slug),
+    index('product_tag_types_type_idx').on(t.tagType),
+    ...catalogPolicies('product_tag_types', 'admin'),
   ]
 ).enableRLS()
 
 // Junction tables — composite PK = uniqueness constraint
 export const relevanceEnum = pgEnum('relevance', relevanceValues)
 
-export const tagIngredients = pgTable(
-  'tag_ingredients',
+export const ingredientTagLinks = pgTable(
+  'ingredient_tag_links',
   {
     ingredientTagId: uuid('ingredient_tag_id')
       .notNull()
-      .references(() => ingredientTagsDefs.id, { onDelete: 'cascade' }),
+      .references(() => ingredientTagTypes.id, { onDelete: 'cascade' }),
     ingredientId: uuid('ingredient_id')
       .notNull()
       .references(() => ingredients.id, { onDelete: 'cascade' }),
@@ -71,16 +71,16 @@ export const tagIngredients = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.ingredientTagId, t.ingredientId] }),
-    ...catalogPolicies('tag_ingredients', 'admin'),
+    ...catalogPolicies('ingredient_tag_links', 'admin'),
   ]
 ).enableRLS()
 
-export const tagProducts = pgTable(
-  'tag_products',
+export const productTagLinks = pgTable(
+  'product_tag_links',
   {
     productTagId: uuid('product_tag_id')
       .notNull()
-      .references(() => productTagsDefs.id, { onDelete: 'cascade' }),
+      .references(() => productTagTypes.id, { onDelete: 'cascade' }),
     productId: uuid('product_id')
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
@@ -94,11 +94,11 @@ export const tagProducts = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.productTagId, t.productId] }),
-    ...catalogPolicies('tag_products', 'contributor'),
+    ...catalogPolicies('product_tag_links', 'contributor'),
   ]
 ).enableRLS()
 
-export type IngredientTagDef = typeof ingredientTagsDefs.$inferSelect
-export type ProductTagDef = typeof productTagsDefs.$inferSelect
-export type TagIngredient = typeof tagIngredients.$inferSelect
-export type TagProduct = typeof tagProducts.$inferSelect
+export type IngredientTagType = typeof ingredientTagTypes.$inferSelect
+export type ProductTagType = typeof productTagTypes.$inferSelect
+export type IngredientTagLink = typeof ingredientTagLinks.$inferSelect
+export type ProductTagLink = typeof productTagLinks.$inferSelect

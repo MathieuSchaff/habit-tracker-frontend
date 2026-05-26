@@ -27,7 +27,12 @@ export function buildPassContext(
   const ingredients = hasInci ? splitINCI(cleanedInci) : []
   const normalizedIngredients = hasInci ? ingredients.map(normalize) : []
   const assessment = hasInci
-    ? analyzeINCI(cleanedInci, { context: mapKindToContext(product.kind) })
+    ? analyzeINCI(cleanedInci, {
+        context: {
+          ...mapKindToContext(product.kind),
+          knownConcentrations: product.knownConcentrations,
+        },
+      })
     : undefined
 
   const detectAutoTagsOptions: DetectAutoTagsOptions = {
@@ -48,6 +53,7 @@ export function buildPassContext(
     name: product.name ?? null,
     description: product.description ?? null,
     percentClaims: product.percentClaims,
+    knownConcentrations: product.knownConcentrations,
     brandCertifications: options.brandCertifications,
     hasInci,
     cleanedInci,
