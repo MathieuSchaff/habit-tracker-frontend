@@ -45,12 +45,18 @@ export type TagBudgetTable = Partial<
   Record<BudgetCategory, Partial<Record<SkincareProductTagSlug, TagBudget>>>
 >
 
-// Seeded 2026-05-13 from DUMP_BUDGETS=1 against a corpus of 3601 products with
-// INCI (2808 skincare / 415 solaire / 378 bodycare). Re-baselined 2026-05-13
-// after B3 (per-axis AXIS_BENEFIT_THRESHOLDS / TAG_DEFS_VERSION 5) — apaisant,
-// anti-oxydant, eclat, barriere-cutanee, reparateur, protection, peau-grasse
-// all shifted up as the previously signal-mute 0.35 thresholds dropped to P85.
-// Auto baseline = ceil(hit_rate × 1.5, 0.05). Sensitives tightened to ~× 2.
+// Seeded 2026-05-13, re-baselined 2026-05-26 from DUMP_BUDGETS=1 against a
+// corpus of 3601 products with INCI (2808 skincare / 415 solaire / 378
+// bodycare) on algo-derm TAG_DEFS v11. The v7→v10 adoption shifted several
+// tags: tolerance signals rose as v8's low-risk confidence fallback lets clean
+// formulas clear the floor (peau-sensible 37→46 %, hypoallergenique 8.5→13 %,
+// non-comedogene 4.2→6.5 %); grossesse-compatible fell (72→59 %) under v9's
+// strict negation + coverage ≥ 0.8; anti-age / acne-imperfections fell as v10
+// gates active claims on rinse-off. v11 extends that gate to benefit-derived
+// effect tags: bodycare sebo-regulateur 16.4→9.0 %, apaisant 3.4→1.9 %,
+// protection / anti-oxydant drop out; skincare sebo-regulateur 26.9→24.9 %;
+// solaire unchanged (all leave-on). Auto baseline = ceil(hit_rate × 1.5, 0.05);
+// sensitives hand-tightened below that (see markers).
 //
 // Sensitives:
 //   - `comedogene`        — leave-on only, safety-relevant. Tight cap.
@@ -59,93 +65,89 @@ export type TagBudgetTable = Partial<
 //   - `hypoallergenique`  — regulatory-adjacent claim.
 export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   skincare: {
-    'sans-sulfates': { max: 1.0 }, // hit_rate=82.4%
-    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=81.6%
+    'sans-sulfates': { max: 1.0 }, // hit_rate=80.9%
+    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=80.2%
     'sans-alcool-denature': { max: 1.0 }, // hit_rate=79.3%
-    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=74.5%
-    'grossesse-compatible': { max: 1.0 }, // hit_rate=72.0%
-    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=69.3%
-    'sans-silicones': { max: 0.95 }, // hit_rate=63.3%
-    'sans-parfum': { max: 0.9 }, // hit_rate=57.1%
-    'peau-sensible': { max: 0.5 }, // hit_rate=36.8% · tightened (sensitive)
-    hyperpigmentation: { max: 0.45 }, // hit_rate=29.1%
-    'acne-imperfections': { max: 0.45 }, // hit_rate=27.8%
-    'pores-sebum': { max: 0.45 }, // hit_rate=27.8%
-    'sebo-regulateur': { max: 0.45 }, // hit_rate=27.8%
-    'rougeurs-vasculaires': { max: 0.4 }, // hit_rate=25.7%
-    'barriere-cutanee': { max: 0.4 }, // hit_rate=23.9%
-    reparateur: { max: 0.4 }, // hit_rate=23.9%
-    deshydratation: { max: 0.35 }, // hit_rate=21.7%
-    'non-irritant': { max: 0.35 }, // hit_rate=21.0%
-    'eclat-teint-uniforme': { max: 0.3 }, // hit_rate=17.8%
-    apaisant: { max: 0.25 }, // hit_rate=14.6%
-    'peau-seche': { max: 0.15 }, // hit_rate=9.0%
-    protection: { max: 0.15 }, // hit_rate=8.7%
-    'anti-oxydant': { max: 0.15 }, // hit_rate=8.7%
-    hypoallergenique: { max: 0.13 }, // hit_rate=8.5% · tightened (sensitive)
-    'peau-grasse': { max: 0.15 }, // hit_rate=6.9%
-    'anti-age': { max: 0.1 }, // hit_rate=5.7%
-    'non-comedogene': { max: 0.08 }, // hit_rate=4.2% · tightened (sensitive)
-    comedogene: { max: 0.08 }, // hit_rate=4.0% · tightened (sensitive)
+    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=73.1%
+    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=68.1%
+    'sans-silicones': { max: 0.95 }, // hit_rate=62.2%
+    'grossesse-compatible': { max: 0.9 }, // hit_rate=59.3%
+    'sans-parfum': { max: 0.85 }, // hit_rate=56.1%
+    'peau-sensible': { max: 0.55 }, // hit_rate=46.3% · tightened (sensitive)
+    hyperpigmentation: { max: 0.45 }, // hit_rate=27.8%
+    'pores-sebum': { max: 0.45 }, // hit_rate=26.9%
+    'sebo-regulateur': { max: 0.4 }, // hit_rate=24.9%
+    'rougeurs-vasculaires': { max: 0.35 }, // hit_rate=22.8%
+    'acne-imperfections': { max: 0.35 }, // hit_rate=22.5%
+    'non-irritant': { max: 0.35 }, // hit_rate=20.7%
+    deshydratation: { max: 0.3 }, // hit_rate=19.6%
+    hypoallergenique: { max: 0.16 }, // hit_rate=12.9% · tightened (sensitive)
+    'barriere-cutanee': { max: 0.15 }, // hit_rate=7.2%
+    reparateur: { max: 0.15 }, // hit_rate=7.2%
+    'eclat-teint-uniforme': { max: 0.15 }, // hit_rate=6.7%
+    'non-comedogene': { max: 0.09 }, // hit_rate=6.5% · tightened (sensitive)
+    apaisant: { max: 0.1 }, // hit_rate=5.4%
+    protection: { max: 0.1 }, // hit_rate=5.2%
+    'anti-oxydant': { max: 0.1 }, // hit_rate=5.2%
+    comedogene: { max: 0.08 }, // hit_rate=3.8% · tightened (sensitive)
+    'anti-age': { max: 0.05 }, // hit_rate=3.0%
+    'peau-grasse': { max: 0.05 }, // hit_rate=2.7%
+    'peau-seche': { max: 0.05 }, // hit_rate=1.4%
   },
   solaire: {
-    'sans-sulfates': { max: 1.0 }, // hit_rate=87.0%
-    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=86.0%
-    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=85.5%
-    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=83.1%
-    'grossesse-compatible': { max: 1.0 }, // hit_rate=80.2%
+    'sans-sulfates': { max: 1.0 }, // hit_rate=85.8%
+    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=84.8%
+    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=84.3%
+    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=81.9%
+    'grossesse-compatible': { max: 1.0 }, // hit_rate=70.8%
     'sans-alcool-denature': { max: 1.0 }, // hit_rate=63.4%
-    'sans-silicones': { max: 0.8 }, // hit_rate=51.1%
-    'sans-parfum': { max: 0.55 }, // hit_rate=35.2%
-    'peau-sensible': { max: 0.35 }, // hit_rate=25.1% · tightened (sensitive)
-    deshydratation: { max: 0.35 }, // hit_rate=20.0%
-    'non-irritant': { max: 0.2 }, // hit_rate=12.0%
-    'acne-imperfections': { max: 0.15 }, // hit_rate=9.9%
-    'pores-sebum': { max: 0.15 }, // hit_rate=9.9%
-    'sebo-regulateur': { max: 0.15 }, // hit_rate=9.9%
+    'sans-silicones': { max: 0.75 }, // hit_rate=49.9%
+    'sans-parfum': { max: 0.55 }, // hit_rate=34.5%
+    'peau-sensible': { max: 0.45 }, // hit_rate=33.7% · tightened (sensitive)
+    deshydratation: { max: 0.3 }, // hit_rate=19.0%
+    'non-irritant': { max: 0.2 }, // hit_rate=12.8%
     hypoallergenique: { max: 0.13 }, // hit_rate=9.4% · tightened (sensitive)
-    hyperpigmentation: { max: 0.15 }, // hit_rate=8.0%
-    'barriere-cutanee': { max: 0.15 }, // hit_rate=6.7%
-    reparateur: { max: 0.15 }, // hit_rate=6.7%
-    protection: { max: 0.1 }, // hit_rate=6.5%
-    'anti-oxydant': { max: 0.1 }, // hit_rate=6.5%
-    apaisant: { max: 0.1 }, // hit_rate=5.8%
-    'non-comedogene': { max: 0.1 }, // hit_rate=5.8% · tightened (sensitive)
-    'rougeurs-vasculaires': { max: 0.1 }, // hit_rate=5.8%
-    'eclat-teint-uniforme': { max: 0.1 }, // hit_rate=5.3%
-    'peau-seche': { max: 0.1 }, // hit_rate=5.1%
-    comedogene: { max: 0.08 }, // hit_rate=3.9% · tightened (sensitive)
-    'peau-grasse': { max: 0.1 }, // hit_rate=3.6%
-    'anti-age': { max: 0.05 }, // hit_rate=0.2%
+    'acne-imperfections': { max: 0.15 }, // hit_rate=7.7%
+    'pores-sebum': { max: 0.15 }, // hit_rate=7.7%
+    'sebo-regulateur': { max: 0.15 }, // hit_rate=7.7%
+    hyperpigmentation: { max: 0.15 }, // hit_rate=7.2%
+    'rougeurs-vasculaires': { max: 0.1 }, // hit_rate=6.3%
+    'non-comedogene': { max: 0.08 }, // hit_rate=5.8% · tightened (sensitive)
+    apaisant: { max: 0.1 }, // hit_rate=4.1%
+    comedogene: { max: 0.08 }, // hit_rate=3.6% · tightened (sensitive)
+    protection: { max: 0.05 }, // hit_rate=2.9%
+    'anti-oxydant': { max: 0.05 }, // hit_rate=2.9%
+    'eclat-teint-uniforme': { max: 0.05 }, // hit_rate=1.0%
+    'peau-grasse': { max: 0.05 }, // hit_rate=1.0%
+    'barriere-cutanee': { max: 0.05 }, // hit_rate=1.0%
+    reparateur: { max: 0.05 }, // hit_rate=1.0%
+    'peau-seche': { max: 0.05 }, // hit_rate=0.5%
   },
   bodycare: {
-    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=85.2%
+    'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=84.4%
     'sans-alcool-denature': { max: 1.0 }, // hit_rate=83.1%
-    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=78.6%
-    'grossesse-compatible': { max: 1.0 }, // hit_rate=77.2%
-    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=72.0%
-    'sans-silicones': { max: 1.0 }, // hit_rate=66.9%
-    'sans-sulfates': { max: 0.95 }, // hit_rate=62.2%
-    deshydratation: { max: 0.5 }, // hit_rate=31.0%
-    'sans-parfum': { max: 0.45 }, // hit_rate=29.4%
-    'non-irritant': { max: 0.4 }, // hit_rate=26.5%
-    'peau-sensible': { max: 0.3 }, // hit_rate=22.5% · tightened (sensitive)
-    'barriere-cutanee': { max: 0.3 }, // hit_rate=19.3%
-    reparateur: { max: 0.3 }, // hit_rate=19.3%
-    'acne-imperfections': { max: 0.3 }, // hit_rate=17.2%
-    'pores-sebum': { max: 0.3 }, // hit_rate=17.2%
-    'sebo-regulateur': { max: 0.3 }, // hit_rate=17.2%
-    'rougeurs-vasculaires': { max: 0.25 }, // hit_rate=15.1%
+    'sans-huiles-minerales': { max: 1.0 }, // hit_rate=77.8%
+    'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=71.2%
+    'sans-silicones': { max: 1.0 }, // hit_rate=66.1%
+    'grossesse-compatible': { max: 1.0 }, // hit_rate=63.5%
+    'sans-sulfates': { max: 0.95 }, // hit_rate=61.4%
+    deshydratation: { max: 0.45 }, // hit_rate=29.1%
+    'sans-parfum': { max: 0.45 }, // hit_rate=28.8%
+    'non-irritant': { max: 0.45 }, // hit_rate=28.0%
+    'peau-sensible': { max: 0.3 }, // hit_rate=23.0% · tightened (sensitive)
+    'pores-sebum': { max: 0.25 }, // hit_rate=16.4%
     hyperpigmentation: { max: 0.25 }, // hit_rate=14.8%
-    'peau-seche': { max: 0.25 }, // hit_rate=13.8%
-    hypoallergenique: { max: 0.13 }, // hit_rate=9.0% · tightened (sensitive)
-    comedogene: { max: 0.12 }, // hit_rate=6.9% · tightened (sensitive)
-    apaisant: { max: 0.15 }, // hit_rate=6.9%
-    'eclat-teint-uniforme': { max: 0.1 }, // hit_rate=4.5%
-    'peau-grasse': { max: 0.05 }, // hit_rate=3.2%
-    'non-comedogene': { max: 0.05 }, // hit_rate=2.9% · tightened (sensitive)
-    protection: { max: 0.05 }, // hit_rate=2.1%
-    'anti-oxydant': { max: 0.05 }, // hit_rate=2.1%
-    'anti-age': { max: 0.05 }, // hit_rate=0.8%
+    'rougeurs-vasculaires': { max: 0.25 }, // hit_rate=14.0%
+    hypoallergenique: { max: 0.15 }, // hit_rate=11.4% · tightened (sensitive)
+    'sebo-regulateur': { max: 0.15 }, // hit_rate=9.0%
+    'acne-imperfections': { max: 0.15 }, // hit_rate=7.4%
+    comedogene: { max: 0.09 }, // hit_rate=6.6% · tightened (sensitive)
+    'barriere-cutanee': { max: 0.1 }, // hit_rate=5.0%
+    reparateur: { max: 0.1 }, // hit_rate=5.0%
+    'peau-seche': { max: 0.1 }, // hit_rate=4.0%
+    'non-comedogene': { max: 0.08 }, // hit_rate=4.0% · tightened (sensitive)
+    'eclat-teint-uniforme': { max: 0.05 }, // hit_rate=2.4%
+    apaisant: { max: 0.05 }, // hit_rate=1.9%
+    'peau-grasse': { max: 0.05 }, // hit_rate=0.3%
   },
 }

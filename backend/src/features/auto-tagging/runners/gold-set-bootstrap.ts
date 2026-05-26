@@ -41,7 +41,7 @@ import type { ProductKind } from '@habit-tracker/shared'
 import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { products, productTagsDefs, tagProducts } from '../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../db/schema'
 import {
   GOLD_SET_FOCUS_TAGS,
   GOLD_SET_SCHEMA_VERSION,
@@ -141,19 +141,19 @@ async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: P
 // for sampling.
 async function fetchTagsByProduct(): Promise<Map<string, Set<string>>> {
   const focusTagDefIds = await db
-    .select({ id: productTagsDefs.id, slug: productTagsDefs.slug })
-    .from(productTagsDefs)
-    .where(inArray(productTagsDefs.slug, [...GOLD_SET_FOCUS_TAGS]))
+    .select({ id: productTagTypes.id, slug: productTagTypes.slug })
+    .from(productTagTypes)
+    .where(inArray(productTagTypes.slug, [...GOLD_SET_FOCUS_TAGS]))
 
   const tagPairs =
     focusTagDefIds.length === 0
       ? []
       : await db
-          .select({ pId: tagProducts.productId, defId: tagProducts.productTagId })
-          .from(tagProducts)
+          .select({ pId: productTagLinks.productId, defId: productTagLinks.productTagId })
+          .from(productTagLinks)
           .where(
             inArray(
-              tagProducts.productTagId,
+              productTagLinks.productTagId,
               focusTagDefIds.map((r) => r.id)
             )
           )

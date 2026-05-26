@@ -50,9 +50,10 @@ import {
   ingredients,
   productIngredients,
   products,
-  productTagsDefs,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../../../db/schema'
+import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import {
   AUTO_TAG_ELIGIBLE_CATEGORIES,
   type AutoTagSource,
@@ -199,11 +200,11 @@ async function fetchTagInfo(): Promise<{
 }> {
   const tagDefs = await db
     .select({
-      id: productTagsDefs.id,
-      slug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
+      id: productTagTypes.id,
+      slug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
     })
-    .from(productTagsDefs)
+    .from(productTagTypes)
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
   const tagIdToType = new Map(tagDefs.map((t) => [t.id, t.tagType]))
   return { tagSlugToInfo, tagIdToType }
@@ -218,12 +219,12 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
 }> {
   const existingRows = await db
     .select({
-      pId: tagProducts.productId,
-      tId: tagProducts.productTagId,
-      rel: tagProducts.relevance,
-      source: tagProducts.source,
+      pId: productTagLinks.productId,
+      tId: productTagLinks.productTagId,
+      rel: productTagLinks.relevance,
+      source: productTagLinks.source,
     })
-    .from(tagProducts)
+    .from(productTagLinks)
   const existingMap = new Map<string, Relevance>()
   const productsWithCuratedPrimary = new Set<string>()
   const manualPairs = new Set<string>()
@@ -246,6 +247,7 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
 function detectCandidates(
   subset: ProductRow[],
   claimsByProduct: Map<string, PercentClaim[]>,
+  concentrationsByProduct: Map<string, Record<string, number>>,
   tagSlugToInfo: Map<string, TagInfo>,
   brandCertMap: BrandCertMap
 ): {
@@ -277,6 +279,7 @@ function detectCandidates(
         name: p.name,
         description: p.description,
         percentClaims: claimsByProduct.get(p.id) ?? [],
+        knownConcentrations: concentrationsByProduct.get(p.id),
       },
       {
         ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
@@ -375,7 +378,7 @@ async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<n
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const chunk = toInsert.slice(i, i + CHUNK)
     await tx
-      .insert(tagProducts)
+      .insert(productTagLinks)
       .values(
         chunk.map(({ productId, productTagId, relevance, source }) => ({
           productId,
@@ -404,7 +407,7 @@ async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Prom
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
     const chunk = toUpsert.slice(i, i + CHUNK)
     await tx
-      .insert(tagProducts)
+      .insert(productTagLinks)
       .values(
         chunk.map(({ productId, productTagId, relevance, source }) => ({
           productId,
@@ -414,7 +417,7 @@ async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Prom
         }))
       )
       .onConflictDoUpdate({
-        target: [tagProducts.productTagId, tagProducts.productId],
+        target: [productTagLinks.productTagId, productTagLinks.productId],
         set: { relevance: sql`excluded.relevance`, source: sql`excluded.source` },
       })
     upserted += chunk.length
@@ -431,6 +434,7 @@ async function main() {
   const { allProducts, brandCertMap } = await fetchProductsAndCerts()
   const subset = narrowSubset(allProducts)
   const claimsByProduct = await fetchClaimsByProduct(subset.map((p) => p.id))
+  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
   const { tagSlugToInfo, tagIdToType } = await fetchTagInfo()
   const { existingMap, productsWithCuratedPrimary, manualPairs } =
     await fetchExistingState(tagIdToType)
@@ -438,6 +442,7 @@ async function main() {
   const { candidateMap, noInci, eczemaReviewQueue } = detectCandidates(
     subset,
     claimsByProduct,
+    concentrationsByProduct,
     tagSlugToInfo,
     brandCertMap
   )

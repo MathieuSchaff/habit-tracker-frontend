@@ -29,7 +29,7 @@ import type { ProductKind } from '@habit-tracker/shared'
 import { eq, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
@@ -65,9 +65,9 @@ async function main() {
   // Existing (productId, slug) pairs scoped to the cluster slugs only.
   const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
   const existingRows = await db
-    .select({ pId: tagProducts.productId, slug: productTagsDefs.slug })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
   const existingByProduct = new Map<string, Set<string>>()
   for (const r of existingRows) {
     if (!clusterSlugs.has(r.slug)) continue

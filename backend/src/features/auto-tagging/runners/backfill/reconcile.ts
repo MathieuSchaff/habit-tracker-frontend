@@ -30,9 +30,10 @@ import {
   ingredients,
   productIngredients,
   products,
-  productTagsDefs,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../../../db/schema'
+import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
 import { partitionEczemaReview } from '../../passes/formula'
 import { writeTagsForProduct } from '../../write'
@@ -90,8 +91,8 @@ const certRows = await db.select().from(brandCertifications)
 const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
 
 const tagDefs = await db
-  .select({ id: productTagsDefs.id, slug: productTagsDefs.slug, tagType: productTagsDefs.tagType })
-  .from(productTagsDefs)
+  .select({ id: productTagTypes.id, slug: productTagTypes.slug, tagType: productTagTypes.tagType })
+  .from(productTagTypes)
 const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
 const tagIdToSlug = new Map(tagDefs.map((t) => [t.id, t.slug]))
 
@@ -120,15 +121,16 @@ for (const r of claimRows) {
   })
   claimsByProduct.set(r.productId, arr)
 }
+const concentrationsByProduct = await fetchKnownConcentrationsByProduct(prods.map((p) => p.id))
 
 const cur = await db
   .select({
-    productId: tagProducts.productId,
-    productTagId: tagProducts.productTagId,
-    relevance: tagProducts.relevance,
+    productId: productTagLinks.productId,
+    productTagId: productTagLinks.productTagId,
+    relevance: productTagLinks.relevance,
   })
-  .from(tagProducts)
-  .where(ne(tagProducts.source, 'manual'))
+  .from(productTagLinks)
+  .where(ne(productTagLinks.source, 'manual'))
 const curByProduct = new Map<string, Map<string, string>>()
 for (const r of cur) {
   const m = curByProduct.get(r.productId) ?? new Map()
@@ -142,9 +144,9 @@ for (const r of cur) {
 // matches what `--write` does and surfaces the manual×auto overlap instead of
 // inflating it into phantom recall.
 const manualRows = await db
-  .select({ productId: tagProducts.productId, productTagId: tagProducts.productTagId })
-  .from(tagProducts)
-  .where(eq(tagProducts.source, 'manual'))
+  .select({ productId: productTagLinks.productId, productTagId: productTagLinks.productTagId })
+  .from(productTagLinks)
+  .where(eq(productTagLinks.source, 'manual'))
 const manualByProduct = new Map<string, Set<string>>()
 for (const r of manualRows) {
   const s = manualByProduct.get(r.productId) ?? new Set<string>()
@@ -170,6 +172,7 @@ for (const p of prods) {
       name: p.name,
       description: p.description,
       percentClaims: claimsByProduct.get(p.id) ?? [],
+      knownConcentrations: concentrationsByProduct.get(p.id),
     },
     { brandCertifications: brandCertMap }
   )

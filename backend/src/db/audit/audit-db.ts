@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm'
 
 import type { DB } from '..'
 import { db } from '..'
-import { products, productTagsDefs, tagProducts } from '../schema'
+import { products, productTagLinks, productTagTypes } from '../schema'
 
 type Violation = { description: string }
 type CheckResult = { name: string; violations: Violation[] }
@@ -18,12 +18,12 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
     .select({
       productSlug: products.slug,
       productCategory: products.category,
-      tagSlug: productTagsDefs.slug,
-      tagType: productTagsDefs.tagType,
+      tagSlug: productTagTypes.slug,
+      tagType: productTagTypes.tagType,
     })
-    .from(tagProducts)
-    .innerJoin(products, eq(tagProducts.productId, products.id))
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+    .from(productTagLinks)
+    .innerJoin(products, eq(productTagLinks.productId, products.id))
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
 
   const violations: Violation[] = []
   for (const row of rows) {

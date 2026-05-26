@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { and, eq, ne } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../db/rls'
-import { productTagsDefs, tagProducts } from '../../../db/schema'
+import { productTagTypes, productTagLinks } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -25,7 +25,7 @@ const RICH_INCI =
 describe('writeTagsForProduct — transaction safety', () => {
   beforeEach(async () => {
     await cleanDatabase()
-    await testDb.insert(productTagsDefs).values(productTagData)
+    await testDb.insert(productTagTypes).values(productTagData)
   })
 
   it('writes auto rows when given a transaction, not only a pooled connection', async () => {
@@ -47,8 +47,8 @@ describe('writeTagsForProduct — transaction safety', () => {
       (
         await testDb
           .select()
-          .from(tagProducts)
-          .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
+          .from(productTagLinks)
+          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
       ).length
 
     // Intake tagged the product via the pooled connection.

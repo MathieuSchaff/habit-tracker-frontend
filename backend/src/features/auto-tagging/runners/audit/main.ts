@@ -44,8 +44,9 @@ import { analyzeINCI, splitINCI } from 'algo-derm'
 import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { products, productTagsDefs, tagProducts } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
+import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectAutoTags, TAG_CONFIG, type TagRule } from '../../passes/auto-tag-detection'
 import { type BudgetCategory, TAG_HIT_RATE_BUDGET } from '../../passes/tag-budgets'
@@ -291,7 +292,8 @@ function aggregateDetected(
 function processProduct(
   p: ProductRow,
   state: AuditState,
-  existingByProduct: Map<string, Set<string>>
+  existingByProduct: Map<string, Set<string>>,
+  concentrationsByProduct: Map<string, Record<string, number>>
 ): void {
   state.subsetSizeByCategory.set(p.category, (state.subsetSizeByCategory.get(p.category) ?? 0) + 1)
   if (!p.inci?.trim()) return
@@ -301,7 +303,12 @@ function processProduct(
   // Single hoisted analyzeINCI — passed to detectAutoTags below and reused
   // for regulatory surfacing. Saves a second algo-derm pass per product.
   const ingredients = splitINCI(p.inci)
-  const assessment = analyzeINCI(p.inci, { context: mapKindToContext(p.kind) })
+  const assessment = analyzeINCI(p.inci, {
+    context: {
+      ...mapKindToContext(p.kind),
+      knownConcentrations: concentrationsByProduct.get(p.id),
+    },
+  })
 
   const detected = detectAutoTags(p.inci, p.kind, {
     ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
@@ -706,9 +713,9 @@ async function fetchSubset(): Promise<ProductRow[]> {
 // emitted tag as agree (already manually present) vs new (proposal).
 async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
   const existingRows = await db
-    .select({ pId: tagProducts.productId, slug: productTagsDefs.slug })
-    .from(tagProducts)
-    .innerJoin(productTagsDefs, eq(tagProducts.productTagId, productTagsDefs.id))
+    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
+    .from(productTagLinks)
+    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
   const existingByProduct = new Map<string, Set<string>>()
   for (const r of existingRows) {
     let set = existingByProduct.get(r.pId)
@@ -729,9 +736,10 @@ async function main() {
 
   const subset = await fetchSubset()
   const existingByProduct = await fetchExistingByProduct()
+  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 
   const state = initState()
-  for (const p of subset) processProduct(p, state, existingByProduct)
+  for (const p of subset) processProduct(p, state, existingByProduct, concentrationsByProduct)
 
   // Reporting
   reportCoverage(state, subset.length)

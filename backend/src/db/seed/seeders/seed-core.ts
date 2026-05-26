@@ -14,12 +14,12 @@ import {
   brandCertifications,
   ingredientDermoProfiles,
   ingredients,
-  ingredientTagsDefs,
+  ingredientTagLinks,
+  ingredientTagTypes,
   productIngredients,
   products,
-  productTagsDefs,
-  tagIngredients,
-  tagProducts,
+  productTagLinks,
+  productTagTypes,
 } from '../../schema'
 import { BRAND_CERTIFICATION_INSERTS } from '../data/brand-certifications'
 import { ingredientTagMap } from '../data/ingredient-tags'
@@ -191,10 +191,12 @@ export async function seedCore(shouldClean = false) {
       const [existIng, existProd, existTagProd, existTagIng, existProdIng] = await Promise.all([
         tx.select({ slug: ingredients.slug }).from(ingredients),
         tx.select({ slug: products.slug }).from(products),
-        tx.select({ pId: tagProducts.productId, tId: tagProducts.productTagId }).from(tagProducts),
         tx
-          .select({ iId: tagIngredients.ingredientId, tId: tagIngredients.ingredientTagId })
-          .from(tagIngredients),
+          .select({ pId: productTagLinks.productId, tId: productTagLinks.productTagId })
+          .from(productTagLinks),
+        tx
+          .select({ iId: ingredientTagLinks.ingredientId, tId: ingredientTagLinks.ingredientTagId })
+          .from(ingredientTagLinks),
         tx
           .select({ pId: productIngredients.productId, iId: productIngredients.ingredientId })
           .from(productIngredients),
@@ -440,15 +442,15 @@ export async function seedCore(shouldClean = false) {
     // re-run picks up new slugs without erroring on existing ones. Harmless
     // after `cleanDatabase` (table is empty).
     if (ingredientTagData.length > 0) {
-      await tx.insert(ingredientTagsDefs).values(ingredientTagData).onConflictDoNothing({
-        target: ingredientTagsDefs.slug,
+      await tx.insert(ingredientTagTypes).values(ingredientTagData).onConflictDoNothing({
+        target: ingredientTagTypes.slug,
       })
     }
     console.log(`✅ ${ingredientTagData.length} ingredient_tags créés`)
 
     if (productTagData.length > 0) {
-      await tx.insert(productTagsDefs).values(productTagData).onConflictDoNothing({
-        target: productTagsDefs.slug,
+      await tx.insert(productTagTypes).values(productTagData).onConflictDoNothing({
+        target: productTagTypes.slug,
       })
     }
     console.log(`✅ ${productTagData.length} product_tags créés`)

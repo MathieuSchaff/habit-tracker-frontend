@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/bun-sql'
 
 import { withAdminRls } from '../../db/rls'
 import { products } from '../../db/schema/products/products'
-import { productTagsDefs } from '../../db/schema/tags/tags'
+import { productTagTypes } from '../../db/schema/tags/tags'
 import { testDb } from '../db.test.config'
 import { setupDbTests } from '../db-setup'
 import { cleanDatabase } from '../helpers/db-cleaner'
@@ -52,7 +52,7 @@ async function insertProductTagAs(role: string) {
   return appRuntimeDb.transaction(async (tx) => {
     await tx.execute(sql`SELECT set_config('app.user_id', '', true)`)
     await tx.execute(sql`SELECT set_config('app.role', ${role}, true)`)
-    await tx.insert(productTagsDefs).values({
+    await tx.insert(productTagTypes).values({
       slug: `rls-tag-${role}`,
       label: 'RLS Tag Probe',
       tagType: 'test',
@@ -132,9 +132,9 @@ describe('catalog RLS — fail closed', () => {
   it('allows product_tags INSERT for role=admin', async () => {
     await insertProductTagAs('admin')
     const [row] = await testDb
-      .select({ slug: productTagsDefs.slug })
-      .from(productTagsDefs)
-      .where(eq(productTagsDefs.slug, 'rls-tag-admin'))
+      .select({ slug: productTagTypes.slug })
+      .from(productTagTypes)
+      .where(eq(productTagTypes.slug, 'rls-tag-admin'))
     expect(row?.slug).toBe('rls-tag-admin')
   })
 

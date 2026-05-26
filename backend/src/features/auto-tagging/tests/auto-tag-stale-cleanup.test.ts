@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { and, eq, ne } from 'drizzle-orm'
 
-import { productTagsDefs, tagProducts } from '../../../db/schema'
+import { productTagTypes, productTagLinks } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -20,7 +20,7 @@ const RICH_INCI =
 describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => {
   beforeEach(async () => {
     await cleanDatabase()
-    await testDb.insert(productTagsDefs).values(productTagData)
+    await testDb.insert(productTagTypes).values(productTagData)
   })
 
   it('drops INCI-derived auto rows when INCI is emptied; preserves manual rows', async () => {
@@ -41,8 +41,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
 
     const before = await testDb
       .select()
-      .from(tagProducts)
-      .where(eq(tagProducts.productId, product.id))
+      .from(productTagLinks)
+      .where(eq(productTagLinks.productId, product.id))
 
     // Sanity: at least one INCI-derived row (algo-derm / actif-class / formula
     // / cross-signal / percent-claim / interaction). Without this the assertion
@@ -68,8 +68,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     // orchestrator does not own".
     const [manualDef] = await testDb
       .select()
-      .from(productTagsDefs)
-      .where(eq(productTagsDefs.slug, 'keratose-pilaire'))
+      .from(productTagTypes)
+      .where(eq(productTagTypes.slug, 'keratose-pilaire'))
       .limit(1)
     if (!manualDef) throw new Error('seed productTagData missing "keratose-pilaire" slug')
     await addTagToProduct(testDb, product.id, manualDef.id, 'secondary')
@@ -77,8 +77,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     // Confirm the manual row landed with source = 'manual'.
     const [manualRow] = await testDb
       .select()
-      .from(tagProducts)
-      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
+      .from(productTagLinks)
+      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
     expect(manualRow.source).toBe('manual')
 
     // Trigger retag by emptying the INCI. updateProduct's trigger now fires
@@ -87,8 +87,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
 
     const after = await testDb
       .select()
-      .from(tagProducts)
-      .where(eq(tagProducts.productId, product.id))
+      .from(productTagLinks)
+      .where(eq(productTagLinks.productId, product.id))
 
     // INCI-derived auto rows are gone — that's the bug-1 fix.
     const inciDerivedAfter = after.filter((r) => inciSources.has(r.source))
@@ -97,8 +97,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     // Manual row survived.
     const manualAfter = await testDb
       .select()
-      .from(tagProducts)
-      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
+      .from(productTagLinks)
+      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
     expect(manualAfter).toHaveLength(1)
     expect(manualAfter[0].source).toBe('manual')
   })
@@ -122,17 +122,17 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const beforeAutoIds = new Set(
       (
         await testDb
-          .select({ pTagId: tagProducts.productTagId })
-          .from(tagProducts)
-          .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
+          .select({ pTagId: productTagLinks.productTagId })
+          .from(productTagLinks)
+          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
       ).map((r) => r.pTagId)
     )
     expect(beforeAutoIds.size).toBeGreaterThan(0)
 
     const [manualDef] = await testDb
       .select()
-      .from(productTagsDefs)
-      .where(eq(productTagsDefs.slug, 'keratose-pilaire'))
+      .from(productTagTypes)
+      .where(eq(productTagTypes.slug, 'keratose-pilaire'))
       .limit(1)
     if (!manualDef) throw new Error('seed productTagData missing "keratose-pilaire" slug')
     await addTagToProduct(testDb, product.id, manualDef.id, 'secondary')
@@ -151,9 +151,9 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const afterAutoIds = new Set(
       (
         await testDb
-          .select({ pTagId: tagProducts.productTagId })
-          .from(tagProducts)
-          .where(and(eq(tagProducts.productId, product.id), ne(tagProducts.source, 'manual')))
+          .select({ pTagId: productTagLinks.productTagId })
+          .from(productTagLinks)
+          .where(and(eq(productTagLinks.productId, product.id), ne(productTagLinks.source, 'manual')))
       ).map((r) => r.pTagId)
     )
     const dropped = [...beforeAutoIds].filter((id) => !afterAutoIds.has(id))
@@ -161,8 +161,8 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
 
     const [manualAfter] = await testDb
       .select()
-      .from(tagProducts)
-      .where(and(eq(tagProducts.productId, product.id), eq(tagProducts.productTagId, manualDef.id)))
+      .from(productTagLinks)
+      .where(and(eq(productTagLinks.productId, product.id), eq(productTagLinks.productTagId, manualDef.id)))
     expect(manualAfter).toBeDefined()
     expect(manualAfter.source).toBe('manual')
   })

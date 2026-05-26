@@ -7,6 +7,7 @@ import { type Database, db } from '../../db'
 import { userDermoProfiles } from '../../db/schema/auth/users'
 import { products } from '../../db/schema/products/products'
 import { mapKindToContext } from '../../lib/algo-derm-product-context'
+import { fetchKnownConcentrationsByProduct } from '../../lib/fetch-known-concentrations'
 import { ProductError } from '../products/product-error'
 
 const SENSITIVE_SKIN_TYPES: ReadonlyArray<SkinType> = ['peau-sensible']
@@ -48,6 +49,7 @@ export async function computeProductDermoScore(
 ): Promise<DermoScoreOutcome> {
   const [product] = await database
     .select({
+      id: products.id,
       inci: products.inci,
       kind: products.kind,
     })
@@ -61,7 +63,10 @@ export async function computeProductDermoScore(
   if (!inci) return { ok: false, reason: 'inci_missing' }
 
   const profile = userId ? await loadAlgoDermProfile(userId, database) : undefined
-  const context = mapKindToContext(product.kind)
+  const knownConcentrations = (await fetchKnownConcentrationsByProduct([product.id], database)).get(
+    product.id
+  )
+  const context = { ...mapKindToContext(product.kind), knownConcentrations }
 
   const assessment = analyzeINCI(inci, { profile, context })
   return { ok: true, assessment }

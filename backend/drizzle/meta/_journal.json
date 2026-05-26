@@ -547,6 +547,13 @@
       "when": 1779716015014,
       "tag": "0077_youthful_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1779716016014,
+      "tag": "0078_rename_tag_tables",
+      "breakpoints": true
     }
   ]
 }
