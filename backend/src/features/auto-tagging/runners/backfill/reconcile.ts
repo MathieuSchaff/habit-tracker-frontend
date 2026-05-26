@@ -34,6 +34,7 @@ import {
   tagProducts,
 } from '../../../../db/schema'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
+import { partitionEczemaReview } from '../../passes/formula'
 import { writeTagsForProduct } from '../../write'
 
 const WRITE = process.argv.includes('--write')
@@ -135,7 +136,24 @@ for (const r of cur) {
   curByProduct.set(r.productId, m)
 }
 
+// A manual row holds the (product, tag) PK; writeTagsForProduct's INSERT
+// onConflictDoNothing yields to it, so an orchestrator-wanted tag already held
+// manually is a no-op, not a real insert. Tracked separately so the preview
+// matches what `--write` does and surfaces the manual×auto overlap instead of
+// inflating it into phantom recall.
+const manualRows = await db
+  .select({ productId: tagProducts.productId, productTagId: tagProducts.productTagId })
+  .from(tagProducts)
+  .where(eq(tagProducts.source, 'manual'))
+const manualByProduct = new Map<string, Set<string>>()
+for (const r of manualRows) {
+  const s = manualByProduct.get(r.productId) ?? new Set<string>()
+  s.add(r.productTagId)
+  manualByProduct.set(r.productId, s)
+}
+
 let netInsert = 0
+let manualShadowed = 0
 let netDelete = 0
 let relChanged = 0
 const relDirection = new Map<string, number>()
@@ -160,18 +178,24 @@ for (const p of prods) {
   const validTagTypes = domain
     ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
     : []
+  // Exclude the withheld eczema-atopie pair so the parity delta matches what the
+  // writers (seed-core, backfill, runtime) actually persist — no phantom inserts.
+  const { kept } = partitionEczemaReview(pairs, p.description)
   const want = new Map<string, string>()
-  for (const pair of pairs) {
+  for (const pair of kept) {
     const info = tagSlugToInfo.get(pair.tagSlug)
     if (!info || !validTagTypes.includes(info.tagType)) continue
     want.set(info.id, pair.relevance)
   }
 
   const have = curByProduct.get(p.id) ?? new Map<string, string>()
+  const manualHave = manualByProduct.get(p.id) ?? new Set<string>()
   for (const [tagId, rel] of want) {
     const h = have.get(tagId)
-    if (h === undefined) netInsert++
-    else if (h !== rel) {
+    if (h === undefined) {
+      if (manualHave.has(tagId)) manualShadowed++
+      else netInsert++
+    } else if (h !== rel) {
       relChanged++
       relDirection.set(`${h}→${rel}`, (relDirection.get(`${h}→${rel}`) ?? 0) + 1)
     }
@@ -186,6 +210,7 @@ for (const p of prods) {
 }
 
 console.log(`   net inserts       : ${netInsert}`)
+console.log(`   manual-shadowed   : ${manualShadowed}`)
 console.log(`   net deletes       : ${netDelete}`)
 console.log(`   relevance changes : ${relChanged}`)
 if (relDirection.size > 0) {

@@ -5,4 +5,5 @@
 // concrete module paths.
 
 export { detectAllAutoTags } from './orchestrator'
+export { partitionEczemaReview } from './passes/formula'
 export { writeTagsForProductFailSoft } from './write'

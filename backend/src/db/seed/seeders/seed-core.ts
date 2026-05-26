@@ -3,7 +3,7 @@ import { type ProductKind, SKINCARE_INGREDIENT_CATEGORY_VALUES } from '@habit-tr
 import slugify from '@sindresorhus/slugify'
 import { count, sql } from 'drizzle-orm'
 
-import { detectAllAutoTags } from '../../../features/auto-tagging'
+import { detectAllAutoTags, partitionEczemaReview } from '../../../features/auto-tagging'
 import { addTagToIngredient } from '../../../features/ingredient-tags/service'
 import { createIngredient } from '../../../features/ingredients/service'
 import { addTagToProduct } from '../../../features/product-tags/service'
@@ -283,6 +283,11 @@ export async function seedCore(shouldClean = false) {
       relevance: 'avoid'
       source: string
     }[] = []
+    // Sentinel queue: products whose description names atopy under a
+    // contraindication. The eczema-atopie tag is withheld (it would invert the
+    // claim) and the product is surfaced for manual review at end of run.
+    // Guards the future import, see partitionEczemaReview.
+    const eczemaReviewQueue: { slug: string; name: string; description: string }[] = []
     const percentClaimsByProduct = new Map<
       string,
       {
@@ -317,7 +322,15 @@ export async function seedCore(shouldClean = false) {
         },
         { brandCertifications: brandCertMap }
       )
-      for (const p of pairs) {
+      const { kept, withheld } = partitionEczemaReview(pairs, description)
+      if (withheld) {
+        eczemaReviewQueue.push({
+          slug: product.slug,
+          name: name ?? product.slug,
+          description: description ?? '',
+        })
+      }
+      for (const p of kept) {
         if (p.relevance === 'avoid') {
           avoidBySource[p.source] = (avoidBySource[p.source] ?? 0) + 1
           avoidPairs.push({
@@ -346,6 +359,14 @@ export async function seedCore(shouldClean = false) {
       console.log(
         `🛡  Backfill avoid: +${avoidBySource['algo-derm']} grossesse · +${avoidBySource['cross-signal']} stack-irritation · +${avoidBySource.interaction} interaction`
       )
+    }
+    if (eczemaReviewQueue.length > 0) {
+      console.warn(
+        `⚠  eczema-atopie review queue: ${eczemaReviewQueue.length} product(s) name atopy under a contraindication — NOT auto-tagged, review manually:`
+      )
+      for (const f of eczemaReviewQueue) {
+        console.warn(`    • ${f.name} [${f.slug}] — ${f.description.slice(0, 160)}`)
+      }
     }
 
     // Avoid pairs sit first in the dedup chain so they win on collision with

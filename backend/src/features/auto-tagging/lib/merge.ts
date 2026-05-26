@@ -55,9 +55,14 @@ export function primaryPromote(
 
   // (b) Top algo-derm concern. Read confidence back from the proposals
   // themselves (ADR-0001 Q4-b2) instead of an orchestrator-local variable.
-  // Filter on `relevance === 'secondary'` mirrors today's gate — algo-derm
-  // entries that were later overwritten by an `avoid` proposal change source
-  // away from `'algo-derm'`, so this filter naturally excludes them.
+  // `source === 'algo-derm'` is deliberate, not incidental: formula passes emit
+  // concerns with no confidence (boolean positioning detectors), so they can't
+  // be ranked against the floor and stay secondary by design — a positioning
+  // claim (`protection`, `eczema-atopie`) must not seize the primary slot from
+  // the kind-derived TYPE of rule (a). Only algo-derm's scored concerns promote.
+  // `relevance === 'secondary'` mirrors today's gate — algo-derm entries later
+  // overwritten by an `avoid` change source away from `'algo-derm'`, so this
+  // filter naturally excludes them.
   let topSlug: SkincareProductTagSlug | null = null
   let topConfidence = 0
   for (const p of byTag.values()) {
