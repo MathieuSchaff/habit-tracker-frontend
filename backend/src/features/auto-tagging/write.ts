@@ -29,6 +29,7 @@ import {
 } from '../../db/schema'
 import { trackError } from '../errors'
 import { detectAllAutoTags } from './orchestrator'
+import { partitionEczemaReview } from './passes/formula'
 
 interface WriteTagsResult {
   inserted: number
@@ -56,25 +57,28 @@ export async function writeTagsForProduct(
 
   if (!product) return { inserted: 0, detected: 0 }
 
-  const [certRows, claimRows, tagDefs] = await Promise.all([
-    database.select().from(brandCertifications),
-    database
-      .select({
-        ingredientSlug: ingredients.slug,
-        concentrationValue: productIngredients.concentrationValue,
-        concentrationUnit: productIngredients.concentrationUnit,
-      })
-      .from(productIngredients)
-      .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-      .where(eq(productIngredients.productId, productId)),
-    database
-      .select({
-        id: productTagsDefs.id,
-        slug: productTagsDefs.slug,
-        tagType: productTagsDefs.tagType,
-      })
-      .from(productTagsDefs),
-  ])
+  // Sequential, not Promise.all: when `database` is a transaction these reads
+  // share one connection, and Bun's SQL pipelines concurrent statements then
+  // misroutes their result sets — an empty tag-defs read silently drops every
+  // tag (rows=0) while the DELETE still wipes existing rows. The reconcile /
+  // backfill runners pass a tx (withAdminRls), so the fan-out must be serial.
+  const certRows = await database.select().from(brandCertifications)
+  const claimRows = await database
+    .select({
+      ingredientSlug: ingredients.slug,
+      concentrationValue: productIngredients.concentrationValue,
+      concentrationUnit: productIngredients.concentrationUnit,
+    })
+    .from(productIngredients)
+    .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
+    .where(eq(productIngredients.productId, productId))
+  const tagDefs = await database
+    .select({
+      id: productTagsDefs.id,
+      slug: productTagsDefs.slug,
+      tagType: productTagsDefs.tagType,
+    })
+    .from(productTagsDefs)
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
@@ -108,7 +112,10 @@ export async function writeTagsForProduct(
     { brandCertifications: brandCertMap }
   )
 
-  const rows = pairs.flatMap((pair) => {
+  // Withhold eczema-atopie on a contraindicating description (the runners surface
+  // these for manual review; the runtime path just declines to auto-tag).
+  const { kept } = partitionEczemaReview(pairs, product.description)
+  const rows = kept.flatMap((pair) => {
     const info = tagSlugToInfo.get(pair.tagSlug)
     if (!info || !validTagTypes.includes(info.tagType)) return []
     return [

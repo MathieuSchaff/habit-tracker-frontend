@@ -183,6 +183,26 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     expect(slugs).toContain(S.TYPE_NETTOYANT)
   })
 
+  test('oat INCI without atopy naming → NO eczema-atopie (INCI signal unwired)', () => {
+    const got = detectAllAutoTags({
+      inci: 'Aqua, Glycerin, Avena Sativa Kernel Flour, Tocopherol, Phenoxyethanol',
+      kind: 'body-lotion',
+      category: 'bodycare',
+      name: 'Crème Hydratante Corps',
+    })
+    expect(slugsOf(got)).not.toContain(S.ECZEMA_ATOPIE)
+  })
+
+  test('atopy-named product → eczema-atopie still fires (name pass is sole source)', () => {
+    const got = detectAllAutoTags({
+      inci: 'Aqua, Glycerin, Tocopherol, Phenoxyethanol',
+      kind: 'moisturizer',
+      category: 'skincare',
+      name: 'Baume Émollient Peau Atopique',
+    })
+    expect(slugsOf(got)).toContain(S.ECZEMA_ATOPIE)
+  })
+
   test('fragile INCI + structured % claim emits percent-claim source', () => {
     const got = detectAllAutoTags({
       inci: 'Adenosine, Allantoin, Betaine, Caffeine, Ceramide NP, Dimethicone',

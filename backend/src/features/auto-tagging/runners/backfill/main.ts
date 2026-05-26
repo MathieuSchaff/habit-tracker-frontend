@@ -59,6 +59,8 @@ import {
   detectAllAutoTags,
 } from '../../orchestrator'
 import { TAG_CONFIG } from '../../passes/auto-tag-detection'
+import { partitionEczemaReview } from '../../passes/formula'
+import { type Candidate, type ClassifyResult, classifyCandidates, type Relevance } from './classify'
 
 const WRITE = process.argv.includes('--write')
 const SLUG_ARG = (() => {
@@ -68,8 +70,6 @@ const SLUG_ARG = (() => {
 const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRIDE) : null
 const INCLUDE_DROPPED = process.env.INCLUDE_DROPPED === '1'
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
-
-type Relevance = 'primary' | 'secondary' | 'avoid'
 
 interface ProductRow {
   id: string
@@ -92,23 +92,6 @@ interface PercentClaim {
 interface TagInfo {
   id: string
   tagType: string
-}
-
-interface Candidate {
-  productId: string
-  productTagId: string
-  slug: string
-  tagSlug: string
-  relevance: Relevance
-  source: AutoTagSource
-}
-
-interface ClassifyResult {
-  toInsert: Candidate[]
-  toUpsert: Candidate[]
-  skipped: number
-  primaryInserts: number
-  primaryUpserts: number
 }
 
 // Brand certifications: pre-load once, then pass as immutable Map to the
@@ -231,23 +214,28 @@ async function fetchTagInfo(): Promise<{
 async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
   existingMap: Map<string, Relevance>
   productsWithCuratedPrimary: Set<string>
+  manualPairs: Set<string>
 }> {
   const existingRows = await db
     .select({
       pId: tagProducts.productId,
       tId: tagProducts.productTagId,
       rel: tagProducts.relevance,
+      source: tagProducts.source,
     })
     .from(tagProducts)
   const existingMap = new Map<string, Relevance>()
   const productsWithCuratedPrimary = new Set<string>()
+  const manualPairs = new Set<string>()
   for (const r of existingRows) {
-    existingMap.set(`${r.pId}:${r.tId}`, r.rel as Relevance)
+    const pairKey = `${r.pId}:${r.tId}`
+    existingMap.set(pairKey, r.rel as Relevance)
+    if (r.source === 'manual') manualPairs.add(pairKey)
     if (r.rel !== 'primary') continue
     const type = tagIdToType.get(r.tId)
     if (type && !AUTO_PRIMARY_TAG_TYPES.has(type)) productsWithCuratedPrimary.add(r.pId)
   }
-  return { existingMap, productsWithCuratedPrimary }
+  return { existingMap, productsWithCuratedPrimary, manualPairs }
 }
 
 // Detection
@@ -260,9 +248,17 @@ function detectCandidates(
   claimsByProduct: Map<string, PercentClaim[]>,
   tagSlugToInfo: Map<string, TagInfo>,
   brandCertMap: BrandCertMap
-): { candidateMap: Map<string, Candidate>; noInci: number } {
+): {
+  candidateMap: Map<string, Candidate>
+  noInci: number
+  eczemaReviewQueue: { slug: string; name: string; description: string }[]
+} {
   const candidateMap = new Map<string, Candidate>()
   let noInci = 0
+  // partitionEczemaReview withholds the eczema-atopie tag when a description
+  // names atopy under a contraindication (it would invert the claim); the
+  // withheld product is surfaced for manual review. Guards the future retag.
+  const eczemaReviewQueue: { slug: string; name: string; description: string }[] = []
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
 
@@ -289,7 +285,15 @@ function detectCandidates(
       }
     )
 
-    for (const pair of pairs) {
+    const { kept, withheld } = partitionEczemaReview(pairs, p.description)
+    if (withheld) {
+      eczemaReviewQueue.push({
+        slug: p.slug,
+        name: p.name ?? p.slug,
+        description: p.description ?? '',
+      })
+    }
+    for (const pair of kept) {
       const info = tagSlugToInfo.get(pair.tagSlug)
       if (!info) continue
       if (!validTagTypes.includes(info.tagType)) continue
@@ -303,56 +307,7 @@ function detectCandidates(
       })
     }
   }
-  return { candidateMap, noInci }
-}
-
-// V1/V2 gate: auto-derived `primary` only fills products with NO curated
-// primary today (curated = primary whose tagType ∉ {product_type_v2,
-// concern}, typically routine_step_v2 / skin_effect / skin_type). Avoids
-// competing with curated primaries and getting truncated by ProductCard's
-// 3-chip cap. Demote to `secondary` for curated products so the row is
-// still inserted as a regular tag.
-function applyV1V2Gate(c: Candidate, productsWithCuratedPrimary: Set<string>): Candidate {
-  const promoteAllowed = c.relevance === 'primary' && !productsWithCuratedPrimary.has(c.productId)
-  if (c.relevance === 'primary' && !promoteAllowed) {
-    return { ...c, relevance: 'secondary' }
-  }
-  return c
-}
-
-function classifyCandidates(
-  candidateMap: Map<string, Candidate>,
-  existingMap: Map<string, Relevance>,
-  productsWithCuratedPrimary: Set<string>
-): ClassifyResult {
-  const toInsert: Candidate[] = []
-  const toUpsert: Candidate[] = [] // override an existing lower-precedence relevance
-  let skipped = 0
-  let primaryInserts = 0 // brand-new primary rows (no prior pair in DB)
-  let primaryUpserts = 0 // secondary → primary upgrade on an existing pair
-
-  for (const c of candidateMap.values()) {
-    const effective = applyV1V2Gate(c, productsWithCuratedPrimary)
-    const pairKey = `${effective.productId}:${effective.productTagId}`
-    const dbRel = existingMap.get(pairKey)
-
-    if (dbRel === undefined) {
-      toInsert.push(effective)
-      if (effective.relevance === 'primary') primaryInserts++
-    } else if (effective.relevance === 'avoid' && dbRel !== 'avoid') {
-      toUpsert.push(effective)
-    } else if (effective.relevance === 'primary' && dbRel === 'secondary') {
-      // Kind-derived TYPE_* / concern primary already inserted as secondary
-      // by an earlier backfill; gate above confirmed no curated primary
-      // exists. Promote.
-      toUpsert.push(effective)
-      primaryUpserts++
-    } else {
-      // Includes: detected=secondary ∧ db=primary → preserve manual curation.
-      skipped++
-    }
-  }
-  return { toInsert, toUpsert, skipped, primaryInserts, primaryUpserts }
+  return { candidateMap, noInci, eczemaReviewQueue }
 }
 
 // Report
@@ -477,17 +432,32 @@ async function main() {
   const subset = narrowSubset(allProducts)
   const claimsByProduct = await fetchClaimsByProduct(subset.map((p) => p.id))
   const { tagSlugToInfo, tagIdToType } = await fetchTagInfo()
-  const { existingMap, productsWithCuratedPrimary } = await fetchExistingState(tagIdToType)
+  const { existingMap, productsWithCuratedPrimary, manualPairs } =
+    await fetchExistingState(tagIdToType)
 
-  const { candidateMap, noInci } = detectCandidates(
+  const { candidateMap, noInci, eczemaReviewQueue } = detectCandidates(
     subset,
     claimsByProduct,
     tagSlugToInfo,
     brandCertMap
   )
-  const result = classifyCandidates(candidateMap, existingMap, productsWithCuratedPrimary)
+  const result = classifyCandidates(
+    candidateMap,
+    existingMap,
+    productsWithCuratedPrimary,
+    manualPairs
+  )
 
   reportPlan(subset, noInci, candidateMap.size, result)
+
+  if (eczemaReviewQueue.length > 0) {
+    console.warn(
+      `⚠  eczema-atopie review queue: ${eczemaReviewQueue.length} product(s) name atopy under a contraindication — NOT auto-tagged, review manually:`
+    )
+    for (const f of eczemaReviewQueue) {
+      console.warn(`    • ${f.name} [${f.slug}] — ${f.description.slice(0, 160)}`)
+    }
+  }
 
   if (result.toInsert.length === 0 && result.toUpsert.length === 0) {
     console.log('\n✨ Rien à insérer. Base à jour.')

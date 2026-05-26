@@ -6,6 +6,7 @@ import {
   detectAbsenceClaimsFromText,
   detectCernesPoches,
   detectEczemaAtopie,
+  detectEczemaAtopieFromName,
   detectFiniMat,
   detectKeratosePilaire,
   detectNonGras,
@@ -13,6 +14,7 @@ import {
   detectPeauNormale,
   detectPigmentsVerts,
   detectPrebiotique,
+  detectProtection,
   detectReparationCutanee,
   detectRepulpant,
   detectSemiOcclusif,
@@ -26,6 +28,8 @@ import {
   detectTextureLegere,
   detectTextureRiche,
   detectTextureStickFromName,
+  eczemaAtopieDescriptionNeedsReview,
+  partitionEczemaReview,
 } from '../passes/formula'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
@@ -313,6 +317,42 @@ describe('detectReparationCutanee', () => {
   })
 })
 
+describe('detectProtection', () => {
+  test('sunscreen kind fires regardless of name/desc', () => {
+    expect(detectProtection('sunscreen', null, null)).toEqual([S.PROTECTION])
+  })
+  test('SPF stated in name fires on a non-sunscreen kind (tinted/day cream)', () => {
+    expect(detectProtection('moisturizer', 'Crème Jour SPF 30', null)).toEqual([S.PROTECTION])
+  })
+  test('SPF stated in description fires', () => {
+    expect(detectProtection('moisturizer', 'Crème teintée', 'Protection SPF50+ PA++++')).toEqual([
+      S.PROTECTION,
+    ])
+  })
+  test('French FPS variant fires', () => {
+    expect(detectProtection('moisturizer', 'Soin solaire FPS 50', null)).toEqual([S.PROTECTION])
+  })
+  test('SPF with a non-space separator fires (hyphen, colon, dot)', () => {
+    expect(detectProtection('moisturizer', 'Crème SPF-30', null)).toEqual([S.PROTECTION])
+    expect(detectProtection('moisturizer', null, 'Protection SPF:50')).toEqual([S.PROTECTION])
+    expect(detectProtection('moisturizer', 'Fluide spf.50', null)).toEqual([S.PROTECTION])
+  })
+  test('looser separator class still requires a digit (spf without index stays absent)', () => {
+    expect(detectProtection('moisturizer', 'Crème spf sans indice', null)).toEqual([])
+  })
+  test('non-sunscreen kind with no SPF does not fire', () => {
+    expect(detectProtection('serum', 'Sérum éclat vitamine C', 'Antioxydant')).toEqual([])
+  })
+  // Rule E: post-exposure ≠ protection. after-sun / self-tanner without SPF stay absent
+  // (they are not `sunscreen`); an SPF claim would still win via the SPF branch.
+  test('after-sun without SPF does not fire', () => {
+    expect(detectProtection('after-sun', 'Après-soleil réparateur', null)).toEqual([])
+  })
+  test('self-tanner without SPF does not fire', () => {
+    expect(detectProtection('self-tanner', 'Autobronzant progressif', null)).toEqual([])
+  })
+})
+
 describe('detectEczemaAtopie', () => {
   test('avena sativa kernel flour (colloidal oatmeal) on body-lotion → eczema-atopie', () => {
     expect(
@@ -404,6 +444,169 @@ describe('detectEczemaAtopie', () => {
     expect(
       detectEczemaAtopie('Aqua, Avena Sativa Flower/Leaf/Stem Juice, Glycerin', 'serum')
     ).toEqual([])
+  })
+})
+
+describe('detectEczemaAtopieFromName', () => {
+  test('fires when name names atopy', () => {
+    expect(detectEczemaAtopieFromName('Baume Émollient Atopie', null)).toEqual([S.ECZEMA_ATOPIE])
+  })
+  test('fires on "peau atopique"', () => {
+    expect(detectEczemaAtopieFromName('Soin peau atopique', null)).toEqual([S.ECZEMA_ATOPIE])
+  })
+  test('fires when description names eczéma', () => {
+    expect(
+      detectEczemaAtopieFromName('Crème relipidante', 'Apaise les démangeaisons liées à l’eczéma')
+    ).toEqual([S.ECZEMA_ATOPIE])
+  })
+  test('fires on English "eczema"', () => {
+    expect(detectEczemaAtopieFromName('Eczema Relief Cream', null)).toEqual([S.ECZEMA_ATOPIE])
+  })
+  // Safe tokens only — broad brand lines (Lipikar etc.) deliberately not matched.
+  test('does not fire on a generic moisturizer', () => {
+    expect(
+      detectEczemaAtopieFromName('Crème hydratante nourrissante', 'Pour peaux sèches')
+    ).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectEczemaAtopieFromName(null, null)).toEqual([])
+  })
+
+  // Non-regression: real description-only positives — products tagged purely on
+  // description, name not matching. Deleting the description branch regresses every
+  // one. None of these names contain "atopi"/"eczéma" (Atoderm has no "p"), so a
+  // pass here can only come from the description field.
+  test.each([
+    [
+      'Crème pour le Visage',
+      'Soin quotidien hydratant pour peaux très sèches, sensibles, atopiques ou fragilisées par traitements anticancéreux.',
+    ],
+    [
+      'Gelée Fondante Démaquillante',
+      'Double transformation. Haute tolérance pour peaux sensibles, atopiques ou fragilisées.',
+    ],
+    [
+      'Essence Toner',
+      "Issu d'un établissement bien connu pour traiter les troubles cutanés atopiques.",
+    ],
+    [
+      'Atobarrier 365 Body Lotion',
+      "Idéale pour les peaux sensibles, sujettes à l'eczéma ou facilement irritables.",
+    ],
+    ['Atoderm Intensive Baume', 'Baume relipidant intensif pour peaux très sèches à atopiques.'],
+    [
+      'Crème Céramide Protection',
+      'Crème renforçante barrière sans parfum pour peaux atopiques/sensibles.',
+    ],
+    [
+      'Creme Hydratante Anti Irritations',
+      'Protège, répare et apaise les peaux extra-sèches, irritées ou atopiques du corps.',
+    ],
+    [
+      'Crème Panthénol Confort',
+      'Crème apaisante sans parfum pour peaux réactives/irritées. Soulage eczéma/psoriasis léger.',
+    ],
+    [
+      'Dexyane Med Soothing Repair Cream',
+      'Crème apaisante qui restaure la barrière cutanée des peaux atopiques sujettes aux démangeaisons.',
+    ],
+    [
+      'La Roche-Posay Lipikar Huile Lavante Ap+',
+      "Relipide et apaise les peaux extrêmement sèches à tendance à l'eczéma atopique.",
+    ],
+  ])('description-only positive: %s', (name, description) => {
+    expect(detectEczemaAtopieFromName(name, description)).toEqual([S.ECZEMA_ATOPIE])
+  })
+
+  // known-gap: a description that contraindicates atopy still fires today —
+  // detectEczemaAtopieFromName reads the token, not the negation around it. This
+  // asserts the WRONG result on purpose. When negation handling lands (the regex
+  // gains contraindication awareness), this flips to toEqual([]); that flip is the
+  // signal the gap closed. Do NOT "fix" this test in isolation — the live guard is
+  // eczemaAtopieDescriptionNeedsReview in the ingest pipeline.
+  test('known-gap: contraindicating description false-positives (documents the gap)', () => {
+    expect(detectEczemaAtopieFromName(null, 'Crème déconseillée aux peaux atopiques')).toEqual([
+      S.ECZEMA_ATOPIE,
+    ])
+  })
+})
+
+describe('eczemaAtopieDescriptionNeedsReview', () => {
+  test('flags contraindication + atopy → manual review', () => {
+    expect(eczemaAtopieDescriptionNeedsReview('Crème déconseillée aux peaux atopiques')).toBe(true)
+  })
+  test('flags "non recommandé sur peaux atopiques"', () => {
+    expect(
+      eczemaAtopieDescriptionNeedsReview(
+        'Actif puissant, non recommandé sur peaux atopiques sans test préalable'
+      )
+    ).toBe(true)
+  })
+  test('does not flag positive positioning (preserves recall)', () => {
+    expect(eczemaAtopieDescriptionNeedsReview('Soin pour peaux à tendance atopique')).toBe(false)
+  })
+  test('does not flag eczéma/psoriasis co-indication (positive claim)', () => {
+    expect(eczemaAtopieDescriptionNeedsReview('Soulage eczéma/psoriasis léger')).toBe(false)
+  })
+  test('does not flag contraindication without atopy', () => {
+    expect(eczemaAtopieDescriptionNeedsReview('Ne pas utiliser sur peau lésée ou brûlée')).toBe(
+      false
+    )
+  })
+  test('does not flag null', () => {
+    expect(eczemaAtopieDescriptionNeedsReview(null)).toBe(false)
+  })
+  test('does not flag undefined or empty string', () => {
+    expect(eczemaAtopieDescriptionNeedsReview(undefined)).toBe(false)
+    expect(eczemaAtopieDescriptionNeedsReview('')).toBe(false)
+  })
+  // Proximity: a boilerplate caveat in a separate sentence from a positive atopy
+  // claim is not a contraindication of atopy — must not trip the sentinel.
+  test('does not flag a positive atopy claim with an unrelated caveat in another sentence', () => {
+    expect(
+      eczemaAtopieDescriptionNeedsReview('Soin pour peaux atopiques. Éviter le contour des yeux.')
+    ).toBe(false)
+    expect(
+      eczemaAtopieDescriptionNeedsReview('Crème atopique. Ne pas appliquer sur plaie ouverte.')
+    ).toBe(false)
+    expect(
+      eczemaAtopieDescriptionNeedsReview('Baume atopie. Déconseillé pendant la grossesse.')
+    ).toBe(false)
+  })
+  test('flags when contraindication and atopy share a sentence even across a comma', () => {
+    expect(eczemaAtopieDescriptionNeedsReview('Déconseillé, notamment aux peaux atopiques')).toBe(
+      true
+    )
+  })
+})
+
+describe('partitionEczemaReview', () => {
+  const eczema = { tagSlug: S.ECZEMA_ATOPIE, relevance: 'secondary' as const }
+  const other = { tagSlug: S.PROTECTION, relevance: 'secondary' as const }
+
+  test('withholds the eczema-atopie pair on a contraindicating description', () => {
+    const { kept, withheld } = partitionEczemaReview(
+      [eczema, other],
+      'Crème déconseillée aux peaux atopiques'
+    )
+    expect(withheld).toBe(true)
+    expect(kept).toEqual([other])
+  })
+  test('keeps the eczema-atopie pair on a positive description', () => {
+    const { kept, withheld } = partitionEczemaReview(
+      [eczema, other],
+      'Soin pour peaux à tendance atopique'
+    )
+    expect(withheld).toBe(false)
+    expect(kept).toEqual([eczema, other])
+  })
+  test('no eczema-atopie pair → never withholds even under contraindication', () => {
+    const { kept, withheld } = partitionEczemaReview(
+      [other],
+      'Crème déconseillée aux peaux atopiques'
+    )
+    expect(withheld).toBe(false)
+    expect(kept).toEqual([other])
   })
 })
 

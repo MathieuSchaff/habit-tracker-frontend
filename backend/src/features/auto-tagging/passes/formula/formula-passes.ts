@@ -13,12 +13,13 @@ import type { Pass } from '../../lib/pass-types'
 import {
   detectAbsenceClaimsFromText,
   detectCernesPoches,
-  detectEczemaAtopie,
+  detectEczemaAtopieFromName,
   detectFiniMat,
   detectKeratosePilaire,
   detectNonGras,
   detectPigmentsVerts,
   detectPrebiotique,
+  detectProtection,
   detectReparationCutanee,
   detectRepulpant,
   detectSemiOcclusif,
@@ -60,10 +61,14 @@ export const reparationCutaneePass: Pass = {
     asProposals(detectReparationCutanee(ctx.inci, ctx.normalizedIngredients), 'formula'),
 }
 
-export const eczemaAtopiePass: Pass = {
-  name: 'formula:eczema-atopie',
-  run: (ctx) =>
-    asProposals(detectEczemaAtopie(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
+export const protectionPass: Pass = {
+  name: 'formula:protection',
+  run: (ctx) => asProposals(detectProtection(ctx.kind, ctx.name, ctx.description), 'formula'),
+}
+
+export const eczemaAtopieNamePass: Pass = {
+  name: 'formula:eczema-atopie-name',
+  run: (ctx) => asProposals(detectEczemaAtopieFromName(ctx.name, ctx.description), 'formula'),
 }
 
 export const repulpantPass: Pass = {

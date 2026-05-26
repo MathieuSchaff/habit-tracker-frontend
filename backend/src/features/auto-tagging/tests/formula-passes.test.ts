@@ -20,12 +20,13 @@ import type { Pass, PassContext } from '../lib/pass-types'
 import {
   detectAbsenceClaimsFromText,
   detectCernesPoches,
-  detectEczemaAtopie,
+  detectEczemaAtopieFromName,
   detectFiniMat,
   detectKeratosePilaire,
   detectNonGras,
   detectPigmentsVerts,
   detectPrebiotique,
+  detectProtection,
   detectReparationCutanee,
   detectRepulpant,
   detectSemiOcclusif,
@@ -43,12 +44,13 @@ import {
 import {
   absenceClaimsTextPass,
   cernesPochesPass,
-  eczemaAtopiePass,
+  eczemaAtopieNamePass,
   finiMatPass,
   keratosePilairePass,
   nonGrasPass,
   pigmentsVertsPass,
   prebiotiquePass,
+  protectionPass,
   reparationCutaneePass,
   repulpantPass,
   semiOcclusifPass,
@@ -156,6 +158,12 @@ const fieldTexture = makeCtx({
   category: 'skincare',
   texture: 'gel',
 })
+const eczemaNamed = makeCtx({
+  inci: 'Aqua, Glycerin, Butyrospermum Parkii Butter',
+  kind: 'moisturizer',
+  category: 'skincare',
+  name: 'Baume Émollient Peau Atopique',
+})
 const absenceText = makeCtx({
   kind: 'serum',
   category: 'skincare',
@@ -194,20 +202,17 @@ const cases: Case[] = [
     expected: detectPrebiotique(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
   },
   {
+    name: 'protectionPass',
+    pass: protectionPass,
+    ctx: sunscreen,
+    expected: detectProtection(sunscreen.kind, sunscreen.name, sunscreen.description),
+    expectNonEmpty: true,
+  },
+  {
     name: 'reparationCutaneePass',
     pass: reparationCutaneePass,
     ctx: richMoisturizer,
     expected: detectReparationCutanee(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
-  },
-  {
-    name: 'eczemaAtopiePass',
-    pass: eczemaAtopiePass,
-    ctx: richMoisturizer,
-    expected: detectEczemaAtopie(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
   },
   {
     name: 'repulpantPass',
@@ -241,6 +246,13 @@ const cases: Case[] = [
     pass: cernesPochesPass,
     ctx: eyeCream,
     expected: detectCernesPoches(eyeCream.inci, eyeCream.kind, eyeCream.normalizedIngredients),
+    expectNonEmpty: true,
+  },
+  {
+    name: 'eczemaAtopieNamePass',
+    pass: eczemaAtopieNamePass,
+    ctx: eczemaNamed,
+    expected: detectEczemaAtopieFromName(eczemaNamed.name, eczemaNamed.description),
     expectNonEmpty: true,
   },
   {
