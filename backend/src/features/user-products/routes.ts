@@ -42,6 +42,9 @@ import {
   upsertUserProductReview,
 } from './service'
 
+const idParam = z.object({ id: z.uuid() })
+const purchaseParams = z.object({ id: z.uuid(), purchaseId: z.uuid() })
+
 const app = new Hono<AppEnv>()
 
 app.use('*', requireJwtAuth)
@@ -64,7 +67,7 @@ export const userProductRoutes = app
     return c.json(ok(result), HTTP_STATUS.CREATED)
   })
 
-  .get('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
+  .get('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
@@ -84,7 +87,7 @@ export const userProductRoutes = app
 
   .patch(
     '/:id',
-    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('param', idParam),
     zValidator('json', updateUserProductSchema),
     async (c) => {
       const db = c.get('db')
@@ -96,7 +99,7 @@ export const userProductRoutes = app
     }
   )
 
-  .delete('/:id', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
+  .delete('/:id', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
@@ -106,7 +109,7 @@ export const userProductRoutes = app
 
   .put(
     '/:id/review',
-    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('param', idParam),
     zValidator('json', updateUserProductReviewSchema),
     async (c) => {
       const db = c.get('db')
@@ -151,7 +154,7 @@ export const userProductRoutes = app
     }
   )
 
-  .get('/:id/history', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
+  .get('/:id/history', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
@@ -159,7 +162,7 @@ export const userProductRoutes = app
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  .get('/:id/purchases', zValidator('param', z.object({ id: z.uuid() })), async (c) => {
+  .get('/:id/purchases', zValidator('param', idParam), async (c) => {
     const db = c.get('db')
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
@@ -169,7 +172,7 @@ export const userProductRoutes = app
 
   .post(
     '/:id/purchases',
-    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('param', idParam),
     zValidator('json', addPurchaseSchema),
     async (c) => {
       const db = c.get('db')
@@ -183,7 +186,7 @@ export const userProductRoutes = app
 
   .post(
     '/:id/purchases/finish',
-    zValidator('param', z.object({ id: z.uuid() })),
+    zValidator('param', idParam),
     zValidator('json', finishPurchaseSchema),
     async (c) => {
       const db = c.get('db')
@@ -197,7 +200,7 @@ export const userProductRoutes = app
 
   .post(
     '/:id/purchases/:purchaseId/open',
-    zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
+    zValidator('param', purchaseParams),
     zValidator('json', openPurchaseSchema),
     async (c) => {
       const db = c.get('db')
@@ -211,7 +214,7 @@ export const userProductRoutes = app
 
   .patch(
     '/:id/purchases/:purchaseId',
-    zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
+    zValidator('param', purchaseParams),
     zValidator('json', updatePurchaseSchema),
     async (c) => {
       const db = c.get('db')
@@ -223,14 +226,10 @@ export const userProductRoutes = app
     }
   )
 
-  .delete(
-    '/:id/purchases/:purchaseId',
-    zValidator('param', z.object({ id: z.uuid(), purchaseId: z.uuid() })),
-    async (c) => {
-      const db = c.get('db')
-      const userId = getAuthedUserId(c)
-      const { purchaseId } = c.req.valid('param')
-      await deletePurchase(userId, purchaseId, db)
-      return c.json(ok(null), HTTP_STATUS.OK)
-    }
-  )
+  .delete('/:id/purchases/:purchaseId', zValidator('param', purchaseParams), async (c) => {
+    const db = c.get('db')
+    const userId = getAuthedUserId(c)
+    const { purchaseId } = c.req.valid('param')
+    await deletePurchase(userId, purchaseId, db)
+    return c.json(ok(null), HTTP_STATUS.OK)
+  })

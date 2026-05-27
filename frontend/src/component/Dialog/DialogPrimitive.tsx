@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { createContext, useContext, useEffect, useId, useRef } from 'react'
+import { createContext, use, useEffect, useId, useRef } from 'react'
 
 import { useScrollLock } from '@/hooks/useScrollLock'
 
@@ -12,7 +12,7 @@ interface DialogTitleContextValue {
 const DialogTitleContext = createContext<DialogTitleContextValue | null>(null)
 
 export function useDialogTitleId() {
-  const ctx = useContext(DialogTitleContext)
+  const ctx = use(DialogTitleContext)
   if (!ctx) throw new Error('Dialog.Title must be used inside a Modal or Sheet')
   return ctx.id
 }

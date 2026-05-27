@@ -73,6 +73,16 @@ function renderProducts(initialEntries: string[] = ['/products/']) {
   }
 }
 
+// The header trigger and the scroll-reveal floating button share the accessible
+// name "Filtrer" (the FAB stays mounted off-screen in jsdom). Scope to the header
+// trigger by its class so the query stays unambiguous.
+async function openFilterDrawer(user: ReturnType<typeof userEvent.setup>) {
+  const triggers = await screen.findAllByRole('button', { name: /Filtrer/i })
+  const trigger = triggers.find((b) => b.classList.contains('list-filter-btn'))
+  if (!trigger) throw new Error('header filter trigger not found')
+  await user.click(trigger)
+}
+
 beforeEach(() => {
   // No logged-in user keeps dermo query disabled and profile toggle hidden.
   useAuthStore.setState({
@@ -101,7 +111,7 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     const { router } = renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
     const acneChip = await within(dialog).findByRole('button', { name: /Acné \/ Imperfections/i })
@@ -120,9 +130,8 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
   it('resolves ingredient slugs from the URL into chips inside the drawer', async () => {
     const user = userEvent.setup()
     renderProducts([buildUrl('/products/', { ingredient: ['retinol', 'niacinamide'] })])
-    await screen.findByRole('button', { name: /Filtrer/i })
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
     // Accordion auto-opens groups with active selection. Resolve hits by-slugs and swaps to label.
@@ -155,7 +164,7 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     const { router } = renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
     // Ingredient accordion ships closed (defaultOpen: false); user must expand it.
@@ -184,7 +193,7 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     const { router } = renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
     // No fixture product carries this slug, so tagCounts=0 disables the chip.
@@ -236,7 +245,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
     const applyBtn = within(dialog).getByRole('button', {
       name: /Appliquer les filtres sélectionnés/i,
@@ -267,7 +276,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     await screen.findByText(/Hydrating Cleanser/)
 
     // Narrow → apply (URL set, draft cleared).
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     let dialog = await screen.findByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: /Acné \/ Imperfections/i }))
     await waitFor(() => {
@@ -283,7 +292,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     })
 
     // Reopen: preview must reflect URL (1), not a stale draft. Regression breaks cache hit below.
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     dialog = await screen.findByRole('dialog')
     await waitFor(() => {
       expect(
@@ -298,7 +307,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     const { router } = renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
     const applyBtn = within(dialog).getByRole('button', {
       name: /Appliquer les filtres sélectionnés/i,
@@ -339,7 +348,7 @@ describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => 
     server.events.on('request:start', onRequest)
 
     try {
-      await user.click(screen.getByRole('button', { name: /Filtrer/i }))
+      await openFilterDrawer(user)
       const dialog = await screen.findByRole('dialog')
       const applyBtn = within(dialog).getByRole('button', {
         name: /Appliquer les filtres sélectionnés/i,

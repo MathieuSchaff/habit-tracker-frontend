@@ -4,8 +4,8 @@ import {
   isValidElement,
   type ReactElement,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useLayoutEffect,
@@ -39,7 +39,7 @@ interface DropdownMenuContextValue {
 const DropdownMenuContext = createContext<DropdownMenuContextValue | null>(null)
 
 const useDropdownMenu = () => {
-  const ctx = useContext(DropdownMenuContext)
+  const ctx = use(DropdownMenuContext)
   if (!ctx) throw new Error('DropdownMenu subcomponents must be used inside <DropdownMenu>')
   return ctx
 }

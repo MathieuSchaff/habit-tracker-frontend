@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useChangePassword } from '@/lib/queries/auth'
-import { CHANGE_PASSWORD_ERRORS } from '../ChangePasswordForm.constants'
 import { ChangePasswordForm } from '../ChangePasswordForm'
+import { CHANGE_PASSWORD_ERRORS } from '../ChangePasswordForm.constants'
 
 vi.mock('@/lib/queries/auth', () => ({
   useChangePassword: vi.fn(),
