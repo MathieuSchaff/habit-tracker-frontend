@@ -23,6 +23,8 @@ import { ConflictBanner } from './ConflictBanner'
 import { IngredientInputField, IngredientTextareaField } from './fields'
 import '../IngredientPageEditable.css'
 
+const EMPTY_TAGS: TagState[] = []
+
 type IngredientFormProps =
   | {
       mode: 'create'
@@ -40,7 +42,7 @@ type IngredientFormProps =
 export function IngredientForm({
   mode,
   ingredient,
-  initialTags = [],
+  initialTags = EMPTY_TAGS,
   onSuccess,
 }: IngredientFormProps) {
   const { data: allTags } = useQuery(productTagQueries.list())

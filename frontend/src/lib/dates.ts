@@ -38,11 +38,12 @@ export function parseDatetimeLocalAsUTC(value: string): string {
 
 type FormatStyle = 'short' | 'medium' | 'long' | 'monthYear'
 
-const FORMAT_OPTIONS: Record<FormatStyle, Intl.DateTimeFormatOptions> = {
-  short: { day: '2-digit', month: '2-digit', year: 'numeric' },
-  medium: { day: 'numeric', month: 'short', year: 'numeric' },
-  long: { day: 'numeric', month: 'long', year: 'numeric' },
-  monthYear: { month: 'long', year: 'numeric' },
+// Hoisted to module scope - Intl constructors allocate per call, so build once per style.
+const FORMATTERS: Record<FormatStyle, Intl.DateTimeFormat> = {
+  short: new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+  medium: new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
+  long: new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+  monthYear: new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }),
 }
 
 export function formatInstant(
@@ -50,7 +51,7 @@ export function formatInstant(
   style: FormatStyle = 'short'
 ): string {
   if (!iso) return ''
-  return new Intl.DateTimeFormat('fr-FR', FORMAT_OPTIONS[style]).format(new Date(iso))
+  return FORMATTERS[style].format(new Date(iso))
 }
 
 // ISO 8601 UTC strings sort lexicographically - no Date allocation needed.

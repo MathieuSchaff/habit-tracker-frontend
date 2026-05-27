@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { ProductIcon } from '@/assets/product-icons'
 import './ProductImage.css'
@@ -18,9 +18,10 @@ export function ProductImage({ kind, unit, imageUrl, size = 48, fill, className 
   const trimmedUrl = imageUrl?.trim() || null
   // Reset error during render to avoid an effect tick that flickers icon→image→icon.
   const [errorUrl, setErrorUrl] = useState<string | null>(null)
-  const [trackedUrl, setTrackedUrl] = useState<string | null>(trimmedUrl)
-  if (trackedUrl !== trimmedUrl) {
-    setTrackedUrl(trimmedUrl)
+  // Tracks the previous URL only to detect a prop change; never rendered, so a ref suffices.
+  const trackedUrl = useRef<string | null>(trimmedUrl)
+  if (trackedUrl.current !== trimmedUrl) {
+    trackedUrl.current = trimmedUrl
     setErrorUrl(null)
   }
 

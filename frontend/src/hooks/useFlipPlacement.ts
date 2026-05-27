@@ -57,7 +57,7 @@ export function useFlipPlacement(
     }
 
     const scrollable = scrollableSelector ? trigger.closest(scrollableSelector) : null
-    scrollable?.addEventListener('scroll', scheduleUpdate)
+    scrollable?.addEventListener('scroll', scheduleUpdate, { passive: true })
     window.addEventListener('scroll', scheduleUpdate, { passive: true })
     window.addEventListener('resize', scheduleUpdate, { passive: true })
 

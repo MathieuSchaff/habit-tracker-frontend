@@ -167,7 +167,7 @@ export const productQueries = {
 
   byIds: (ids: string[]) =>
     queryOptions({
-      queryKey: [...productKeys.all, 'by-ids', [...ids].sort().join(',')] as const,
+      queryKey: [...productKeys.all, 'by-ids', ids.toSorted().join(',')] as const,
       queryFn: async () => {
         const res = await api.products['by-ids'].$get({ query: { ids: ids.join(',') } })
         if (!res.ok) throw new Error('Failed to fetch products by ids')

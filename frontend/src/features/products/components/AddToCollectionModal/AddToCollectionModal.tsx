@@ -1,7 +1,7 @@
 import type { UserProductStatus } from '@habit-tracker/shared'
 
 import { ArrowLeft, X } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
@@ -41,7 +41,8 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
   const defaultPrice = product.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
 
   const [step, setStep] = useState<'status' | 'purchase'>('status')
-  const [selectedStatus, setSelectedStatus] = useState<UserProductStatus | null>(null)
+  // Only read inside submit handlers, never in render - a ref avoids re-rendering on select.
+  const selectedStatus = useRef<UserProductStatus | null>(null)
   const [price, setPrice] = useState(defaultPrice)
   const [purchasedAt, setPurchasedAt] = useState(() => todayDateInputValue())
 
@@ -53,7 +54,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
 
   const handleStatusSelect = async (status: UserProductStatus) => {
     if (OWNED_STATUSES.includes(status)) {
-      setSelectedStatus(status)
+      selectedStatus.current = status
       setStep('purchase')
       return
     }
@@ -67,9 +68,10 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
   }
 
   const handleSkipPurchase = async () => {
-    if (!selectedStatus) return
+    const status = selectedStatus.current
+    if (!status) return
     try {
-      await addUserProduct.mutateAsync({ productId: product.id, status: selectedStatus })
+      await addUserProduct.mutateAsync({ productId: product.id, status })
       onSuccess?.()
       onClose()
     } catch {
@@ -79,14 +81,15 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
 
   const handlePurchaseSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedStatus) return
+    const status = selectedStatus.current
+    if (!status) return
     const pricePaidCents = price !== '' ? Math.round(parseFloat(price) * 100) : undefined
     try {
       let userProductId = product.userProductId
       if (!userProductId) {
         const created = await addUserProduct.mutateAsync({
           productId: product.id,
-          status: selectedStatus,
+          status,
         })
         userProductId = created.id
       }
