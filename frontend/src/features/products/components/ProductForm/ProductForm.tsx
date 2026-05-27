@@ -50,6 +50,8 @@ import { TextureField } from './TextureField'
 
 type PendingIngredient = IngredientItem
 
+const EMPTY_TAGS: TagState[] = []
+
 type ProductFormProps =
   | {
       mode: 'create'
@@ -64,7 +66,12 @@ type ProductFormProps =
       onSuccess: (slug: string) => void
     }
 
-export function ProductForm({ mode, product, initialTags = [], onSuccess }: ProductFormProps) {
+export function ProductForm({
+  mode,
+  product,
+  initialTags = EMPTY_TAGS,
+  onSuccess,
+}: ProductFormProps) {
   const { data: allTags } = useQuery(productTagQueries.list())
   const addIngredient = useAddProductIngredient()
   const removeIngredient = useRemoveProductIngredient()

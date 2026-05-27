@@ -30,7 +30,7 @@ export function BrandCombobox({
   const [showDropdown, setShowDropdown] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  // Synchronous mirror so handleBlur reads the Tab-autocompleted value before React re-renders.
+  // Synchronous mirror so validateBrand reads the Tab-autocompleted value before React re-renders.
   const latestValueRef = useRef(value)
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function BrandCombobox({
     }
   }
 
-  function handleBlur() {
+  function validateBrand() {
     // Read from ref: Tab-autocomplete updates inputValue, but blur fires before re-render.
     setShowDropdown(false)
     const trimmed = latestValueRef.current.trim()
@@ -120,7 +120,7 @@ export function BrandCombobox({
             value={inputValue}
             onChange={handleInputChange}
             onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
-            onBlur={handleBlur}
+            onBlur={validateBrand}
             placeholder={placeholder}
             autoComplete="off"
             aria-expanded={showDropdown && filtered.length > 0}

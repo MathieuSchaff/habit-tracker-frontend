@@ -123,13 +123,13 @@ function DraftHint({
   value: string | undefined
   onRestoreField: (key: IngredientFormFieldKey) => void
 }) {
-  const handleClick = useCallback(() => onRestoreField(fieldKey), [fieldKey, onRestoreField])
+  const restoreField = useCallback(() => onRestoreField(fieldKey), [fieldKey, onRestoreField])
   if (value === undefined) return null
   return (
     <div className="draft-hint">
       <div className="draft-hint__header">
         <span className="draft-hint__label">Ton brouillon ({label})</span>
-        <button type="button" className="draft-hint__restore" onClick={handleClick}>
+        <button type="button" className="draft-hint__restore" onClick={restoreField}>
           <ClipboardCopy size={12} />
           Restaurer
         </button>

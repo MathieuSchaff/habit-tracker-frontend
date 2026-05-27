@@ -47,9 +47,9 @@ const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS)
 
 const EMPTY_FILTERS = emptyFilters(FILTER_KEYS)
 
-const DOMAIN_TAB_OPTIONS: TabOption<ProductDomainTab>[] = [...PRODUCT_DOMAIN_TABS]
-  .sort((a, b) => PRODUCT_DOMAIN_TAB_META[a].order - PRODUCT_DOMAIN_TAB_META[b].order)
-  .map((id) => ({ id, label: PRODUCT_DOMAIN_TAB_META[id].label }))
+const DOMAIN_TAB_OPTIONS: TabOption<ProductDomainTab>[] = PRODUCT_DOMAIN_TABS.toSorted(
+  (a, b) => PRODUCT_DOMAIN_TAB_META[a].order - PRODUCT_DOMAIN_TAB_META[b].order
+).map((id) => ({ id, label: PRODUCT_DOMAIN_TAB_META[id].label }))
 
 export function ProductsPage() {
   const [isDrawerOpen, setDrawerOpen] = useState(false)

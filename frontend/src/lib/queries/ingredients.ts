@@ -162,7 +162,7 @@ export const ingredientQueries = {
   // Resolve names for slugs deep-linked from URL; cached so filter re-mount doesn't refetch.
   bySlugs: (slugs: string[]) =>
     queryOptions({
-      queryKey: [...ingredientKeys.all, 'by-slugs', [...slugs].sort()] as const,
+      queryKey: [...ingredientKeys.all, 'by-slugs', slugs.toSorted()] as const,
       queryFn: async () => {
         const res = await api.ingredients['by-slugs'].$get({
           query: { slugs: slugs.join(',') },

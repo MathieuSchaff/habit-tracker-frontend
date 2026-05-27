@@ -84,7 +84,7 @@ export function DialogPrimitive({
   }
 
   // Backdrop clicks land on the dialog itself; inner content bubbles with a different target.
-  const handleClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+  const closeOnBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     if (!closeOnBackdrop) return
     if (e.target === dialogRef.current) onClose()
   }
@@ -97,7 +97,7 @@ export function DialogPrimitive({
       aria-labelledby={titleId}
       role={role === 'alertdialog' ? 'alertdialog' : undefined}
       onCancel={handleCancel}
-      onClick={handleClick}
+      onClick={closeOnBackdropClick}
     >
       <DialogTitleContext value={{ id: titleId }}>{children}</DialogTitleContext>
     </dialog>

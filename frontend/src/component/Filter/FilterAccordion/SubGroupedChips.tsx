@@ -14,7 +14,7 @@ export function SubGroupedChips<T extends string>({
   onToggle: (value: string) => void
   escapeHandler: (e: React.KeyboardEvent) => void
 }) {
-  const handleChange = (newSelected: string[]) => {
+  const toggleChip = (newSelected: string[]) => {
     const added = newSelected.find((v) => !selected.includes(v))
     const removed = selected.find((v) => !newSelected.includes(v))
     const value = added ?? removed
@@ -33,7 +33,7 @@ export function SubGroupedChips<T extends string>({
       <ChipGroup
         options={field.options}
         selected={selected}
-        onChange={handleChange}
+        onChange={toggleChip}
         size="sm"
         className="filter-accordion__chips"
         onChipKeyDown={escapeHandler}
@@ -55,7 +55,7 @@ export function SubGroupedChips<T extends string>({
             <ChipGroup
               options={sgOptions}
               selected={selected}
-              onChange={handleChange}
+              onChange={toggleChip}
               maxVisible={sg.maxVisible}
               size="sm"
               onChipKeyDown={escapeHandler}

@@ -24,8 +24,8 @@ function eurosToCents(v: string): number | undefined {
 }
 
 export function PriceRangeFilter({ min, max, onChange }: Props) {
-  const [minInput, setMinInput] = useState(centsToEuros(min))
-  const [maxInput, setMaxInput] = useState(centsToEuros(max))
+  const [minInput, setMinInput] = useState(() => centsToEuros(min))
+  const [maxInput, setMaxInput] = useState(() => centsToEuros(max))
 
   // Resync when URL-driven values change externally (reset button, navigation).
   useEffect(() => {

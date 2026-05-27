@@ -37,7 +37,7 @@ export function DiffSection({ products }: Props) {
       <div className="diff-section__grid" style={colStyle}>
         {products.map((p, i) => {
           // Ascending position = most concentrated first.
-          const list = [...(specifics.get(p.id) ?? [])].sort((a, b) => a.position - b.position)
+          const list = (specifics.get(p.id) ?? []).toSorted((a, b) => a.position - b.position)
           const isExpanded = expanded.has(p.id)
           const visible = isExpanded ? list : list.slice(0, VISIBLE_DEFAULT)
           const hidden = list.length - VISIBLE_DEFAULT

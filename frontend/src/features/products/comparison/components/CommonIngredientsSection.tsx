@@ -31,8 +31,8 @@ export function CommonIngredientsSection({ products }: Props) {
   const actives = common.filter((i) => i.signals.includes('active'))
   const others = common.filter((i) => !i.signals.includes('active'))
 
-  const sortedActives = [...actives].sort((a, b) => avgPosition(a.slug) - avgPosition(b.slug))
-  const sortedOthers = [...others].sort((a, b) => avgPosition(a.slug) - avgPosition(b.slug))
+  const sortedActives = actives.toSorted((a, b) => avgPosition(a.slug) - avgPosition(b.slug))
+  const sortedOthers = others.toSorted((a, b) => avgPosition(a.slug) - avgPosition(b.slug))
 
   return (
     <section className="terroir">

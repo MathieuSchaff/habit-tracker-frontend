@@ -7,16 +7,15 @@ import './BackToTopButton.css'
 const SCROLL_THRESHOLD = 600
 
 export function BackToTopButton() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(() => window.scrollY > SCROLL_THRESHOLD)
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > SCROLL_THRESHOLD)
-    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const handleClick = () => {
+  const scrollToTop = () => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
   }
@@ -29,7 +28,7 @@ export function BackToTopButton() {
       className={`back-to-top${visible ? ' back-to-top--visible' : ''}`}
       aria-label="Revenir en haut de la page"
       tabIndex={visible ? 0 : -1}
-      onClick={handleClick}
+      onClick={scrollToTop}
     >
       <ArrowUp size={20} aria-hidden="true" />
     </Button>
