@@ -26,28 +26,12 @@ vi.mock('@/lib/queries/products', () => ({
     bySlug: vi.fn(() => ({ queryKey: ['p', 'bySlug'] })),
     publicReviews: vi.fn(() => ({
       queryKey: ['p', 'publicReviews'],
-      queryFn: async () => ({
-        reviews: [],
-        aggregates: { total: 0, byAxis: {} },
-      }),
+      queryFn: async () => ({ reviews: [] }),
     })),
   },
 }))
 
-const EMPTY_PUBLIC_REVIEWS = {
-  reviews: [],
-  aggregates: {
-    total: 0,
-    byAxis: {
-      tolerance: { low: 0, mid: 0, high: 0 },
-      efficacy: { low: 0, mid: 0, high: 0 },
-      sensoriality: { low: 0, mid: 0, high: 0 },
-      stability: { low: 0, mid: 0, high: 0 },
-      mixability: { low: 0, mid: 0, high: 0 },
-      valueForMoney: { low: 0, mid: 0, high: 0 },
-    },
-  },
-}
+const EMPTY_PUBLIC_REVIEWS = { reviews: [] }
 
 vi.mock('@/lib/queries/profile', () => ({
   profileQueries: { dermo: vi.fn(() => ({ queryKey: ['profile', 'dermo'] })) },

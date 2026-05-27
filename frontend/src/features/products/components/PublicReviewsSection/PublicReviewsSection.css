@@ -15,24 +15,7 @@
   margin: 0;
 }
 
-.public-reviews__empty--secondary {
-  background: transparent;
-  border: none;
-  padding: var(--space-2) 0;
-  color: var(--text-muted);
-}
-
-.public-reviews__aggregates {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4) var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.public-reviews__aggregates-intro {
+.public-reviews__intro {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--text-secondary);
@@ -74,7 +57,7 @@
   margin: 0;
 }
 
-.public-reviews__axis-buckets {
+.public-reviews__axis-value {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--text-primary);

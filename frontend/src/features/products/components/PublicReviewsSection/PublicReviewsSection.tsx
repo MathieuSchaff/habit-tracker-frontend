@@ -1,4 +1,4 @@
-import type { PublicReviewView, ReviewAxisAggregate, ReviewAxisKey } from '@habit-tracker/shared'
+import type { PublicReviewView, ReviewAxisKey } from '@habit-tracker/shared'
 import { reviewAxisKeys } from '@habit-tracker/shared'
 
 import { useQuery } from '@tanstack/react-query'
@@ -25,24 +25,6 @@ const AXIS_LABELS: Record<ReviewAxisKey, string> = {
   stability: 'Stabilité',
   mixability: 'Compatibilité routine',
   valueForMoney: 'Rapport qualité-prix',
-}
-
-const BUCKET_LABELS = {
-  high: 'favorable',
-  mid: 'mitigé',
-  low: 'réservé',
-} as const
-
-function hasAnyVote(agg: ReviewAxisAggregate): boolean {
-  return agg.low + agg.mid + agg.high > 0
-}
-
-function formatBucketLine(agg: ReviewAxisAggregate): string {
-  const parts: string[] = []
-  if (agg.high > 0) parts.push(`${agg.high} ${BUCKET_LABELS.high}${agg.high > 1 ? 's' : ''}`)
-  if (agg.mid > 0) parts.push(`${agg.mid} ${BUCKET_LABELS.mid}${agg.mid > 1 ? 's' : ''}`)
-  if (agg.low > 0) parts.push(`${agg.low} ${BUCKET_LABELS.low}${agg.low > 1 ? 's' : ''}`)
-  return parts.join(', ')
 }
 
 function ReviewerName({ reviewer }: { reviewer: PublicReviewView['reviewer'] }) {
@@ -84,47 +66,31 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
     )
   }
 
-  const { reviews, aggregates } = data
-  const reviewsWithComment = reviews.filter((r) => r.comment != null && r.comment.trim().length > 0)
-  const axesWithVotes = reviewAxisKeys.filter((k) => hasAnyVote(aggregates.byAxis[k]))
+  const { reviews } = data
 
   return (
     <section className="product-section public-reviews">
       <SectionHeader
         title="Retours utilisateurs"
-        count={aggregates.total > 0 ? aggregates.total : undefined}
+        count={reviews.length > 0 ? reviews.length : undefined}
         variant="primary"
       />
 
-      {aggregates.total === 0 ? (
+      {reviews.length === 0 ? (
         <p className="public-reviews__empty">
           Aucun retour partagé publiquement pour ce produit pour le moment. Vous pouvez partager vos
           retours via le toggle dans votre étagère.
         </p>
       ) : (
         <>
-          {axesWithVotes.length > 0 && (
-            <div className="public-reviews__aggregates">
-              <p className="public-reviews__aggregates-intro">
-                Sur les retours partagés, voici comment chacun a perçu cette formule. Ce sont des
-                expériences personnelles, pas un verdict.
-              </p>
-              <dl className="public-reviews__axis-list">
-                {axesWithVotes.map((key) => (
-                  <div key={key} className="public-reviews__axis">
-                    <dt className="public-reviews__axis-label">{AXIS_LABELS[key]}</dt>
-                    <dd className="public-reviews__axis-buckets">
-                      {formatBucketLine(aggregates.byAxis[key])}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-
-          {reviewsWithComment.length > 0 ? (
-            <ul className="public-reviews__verbatims">
-              {reviewsWithComment.map((review) => (
+          <p className="public-reviews__intro">
+            Des expériences personnelles partagées par leurs auteurs, pas un verdict.
+          </p>
+          <ul className="public-reviews__verbatims">
+            {reviews.map((review) => {
+              // Only show axis notes when the author opted ratings public (non-null values).
+              const ratedAxes = reviewAxisKeys.filter((k) => review[k] != null)
+              return (
                 <li key={review.id} className="public-reviews__verbatim">
                   <header className="public-reviews__verbatim-header">
                     <ReviewerName reviewer={review.reviewer} />
@@ -138,15 +104,20 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
                     )}
                   </header>
                   <p className="public-reviews__verbatim-body">{review.comment}</p>
+                  {ratedAxes.length > 0 && (
+                    <dl className="public-reviews__axis-list">
+                      {ratedAxes.map((key) => (
+                        <div key={key} className="public-reviews__axis">
+                          <dt className="public-reviews__axis-label">{AXIS_LABELS[key]}</dt>
+                          <dd className="public-reviews__axis-value">{review[key]}/5</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
                 </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="public-reviews__empty public-reviews__empty--secondary">
-              Pas encore de retour écrit pour ce produit. Les notes partagées plus haut viennent de
-              {aggregates.total > 1 ? ` ${aggregates.total} personnes.` : ' une personne.'}
-            </p>
-          )}
+              )
+            })}
+          </ul>
         </>
       )}
     </section>

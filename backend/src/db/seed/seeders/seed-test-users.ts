@@ -40,6 +40,8 @@ type CollectionEntry = {
     mixability?: number
     valueForMoney?: number
     comment?: string
+    isPublic?: boolean
+    ratingsPublic?: boolean
   }
 }
 
@@ -84,6 +86,8 @@ const PERSONAS: Persona[] = [
           mixability: 5,
           valueForMoney: 5,
           comment: 'Texture épaisse qui pénètre bien, aucune réaction même sur peau réactive.',
+          isPublic: true,
+          ratingsPublic: true,
         },
       },
       {
@@ -164,6 +168,7 @@ const PERSONAS: Persona[] = [
           stability: 4,
           valueForMoney: 4,
           comment: 'Hydratation sans effet collant, parfait sous SPF le matin.',
+          isPublic: true,
         },
       },
       {
@@ -370,6 +375,8 @@ const PERSONAS: Persona[] = [
           stability: 5,
           valueForMoney: 4,
           comment: "Pas une seule rougeur depuis que je l'utilise en cure.",
+          isPublic: true,
+          ratingsPublic: true,
         },
       },
       {
@@ -539,6 +546,8 @@ export async function seedTestUsers(tx: DB, productSlugToId: Map<string, string>
           mixability: entry.review.mixability ?? null,
           valueForMoney: entry.review.valueForMoney ?? null,
           comment: entry.review.comment ?? null,
+          isPublic: entry.review.isPublic ?? false,
+          ratingsPublic: entry.review.ratingsPublic ?? false,
         }
       })
       .filter((v): v is NonNullable<typeof v> => v !== null)

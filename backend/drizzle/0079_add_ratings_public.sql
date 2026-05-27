@@ -1,0 +1,2 @@
+ALTER TABLE "user_product_reviews" ADD COLUMN "ratings_public" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_product_reviews" ADD CONSTRAINT "upr_ratings_public_requires_public" CHECK ("user_product_reviews"."ratings_public" = false OR "user_product_reviews"."is_public" = true);

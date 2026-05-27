@@ -87,6 +87,8 @@ export const userProductReviews = pgTable(
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
     isPublic: boolean('is_public').notNull().default(false),
+    // Opt-in: reveal this author's raw 1-5 ratings on the public surface (ADR 0005).
+    ratingsPublic: boolean('ratings_public').notNull().default(false),
     ...moderationColumns,
     ...timestamps,
   },
@@ -102,6 +104,11 @@ export const userProductReviews = pgTable(
     check('upr_stability_range', sql`${t.stability} BETWEEN 1 AND 5`),
     check('upr_mixability_range', sql`${t.mixability} BETWEEN 1 AND 5`),
     check('upr_value_for_money_range', sql`${t.valueForMoney} BETWEEN 1 AND 5`),
+    // Ratings can only be public on a public review (unrepresentable otherwise).
+    check(
+      'upr_ratings_public_requires_public',
+      sql`${t.ratingsPublic} = false OR ${t.isPublic} = true`
+    ),
     ...fkTenantPolicies(
       'user_product_reviews',
       sql`EXISTS (
