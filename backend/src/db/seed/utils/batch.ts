@@ -31,24 +31,24 @@ export async function seedBatch<T>(
   identify: (item: T) => string,
   critical: boolean = false
 ): Promise<{ success: number; failed: SeedError[]; total: number }> {
-  // allSettled lets one item fail without aborting the rest of the batch
-  const results = await Promise.allSettled(
-    items.map(async (item) => {
-      try {
-        await fn(item)
-        return { success: true, item }
-      } catch (err) {
-        throw { item: identify(item), reason: err instanceof Error ? err.message : String(err) }
-      }
-    })
-  )
-
   const failed: SeedError[] = []
   let successCount = 0
 
-  for (const result of results) {
-    if (result.status === 'fulfilled') successCount++
-    else failed.push(result.reason as SeedError)
+  // Serial, not Promise.allSettled: the seed runs every item on one shared
+  // transaction connection. Concurrent items open nested tx (savepoints) on
+  // that single connection and Drizzle's counter races — a RELEASE kills
+  // another item's savepoint ("savepoint sN does not exist"). One connection
+  // serializes at the wire anyway, so concurrency only corrupts.
+  for (const item of items) {
+    try {
+      await fn(item)
+      successCount++
+    } catch (err) {
+      failed.push({
+        item: identify(item),
+        reason: err instanceof Error ? err.message : String(err),
+      })
+    }
   }
 
   if (failed.length > 0) {

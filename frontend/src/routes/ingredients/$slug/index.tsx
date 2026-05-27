@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
-import { IngredientInfoTab } from '@/features/ingredients/components/IngredientInfoTab'
+import { IngredientInfoTab } from '@/features/ingredients/components/IngredientInfoTab/IngredientInfoTab'
 import { IngredientInfoSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 

@@ -1,4 +1,8 @@
-import type { ProductCategory } from '@habit-tracker/shared'
+import {
+  PRODUCT_CATEGORY_LABELS,
+  PRODUCT_CATEGORY_VALUES,
+  type ProductCategory,
+} from '@habit-tracker/shared'
 
 import { X } from 'lucide-react'
 
@@ -6,6 +10,7 @@ import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
+import { Select } from '@/component/Input/Select/Select'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { useQuickAdd } from '@/features/collection/hooks/useQuickAdd'
@@ -185,12 +190,18 @@ export function QuickAdd({ onClose }: QuickAddProps) {
               </FormMessage>
             )}
 
-            <Input
+            <Select<ProductCategory>
               id="qa-new-kind"
               label="Catégorie"
               required
               value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value as ProductCategory)}
+              onValueChange={(v) => {
+                if (v) setNewCategory(v)
+              }}
+              options={PRODUCT_CATEGORY_VALUES.map((v) => ({
+                value: v,
+                label: PRODUCT_CATEGORY_LABELS[v],
+              }))}
             />
 
             <StatusSelector value={selectedStatus} onChange={setSelectedStatus} spaced />

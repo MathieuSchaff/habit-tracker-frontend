@@ -3,8 +3,8 @@ import { BLOG_CATEGORY_VALUES } from '@habit-tracker/shared'
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
-import { BlogArticlePage } from '@/features/blog/components/BlogArticlePage'
 import { BlogArticleSkeleton } from '@/features/blog/components/skeletons/BlogSkeletons'
+import { BlogArticlePage } from '@/features/blog/page/BlogArticlePage/BlogArticlePage'
 import { articleQueries } from '@/lib/queries/articles'
 
 const categorySet = new Set<string>(BLOG_CATEGORY_VALUES)

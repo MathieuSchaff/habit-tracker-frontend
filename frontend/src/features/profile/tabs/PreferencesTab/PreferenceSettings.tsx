@@ -31,6 +31,15 @@ const criteriaLabels: Record<string, string> = {
   valueForMoney: 'Rapport Q/P',
 }
 
+const criteriaDescriptions: Record<string, string> = {
+  tolerance: 'Pas de rougeur ni irritation',
+  efficacy: 'Résultats visibles sur vos objectifs',
+  sensoriality: 'Texture, odeur, confort',
+  stability: 'Résultats réguliers dans la durée',
+  mixability: "S'associe bien à votre routine",
+  valueForMoney: 'Prix vs durée et efficacité',
+}
+
 const scaleLabels: Record<DisplayScale, string> = {
   out_of_5: 'Sur 5',
   out_of_10: 'Sur 10',
@@ -84,7 +93,10 @@ export function PreferenceSettings() {
           {Object.entries(criteriaLabels).map(([key, label]) => (
             <div key={key} className="pref-weight-item">
               <div className="pref-weight-info">
-                <span className="pref-weight-label">{label}</span>
+                <div className="pref-weight-meta">
+                  <span className="pref-weight-label">{label}</span>
+                  <span className="pref-weight-desc">{criteriaDescriptions[key]}</span>
+                </div>
                 <span className="pref-weight-value">
                   ×{prefs.criteriaWeights[key as keyof typeof prefs.criteriaWeights]}
                 </span>

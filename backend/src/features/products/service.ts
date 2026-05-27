@@ -55,7 +55,12 @@ const normalizeString = (s: string) => s.trim().replace(/\s+/g, ' ')
 
 const NORMALIZED_STRING_FIELDS = ['name', 'brand', 'kind', 'unit', 'amountUnit'] as const
 
-export async function createProduct(userId: string, input: CreateProductInput, database: DB = db) {
+export async function createProduct(
+  userId: string,
+  input: CreateProductInput,
+  database: DB = db,
+  options: { autoTag?: boolean } = {}
+) {
   try {
     const name = normalizeString(input.name)
     const brand = normalizeString(input.brand)
@@ -76,7 +81,12 @@ export async function createProduct(userId: string, input: CreateProductInput, d
 
     if (!product) throw new ProductError('product_creation_failed')
 
-    await writeTagsForProductFailSoft(database, product.id, { operation: 'create', userId })
+    // Seed opts out: it runs a dedicated auto-tag phase after ingredients are
+    // linked (write.ts here sees none yet → partial set that PK-collides with
+    // the seed phase on product_tag_links).
+    if (options.autoTag ?? true) {
+      await writeTagsForProductFailSoft(database, product.id, { operation: 'create', userId })
+    }
 
     return product
   } catch (e) {

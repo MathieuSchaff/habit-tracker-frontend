@@ -509,7 +509,11 @@ export async function seedCore(shouldClean = false) {
     await seedBatch(
       'produits (manuels)',
       productsToInsert,
-      (p) => createProduct(user.id, p, tx),
+      // Skip per-product auto-tagging: ingredients aren't linked yet, so it
+      // would emit a partial tag set that PK-collides with the dedicated
+      // auto-tag phase below (which runs with percent-claims). That phase is
+      // the authoritative inserter.
+      (p) => createProduct(user.id, p, tx, { autoTag: false }),
       (p) => p.slug ?? p.name,
       true
     )

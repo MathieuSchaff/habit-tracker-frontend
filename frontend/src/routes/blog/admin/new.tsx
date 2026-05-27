@@ -6,7 +6,7 @@ import { BackButton } from '@/component/Button/BackButton'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions } from '@/component/Layout/PageLayout/PageTopActions'
-import { ArticleEditorForm } from '@/features/blog/components/ArticleEditorForm'
+import { ArticleEditorForm } from '@/features/blog/page/ArticleEditorForm/ArticleEditorForm'
 import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/blog/admin/new')({

@@ -5,8 +5,8 @@ import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
-import { BlogListPage } from '@/features/blog/components/BlogListPage'
 import { BlogListSkeleton } from '@/features/blog/components/skeletons/BlogSkeletons'
+import { BlogListPage } from '@/features/blog/page/BlogListPage/BlogListPage'
 import { articleQueries } from '@/lib/queries/articles'
 
 const searchSchema = z.object({

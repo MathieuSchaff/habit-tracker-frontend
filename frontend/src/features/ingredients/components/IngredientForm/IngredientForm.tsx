@@ -21,7 +21,7 @@ import { productTagQueries } from '@/lib/queries/product-tags'
 import { useAuthStore } from '@/store/auth'
 import { ConflictBanner } from './ConflictBanner'
 import { IngredientInputField, IngredientTextareaField } from './fields'
-import '../IngredientPageEditable.css'
+import './IngredientForm.css'
 
 const EMPTY_TAGS: TagState[] = []
 
