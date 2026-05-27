@@ -12,7 +12,7 @@ import './styles/index.css'
 
 import type { RouterContext } from './routerContext'
 
-// Excluded from prod bundle — Vite resolves import.meta.env.DEV at build time
+// Excluded from prod bundle - Vite resolves import.meta.env.DEV at build time
 const ReactQueryDevtools = import.meta.env.DEV
   ? lazy(() =>
       import('@tanstack/react-query-devtools').then((m) => ({

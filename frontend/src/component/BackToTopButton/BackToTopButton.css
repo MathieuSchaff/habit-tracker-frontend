@@ -1,4 +1,4 @@
-/* Positioning + show/hide only — visual styling comes from <Button variant="primary">. */
+/* Positioning + show/hide only - visual styling comes from <Button variant="primary">. */
 .button.back-to-top {
   position: fixed;
   right: var(--space-4);

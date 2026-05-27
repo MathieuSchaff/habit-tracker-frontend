@@ -25,6 +25,13 @@ export const ProfileLinksEditor = ({
   const [announcement, setAnnouncement] = useState('')
   const announcementTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
 
+  // Stable per-row keys kept in lockstep with the handlers below. Index-as-key
+  // misroutes DOM/focus state to the wrong row when a middle link is removed.
+  const keys = useRef<string[]>([])
+  if (keys.current.length !== links.length) {
+    keys.current = links.map((_, i) => keys.current[i] ?? crypto.randomUUID())
+  }
+
   const announce = (message: string) => {
     clearTimeout(announcementTimeout.current)
     setAnnouncement(message)
@@ -33,11 +40,13 @@ export const ProfileLinksEditor = ({
 
   const addLink = () => {
     if (links.length >= 5) return
+    keys.current = [...keys.current, crypto.randomUUID()]
     onChange([...links, { label: '', url: '' }])
     announce(`Lien ${links.length + 1} ajouté`)
   }
 
   const removeLink = (index: number, label: string) => {
+    keys.current = keys.current.filter((_, i) => i !== index)
     onChange(links.filter((_, i) => i !== index))
     announce(`Lien ${label || `n°${index + 1}`} supprimé`)
   }
@@ -50,8 +59,7 @@ export const ProfileLinksEditor = ({
     <fieldset className="links-editor" aria-label="Liens de profil">
       <ul className="links-editor__list">
         {links.map((link, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: order is stable here
-          <li key={i}>
+          <li key={keys.current[i]}>
             <fieldset className="links-editor__row" disabled={disabled}>
               <legend className="sr-only">Lien {i + 1}</legend>
               <Input

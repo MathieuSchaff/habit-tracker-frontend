@@ -23,7 +23,7 @@ export const PRODUCT_TAGS: Record<string, string[]> = {
   '22222222-2222-2222-2222-222222222222': ['acne-imperfections', 'pores-sebum'],
 }
 
-// Ingredient slugs per product — same purpose as PRODUCT_TAGS but for the
+// Ingredient slugs per product - same purpose as PRODUCT_TAGS but for the
 // async ingredient filter.
 export const PRODUCT_INGREDIENTS: Record<string, string[]> = {
   '11111111-1111-1111-1111-111111111111': ['glycerin', 'hyaluronic-acid'],

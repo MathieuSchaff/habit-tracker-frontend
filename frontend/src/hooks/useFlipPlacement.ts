@@ -67,5 +67,7 @@ export function useFlipPlacement(
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
     }
+    // Deps complete; spread `...extraDeps` defeats static dep verification.
+    // react-doctor-disable-next-line react-doctor/exhaustive-deps
   }, [isOpen, triggerRef, dropdownRef, scrollableSelector, ...extraDeps])
 }

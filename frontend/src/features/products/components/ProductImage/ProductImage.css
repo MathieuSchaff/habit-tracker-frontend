@@ -31,7 +31,7 @@
   padding: 0;
 }
 
-/* Fill variant — stretches to container width and locks 1:1 aspect ratio. */
+/* Fill variant - stretches to container width and locks 1:1 aspect ratio. */
 .product-image--fill {
   width: 100%;
   height: auto;

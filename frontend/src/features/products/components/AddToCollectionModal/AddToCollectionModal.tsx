@@ -34,7 +34,7 @@ const STATUS_OPTIONS: { value: UserProductStatus; label: string }[] = [
   { value: 'avoided', label: 'Évité' },
 ]
 
-// Statuses where the user has owned the product — purchase log is meaningful.
+// Statuses where the user has owned the product - purchase log is meaningful.
 const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'archived', 'avoided']
 
 export function AddToCollectionModal({ product, onClose, onSuccess }: AddToCollectionModalProps) {

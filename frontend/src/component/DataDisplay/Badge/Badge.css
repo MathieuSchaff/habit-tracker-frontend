@@ -39,7 +39,7 @@
   box-shadow: 0 1px 4px oklch(from var(--color-primary) l c h / 0.3);
 }
 
-/* Unified chip variant used inside cards — tints by the parent Card accent.
+/* Unified chip variant used inside cards - tints by the parent Card accent.
    Font size/weight inherited from .badge base so chip never reads heavier
    than other badges sitting next to it. */
 .badge--chip {

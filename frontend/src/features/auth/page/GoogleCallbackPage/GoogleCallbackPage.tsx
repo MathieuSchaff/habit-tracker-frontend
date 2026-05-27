@@ -27,7 +27,7 @@ export const GoogleCallbackPage = () => {
 
   return (
     <div className="auth-page__header">
-      <output className="auth-page__subtitle">Connexion en cours...</output>
+      <output className="auth-page__subtitle">Connexion en cours…</output>
     </div>
   )
 }

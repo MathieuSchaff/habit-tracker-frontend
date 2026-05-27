@@ -1,7 +1,5 @@
 import { FlaskConical, Package, Pill, Sun } from 'lucide-react'
 
-// Individual icon components
-
 export function ProdPumpIcon({ size = 24 }: { size?: number }) {
   return (
     <svg
@@ -150,9 +148,7 @@ function ProdSpfIcon({ size = 24 }: { size?: number }) {
   )
 }
 
-// Resolver
-
-// Specific unit shapes only — generic containers (bottle, stick, bar, pack,
+// Specific unit shapes only - generic containers (bottle, stick, bar, pack,
 // sachet, cartridge) fall through to the kind map so the icon reflects what
 // the product *is*, not just its outer container.
 const UNIT_TO_ICON: Record<string, React.ElementType> = {
@@ -246,8 +242,6 @@ function getProductIcon(unit: string | null | undefined, kind: string): React.El
   }
   return KIND_FALLBACK[kind] ?? Package
 }
-
-// Convenience component
 
 export function ProductIcon({
   unit,

@@ -1,5 +1,5 @@
 // Filter keys for the ingredients list page. Tag axes are the union of all
-// ingredient domains (skincare ∪ haircare ∪ dental ∪ supplement) — drawer
+// ingredient domains (skincare ∪ haircare ∪ dental ∪ supplement) - drawer
 // only renders the categories of the currently selected `type`. The active
 // domain itself lives in URL search param `type` (default `'skincare'`).
 
@@ -24,7 +24,7 @@ import type { TabOption } from '@/component/Tabs/Tabs'
 export type FilterKey = AllIngredientTagCategory
 
 // Deduped union of every domain's tag filter categories. Concern, ingredient_attribute
-// appear in several domains — the Set keeps them once.
+// appear in several domains - the Set keeps them once.
 const _allTagKeys = Object.values(DOMAIN_INGREDIENT_FILTER_CATEGORIES).flat()
 export const FILTER_KEYS = [...new Set(_allTagKeys)] as FilterKey[]
 
@@ -36,7 +36,7 @@ export const DOMAIN_TAG_META: Record<IngredientType, Record<string, TagCategoryM
   supplement: SUPPLEMENT_INGREDIENT_TAG_CATEGORY_META,
 }
 
-// Merged labels — first-domain-wins for duplicate keys (skincare's label for
+// Merged labels - first-domain-wins for duplicate keys (skincare's label for
 // `concern` is the canonical one users see in active-filter chips, even when
 // the chip came from haircare/dental/supplement). All four domains use the
 // same FR label "Problème" today, so the order is cosmetic.
@@ -51,7 +51,7 @@ export const GROUP_LABELS: Record<FilterKey, string> = Object.fromEntries(
   FILTER_KEYS.map((k) => [k, _mergedMeta[k].label])
 ) as Record<FilterKey, string>
 
-// Tabs at the top of the page — one per domain.
+// Tabs at the top of the page - one per domain.
 export const DOMAIN_TAB_OPTIONS: TabOption<IngredientType>[] = INGREDIENT_TYPE_VALUES.map((id) => ({
   id,
   label: INGREDIENT_TYPE_LABELS[id],
@@ -72,7 +72,7 @@ export const ingredientsSearchDefaults = {
   profile_filter: false,
 }
 
-// Reset every tag filter when the user switches domain — categories from the
+// Reset every tag filter when the user switches domain - categories from the
 // previous domain aren't valid against the new one (e.g. `skin_type` doesn't
 // apply to dental ingredients).
 export function buildDomainSwitchSearch(

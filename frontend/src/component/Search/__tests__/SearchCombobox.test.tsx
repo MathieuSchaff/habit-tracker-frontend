@@ -128,7 +128,7 @@ describe('SearchCombobox — loading states', () => {
       { wrapper: makeWrapper() }
     )
     await userEvent.type(screen.getByRole('combobox'), 'ab')
-    await waitFor(() => expect(screen.getByText('Chargement...')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Chargement…')).toBeInTheDocument())
     resolve([])
   })
 
@@ -166,7 +166,7 @@ describe('SearchCombobox — loading states', () => {
     await waitFor(() => expect(abcStarted).toBe(true))
 
     // Placeholder data: old items still visible, no spinner.
-    expect(screen.queryByText('Chargement...')).not.toBeInTheDocument()
+    expect(screen.queryByText('Chargement…')).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item A' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item B' })).toBeInTheDocument()
 

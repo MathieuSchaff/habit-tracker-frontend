@@ -18,7 +18,7 @@ import { sentimentEmojis } from '@/utils/sentimentMap'
 import './CollectionFiltersSheet.css'
 
 // Qualitative tiers map onto the same thresholds that drive the card corner
-// ornaments (gold/rare/good) without exposing the raw /20 number — keeps the
+// ornaments (gold/rare/good) without exposing the raw /20 number - keeps the
 // filter calm per design-system.md "no product scores" rule.
 const NOTE_TIERS: { value: number; label: string }[] = [
   { value: 0, label: 'Toutes' },

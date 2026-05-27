@@ -42,7 +42,7 @@ export function useProductsFilterGroups(
 
     return [
       ...(tagGroups as FilterGroupConfig<FilterKey>[]),
-      // Essential tier for dermo-informed users. Closed by default — async search is heavier than chip groups.
+      // Essential tier for dermo-informed users. Closed by default - async search is heavier than chip groups.
       {
         id: 'ingredient',
         label: NON_TAG_FILTER_LABELS.ingredient,

@@ -8,13 +8,7 @@ import { Modal } from '@/component/Dialog/Modal'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { useCreateReport } from '@/lib/queries/reports'
-
-/* Report flow wording. Exported so tests assert the same string the user sees. */
-export const REPORT_LABELS = {
-  reasonRequired: 'Une raison courte aide la modération.',
-  successMessage:
-    'Merci. La modération va le regarder. Aucun signalement n’est partagé publiquement.',
-} as const
+import { REPORT_LABELS } from './ReportContentButton.constants'
 
 type ReportContentButtonProps = {
   targetType: ReportTargetType

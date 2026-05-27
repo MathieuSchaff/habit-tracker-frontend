@@ -63,7 +63,7 @@ export function TagManager({
           }}
         >
           <option value="" disabled>
-            Ajouter un tag...
+            Ajouter un tag…
           </option>
           {availableTags.map((tag) => (
             <option key={tag.id} value={tag.id}>

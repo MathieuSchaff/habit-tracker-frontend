@@ -86,7 +86,7 @@ export function ComboboxPrimitive<T>({
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
   // useCaptureDismiss (not useClickOutside) because the dropdown is portaled
-  // over real click targets — see hook docs for the tap-block rationale.
+  // over real click targets - see hook docs for the tap-block rationale.
   // Multi-ref: both the trigger container and the portaled dropdown count as "inside".
   useCaptureDismiss([containerRef, dropdownRef], onClose, { enabled: isOpen })
 
@@ -178,7 +178,7 @@ export function ComboboxPrimitive<T>({
                 )}
               </div>
             ) : isLoading ? (
-              <output className="combobox-primitive__status">Chargement...</output>
+              <output className="combobox-primitive__status">Chargement…</output>
             ) : (
               <>
                 <div
@@ -253,7 +253,7 @@ export function ComboboxPrimitive<T>({
                       aria-hidden="true"
                     >
                       {isLoadingMore && (
-                        <output className="combobox-primitive__status">Chargement...</output>
+                        <output className="combobox-primitive__status">Chargement…</output>
                       )}
                     </div>
                   )}

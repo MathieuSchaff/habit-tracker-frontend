@@ -47,6 +47,7 @@ function Harness({
       {({ listboxId, activeDescendant }) => (
         <input
           type="text"
+          // react-doctor-disable-next-line react-doctor/no-redundant-roles
           role="combobox"
           aria-label="Test"
           aria-expanded={isOpen}

@@ -17,7 +17,7 @@ import '../SearchSelect/SearchSelect.css'
 type AsyncSearchSelectProps = {
   selected: string[]
   onToggle: (value: string) => void
-  // Loosely typed at the prop level — the type union of all possible factories
+  // Loosely typed at the prop level - the type union of all possible factories
   // is impractical to thread; FilterAccordion validates presence at the call site.
   // biome-ignore lint/suspicious/noExplicitAny: see comment above
   loadOptionsQuery: AsyncSearchQueryFactory<string, any>
@@ -159,6 +159,7 @@ export function AsyncSearchSelect({
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
+            // react-doctor-disable-next-line react-doctor/no-redundant-roles
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showDropdown}

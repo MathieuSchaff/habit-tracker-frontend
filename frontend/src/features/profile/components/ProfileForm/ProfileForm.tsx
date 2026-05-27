@@ -70,7 +70,7 @@ export const ProfileForm = ({
       return
     }
 
-    // Fully-empty rows are dropped before diffing — keep the editor calm.
+    // Fully-empty rows are dropped before diffing - keep the editor calm.
     const cleanLinks = trimmedLinks.filter((l) => l.label !== '' || l.url !== '')
 
     const data: ProfileUpdateInput = {}

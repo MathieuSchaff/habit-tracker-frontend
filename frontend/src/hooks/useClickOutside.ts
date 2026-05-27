@@ -4,7 +4,7 @@ type AnyRef = RefObject<HTMLElement | null>
 
 /**
  * Click-through outside detection on `mousedown` + `touchstart` (bubble phase,
- * passive). The underlying `click` event is NOT blocked — the target the user
+ * passive). The underlying `click` event is NOT blocked - the target the user
  * tapped still receives its native click.
  *
  * Choice rule (mirror of useCaptureDismiss):

@@ -7,14 +7,7 @@ import { Input } from '@/component/Input/Input'
 
 import './SlugEditModal.css'
 
-/* Wording for the slug-edit flow. Exported so tests assert the same strings
-   the user sees and a copy tweak updates both. */
-export const SLUG_EDIT_LABELS = {
-  confirm: 'Confirmer le changement',
-  cancel: 'Annuler',
-  emptyError: 'Le slug ne peut pas être vide.',
-  formatError: 'Slug invalide : minuscules, chiffres et tirets uniquement.',
-} as const
+import { SLUG_EDIT_LABELS } from './SlugEditModal.constants'
 
 interface SlugEditModalProps {
   currentSlug: string
@@ -23,7 +16,7 @@ interface SlugEditModalProps {
   onConfirm: (newSlug: string) => void
 }
 
-// Preview only — backend re-slugifies on receipt, divergences (e.g. "&") normalize server-side.
+// Preview only - backend re-slugifies on receipt, divergences (e.g. "&") normalize server-side.
 function slugify(s: string): string {
   return s
     .normalize('NFD')

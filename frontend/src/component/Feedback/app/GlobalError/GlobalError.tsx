@@ -24,7 +24,7 @@ const DropperIllustration = () => (
     <ellipse cx="55" cy="215" rx="42" ry="11" fill="var(--color-primary-light)" opacity="0.7" />
     <ellipse cx="55" cy="213" rx="28" ry="7" fill="var(--color-primary-light)" opacity="0.5" />
 
-    {/* Animated drops — fall from tip (y=170) toward the spill */}
+    {/* Animated drops - fall from tip (y=170) toward the spill */}
     <circle className="dropper-drop" cx="55" cy="171" r="4" fill="var(--color-primary)" />
     <circle
       className="dropper-drop dropper-drop-2"
@@ -41,10 +41,10 @@ const DropperIllustration = () => (
       fill="var(--color-primary)"
     />
 
-    {/* Tip — narrow point */}
+    {/* Tip - narrow point */}
     <path d="M 49 158 L 55 172 L 61 158 Z" fill="var(--color-primary)" />
 
-    {/* Bottle body — glass rectangle */}
+    {/* Bottle body - glass rectangle */}
     <rect
       x="38"
       y="68"
@@ -95,6 +95,7 @@ export const GlobalError = ({ error, reset, is404 = false }: GlobalErrorProps) =
   // biome-ignore lint/correctness/useExhaustiveDependencies: report once on mount only
   useEffect(() => {
     reportError(error, { component: 'GlobalError' })
+    // react-doctor-disable-next-line react-doctor/exhaustive-deps
   }, [])
 
   const title = is404 ? "Cette page n'est pas dans notre routine." : 'On a renversé quelque chose.'

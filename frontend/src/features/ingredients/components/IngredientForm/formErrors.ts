@@ -1,7 +1,7 @@
 import type { FormErrorMap } from '@/lib/helpers/apiError'
 
 // `ingredient_update_conflict` (409 optimistic lock) is intentionally NOT
-// mapped here — IngredientForm catches it before reaching extractFormError
+// mapped here - IngredientForm catches it before reaching extractFormError
 // and runs its own draft-recovery flow.
 export type IngredientFormField = 'name' | 'slug'
 

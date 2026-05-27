@@ -1,7 +1,7 @@
 import { createRootRouteWithContext, useNavigate, useRouterState } from '@tanstack/react-router'
 import { lazy, Suspense, useEffect } from 'react'
 
-// Excluded from prod bundle — Vite resolves import.meta.env.DEV at build time
+// Excluded from prod bundle - Vite resolves import.meta.env.DEV at build time
 const TanStackRouterDevtools = import.meta.env.DEV
   ? lazy(() =>
       import('@tanstack/router-devtools').then((m) => ({
@@ -44,7 +44,7 @@ function useSessionExpiredRedirect() {
 
   useEffect(() => {
     if (!sessionExpired) return
-    // Already on the auth flow — clear the flag without redirecting.
+    // Already on the auth flow - clear the flag without redirecting.
     if (pathname.startsWith('/auth/')) {
       useAuthStore.getState().clearSessionExpired()
       return

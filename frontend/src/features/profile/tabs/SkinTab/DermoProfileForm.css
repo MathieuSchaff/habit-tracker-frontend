@@ -142,7 +142,7 @@
   bottom: var(--space-2);
   left: 0;
   right: 0;
-  /* 9px — tight size required to fit inside the 3.5rem height. */
+  /* 9px - tight size required to fit inside the 3.5rem height. */
   font-size: 0.5625rem;
   color: oklch(from var(--fitz-bg) clamp(0, (l - 0.6) * -999, 1) 0 0 / 0.8);
   line-height: 1.2;

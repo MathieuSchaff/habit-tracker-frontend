@@ -10,7 +10,7 @@
   gap: var(--space-3);
 }
 
-/* Soft green pill — primary action without shouting next to the calm subnav. */
+/* Soft green pill - primary action without shouting next to the calm subnav. */
 .coll-header-actions .coll-add-btn {
   flex-shrink: 0;
   white-space: nowrap;

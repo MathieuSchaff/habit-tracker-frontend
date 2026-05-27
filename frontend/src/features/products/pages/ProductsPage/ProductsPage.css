@@ -155,7 +155,7 @@
   overflow: hidden;
 }
 
-/* Floating sticky filter pill — appears when toolbar scrolls off. */
+/* Floating sticky filter pill - appears when toolbar scrolls off. */
 .products-floating-filter {
   position: fixed;
   right: 0;

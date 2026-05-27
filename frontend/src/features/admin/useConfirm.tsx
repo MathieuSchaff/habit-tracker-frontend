@@ -16,7 +16,7 @@ type ConfirmRequest = ConfirmOptions & {
 }
 
 /**
- * Promise-based confirm modal — drop-in for `window.confirm` but calm.
+ * Promise-based confirm modal - drop-in for `window.confirm` but calm.
  * Usage: `if (!(await confirm({ title: '…' }))) return; …`
  *
  * Returns `confirm` (async) + `dialog` JSX to render once at the page root.

@@ -10,9 +10,9 @@ export interface TabOption<T extends string> {
   label: string
   icon?: React.ReactNode
   badge?: string | number
-  /** Underline variant only — tint applied to label + indicator when active. */
+  /** Underline variant only - tint applied to label + indicator when active. */
   color?: string
-  /** Underline variant only — renders the tab at reduced opacity (e.g. empty shelf). */
+  /** Underline variant only - renders the tab at reduced opacity (e.g. empty shelf). */
   dimmed?: boolean
 }
 
@@ -28,7 +28,7 @@ interface TabsProps<T extends string> {
    * per-option color, scroll-snap when combined with `scrollable`.
    */
   variant?: TabsVariant
-  /** Underline variant only — enables horizontal overflow + scroll-snap for many tabs. */
+  /** Underline variant only - enables horizontal overflow + scroll-snap for many tabs. */
   scrollable?: boolean
   className?: string
   containerClassName?: string

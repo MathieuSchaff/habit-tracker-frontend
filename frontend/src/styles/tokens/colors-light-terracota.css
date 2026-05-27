@@ -61,7 +61,7 @@
   --section-accent: var(--color-accent);
   --bg-deep: oklch(28% 0.1 var(--h-papaya));
 
-  /* Extended palette — not yet wired to components. */
+  /* Extended palette - not yet wired to components. */
   --color-aqua: oklch(70% 0.11 var(--h-aqua));
   --color-aqua-hover: oklch(62% 0.13 var(--h-aqua));
   --color-aqua-light: oklch(93% 0.045 var(--h-aqua));
@@ -98,13 +98,13 @@
 
   --page-title-color: oklch(68% 0.2 65);
 
-  /* Card footer candidates kept for reference: shamrock oklch(60% 0.1268 154.47) ✓, emerald oklch(78% 0.1394 156.93) ✓. */
+  /* Card footer candidates kept for reference: shamrock oklch(60% 0.1268 154.47), emerald oklch(78% 0.1394 156.93). */
   --card-footer-bg: oklch(95% 0.026 65);
   --card-footer-border: oklch(85% 0.06 65);
   --card-footer-color: var(--text-primary);
   --card-footer-color-muted: var(--text-muted);
 
-  /* Product unit chip: white bg, mango text — overrides the page surface treatment. */
+  /* Product unit chip: white bg, mango text - overrides the page surface treatment. */
   --product-unit-chip-bg: oklch(100% 0 0);
   --product-unit-chip-text: oklch(58% 0.2 65);
   --product-unit-chip-border: oklch(100% 0 0);

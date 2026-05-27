@@ -105,7 +105,7 @@
     --card-pad: var(--space-5);
   }
 }
-/* 880px: hero-grid pivot — keep page-gutter widening aligned with hero side-by-side. */
+/* 880px: hero-grid pivot - keep page-gutter widening aligned with hero side-by-side. */
 @media (min-width: 880px) {
   :where(html) {
     --page-gutter: var(--space-8);

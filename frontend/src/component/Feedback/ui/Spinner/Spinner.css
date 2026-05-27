@@ -9,7 +9,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* uneven steps on purpose — makes the rotation feel a bit more natural instead of robotic */
+/* uneven steps on purpose - makes the rotation feel a bit more natural instead of robotic */
 @keyframes spin {
   0% {
     transform: rotate(0deg);

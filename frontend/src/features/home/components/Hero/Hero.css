@@ -20,7 +20,7 @@
   gap: var(--space-8);
   align-items: center;
 }
-/* 880px: hero-specific pivot — text+visual fit side-by-side. Intentional non-token. */
+/* 880px: hero-specific pivot - text+visual fit side-by-side. Intentional non-token. */
 @media (min-width: 880px) {
   .aur-hero__grid {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);

@@ -7,8 +7,8 @@ const PARAGRAPH_LINES = [1, 2, 3, 4, 5]
 export function BlogListSkeleton() {
   return (
     <div className="blog-list-skeleton__grid" aria-hidden="true">
-      {CARD_PLACEHOLDERS.map((i) => (
-        <div key={i} className="blog-list-skeleton__card">
+      {CARD_PLACEHOLDERS.map((n) => (
+        <div key={n} className="blog-list-skeleton__card">
           <Skeleton className="blog-list-skeleton__cover" />
           <div className="blog-list-skeleton__body">
             <Skeleton width="85%" height="1.25rem" />
@@ -43,8 +43,8 @@ export function BlogArticleSkeleton() {
       <Skeleton width="70%" height="1.125rem" />
 
       <div className="blog-article-skeleton__body">
-        {PARAGRAPH_LINES.map((i) => (
-          <Skeleton key={i} width={i === 5 ? '45%' : '100%'} height="0.875rem" />
+        {PARAGRAPH_LINES.map((n) => (
+          <Skeleton key={n} width={n === 5 ? '45%' : '100%'} height="0.875rem" />
         ))}
       </div>
     </article>

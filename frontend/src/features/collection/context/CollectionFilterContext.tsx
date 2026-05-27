@@ -64,7 +64,7 @@ export function CollectionFilterProvider({
   const { sort, brand, productType, sentiment, repurchase, minNote, maxPrice } =
     routeApi.useSearch()
   const navigate = routeApi.useNavigate()
-  // Local state — URL-bound search would re-run the route loader on every keystroke.
+  // Local state - URL-bound search would re-run the route loader on every keystroke.
   const [q, setQ] = useState('')
 
   const filterOptions = useMemo(() => {

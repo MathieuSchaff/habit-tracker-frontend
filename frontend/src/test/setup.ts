@@ -56,7 +56,7 @@ if (!HTMLDialogElement.prototype.close) {
   }
 }
 
-// jsdom does not implement window.matchMedia — provide a minimal stub
+// jsdom does not implement window.matchMedia - provide a minimal stub
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({

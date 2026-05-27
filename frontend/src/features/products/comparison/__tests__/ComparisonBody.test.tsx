@@ -4,8 +4,8 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { ComparisonBody } from '../components/ComparisonBody'
-import { META_STRIP_LABELS } from '../components/MetaStrip'
-import { SIGNALS_LABELS } from '../components/SignalsSection'
+import { META_STRIP_LABELS } from '../components/MetaStrip.constants'
+import { SIGNALS_LABELS } from '../components/SignalsSection.constants'
 
 type Ingredient = EnrichedComparisonProduct['ingredients'][number]
 

@@ -7,11 +7,9 @@ import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { computeAlerts, computeConflicts, computeSharedActives } from '../helpers/aggregations'
 import './SignalsSection.css'
 
-type Props = { products: EnrichedComparisonProduct[] }
+import { SIGNALS_LABELS } from './SignalsSection.constants'
 
-export const SIGNALS_LABELS = {
-  sharedActives: 'Actifs partagés',
-} as const
+type Props = { products: EnrichedComparisonProduct[] }
 
 type CardProps = {
   tone: 'actives' | 'alerts' | 'conflicts'
