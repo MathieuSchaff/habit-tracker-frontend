@@ -27,7 +27,7 @@ describe('POST /errors', () => {
   })
 
   it('returns 200 and stores the error', async () => {
-    const res = await app.request('/errors', {
+    const res = await app.request('/api/errors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -52,13 +52,13 @@ describe('POST /errors', () => {
       stack: 'TypeError: Cannot read properties of null\n    at ProfilePage.tsx:42:10',
     }
 
-    await app.request('/errors', {
+    await app.request('/api/errors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
 
-    await app.request('/errors', {
+    await app.request('/api/errors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -73,7 +73,7 @@ describe('POST /errors', () => {
   })
 
   it('returns 400 for invalid payload', async () => {
-    const res = await app.request('/errors', {
+    const res = await app.request('/api/errors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ source: 'unknown', message: '' }),

@@ -152,7 +152,7 @@ describe('Ingredient Tag Routes', () => {
       const ingredient = await createIngredient(client, contributorToken)
       const tag = await createTag(client, token)
 
-      const res = await app.request(`/ingredients/${ingredient.id}/tags`, {
+      const res = await app.request(`/api/ingredients/${ingredient.id}/tags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tagId: tag.id }),
@@ -241,7 +241,7 @@ describe('Ingredient Tag Routes', () => {
       const ingredient = await createIngredient(client, contributorToken)
       const tag = await createTag(client, token)
 
-      const res = await app.request(`/ingredients/${ingredient.id}/tags/${tag.id}`, {
+      const res = await app.request(`/api/ingredients/${ingredient.id}/tags/${tag.id}`, {
         method: 'DELETE',
       })
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
@@ -294,7 +294,7 @@ describe('Ingredient Tag Routes', () => {
     it('should reject unauthenticated request', async () => {
       const ingredient = await createIngredient(client, contributorToken)
 
-      const res = await app.request(`/ingredients/${ingredient.id}/tags`, {
+      const res = await app.request(`/api/ingredients/${ingredient.id}/tags`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tagIds: [] }),

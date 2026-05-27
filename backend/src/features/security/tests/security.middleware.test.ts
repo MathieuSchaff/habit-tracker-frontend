@@ -19,7 +19,7 @@ const VALID_PRODUCT = {
 }
 
 async function postProduct(app: Hono<AppEnv>, token: string, body: object) {
-  return authPost(app, '/products', token, body)
+  return authPost(app, '/api/products', token, body)
 }
 
 setupDbTests()
@@ -87,7 +87,7 @@ describe('Security Middleware — product routes', () => {
 
   describe('Content-Type bypass', () => {
     it('blocks HIGH detection even when Content-Type is text/plain', async () => {
-      const res = await app.request('/products', {
+      const res = await app.request('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ...VALID_PRODUCT, url: 'javascript:alert(1)' }),
@@ -96,7 +96,7 @@ describe('Security Middleware — product routes', () => {
     })
 
     it('blocks HIGH detection even when Content-Type is missing', async () => {
-      const res = await app.request('/products', {
+      const res = await app.request('/api/products', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ...VALID_PRODUCT, inci: '<script>1</script>' }),

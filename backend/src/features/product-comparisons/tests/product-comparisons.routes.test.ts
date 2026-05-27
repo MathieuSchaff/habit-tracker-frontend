@@ -71,7 +71,7 @@ describe('Product Comparison Routes', () => {
     const a = await createProduct(client, contributorToken, PRODUCT_A)
 
     // Single product fails the zod min(2) → 400 from validator middleware.
-    const res = await app.request('/product-comparisons', {
+    const res = await app.request('/api/product-comparisons', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ productIds: [a.id] }),
@@ -137,7 +137,7 @@ describe('Product Comparison Routes', () => {
   })
 
   it('GET requires auth (401 anon)', async () => {
-    const res = await app.request('/product-comparisons', { method: 'GET' })
+    const res = await app.request('/api/product-comparisons', { method: 'GET' })
     expect(res.status).toBe(401)
   })
 })

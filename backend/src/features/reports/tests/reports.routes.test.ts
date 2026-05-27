@@ -49,7 +49,7 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
   })
 
   it('user POSTs a report and gets 201 with the row', async () => {
-    const res = await client.api.reports.$post(
+    const res = await client.reports.$post(
       {
         json: { targetType: 'review', targetId: ANY_TARGET, reason: 'spam advertising' },
       },
@@ -71,7 +71,7 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
   })
 
   it('user POST rejects whitespace-only reason', async () => {
-    const res = await client.api.reports.$post(
+    const res = await client.reports.$post(
       {
         json: { targetType: 'review', targetId: ANY_TARGET, reason: '   ' },
       },

@@ -3,8 +3,15 @@ import type { Hono } from 'hono'
 import type { AppEnv } from '../../app-env'
 import { createTestAdminUser, createTestContributorUser, createTestUser } from './test-factories'
 
-export async function loginAndGetToken(app: Hono<AppEnv>, email: string, password: string) {
-  const res = await app.request('/auth/mobile/login', {
+// authBase defaults to '/api/auth' because the shared test harness (createTestApp)
+// mirrors prod and mounts auth under /api. Pass '/auth' for a bare-mounted own app.
+export async function loginAndGetToken(
+  app: Hono<AppEnv>,
+  email: string,
+  password: string,
+  authBase = '/api/auth'
+) {
+  const res = await app.request(`${authBase}/mobile/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -16,26 +23,29 @@ export async function loginAndGetToken(app: Hono<AppEnv>, email: string, passwor
 
 export async function setupAndLogin(
   app: Hono<AppEnv>,
-  creds: { rawEmail: string; rawPassword: string }
+  creds: { rawEmail: string; rawPassword: string },
+  authBase = '/api/auth'
 ) {
   await createTestUser(creds.rawEmail, creds.rawPassword)
-  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
+  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword, authBase)
 }
 
 export async function setupAndLoginAdmin(
   app: Hono<AppEnv>,
-  creds: { rawEmail: string; rawPassword: string }
+  creds: { rawEmail: string; rawPassword: string },
+  authBase = '/api/auth'
 ) {
   await createTestAdminUser(creds.rawEmail, creds.rawPassword)
-  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
+  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword, authBase)
 }
 
 export async function setupAndLoginContributor(
   app: Hono<AppEnv>,
-  creds: { rawEmail: string; rawPassword: string }
+  creds: { rawEmail: string; rawPassword: string },
+  authBase = '/api/auth'
 ) {
   await createTestContributorUser(creds.rawEmail, creds.rawPassword)
-  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
+  return loginAndGetToken(app, creds.rawEmail, creds.rawPassword, authBase)
 }
 
 export function authGet(app: Hono<AppEnv>, path: string, token: string) {
