@@ -83,10 +83,24 @@ export function DialogPrimitive({
     onClose()
   }
 
-  // Backdrop clicks land on the dialog itself; inner content bubbles with a different target.
+  // Backdrop clicks land on the dialog element itself; content clicks bubble with a different target.
+  // Also guard by click coordinates: native <select> dismiss events can misroute to the dialog
+  // element even when the pointer is within the panel (e.g. selecting then clicking empty panel area).
+  // getBoundingClientRect() returns the panel's visual bounds, so out-of-bounds = true backdrop hit.
+  // Zero-size rect = jsdom / no-layout env: skip coordinate check and close unconditionally.
   const closeOnBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     if (!closeOnBackdrop) return
-    if (e.target === dialogRef.current) onClose()
+    if (e.target !== dialogRef.current) return
+    const rect = dialogRef.current.getBoundingClientRect()
+    if (rect.width > 0 || rect.height > 0) {
+      const insidePanel =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      if (insidePanel) return
+    }
+    onClose()
   }
 
   return (

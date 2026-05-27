@@ -5,9 +5,16 @@
 }
 
 .pref-weights-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (--md) {
+  .pref-weights-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4) var(--space-6);
+  }
 }
 
 .pref-weight-item {
@@ -19,13 +26,27 @@
 .pref-weight-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.pref-weight-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .pref-weight-label {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--text-primary);
+}
+
+.pref-weight-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: var(--leading-snug);
 }
 
 .pref-weight-value {

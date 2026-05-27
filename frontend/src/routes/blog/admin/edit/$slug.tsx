@@ -8,7 +8,7 @@ import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions } from '@/component/Layout/PageLayout/PageTopActions'
-import { ArticleEditorForm } from '@/features/blog/components/ArticleEditorForm'
+import { ArticleEditorForm } from '@/features/blog/page/ArticleEditorForm/ArticleEditorForm'
 import { articleQueries } from '@/lib/queries/articles'
 import { useAuthStore } from '@/store/auth'
 

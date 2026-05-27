@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useCaptureDismiss } from '@/hooks/useCaptureDismiss'
@@ -77,6 +77,16 @@ export function ComboboxPrimitive<T>({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const itemsRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
+
+  // <dialog> opened with showModal() lives in the browser top-layer, which renders above all
+  // regular stacking contexts regardless of z-index — even portals on document.body.
+  // Portaling into the dialog element itself keeps the dropdown in the same top-layer.
+  // Init to document.body so the portal renders on first pass; effect upgrades to dialog if present.
+  const [portalTarget, setPortalTarget] = useState<Element>(() => document.body)
+  useEffect(() => {
+    const dialog = containerRef.current?.closest('dialog')
+    if (dialog) setPortalTarget(dialog)
+  }, [])
 
   // Flat index space across sections + main items for keyboard nav.
   const sectionEntries = useMemo(() => (sections ?? []).flatMap((s) => s.items), [sections])
@@ -265,7 +275,7 @@ export function ComboboxPrimitive<T>({
               </>
             )}
           </div>,
-          document.body
+          portalTarget
         )}
 
       <span className="sr-only" aria-live="polite" aria-atomic="true">
