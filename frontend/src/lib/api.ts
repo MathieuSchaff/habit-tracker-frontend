@@ -1,6 +1,6 @@
 import type { AppType } from '@habit-tracker/backend'
 
-import { hc } from 'hono/client'
+import { hc, type InferResponseType } from 'hono/client'
 
 import { useAuthStore } from '../store/auth'
 import { queryClient } from './queryClient'
@@ -71,3 +71,5 @@ const client = hc<AppType>('/', {
   },
 })
 export const api = client.api
+
+export type ApiData<T> = Extract<InferResponseType<T>, { data: unknown }>['data']

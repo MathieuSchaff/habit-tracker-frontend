@@ -1,1 +1,219 @@
-purged from history
+{
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["src/routes/**"],
+        "rules": ["react-doctor/only-export-components"]
+      },
+      {
+        "files": ["src/component/Card/Card.tsx"],
+        "rules": ["react-doctor/only-export-components"]
+      },
+      {
+        "files": [
+          "src/lib/queries/purchases.ts",
+          "src/lib/queries/reports.ts",
+          "src/lib/queries/profile.ts",
+          "src/lib/queries/auth.ts"
+        ],
+        "rules": ["react-doctor/query-mutation-missing-invalidation"]
+      },
+      {
+        "files": ["src/**"],
+        "rules": ["react-doctor/design-no-em-dash-in-jsx-text"]
+      },
+      {
+        "files": ["src/features/legal/components/PrivacyPage/PrivacyPage.tsx"],
+        "rules": ["react-doctor/no-array-index-as-key", "react-doctor/no-array-index-key"]
+      },
+      {
+        "files": ["package.json"],
+        "rules": ["deslop/unused-dev-dependency"]
+      },
+      {
+        "files": ["src/lib/api.ts"],
+        "rules": ["deslop/circular-dependency"]
+      },
+      {
+        "files": ["src/features/home/**"],
+        "rules": ["react-doctor/no-barrel-import"]
+      },
+      {
+        "files": ["src/features/collection/context/CollectionFilterContext.tsx"],
+        "rules": ["react-doctor/js-tosorted-immutable"]
+      },
+      {
+        "files": [
+          "src/features/products/comparison/helpers/aggregations.ts",
+          "src/features/home/components/primitives/ProductCard.tsx"
+        ],
+        "rules": ["react-doctor/js-set-map-lookups"]
+      },
+      {
+        "files": ["src/component/Filter/helpers.ts"],
+        "rules": ["react-doctor/js-index-maps"]
+      },
+      {
+        "files": ["src/component/Search/SearchCombobox.tsx"],
+        "rules": ["react-doctor/js-combine-iterations"]
+      },
+      {
+        "files": ["src/component/ImageUpload/useImageUpload.ts"],
+        "rules": ["react-doctor/async-await-in-loop"]
+      },
+      {
+        "files": [
+          "src/features/products/pages/ProductLayout/ProductLayout.tsx",
+          "src/features/ingredients/components/IngredientLayout.tsx",
+          "src/features/blog/components/BlogArticlePage.tsx",
+          "src/features/products/components/ProductsFilterDrawerContent/ProductsFilterDrawerContent.tsx"
+        ],
+        "rules": ["react-doctor/jsx-no-jsx-as-prop"]
+      },
+      {
+        "files": ["src/component/Tabs/Tabs.tsx"],
+        "rules": ["react-doctor/interactive-supports-focus"]
+      },
+      {
+        "files": ["src/component/Search/ComboboxPrimitive.tsx"],
+        "rules": ["react-doctor/no-static-element-interactions"]
+      },
+      {
+        "files": [
+          "src/component/Search/ComboboxPrimitive.tsx",
+          "src/component/Filter/AsyncSearchSelect/Listbox.tsx",
+          "src/component/Filter/SearchSelect/SearchSelect.tsx"
+        ],
+        "rules": ["react-doctor/click-events-have-key-events", "react-doctor/prefer-tag-over-role"]
+      },
+      {
+        "files": [
+          "src/component/Dialog/DialogPrimitive.tsx",
+          "src/component/Filter/FilterDrawer/FilterDrawer.tsx",
+          "src/features/tasks/components/TaskItem.tsx"
+        ],
+        "rules": ["react-doctor/no-noninteractive-element-interactions"]
+      },
+      {
+        "files": ["src/component/Dialog/DialogPrimitive.tsx"],
+        "rules": ["react-doctor/click-events-have-key-events"]
+      },
+      {
+        "files": [
+          "src/component/Input/ChipGroup/ChipGroup.tsx",
+          "src/features/profile/tabs/SkinTab/DermoProfileForm.tsx",
+          "src/features/profile/tabs/PreferencesTab/PreferenceSettings.tsx",
+          "src/features/tasks/page/TasksPage.tsx",
+          "src/features/tasks/components/TaskItem.tsx",
+          "src/features/collection/components/tabs/CollectionTab/parts/CollectionFiltersSheet.tsx"
+        ],
+        "rules": ["react-doctor/control-has-associated-label"]
+      },
+      {
+        "files": [
+          "src/component/Header/BottomNav/BottomNav.tsx",
+          "src/component/Feedback/app/NavigationProgress/NavigationProgress.tsx",
+          "src/features/collection/components/tabs/CollectionTab/ProductViews/Detailed/PdsExperienceSection.tsx",
+          "src/features/home/components/primitives/IngredientCard.tsx",
+          "src/features/profile/components/ProfileAvatar/ProfileAvatar.tsx",
+          "src/features/profile/components/SkinPortraitCard/SkinPortraitCard.tsx",
+          "src/features/tasks/components/TaskItem.tsx"
+        ],
+        "rules": ["react-doctor/prefer-tag-over-role"]
+      },
+      {
+        "files": [
+          "src/component/Search/ComboboxPrimitive.tsx",
+          "src/component/Filter/SearchSelect/SearchSelect.tsx",
+          "src/component/Filter/AsyncSearchSelect/AsyncSearchSelect.tsx",
+          "src/component/Tabs/Tabs.tsx"
+        ],
+        "rules": ["react-doctor/no-event-handler"]
+      },
+      {
+        "files": ["src/component/Header/BottomNav/BottomNav.tsx"],
+        "rules": ["react-doctor/no-event-handler", "react-doctor/prefer-use-effect-event"]
+      },
+      {
+        "files": ["src/features/products/components/PriceRangeFilter/PriceRangeFilter.tsx"],
+        "rules": ["react-doctor/no-derived-state", "react-doctor/no-derived-state-effect"]
+      },
+      {
+        "files": ["src/features/blog/components/BlogListPage.tsx"],
+        "rules": [
+          "react-doctor/no-derived-state",
+          "react-doctor/no-derived-state-effect",
+          "react-doctor/no-reset-all-state-on-prop-change"
+        ]
+      },
+      {
+        "files": ["src/component/Filter/FilterDrawer/FilterDrawer.tsx"],
+        "rules": [
+          "react-doctor/no-derived-useState",
+          "react-doctor/no-derived-state",
+          "react-doctor/no-event-handler",
+          "react-doctor/no-reset-all-state-on-prop-change"
+        ]
+      },
+      {
+        "files": ["src/features/products/components/BrandCombobox/BrandCombobox.tsx"],
+        "rules": ["react-doctor/no-derived-useState", "react-doctor/no-derived-state"]
+      },
+      {
+        "files": [
+          "src/features/products/components/ProductForm/SlugEditModal.tsx",
+          "src/features/tasks/components/TaskItem.tsx"
+        ],
+        "rules": ["react-doctor/no-derived-useState"]
+      },
+      {
+        "files": ["src/component/Filter/AsyncSearchSelect/useLabelCache.ts"],
+        "rules": ["react-doctor/no-derived-state"]
+      },
+      {
+        "files": ["src/features/products/components/ProductsHeader/ProductsHeader.tsx"],
+        "rules": ["react-doctor/no-initialize-state"]
+      },
+      {
+        "files": [
+          "src/component/Filter/SearchSelect/SearchSelect.tsx",
+          "src/features/profile/tabs/SkinTab/DermoProfileForm.tsx",
+          "src/features/profile/components/ProfileForm/ProfileForm.tsx"
+        ],
+        "rules": ["react-doctor/prefer-useReducer"]
+      },
+      {
+        "files": [
+          "src/component/Card/Card.tsx",
+          "src/assets/icons.tsx",
+          "src/features/home/components/sections/Section.tsx"
+        ],
+        "rules": ["react-doctor/no-multi-comp"]
+      },
+      {
+        "files": [
+          "src/component/Search/ComboboxPrimitive.tsx",
+          "src/features/blog/components/BlogCategoryNav.tsx",
+          "src/features/blog/components/BlogListPage.tsx",
+          "src/features/home/components/primitives/ProductCard.tsx",
+          "src/features/home/components/Hero/HeroShell.tsx"
+        ],
+        "rules": ["react-doctor/no-render-in-render"]
+      },
+      {
+        "files": [
+          "src/component/Search/ComboboxPrimitive.tsx",
+          "src/component/Filter/AsyncSearchSelect/DropdownStatus.tsx"
+        ],
+        "rules": ["react-doctor/no-many-boolean-props"]
+      },
+      {
+        "files": [
+          "src/features/products/components/ProductForm/ProductForm.tsx",
+          "src/features/legal/components/PrivacyPage/PrivacyPage.tsx"
+        ],
+        "rules": ["react-doctor/no-giant-component"]
+      }
+    ]
+  }
+}

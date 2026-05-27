@@ -1,7 +1,7 @@
 import { detectKindPrimaryType, type ProductKind } from '@habit-tracker/shared'
 
 import { getRouteApi } from '@tanstack/react-router'
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, type ReactNode, use, useCallback, useMemo, useState } from 'react'
 
 import { applyFilters, sortProducts } from '@/features/collection/filterLogic'
 import type { UserPreferences } from '@/lib/queries/user-preferences'
@@ -140,7 +140,7 @@ export function CollectionFilterProvider({
 }
 
 export function useCollectionFilter(): CollectionFilterContextValue {
-  const ctx = useContext(CollectionFilterContext)
+  const ctx = use(CollectionFilterContext)
   if (!ctx) throw new Error('useCollectionFilter must be used within CollectionFilterProvider')
   return ctx
 }

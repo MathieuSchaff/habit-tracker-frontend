@@ -5,26 +5,18 @@ import type {
 } from '@habit-tracker/shared'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { InferResponseType } from 'hono/client'
 
-import { api } from '../api'
+import { type ApiData, api } from '../api'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 import { productKeys } from './products'
 
-export type UserProduct = Extract<
-  InferResponseType<(typeof api)['user-products']['$get']>,
-  { data: unknown }
->['data'][number]
+export type UserProduct = ApiData<(typeof api)['user-products']['$get']>[number]
 
-type UpdateUserProductVariables = {
-  id: string
-  input: UpdateUserProductInput
-}
+type IdMutation<T> = { id: string; input: T }
 
-type UpsertUserProductReviewVariables = {
-  id: string
-  input: UpdateUserProductReviewInput
-}
+export type UpdateUserProductVariables = IdMutation<UpdateUserProductInput>
+
+type UpsertUserProductReviewVariables = IdMutation<UpdateUserProductReviewInput>
 
 type UserProductReview = NonNullable<UserProduct['review']>
 

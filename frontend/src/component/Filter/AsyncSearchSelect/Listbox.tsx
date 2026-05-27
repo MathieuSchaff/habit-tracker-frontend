@@ -1,5 +1,3 @@
-import { forwardRef } from 'react'
-
 import type { FilterOption } from '../types'
 
 type Props = {
@@ -8,12 +6,10 @@ type Props = {
   filtered: FilterOption[]
   activeIndex: number
   onSelect: (opt: FilterOption) => void
+  ref?: React.Ref<HTMLDivElement>
 }
 
-export const Listbox = forwardRef<HTMLDivElement, Props>(function Listbox(
-  { id, label, filtered, activeIndex, onSelect },
-  ref
-) {
+export function Listbox({ id, label, filtered, activeIndex, onSelect, ref }: Props) {
   return (
     <div
       ref={ref}
@@ -41,4 +37,4 @@ export const Listbox = forwardRef<HTMLDivElement, Props>(function Listbox(
       })}
     </div>
   )
-})
+}

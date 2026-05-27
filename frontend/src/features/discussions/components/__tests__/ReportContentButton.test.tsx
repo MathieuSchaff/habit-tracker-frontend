@@ -9,8 +9,8 @@ vi.mock('@/lib/queries/reports', () => ({
   useCreateReport: vi.fn(),
 }))
 
-import { REPORT_LABELS } from '../ReportContentButton.constants'
 import { ReportContentButton } from '../ReportContentButton'
+import { REPORT_LABELS } from '../ReportContentButton.constants'
 
 type MutateFn = ReturnType<typeof useCreateReport>['mutate']
 

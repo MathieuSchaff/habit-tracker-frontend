@@ -23,7 +23,9 @@ const CollectionFiltersSheet = lazy(() =>
 )
 
 const ProductDetailSheet = lazy(() =>
-  import('./parts/ProductDetailSheet').then((m) => ({ default: m.ProductDetailSheet }))
+  import('./ProductViews/Detailed/ProductDetailSheet').then((m) => ({
+    default: m.ProductDetailSheet,
+  }))
 )
 
 interface CollectionTabProps {
@@ -58,7 +60,6 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
   const createComparison = useCreateComparison()
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
   const [showFiltersSheet, setShowFiltersSheet] = useState(false)
 
   const selectedProduct = expandedId
@@ -144,11 +145,8 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
         <Suspense fallback={null}>
           <ProductDetailSheet
             p={selectedProduct}
-            activeTooltip={activeTooltip}
-            setActiveTooltip={setActiveTooltip}
             onClose={() => {
               setExpandedId(null)
-              setActiveTooltip(null)
             }}
           />
         </Suspense>

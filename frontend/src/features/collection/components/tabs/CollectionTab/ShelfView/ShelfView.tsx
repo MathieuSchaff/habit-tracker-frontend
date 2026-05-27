@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { ALL_TAB_STATUSES, SHELF_ORDER } from '@/features/collection/constants'
 import type { UserProduct } from '@/lib/queries/user-products'
-import { ProductCardCondensed } from '../ProductCard/Condensed/ProductCardCondensed'
+import { ProductCardCondensed } from '../ProductViews/Condensed/ProductCardCondensed'
 import { BulkBar } from './BulkBar'
 import { FirstTimeEmpty } from './FirstTimeEmpty'
 import { ShelfEmpty } from './ShelfEmpty'
