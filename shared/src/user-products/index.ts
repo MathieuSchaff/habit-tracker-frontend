@@ -77,8 +77,9 @@ export const updateUserProductReviewSchema = z.object({
   stability: z.number().int().min(1).max(5).nullable().optional(),
   mixability: z.number().int().min(1).max(5).nullable().optional(),
   valueForMoney: z.number().int().min(1).max(5).nullable().optional(),
-  comment: z.string().max(5000).nullable().optional(),
+  comment: z.string().max(1000).nullable().optional(),
   isPublic: z.boolean().optional(),
+  ratingsPublic: z.boolean().optional(),
 })
 
 // Public reviews surface (#7) — only review fields + reviewer pseudonym.
@@ -101,7 +102,6 @@ export const publicReviewViewSchema = z.object({
   }),
 })
 
-// Qualitative aggregates — counts per bucket, never averages (anti-pattern).
 export const reviewAxisKeys = [
   'tolerance',
   'efficacy',
@@ -111,27 +111,8 @@ export const reviewAxisKeys = [
   'valueForMoney',
 ] as const
 
-export const reviewAxisAggregateSchema = z.object({
-  low: z.number().int().min(0), // votes at 1-2
-  mid: z.number().int().min(0), // votes at 3
-  high: z.number().int().min(0), // votes at 4-5
-})
-
-export const publicReviewAggregatesSchema = z.object({
-  total: z.number().int().min(0),
-  byAxis: z.object({
-    tolerance: reviewAxisAggregateSchema,
-    efficacy: reviewAxisAggregateSchema,
-    sensoriality: reviewAxisAggregateSchema,
-    stability: reviewAxisAggregateSchema,
-    mixability: reviewAxisAggregateSchema,
-    valueForMoney: reviewAxisAggregateSchema,
-  }),
-})
-
 export const publicProductReviewsResponseSchema = z.object({
   reviews: z.array(publicReviewViewSchema),
-  aggregates: publicReviewAggregatesSchema,
 })
 
 // TYPES
@@ -145,9 +126,7 @@ export type CreateUserProductInput = z.infer<typeof createUserProductSchema>
 export type UpdateUserProductInput = z.infer<typeof updateUserProductSchema>
 export type UpdateUserProductReviewInput = z.infer<typeof updateUserProductReviewSchema>
 export type ReviewAxisKey = (typeof reviewAxisKeys)[number]
-export type ReviewAxisAggregate = z.infer<typeof reviewAxisAggregateSchema>
 export type PublicReviewView = z.infer<typeof publicReviewViewSchema>
-export type PublicReviewAggregates = z.infer<typeof publicReviewAggregatesSchema>
 export type PublicProductReviewsResponse = z.infer<typeof publicProductReviewsResponseSchema>
 
 export type UserProductErrorCode =
@@ -155,6 +134,7 @@ export type UserProductErrorCode =
   | 'user_product_creation_failed'
   | 'user_product_update_failed'
   | 'user_product_delete_failed'
+  | 'public_review_requires_comment'
   | 'database_error'
 
 // HELPERS
@@ -164,5 +144,6 @@ export const userProductErrorMapping = {
   user_product_creation_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   user_product_update_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   user_product_delete_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  public_review_requires_comment: HTTP_STATUS.BAD_REQUEST,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
 } as const satisfies Record<UserProductErrorCode, HttpStatus>

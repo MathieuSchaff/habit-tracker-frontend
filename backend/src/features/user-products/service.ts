@@ -1,14 +1,11 @@
 import type {
   CreateUserProductInput,
   PublicProductReviewsResponse,
-  PublicReviewView,
-  ReviewAxisAggregate,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
 } from '@habit-tracker/shared'
-import { reviewAxisKeys } from '@habit-tracker/shared'
 
-import { and, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { profiles } from '../../db/schema/auth/users'
@@ -237,25 +234,39 @@ export async function upsertUserProductReview(
   input: UpdateUserProductReviewInput,
   db: DB
 ) {
-  // need to check if the user own the product before saving the review
   const userProduct = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
+    columns: { id: true },
+    with: { review: { columns: { comment: true, isPublic: true } } },
   })
 
   if (!userProduct) {
     throw new UserProductError('user_product_not_found')
   }
 
+  // A public review must stay anchored to authored text (ADR 0005). Resolve the
+  // effective state from payload-or-existing so a bare { isPublic: true } toggle
+  // is validated against the comment already on the row.
+  const resultingPublic = input.isPublic ?? userProduct.review?.isPublic ?? false
+  const resultingComment =
+    input.comment !== undefined ? input.comment : (userProduct.review?.comment ?? null)
+  if (resultingPublic && (resultingComment == null || resultingComment.trim() === '')) {
+    throw new UserProductError('public_review_requires_comment')
+  }
+
+  // Both the INSERT (the EXCLUDED row Postgres still CHECK-validates) and the UPDATE must
+  // carry the resolved is_public, so a valid toggle — { isPublic: true } or { ratingsPublic:
+  // true } on an already-public row — satisfies upr_ratings_public_requires_public. The
+  // invalid case (ratingsPublic on a private review) is intentionally left to the CHECK (ADR 0005).
+  const reviewValues = { ...input, isPublic: resultingPublic }
+
   const [result] = await db
     .insert(userProductReviews)
-    .values({
-      userProductId,
-      ...input,
-    })
+    .values({ userProductId, ...reviewValues })
     .onConflictDoUpdate({
       target: userProductReviews.userProductId,
       set: {
-        ...input,
+        ...reviewValues,
         updatedAt: nowISO(),
       },
     })
@@ -270,6 +281,7 @@ export async function upsertUserProductReview(
       valueForMoney: userProductReviews.valueForMoney,
       comment: userProductReviews.comment,
       isPublic: userProductReviews.isPublic,
+      ratingsPublic: userProductReviews.ratingsPublic,
       createdAt: userProductReviews.createdAt,
       updatedAt: userProductReviews.updatedAt,
     })
@@ -277,14 +289,10 @@ export async function upsertUserProductReview(
   return result
 }
 
-function emptyAxisAggregate(): ReviewAxisAggregate {
-  return { low: 0, mid: 0, high: 0 }
-}
-
-// Public reviews surface (#7). RLS already filters non-public rows; this
-// service trusts the policy and joins profiles for the pseudonym. Aggregates
-// are qualitative (3 buckets per axis), never averaged — see anti-patterns
-// §1/§4 (no scores, no fake precision).
+// Public reviews surface (ADR 0005). RLS filters non-public rows; this service
+// trusts the policy, joins profiles for the pseudonym, lists only reviews with
+// an authored comment, and reveals the raw 1-5 ratings only when the author
+// opted in (ratings_public). Aurore computes/aggregates nothing.
 export async function listPublicReviewsForProduct(
   db: DB,
   slug: string
@@ -298,6 +306,7 @@ export async function listPublicReviewsForProduct(
       stability: userProductReviews.stability,
       mixability: userProductReviews.mixability,
       valueForMoney: userProductReviews.valueForMoney,
+      ratingsPublic: userProductReviews.ratingsPublic,
       comment: userProductReviews.comment,
       createdAt: userProductReviews.createdAt,
       username: profiles.username,
@@ -316,48 +325,29 @@ export async function listPublicReviewsForProduct(
         // Defense-in-depth: RLS already hides force-private profiles for
         // app_runtime; the explicit filter covers admin-pool paths (tests,
         // backfill scripts, future privileged callers).
-        eq(profiles.forcedPrivateByAdmin, false)
+        eq(profiles.forcedPrivateByAdmin, false),
+        // Comment-less public rows stay unlisted (legacy + app-layer rule, ADR 0005).
+        sql`coalesce(trim(${userProductReviews.comment}), '') <> ''`
       )
     )
     .orderBy(desc(userProductReviews.createdAt))
 
-  const byAxis = {
-    tolerance: emptyAxisAggregate(),
-    efficacy: emptyAxisAggregate(),
-    sensoriality: emptyAxisAggregate(),
-    stability: emptyAxisAggregate(),
-    mixability: emptyAxisAggregate(),
-    valueForMoney: emptyAxisAggregate(),
-  }
-
-  const reviews: PublicReviewView[] = rows.map((row) => {
-    for (const key of reviewAxisKeys) {
-      const val = row[key]
-      if (val == null) continue
-      if (val <= 2) byAxis[key].low += 1
-      else if (val === 3) byAxis[key].mid += 1
-      else byAxis[key].high += 1
-    }
+  const reviews = rows.map((row) => {
+    const showRatings = row.ratingsPublic
     return {
       id: row.id,
-      tolerance: row.tolerance,
-      efficacy: row.efficacy,
-      sensoriality: row.sensoriality,
-      stability: row.stability,
-      mixability: row.mixability,
-      valueForMoney: row.valueForMoney,
+      tolerance: showRatings ? row.tolerance : null,
+      efficacy: showRatings ? row.efficacy : null,
+      sensoriality: showRatings ? row.sensoriality : null,
+      stability: showRatings ? row.stability : null,
+      mixability: showRatings ? row.mixability : null,
+      valueForMoney: showRatings ? row.valueForMoney : null,
       comment: row.comment,
       createdAt: row.createdAt,
-      reviewer: {
-        // isNotNull guard above narrows the column type at the SQL layer.
-        username: row.username as string,
-        profilePublic: row.profilePublic,
-      },
+      // isNotNull guard above narrows username at the SQL layer.
+      reviewer: { username: row.username as string, profilePublic: row.profilePublic },
     }
   })
 
-  return {
-    reviews,
-    aggregates: { total: reviews.length, byAxis },
-  }
+  return { reviews }
 }

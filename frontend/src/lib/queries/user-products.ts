@@ -196,7 +196,8 @@ export const useUpsertUserProductReview = () => {
       // Public-reviews surface depends on isPublic flips - refetch whenever the
       // toggle is part of the patch. Predicate scoping avoids nuking unrelated
       // product caches (bySlug, lists, ingredients...).
-      if (input.isPublic !== undefined) {
+      // ratingsPublic also changes the public payload (axes nulled or revealed).
+      if (input.isPublic !== undefined || input.ratingsPublic !== undefined) {
         queryClient.invalidateQueries({
           queryKey: productKeys.all,
           predicate: (q) => q.queryKey.includes('reviews') && q.queryKey.includes('public'),

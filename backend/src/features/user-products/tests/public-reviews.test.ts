@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 
 import { profiles } from '../../../db/schema/auth/users'
+import { userProductReviews } from '../../../db/schema/products/user-products'
 import { createProduct } from '../../../features/products/service'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
@@ -32,25 +33,19 @@ describe('listPublicReviewsForProduct', () => {
     await cleanDatabase()
   })
 
-  it('returns empty arrays and zero counts when no review exists', async () => {
+  it('returns an empty list when no public review exists', async () => {
     const owner = await createTestUser('seed@public-rev.test')
     const product = await makeProduct(owner.id, 'Empty Cream')
-
     const result = await listPublicReviewsForProduct(testDb, product.slug)
-
-    expect(result.reviews).toEqual([])
-    expect(result.aggregates.total).toBe(0)
-    expect(result.aggregates.byAxis.tolerance).toEqual({ low: 0, mid: 0, high: 0 })
-    expect(result.aggregates.byAxis.valueForMoney).toEqual({ low: 0, mid: 0, high: 0 })
+    expect(result).toEqual({ reviews: [] })
   })
 
-  it('hides private reviews and surfaces only is_public=true', async () => {
+  it('lists only public reviews that have a non-empty comment', async () => {
     const alice = await createTestUser('alice@public-rev.test')
     await setProfile(alice.id, 'alice')
     const bob = await createTestUser('bob@public-rev.test')
     await setProfile(bob.id, 'bob')
     const product = await makeProduct(alice.id, 'Shared Cream')
-
     const aliceUP = await createUserProduct(
       alice.id,
       { productId: product.id, status: 'in_stock' },
@@ -61,7 +56,6 @@ describe('listPublicReviewsForProduct', () => {
       { productId: product.id, status: 'in_stock' },
       testDb
     )
-
     await upsertUserProductReview(
       alice.id,
       aliceUP.id,
@@ -76,24 +70,108 @@ describe('listPublicReviewsForProduct', () => {
     )
 
     const result = await listPublicReviewsForProduct(testDb, product.slug)
-
     expect(result.reviews).toHaveLength(1)
     expect(result.reviews[0]).toMatchObject({
-      tolerance: 5,
       comment: 'shared by alice',
       reviewer: { username: 'alice', profilePublic: false },
     })
-    expect(result.aggregates.total).toBe(1)
-    expect(result.aggregates.byAxis.tolerance.high).toBe(1)
   })
 
-  it('exposes reviewer.profilePublic for the link-vs-plaintext UI decision', async () => {
+  it('nulls the 6 axes unless the author opted ratings public', async () => {
+    const owner = await createTestUser('gate@public-rev.test')
+    await setProfile(owner.id, 'gate-rev')
+    const product = await makeProduct(owner.id, 'Gate Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    // public + comment, ratings NOT opted in → axes hidden
+    await upsertUserProductReview(
+      owner.id,
+      up.id,
+      { tolerance: 5, efficacy: 4, comment: 'hidden numbers', isPublic: true },
+      testDb
+    )
+
+    const hidden = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(hidden.reviews[0]).toMatchObject({
+      tolerance: null,
+      efficacy: null,
+      comment: 'hidden numbers',
+    })
+
+    // opt in → axes revealed (isPublic must survive a ratings-only toggle)
+    await upsertUserProductReview(owner.id, up.id, { ratingsPublic: true }, testDb)
+    const shown = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(shown.reviews).toHaveLength(1)
+    expect(shown.reviews[0]).toMatchObject({ tolerance: 5, efficacy: 4 })
+  })
+
+  it('does not list a public review with no comment (legacy unlisted)', async () => {
+    const owner = await createTestUser('legacy@public-rev.test')
+    await setProfile(owner.id, 'legacy-rev')
+    const ws = await createTestUser('legacy-ws@public-rev.test')
+    await setProfile(ws.id, 'legacy-ws-rev')
+    const product = await makeProduct(owner.id, 'Legacy Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    const wsUp = await createUserProduct(
+      ws.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    // seed-style legacy rows: public but comment-less (null) or whitespace-only — both unlisted.
+    await testDb.insert(userProductReviews).values([
+      { userProductId: up.id, tolerance: 4, isPublic: true },
+      { userProductId: wsUp.id, tolerance: 4, comment: '   ', isPublic: true },
+    ])
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews).toEqual([])
+  })
+
+  it('rejects publishing a review without a public comment', async () => {
+    const owner = await createTestUser('reqc@public-rev.test')
+    await setProfile(owner.id, 'reqc-rev')
+    const product = await makeProduct(owner.id, 'ReqComment Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(owner.id, up.id, { tolerance: 4 }, testDb) // private, fine
+
+    await expect(
+      upsertUserProductReview(owner.id, up.id, { isPublic: true }, testDb)
+    ).rejects.toThrow('public_review_requires_comment')
+  })
+
+  it('allows toggling public when a comment already exists (payload omits comment)', async () => {
+    const owner = await createTestUser('toggle@public-rev.test')
+    await setProfile(owner.id, 'toggle-rev')
+    const product = await makeProduct(owner.id, 'Toggle Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(owner.id, up.id, { comment: 'written first' }, testDb)
+    await upsertUserProductReview(owner.id, up.id, { isPublic: true }, testDb) // must not throw
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews).toHaveLength(1)
+  })
+
+  it('exposes reviewer.profilePublic for the link-vs-plaintext decision', async () => {
     const open = await createTestUser('open@public-rev.test')
     await setProfile(open.id, 'open-rev', true)
     const shy = await createTestUser('shy@public-rev.test')
     await setProfile(shy.id, 'shy-rev', false)
     const product = await makeProduct(open.id, 'Mixed Cream')
-
     const openUP = await createUserProduct(
       open.id,
       { productId: product.id, status: 'in_stock' },
@@ -104,82 +182,27 @@ describe('listPublicReviewsForProduct', () => {
       { productId: product.id, status: 'in_stock' },
       testDb
     )
-    await upsertUserProductReview(open.id, openUP.id, { tolerance: 4, isPublic: true }, testDb)
-    await upsertUserProductReview(shy.id, shyUP.id, { tolerance: 3, isPublic: true }, testDb)
+    await upsertUserProductReview(open.id, openUP.id, { comment: 'a', isPublic: true }, testDb)
+    await upsertUserProductReview(shy.id, shyUP.id, { comment: 'b', isPublic: true }, testDb)
 
     const result = await listPublicReviewsForProduct(testDb, product.slug)
-
     const byUsername = Object.fromEntries(
       result.reviews.map((r) => [r.reviewer.username, r.reviewer.profilePublic])
     )
     expect(byUsername).toEqual({ 'open-rev': true, 'shy-rev': false })
   })
 
-  it('buckets each axis into low/mid/high (1-2 / 3 / 4-5)', async () => {
-    const owner = await createTestUser('agg@public-rev.test')
-    await setProfile(owner.id, 'agg-rev')
-    const product = await makeProduct(owner.id, 'Bucket Cream')
-    const up = await createUserProduct(
-      owner.id,
-      { productId: product.id, status: 'in_stock' },
-      testDb
-    )
-    await upsertUserProductReview(
-      owner.id,
-      up.id,
-      {
-        tolerance: 1,
-        efficacy: 2,
-        sensoriality: 3,
-        stability: 4,
-        mixability: 5,
-        valueForMoney: null,
-        isPublic: true,
-      },
-      testDb
-    )
-
-    const result = await listPublicReviewsForProduct(testDb, product.slug)
-
-    expect(result.aggregates.byAxis.tolerance).toEqual({ low: 1, mid: 0, high: 0 })
-    expect(result.aggregates.byAxis.efficacy).toEqual({ low: 1, mid: 0, high: 0 })
-    expect(result.aggregates.byAxis.sensoriality).toEqual({ low: 0, mid: 1, high: 0 })
-    expect(result.aggregates.byAxis.stability).toEqual({ low: 0, mid: 0, high: 1 })
-    expect(result.aggregates.byAxis.mixability).toEqual({ low: 0, mid: 0, high: 1 })
-    // null values are not bucketed
-    expect(result.aggregates.byAxis.valueForMoney).toEqual({ low: 0, mid: 0, high: 0 })
-  })
-
-  it('ignores reviews from other products with the same reviewer', async () => {
-    const owner = await createTestUser('multi@public-rev.test')
-    await setProfile(owner.id, 'multi-rev')
-    const p1 = await makeProduct(owner.id, 'First Cream')
-    const p2 = await makeProduct(owner.id, 'Second Cream')
-    const up1 = await createUserProduct(owner.id, { productId: p1.id, status: 'in_stock' }, testDb)
-    const up2 = await createUserProduct(owner.id, { productId: p2.id, status: 'in_stock' }, testDb)
-    await upsertUserProductReview(owner.id, up1.id, { tolerance: 5, isPublic: true }, testDb)
-    await upsertUserProductReview(owner.id, up2.id, { tolerance: 1, isPublic: true }, testDb)
-
-    const r1 = await listPublicReviewsForProduct(testDb, p1.slug)
-
-    expect(r1.aggregates.total).toBe(1)
-    expect(r1.aggregates.byAxis.tolerance).toEqual({ low: 0, mid: 0, high: 1 })
-  })
-
   it('skips reviewers whose profile has no username', async () => {
     const owner = await createTestUser('noname@public-rev.test')
-    // username left null intentionally
     const product = await makeProduct(owner.id, 'Anon Cream')
     const up = await createUserProduct(
       owner.id,
       { productId: product.id, status: 'in_stock' },
       testDb
     )
-    await upsertUserProductReview(owner.id, up.id, { tolerance: 4, isPublic: true }, testDb)
-
+    await upsertUserProductReview(owner.id, up.id, { comment: 'c', isPublic: true }, testDb)
     const result = await listPublicReviewsForProduct(testDb, product.slug)
     expect(result.reviews).toEqual([])
-    expect(result.aggregates.total).toBe(0)
   })
 
   it('orders reviews newest first', async () => {
@@ -188,15 +211,11 @@ describe('listPublicReviewsForProduct', () => {
     const b = await createTestUser('second@public-rev.test')
     await setProfile(b.id, 'second-rev')
     const product = await makeProduct(a.id, 'Ordered Cream')
-
     const aUP = await createUserProduct(a.id, { productId: product.id, status: 'in_stock' }, testDb)
-    await upsertUserProductReview(a.id, aUP.id, { tolerance: 3, isPublic: true }, testDb)
-
-    // Small delay so created_at differs.
+    await upsertUserProductReview(a.id, aUP.id, { comment: 'older', isPublic: true }, testDb)
     await new Promise((r) => setTimeout(r, 10))
-
     const bUP = await createUserProduct(b.id, { productId: product.id, status: 'in_stock' }, testDb)
-    await upsertUserProductReview(b.id, bUP.id, { tolerance: 4, isPublic: true }, testDb)
+    await upsertUserProductReview(b.id, bUP.id, { comment: 'newer', isPublic: true }, testDb)
 
     const result = await listPublicReviewsForProduct(testDb, product.slug)
     expect(result.reviews.map((r) => r.reviewer.username)).toEqual(['second-rev', 'first-rev'])

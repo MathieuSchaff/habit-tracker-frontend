@@ -138,6 +138,7 @@ export function makeUserProduct(
       valueForMoney: number | null
       comment: string | null
       isPublic: boolean
+      ratingsPublic: boolean
       createdAt: string
       updatedAt: string
     }
@@ -193,6 +194,7 @@ export function makeUserProduct(
       valueForMoney: null,
       comment: null,
       isPublic: false,
+      ratingsPublic: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },

@@ -19,10 +19,22 @@ interface PdsExperienceSectionProps {
 export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSectionProps) {
   const upsertReview = useUpsertUserProductReview()
   const [localComment, setLocalComment] = useState(p.comment || '')
+  const [localPublicComment, setLocalPublicComment] = useState(p.review?.comment || '')
 
   const handleCommentBlur = () => {
     if (localComment !== (p.comment || '')) {
       updateMutation.mutate({ id: p.id, input: { comment: localComment } })
+    }
+  }
+
+  const isPublic = p.review?.isPublic ?? false
+  // Gate the share toggle on the persisted comment so the server already has it
+  // before the public flag is flipped (avoids the public_review_requires_comment 400).
+  const hasPublicComment = (p.review?.comment ?? '').trim().length > 0
+
+  const handlePublicCommentBlur = () => {
+    if (localPublicComment !== (p.review?.comment ?? '')) {
+      upsertReview.mutate({ id: p.id, input: { comment: localPublicComment } })
     }
   }
 
@@ -64,14 +76,42 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
         </summary>
         <div className="pds-details-body">
           <CriteriaList userProductId={p.id} review={p.review} />
+          <div className="pds-sub">
+            <h4 className="pds-subtitle">Commentaire public</h4>
+            <textarea
+              className="pds-textarea"
+              aria-label="Commentaire public"
+              placeholder="Ce que les autres verront sur la page produit, avec votre pseudonyme."
+              value={localPublicComment}
+              onChange={(e) => setLocalPublicComment(e.target.value)}
+              onBlur={handlePublicCommentBlur}
+              rows={3}
+              maxLength={1000}
+            />
+          </div>
           <div className="pds-review-share">
             <Toggle
               label="Partager publiquement sur la page produit"
-              hint="Votre pseudonyme et votre commentaire apparaîtront aux autres utilisateurs. Vous pouvez désactiver à tout moment."
+              hint={
+                hasPublicComment
+                  ? 'Votre pseudonyme et votre commentaire apparaîtront aux autres. Désactivable à tout moment.'
+                  : 'Écrivez un commentaire public pour pouvoir le partager.'
+              }
               size="sm"
-              checked={p.review?.isPublic ?? false}
+              checked={isPublic}
+              disabled={!hasPublicComment}
               onChange={(checked) =>
                 upsertReview.mutate({ id: p.id, input: { isPublic: checked } })
+              }
+            />
+            <Toggle
+              label="Montrer mes notes détaillées"
+              hint="Vos notes 1–5 apparaîtront avec votre commentaire. Inactif tant que le partage est désactivé."
+              size="sm"
+              checked={p.review?.ratingsPublic ?? false}
+              disabled={!isPublic}
+              onChange={(checked) =>
+                upsertReview.mutate({ id: p.id, input: { ratingsPublic: checked } })
               }
             />
           </div>
@@ -96,6 +136,7 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
 
       <div className="pds-sub">
         <h4 className="pds-subtitle">Notes personnelles</h4>
+        <p className="pds-hint">Privé — visible seulement par vous.</p>
         <textarea
           id="pds-comment"
           className="pds-textarea"
