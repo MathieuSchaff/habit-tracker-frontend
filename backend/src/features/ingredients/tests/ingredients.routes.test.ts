@@ -147,7 +147,7 @@ describe('Ingredient Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/ingredients', {
+      const res = await app.request('/api/ingredients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(VALID_INGREDIENT),
@@ -424,7 +424,7 @@ describe('Ingredient Routes', () => {
 
     it('should reject unauthenticated request', async () => {
       const fakeId = crypto.randomUUID()
-      const res = await app.request(`/ingredients/${fakeId}`, {
+      const res = await app.request(`/api/ingredients/${fakeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'X' }),
@@ -517,7 +517,7 @@ describe('Ingredient Routes', () => {
 
     it('should reject unauthenticated request', async () => {
       const fakeId = crypto.randomUUID()
-      const res = await app.request(`/ingredients/${fakeId}`, { method: 'DELETE' })
+      const res = await app.request(`/api/ingredients/${fakeId}`, { method: 'DELETE' })
 
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })

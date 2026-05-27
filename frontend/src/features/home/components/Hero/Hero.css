@@ -137,6 +137,8 @@
 .aur-hero__visual {
   position: relative;
   min-width: 0;
+  /* Query container: the card stack sizes off this column's real width, not the viewport (outer grid + app sidebar make viewport breakpoints misfire here). */
+  container: hero-visual / inline-size;
 }
 
 /* Variant A: visual stack (3 cards) */
@@ -148,11 +150,18 @@
   padding: var(--space-3);
   min-width: 0;
 }
-@media (--xs) {
+/* 2-up collage only when this column is genuinely wide; in the 880–~1115px hero-split band it stays 1-up so the cards never cram. */
+@container hero-visual (min-width: 430px) {
   .aur-hero-stack {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-4);
     padding: var(--space-4);
+  }
+  .aur-hero-stack__secondary {
+    grid-column: 1 / 2;
+  }
+  .aur-hero-stack__tertiary {
+    grid-column: 2 / -1;
   }
 }
 .aur-hero-stack__sheet {
@@ -171,14 +180,6 @@
 }
 .aur-hero-stack__primary {
   grid-column: 1 / -1;
-}
-@media (--xs) {
-  .aur-hero-stack__secondary {
-    grid-column: 1 / 2;
-  }
-  .aur-hero-stack__tertiary {
-    grid-column: 2 / -1;
-  }
 }
 
 /* Variant B: chaos -> order */

@@ -63,7 +63,7 @@ describe('Article Routes — GET', () => {
   describe('GET /articles/:slug', () => {
     it('returns 404 for unknown slug', async () => {
       // ArticleError → 404 via globalErrorHandler, not in typed response.
-      const res = await app.request('/articles/unknown-slug')
+      const res = await app.request('/api/articles/unknown-slug')
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
   })
@@ -107,7 +107,7 @@ describe('Article Routes — Write (admin only)', () => {
     })
 
     it('returns 401 without token', async () => {
-      const res = await app.request('/articles', {
+      const res = await app.request('/api/articles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(VALID_ARTICLE),
@@ -143,7 +143,7 @@ describe('Article Routes — Write (admin only)', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       // Authorized middleware passes; handler returns 403 (typed) but TS infers
       // 200/403 union — use authPatch to dodge the discriminant gymnastics.
-      const res = await authPatch(app, '/articles/some-slug', token, { title: 'Nouveau titre' })
+      const res = await authPatch(app, '/api/articles/some-slug', token, { title: 'Nouveau titre' })
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })
 
@@ -160,7 +160,7 @@ describe('Article Routes — Write (admin only)', () => {
         TEST_CREDENTIALS.alice.rawPassword
       )
       // ArticleError → 404 via globalErrorHandler, not in typed response.
-      const res = await authPatch(app, '/articles/nonexistent', token, { title: 'X' })
+      const res = await authPatch(app, '/api/articles/nonexistent', token, { title: 'X' })
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
   })
@@ -168,7 +168,7 @@ describe('Article Routes — Write (admin only)', () => {
   describe('DELETE /articles/:slug', () => {
     it('returns 403 for non-admin', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authDelete(app, '/articles/some-slug', token)
+      const res = await authDelete(app, '/api/articles/some-slug', token)
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })
   })

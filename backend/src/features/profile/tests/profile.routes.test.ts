@@ -52,7 +52,7 @@ describe('Profile Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/profile')
+      const res = await app.request('/api/profile')
 
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
       const data = (await res.json()) as { success: boolean }
@@ -60,7 +60,7 @@ describe('Profile Routes', () => {
     })
 
     it('should reject request with invalid token', async () => {
-      const res = await app.request('/profile', {
+      const res = await app.request('/api/profile', {
         headers: { Authorization: 'Bearer invalid.token.here' },
       })
 
@@ -68,7 +68,7 @@ describe('Profile Routes', () => {
     })
 
     it('should reject request with empty Authorization header', async () => {
-      const res = await app.request('/profile', {
+      const res = await app.request('/api/profile', {
         headers: { Authorization: '' },
       })
 
@@ -76,7 +76,7 @@ describe('Profile Routes', () => {
     })
 
     it('should reject request with malformed Bearer token', async () => {
-      const res = await app.request('/profile', {
+      const res = await app.request('/api/profile', {
         headers: { Authorization: 'Bearer' },
       })
 
@@ -217,13 +217,13 @@ describe('Profile Routes', () => {
     // Validator failures return 400 via middleware, not in the typed response.
     it('should reject empty username', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile', token, { username: '' })
+      const res = await authPatch(app, '/api/profile', token, { username: '' })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject username over 32 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile', token, { username: 'a'.repeat(33) })
+      const res = await authPatch(app, '/api/profile', token, { username: 'a'.repeat(33) })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
@@ -238,7 +238,7 @@ describe('Profile Routes', () => {
 
     it('should reject bio over 500 chars', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile', token, { bio: 'a'.repeat(501) })
+      const res = await authPatch(app, '/api/profile', token, { bio: 'a'.repeat(501) })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
@@ -250,18 +250,18 @@ describe('Profile Routes', () => {
 
     it('should reject invalid avatarUrl', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile', token, { avatarUrl: 'not-a-url' })
+      const res = await authPatch(app, '/api/profile', token, { avatarUrl: 'not-a-url' })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unknown fields (strict mode)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile', token, { hackerField: 'oops' })
+      const res = await authPatch(app, '/api/profile', token, { hackerField: 'oops' })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/profile', {
+      const res = await app.request('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'nope' }),
@@ -271,7 +271,7 @@ describe('Profile Routes', () => {
     })
 
     it('should reject request with invalid token', async () => {
-      const res = await authPatch(app, '/profile', 'invalid.token.here', { username: 'nope' })
+      const res = await authPatch(app, '/api/profile', 'invalid.token.here', { username: 'nope' })
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
@@ -337,7 +337,7 @@ describe('Profile Routes', () => {
     })
 
     it('rejects unauthenticated request', async () => {
-      const res = await app.request('/profile/stats')
+      const res = await app.request('/api/profile/stats')
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
@@ -358,7 +358,7 @@ describe('Profile Routes', () => {
     })
 
     it('rejects unauthenticated request', async () => {
-      const res = await app.request('/profile/preferences')
+      const res = await app.request('/api/profile/preferences')
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
@@ -407,7 +407,7 @@ describe('Profile Routes', () => {
 
     it('rejects invalid displayScale', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/preferences', token, {
+      const res = await authPatch(app, '/api/profile/preferences', token, {
         displayScale: 'out_of_100',
       })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -415,14 +415,14 @@ describe('Profile Routes', () => {
 
     it('rejects weight outside 0-10 range', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/preferences', token, {
+      const res = await authPatch(app, '/api/profile/preferences', token, {
         criteriaWeights: { tolerance: 11 },
       })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('rejects unauthenticated request', async () => {
-      const res = await app.request('/profile/preferences', {
+      const res = await app.request('/api/profile/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayScale: 'out_of_10' }),

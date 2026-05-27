@@ -83,13 +83,13 @@ describe('Profile Links Routes', () => {
       label: `Link ${i}`,
       url: `https://example.com/${i}`,
     }))
-    const res = await authPatch(app, '/profile', token, { links })
+    const res = await authPatch(app, '/api/profile', token, { links })
     expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
   })
 
   it('should reject a link with an invalid URL', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const res = await authPatch(app, '/profile', token, {
+    const res = await authPatch(app, '/api/profile', token, {
       links: [{ label: 'Bad', url: 'not-a-url' }],
     })
     expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -97,7 +97,7 @@ describe('Profile Links Routes', () => {
 
   it('should reject a link with an empty label', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const res = await authPatch(app, '/profile', token, {
+    const res = await authPatch(app, '/api/profile', token, {
       links: [{ label: '', url: 'https://example.com' }],
     })
     expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)

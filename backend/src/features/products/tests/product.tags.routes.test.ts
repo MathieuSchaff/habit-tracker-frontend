@@ -253,7 +253,7 @@ describe('Product Tags Routes', () => {
     it('should reject an unauthenticated request', async () => {
       const product = await createProduct(client, contributorToken)
 
-      const res = await app.request(`/products/${product.id}/tags`, {
+      const res = await app.request(`/api/products/${product.id}/tags`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tags: [] }),

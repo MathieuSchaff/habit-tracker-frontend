@@ -34,7 +34,7 @@ describe('Dermo Profile Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/profile/dermo')
+      const res = await app.request('/api/profile/dermo')
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
@@ -95,7 +95,7 @@ describe('Dermo Profile Routes', () => {
     // in the typed response — fall back to authPatch for these.
     it('should reject more than 3 skin types', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, {
+      const res = await authPatch(app, '/api/profile/dermo', token, {
         skinTypes: ['dry', 'oily', 'combination', 'sensitive'],
       })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -103,7 +103,7 @@ describe('Dermo Profile Routes', () => {
 
     it('should reject an invalid skin type', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, {
+      const res = await authPatch(app, '/api/profile/dermo', token, {
         skinTypes: ['unknown_type'],
       })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -111,19 +111,19 @@ describe('Dermo Profile Routes', () => {
 
     it('should reject fitzpatrickType below 1', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, { fitzpatrickType: 0 })
+      const res = await authPatch(app, '/api/profile/dermo', token, { fitzpatrickType: 0 })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject fitzpatrickType above 6', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, { fitzpatrickType: 7 })
+      const res = await authPatch(app, '/api/profile/dermo', token, { fitzpatrickType: 7 })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('should reject an invalid skin concern', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, {
+      const res = await authPatch(app, '/api/profile/dermo', token, {
         skinConcerns: ['unknown_concern'],
       })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -131,7 +131,7 @@ describe('Dermo Profile Routes', () => {
 
     it('should reject unknown fields (strict mode)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/profile/dermo', token, { hackerField: 'oops' })
+      const res = await authPatch(app, '/api/profile/dermo', token, { hackerField: 'oops' })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
@@ -156,7 +156,7 @@ describe('Dermo Profile Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/profile/dermo', {
+      const res = await app.request('/api/profile/dermo', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skinTypes: ['dry'] }),

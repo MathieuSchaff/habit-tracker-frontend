@@ -121,7 +121,7 @@ describe('Product Tag Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request('/product-tags', {
+      const res = await app.request('/api/product-tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(VALID_TAG),
@@ -306,7 +306,7 @@ describe('Product Tag Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/product-tags/${crypto.randomUUID()}`, {
+      const res = await app.request(`/api/product-tags/${crypto.randomUUID()}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'X' }),
@@ -386,7 +386,9 @@ describe('Product Tag Routes', () => {
     })
 
     it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/product-tags/${crypto.randomUUID()}`, { method: 'DELETE' })
+      const res = await app.request(`/api/product-tags/${crypto.randomUUID()}`, {
+        method: 'DELETE',
+      })
 
       expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
     })

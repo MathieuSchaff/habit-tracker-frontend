@@ -68,7 +68,7 @@ describe('Product Discussion Routes', () => {
     it('should return 401 when unauthenticated', async () => {
       const slug = await createProductAndGetSlug()
 
-      const res = await app.request(`/products/${slug}/discussions`, {
+      const res = await app.request(`/api/products/${slug}/discussions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(VALID_THREAD),
@@ -217,7 +217,7 @@ describe('Product Discussion Routes', () => {
       const thread = threadJson.data
 
       // Cross-user delete → 403 from service via errorHandler, not in typed response.
-      const res = await app.request(`/products/${slug}/discussions/${thread.id}`, {
+      const res = await app.request(`/api/products/${slug}/discussions/${thread.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token2}` },
       })

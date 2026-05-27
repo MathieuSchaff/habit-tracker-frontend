@@ -57,14 +57,14 @@ describe('GET /profile/export', () => {
   })
 
   it('rejects unauthenticated request', async () => {
-    const res = await app.request('/profile/export')
+    const res = await app.request('/api/profile/export')
     expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
   })
 
   it('returns 200 with attachment headers for an authenticated user', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-    const res = await authGet(app, '/profile/export', token)
+    const res = await authGet(app, '/api/profile/export', token)
 
     expect(res.status).toBe(HTTP_STATUS.OK)
     expect(res.headers.get('Content-Type')).toContain('application/json')
@@ -77,7 +77,7 @@ describe('GET /profile/export', () => {
   it('returns JSON with every expected top-level section', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-    const res = await authGet(app, '/profile/export', token)
+    const res = await authGet(app, '/api/profile/export', token)
     const body = (await res.json()) as Record<string, unknown>
 
     for (const key of EXPECTED_TOP_LEVEL_KEYS) {
@@ -113,7 +113,7 @@ describe('GET /profile/export', () => {
   it('returns a well-formed _meta block with the caller userId', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-    const res = await authGet(app, '/profile/export', token)
+    const res = await authGet(app, '/api/profile/export', token)
     const body = (await res.json()) as {
       _meta: { schemaVersion: string; exportedAt: string; userId: string }
       user: { _meta: { id?: string } }
@@ -132,8 +132,8 @@ describe('GET /profile/export', () => {
     const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
 
     const [resToto, resAlice] = await Promise.all([
-      authGet(app, '/profile/export', tokenToto),
-      authGet(app, '/profile/export', tokenAlice),
+      authGet(app, '/api/profile/export', tokenToto),
+      authGet(app, '/api/profile/export', tokenAlice),
     ])
     const dataToto = (await resToto.json()) as { user: { email: string } }
     const dataAlice = (await resAlice.json()) as { user: { email: string } }
@@ -145,7 +145,7 @@ describe('GET /profile/export', () => {
 
   it('writes a `data_export_requested` audit event tied to the caller', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-    const res = await authGet(app, '/profile/export', token)
+    const res = await authGet(app, '/api/profile/export', token)
     const body = (await res.json()) as { _meta: { userId: string } }
 
     const events = await testDb
@@ -165,10 +165,10 @@ describe('GET /profile/export', () => {
   it('rejects a second export within the cooldown window', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-    const first = await authGet(app, '/profile/export', token)
+    const first = await authGet(app, '/api/profile/export', token)
     expect(first.status).toBe(HTTP_STATUS.OK)
 
-    const second = await authGet(app, '/profile/export', token)
+    const second = await authGet(app, '/api/profile/export', token)
     expect(second.status).toBe(HTTP_STATUS.RATE_LIMIT_EXCEEDED)
     const errBody = (await second.json()) as {
       success: boolean

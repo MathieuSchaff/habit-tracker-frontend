@@ -17,13 +17,13 @@ import { getPublicProfileByUsername } from '../service'
 
 async function setupOwner(app: Hono<AppEnv>, username: string) {
   const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-  await authPatch(app, '/profile', token, {
+  await authPatch(app, '/api/profile', token, {
     username,
     bio: 'My bio',
     avatarUrl: 'https://example.com/me.png',
     links: [{ label: 'IG', url: 'https://instagram.com/me' }],
   })
-  await authPatch(app, '/profile/dermo', token, {
+  await authPatch(app, '/api/profile/dermo', token, {
     skinTypes: ['peau-mixte'],
     fitzpatrickType: 3,
     skinConcerns: ['rosacee'],
@@ -54,7 +54,7 @@ describe('getPublicProfileByUsername', () => {
 
   it('exposes only username when master is on and all sub-flags are off', async () => {
     const token = await setupOwner(app, 'matt-shy')
-    await authPatch(app, '/profile/privacy-settings', token, { profilePublic: true })
+    await authPatch(app, '/api/profile/privacy-settings', token, { profilePublic: true })
 
     const view = await getPublicProfileByUsername(testDb, 'matt-shy')
     expect(view).toEqual({
@@ -70,7 +70,7 @@ describe('getPublicProfileByUsername', () => {
 
   it('exposes each profile field when its sub-flag is on', async () => {
     const token = await setupOwner(app, 'matt-bio')
-    await authPatch(app, '/profile/privacy-settings', token, {
+    await authPatch(app, '/api/profile/privacy-settings', token, {
       profilePublic: true,
       bioPublic: true,
       avatarPublic: true,
@@ -88,7 +88,7 @@ describe('getPublicProfileByUsername', () => {
 
   it('exposes each dermo field when its sub-flag is on', async () => {
     const token = await setupOwner(app, 'matt-skin')
-    await authPatch(app, '/profile/privacy-settings', token, {
+    await authPatch(app, '/api/profile/privacy-settings', token, {
       profilePublic: true,
       skinTypesPublic: true,
       fitzpatrickPublic: true,
@@ -106,7 +106,7 @@ describe('getPublicProfileByUsername', () => {
 
   it('exposes every field when all flags are on', async () => {
     const token = await setupOwner(app, 'matt-open')
-    await authPatch(app, '/profile/privacy-settings', token, {
+    await authPatch(app, '/api/profile/privacy-settings', token, {
       profilePublic: true,
       bioPublic: true,
       avatarPublic: true,

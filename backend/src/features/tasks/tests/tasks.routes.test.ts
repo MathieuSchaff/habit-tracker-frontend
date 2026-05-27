@@ -105,7 +105,7 @@ describe('Tasks API', () => {
 
     it('rejects empty title', async () => {
       // zValidator failures return 400; not in the typed response. Use raw helper.
-      const res = await authPost(app, '/tasks', token, { title: '' })
+      const res = await authPost(app, '/api/tasks', token, { title: '' })
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
   })
@@ -180,7 +180,7 @@ describe('Tasks API', () => {
       const task = createData.data
 
       // Cross-user TaskError → 404 from globalErrorHandler, not in typed response.
-      const res = await authPatch(app, `/tasks/${task.id}`, token, { title: 'Hack' })
+      const res = await authPatch(app, `/api/tasks/${task.id}`, token, { title: 'Hack' })
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
   })

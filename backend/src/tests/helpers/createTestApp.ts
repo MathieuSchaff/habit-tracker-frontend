@@ -15,11 +15,7 @@ export async function createTestApp() {
   const { healthRoute } = await import('../../features/health/routes')
   const { ingredientTagRoutes } = await import('../../features/ingredients/ingredient-tags/routes')
   const { ingredientRoutes } = await import('../../features/ingredients/routes')
-  const { productIngredientRoutes } = await import(
-    '../../features/products/product-ingredients/routes'
-  )
-  const { productTagRoutes } = await import('../../features/products/product-tags/routes')
-  const { productRoutes } = await import('../../features/products/routes')
+  const { productsFeature } = await import('../../features/products')
   const { productComparisonRoutes } = await import('../../features/product-comparisons/routes')
   const { productTagDefRoutes } = await import('../../features/product-tags/routes')
   const { ingredientTagDefRoutes } = await import('../../features/ingredient-tags/routes')
@@ -28,9 +24,6 @@ export async function createTestApp() {
   const { taskRoutes } = await import('../../features/tasks/routes')
   const { userProductRoutes } = await import('../../features/user-products/routes')
   const { errorsRoute } = await import('../../features/errors/routes')
-  const { productDiscussionRoutes } = await import(
-    '../../features/discussions/product-discussion-routes'
-  )
   const { ingredientDiscussionRoutes } = await import(
     '../../features/discussions/ingredient-discussion-routes'
   )
@@ -50,33 +43,29 @@ export async function createTestApp() {
     await next()
   })
 
-  // Register all routes.
-  // Note: Project has inconsistent test path conventions (/api prefix vs no prefix).
-  // This baseline follows the original structure to minimize breakage.
-  // Chain reassigned to preserve route types for testClient<typeof app>() RPC inference.
+  // Mirror production mounting (index.ts): every router under /api, and products
+  // via the productsFeature composite — so a prefix/composition regression cannot
+  // pass here. Chain reassigned to preserve route types for testClient RPC inference.
   const routedApp = app
-    .route('/auth', jwtAuthRoutes)
-    .route('/health', healthRoute)
-    .route('/profile', profileRoute)
-    .route('/profiles', publicProfileRoutes)
-    .route('/products', productRoutes)
-    .route('/products', productIngredientRoutes)
-    .route('/products', productTagRoutes)
-    .route('/products', productDiscussionRoutes)
-    .route('/product-comparisons', productComparisonRoutes)
-    .route('/ingredients', ingredientRoutes)
-    .route('/ingredients', ingredientTagRoutes)
-    .route('/ingredients', ingredientDiscussionRoutes)
-    .route('/product-tags', productTagDefRoutes)
-    .route('/ingredient-tags', ingredientTagDefRoutes)
-    .route('/tasks', taskRoutes)
-    .route('/user-products', userProductRoutes)
-    .route('/errors', errorsRoute)
-    .route('/articles', articleRoutes)
+    .route('/api/auth', jwtAuthRoutes)
+    .route('/api/health', healthRoute)
+    .route('/api/profile', profileRoute)
+    .route('/api/profiles', publicProfileRoutes)
+    .route('/api', productsFeature)
+    .route('/api/product-comparisons', productComparisonRoutes)
+    .route('/api/ingredients', ingredientRoutes)
+    .route('/api/ingredients', ingredientTagRoutes)
+    .route('/api/ingredients', ingredientDiscussionRoutes)
+    .route('/api/product-tags', productTagDefRoutes)
+    .route('/api/ingredient-tags', ingredientTagDefRoutes)
+    .route('/api/tasks', taskRoutes)
+    .route('/api/user-products', userProductRoutes)
     .route('/api/uploads', uploadsRoutes)
-    .route('/admin', adminBansRoutes)
-    .route('/admin/moderation', adminModerationRoutes)
-    .route('/admin/reports', adminReportsRoutes)
+    .route('/api/errors', errorsRoute)
+    .route('/api/articles', articleRoutes)
+    .route('/api/admin', adminBansRoutes)
+    .route('/api/admin/moderation', adminModerationRoutes)
+    .route('/api/admin/reports', adminReportsRoutes)
     .route('/api/reports', reportsRoutes)
 
   return routedApp

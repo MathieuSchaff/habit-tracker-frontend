@@ -45,7 +45,7 @@ describe('Privacy Settings Routes', () => {
     })
 
     it('rejects unauthenticated request', async () => {
-      const res = await app.request('/profile/privacy-settings')
+      const res = await app.request('/api/profile/privacy-settings')
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
@@ -150,7 +150,9 @@ describe('Privacy Settings Routes', () => {
     it('rejects unknown fields (strict mode)', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, { hackerField: true })
+      const res = await authPatch(app, '/api/profile/privacy-settings', token, {
+        hackerField: true,
+      })
 
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
@@ -158,7 +160,7 @@ describe('Privacy Settings Routes', () => {
     it('rejects non-boolean value', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
-      const res = await authPatch(app, '/profile/privacy-settings', token, {
+      const res = await authPatch(app, '/api/profile/privacy-settings', token, {
         profilePublic: 'yes',
       })
 
@@ -166,7 +168,7 @@ describe('Privacy Settings Routes', () => {
     })
 
     it('rejects unauthenticated request', async () => {
-      const res = await app.request('/profile/privacy-settings', {
+      const res = await app.request('/api/profile/privacy-settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profilePublic: true }),
