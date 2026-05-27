@@ -29,7 +29,7 @@ export async function throwIfNotOk(res: Response, fallbackCode = 'http_error'): 
       details = body.details
     }
   } catch {
-    // Non-JSON body — fall back to status-only branching.
+    // Non-JSON body - fall back to status-only branching.
   }
   throw new ApiError(code, res.status, details)
 }

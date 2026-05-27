@@ -293,7 +293,7 @@
 
 @media (--md) {
   .profile-tab-content__grid {
-    /* Identity column slightly wider — bio + links tend to be the chattier side. */
+    /* Identity column slightly wider - bio + links tend to be the chattier side. */
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     gap: var(--space-5);
   }

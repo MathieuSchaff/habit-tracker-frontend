@@ -38,7 +38,7 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
         })
       }
     } catch {
-      // Non-JSON 403 — ignore, pass through to caller.
+      // Non-JSON 403 - ignore, pass through to caller.
     }
     return res
   }

@@ -18,13 +18,13 @@
   --transition-slow: 300ms;
   --transition-slower: 350ms;
 
-  /* Easing curves — default to --ease-standard for everything; the bounce variants are for delight moments. */
+  /* Easing curves - default to --ease-standard for everything; the bounce variants are for delight moments. */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-soft-bounce: cubic-bezier(0.34, 1.2, 0.64, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-decel: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Stacking scale. Values 0 and 2 stay raw — they belong to local stacking contexts inside a single component. */
+  /* Stacking scale. Values 0 and 2 stay raw - they belong to local stacking contexts inside a single component. */
   --z-raised: 1;
   --z-elevated: 10;
   --z-dropdown: 50;
@@ -35,7 +35,7 @@
   --z-skip-link: 9000;
   --z-progress: 9999;
 
-  /* Derived — auto-adapts to the active theme's --color-accent. */
+  /* Derived - auto-adapts to the active theme's --color-accent. */
   --color-accent-subtle: oklch(from var(--color-accent) l c h / 0.1);
 
   /* Separator rules. Two levels only. */

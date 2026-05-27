@@ -84,7 +84,7 @@ export const AccountSettings = () => {
         description="Contrôlez ce que les autres peuvent voir de vous."
       >
         {privacyLoading ? (
-          <p className="privacy-loading">Chargement...</p>
+          <p className="privacy-loading">Chargement…</p>
         ) : privacy ? (
           <div className="privacy-toggles">
             <Toggle

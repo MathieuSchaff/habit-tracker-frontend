@@ -1,4 +1,4 @@
-import { navItems } from '@/component/Header/NavItem/NavItem'
+import { navItems } from '@/component/Header/NavItem/navItems'
 
 type TransitionInput = {
   fromPathname: string | null

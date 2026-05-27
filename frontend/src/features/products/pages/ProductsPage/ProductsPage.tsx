@@ -42,7 +42,7 @@ import '@/features/products/styles/kinds.css'
 
 const routeApi = getRouteApi('/products/')
 
-// Tag keys only — domain switch resets tags; brand/ingredient carry over via buildDomainSwitchSearch.
+// Tag keys only - domain switch resets tags; brand/ingredient carry over via buildDomainSwitchSearch.
 const EMPTY_TAG_FILTERS = emptyFilters(TAG_FILTER_KEYS)
 
 const EMPTY_FILTERS = emptyFilters(FILTER_KEYS)

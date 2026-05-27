@@ -8,11 +8,7 @@ import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormM
 import { FormActions } from '../../../../component/Input/FormActions/FormActions'
 import { Input } from '../../../../component/Input/Input'
 import { useChangePassword } from '../../../../lib/queries/auth'
-
-/* Server-error → FR label map. Exported so tests assert the same string the user sees. */
-export const CHANGE_PASSWORD_ERRORS = {
-  invalid_credentials: 'Mot de passe actuel incorrect',
-} as const
+import { CHANGE_PASSWORD_ERRORS } from './ChangePasswordForm.constants'
 
 type ChangePasswordFormProps = {
   onSuccess: () => void

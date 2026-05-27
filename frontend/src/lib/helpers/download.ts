@@ -1,6 +1,6 @@
 // Extracts the `filename` parameter from a Content-Disposition header. Only
 // handles the unquoted and double-quoted forms because that is all our backend
-// emits — RFC 5987 (UTF-8 percent-encoded) is unused server-side. Returns null
+// emits - RFC 5987 (UTF-8 percent-encoded) is unused server-side. Returns null
 // when the header is missing or unparseable so callers can fall back.
 export function parseAttachmentFilename(header: string | null | undefined): string | null {
   if (!header) return null

@@ -5,11 +5,9 @@ import { tagLabel } from '@/features/products/filters'
 
 import './MetaStrip.css'
 
-type Props = { products: EnrichedComparisonProduct[] }
+import { META_STRIP_LABELS } from './MetaStrip.constants'
 
-export const META_STRIP_LABELS = {
-  priceMixed: 'Prix non comparable',
-} as const
+type Props = { products: EnrichedComparisonProduct[] }
 
 const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
 

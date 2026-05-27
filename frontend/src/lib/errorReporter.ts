@@ -8,7 +8,7 @@ interface ErrorPayload {
   userId?: string
 }
 
-// Fire-and-forget — never throws. Errors in the reporter must not cause new errors.
+// Fire-and-forget - never throws. Errors in the reporter must not cause new errors.
 export async function reportError(error: Error, context?: Record<string, unknown>): Promise<void> {
   const userId = useAuthStore.getState().user?.id
 
@@ -27,6 +27,6 @@ export async function reportError(error: Error, context?: Record<string, unknown
       body: JSON.stringify(payload),
     })
   } catch {
-    // intentionally empty — error reporter must never throw
+    // intentionally empty - error reporter must never throw
   }
 }

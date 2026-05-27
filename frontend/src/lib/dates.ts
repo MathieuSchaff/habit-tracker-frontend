@@ -17,7 +17,7 @@ export function todayDateInputValue(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-// ISO instant for now — use when writing wire dates from the frontend.
+// ISO instant for now - use when writing wire dates from the frontend.
 // Wraps the only sanctioned `new Date().toISOString()` call so components
 // stay free of raw Date allocations.
 export function nowInstant(): string {
@@ -34,8 +34,7 @@ export function parseDatetimeLocalAsUTC(value: string): string {
   return `${withSeconds}.000Z`
 }
 
-// Display
-// Locale always FR — components must not fall back to browser locale.
+// Locale always FR - components must not fall back to browser locale.
 
 type FormatStyle = 'short' | 'medium' | 'long' | 'monthYear'
 
@@ -54,7 +53,7 @@ export function formatInstant(
   return new Intl.DateTimeFormat('fr-FR', FORMAT_OPTIONS[style]).format(new Date(iso))
 }
 
-// ISO 8601 UTC strings sort lexicographically — no Date allocation needed.
+// ISO 8601 UTC strings sort lexicographically - no Date allocation needed.
 // Use `compareInstant(b, a)` for descending (most recent first).
 export function compareInstant(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0

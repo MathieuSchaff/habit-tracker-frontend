@@ -201,7 +201,7 @@ export const useUpsertUserProductReview = () => {
     onSettled: (_, __, { id, input }) => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
-      // Public-reviews surface depends on isPublic flips — refetch whenever the
+      // Public-reviews surface depends on isPublic flips - refetch whenever the
       // toggle is part of the patch. Predicate scoping avoids nuking unrelated
       // product caches (bySlug, lists, ingredients...).
       if (input.isPublic !== undefined) {

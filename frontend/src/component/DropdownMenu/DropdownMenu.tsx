@@ -64,7 +64,7 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
     setIsOpen(false)
     // Return focus to the trigger so keyboard users keep their place. Skip if
     // the trigger node was detached (route change unmounting the parent,
-    // ancestor dialog closing concurrently) — focusing a detached node no-ops
+    // ancestor dialog closing concurrently) - focusing a detached node no-ops
     // and steals focus from whatever the browser would otherwise hand it to.
     const trigger = triggerRef.current
     if (trigger && document.contains(trigger)) trigger.focus()
@@ -221,7 +221,7 @@ function DropdownMenuContent({
       const maxLeft = window.innerWidth - margin - cr.width
       if (left > maxLeft) left = maxLeft
 
-      // Same clamp vertically — covers short viewports (mobile portrait + keyboard
+      // Same clamp vertically - covers short viewports (mobile portrait + keyboard
       // open) and trigger placement near the bottom edge. No auto-flip yet:
       // intentional follow-up if a real overflow case bites.
       const maxTop = window.innerHeight - margin - cr.height
@@ -249,7 +249,7 @@ function DropdownMenuContent({
   // Focus the initial item once opened so arrow keys work right away.
   // `initialFocusRef` is set by the trigger (or defaults to 'first') just
   // before isOpen flips, so by the time this effect runs the choice is settled.
-  // Reads items live from the DOM (querySelectorAll) — Fragment children,
+  // Reads items live from the DOM (querySelectorAll) - Fragment children,
   // nested wrappers, and conditional remounts are all picked up without a
   // separate registration step.
   useEffect(() => {
@@ -286,7 +286,7 @@ function DropdownMenuContent({
 
   if (!isOpen) return null
 
-  // Live DOM query — items source of truth is `[role=menuitem]` under
+  // Live DOM query - items source of truth is `[role=menuitem]` under
   // contentRef, not a registered collection. Survives parent re-renders,
   // Fragments, nested wrappers, and conditional remounts for free.
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -316,7 +316,7 @@ function DropdownMenuContent({
 
   // Pre-measure: render at (0,0) on first commit so useLayoutEffect can measure
   // the content size. useLayoutEffect runs synchronously before paint, so the
-  // (0,0) frame is never visible — by the time the browser paints, coords is set.
+  // (0,0) frame is never visible - by the time the browser paints, coords is set.
   const style: React.CSSProperties = coords
     ? { position: 'fixed', top: `${coords.top}px`, left: `${coords.left}px` }
     : { position: 'fixed', top: 0, left: 0 }
@@ -326,6 +326,7 @@ function DropdownMenuContent({
       ref={contentRef}
       id={menuId}
       role="menu"
+      tabIndex={-1}
       aria-label={ariaLabel}
       aria-orientation="vertical"
       className={`dropdown-menu__content${className ? ` ${className}` : ''}`}
@@ -374,7 +375,7 @@ function DropdownMenuItem({
   // biome-ignore lint/suspicious/noExplicitAny: cloneElement ref typing across element kinds
   return cloneElement(children as ReactElement<any>, {
     ref: (node: HTMLElement | null) => {
-      // Forward to the child's existing ref only — kb nav reads items from the
+      // Forward to the child's existing ref only - kb nav reads items from the
       // DOM live (querySelectorAll under contentRef), no central registration.
       const childRef = (children as unknown as { ref?: React.Ref<HTMLElement> }).ref
       if (typeof childRef === 'function') childRef(node)

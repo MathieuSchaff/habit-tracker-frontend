@@ -10,7 +10,7 @@ import './ComparisonBody.css'
 
 type Props = {
   products: EnrichedComparisonProduct[]
-  /** Optional editorial header — falls back to a generic title when absent. */
+  /** Optional editorial header - falls back to a generic title when absent. */
   comparisonName?: string | null
   reference?: string
 }

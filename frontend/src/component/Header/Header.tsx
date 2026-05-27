@@ -16,7 +16,7 @@ export const Header = () => {
   const toggleMenu = () => setIsOpen((prev) => !prev)
 
   // Nav drawer floats over the main app content (Links, cards). Tap outside
-  // must dismiss WITHOUT triggering the underlying card — see useCaptureDismiss
+  // must dismiss WITHOUT triggering the underlying card - see useCaptureDismiss
   // docs. Gated on isOpen so a closed nav never intercepts clicks app-wide.
   useCaptureDismiss(navRef, closeMenu, { enabled: isOpen })
   useEscapeKey(() => {

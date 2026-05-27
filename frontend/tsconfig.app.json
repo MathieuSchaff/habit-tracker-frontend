@@ -4,8 +4,8 @@
     "noEmit": true, // ✅ Pas besoin d'émettre, Vite gère tout
     // "composite": true,        // ❌ SUPPRIMÉ - pas nécessaire si pas référencé
 
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",

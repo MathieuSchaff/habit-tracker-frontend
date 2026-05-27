@@ -173,6 +173,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
             ref={inputRef}
             id={inputId}
             type="text"
+            // react-doctor-disable-next-line react-doctor/no-redundant-roles
             role="combobox"
             className="search-combobox__input"
             placeholder={placeholder}

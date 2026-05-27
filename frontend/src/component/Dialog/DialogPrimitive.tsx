@@ -19,7 +19,7 @@ export function useDialogTitleId() {
 
 interface DialogPrimitiveProps {
   onClose: () => void
-  /** optional — if omitted, an id is generated and exposed via Modal.Title / Sheet.Title */
+  /** optional - if omitted, an id is generated and exposed via Modal.Title / Sheet.Title */
   labelledBy?: string
   /** native <dialog> implies role="dialog"; pass "alertdialog" only when the dialog interrupts a flow */
   role?: 'dialog' | 'alertdialog'
@@ -76,7 +76,7 @@ export function DialogPrimitive({
   useScrollLock(needsManualLock.current)
 
   // Native fires "cancel" on Escape; route unmount through React instead of letting the browser close alone.
-  // Skip when a DropdownMenu is open above — Escape should peel the menu first, then the dialog on a second press.
+  // Skip when a DropdownMenu is open above - Escape should peel the menu first, then the dialog on a second press.
   const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault()
     if (document.body.dataset.dropdownMenuOpen) return

@@ -45,7 +45,7 @@ export function PreferenceSettings() {
 
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
-  if (isLoading || !prefs) return <output>Chargement des préférences...</output>
+  if (isLoading || !prefs) return <output>Chargement des préférences…</output>
 
   const handleWeightChange = (key: string, value: number) => {
     clearTimeout(debounceTimers.current[key])

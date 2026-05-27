@@ -133,7 +133,7 @@ export function productEditFormToCreateInput(form: ProductEditFormInput): Create
   }
 }
 
-// PATCH /api/products/:id — empty + previously set → null (clear); empty + was empty → undefined.
+// PATCH /api/products/:id - empty + previously set → null (clear); empty + was empty → undefined.
 export function productEditFormToUpdateInput(
   form: ProductEditFormInput,
   original: ProductDetail

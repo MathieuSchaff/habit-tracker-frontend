@@ -25,7 +25,7 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  /* WCAG 2.5.5 AAA — guarantees a 44×44px tap target on mobile even though
+  /* WCAG 2.5.5 AAA - guarantees a 44×44px tap target on mobile even though
      the padding alone reads ~34px with a 14px line. Padding stays for the
      visual rhythm; min-height just floors the hit zone. */
   min-height: 44px;

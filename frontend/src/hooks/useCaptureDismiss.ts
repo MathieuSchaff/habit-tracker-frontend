@@ -24,7 +24,7 @@ type AnyRef = RefObject<HTMLElement | null>
  *    interactive container (drawer with Apply/Reset, form with sibling inputs).
  *    Tap outside should activate the target it landed on.
  *
- * Always pass `{ enabled }` when the component can be closed — a permanently
+ * Always pass `{ enabled }` when the component can be closed - a permanently
  * attached capture listener will swallow EVERY click in the app.
  */
 export const useCaptureDismiss = (

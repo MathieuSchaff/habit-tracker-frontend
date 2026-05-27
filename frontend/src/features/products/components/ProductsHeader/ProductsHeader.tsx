@@ -268,7 +268,6 @@ function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonP
       className={`products-floating-filter${visible ? ' products-floating-filter--visible' : ''}${dragging ? ' products-floating-filter--dragging' : ''}`}
       style={{ '--drag-y': `${y}px` } as React.CSSProperties}
       aria-label={`Filtrer${count > 0 ? ` (${count} actif${count > 1 ? 's' : ''})` : ''}`}
-      aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
       {...dragHandlers}
       onClick={withClickGuard(onClick)}

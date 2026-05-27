@@ -43,7 +43,7 @@ knip-strict:
 cycles:
     bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src
 
-# Audit code complet (knip + biome + tsc + cycles + fallow health/dupes). Rapports → .audit-out/
+# Audit code complet (knip + biome + tsc + cycles + fallow health/dupes + react-doctor). Rapports → .audit-out/
 audit-code:
     #!/usr/bin/env bash
     set +e
@@ -60,6 +60,8 @@ audit-code:
     npx fallow health 2>&1 | tee .audit-out/health.txt
     printf "{{CYAN}}=== fallow dupes ==={{NC}}\n"
     npx fallow dupes 2>&1 | tee .audit-out/dupes.txt
+    printf "{{CYAN}}=== react-doctor (React patterns/a11y/perf) ==={{NC}}\n"
+    cd frontend && npx react-doctor@latest --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
     printf "{{GREEN}}Done. Rapports → .audit-out/{{NC}}\n"
 
 # Check only test files

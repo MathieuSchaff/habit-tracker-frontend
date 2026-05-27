@@ -28,7 +28,6 @@ export function BackToTopButton() {
       size="md"
       className={`back-to-top${visible ? ' back-to-top--visible' : ''}`}
       aria-label="Revenir en haut de la page"
-      aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
       onClick={handleClick}
     >

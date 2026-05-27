@@ -61,7 +61,7 @@ export const SignupPage = () => {
 
     setErrors({})
 
-    // confirmPassword is UI-only — don't ship it to the backend.
+    // confirmPassword is UI-only - don't ship it to the backend.
     const { confirmPassword: _confirm, ...payload } = parsed.data
     signup.mutate(payload, {
       onSuccess: () => {

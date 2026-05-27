@@ -1,4 +1,4 @@
-/* mobile: sheet stuck to the bottom of the viewport — override native dialog's margin: auto centering */
+/* mobile: sheet stuck to the bottom of the viewport - override native dialog's margin: auto centering */
 .dialog-sheet {
   margin: auto auto 0;
   width: 100%;

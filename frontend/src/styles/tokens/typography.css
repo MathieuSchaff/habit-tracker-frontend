@@ -26,7 +26,7 @@
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
   --tracking-wider: 0.1em;
-  /* Widest tracking for uppercase labels — luxurious / editorial. */
+  /* Widest tracking for uppercase labels - luxurious / editorial. */
   --tracking-widest: 0.2em;
 
   --font-features-display: "kern" 1, "liga" 1, "onum" 1, "pnum" 1;

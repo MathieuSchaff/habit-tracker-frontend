@@ -133,7 +133,7 @@ dialog::backdrop {
   color: var(--text-primary);
 }
 
-/* KaTeX formulas can overflow their container — clip horizontally with scroll. */
+/* KaTeX formulas can overflow their container - clip horizontally with scroll. */
 .markdown-container .katex-display {
   display: block;
   white-space: nowrap;

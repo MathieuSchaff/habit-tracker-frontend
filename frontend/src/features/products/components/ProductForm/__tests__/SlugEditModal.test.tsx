@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { SLUG_EDIT_LABELS, SlugEditModal } from '../SlugEditModal'
+import { SLUG_EDIT_LABELS } from '../SlugEditModal.constants'
+import { SlugEditModal } from '../SlugEditModal'
 
 function renderModal(overrides: Partial<Parameters<typeof SlugEditModal>[0]> = {}) {
   const onClose = vi.fn()
