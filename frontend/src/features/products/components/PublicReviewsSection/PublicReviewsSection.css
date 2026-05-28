@@ -121,3 +121,18 @@
   color: var(--text-primary);
   white-space: pre-line;
 }
+
+.public-reviews__skin-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.public-reviews__skin-chip {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  line-height: var(--leading-normal);
+}
