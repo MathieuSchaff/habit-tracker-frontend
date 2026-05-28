@@ -685,6 +685,56 @@ describe('Product Routes', () => {
     })
   })
 
+  describe('GET /products/slug-preview', () => {
+    it('returns slugified name+brand for a fresh product', async () => {
+      const res = await client.products['slug-preview'].$get({
+        query: { name: 'CeraVe Baume', brand: 'CeraVe' },
+      })
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('slug-preview failed')
+      expect(data.data.slug).toBe('cera-ve-baume-cera-ve')
+    })
+
+    it('appends numeric suffix when base slug is already taken', async () => {
+      await client.products.$post(
+        {
+          json: {
+            ...VALID_PRODUCT,
+            name: 'Niacinamide',
+            brand: 'Ordinary',
+            slug: 'niacinamide-ordinary',
+          },
+        },
+        withAuth(contributorToken)
+      )
+      const res = await client.products['slug-preview'].$get({
+        query: { name: 'Niacinamide', brand: 'Ordinary' },
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error('slug-preview failed')
+      expect(data.data.slug).toBe('niacinamide-ordinary-1')
+    })
+
+    it('works with empty brand', async () => {
+      const res = await client.products['slug-preview'].$get({
+        query: { name: 'Niacinamide', brand: '' },
+      })
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('slug-preview failed')
+      expect(data.data.slug).toBe('niacinamide')
+    })
+
+    it('returns 400 when name is too short', async () => {
+      const res = await client.products['slug-preview'].$get({
+        query: { name: 'A', brand: '' },
+      })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+  })
+
   describe('GET /products/search', () => {
     it('should return an empty array when nothing matches', async () => {
       const res = await client.products.search.$get({ query: { q: 'xyzzyx' } })

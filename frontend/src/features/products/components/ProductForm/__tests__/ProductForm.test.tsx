@@ -26,6 +26,10 @@ vi.mock('@/lib/queries/products', () => ({
       queryKey: ['products', 'checkDuplicate'],
       queryFn: vi.fn(async () => []),
     })),
+    previewSlug: vi.fn(() => ({
+      queryKey: ['products', 'previewSlug'],
+      queryFn: vi.fn(async () => null),
+    })),
   },
   useAddProductIngredient: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useRemoveProductIngredient: vi.fn(() => ({

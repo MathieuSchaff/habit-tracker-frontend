@@ -108,6 +108,12 @@ export function ProductForm({
     enabled: mode === 'create' && debouncedName.length >= 2 && debouncedBrand.length >= 1,
   })
 
+  const { data: previewSlugData } = useQuery({
+    ...productQueries.previewSlug(debouncedName, debouncedBrand),
+    enabled: mode === 'create' && debouncedName.length >= 2 && debouncedBrand.length >= 1,
+  })
+  const previewSlug = mode === 'create' ? (previewSlugData ?? null) : null
+
   const submitArgs =
     mode === 'edit'
       ? ({ mode: 'edit' as const, product, form, tags, onSuccess } as const)
@@ -393,6 +399,7 @@ export function ProductForm({
           mode={mode}
           product={product}
           form={form}
+          previewSlug={previewSlug}
           onUpload={handleImageUpload}
         />
       </div>
@@ -523,14 +530,25 @@ function ProductImageSection({
   mode,
   product,
   form,
+  previewSlug,
   onUpload,
 }: {
   mode: 'create' | 'edit'
   product: ProductDetail | undefined
   form: ProductEditFormInput
+  previewSlug: string | null
   onUpload: (url: string) => void
 }) {
-  if (mode === 'create' || !product) return <ProductImageField mode="create" />
+  if (mode === 'create' || !product) {
+    return (
+      <ProductImageField
+        mode="create"
+        endpoint={previewSlug ? `/api/uploads/product/${previewSlug}` : null}
+        imageUrl={form.imageUrl}
+        onUpload={onUpload}
+      />
+    )
+  }
   return (
     <ProductImageField
       mode="edit"
