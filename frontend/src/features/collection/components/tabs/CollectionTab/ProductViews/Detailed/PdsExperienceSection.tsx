@@ -19,7 +19,11 @@ interface PdsExperienceSectionProps {
 export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSectionProps) {
   const upsertReview = useUpsertUserProductReview()
   const [localComment, setLocalComment] = useState(p.comment || '')
-  const [localPublicComment, setLocalPublicComment] = useState(p.review?.comment || '')
+  // Truncate to the current max on init — existing rows stored before the 5000→1000
+  // limit change would fail the Zod validation on blur without this guard.
+  const [localPublicComment, setLocalPublicComment] = useState(
+    (p.review?.comment || '').slice(0, 1000)
+  )
 
   const handleCommentBlur = () => {
     if (localComment !== (p.comment || '')) {

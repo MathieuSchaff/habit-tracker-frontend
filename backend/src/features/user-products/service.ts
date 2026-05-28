@@ -8,7 +8,7 @@ import type {
 import { and, desc, eq, isNotNull, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db'
-import { profiles } from '../../db/schema/auth/users'
+import { profiles, userDermoProfiles } from '../../db/schema/auth/users'
 import { products } from '../../db/schema/products/products'
 import { userProductStatusLog } from '../../db/schema/products/user-product-status-log'
 import { userProductReviews, userProducts } from '../../db/schema/user-products'
@@ -255,10 +255,14 @@ export async function upsertUserProductReview(
   }
 
   // Both the INSERT (the EXCLUDED row Postgres still CHECK-validates) and the UPDATE must
-  // carry the resolved is_public, so a valid toggle — { isPublic: true } or { ratingsPublic:
-  // true } on an already-public row — satisfies upr_ratings_public_requires_public. The
-  // invalid case (ratingsPublic on a private review) is intentionally left to the CHECK (ADR 0005).
-  const reviewValues = { ...input, isPublic: resultingPublic }
+  // carry the resolved is_public. When is_public flips to false, ratings_public must also
+  // be cleared — leaving it true on a private review violates upr_ratings_public_requires_public
+  // and causes an unhandled DB CHECK error (guaranteed crash for users retracting public reviews).
+  const reviewValues = {
+    ...input,
+    isPublic: resultingPublic,
+    ...(!resultingPublic && { ratingsPublic: false }),
+  }
 
   const [result] = await db
     .insert(userProductReviews)
@@ -311,11 +315,16 @@ export async function listPublicReviewsForProduct(
       createdAt: userProductReviews.createdAt,
       username: profiles.username,
       profilePublic: profiles.profilePublic,
+      skinTypes: userDermoProfiles.skinTypes,
+      fitzpatrickType: userDermoProfiles.fitzpatrickType,
+      skinTypesPublic: userDermoProfiles.skinTypesPublic,
+      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
     })
     .from(userProductReviews)
     .innerJoin(userProducts, eq(userProducts.id, userProductReviews.userProductId))
     .innerJoin(products, eq(products.id, userProducts.productId))
     .innerJoin(profiles, eq(profiles.userId, userProducts.userId))
+    .leftJoin(userDermoProfiles, eq(userDermoProfiles.userId, userProducts.userId))
     .where(
       and(
         eq(userProductReviews.isPublic, true),
@@ -331,6 +340,7 @@ export async function listPublicReviewsForProduct(
       )
     )
     .orderBy(desc(userProductReviews.createdAt))
+    .limit(50)
 
   const reviews = rows.map((row) => {
     const showRatings = row.ratingsPublic
@@ -345,7 +355,13 @@ export async function listPublicReviewsForProduct(
       comment: row.comment,
       createdAt: row.createdAt,
       // isNotNull guard above narrows username at the SQL layer.
-      reviewer: { username: row.username as string, profilePublic: row.profilePublic },
+      // skinTypesPublic is null when no dermo row (LEFT JOIN) — treat as false.
+      reviewer: {
+        username: row.username as string,
+        profilePublic: row.profilePublic,
+        skinTypes: row.skinTypesPublic ? (row.skinTypes ?? null) : null,
+        fitzpatrickType: row.fitzpatrickPublic ? (row.fitzpatrickType ?? null) : null,
+      },
     }
   })
 

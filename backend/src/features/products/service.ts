@@ -734,9 +734,13 @@ export async function previewSlug(name: string, brand: string, database: DB = db
   const raw = `${normalizedName}${normalizedBrand ? `-${normalizedBrand}` : ''}`
   const baseSlug = slugify(raw)
 
+  // Non-alphanumeric names (e.g. '!!') pass Zod min(2) but produce an empty slug.
+  // Return a fallback so the caller never enters an infinite DB loop on slug=''.
+  if (!baseSlug) return 'product'
+
   let candidate = baseSlug
   let attempt = 1
-  while (true) {
+  while (attempt <= 100) {
     const [existing] = await database
       .select({ id: products.id })
       .from(products)
@@ -746,4 +750,5 @@ export async function previewSlug(name: string, brand: string, database: DB = db
     candidate = `${baseSlug}-${attempt}`
     attempt++
   }
+  return `${baseSlug}-${Date.now()}`
 }

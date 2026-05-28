@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { HTTP_STATUS, type HttpStatus } from '../core'
+import { SKIN_TYPES } from '../profile'
 
 // SCHEMAS
 
@@ -99,6 +100,8 @@ export const publicReviewViewSchema = z.object({
   reviewer: z.object({
     username: z.string(),
     profilePublic: z.boolean(),
+    skinTypes: z.array(z.enum(SKIN_TYPES)).nullable(),
+    fitzpatrickType: z.number().int().min(1).max(6).nullable(),
   }),
 })
 

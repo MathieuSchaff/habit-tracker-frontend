@@ -68,7 +68,12 @@ describe('PublicReviewsSection', () => {
           valueForMoney: null,
           comment: 'Sensation très confortable au quotidien.',
           createdAt: '2026-04-12T12:00:00Z',
-          reviewer: { username: 'lea', profilePublic: true },
+          reviewer: {
+            username: 'lea',
+            profilePublic: true,
+            skinTypes: null,
+            fitzpatrickType: null,
+          },
         },
       ],
     })
@@ -95,7 +100,12 @@ describe('PublicReviewsSection', () => {
           valueForMoney: null,
           comment: 'Trop riche pour mon usage du matin.',
           createdAt: '2026-04-10T08:00:00Z',
-          reviewer: { username: 'discret-user', profilePublic: false },
+          reviewer: {
+            username: 'discret-user',
+            profilePublic: false,
+            skinTypes: null,
+            fitzpatrickType: null,
+          },
         },
       ],
     })
@@ -104,5 +114,60 @@ describe('PublicReviewsSection', () => {
     expect(screen.getByText('discret-user')).toBeInTheDocument()
     expect(screen.getByText('Trop riche pour mon usage du matin.')).toBeInTheDocument()
     expect(screen.queryByText('Tolérance')).toBeNull()
+  })
+
+  it('renders skin type chips and Fitzpatrick chip when reviewer opted in', () => {
+    const queryClient = seedQuery({
+      reviews: [
+        {
+          id: 'rev-skin',
+          tolerance: null,
+          efficacy: null,
+          sensoriality: null,
+          stability: null,
+          mixability: null,
+          valueForMoney: null,
+          comment: 'Très bien pour peau sèche.',
+          createdAt: '2026-04-15T10:00:00Z',
+          reviewer: {
+            username: 'skin-user',
+            profilePublic: false,
+            skinTypes: ['peau-seche', 'peau-sensible'],
+            fitzpatrickType: 2,
+          },
+        },
+      ],
+    })
+    renderWithProviders(<PublicReviewsSection slug={SLUG} />, { queryClient })
+    expect(screen.getByText('Sèche')).toBeInTheDocument()
+    expect(screen.getByText('Sensible')).toBeInTheDocument()
+    expect(screen.getByText('Phototype II')).toBeInTheDocument()
+  })
+
+  it('does not render skin chips when skinTypes and fitzpatrickType are null', () => {
+    const queryClient = seedQuery({
+      reviews: [
+        {
+          id: 'rev-no-skin',
+          tolerance: null,
+          efficacy: null,
+          sensoriality: null,
+          stability: null,
+          mixability: null,
+          valueForMoney: null,
+          comment: 'Produit correct.',
+          createdAt: '2026-04-14T10:00:00Z',
+          reviewer: {
+            username: 'anon-user',
+            profilePublic: false,
+            skinTypes: null,
+            fitzpatrickType: null,
+          },
+        },
+      ],
+    })
+    renderWithProviders(<PublicReviewsSection slug={SLUG} />, { queryClient })
+    expect(screen.queryByText('Sèche')).toBeNull()
+    expect(screen.queryByText(/Phototype/)).toBeNull()
   })
 })

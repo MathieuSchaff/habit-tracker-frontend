@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
+import type { SkinType } from '@habit-tracker/shared'
+
 import { eq } from 'drizzle-orm'
 
-import { profiles } from '../../../db/schema/auth/users'
+import { profiles, userDermoProfiles } from '../../../db/schema/auth/users'
 import { userProductReviews } from '../../../db/schema/products/user-products'
 import { createProduct } from '../../../features/products/service'
 import { testDb } from '../../../tests/db.test.config'
@@ -12,6 +14,35 @@ import { createUserProduct, listPublicReviewsForProduct, upsertUserProductReview
 
 async function setProfile(userId: string, username: string, profilePublic = false) {
   await testDb.update(profiles).set({ username, profilePublic }).where(eq(profiles.userId, userId))
+}
+
+async function setDermoProfile(
+  userId: string,
+  opts: {
+    skinTypes?: SkinType[]
+    fitzpatrickType?: number
+    skinTypesPublic?: boolean
+    fitzpatrickPublic?: boolean
+  }
+) {
+  await testDb
+    .insert(userDermoProfiles)
+    .values({
+      userId,
+      skinTypes: opts.skinTypes ?? null,
+      fitzpatrickType: opts.fitzpatrickType ?? null,
+      skinTypesPublic: opts.skinTypesPublic ?? false,
+      fitzpatrickPublic: opts.fitzpatrickPublic ?? false,
+    })
+    .onConflictDoUpdate({
+      target: userDermoProfiles.userId,
+      set: {
+        skinTypes: opts.skinTypes ?? null,
+        fitzpatrickType: opts.fitzpatrickType ?? null,
+        skinTypesPublic: opts.skinTypesPublic ?? false,
+        fitzpatrickPublic: opts.fitzpatrickPublic ?? false,
+      },
+    })
 }
 
 async function makeProduct(ownerId: string, name: string) {
@@ -219,5 +250,115 @@ describe('listPublicReviewsForProduct', () => {
 
     const result = await listPublicReviewsForProduct(testDb, product.slug)
     expect(result.reviews.map((r) => r.reviewer.username)).toEqual(['second-rev', 'first-rev'])
+  })
+
+  it('exposes skinTypes and fitzpatrickType when skinTypesPublic is true', async () => {
+    const owner = await createTestUser('skin-on@public-rev.test')
+    await setProfile(owner.id, 'skin-on-rev')
+    await setDermoProfile(owner.id, {
+      skinTypes: ['peau-seche', 'peau-sensible'],
+      fitzpatrickType: 2,
+      skinTypesPublic: true,
+      fitzpatrickPublic: true,
+    })
+    const product = await makeProduct(owner.id, 'Skin On Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(
+      owner.id,
+      up.id,
+      { comment: 'dry and sensitive', isPublic: true },
+      testDb
+    )
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews[0].reviewer).toMatchObject({
+      skinTypes: ['peau-seche', 'peau-sensible'],
+      fitzpatrickType: 2,
+    })
+  })
+
+  it('nulls skinTypes and fitzpatrickType when skinTypesPublic is false', async () => {
+    const owner = await createTestUser('skin-off@public-rev.test')
+    await setProfile(owner.id, 'skin-off-rev')
+    await setDermoProfile(owner.id, {
+      skinTypes: ['peau-grasse'],
+      fitzpatrickType: 4,
+      skinTypesPublic: false,
+    })
+    const product = await makeProduct(owner.id, 'Skin Off Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(
+      owner.id,
+      up.id,
+      { comment: 'kept private', isPublic: true },
+      testDb
+    )
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews[0].reviewer).toMatchObject({
+      skinTypes: null,
+      fitzpatrickType: null,
+    })
+  })
+
+  it('nulls skinTypes and fitzpatrickType when no dermo profile exists (LEFT JOIN)', async () => {
+    const owner = await createTestUser('no-dermo@public-rev.test')
+    await setProfile(owner.id, 'no-dermo-rev')
+    // intentionally no setDermoProfile call
+    const product = await makeProduct(owner.id, 'No Dermo Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(
+      owner.id,
+      up.id,
+      { comment: 'no dermo profile', isPublic: true },
+      testDb
+    )
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews[0].reviewer).toMatchObject({
+      skinTypes: null,
+      fitzpatrickType: null,
+    })
+  })
+
+  it('nulls fitzpatrickType when fitzpatrickPublic is false even if skinTypesPublic is true', async () => {
+    const owner = await createTestUser('fitz-off@public-rev.test')
+    await setProfile(owner.id, 'fitz-off-rev')
+    await setDermoProfile(owner.id, {
+      skinTypes: ['peau-mixte'],
+      fitzpatrickType: 3,
+      skinTypesPublic: true,
+      fitzpatrickPublic: false,
+    })
+    const product = await makeProduct(owner.id, 'Fitz Off Cream')
+    const up = await createUserProduct(
+      owner.id,
+      { productId: product.id, status: 'in_stock' },
+      testDb
+    )
+    await upsertUserProductReview(
+      owner.id,
+      up.id,
+      { comment: 'split flags', isPublic: true },
+      testDb
+    )
+
+    const result = await listPublicReviewsForProduct(testDb, product.slug)
+    expect(result.reviews[0].reviewer).toMatchObject({
+      skinTypes: ['peau-mixte'],
+      fitzpatrickType: null,
+    })
   })
 })

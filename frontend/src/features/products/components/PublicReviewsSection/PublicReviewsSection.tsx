@@ -6,6 +6,7 @@ import { Link } from '@tanstack/react-router'
 
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { FITZPATRICK_ITEMS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { productQueries } from '@/lib/queries/products'
 import { useAuthStore } from '@/store/auth'
@@ -25,6 +26,27 @@ const AXIS_LABELS: Record<ReviewAxisKey, string> = {
   stability: 'Stabilité',
   mixability: 'Compatibilité routine',
   valueForMoney: 'Rapport qualité-prix',
+}
+
+function SkinContextChips({ reviewer }: { reviewer: PublicReviewView['reviewer'] }) {
+  const { skinTypes, fitzpatrickType } = reviewer
+  if (!skinTypes?.length && fitzpatrickType == null) return null
+  const fitzLabel =
+    fitzpatrickType != null
+      ? (FITZPATRICK_ITEMS.find((f) => f.value === fitzpatrickType)?.label ?? null)
+      : null
+  return (
+    <div className="public-reviews__skin-context">
+      {skinTypes?.map((t) => (
+        <span key={t} className="public-reviews__skin-chip">
+          {SKIN_TYPE_LABELS[t]}
+        </span>
+      ))}
+      {fitzLabel != null && (
+        <span className="public-reviews__skin-chip">Phototype {fitzLabel}</span>
+      )}
+    </div>
+  )
 }
 
 function ReviewerName({ reviewer }: { reviewer: PublicReviewView['reviewer'] }) {
@@ -103,6 +125,7 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
                       <ReportContentButton targetType="review" targetId={review.id} />
                     )}
                   </header>
+                  <SkinContextChips reviewer={review.reviewer} />
                   <p className="public-reviews__verbatim-body">{review.comment}</p>
                   {ratedAxes.length > 0 && (
                     <dl className="public-reviews__axis-list">

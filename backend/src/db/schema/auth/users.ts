@@ -167,6 +167,24 @@ export const userDermoProfiles = pgTable(
           AND p.forced_private_by_admin = FALSE
       )`,
     }),
+    // Allows reading dermo data on the public reviews surface even when
+    // profile_public=false. Mirrors profiles_select_for_public_review. Gate:
+    // the user has at least one public visible review, at least one skin flag is
+    // on, and their profile has not been force-privated by an admin.
+    pgPolicy('user_dermo_profiles_select_for_public_review', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`(${t.skinTypesPublic} = TRUE OR ${t.fitzpatrickPublic} = TRUE) AND EXISTS (
+        SELECT 1 FROM profiles p
+        JOIN user_products up ON up.user_id = p.user_id
+        JOIN user_product_reviews r ON r.user_product_id = up.id
+        WHERE p.user_id = ${t.userId}
+          AND NOT p.forced_private_by_admin
+          AND r.is_public = TRUE
+          AND r.moderation_status = 'visible'
+      )`,
+    }),
   ]
 ).enableRLS()
 

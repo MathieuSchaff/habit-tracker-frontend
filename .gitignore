@@ -86,7 +86,6 @@ scripts/*
 !scripts/just/
 !scripts/just/**
 !scripts/*.sh
-
 # =========================
 backend/src/db/seed/output/
 backend/tmp/

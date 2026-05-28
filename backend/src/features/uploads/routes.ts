@@ -1,8 +1,10 @@
 import { err, HTTP_STATUS, ok, uploadErrorMapping } from '@habit-tracker/shared'
 
+import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { type Context, Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
+import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
@@ -75,46 +77,54 @@ export const uploadsRoutes = app
       return handleUploadError(c, e)
     }
   })
-  .post('/product/:slug', requireNotBannedScope('product_edit'), requireCatalogWrite, async (c) => {
-    const db = c.get('db')
-    // Non-null safe: `:slug` is required by route pattern; middleware args widen Hono's param inference
-    const slug = c.req.param('slug') as string
-    const body = await c.req.parseBody()
-    const file = body.image
-    if (!(file instanceof File)) {
-      return c.json(err('upload_invalid_format'), HTTP_STATUS.BAD_REQUEST)
-    }
-    const buffer = Buffer.from(await file.arrayBuffer())
-    try {
-      // Validate before any CDN/DB work so bad images fail fast regardless of slug
-      validateWebpUpload(buffer, { maxBytes: PRODUCT_MAX_BYTES, expectedSize: 1200 })
-
-      const key = `products/${slug}.webp`
-      await putToBunny(key, buffer)
-      const storedUrl = `${env.IMAGE_CDN_BASE}/${key}`
-
-      // Update DB only if product exists; pre-creation uploads skip this step
-      const [existing] = await db
-        .select({ id: products.id })
-        .from(products)
-        .where(eq(products.slug, slug))
-        .limit(1)
-
-      if (existing) {
-        const [row] = await db
-          .update(products)
-          .set({ imageUrl: storedUrl })
-          .where(eq(products.slug, slug))
-          .returning({ imageUrl: products.imageUrl, updatedAt: products.updatedAt })
-        if (!row?.imageUrl) throw new UploadError('not_found')
-        return c.json(
-          ok({ url: appendCacheBust(row.imageUrl, row.updatedAt) }),
-          HTTP_STATUS.CREATED
-        )
+  .post(
+    '/product/:slug',
+    requireNotBannedScope('product_edit'),
+    requireCatalogWrite,
+    zValidator(
+      'param',
+      z.object({ slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$|^[a-z0-9]$/) })
+    ),
+    async (c) => {
+      const db = c.get('db')
+      const { slug } = c.req.valid('param')
+      const body = await c.req.parseBody()
+      const file = body.image
+      if (!(file instanceof File)) {
+        return c.json(err('upload_invalid_format'), HTTP_STATUS.BAD_REQUEST)
       }
+      const buffer = Buffer.from(await file.arrayBuffer())
+      try {
+        // Validate before any CDN/DB work so bad images fail fast regardless of slug
+        validateWebpUpload(buffer, { maxBytes: PRODUCT_MAX_BYTES, expectedSize: 1200 })
 
-      return c.json(ok({ url: storedUrl }), HTTP_STATUS.CREATED)
-    } catch (e) {
-      return handleUploadError(c, e)
+        const key = `products/${slug}.webp`
+        await putToBunny(key, buffer)
+        const storedUrl = `${env.IMAGE_CDN_BASE}/${key}`
+
+        // Update DB only if product exists; pre-creation uploads skip this step
+        const [existing] = await db
+          .select({ id: products.id })
+          .from(products)
+          .where(eq(products.slug, slug))
+          .limit(1)
+
+        if (existing) {
+          const [row] = await db
+            .update(products)
+            .set({ imageUrl: storedUrl })
+            .where(eq(products.slug, slug))
+            .returning({ imageUrl: products.imageUrl, updatedAt: products.updatedAt })
+          if (!row?.imageUrl) throw new UploadError('not_found')
+          return c.json(
+            ok({ url: appendCacheBust(row.imageUrl, row.updatedAt) }),
+            HTTP_STATUS.CREATED
+          )
+        }
+
+        return c.json(ok({ url: storedUrl }), HTTP_STATUS.CREATED)
+      } catch (e) {
+        return handleUploadError(c, e)
+      }
     }
-  })
+  )
