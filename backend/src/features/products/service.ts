@@ -727,3 +727,23 @@ export async function searchProducts(
   const items = hasMore ? rows.slice(0, limit) : rows
   return { items, hasMore, nextOffset: offset + limit }
 }
+
+export async function previewSlug(name: string, brand: string, database: DB = db): Promise<string> {
+  const normalizedName = normalizeString(name)
+  const normalizedBrand = normalizeString(brand)
+  const raw = `${normalizedName}${normalizedBrand ? `-${normalizedBrand}` : ''}`
+  const baseSlug = slugify(raw)
+
+  let candidate = baseSlug
+  let attempt = 1
+  while (true) {
+    const [existing] = await database
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.slug, candidate))
+      .limit(1)
+    if (!existing) return candidate
+    candidate = `${baseSlug}-${attempt}`
+    attempt++
+  }
+}

@@ -116,26 +116,33 @@ describe('Upload Routes', () => {
   })
 
   describe('POST /api/uploads/product/:slug', () => {
-    it('returns 404 for unknown slug', async () => {
+    it('uploads to CDN for a pre-creation slug (product does not exist yet)', async () => {
       const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
       const buf = buildVp8l(1200, 1200, 100)
       const blob = new Blob([buf], { type: 'image/webp' })
-      const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
+      const res = await authPostMultipart(app, '/api/uploads/product/new-product-slug', token, {
         image: blob,
       })
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      const body = (await res.json()) as { success: boolean; data?: { url: string } }
+      expect(body.success).toBe(true)
+      // No cache-bust query param when product does not exist yet
+      expect(body.data?.url).toMatch(/^https:\/\/.+\/products\/new-product-slug\.webp$/)
+      expect(bunnyMock).toHaveBeenCalledTimes(1)
     })
 
-    it('returns 404 for unknown slug even when payload is invalid', async () => {
+    it('returns 400 for invalid image format regardless of slug existence', async () => {
       const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
-      // PNG header — would fail validation
+      // PNG header — fails WebP validation before any DB/CDN work
       const blob = new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0])], {
         type: 'image/webp',
       })
       const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
         image: blob,
       })
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const body = (await res.json()) as { success: boolean; error?: string }
+      expect(body.error).toBe('upload_invalid_format')
     })
   })
 
@@ -153,14 +160,15 @@ describe('Upload Routes', () => {
       })
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })
-    it('not 403 for a contributor (404 unknown slug)', async () => {
+
+    it('201 for a contributor even when product does not exist yet', async () => {
       const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
       const buf = buildVp8l(1200, 1200, 100)
       const blob = new Blob([buf], { type: 'image/webp' })
       const res = await authPostMultipart(app, '/api/uploads/product/no-such-slug', token, {
         image: blob,
       })
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status).toBe(HTTP_STATUS.CREATED)
     })
   })
 })

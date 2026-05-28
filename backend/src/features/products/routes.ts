@@ -36,6 +36,7 @@ import {
   getProductFullBySlug,
   getProductsByIds,
   listProducts,
+  previewSlug,
   searchProducts,
   updateProduct,
 } from './service'
@@ -46,6 +47,11 @@ const idParam = z.object({ id: z.uuid() })
 const checkDuplicateQuery = z.object({
   name: z.string().trim().min(2).max(200),
   brand: z.string().trim().min(1).max(200),
+})
+
+const slugPreviewQuery = z.object({
+  name: z.string().trim().min(2).max(200),
+  brand: z.string().trim().max(200).default(''),
 })
 
 const productsApp = new Hono<AppEnv>()
@@ -85,6 +91,12 @@ export const productRoutes = productsApp
     const { name, brand } = c.req.valid('query')
     const similar = await findSimilarProducts(name, brand, db)
     return c.json(ok(similar), HTTP_STATUS.OK)
+  })
+  .get('/slug-preview', zValidator('query', slugPreviewQuery), async (c) => {
+    const db = c.get('db')
+    const { name, brand } = c.req.valid('query')
+    const slug = await previewSlug(name, brand, db)
+    return c.json(ok({ slug }), HTTP_STATUS.OK)
   })
   .get('/search', zValidator('query', searchProductsQuery), async (c) => {
     const db = c.get('db')

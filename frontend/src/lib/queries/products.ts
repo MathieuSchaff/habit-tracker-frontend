@@ -197,6 +197,22 @@ export const productQueries = {
     })
   },
 
+  previewSlug: (name: string, brand: string) => {
+    const n = name.trim().toLowerCase()
+    const b = brand.trim().toLowerCase()
+    return queryOptions({
+      queryKey: [...productKeys.all, 'slug-preview', n, b] as const,
+      queryFn: async () => {
+        const res = await api.products['slug-preview'].$get({ query: { name: n, brand: b } })
+        if (!res.ok) throw new Error('slug preview failed')
+        const json = await res.json()
+        if (!json.success) throw new Error('slug preview failed')
+        return json.data.slug
+      },
+      staleTime: 30 * 1000,
+    })
+  },
+
   brands: () =>
     queryOptions({
       queryKey: [...productKeys.all, 'brands'] as const,
