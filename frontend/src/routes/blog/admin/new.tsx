@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/blog/admin/new')({
   beforeLoad: () => {
-    if (!useAuthStore.getState().isAdmin) throw redirect({ to: '/blog' })
+    if (useAuthStore.getState().role !== 'admin') throw redirect({ to: '/blog' })
   },
   component: NewArticleRoute,
 })

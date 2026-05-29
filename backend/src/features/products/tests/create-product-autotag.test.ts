@@ -33,6 +33,7 @@ describe('createProduct — auto-tag opt-out', () => {
     const user = await createTestUser()
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Auto Serum',
         brand: 'Lab',
@@ -50,6 +51,7 @@ describe('createProduct — auto-tag opt-out', () => {
     const user = await createTestUser()
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'No Auto Serum',
         brand: 'Lab',

@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { Input } from '@/component/Input/Input'
 import { adminQueries } from '@/lib/queries/admin'
-import { adminLabels } from '../constants'
+import { adminLabels, roleLabels, rolePillClass } from '../constants'
 
 export function AdminUsersPage() {
   const { data } = useSuspenseQuery(adminQueries.users())
@@ -68,9 +68,7 @@ export function AdminUsersPage() {
                   </Link>
                 </td>
                 <td>
-                  <span className={`admin-pill ${u.role === 'admin' ? 'admin-pill--admin' : ''}`}>
-                    {u.role}
-                  </span>
+                  <span className={rolePillClass(u.role)}>{roleLabels[u.role]}</span>
                 </td>
                 <td>{u.emailVerifiedAt ? 'Oui' : 'Non'}</td>
                 <td>

@@ -41,7 +41,7 @@ describe('seedBatch — transaction safety', () => {
       seedBatch(
         'produits',
         items,
-        (p) => createProduct(user.id, p, tx),
+        (p) => createProduct(user.id, 'admin', p, tx),
         (p) => p.name
       )
     )

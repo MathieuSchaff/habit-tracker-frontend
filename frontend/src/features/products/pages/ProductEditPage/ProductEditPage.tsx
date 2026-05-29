@@ -17,7 +17,7 @@ export function ProductEditPage() {
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const currentTags = product.tags
   const navigate = useNavigate()
-  const isAdmin = useAuthStore((s) => s.isAdmin)
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
   const deleteProduct = useDeleteProduct()
 
   function handleDelete() {

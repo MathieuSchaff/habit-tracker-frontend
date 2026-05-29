@@ -27,6 +27,7 @@ export type ProductErrorCode =
   | 'product_update_failed'
   | 'product_delete_failed'
   | 'product_already_exists'
+  | 'product_rate_limited'
   | 'unauthorized_access'
   | 'database_error'
   | 'tag_domain_mismatch'

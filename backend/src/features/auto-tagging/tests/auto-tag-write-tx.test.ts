@@ -32,6 +32,7 @@ describe('writeTagsForProduct — transaction safety', () => {
     const user = await createTestUser()
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Test Serum',
         brand: 'Lab',

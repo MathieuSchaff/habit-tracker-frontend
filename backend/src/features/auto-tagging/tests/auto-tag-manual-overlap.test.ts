@@ -44,6 +44,7 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
     // filter — so the later overlap genuinely exercises the PK conflict.
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: SPF_NAME,
         brand: 'Lab',

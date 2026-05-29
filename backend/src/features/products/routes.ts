@@ -7,6 +7,7 @@ import {
   productsByIdsQuery,
   searchProductsQuery,
   updateProductSchema,
+  verifyQualityBodySchema,
 } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
@@ -14,6 +15,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { stripAdminFields } from '../../lib/catalog'
 import {
   getAuthedUserId,
   getAuthedUserRole,
@@ -39,6 +41,7 @@ import {
   previewSlug,
   searchProducts,
   updateProduct,
+  verifyProduct,
 } from './service'
 
 const slugParam = z.object({ slug: z.string().min(1).max(100) })
@@ -92,7 +95,7 @@ export const productRoutes = productsApp
     const similar = await findSimilarProducts(name, brand, db)
     return c.json(ok(similar), HTTP_STATUS.OK)
   })
-  .get('/slug-preview', zValidator('query', slugPreviewQuery), async (c) => {
+  .get('/slug-preview', requireJwtAuth, zValidator('query', slugPreviewQuery), async (c) => {
     const db = c.get('db')
     const { name, brand } = c.req.valid('query')
     const slug = await previewSlug(name, brand, db)
@@ -122,15 +125,15 @@ export const productRoutes = productsApp
   .post(
     '/',
     requireNotBannedScope('product_create'),
-    requireCatalogWrite,
     securityScan(),
     zValidator('json', createProductSchema),
     async (c) => {
       const db = c.get('db')
       const userId = getAuthedUserId(c)
+      const role = getAuthedUserRole(c)
       const input = c.req.valid('json')
-      const product = await createProduct(userId, input, db)
-      return c.json(ok(product), HTTP_STATUS.CREATED)
+      const product = await createProduct(userId, role, input, db)
+      return c.json(ok(stripAdminFields(product)), HTTP_STATUS.CREATED)
     }
   )
 
@@ -151,7 +154,6 @@ export const productRoutes = productsApp
   .patch(
     '/:id',
     requireNotBannedScope('product_edit'),
-    requireCatalogWrite,
     zValidator('param', idParam),
     securityScan(),
     zValidator('json', updateProductSchema),
@@ -161,7 +163,21 @@ export const productRoutes = productsApp
       const userId = getAuthedUserId(c)
       const input = c.req.valid('json')
       const product = await updateProduct(userId, id, input, undefined, db)
-      return c.json(ok(product), HTTP_STATUS.OK)
+      return c.json(ok(stripAdminFields(product)), HTTP_STATUS.OK)
+    }
+  )
+
+  .patch(
+    '/:id/quality',
+    requireCatalogWrite,
+    zValidator('param', idParam),
+    zValidator('json', verifyQualityBodySchema),
+    async (c) => {
+      const db = c.get('db')
+      const { id } = c.req.valid('param')
+      const actorId = getAuthedUserId(c)
+      const product = await verifyProduct(actorId, id, db)
+      return c.json(ok(stripAdminFields(product)), HTTP_STATUS.OK)
     }
   )
 

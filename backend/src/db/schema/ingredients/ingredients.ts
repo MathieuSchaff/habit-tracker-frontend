@@ -12,7 +12,9 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
-import { catalogPolicies } from '../_policies'
+import { catalogQualityColumns } from '../_catalog'
+import { moderationColumns } from '../_moderation'
+import { catalogSubmissionPolicies } from '../_policies'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
@@ -32,10 +34,14 @@ export const ingredients = pgTable(
     // "humectant", "emollient", "filtre-uv", "tensioactif", "excipient".
     // supplement → "vitamine", "mineral", "carotenoide", "plante", etc.
     category: text('category'),
+    ...moderationColumns,
+    ...catalogQualityColumns,
     ...timestamps,
   },
   (t) => [
-    uniqueIndex('ingredients_slug_unique').on(t.slug),
+    uniqueIndex('ingredients_slug_unique_visible')
+      .on(t.slug)
+      .where(sql`${t.moderationStatus} = 'visible'`),
     index('ingredients_name_idx').on(t.name),
     index('ingredients_type_idx').on(t.type),
     index('ingredients_category_idx').on(t.category),
@@ -61,7 +67,11 @@ export const ingredients = pgTable(
         (${t.type} = 'supplement' AND ${t.category} IN ('vitamine','mineral','acide-amine','acide-gras','antioxydant','carotenoide','plante','adaptogene','champignon','probiotique','prebiotique','peptide','collagene','polyphenol','neuroactif','longevite','enzyme','autre'))
       )`
     ),
-    ...catalogPolicies('ingredients', 'contributor'),
+    check(
+      'ingredients_verify_stamp_check',
+      sql`${t.catalogQuality} = 'verified' OR (${t.verifiedBy} IS NULL AND ${t.verifiedAt} IS NULL)`
+    ),
+    ...catalogSubmissionPolicies('ingredients', t.createdBy),
   ]
 ).enableRLS()
 

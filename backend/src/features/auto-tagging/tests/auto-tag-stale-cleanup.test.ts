@@ -28,6 +28,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
 
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Test Serum',
         brand: 'Lab',
@@ -118,6 +119,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
 
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Test Cream',
         brand: 'Lab',

@@ -45,6 +45,8 @@ const baseListProductsQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sort: sortEnum.optional(),
+  quality: z.enum(['unverified', 'verified']).optional(),
+  status: z.enum(['visible', 'hidden']).optional(),
 })
 
 export const skincareListProductsQuery = baseListProductsQuery.extend({

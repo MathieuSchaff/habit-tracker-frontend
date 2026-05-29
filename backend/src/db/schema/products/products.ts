@@ -21,7 +21,9 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
-import { catalogPolicies } from '../_policies'
+import { catalogQualityColumns } from '../_catalog'
+import { moderationColumns } from '../_moderation'
+import { catalogSubmissionPolicies } from '../_policies'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
 
@@ -57,12 +59,16 @@ export const products = pgTable(
     imageUrl: text('image_url'),
     notes: text('notes'),
     priceCents: integer('price_cents'),
+    ...moderationColumns,
+    ...catalogQualityColumns,
     ...timestamps,
   },
   (t) => [
     index('products_kind_idx').on(t.kind),
     index('products_created_by_idx').on(t.createdBy),
-    uniqueIndex('products_name_brand_unique').on(sql`lower(${t.name})`, sql`lower(${t.brand})`),
+    uniqueIndex('products_name_brand_unique_visible')
+      .on(sql`norm(${t.name})`, sql`norm(${t.brand})`)
+      .where(sql`${t.moderationStatus} = 'visible'`),
     uniqueIndex('products_slug_unique').on(t.slug),
     // Trigram GIN indexes feed `searchProducts` / `findSimilarProducts` —
     // both rely on `similarity()` and `ILIKE %q%` which seq-scan otherwise.
@@ -90,7 +96,11 @@ export const products = pgTable(
       'products_unit_check',
       sql`${t.unit} IN ('pump','dropper','jar','tube','bottle','spray','pack','roller','bar','aerosol','stick','sachet','cartridge','tablet','capsule','gummy','powder','ampoule')`
     ),
-    ...catalogPolicies('products', 'contributor'),
+    check(
+      'products_verify_stamp_check',
+      sql`${t.catalogQuality} = 'verified' OR (${t.verifiedBy} IS NULL AND ${t.verifiedAt} IS NULL)`
+    ),
+    ...catalogSubmissionPolicies('products', t.createdBy),
   ]
 ).enableRLS()
 

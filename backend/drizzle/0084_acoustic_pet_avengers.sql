@@ -1,0 +1,2 @@
+ALTER POLICY "ingredients_insert_self" ON "ingredients" TO app_runtime WITH CHECK ((SELECT auth.role()) IN ('admin', 'contributor') OR ("ingredients"."created_by" = (SELECT auth.uid()) AND catalog_quality = 'unverified' AND moderation_status = 'visible'));--> statement-breakpoint
+ALTER POLICY "products_insert_self" ON "products" TO app_runtime WITH CHECK ((SELECT auth.role()) IN ('admin', 'contributor') OR ("products"."created_by" = (SELECT auth.uid()) AND catalog_quality = 'unverified' AND moderation_status = 'visible'));

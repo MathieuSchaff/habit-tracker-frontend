@@ -15,7 +15,7 @@ import {
 } from '../service'
 
 async function makeIngredient(userId: string, name = 'Ingrédient Test') {
-  return createIngredient(testDb, userId, { name, type: 'skincare' })
+  return createIngredient(testDb, userId, 'contributor', { name, type: 'skincare' })
 }
 
 setupDbTests()

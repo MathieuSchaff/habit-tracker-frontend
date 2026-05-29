@@ -17,7 +17,7 @@ export function IngredientEditPage() {
   const { data: ingredient } = useSuspenseQuery(ingredientQueries.bySlug(slug))
   const { data: currentTags } = useSuspenseQuery(ingredientQueries.tags(ingredient.id))
   const navigate = useNavigate()
-  const isAdmin = useAuthStore((s) => s.isAdmin)
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
   const deleteIngredient = useDeleteIngredient()
 
   function handleDelete() {

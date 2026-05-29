@@ -1,3 +1,4 @@
+export * from './_catalog'
 export * from './_moderation'
 export * from './_roles'
 export * from './auth/auth.schema'

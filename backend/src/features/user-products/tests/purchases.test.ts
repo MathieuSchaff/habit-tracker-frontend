@@ -22,6 +22,7 @@ describe('Purchase Service', () => {
     user = await createTestUser('user@test.com')
     product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Vitamine C',
         brand: 'Solgar',

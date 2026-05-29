@@ -10,6 +10,7 @@ export const banScopeSchema = z.enum([
   'ingredient_edit',
   'product_edit',
   'product_create',
+  'ingredient_create',
   'discussion_post',
   'review_publish',
 ])
@@ -86,6 +87,11 @@ export const moderateContentBodySchema = z.object({
 })
 
 export type ModerateContentInput = z.infer<typeof moderateContentBodySchema>
+
+// Catalog quality stamp: verify can only move a row to 'verified' (un-verify is
+// out of scope), so the body is a single literal.
+export const verifyQualityBodySchema = z.object({ quality: z.literal('verified') })
+export type VerifyQualityInput = z.infer<typeof verifyQualityBodySchema>
 
 export type ModerateContentResult = ApiResponse<
   { id: string; moderationStatus: ModerationStatus; moderationReason: string | null },

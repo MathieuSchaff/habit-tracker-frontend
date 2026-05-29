@@ -13,3 +13,23 @@ export const adminLabels = {
   userNotFound: 'Utilisateur introuvable.',
   pillForced: 'Forcé',
 } as const
+
+type UserRole = 'user' | 'admin' | 'contributor'
+
+// 'contributor' surfaces as "Modérateur" in the UI; the code/DB role keeps its name.
+export const roleLabels: Record<UserRole, string> = {
+  user: 'Utilisateur',
+  admin: 'Administrateur',
+  contributor: 'Modérateur',
+}
+
+// Pill colour per role; plain user keeps the neutral base, no modifier.
+const rolePillModifier: Record<UserRole, string> = {
+  user: '',
+  admin: 'admin-pill--admin',
+  contributor: 'admin-pill--contributor',
+}
+
+export function rolePillClass(role: UserRole): string {
+  return `admin-pill ${rolePillModifier[role]}`.trim()
+}

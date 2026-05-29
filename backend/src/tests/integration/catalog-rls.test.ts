@@ -31,9 +31,9 @@ beforeEach(async () => {
 setupDbTests()
 
 // Insert a product as `role` via the app_runtime pool with RLS context set.
-async function insertProductAs(role: string, createdBy: string) {
+async function insertProductAs(role: string, createdBy: string, contextUserId: string = createdBy) {
   return appRuntimeDb.transaction(async (tx) => {
-    await tx.execute(sql`SELECT set_config('app.user_id', ${createdBy}, true)`)
+    await tx.execute(sql`SELECT set_config('app.user_id', ${contextUserId}, true)`)
     await tx.execute(sql`SELECT set_config('app.role', ${role}, true)`)
     await tx.insert(products).values({
       createdBy,
@@ -69,11 +69,12 @@ describe('catalog RLS — fail closed', () => {
     expect(Array.isArray(rows)).toBe(true)
   })
 
-  it('denies INSERT when app.role is unset', async () => {
+  it('denies INSERT for anonymous (no app.user_id)', async () => {
     const owner = await createTestUser('rls-noctx@test.local', 'Azerty123!')
     let threw = false
     try {
-      await insertProductAs('', owner.id)
+      // Identity absent → auth.uid() is null, so created_by = auth.uid() fails.
+      await insertProductAs('', owner.id, '')
     } catch (e) {
       threw = true
       // Drizzle wraps the PG error: actual message is in e.cause
@@ -83,17 +84,14 @@ describe('catalog RLS — fail closed', () => {
     expect(threw).toBe(true)
   })
 
-  it('denies INSERT for role=user', async () => {
+  it('allows role=user to self-insert own unverified row', async () => {
     const owner = await createTestUser('rls-user@test.local', 'Azerty123!')
-    let threw = false
-    try {
-      await insertProductAs('user', owner.id)
-    } catch (e) {
-      threw = true
-      const msg = (e as { cause?: { message?: string } }).cause?.message ?? (e as Error).message
-      expect(msg).toMatch(/row-level security|policy/i)
-    }
-    expect(threw).toBe(true)
+    await insertProductAs('user', owner.id)
+    const [row] = await testDb
+      .select({ slug: products.slug })
+      .from(products)
+      .where(eq(products.slug, 'rls-probe-user'))
+    expect(row?.slug).toBe('rls-probe-user')
   })
 
   it('allows INSERT for role=contributor', async () => {

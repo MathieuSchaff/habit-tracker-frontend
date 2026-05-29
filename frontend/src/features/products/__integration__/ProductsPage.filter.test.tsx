@@ -91,7 +91,6 @@ beforeEach(() => {
     user: null,
     emailVerified: false,
     role: 'user',
-    isAdmin: false,
     isDemo: false,
     bootRefreshAttempted: false,
   })

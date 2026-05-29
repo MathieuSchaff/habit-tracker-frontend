@@ -59,7 +59,7 @@ const mockIngredient = {
 
 describe('IngredientForm - Conflict Resolution', () => {
   it('should handle 409 conflict during update and allow field restoration', async () => {
-    ;(useAuthStore as any).mockReturnValue({ isAdmin: false })
+    ;(useAuthStore as any).mockReturnValue({ role: 'user' })
     const queryClient = createTestQueryClient()
     const mockOnSuccess = vi.fn()
     const mockMutateAsync = vi.fn()
@@ -140,7 +140,7 @@ describe('IngredientForm - Conflict Resolution', () => {
     ;(useCreateIngredient as any).mockReturnValue({ isPending: false })
     ;(useUpdateIngredient as any).mockReturnValue({ isPending: false })
 
-    ;(useAuthStore as any).mockReturnValue({ isAdmin: false })
+    ;(useAuthStore as any).mockReturnValue({ role: 'user' })
     const { rerender } = render(
       <QueryClientProvider client={queryClient}>
         <IngredientForm mode="edit" ingredient={mockIngredient} onSuccess={vi.fn()} />
@@ -148,7 +148,7 @@ describe('IngredientForm - Conflict Resolution', () => {
     )
     expect(screen.queryByLabelText(/Slug/)).not.toBeInTheDocument()
 
-    ;(useAuthStore as any).mockReturnValue({ isAdmin: true })
+    ;(useAuthStore as any).mockReturnValue({ role: 'admin' })
     rerender(
       <QueryClientProvider client={queryClient}>
         <IngredientForm mode="edit" ingredient={mockIngredient} onSuccess={vi.fn()} />

@@ -39,11 +39,11 @@ async function makeProduct(
   extra: MakeProductExtra = {}
 ) {
   const category: CreateProductInput['category'] = extra.category ?? 'skincare'
-  return createProduct(user.id, { name, brand, kind, unit, category, ...extra }, testDb)
+  return createProduct(user.id, 'admin', { name, brand, kind, unit, category, ...extra }, testDb)
 }
 
 async function makeIngredient(name: string) {
-  return createIngredient(testDb, user.id, { name, type: 'skincare' })
+  return createIngredient(testDb, user.id, 'contributor', { name, type: 'skincare' })
 }
 
 async function _makeTag(name: string, category?: string) {
@@ -388,8 +388,8 @@ describe('Product Service', () => {
       })
 
       it('should support multiple ingredient slugs (OR)', async () => {
-        const a = await makeIngredient('A')
-        const b = await makeIngredient('B')
+        const a = await makeIngredient('Aloe')
+        const b = await makeIngredient('Beta')
         const p1 = await makeProduct('P1', 'x')
         const p2 = await makeProduct('P2', 'y')
         await makeProduct('P3', 'z')

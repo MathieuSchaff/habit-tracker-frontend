@@ -151,6 +151,11 @@
   color: var(--color-primary);
 }
 
+.admin-pill--contributor {
+  background: oklch(from var(--color-success) l c h / 0.15);
+  color: var(--color-success);
+}
+
 .admin-pill--banned {
   background: oklch(from var(--color-warning) l c h / 0.15);
   color: var(--color-warning);

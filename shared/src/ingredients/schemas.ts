@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema } from '../core'
+import { fieldChangeSchema, noHtml } from '../core'
 import { DENTAL_INGREDIENT_CATEGORY_VALUES } from './dental/categories'
 import { HAIRCARE_INGREDIENT_CATEGORY_VALUES } from './haircare/categories'
 import { INGREDIENT_TYPE_VALUES, type IngredientType } from './ingredient-types'
@@ -47,21 +47,23 @@ const refineTypeCategory = (
 
 export const createIngredientSchema = z
   .object({
-    name: z.string().min(1).max(200),
-    description: z.string().max(2000).optional(),
+    name: noHtml(z.string().trim().min(2).max(200)),
+    description: noHtml(z.string().max(2000)).optional(),
     slug: slugSchema.optional(),
-    content: z.string().max(50000).optional(),
+    content: noHtml(z.string().max(50000)).optional(),
     type: ingredientTypeSchema,
     category: z.string().min(1).max(100).optional(),
   })
   .superRefine((data, ctx) => refineTypeCategory(data.type, data.category, ctx))
 
+// slug is immutable after creation (C-4): not re-derived on rename, not
+// client-settable. Renaming an ingredient keeps its original slug so bookmarks
+// and the unique-key invariant hold.
 export const updateIngredientSchema = z
   .object({
-    name: z.string().min(1).max(200).optional(),
-    slug: slugSchema.optional(),
-    description: z.string().max(2000).optional(),
-    content: z.string().max(50000).optional(),
+    name: noHtml(z.string().trim().min(2).max(200)).optional(),
+    description: noHtml(z.string().max(2000)).optional(),
+    content: noHtml(z.string().max(50000)).optional(),
     type: ingredientTypeSchema.optional(),
     category: z.string().min(1).max(100).nullable().optional(),
   })

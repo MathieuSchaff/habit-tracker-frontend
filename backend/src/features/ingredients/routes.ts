@@ -5,6 +5,7 @@ import {
   listIngredientsSearchSchema,
   ok,
   updateIngredientRouteSchema,
+  verifyQualityBodySchema,
 } from '@habit-tracker/shared'
 
 import { zValidator } from '@hono/zod-validator'
@@ -12,6 +13,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { stripAdminFields } from '../../lib/catalog'
 import {
   getAuthedUserId,
   getAuthedUserRole,
@@ -34,6 +36,7 @@ import {
   listIngredientsBySlugs,
   searchIngredients,
   updateIngredient,
+  verifyIngredient,
 } from './service'
 
 const slugParam = z.object({
@@ -110,16 +113,21 @@ export const ingredientRoutes = ingredientsApp
     return c.json(ok({ items, total }), HTTP_STATUS.OK)
   })
 
-  // No ingredient_create ban scope exists (only ingredient_edit); create is role-gated only.
-  .post('/', requireCatalogWrite, zValidator('json', createIngredientSchema), async (c) => {
-    const db = c.get('db')
-    const userId = getAuthedUserId(c)
-    const input = c.req.valid('json')
+  .post(
+    '/',
+    requireNotBannedScope('ingredient_create'),
+    zValidator('json', createIngredientSchema),
+    async (c) => {
+      const db = c.get('db')
+      const userId = getAuthedUserId(c)
+      const role = getAuthedUserRole(c)
+      const input = c.req.valid('json')
 
-    const ingredient = await createIngredient(db, userId, input)
+      const ingredient = await createIngredient(db, userId, role, input)
 
-    return c.json(ok(ingredient), HTTP_STATUS.CREATED)
-  })
+      return c.json(ok(stripAdminFields(ingredient)), HTTP_STATUS.CREATED)
+    }
+  )
 
   .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
@@ -127,13 +135,12 @@ export const ingredientRoutes = ingredientsApp
 
     const ingredient = await getIngredientBySlug(db, slug)
 
-    return c.json(ok(ingredient), HTTP_STATUS.OK)
+    return c.json(ok(stripAdminFields(ingredient)), HTTP_STATUS.OK)
   })
 
   .patch(
     '/:id',
     requireNotBannedScope('ingredient_edit'),
-    requireCatalogWrite,
     zValidator('param', idParam),
     zValidator('json', updateIngredientRouteSchema),
     async (c) => {
@@ -142,7 +149,20 @@ export const ingredientRoutes = ingredientsApp
       const userId = getAuthedUserId(c)
       const { expectedUpdatedAt, summary, ...data } = c.req.valid('json')
       const ingredient = await updateIngredient(db, userId, id, data, summary, expectedUpdatedAt)
-      return c.json(ok(ingredient), HTTP_STATUS.OK)
+      return c.json(ok(stripAdminFields(ingredient)), HTTP_STATUS.OK)
+    }
+  )
+  .patch(
+    '/:id/quality',
+    requireCatalogWrite,
+    zValidator('param', idParam),
+    zValidator('json', verifyQualityBodySchema),
+    async (c) => {
+      const db = c.get('db')
+      const { id } = c.req.valid('param')
+      const actorId = getAuthedUserId(c)
+      const ingredient = await verifyIngredient(db, actorId, id)
+      return c.json(ok(stripAdminFields(ingredient)), HTTP_STATUS.OK)
     }
   )
   .delete(

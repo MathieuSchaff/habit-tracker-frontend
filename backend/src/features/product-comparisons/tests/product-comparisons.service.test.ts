@@ -18,6 +18,7 @@ let user: { id: string }
 async function makeProduct(name: string, brand: string) {
   return createProduct(
     user.id,
+    'admin',
     { name, brand, kind: 'serum', unit: 'pump', category: 'skincare' },
     testDb
   )
@@ -195,6 +196,7 @@ describe('enrichment', () => {
   it('computes price per ml when total amount is set', async () => {
     const a = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Sérum A',
         brand: 'BrandA',
