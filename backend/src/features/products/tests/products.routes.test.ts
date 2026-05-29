@@ -142,10 +142,10 @@ describe('Product Routes', () => {
   })
 
   describe('role enforcement (records)', () => {
-    it('403 for a plain user on POST /products', async () => {
+    it('201 for a plain user on POST /products (guard swap: requireCatalogWrite removed)', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
-      expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+      expect(res.status as number).toBe(HTTP_STATUS.CREATED)
     })
 
     it('201 for a contributor on POST /products', async () => {
@@ -1029,7 +1029,7 @@ describe('Product Routes', () => {
       const token = contributorToken
 
       const res = await client.products[':id'].$patch(
-        { param: { id: crypto.randomUUID() }, json: { brand: 'X' } },
+        { param: { id: crypto.randomUUID() }, json: { brand: 'XY' } },
         withAuth(token)
       )
 

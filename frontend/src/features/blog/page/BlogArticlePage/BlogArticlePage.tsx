@@ -24,7 +24,7 @@ type BlogArticlePageProps = {
 
 export function BlogArticlePage({ slug }: BlogArticlePageProps) {
   const { data: article } = useSuspenseQuery(articleQueries.bySlug(slug))
-  const isAdmin = useAuthStore((s) => s.isAdmin)
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
   const navigate = useNavigate()
   const deleteArticle = useDeleteArticle()
 

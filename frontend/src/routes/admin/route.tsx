@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: () => {
-    if (!useAuthStore.getState().isAdmin) throw redirect({ to: '/' })
+    if (useAuthStore.getState().role !== 'admin') throw redirect({ to: '/' })
   },
   component: AdminLayout,
 })

@@ -13,7 +13,6 @@ interface AuthStore {
   user: UserPublic | null
   emailVerified: boolean
   role: 'user' | 'admin' | 'contributor'
-  isAdmin: boolean
   isDemo: boolean
   // Latched after the first boot-time silent-refresh probe so unauthenticated nav doesn't re-fire /auth/refresh.
   bootRefreshAttempted: boolean
@@ -50,7 +49,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   emailVerified: false,
   role: 'user',
-  isAdmin: false,
   isDemo: false,
   bootRefreshAttempted: false,
   sessionExpired: false,
@@ -64,7 +62,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       user,
       emailVerified: user.emailVerified,
       role: user.role,
-      isAdmin: user.role === 'admin',
       isDemo: user.isDemo ?? false,
       bootRefreshAttempted: true,
       sessionExpired: false,
@@ -78,7 +75,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       user: null,
       emailVerified: false,
       role: 'user',
-      isAdmin: false,
       isDemo: false,
       bootRefreshAttempted: true,
     }),

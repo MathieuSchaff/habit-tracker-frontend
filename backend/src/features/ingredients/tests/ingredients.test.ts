@@ -2,9 +2,6 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { listIngredientsSearchSchema } from '@habit-tracker/shared'
 
-import { eq } from 'drizzle-orm'
-
-import { users } from '../../../db/schema'
 import { addTagToIngredient, createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
@@ -37,9 +34,10 @@ async function makeIngredient(
     description?: string
     slug?: string
     content?: string
-  } = {}
+  } = {},
+  role: 'user' | 'admin' | 'contributor' = 'contributor'
 ) {
-  return createIngredient(testDb, user.id, { name, type: 'skincare', ...extra })
+  return createIngredient(testDb, user.id, role, { name, type: 'skincare', ...extra })
 }
 
 async function makeTag(name: string, category?: string) {
@@ -85,14 +83,12 @@ describe('Ingredient Service', () => {
     })
 
     it('should use custom slug when provided by admin', async () => {
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
-      const ingredient = await makeIngredient('Niacinamide', { slug: 'niacin' })
+      const ingredient = await makeIngredient('Niacinamide', { slug: 'niacin' }, 'admin')
       expect(ingredient.slug).toBe('niacin')
     })
 
     it('should NOT use custom slug when provided by non-admin', async () => {
-      await testDb.update(users).set({ role: 'user' }).where(eq(users.id, user.id))
-      const ingredient = await makeIngredient('Niacinamide', { slug: 'niacin' })
+      const ingredient = await makeIngredient('Niacinamide', { slug: 'niacin' }, 'user')
       expect(ingredient.slug).toBe('niacinamide') // auto-generated
     })
 
@@ -103,11 +99,10 @@ describe('Ingredient Service', () => {
     })
 
     it('should throw ingredient_already_exists for duplicate slug (admin)', async () => {
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
-      await makeIngredient('Magnésium', { slug: 'magnesium' })
+      await makeIngredient('Magnésium', { slug: 'magnesium' }, 'admin')
 
       try {
-        await makeIngredient('Magnésium Bis', { slug: 'magnesium' })
+        await makeIngredient('Magnésium Bis', { slug: 'magnesium' }, 'admin')
         throw new Error('should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(IngredientError)
@@ -118,7 +113,10 @@ describe('Ingredient Service', () => {
     it('should allow different users to create ingredients with different names', async () => {
       const other = await createTestUser('other@test.com')
       const i1 = await makeIngredient('Rétinol')
-      const i2 = await createIngredient(testDb, other.id, { name: 'Bakuchiol', type: 'skincare' })
+      const i2 = await createIngredient(testDb, other.id, 'contributor', {
+        name: 'Bakuchiol',
+        type: 'skincare',
+      })
 
       expect(i1.id).not.toBe(i2.id)
     })
@@ -182,12 +180,13 @@ describe('Ingredient Service', () => {
       expect(edits[0]?.changes).toHaveProperty('description')
     })
 
-    it('should auto-update slug when name changes', async () => {
+    it('should keep the slug stable when the name changes (slug immutable, C-4)', async () => {
       const created = await makeIngredient('Vitamine E')
       const updated = await updateIngredient(testDb, user.id, created.id, {
         name: 'Vitamine E Tocopherol',
       })
-      expect(updated.slug).toBe('vitamine-e-tocopherol')
+      expect(updated.name).toBe('Vitamine E Tocopherol')
+      expect(updated.slug).toBe('vitamine-e')
     })
   })
 

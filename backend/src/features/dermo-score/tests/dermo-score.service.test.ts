@@ -22,6 +22,7 @@ async function makeProduct(opts: {
 }) {
   return createProduct(
     user.id,
+    'admin',
     {
       name: opts.name,
       brand: opts.brand,

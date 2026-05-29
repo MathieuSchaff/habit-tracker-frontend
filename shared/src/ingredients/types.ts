@@ -45,6 +45,7 @@ export type IngredientErrorCode =
   | 'ingredient_update_failed'
   | 'ingredient_delete_failed'
   | 'ingredient_already_exists'
+  | 'ingredient_rate_limited'
   | 'unauthorized_access'
   | 'database_error'
   | 'slug_already_exists'

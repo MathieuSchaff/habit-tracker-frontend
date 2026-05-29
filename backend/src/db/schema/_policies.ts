@@ -87,3 +87,45 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
     }),
   ]
 }
+
+// Catalog SUBMISSION tables (products, ingredients): user-generated, public-read,
+// two-axis model — catalog_quality (unverified/verified) + moderation_status
+// (visible/hidden). Distinct from catalogPolicies (tag defs, role-gated writes).
+//
+// Field-level integrity (no self-promotion to 'verified', admin-only moderation)
+// lives in the service field-strip + the verify CHECK, NOT here: the privileged
+// UPDATE branch lets contributors write any column at the RLS layer (V-2/C-1).
+export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgColumn) {
+  return [
+    // Public reads see 'visible' rows; admin also sees 'hidden' (compose on all read paths).
+    pgPolicy(`${name}_select_visible`, {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`moderation_status = 'visible' OR (SELECT auth.role()) = 'admin'`,
+    }),
+    // Admin/contributor insert anything (incl. seed/CLI via withAdminRls, which
+    // sets no app.user_id); user inserts own row only while unverified + visible.
+    // Mirrors update_owner_or_role so the trusted-writer path is symmetric.
+    pgPolicy(`${name}_insert_self`, {
+      as: 'permissive',
+      for: 'insert',
+      to: appRuntimeRole,
+      withCheck: sql`(SELECT auth.role()) IN ('admin', 'contributor') OR (${createdByColumn} = (SELECT auth.uid()) AND catalog_quality = 'unverified' AND moderation_status = 'visible')`,
+    }),
+    // Admin/contributor edit anything; owner edits own row only while unverified + visible.
+    pgPolicy(`${name}_update_owner_or_role`, {
+      as: 'permissive',
+      for: 'update',
+      to: appRuntimeRole,
+      using: sql`(SELECT auth.role()) IN ('admin', 'contributor') OR (${createdByColumn} = (SELECT auth.uid()) AND catalog_quality = 'unverified' AND moderation_status = 'visible')`,
+      withCheck: sql`(SELECT auth.role()) IN ('admin', 'contributor') OR (${createdByColumn} = (SELECT auth.uid()) AND catalog_quality = 'unverified' AND moderation_status = 'visible')`,
+    }),
+    pgPolicy(`${name}_delete_admin`, {
+      as: 'permissive',
+      for: 'delete',
+      to: appRuntimeRole,
+      using: sql`(SELECT auth.role()) = 'admin'`,
+    }),
+  ]
+}

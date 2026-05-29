@@ -490,12 +490,12 @@ export async function seedCore(shouldClean = false) {
     await seedBatch(
       'ingrédients',
       ingredientsToInsert,
-      (ing) => createIngredient(tx, user.id, ing),
+      (ing) => createIngredient(tx, user.id, 'admin', ing),
       (ing) => ing.slug,
       true
     )
 
-    const allProductsCast = [...allProductData] as Parameters<typeof createProduct>[1][]
+    const allProductsCast = [...allProductData] as Parameters<typeof createProduct>[2][]
     const productsToInsert = idempotent
       ? allProductsCast.filter((p) => !existingProductSlugs.has(computeProductSlug(p)))
       : allProductsCast
@@ -513,7 +513,7 @@ export async function seedCore(shouldClean = false) {
       // would emit a partial tag set that PK-collides with the dedicated
       // auto-tag phase below (which runs with percent-claims). That phase is
       // the authoritative inserter.
-      (p) => createProduct(user.id, p, tx, { autoTag: false }),
+      (p) => createProduct(user.id, 'admin', p, tx, { autoTag: false }),
       (p) => p.slug ?? p.name,
       true
     )

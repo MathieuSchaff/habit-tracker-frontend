@@ -29,6 +29,7 @@ export const productErrorMapping = {
   product_update_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   product_delete_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   product_already_exists: HTTP_STATUS.CONFLICT,
+  product_rate_limited: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
   unauthorized_access: HTTP_STATUS.FORBIDDEN,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   tag_domain_mismatch: HTTP_STATUS.BAD_REQUEST,

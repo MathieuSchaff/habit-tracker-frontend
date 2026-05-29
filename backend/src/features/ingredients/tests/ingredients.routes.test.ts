@@ -209,10 +209,10 @@ describe('Ingredient Routes', () => {
   })
 
   describe('role enforcement (records)', () => {
-    it('403 for a plain user on POST /ingredients', async () => {
+    it('201 for a plain user on POST /ingredients (guard swap: requireCatalogWrite removed)', async () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const res = await createIngredient(client, userToken, VALID_INGREDIENT)
-      expectStatus(res, HTTP_STATUS.FORBIDDEN)
+      expectStatus(res, HTTP_STATUS.CREATED)
     })
 
     it('201 for a contributor on POST /ingredients', async () => {
@@ -374,7 +374,7 @@ describe('Ingredient Routes', () => {
       expect(data.data.description).toBe('Description persistée')
     })
 
-    it('should auto-update slug when name changes', async () => {
+    it('should keep the slug stable when the name changes (slug immutable, C-4)', async () => {
       const token = contributorToken
 
       const createRes = await createIngredient(client, token, { name: 'Vitamine E' })
@@ -388,7 +388,8 @@ describe('Ingredient Routes', () => {
       )
       const data = await res.json()
       if (!data.success) throw new Error('patch failed')
-      expect(data.data.slug).toBe('vitamine-e-tocopherol')
+      expect(data.data.name).toBe('Vitamine E Tocopherol')
+      expect(data.data.slug).toBe('vitamine-e')
     })
 
     it('should return 404 for unknown id', async () => {

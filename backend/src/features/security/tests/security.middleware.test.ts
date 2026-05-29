@@ -63,12 +63,14 @@ describe('Security Middleware — product routes', () => {
       expect(res.status).toBe(403)
     })
 
-    it('allows http:// URL through (LOW event logged, not blocked)', async () => {
+    it('http:// URL is LOW for the scanner (not 403); https-only schema rejects it (400)', async () => {
       const res = await postProduct(app, token, {
         ...VALID_PRODUCT,
         url: 'http://example.com',
       })
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      // Scanner classifies http:// as LOW and passes it (no 403). The hardened
+      // https-only product schema is what rejects it at validation → 400.
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
     it('passes valid product through', async () => {

@@ -367,7 +367,7 @@ describe('Ingredient Tag Routes', () => {
       if (!tagData.success) throw new Error('create tag failed')
       const tag = tagData.data
 
-      const ing = await createIngredient(testDb, ingOwner.id, {
+      const ing = await createIngredient(testDb, ingOwner.id, 'contributor', {
         name: 'Centella',
         type: 'skincare',
       })

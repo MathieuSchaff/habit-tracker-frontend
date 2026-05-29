@@ -48,6 +48,7 @@ async function setDermoProfile(
 async function makeProduct(ownerId: string, name: string) {
   return await createProduct(
     ownerId,
+    'admin',
     {
       name,
       brand: 'TestBrand',

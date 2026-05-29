@@ -79,6 +79,7 @@ describe('writeTagsForProductFailSoft', () => {
     const user = await createTestUser()
     const product = await createProduct(
       user.id,
+      'admin',
       { name: 'Test Serum', brand: 'Lab', kind: 'serum', unit: 'pump', category: 'skincare' },
       testDb
     )

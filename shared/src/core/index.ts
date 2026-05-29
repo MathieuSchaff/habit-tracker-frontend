@@ -128,3 +128,16 @@ export const safeUrl = z
   .url()
   .max(2000)
   .refine((v) => /^https?:\/\//.test(v), { message: 'URL must use http or https protocol' })
+
+// Stricter than safeUrl: catalog submissions must be https-only (no mixed
+// content / protocol-downgrade on an https app). safeUrl stays http-tolerant
+// for legacy/other surfaces.
+export const httpsUrl = z
+  .url()
+  .max(2000)
+  .refine((v) => /^https:\/\//.test(v), { message: 'URL must use https protocol' })
+
+// Reject embedded markup in user-submitted free-text fields — defense in depth
+// against stored XSS, since these strings are rendered across the app.
+export const noHtml = <T extends z.ZodString>(schema: T) =>
+  schema.refine((v) => !/<[^>]+>/.test(v), { message: 'must not contain HTML' })

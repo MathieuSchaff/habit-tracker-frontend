@@ -13,15 +13,20 @@ import {
 } from '@habit-tracker/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, count, eq, ilike, inArray, ne, or, type SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
 import { ingredientTagLinks, ingredientTagTypes } from '../../db/schema/tags/tags'
-import { areEqual, escapeLike, isUniqueViolation } from '../../lib/helpers'
+import {
+  assertWithinSubmissionRateLimit,
+  type CatalogRole,
+  resolveCatalogQuality,
+  translateUniqueViolation,
+} from '../../lib/catalog'
+import { areEqual, escapeLike } from '../../lib/helpers'
 import { buildChanges, ingredientEditConfig, logEdit } from '../../lib/logs'
 import { normalizeInstant } from '../../utils/dates'
-import { getFullUserById } from '../auth/user.utils'
 import { IngredientError } from './ingredients-error'
 
 function normalizeIngredient<T extends { createdAt: string; updatedAt: string }>(row: T): T {
@@ -95,6 +100,13 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
     conditions.push(inArray(ingredients.type, ingredientTypes as IngredientType[]))
   }
 
+  if (filters.quality) {
+    conditions.push(eq(ingredients.catalogQuality, filters.quality))
+  }
+  if (filters.status) {
+    conditions.push(eq(ingredients.moderationStatus, filters.status))
+  }
+
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const orderBy = filters.sort === 'random' ? sql`random()` : ingredients.name
@@ -154,7 +166,12 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
   return { items: itemsWithMatches, total }
 }
 
-export async function createIngredient(database: DB, userId: string, input: CreateIngredientInput) {
+export async function createIngredient(
+  database: DB,
+  userId: string,
+  role: CatalogRole,
+  input: CreateIngredientInput
+) {
   createIngredientSchema.parse(input)
 
   // I check if there are weird symbols like "<" to be sure no one puts bad code in the name.
@@ -162,17 +179,35 @@ export async function createIngredient(database: DB, userId: string, input: Crea
     throw new IngredientError('ingredient_creation_failed', 'Nom invalide')
   }
 
-  const currentUser = await getFullUserById(database, userId)
-  const isAdmin = currentUser?.role === 'admin'
+  await assertWithinSubmissionRateLimit(
+    database,
+    'count_recent_ingredient_submissions',
+    userId,
+    role,
+    () => new IngredientError('ingredient_rate_limited')
+  )
+
+  // Only admins can choose their own slug. For others, I derive it from the name.
+  const slug = input.slug && role === 'admin' ? slugify(input.slug) : slugify(input.name)
 
   try {
+    // Tier-1 dedup (A-2): surface an existing VISIBLE ingredient with the same
+    // slug (409 + existing). Scoped to visible so a hidden tombstone never
+    // blocks a re-submission (V-3) nor leaks; tier-2 below guards races.
+    const [existing] = await database
+      .select({ id: ingredients.id, slug: ingredients.slug, name: ingredients.name })
+      .from(ingredients)
+      .where(and(eq(ingredients.slug, slug), eq(ingredients.moderationStatus, 'visible')))
+      .limit(1)
+    if (existing) throw new IngredientError('ingredient_already_exists', existing)
+
     const [ingredient] = await database
       .insert(ingredients)
       .values({
         ...input,
         createdBy: userId,
-        // Only admins can choose their own slug. For others, I use the name to make it.
-        slug: input.slug && isAdmin ? slugify(input.slug) : slugify(input.name),
+        slug,
+        ...resolveCatalogQuality(role, userId),
       })
       .returning()
 
@@ -181,9 +216,7 @@ export async function createIngredient(database: DB, userId: string, input: Crea
     return normalizeIngredient(ingredient)
   } catch (e) {
     if (e instanceof IngredientError) throw e
-    // If the database says "hey, this already exists", I catch it here.
-    if (isUniqueViolation(e)) throw new IngredientError('ingredient_already_exists')
-    throw e
+    translateUniqueViolation(e, () => new IngredientError('ingredient_already_exists'))
   }
 }
 
@@ -220,28 +253,6 @@ export async function updateIngredient(
   updateIngredientSchema.parse(data)
 
   const oldIngredient = await getIngredientById(database, id)
-  const currentUser = await getFullUserById(database, userId)
-
-  // Admins are special, they can change the slug if they want.
-  const isAdmin = currentUser?.role === 'admin'
-  const nextSlug =
-    data.slug && isAdmin ? slugify(data.slug) : data.name ? slugify(data.name) : undefined
-
-  // If the new slug is different, I must check if someone else is already using it.
-  if (nextSlug && nextSlug !== oldIngredient.slug) {
-    const existing = await database.query.ingredients.findFirst({
-      where: and(eq(ingredients.slug, nextSlug), ne(ingredients.id, id)),
-    })
-
-    if (existing) {
-      throw new IngredientError('slug_already_exists')
-    }
-
-    data.slug = nextSlug
-  } else {
-    // I remove the slug from data if the user is not an admin, so they don't force it.
-    delete data.slug
-  }
 
   // Again, I check for bad characters in the name to be safe.
   if (
@@ -275,36 +286,50 @@ export async function updateIngredient(
     whereConditions.push(eq(ingredients.updatedAt, expectedUpdatedAt))
   }
 
-  try {
-    const [newIngredient] = await database
-      .update(ingredients)
-      .set(filteredData)
-      .where(and(...whereConditions))
-      .returning()
+  const [newIngredient] = await database
+    .update(ingredients)
+    .set(filteredData)
+    .where(and(...whereConditions))
+    .returning()
 
-    if (!newIngredient) {
-      // If no row was updated, maybe someone else updated it first (conflict).
-      if (expectedUpdatedAt) {
-        throw new IngredientError('ingredient_update_conflict')
-      }
-      throw new IngredientError('ingredient_update_failed')
-    }
-
-    const changes = buildChanges(oldIngredient, newIngredient, TRACKED_FIELDS)
-
-    await logEdit(database, ingredientEditConfig, {
-      entityId: id,
-      editedBy: userId,
-      summary: summary ?? null,
-      changes,
-    })
-
-    return normalizeIngredient(newIngredient)
-  } catch (e) {
-    if (e instanceof IngredientError) throw e
-    if (isUniqueViolation(e)) throw new IngredientError('slug_already_exists')
-    throw e
+  if (!newIngredient) {
+    // 0-row UPDATE. With an optimistic lock set, the row moved under us (or is now
+    // RLS-locked) → 409 so the client reloads (CQ-2: OCC stays ahead of the 403).
+    // Otherwise getIngredientById above already proved the row is visible, so a
+    // 0-row update means it exists but the caller may not edit it (now verified or
+    // not theirs) → 403. Never read rowCount (bun-postgres footgun). slug is
+    // immutable and moderation_status isn't patchable here, so no 23505 is reachable.
+    if (expectedUpdatedAt) throw new IngredientError('ingredient_update_conflict')
+    throw new IngredientError('unauthorized_access')
   }
+
+  const changes = buildChanges(oldIngredient, newIngredient, TRACKED_FIELDS)
+
+  await logEdit(database, ingredientEditConfig, {
+    entityId: id,
+    editedBy: userId,
+    summary: summary ?? null,
+    changes,
+  })
+
+  return normalizeIngredient(newIngredient)
+}
+
+// Stamp an ingredient as verified. Route guard (requireCatalogWrite) limits
+// callers to admin/contributor; here we only set the quality stamp. One-way —
+// un-verify is out of scope.
+export async function verifyIngredient(database: DB, actorId: string, id: string) {
+  const [row] = await database
+    .update(ingredients)
+    .set({
+      catalogQuality: 'verified',
+      verifiedBy: actorId,
+      verifiedAt: new Date().toISOString(),
+    })
+    .where(and(eq(ingredients.id, id), eq(ingredients.moderationStatus, 'visible')))
+    .returning()
+  if (!row) throw new IngredientError('ingredient_not_found')
+  return normalizeIngredient(row)
 }
 
 export async function deleteIngredient(

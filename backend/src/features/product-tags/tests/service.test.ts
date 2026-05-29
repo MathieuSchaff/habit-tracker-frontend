@@ -22,6 +22,7 @@ import { TagError } from '../tag-error'
 async function makeProduct(userId: string, name = 'Produit Test') {
   return createProduct(
     userId,
+    'admin',
     { name, brand: 'Generic', category: 'skincare', kind: 'serum', unit: 'pump' },
     testDb
   )

@@ -19,7 +19,7 @@ import {
   useLiftBan,
   useModerateProfileVisibility,
 } from '@/lib/queries/admin'
-import { adminLabels } from '../constants'
+import { adminLabels, roleLabels } from '../constants'
 
 const routeApi = getRouteApi('/admin/users_/$userId')
 
@@ -70,9 +70,8 @@ export function AdminUserDetailPage() {
         <div>
           <h1 className="admin-page__title">{user.email}</h1>
           <p className="admin-page__lede">
-            {user.role === 'admin' ? 'Administrateur' : 'Utilisateur'} —{' '}
-            {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'} — créé{' '}
-            <Time iso={user.createdAt} relative />
+            {roleLabels[user.role]} — {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'}{' '}
+            — créé <Time iso={user.createdAt} relative />
           </p>
         </div>
         <Link to="/admin/users" className="admin-table__row-link">

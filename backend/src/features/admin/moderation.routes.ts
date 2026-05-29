@@ -18,6 +18,8 @@ import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
+  moderateIngredient,
+  moderateProduct,
   moderateProfileVisibility,
   moderateReply,
   moderateReview,
@@ -138,6 +140,40 @@ export const adminModerationRoutes = app
         { adminId, target: 'profile', targetUserId, forcedPrivate: body.forcedPrivate },
         'profile visibility moderated'
       )
+      return c.json(ok(result.data), HTTP_STATUS.OK)
+    }
+  )
+  .patch(
+    '/products/:id',
+    zValidator('param', idParam),
+    zValidator('json', moderateContentBodySchema),
+    async (c) => {
+      const { id } = c.req.valid('param')
+      const body = c.req.valid('json')
+      const adminId = getAuthedUserId(c)
+
+      const result = await moderateProduct(c.get('db'), { id, adminId, body })
+      if (!isApiSuccess(result)) {
+        return c.json(err(result.error), errorToStatus(result.error, {}))
+      }
+      logger.info({ adminId, target: 'product', id, status: body.status }, 'content moderated')
+      return c.json(ok(result.data), HTTP_STATUS.OK)
+    }
+  )
+  .patch(
+    '/ingredients/:id',
+    zValidator('param', idParam),
+    zValidator('json', moderateContentBodySchema),
+    async (c) => {
+      const { id } = c.req.valid('param')
+      const body = c.req.valid('json')
+      const adminId = getAuthedUserId(c)
+
+      const result = await moderateIngredient(c.get('db'), { id, adminId, body })
+      if (!isApiSuccess(result)) {
+        return c.json(err(result.error), errorToStatus(result.error, {}))
+      }
+      logger.info({ adminId, target: 'ingredient', id, status: body.status }, 'content moderated')
       return c.json(ok(result.data), HTTP_STATUS.OK)
     }
   )

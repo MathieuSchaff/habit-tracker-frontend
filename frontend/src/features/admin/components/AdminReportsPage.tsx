@@ -9,7 +9,7 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
 import { adminQueries, useModerateContent, useResolveReport } from '@/lib/queries/admin'
-import { adminLabels } from '../constants'
+import { adminLabels, roleLabels, rolePillClass } from '../constants'
 
 const STATUSES: ReadonlyArray<{ value: ReportStatus; label: string }> = [
   { value: 'open', label: 'Ouverts' },
@@ -137,12 +137,8 @@ export function AdminReportsPage() {
                         <div className="admin-target-snapshot">
                           <span className="admin-target-snapshot__email">{targetUser.email}</span>
                           <span className="admin-target-snapshot__meta">
-                            <span
-                              className={`admin-pill ${
-                                targetUser.role === 'admin' ? 'admin-pill--admin' : ''
-                              }`}
-                            >
-                              {targetUser.role}
+                            <span className={rolePillClass(targetUser.role)}>
+                              {roleLabels[targetUser.role]}
                             </span>
                             {targetUser.forcedPrivateByAdmin && (
                               <span className="admin-pill admin-pill--banned">

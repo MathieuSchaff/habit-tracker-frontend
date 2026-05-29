@@ -106,7 +106,7 @@ export function useIngredientFormSubmit(args: Args) {
         id: ingredient.id,
         data: {
           name: args.form.name.trim(),
-          slug: args.isAdmin ? trimmedField(args.form.slug) : undefined,
+          // slug is immutable after creation (C-4) — not sent on edit.
           category: trimmedField(args.form.category),
           description: trimmedField(args.form.description),
           content: trimmedField(args.form.content),

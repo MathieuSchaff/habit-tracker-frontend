@@ -11,6 +11,7 @@ export const banScopeEnum = pgEnum('ban_scope', [
   'global',
   'discussion_post',
   'review_publish',
+  'ingredient_create',
 ])
 
 export const userBans = pgTable(

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { fieldChangeSchema, safeUrl } from '../core'
+import { fieldChangeSchema, httpsUrl, noHtml, safeUrl } from '../core'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
 import { PRODUCT_TEXTURE_VALUES } from './textures'
 import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
@@ -8,30 +8,27 @@ import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
 // Soft validation: rejects HTML and bare prose (no comma for strings > 100 chars).
 // Does not attempt full INCI nomenclature parsing — algo-derm handles that at
 // processing time.
-const inciBase = z
-  .string()
-  .max(5000)
-  .refine((v) => !/<[^>]+>/.test(v), { message: 'inci must not contain HTML' })
-  .refine((v) => v.trim().length <= 100 || v.includes(','), {
-    message: 'inci must be a comma-separated ingredient list',
-  })
+const inciBase = noHtml(z.string().max(5000)).refine(
+  (v) => v.trim().length <= 100 || v.includes(','),
+  { message: 'inci must be a comma-separated ingredient list' }
+)
 
 export const createProductSchema = z
   .object({
-    name: z.string().min(1).max(200),
-    brand: z.string().min(1).max(200),
+    name: noHtml(z.string().trim().min(2).max(200)),
+    brand: noHtml(z.string().trim().min(2).max(200)),
     category: z.enum(PRODUCT_CATEGORY_VALUES),
     kind: z.string().min(1).max(100),
     unit: z.enum(PRODUCT_UNIT_VALUES),
     slug: z.string().max(100).optional(),
     inci: inciBase.optional(),
-    description: z.string().max(5000).optional(),
+    description: noHtml(z.string().max(5000)).optional(),
     totalAmount: z.number().int().min(1).optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).optional(),
     texture: z.enum(PRODUCT_TEXTURE_VALUES).optional(),
-    url: safeUrl.optional(),
-    imageUrl: safeUrl.optional(),
-    notes: z.string().max(5000).optional(),
+    url: httpsUrl.optional(),
+    imageUrl: httpsUrl.optional(),
+    notes: noHtml(z.string().max(5000)).optional(),
     priceCents: z.number().int().min(0).optional(),
   })
   .refine(
@@ -44,20 +41,20 @@ export const createProductSchema = z
 
 export const updateProductSchema = z
   .object({
-    name: z.string().min(1).max(200).optional(),
-    brand: z.string().min(1).max(200).optional(),
+    name: noHtml(z.string().trim().min(2).max(200)).optional(),
+    brand: noHtml(z.string().trim().min(2).max(200)).optional(),
     category: z.enum(PRODUCT_CATEGORY_VALUES).optional(),
     kind: z.string().min(1).max(100).optional(),
     unit: z.enum(PRODUCT_UNIT_VALUES).optional(),
     slug: z.string().max(100).optional(),
     inci: inciBase.nullable().optional(),
-    description: z.string().max(5000).nullable().optional(),
+    description: noHtml(z.string().max(5000)).nullable().optional(),
     totalAmount: z.number().int().min(1).nullable().optional(),
     amountUnit: z.enum(PRODUCT_AMOUNT_UNIT_VALUES).nullable().optional(),
     texture: z.enum(PRODUCT_TEXTURE_VALUES).nullable().optional(),
-    url: safeUrl.nullable().optional(),
-    imageUrl: safeUrl.nullable().optional(),
-    notes: z.string().max(5000).nullable().optional(),
+    url: httpsUrl.nullable().optional(),
+    imageUrl: httpsUrl.nullable().optional(),
+    notes: noHtml(z.string().max(5000)).nullable().optional(),
     priceCents: z.number().int().min(0).nullable().optional(),
   })
   .strict()

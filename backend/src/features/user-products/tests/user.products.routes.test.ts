@@ -30,6 +30,7 @@ describe('User Products API', () => {
     token = await loginAndGetToken(app, creds.rawEmail, creds.rawPassword)
     const product = await createProduct(
       user.id,
+      'admin',
       {
         name: 'Crème hydratante',
         brand: 'Avène',

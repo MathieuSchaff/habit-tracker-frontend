@@ -42,7 +42,13 @@ import { ingredients, productIngredients } from '../../db/schema'
 import { type Product, products } from '../../db/schema/products'
 import { userProducts } from '../../db/schema/products/user-products'
 import { productTagLinks, productTagTypes } from '../../db/schema/tags/tags'
-import { escapeLike, isUniqueViolation } from '../../lib/helpers'
+import {
+  assertWithinSubmissionRateLimit,
+  type CatalogRole,
+  resolveCatalogQuality,
+  translateUniqueViolation,
+} from '../../lib/catalog'
+import { escapeLike } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { writeTagsForProductFailSoft } from '../auto-tagging'
 import { listTagsByProduct } from '../product-tags/service'
@@ -57,13 +63,46 @@ const NORMALIZED_STRING_FIELDS = ['name', 'brand', 'kind', 'unit', 'amountUnit']
 
 export async function createProduct(
   userId: string,
+  role: CatalogRole,
   input: CreateProductInput,
   database: DB = db,
   options: { autoTag?: boolean } = {}
 ) {
   try {
+    await assertWithinSubmissionRateLimit(
+      database,
+      'count_recent_product_submissions',
+      userId,
+      role,
+      () => new ProductError('product_rate_limited')
+    )
+
     const name = normalizeString(input.name)
     const brand = normalizeString(input.brand)
+
+    // Tier-1 dedup (A-2): surface an existing VISIBLE row with the same
+    // normalized key (409 + existing). Scoped to visible so a hidden tombstone
+    // never blocks a re-submission (V-3) nor leaks. norm() matches the partial
+    // unique index (P-1); tier-2 (the 23505 catch below) guards races.
+    const [existing] = await database
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        brand: products.brand,
+        kind: products.kind,
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.moderationStatus, 'visible'),
+          sql`norm(${products.name}) = norm(${name})`,
+          sql`norm(${products.brand}) = norm(${brand})`
+        )
+      )
+      .limit(1)
+    if (existing) throw new ProductError('product_already_exists', existing)
+
     const slug = input.slug ?? `${name}${brand ? `-${brand}` : ''}`
     const [product] = await database
       .insert(products)
@@ -76,6 +115,7 @@ export async function createProduct(
         unit: normalizeString(input.unit) as ProductUnit,
         amountUnit: input.amountUnit ? normalizeString(input.amountUnit) : input.amountUnit,
         slug: slugify(slug),
+        ...resolveCatalogQuality(role, userId),
       })
       .returning()
 
@@ -91,8 +131,7 @@ export async function createProduct(
     return product
   } catch (e) {
     if (e instanceof ProductError) throw e
-    if (isUniqueViolation(e)) throw new ProductError('product_already_exists')
-    throw e
+    translateUniqueViolation(e, () => new ProductError('product_already_exists'))
   }
 }
 async function getProductRow(condition: SQL, database: Database) {
@@ -114,6 +153,11 @@ async function getProductRow(condition: SQL, database: Database) {
       kind: products.kind,
       texture: products.texture,
       notes: products.notes,
+      catalogQuality: products.catalogQuality,
+      moderationStatus: products.moderationStatus,
+      createdBy: products.createdBy,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
     })
     .from(products)
     .where(condition)
@@ -148,7 +192,17 @@ export async function getProductFullBySlug(slug: string, database: Database = db
   }
 }
 
-const EXCLUDED_KEYS = new Set(['id', 'createdBy', 'createdAt'])
+// createdBy/createdAt/id are immutable; quality + moderation + verify stamps are
+// admin/contributor-governed (V-2 frontier) — an edit can never flip them.
+const EXCLUDED_KEYS = new Set([
+  'id',
+  'createdBy',
+  'createdAt',
+  'catalogQuality',
+  'moderationStatus',
+  'verifiedBy',
+  'verifiedAt',
+])
 
 const TRACKED_FIELDS = [
   'name',
@@ -226,24 +280,45 @@ export async function updateProduct(
   })
 
   // This is a special SQL to update and get the old values at the same time for the logs
-  const result = await database.execute(sql`
-    UPDATE ${products}
-    SET ${sql.join(setClauses, sql`, `)}
-    WHERE ${products.id} = ${id}
-    RETURNING
-      ${products}.*,
-      ${sql.join(
-        TRACKED_FIELDS.map((f) => {
-          const col = products[f as keyof typeof products]
-          if (!isColumnLike(col)) throw new ProductError('product_update_failed')
-          return sql`OLD.${sql.identifier(col.name)} AS ${sql.identifier(`old_${f}`)}`
-        }),
-        sql`, `
-      )}
-  `)
+  let result: Record<string, unknown>[]
+  try {
+    result = (await database.execute(sql`
+      UPDATE ${products}
+      SET ${sql.join(setClauses, sql`, `)}
+      WHERE ${products.id} = ${id}
+      RETURNING
+        ${products}.*,
+        ${sql.join(
+          TRACKED_FIELDS.map((f) => {
+            const col = products[f as keyof typeof products]
+            if (!isColumnLike(col)) throw new ProductError('product_update_failed')
+            return sql`OLD.${sql.identifier(col.name)} AS ${sql.identifier(`old_${f}`)}`
+          }),
+          sql`, `
+        )}
+    `)) as Record<string, unknown>[]
+  } catch (e) {
+    if (e instanceof ProductError) throw e
+    // A name/brand rename can collide with the partial unique index on visible
+    // rows (C-4) → 409. Re-throw so withRlsContext rolls back instead of
+    // committing an aborted tx (a swallowed 23505 surfaces as 500).
+    translateUniqueViolation(e, () => new ProductError('product_already_exists'))
+  }
 
   const row = result[0] as Record<string, unknown> | undefined
-  if (!row) throw new ProductError('product_not_found')
+  if (!row) {
+    // UPDATE matched 0 rows. Under RLS that means the row is locked (now
+    // verified), not the caller's, or invisible — disambiguate so a locked row
+    // returns 403 instead of a misleading 404. A visible row found here exists
+    // but the caller may not edit it; none means truly absent/hidden. Never read
+    // rowCount (bun-postgres footgun).
+    const [visible] = await database
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1)
+    throw new ProductError(visible ? 'unauthorized_access' : 'product_not_found')
+  }
 
   // I convert the database columns names back to the object format
   const newProduct: Record<string, unknown> = {}
@@ -272,6 +347,27 @@ export async function updateProduct(
   }
 
   return newProduct as Product
+}
+
+// Stamp a product as verified. Route guard (requireCatalogWrite) limits callers
+// to admin/contributor; here we only set the quality stamp. One-way — un-verify
+// is out of scope.
+export async function verifyProduct(
+  actorId: string,
+  id: string,
+  database: DB = db
+): Promise<Product> {
+  const [row] = await database
+    .update(products)
+    .set({
+      catalogQuality: 'verified',
+      verifiedBy: actorId,
+      verifiedAt: new Date().toISOString(),
+    })
+    .where(and(eq(products.id, id), eq(products.moderationStatus, 'visible')))
+    .returning()
+  if (!row) throw new ProductError('product_not_found')
+  return row
 }
 
 type ProductSummary = Pick<
@@ -443,6 +539,13 @@ export async function listProducts(
     conditions.push(
       or(ilike(products.name, `%${escaped}%`), ilike(products.brand, `%${escaped}%`)) as SQL
     )
+  }
+
+  if (filters.quality) {
+    conditions.push(eq(products.catalogQuality, filters.quality))
+  }
+  if (filters.status) {
+    conditions.push(eq(products.moderationStatus, filters.status))
   }
 
   // avoid_for is computed post-fetch as per-product profileMatches (badge UX)

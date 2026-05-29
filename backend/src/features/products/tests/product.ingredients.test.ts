@@ -18,13 +18,14 @@ import { createProduct } from '../service'
 async function makeProduct(userId: string, name = 'Produit Test') {
   return createProduct(
     userId,
+    'admin',
     { name, brand: 'toto', category: 'skincare', kind: 'serum', unit: 'dropper' },
     testDb
   )
 }
 
 async function makeIngredient(userId: string, name = 'Ingrédient Test') {
-  return createIngredient(testDb, userId, { name, type: 'skincare' })
+  return createIngredient(testDb, userId, 'contributor', { name, type: 'skincare' })
 }
 
 setupDbTests()
@@ -167,7 +168,7 @@ describe('Product Ingredients Service', () => {
 
     it('should return ingredients with joined ingredient information', async () => {
       const product = await makeProduct(user.id)
-      const ingredient = await createIngredient(testDb, user.id, {
+      const ingredient = await createIngredient(testDb, user.id, 'contributor', {
         name: 'Acide Hyaluronique',
         type: 'skincare',
         category: 'actif',

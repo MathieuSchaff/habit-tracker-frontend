@@ -31,6 +31,7 @@ export const ingredientErrorMapping = {
   ingredient_update_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   ingredient_delete_failed: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   ingredient_already_exists: HTTP_STATUS.CONFLICT,
+  ingredient_rate_limited: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
   unauthorized_access: HTTP_STATUS.FORBIDDEN,
   database_error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
   slug_already_exists: HTTP_STATUS.CONFLICT,
@@ -109,6 +110,8 @@ export const listIngredientsSearchSchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
   sort: ingredientSortEnum.optional(),
+  quality: z.enum(['unverified', 'verified']).optional(),
+  status: z.enum(['visible', 'hidden']).optional(),
 })
 
 export type ListIngredientsSearchFilters = z.infer<typeof listIngredientsSearchSchema>

@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { eq } from 'drizzle-orm'
-
-import { users } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -27,7 +24,11 @@ async function makeIngredient(
     slug?: string
   } = {}
 ) {
-  return createIngredient(testDb, user.id, { name, type: 'skincare' as const, ...extra })
+  return createIngredient(testDb, user.id, 'contributor', {
+    name,
+    type: 'skincare' as const,
+    ...extra,
+  })
 }
 
 setupDbTests()
@@ -194,7 +195,7 @@ describe('updateIngredient — exhaustive', () => {
       )
 
       expect(updated.name).toBe('Multi All Renamed')
-      expect(updated.slug).toBe('multi-all-renamed')
+      expect(updated.slug).toBe('multi-all') // slug immutable (C-4)
       expect(updated.description).toBe('Nouvelle desc')
       expect(updated.content).toBe('Nouveau contenu')
       expect(updated.category).toBe('excipient')
@@ -222,50 +223,18 @@ describe('updateIngredient — exhaustive', () => {
     })
   })
 
-  describe('slug logic', () => {
-    it('should auto-regenerate slug when name changes', async () => {
+  // Slug is immutable after creation (C-4): renaming never re-derives it, and a
+  // slug field in the payload is rejected by the strict update schema.
+  describe('slug immutability (C-4)', () => {
+    it('should not change slug when the name changes', async () => {
       const created = await makeIngredient('Acide Original')
 
       const updated = await updateIngredient(testDb, user.id, created.id, {
         name: 'Acide Hyaluronique Modifié',
       })
 
-      expect(updated.slug).toBe('acide-hyaluronique-modifie')
-    })
-
-    it('should use explicit slug when provided by admin', async () => {
-      const created = await makeIngredient('Slug Explicit')
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
-
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        slug: 'mon-slug-custom',
-      })
-
-      expect(updated.slug).toBe('mon-slug-custom')
-    })
-
-    it('should NOT use explicit slug when provided by non-admin', async () => {
-      const created = await makeIngredient('Slug Explicit')
-      await testDb.update(users).set({ role: 'user' }).where(eq(users.id, user.id))
-
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        slug: 'mon-slug-custom',
-      })
-
-      expect(updated.slug).toBe('slug-explicit') // unchanged or auto from name if name changed
-    })
-
-    it('should prefer explicit slug over auto-generated from name (admin)', async () => {
-      const created = await makeIngredient('Ancien Nom')
-      await testDb.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
-
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        name: 'Nouveau Nom',
-        slug: 'slug-force',
-      })
-
-      expect(updated.name).toBe('Nouveau Nom')
-      expect(updated.slug).toBe('slug-force')
+      expect(updated.name).toBe('Acide Hyaluronique Modifié')
+      expect(updated.slug).toBe('acide-original')
     })
 
     it('should not change slug when only non-name fields are updated', async () => {
@@ -279,23 +248,23 @@ describe('updateIngredient — exhaustive', () => {
       expect(updated.slug).toBe(originalSlug)
     })
 
-    it('should be fetchable by new slug after name change', async () => {
+    it('should stay fetchable by its original slug after a name change', async () => {
       const created = await makeIngredient('Ancien Slug Fetch')
 
       await updateIngredient(testDb, user.id, created.id, { name: 'Nouveau Slug Fetch' })
 
-      const fetched = await getIngredientBySlug(testDb, 'nouveau-slug-fetch')
+      const fetched = await getIngredientBySlug(testDb, 'ancien-slug-fetch')
       expect(fetched.id).toBe(created.id)
     })
 
-    it('should handle accented characters in slug generation', async () => {
-      const created = await makeIngredient('Accent Slug')
+    it('should reject a slug field in the update payload', async () => {
+      const created = await makeIngredient('Slug Forced')
 
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        name: 'Rétinoïde Épaisseur',
-      })
-
-      expect(updated.slug).toBe('retinoide-epaisseur')
+      await expect(
+        updateIngredient(testDb, user.id, created.id, {
+          slug: 'mon-slug-custom',
+        } as never)
+      ).rejects.toThrow()
     })
   })
 
@@ -487,28 +456,6 @@ describe('updateIngredient — exhaustive', () => {
       expect(edits[0]?.summary).toBe('Edit 3')
       expect(edits[1]?.summary).toBe('Edit 2')
       expect(edits[2]?.summary).toBe('Edit 1')
-    })
-    it('should not include EXCLUDED_KEYS in changes even if passed', async () => {
-      const created = await makeIngredient('Excluded Keys')
-
-      await updateIngredient(
-        testDb,
-        user.id,
-        created.id,
-        {
-          description: 'Changed',
-          slug: 'new-slug-ignored-in-audit',
-        },
-        'Excluded test'
-      )
-
-      const edits = await listIngredientEdits(testDb, created.id)
-
-      expect(edits).toHaveLength(1)
-      expect(edits[0]?.changes).toHaveProperty('description')
-      expect(edits[0]?.changes).not.toHaveProperty('slug')
-      expect(edits[0]?.changes).not.toHaveProperty('id')
-      expect(edits[0]?.changes).not.toHaveProperty('updatedAt')
     })
   })
 

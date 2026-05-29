@@ -46,7 +46,8 @@ export function IngredientForm({
   onSuccess,
 }: IngredientFormProps) {
   const { data: allTags } = useQuery(productTagQueries.list())
-  const { isAdmin } = useAuthStore()
+  const { role } = useAuthStore()
+  const isAdmin = role === 'admin'
 
   const [form, setForm] = useState<IngredientFormData>({
     name: ingredient?.name ?? '',

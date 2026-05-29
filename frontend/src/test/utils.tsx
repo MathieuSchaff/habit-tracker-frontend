@@ -91,6 +91,13 @@ export function makeUserProduct(
       category: ProductCategory
       imageUrl: string | null
       notes: string | null
+      catalogQuality: 'unverified' | 'verified'
+      verifiedBy: string | null
+      verifiedAt: string | null
+      moderationStatus: 'visible' | 'hidden'
+      moderatedBy: string | null
+      moderatedAt: string | null
+      moderationReason: string | null
       productIngredients: {
         id: string
         createdAt: string
@@ -111,6 +118,13 @@ export function makeUserProduct(
           createdBy: string
           createdAt: string
           updatedAt: string
+          catalogQuality: 'unverified' | 'verified'
+          verifiedBy: string | null
+          verifiedAt: string | null
+          moderationStatus: 'visible' | 'hidden'
+          moderatedBy: string | null
+          moderatedAt: string | null
+          moderationReason: string | null
         }
       }[]
       productTagLinks: {
@@ -182,6 +196,13 @@ export function makeUserProduct(
       category: 'skincare' as ProductCategory,
       imageUrl: null,
       notes: null,
+      catalogQuality: 'verified' as 'unverified' | 'verified',
+      verifiedBy: null,
+      verifiedAt: null,
+      moderationStatus: 'visible' as 'visible' | 'hidden',
+      moderatedBy: null,
+      moderatedAt: null,
+      moderationReason: null,
     },
     review: {
       id: 'test-review-1',

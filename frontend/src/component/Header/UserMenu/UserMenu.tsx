@@ -18,7 +18,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
   const navigate = useNavigate()
   const { data: profile } = useQuery(profileQueries.me())
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
-  const isAdmin = useAuthStore((state) => state.isAdmin)
+  const isAdmin = useAuthStore((state) => state.role === 'admin')
   const logout = useLogout()
 
   const handleLogout = () => {

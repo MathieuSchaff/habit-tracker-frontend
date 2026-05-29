@@ -57,7 +57,7 @@ export function BlogListPage({
     }, 400)
   }
 
-  const isAdmin = useAuthStore((s) => s.isAdmin)
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
 
   const { data, isLoading, isError, isPlaceholderData, refetch } = useQuery({
     ...articleQueries.list({ category, page, q, limit: PAGE_SIZE }),
