@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'bun:test'
 
-import type { Email, HashedPassword } from '@habit-tracker/shared'
-import { emailSchema } from '@habit-tracker/shared'
+import type { Email, HashedPassword } from '@aurore/shared'
+import { emailSchema } from '@aurore/shared'
 
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'

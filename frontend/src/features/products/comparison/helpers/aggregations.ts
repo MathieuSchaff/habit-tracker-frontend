@@ -1,5 +1,5 @@
-import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
-import { DERMO_CONFLICTS, type DermoConflict } from '@habit-tracker/shared'
+import type { EnrichedComparisonProduct } from '@aurore/shared'
+import { DERMO_CONFLICTS, type DermoConflict } from '@aurore/shared'
 
 type Ingredient = EnrichedComparisonProduct['ingredients'][number]
 

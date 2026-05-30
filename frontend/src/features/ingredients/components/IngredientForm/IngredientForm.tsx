@@ -1,5 +1,5 @@
-import type { IngredientType } from '@habit-tracker/shared'
-import { INGREDIENT_TYPE_LABELS, INGREDIENT_TYPE_VALUES } from '@habit-tracker/shared'
+import type { IngredientType } from '@aurore/shared'
+import { INGREDIENT_TYPE_LABELS, INGREDIENT_TYPE_VALUES } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { Save, X as XIcon } from 'lucide-react'

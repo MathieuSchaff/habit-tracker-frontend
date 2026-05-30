@@ -1,4 +1,4 @@
-import type { BlogCategory, CreateArticleInput, UpdateArticleInput } from '@habit-tracker/shared'
+import type { BlogCategory, CreateArticleInput, UpdateArticleInput } from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 

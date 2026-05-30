@@ -1,4 +1,4 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import type { UserProductStatus } from '@aurore/shared'
 
 import { ArrowRight, GitCompare, X } from 'lucide-react'
 

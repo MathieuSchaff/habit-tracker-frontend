@@ -4,9 +4,8 @@ import { skincareIngredients } from './skincare'
 import { supplementIngredients } from './supplements'
 import type { IngredientInput } from './types'
 
-export type { IngredientInput }
-
 export { INGREDIENT_SLUGS } from './ingredient-slugs'
+export type { IngredientInput }
 
 // Some haircare stubs reuse slugs that are already defined (with full content)
 // in skincare/supplements/dental — first occurrence wins so the curated entry

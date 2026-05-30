@@ -27,8 +27,8 @@ export function ComparisonStrip({ left, right, rows, className }: ComparisonStri
       <div className="aur-compare__col aur-compare__col--a">
         <div className="aur-compare__label">{left.label ?? 'Produit A'}</div>
         <div className="aur-compare__name">{left.name}</div>
-        {rows.map((r, i) => (
-          <div className="aur-compare__row" key={`${r.key}-a-${i}`}>
+        {rows.map((r) => (
+          <div className="aur-compare__row" key={`${r.key}-a`}>
             <span className="aur-compare__row-key">{r.key}</span>
             <span
               className={`aur-compare__row-val${r.aHint ? ` aur-compare__row-val--${r.aHint}` : ''}`}
@@ -41,8 +41,8 @@ export function ComparisonStrip({ left, right, rows, className }: ComparisonStri
       <div className="aur-compare__col aur-compare__col--b">
         <div className="aur-compare__label">{right.label ?? 'Produit B'}</div>
         <div className="aur-compare__name">{right.name}</div>
-        {rows.map((r, i) => (
-          <div className="aur-compare__row" key={`${r.key}-b-${i}`}>
+        {rows.map((r) => (
+          <div className="aur-compare__row" key={`${r.key}-b`}>
             <span className="aur-compare__row-key">{r.key}</span>
             <span
               className={`aur-compare__row-val${r.bHint ? ` aur-compare__row-val--${r.bHint}` : ''}`}

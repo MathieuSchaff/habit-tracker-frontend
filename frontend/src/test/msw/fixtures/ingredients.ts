@@ -2,7 +2,7 @@ import type {
   IngredientFilterOptions,
   IngredientType,
   SkincareIngredientCategory,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 // Search-result shape (subset returned by /api/ingredients/search).
 export type IngredientSearchHit = {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { SKINCARE_PRODUCT_TAG_SLUGS } from '@habit-tracker/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 
 import {
   detectAbsenceClaimsFromText,

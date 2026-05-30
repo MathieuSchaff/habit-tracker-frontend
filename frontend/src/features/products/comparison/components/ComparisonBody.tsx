@@ -1,4 +1,4 @@
-import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
+import type { EnrichedComparisonProduct } from '@aurore/shared'
 
 import { CommonIngredientsSection } from './CommonIngredientsSection'
 import { ComparisonHero } from './ComparisonHero'

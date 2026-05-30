@@ -1,4 +1,4 @@
-import { detectKindPrimaryType, type ProductKind } from '@habit-tracker/shared'
+import { detectKindPrimaryType, type ProductKind } from '@aurore/shared'
 
 import { getRouteApi } from '@tanstack/react-router'
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from 'react'

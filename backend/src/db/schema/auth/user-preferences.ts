@@ -1,4 +1,4 @@
-import type { CriteriaWeights } from '@habit-tracker/shared'
+import type { CriteriaWeights } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import { boolean, jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'

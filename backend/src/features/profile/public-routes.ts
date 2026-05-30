@@ -1,10 +1,10 @@
-import { err, HTTP_STATUS, ok, USERNAME_MAX_LENGTH } from '@habit-tracker/shared'
+import { err, HTTP_STATUS, ok, USERNAME_MAX_LENGTH } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { zValidator } from '../../utils/validator'
 import { optionalJwtAuth } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { getPublicProfileByUsername } from './service'

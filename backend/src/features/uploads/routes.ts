@@ -1,6 +1,5 @@
-import { err, HTTP_STATUS, ok, uploadErrorMapping } from '@habit-tracker/shared'
+import { err, HTTP_STATUS, ok, uploadErrorMapping } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { type Context, Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
@@ -10,6 +9,7 @@ import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
 import { products } from '../../db/schema/products'
 import { profiles } from '../../db/schema/users'
+import { zValidator } from '../../utils/validator'
 import {
   getAuthedUserId,
   requireCatalogWrite,

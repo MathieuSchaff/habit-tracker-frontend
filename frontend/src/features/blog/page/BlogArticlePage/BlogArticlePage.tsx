@@ -1,4 +1,4 @@
-import { BLOG_CATEGORY_LABELS } from '@habit-tracker/shared'
+import { BLOG_CATEGORY_LABELS } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'

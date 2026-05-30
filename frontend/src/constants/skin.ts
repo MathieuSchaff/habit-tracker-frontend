@@ -1,4 +1,4 @@
-import type { SkinConcern, SkinType } from '@habit-tracker/shared'
+import type { SkinConcern, SkinType } from '@aurore/shared'
 
 export const SKIN_TYPE_LABELS: Record<SkinType, string> = {
   'peau-seche': 'Sèche',

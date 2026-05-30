@@ -1,4 +1,4 @@
-import { HOLY_GRAIL_SENTIMENT, type UserProductStatus } from '@habit-tracker/shared'
+import { HOLY_GRAIL_SENTIMENT, type UserProductStatus } from '@aurore/shared'
 
 import { useCallback, useMemo, useState } from 'react'
 

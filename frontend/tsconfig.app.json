@@ -14,8 +14,8 @@
     /* 2. Résolution des modules (consomme les types) */
     "baseUrl": ".",
     "paths": {
-      "@habit-tracker/shared": ["../shared/dist/index.d.ts"],
-      "@habit-tracker/backend": ["../backend/dist/index.d.ts"],
+      "@aurore/shared": ["../shared/dist/index.d.ts"],
+      "@aurore/backend": ["../backend/dist/index.d.ts"],
       "@/*": ["./src/*"]
     },
 

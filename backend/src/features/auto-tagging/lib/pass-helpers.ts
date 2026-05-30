@@ -4,7 +4,7 @@
 // `priorSlugsBySource` / `priorSlugSet` let later passes read upstream pass
 // output from the dedup'd accumulator without orchestrator-managed state.
 
-import type { SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import type { AutoTagProposal, AutoTagRelevance, AutoTagSource } from './pass-types'
 

@@ -1,4 +1,4 @@
-import type { CreateRefreshTokenArgs } from '@habit-tracker/shared'
+import type { CreateRefreshTokenArgs } from '@aurore/shared'
 
 import { and, eq, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 

@@ -1,4 +1,4 @@
-import type { ChangePasswordInput } from '@habit-tracker/shared'
+import type { ChangePasswordInput } from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 

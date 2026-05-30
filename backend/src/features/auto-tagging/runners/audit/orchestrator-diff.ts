@@ -31,7 +31,7 @@
 //   BASELINE    optional       — path to prior snapshot CSV; switches to diff mode
 //   LIMIT       optional       — cap product count (debug)
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { inArray, sql } from 'drizzle-orm'
 

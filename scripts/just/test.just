@@ -6,7 +6,6 @@ APP_TEST_DB_URL := "postgres://app_runtime:testpassword@localhost:5433/appdb_tes
 # Start test DB and apply migrations
 test-db-up:
     {{COMPOSE_TEST}} down --remove-orphans 2>/dev/null || true
-    docker rm -f app_db_test 2>/dev/null || true
     {{COMPOSE_TEST}} up -d
     @printf "{{CYAN}}Waiting for DB...{{NC}}\n"
     @until {{COMPOSE_TEST}} exec db-test pg_isready -U app -d appdb_test 2>/dev/null; do sleep 1; done
@@ -70,7 +69,7 @@ test-only pattern: test-db-up
 
 # Launch Drizzle Studio for test DB
 test-db-studio:
-    cd backend && DATABASE_URL="{{TEST_DB_URL}}" bun x drizzle-kit studio --port 4982
+    cd backend && DATABASE_URL="{{TEST_DB_URL}}" bunx drizzle-kit studio --port 4982
 
 # Bench backend test suite — captures wall-time + full log to /tmp/aurore-backend-test.log
 # Use with test-clean-count to measure cleanDatabase impact across PRs.

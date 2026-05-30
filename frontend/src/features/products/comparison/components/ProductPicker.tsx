@@ -1,4 +1,4 @@
-import { COMPARISON_MAX_PRODUCTS } from '@habit-tracker/shared'
+import { COMPARISON_MAX_PRODUCTS } from '@aurore/shared'
 
 import { AsyncSearchSelect } from '@/component/Filter/AsyncSearchSelect/AsyncSearchSelect'
 import { productQueries } from '@/lib/queries/products'

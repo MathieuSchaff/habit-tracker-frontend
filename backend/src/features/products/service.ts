@@ -7,7 +7,7 @@ import type {
   ProductUnit,
   UpdateProductInput,
   UserProductStatus,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 import {
   DENTAL_PRODUCT_TAG_CATEGORIES,
   HAIRCARE_PRODUCT_TAG_CATEGORIES,
@@ -16,7 +16,7 @@ import {
   resolveAvoidSlugs,
   SKINCARE_PRODUCT_TAG_CATEGORIES,
   SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import {

@@ -1,4 +1,4 @@
-import type { ProductConcentrationUnit } from '@habit-tracker/shared'
+import type { ProductConcentrationUnit } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'

@@ -1,4 +1,4 @@
-import type { EnrichedComparisonProduct, SkincareProductTagCategory } from '@habit-tracker/shared'
+import type { EnrichedComparisonProduct, SkincareProductTagCategory } from '@aurore/shared'
 
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import { tagLabel } from '@/features/products/filters'

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import type { CreateProductInput } from '@habit-tracker/shared'
-import { createProductSchema } from '@habit-tracker/shared'
+import type { CreateProductInput } from '@aurore/shared'
+import { createProductSchema } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

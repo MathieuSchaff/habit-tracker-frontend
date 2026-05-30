@@ -1,5 +1,5 @@
-import type { PublicReviewView, ReviewAxisKey } from '@habit-tracker/shared'
-import { reviewAxisKeys } from '@habit-tracker/shared'
+import type { PublicReviewView, ReviewAxisKey } from '@aurore/shared'
+import { reviewAxisKeys } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'

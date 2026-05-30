@@ -1,4 +1,4 @@
-import { DENTAL_INGREDIENT_TAG_SLUGS as D } from '@habit-tracker/shared'
+import { DENTAL_INGREDIENT_TAG_SLUGS as D } from '@aurore/shared'
 
 import type { IngredientTagMap } from '../../ingredient-tags'
 import { SKINCARE_INGREDIENT_TAG_SLUGS } from '../../tags'

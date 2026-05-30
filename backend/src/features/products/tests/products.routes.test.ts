@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { HTTP_STATUS } from '@habit-tracker/shared'
+import { HTTP_STATUS } from '@aurore/shared'
 
 import type { Hono } from 'hono'
 
@@ -687,9 +687,12 @@ describe('Product Routes', () => {
 
   describe('GET /products/slug-preview', () => {
     it('returns slugified name+brand for a fresh product', async () => {
-      const res = await client.products['slug-preview'].$get({
-        query: { name: 'CeraVe Baume', brand: 'CeraVe' },
-      })
+      const res = await client.products['slug-preview'].$get(
+        {
+          query: { name: 'CeraVe Baume', brand: 'CeraVe' },
+        },
+        withAuth(contributorToken)
+      )
       expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
@@ -709,18 +712,24 @@ describe('Product Routes', () => {
         },
         withAuth(contributorToken)
       )
-      const res = await client.products['slug-preview'].$get({
-        query: { name: 'Niacinamide', brand: 'Ordinary' },
-      })
+      const res = await client.products['slug-preview'].$get(
+        {
+          query: { name: 'Niacinamide', brand: 'Ordinary' },
+        },
+        withAuth(contributorToken)
+      )
       const data = await res.json()
       if (!data.success) throw new Error('slug-preview failed')
       expect(data.data.slug).toBe('niacinamide-ordinary-1')
     })
 
     it('works with empty brand', async () => {
-      const res = await client.products['slug-preview'].$get({
-        query: { name: 'Niacinamide', brand: '' },
-      })
+      const res = await client.products['slug-preview'].$get(
+        {
+          query: { name: 'Niacinamide', brand: '' },
+        },
+        withAuth(contributorToken)
+      )
       expect(res.status as number).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       if (!data.success) throw new Error('slug-preview failed')
@@ -728,9 +737,12 @@ describe('Product Routes', () => {
     })
 
     it('returns 400 when name is too short', async () => {
-      const res = await client.products['slug-preview'].$get({
-        query: { name: 'A', brand: '' },
-      })
+      const res = await client.products['slug-preview'].$get(
+        {
+          query: { name: 'A', brand: '' },
+        },
+        withAuth(contributorToken)
+      )
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
   })

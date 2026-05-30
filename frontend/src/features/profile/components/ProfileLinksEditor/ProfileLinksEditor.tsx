@@ -1,4 +1,4 @@
-import type { ProfileLink } from '@habit-tracker/shared'
+import type { ProfileLink } from '@aurore/shared'
 
 import { Plus, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'

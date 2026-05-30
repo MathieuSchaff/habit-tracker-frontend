@@ -1,4 +1,4 @@
-import type { ProductCategory, ProductUnit, UserProductStatus } from '@habit-tracker/shared'
+import type { ProductCategory, ProductUnit, UserProductStatus } from '@aurore/shared'
 
 import type React from 'react'
 import { useState } from 'react'

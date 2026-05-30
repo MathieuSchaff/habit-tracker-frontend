@@ -5,7 +5,7 @@ import type {
   IngredientType,
   ReplaceIngredientTagsInput,
   UpdateIngredientRouteInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import {
   infiniteQueryOptions,

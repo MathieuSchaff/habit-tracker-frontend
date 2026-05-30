@@ -1,4 +1,4 @@
-import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
+import type { EnrichedComparisonProduct } from '@aurore/shared'
 
 import { AlertTriangle, Sparkle, Zap } from 'lucide-react'
 import type { ReactNode } from 'react'

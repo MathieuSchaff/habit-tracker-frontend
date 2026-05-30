@@ -1,4 +1,4 @@
-import { type AuthInput, authSchema, type LoginErrorCode } from '@habit-tracker/shared'
+import { type AuthInput, authSchema, type LoginErrorCode } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'

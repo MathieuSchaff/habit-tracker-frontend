@@ -1,4 +1,4 @@
-import type { ArticleErrorCode } from '@habit-tracker/shared'
+import type { ArticleErrorCode } from '@aurore/shared'
 
 export class BlogError extends Error {
   constructor(

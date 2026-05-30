@@ -16,17 +16,10 @@ image-upload:
     if [ -z "${SLUG:-}" ] && [ -z "${BATCH:-}" ]; then
         printf "{{RED}}SLUG ou BATCH requis (env vars){{NC}}\n"; exit 1
     fi
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ -z "${DRY:-}" ] && [ -z "${NO_DB:-}" ]; then
-        printf "{{RED}}⚠ PROD WRITE (image-upload) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ -z "${DRY:-}" ] && [ -z "${NO_DB:-}" ]; then confirm_prod "WRITE (image-upload)"; fi
     MODE=$([ -n "${DRY:-}" ] && echo "DRY" || echo "APPLY")
     printf "{{CYAN}}Image upload ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/upload/main.ts \
@@ -43,17 +36,10 @@ image-upload:
 image-upload-batch:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠ PROD WRITE (image-upload-batch) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ]; then confirm_prod "WRITE (image-upload-batch)"; fi
     printf "{{CYAN}}Batch upload from output/images-source/ ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/upload/batch.ts
 
@@ -61,17 +47,10 @@ image-upload-batch:
 image-patch-urls:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ -n "${APPLY:-}" ]; then
-        printf "{{RED}}⚠ PROD WRITE (patch image_url) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (patch image_url)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Patch image URLs ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/maintenance/patch-urls.ts \
@@ -81,12 +60,9 @@ image-patch-urls:
 image-analyze-orphans:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{CYAN}}Analyze image orphans ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/audit/analyze-orphans.ts \
         ${BRAND:+--brand "$BRAND"} \
@@ -96,11 +72,8 @@ image-analyze-orphans:
 image-dump-orphans:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{CYAN}}Dump orphan images to output/ ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/audit/dump-orphans.ts

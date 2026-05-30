@@ -29,7 +29,7 @@
 // slugs; their algo-derm candidates fall as `unmapped` and don't show in the
 // per-tag hit counts.
 
-import type { SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../orchestrator'
 

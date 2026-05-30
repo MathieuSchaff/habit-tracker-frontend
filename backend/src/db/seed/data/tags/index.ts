@@ -24,11 +24,11 @@ import {
   SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
   type SupplementIngredientTagSlug,
   type SupplementProductTagSlug,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 // Re-export every domain-specific slug map so local seed/ingredient-tag files
 // can import via the colocated `data/tags` barrel instead of reaching into
-// `@habit-tracker/shared` directly. Each consumer imports only the maps whose
+// `@aurore/shared` directly. Each consumer imports only the maps whose
 // keys it actually uses — TS catches wrong-domain slugs at compile time.
 export {
   DENTAL_PRODUCT_TAG_SLUGS,
@@ -36,7 +36,7 @@ export {
   SKINCARE_INGREDIENT_TAG_SLUGS,
   SUPPLEMENT_INGREDIENT_TAG_SLUGS,
   SUPPLEMENT_PRODUCT_TAG_SLUGS,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 // Ingredient-only labels (slug → FR display name). Product tag labels now
 // live in the shared product taxonomies and are resolved via

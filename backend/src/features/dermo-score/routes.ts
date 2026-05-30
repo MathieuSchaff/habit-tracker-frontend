@@ -1,10 +1,10 @@
-import { err, HTTP_STATUS, ok } from '@habit-tracker/shared'
+import { err, HTTP_STATUS, ok } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { type Context, Hono, type Next } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { zValidator } from '../../utils/validator'
 import { verifyAccessToken } from '../auth/jwt.utils'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { computeProductDermoScore } from './service'

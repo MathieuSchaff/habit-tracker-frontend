@@ -8,7 +8,7 @@ import type {
   SkinConcern,
   SkinType,
   UserProductStatus,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { and, eq, inArray } from 'drizzle-orm'
 

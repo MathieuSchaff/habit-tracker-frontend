@@ -7,7 +7,7 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@habit-tracker/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
 import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
 

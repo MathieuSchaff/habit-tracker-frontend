@@ -1,4 +1,4 @@
-import type { ProductUnit } from '@habit-tracker/shared'
+import type { ProductUnit } from '@aurore/shared'
 
 export interface ProductTagGroups {
   primary: string[]

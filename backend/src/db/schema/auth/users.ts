@@ -1,4 +1,4 @@
-import type { ProfileLink, SkinConcern, SkinType } from '@habit-tracker/shared'
+import type { ProfileLink, SkinConcern, SkinType } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -54,9 +54,7 @@ export const users = pgTable(
       .on(sql`lower(${t.email})`)
       .where(sql`deleted_at IS NULL`),
     // Partial index: only indexes Google users, keeps it small
-    uniqueIndex('users_google_sub_ux')
-      .on(t.googleSub)
-      .where(sql`google_sub IS NOT NULL`),
+    uniqueIndex('users_google_sub_ux').on(t.googleSub).where(sql`google_sub IS NOT NULL`),
   ]
 )
 

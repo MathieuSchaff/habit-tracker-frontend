@@ -23,7 +23,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@habit-tracker/shared': path.resolve(__dirname, '../shared/src/index.ts'),
+      '@aurore/shared': path.resolve(__dirname, '../shared/src/index.ts'),
     },
   },
 })

@@ -13,7 +13,7 @@ import {
   PRODUCT_CATEGORY_TO_DOMAIN_TAB,
   type ProductKind,
   type ProductTexture,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { and, eq, ne } from 'drizzle-orm'
 

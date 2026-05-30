@@ -4,8 +4,8 @@ import type {
   OpenPurchaseInput,
   Purchase,
   UpdatePurchaseInput,
-} from '@habit-tracker/shared'
-import { purchaseSchema } from '@habit-tracker/shared'
+} from '@aurore/shared'
+import { purchaseSchema } from '@aurore/shared'
 
 import { and, desc, eq, isNull, not } from 'drizzle-orm'
 

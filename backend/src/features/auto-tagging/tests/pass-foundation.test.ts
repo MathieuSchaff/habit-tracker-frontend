@@ -10,7 +10,7 @@ import {
   SKINCARE_PRODUCT_TAG_SLUGS as S,
   SKINCARE_CONCERN_SLUGS,
   type SkincareProductTagSlug,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { CONCERN_PRIMARY_CONFIDENCE_FLOOR, mergeProposal, primaryPromote } from '../lib/merge'
 import { asProposals, priorSlugSet, priorSlugsBySource } from '../lib/pass-helpers'

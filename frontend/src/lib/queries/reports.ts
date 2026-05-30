@@ -1,4 +1,4 @@
-import type { CreateReportInput } from '@habit-tracker/shared'
+import type { CreateReportInput } from '@aurore/shared'
 
 import { useMutation } from '@tanstack/react-query'
 

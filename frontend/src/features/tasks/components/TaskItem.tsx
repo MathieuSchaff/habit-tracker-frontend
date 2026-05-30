@@ -1,4 +1,4 @@
-import type { Task, TaskEnergy } from '@habit-tracker/shared'
+import type { Task, TaskEnergy } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight, Edit2, Plus, Trash2, Zap } from 'lucide-react'

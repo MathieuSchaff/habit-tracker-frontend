@@ -1,4 +1,4 @@
-import { type BanScope, err, HTTP_STATUS } from '@habit-tracker/shared'
+import { type BanScope, err, HTTP_STATUS } from '@aurore/shared'
 
 import type { Context, Next } from 'hono'
 

@@ -15,7 +15,7 @@ import {
   type ProductKind,
   SKINCARE_PRODUCT_TAG_SLUGS as S,
   type SkincareProductTagSlug,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 describe('detectKindTags — pinned fixtures', () => {
   const cases: Array<[ProductKind, SkincareProductTagSlug[]]> = [

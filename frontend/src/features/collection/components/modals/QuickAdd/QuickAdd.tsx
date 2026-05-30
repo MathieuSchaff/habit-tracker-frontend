@@ -2,7 +2,7 @@ import {
   PRODUCT_CATEGORY_LABELS,
   PRODUCT_CATEGORY_VALUES,
   type ProductCategory,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { X } from 'lucide-react'
 

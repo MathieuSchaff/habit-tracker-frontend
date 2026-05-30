@@ -1,6 +1,6 @@
 import '../discussions.css'
 
-import type { DiscussionReply, DiscussionThreadWithReplies } from '@habit-tracker/shared'
+import type { DiscussionReply, DiscussionThreadWithReplies } from '@aurore/shared'
 
 import { Trash2 } from 'lucide-react'
 

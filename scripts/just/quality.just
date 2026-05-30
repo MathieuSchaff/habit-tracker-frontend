@@ -43,6 +43,10 @@ knip-strict:
 cycles:
     bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src
 
+# Fuzzy-pick a recipe and run it (needs fzf)
+choose:
+    @just --summary | tr ' ' '\n' | fzf --preview 'just --show {}' | xargs -r just
+
 # Audit code complet (knip + biome + tsc + cycles + fallow health/dupes + react-doctor). Rapports → .audit-out/
 audit-code:
     #!/usr/bin/env bash

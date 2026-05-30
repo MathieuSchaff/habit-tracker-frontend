@@ -3,7 +3,7 @@ import {
   BLOG_CATEGORY_LABELS,
   BLOG_CATEGORY_VALUES,
   type BlogCategory,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'

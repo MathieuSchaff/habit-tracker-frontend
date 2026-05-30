@@ -1,4 +1,4 @@
-import { BLOG_CATEGORY_LABELS, type BlogCategory } from '@habit-tracker/shared'
+import { BLOG_CATEGORY_LABELS, type BlogCategory } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, BookOpen, Plus } from 'lucide-react'

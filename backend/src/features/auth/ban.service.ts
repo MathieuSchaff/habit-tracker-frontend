@@ -1,4 +1,4 @@
-import type { BanScope } from '@habit-tracker/shared'
+import type { BanScope } from '@aurore/shared'
 
 import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 

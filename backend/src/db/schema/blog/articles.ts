@@ -1,4 +1,4 @@
-import { BLOG_CATEGORY_VALUES } from '@habit-tracker/shared'
+import { BLOG_CATEGORY_VALUES } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import { index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'

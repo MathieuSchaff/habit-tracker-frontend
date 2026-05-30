@@ -1,4 +1,4 @@
-import type { ProductDomainTab } from '@habit-tracker/shared'
+import type { ProductDomainTab } from '@aurore/shared'
 
 import { useMemo } from 'react'
 

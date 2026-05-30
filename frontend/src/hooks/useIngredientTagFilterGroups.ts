@@ -4,7 +4,7 @@ import {
   getIngredientTagsByCategory,
   type IngredientFilterOptionsTag,
   type IngredientType,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { useMemo } from 'react'
 

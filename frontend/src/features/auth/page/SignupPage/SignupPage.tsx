@@ -1,4 +1,4 @@
-import { type SignupErrorCode, type SignupFormInput, signupSchema } from '@habit-tracker/shared'
+import { type SignupErrorCode, type SignupFormInput, signupSchema } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'

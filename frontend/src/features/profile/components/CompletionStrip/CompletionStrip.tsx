@@ -1,4 +1,4 @@
-import type { ProfilePublic, UserDermoProfile } from '@habit-tracker/shared'
+import type { ProfilePublic, UserDermoProfile } from '@aurore/shared'
 
 import clsx from 'clsx'
 import { Check } from 'lucide-react'

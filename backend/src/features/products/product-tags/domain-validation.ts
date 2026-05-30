@@ -1,7 +1,4 @@
-import {
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
-} from '@habit-tracker/shared'
+import { DOMAIN_PRODUCT_FILTER_CATEGORIES, PRODUCT_CATEGORY_TO_DOMAIN_TAB } from '@aurore/shared'
 
 import { eq, inArray } from 'drizzle-orm'
 

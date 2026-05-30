@@ -1,9 +1,4 @@
-import {
-  type Email,
-  emailSchema,
-  type HashedPassword,
-  type UserPublic,
-} from '@habit-tracker/shared'
+import { type Email, emailSchema, type HashedPassword, type UserPublic } from '@aurore/shared'
 
 import { eq, sql } from 'drizzle-orm'
 

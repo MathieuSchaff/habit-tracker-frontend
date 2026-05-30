@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { HTTP_STATUS, type PublicProfileView } from '@habit-tracker/shared'
+import { HTTP_STATUS, type PublicProfileView } from '@aurore/shared'
 
 import type { Hono } from 'hono'
 

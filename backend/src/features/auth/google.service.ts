@@ -1,5 +1,5 @@
-import type { GoogleCallbackResult } from '@habit-tracker/shared'
-import { emailSchema, err, ok } from '@habit-tracker/shared'
+import type { GoogleCallbackResult } from '@aurore/shared'
+import { emailSchema, err, ok } from '@aurore/shared'
 
 import { decodeIdToken, generateCodeVerifier, generateState, type OAuth2Tokens } from 'arctic'
 import { eq } from 'drizzle-orm'

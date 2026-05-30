@@ -1,8 +1,4 @@
-import {
-  PRODUCT_DOMAIN_TAB_META,
-  PRODUCT_DOMAIN_TABS,
-  type ProductDomainTab,
-} from '@habit-tracker/shared'
+import { PRODUCT_DOMAIN_TAB_META, PRODUCT_DOMAIN_TABS, type ProductDomainTab } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'

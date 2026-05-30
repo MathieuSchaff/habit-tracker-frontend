@@ -1,4 +1,4 @@
-import { type ProductKind, SKINCARE_INGREDIENT_CATEGORY_VALUES } from '@habit-tracker/shared'
+import { type ProductKind, SKINCARE_INGREDIENT_CATEGORY_VALUES } from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { count, sql } from 'drizzle-orm'

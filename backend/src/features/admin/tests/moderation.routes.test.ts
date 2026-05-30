@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 
-import { HTTP_STATUS } from '@habit-tracker/shared'
+import { HTTP_STATUS } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

@@ -1,4 +1,4 @@
-import type { ProductErrorCode } from '@habit-tracker/shared'
+import type { ProductErrorCode } from '@aurore/shared'
 
 export class ProductError extends Error {
   constructor(

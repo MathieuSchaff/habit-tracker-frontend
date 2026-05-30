@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import type { Email, RawPassword } from '@habit-tracker/shared'
+import type { Email, RawPassword } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

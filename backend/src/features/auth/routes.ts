@@ -10,9 +10,8 @@ import {
   type RawPassword,
   refreshTokenBodySchema,
   verifyEmailBodySchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
@@ -23,6 +22,7 @@ import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
 import { usersSafe } from '../../db/schema'
 import { loginRateLimiterFunc, rateLimiterFunc } from '../../utils/rateLimiter'
+import { zValidator } from '../../utils/validator'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'

@@ -1,9 +1,4 @@
-import type {
-  PreferencesTag,
-  RessentiTag,
-  RoutineTag,
-  UserProductStatus,
-} from '@habit-tracker/shared'
+import type { PreferencesTag, RessentiTag, RoutineTag, UserProductStatus } from '@aurore/shared'
 
 import { Archive, Ban, Eye, type LucideIcon, Package, ShoppingBag } from 'lucide-react'
 

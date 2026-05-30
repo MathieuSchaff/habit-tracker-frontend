@@ -4,8 +4,8 @@ import type {
   EnrichedComparison,
   EnrichedComparisonProduct,
   UpdateComparisonInput,
-} from '@habit-tracker/shared'
-import { classifyIngredientSignals } from '@habit-tracker/shared'
+} from '@aurore/shared'
+import { classifyIngredientSignals } from '@aurore/shared'
 
 import { and, asc, count, eq, inArray } from 'drizzle-orm'
 

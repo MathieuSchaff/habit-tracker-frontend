@@ -1,4 +1,4 @@
-import type { IngredientChanges, IngredientType } from '@habit-tracker/shared'
+import type { IngredientChanges, IngredientType } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import {

@@ -30,7 +30,7 @@
 //                                ignored). Pairs are deleted via composite
 //                                lookup (productId, productTagId).
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { normalize, splitINCI } from 'algo-derm'
 import { eq, inArray, sql } from 'drizzle-orm'

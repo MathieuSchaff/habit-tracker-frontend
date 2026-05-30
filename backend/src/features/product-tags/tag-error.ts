@@ -1,4 +1,4 @@
-import type { TagErrorCode } from '@habit-tracker/shared'
+import type { TagErrorCode } from '@aurore/shared'
 
 export class TagError extends Error {
   constructor(

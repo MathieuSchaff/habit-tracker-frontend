@@ -15,7 +15,7 @@ import {
   tagErrorMapping,
   taskErrorMapping,
   userProductErrorMapping,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import type { Context } from 'hono'
 

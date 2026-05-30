@@ -3,7 +3,7 @@ import type {
   FinishPurchaseInput,
   OpenPurchaseInput,
   UpdatePurchaseInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { type QueryClient, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 

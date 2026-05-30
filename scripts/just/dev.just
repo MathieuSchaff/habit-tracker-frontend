@@ -27,20 +27,6 @@ dev-rebuild:
     {{COMPOSE_DEV}} build --no-cache
     {{COMPOSE_DEV}} up
 
-# Rebuild API only without cache
-dev-rebuild-api:
-    {{COMPOSE_DEV}} down
-    docker volume rm aurore_root_node_modules aurore_backend_node_modules 2>/dev/null || true
-    {{COMPOSE_DEV}} build --no-cache api
-    {{COMPOSE_DEV}} up
-
-# Rebuild frontend only without cache
-dev-rebuild-frontend:
-    {{COMPOSE_DEV}} down
-    docker volume rm aurore_root_node_modules aurore_frontend_node_modules 2>/dev/null || true
-    {{COMPOSE_DEV}} build --no-cache frontend
-    {{COMPOSE_DEV}} up
-
 # First-time setup: deps + hooks + env template
 init: install-deps setup-hooks
     @if [ ! -f .env.dev ]; then \
@@ -92,7 +78,7 @@ reinstall-frontend:
 
 # Watch TypeScript (generates types for editor)
 ts-check:
-    bun x tsc -b --watch
+    bunx tsc -b --watch
 
 # Build shared + backend types (required before Docker)
 ts-build:

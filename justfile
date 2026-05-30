@@ -1,5 +1,9 @@
 set shell := ["bash", "-c"]
 
+# Default (bare `just`): list recipes instead of booting the dev stack
+default:
+    @just --list
+
 import 'scripts/just/_vars.just'
 import 'scripts/just/dev.just'
 import 'scripts/just/test.just'

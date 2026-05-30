@@ -1,5 +1,5 @@
-import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
-import { BIO_MAX_LENGTH, USERNAME_MAX_LENGTH } from '@habit-tracker/shared'
+import type { ProfileLink, ProfilePublic, ProfileUpdateInput } from '@aurore/shared'
+import { BIO_MAX_LENGTH, USERNAME_MAX_LENGTH } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'

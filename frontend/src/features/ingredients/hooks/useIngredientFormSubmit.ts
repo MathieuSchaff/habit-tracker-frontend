@@ -1,4 +1,4 @@
-import type { IngredientType } from '@habit-tracker/shared'
+import type { IngredientType } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'

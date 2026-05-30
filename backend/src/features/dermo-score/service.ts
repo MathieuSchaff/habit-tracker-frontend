@@ -1,4 +1,4 @@
-import type { SkinConcern, SkinType } from '@habit-tracker/shared'
+import type { SkinConcern, SkinType } from '@aurore/shared'
 
 import { analyzeINCI, type ProductAssessment, type UserProfile } from 'algo-derm'
 import { eq } from 'drizzle-orm'

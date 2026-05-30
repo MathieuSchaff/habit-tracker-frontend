@@ -1,5 +1,5 @@
-import type { ProductCategory } from '@habit-tracker/shared'
-import { PRODUCT_KINDS } from '@habit-tracker/shared'
+import type { ProductCategory } from '@aurore/shared'
+import { PRODUCT_KINDS } from '@aurore/shared'
 
 import type { Ingredient, ProductTagGroups, UnifiedProductSeed } from './types'
 

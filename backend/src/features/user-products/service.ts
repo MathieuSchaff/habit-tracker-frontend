@@ -3,7 +3,7 @@ import type {
   PublicProductReviewsResponse,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { and, desc, eq, isNotNull, sql } from 'drizzle-orm'
 

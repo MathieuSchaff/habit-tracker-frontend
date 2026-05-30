@@ -36,7 +36,7 @@
 
 import path from 'node:path'
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { inArray, sql } from 'drizzle-orm'
 

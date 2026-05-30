@@ -4,7 +4,7 @@ import type {
   ModerateProfileInput,
   ReportStatus,
   ResolveReportInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 type ModerateTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
 

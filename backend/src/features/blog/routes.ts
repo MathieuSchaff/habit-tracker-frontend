@@ -5,13 +5,13 @@ import {
   HTTP_STATUS,
   ok,
   updateArticleSchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { zValidator } from '../../utils/validator'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import {
   createArticle,

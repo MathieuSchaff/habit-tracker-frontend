@@ -16,7 +16,7 @@
 // orchestrator's `avoid` decisions are validated via the existing safety-net
 // tests, not the gold set).
 
-import type { ProductKind, SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
 export const GOLD_SET_SCHEMA_VERSION = '2026-05-08' as const
 

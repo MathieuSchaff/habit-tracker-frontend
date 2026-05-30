@@ -1,4 +1,4 @@
-import type { DisplayScale } from '@habit-tracker/shared'
+import type { DisplayScale } from '@aurore/shared'
 
 export interface ReviewCriteria {
   tolerance?: number | null

@@ -5,7 +5,7 @@
 // orchestrator no longer wraps slug arrays with hardcoded ('secondary', 'formula')
 // tuples — passes declare their own attribution.
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
 import type { ProductAssessment } from 'algo-derm'
 

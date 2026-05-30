@@ -1,4 +1,4 @@
-import type { ChangePasswordInput } from '@habit-tracker/shared'
+import type { ChangePasswordInput } from '@aurore/shared'
 
 import { Eye, EyeOff } from 'lucide-react'
 import { useRef, useState } from 'react'
