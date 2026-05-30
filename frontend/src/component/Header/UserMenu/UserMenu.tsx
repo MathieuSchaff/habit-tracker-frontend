@@ -18,7 +18,11 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
   const navigate = useNavigate()
   const { data: profile } = useQuery(profileQueries.me())
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
-  const isAdmin = useAuthStore((state) => state.role === 'admin')
+  // « Modération » reaches admin AND contributor (« modérateur »); both land on the
+  // report queue (/admin/users is admin-only).
+  const isContentModerator = useAuthStore(
+    (state) => state.role === 'admin' || state.role === 'contributor'
+  )
   const logout = useLogout()
 
   const handleLogout = () => {
@@ -57,9 +61,9 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
                 <span>Profil</span>
               </Link>
             </DropdownMenu.Item>
-            {isAdmin && (
+            {isContentModerator && (
               <DropdownMenu.Item onSelect={onItemClick}>
-                <Link to="/admin/users">
+                <Link to="/admin/reports">
                   <Shield size={16} aria-hidden="true" />
                   <span>Modération</span>
                 </Link>

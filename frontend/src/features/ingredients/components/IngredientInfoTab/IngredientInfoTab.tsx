@@ -13,8 +13,10 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { ingredientQueries } from '@/lib/queries/ingredients'
+import { useAuthStore } from '@/store/auth'
 import { ingredientLabels } from '../../constants'
 import './IngredientInfoTab.css'
 
@@ -27,6 +29,7 @@ export function IngredientInfoTab() {
   const { data: ingredient } = useSuspenseQuery(ingredientQueries.bySlug(slug))
   const { data: products } = useQuery(ingredientQueries.products(slug))
   const { data: tags } = useQuery(ingredientQueries.tags(ingredient.id))
+  const user = useAuthStore((s) => s.user)
 
   const beneficialTags = useMemo(
     () => tags?.filter((t) => t.relevance === 'primary' || t.relevance === 'secondary') ?? [],
@@ -139,6 +142,12 @@ export function IngredientInfoTab() {
       <p className="ingredient-updated-at">
         Fiche mise à jour le <Time iso={ingredient.updatedAt} style="long" />
       </p>
+
+      {user && (
+        <div className="ingredient-section">
+          <ReportContentButton targetType="ingredient" targetId={ingredient.id} />
+        </div>
+      )}
     </>
   )
 }

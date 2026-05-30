@@ -254,6 +254,43 @@ export async function previewReply(db: Database, id: string): Promise<ContentPre
   return { success: true, data: { kind: 'reply', ...row } }
 }
 
+export async function previewProduct(db: Database, id: string): Promise<ContentPreviewResult> {
+  const [row] = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      brand: products.brand,
+      slug: products.slug,
+      moderationStatus: products.moderationStatus,
+      moderationReason: products.moderationReason,
+      createdAt: products.createdAt,
+      authorId: products.createdBy,
+    })
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1)
+  if (!row) return { success: false, error: 'not_found' }
+  return { success: true, data: { kind: 'product', authorUsername: null, ...row } }
+}
+
+export async function previewIngredient(db: Database, id: string): Promise<ContentPreviewResult> {
+  const [row] = await db
+    .select({
+      id: ingredients.id,
+      name: ingredients.name,
+      slug: ingredients.slug,
+      moderationStatus: ingredients.moderationStatus,
+      moderationReason: ingredients.moderationReason,
+      createdAt: ingredients.createdAt,
+      authorId: ingredients.createdBy,
+    })
+    .from(ingredients)
+    .where(eq(ingredients.id, id))
+    .limit(1)
+  if (!row) return { success: false, error: 'not_found' }
+  return { success: true, data: { kind: 'ingredient', authorUsername: null, ...row } }
+}
+
 export async function moderateProfileVisibility(
   db: Database,
   args: ModerateProfileArgs

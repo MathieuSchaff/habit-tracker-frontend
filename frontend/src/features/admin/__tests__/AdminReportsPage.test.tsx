@@ -32,12 +32,21 @@ vi.mock('@/lib/queries/admin', async (importOriginal) => {
   }
 })
 
+vi.mock('@/store/auth', () => ({ useAuthStore: vi.fn() }))
+
+import { useAuthStore } from '@/store/auth'
 import { AdminReportsPage } from '../components/AdminReportsPage'
 import { adminLabels } from '../constants'
 
+function setRole(role: 'user' | 'admin' | 'contributor') {
+  vi.mocked(useAuthStore).mockImplementation(
+    (selector: unknown) => (selector as (s: { role: typeof role }) => unknown)({ role }) as never
+  )
+}
+
 type ReportItem = {
   id: string
-  targetType: 'review' | 'thread' | 'reply' | 'profile'
+  targetType: 'review' | 'thread' | 'reply' | 'profile' | 'product' | 'ingredient'
   targetId: string
   reason: string
   reporterId: string
@@ -87,25 +96,35 @@ const baseReports: ReportItem[] = [
   },
 ]
 
-function setupQueries(reports: ReportItem[]) {
+function setupQueries(reports: ReportItem[], preview: unknown = null) {
   vi.mocked(useSuspenseQuery).mockImplementation((options: { queryKey: readonly unknown[] }) => {
     const tag = options.queryKey[1] as string
     if (tag === 'reports') {
       return { data: { items: reports } } as unknown as ReturnType<typeof useSuspenseQuery>
     }
+    throw new Error(`unmocked suspense query: ${String(tag)}`)
+  })
+  // users() + contentPreview() are both useQuery; branch on the key tag.
+  vi.mocked(useQuery).mockImplementation((options: { queryKey?: readonly unknown[] }) => {
+    const tag = options?.queryKey?.[1] as string | undefined
     if (tag === 'users') {
       return {
         data: { items: [REPORTER, TARGET_USER] },
-      } as unknown as ReturnType<typeof useSuspenseQuery>
+        isLoading: false,
+        isError: false,
+      } as unknown as ReturnType<typeof useQuery>
     }
-    throw new Error(`unmocked suspense query: ${String(tag)}`)
+    if (tag === 'preview') {
+      return { data: preview, isLoading: false, isError: false } as unknown as ReturnType<
+        typeof useQuery
+      >
+    }
+    return {
+      data: null,
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useQuery>
   })
-  // No preview by default; per-test overrides re-set when expansion is asserted.
-  vi.mocked(useQuery).mockReturnValue({
-    data: null,
-    isLoading: false,
-    isError: false,
-  } as unknown as ReturnType<typeof useQuery>)
 }
 
 function setupMutations() {
@@ -125,6 +144,7 @@ function setupMutations() {
 describe('AdminReportsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setRole('admin')
   })
 
   it('renders the header count and status tabs', () => {
@@ -211,6 +231,77 @@ describe('AdminReportsPage', () => {
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     })
     expect(resolve).not.toHaveBeenCalled()
+  })
+
+  // ADR-0006 S1: a contributor (« modérateur ») owns the queue but gets a
+  // content-only view — no account PII (reporter/target emails), no admin-only
+  // « Voir le profil » / global-ban affordances.
+  it('hides reporter email from a contributor (no account PII)', () => {
+    setRole('contributor')
+    setupQueries([baseReports[0]])
+    setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    expect(screen.queryByText('snitch@seed.local')).not.toBeInTheDocument()
+    // The report itself is still shown — the moderator can act on content.
+    expect(screen.getByText('Propos insultants')).toBeInTheDocument()
+  })
+
+  it('hides the « Voir le profil » link + target email from a contributor', () => {
+    setRole('contributor')
+    setupQueries([baseReports[1]])
+    setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    expect(screen.queryByText('spammer@seed.local')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Voir le profil/i })).not.toBeInTheDocument()
+  })
+
+  // S2 (ADR-0006): a catalogue-sheet report previews the fiche + moderates it
+  // through the same panel (TARGET_TO_MODERATE maps product → products).
+  it('previews a product-sheet report and hides the fiche', async () => {
+    const productReport: ReportItem = {
+      id: 'rep-prod',
+      targetType: 'product',
+      targetId: 'prod-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      reason: 'Fiche pub / spam',
+      reporterId: REPORTER.id,
+      reviewedBy: null,
+      status: 'open',
+      createdAt: '2026-05-30T10:00:00Z',
+    }
+    setupQueries([productReport], {
+      kind: 'product',
+      id: productReport.targetId,
+      name: 'Spam Serum',
+      brand: 'SpamBrand',
+      slug: 'spam-serum',
+      moderationStatus: 'visible',
+      moderationReason: null,
+      authorId: 'usr-author',
+      authorUsername: null,
+      createdAt: '2026-05-30T09:00:00Z',
+    })
+    const { moderate } = setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Voir' }))
+    expect(await screen.findByText('Spam Serum')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer' }))
+    const confirmDialog = await screen.findByRole('alertdialog')
+    await userEvent.click(
+      Array.from(confirmDialog.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Masquer'
+      ) as HTMLButtonElement
+    )
+
+    await waitFor(() => {
+      expect(moderate).toHaveBeenCalledWith(
+        { target: 'products', id: productReport.targetId, body: { status: 'hidden' } },
+        expect.objectContaining({ onSuccess: expect.any(Function) })
+      )
+    })
   })
 
   it('switches the active tab when the user picks a different status', () => {

@@ -97,12 +97,14 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
 // UPDATE branch lets contributors write any column at the RLS layer (V-2/C-1).
 export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgColumn) {
   return [
-    // Public reads see 'visible' rows; admin also sees 'hidden' (compose on all read paths).
+    // Public reads see 'visible' rows; the moderator (admin∨contributor) also sees
+    // 'hidden' so a reported sheet can be reviewed/restored (ADR-0006 S2). Browse
+    // honesty for plain users + anon is unchanged — they only ever match 'visible'.
     pgPolicy(`${name}_select_visible`, {
       as: 'permissive',
       for: 'select',
       to: appRuntimeRole,
-      using: sql`moderation_status = 'visible' OR (SELECT auth.role()) = 'admin'`,
+      using: sql`moderation_status = 'visible' OR (SELECT auth.role()) IN ('admin', 'contributor')`,
     }),
     // Admin/contributor insert anything (incl. seed/CLI via withAdminRls, which
     // sets no app.user_id); user inserts own row only while unverified + visible.
@@ -126,6 +128,32 @@ export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgCo
       for: 'delete',
       to: appRuntimeRole,
       using: sql`(SELECT auth.role()) = 'admin'`,
+    }),
+  ]
+}
+
+// Content-moderation policies for FK-owned, moderatable tables whose base policies
+// (fkTenantPolicies) grant moderation only to admin via admin_bypass. Adds the
+// contributor (« modérateur ») to the reversible moderation surface: read any row
+// (incl. hidden, for preview) and UPDATE it (ADR-0006 S1). Additive — owner CRUD and
+// admin_bypass still apply. The only write path is the moderation service, which sets
+// just the 4 moderation_* columns, so the coarse role gate is safe (mirrors the
+// V-2/C-1 posture of catalogSubmissionPolicies).
+export function moderationPolicies(name: string) {
+  const roleCheck = sql`(SELECT auth.role()) IN ('admin', 'contributor')`
+  return [
+    pgPolicy(`${name}_moderation_select`, {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: roleCheck,
+    }),
+    pgPolicy(`${name}_moderation_update`, {
+      as: 'permissive',
+      for: 'update',
+      to: appRuntimeRole,
+      using: roleCheck,
+      withCheck: roleCheck,
     }),
   ]
 }

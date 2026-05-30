@@ -98,7 +98,7 @@ export type ModerateContentResult = ApiResponse<
   CommonErrorCode
 >
 
-export type ModerationTarget = 'reviews' | 'threads' | 'replies'
+export type ModerationTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
 
 // Quick admin dashboard snapshot — at-a-glance counts so admins land on the
 // workload, not on an arbitrary subpage.
@@ -139,6 +139,8 @@ export type ContentPreview = {
   | { kind: 'review'; comment: string | null }
   | { kind: 'thread'; title: string; content: string }
   | { kind: 'reply'; content: string }
+  | { kind: 'product'; name: string; brand: string; slug: string }
+  | { kind: 'ingredient'; name: string; slug: string }
 )
 
 export type ContentPreviewResult = ApiResponse<ContentPreview, CommonErrorCode>

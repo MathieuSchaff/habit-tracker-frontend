@@ -21,7 +21,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { moderationColumns } from '../_moderation'
-import { fkTenantPolicies, tenantPolicies } from '../_policies'
+import { fkTenantPolicies, moderationPolicies, tenantPolicies } from '../_policies'
 import { appRuntimeRole } from '../_roles'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
@@ -125,6 +125,8 @@ export const userProductReviews = pgTable(
       to: appRuntimeRole,
       using: sql`${t.isPublic} = true`,
     }),
+    // Lets contributor (« modérateur »), not just admin, read + hide/restore reviews.
+    ...moderationPolicies('user_product_reviews'),
   ]
 ).enableRLS()
 

@@ -14,6 +14,7 @@ import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
+import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -230,6 +231,12 @@ export function ProductInfoTab() {
             {externalDomain && <span className="product-link__domain">{externalDomain}</span>}
             <span className="sr-only"> (nouvel onglet)</span>
           </a>
+        </div>
+      )}
+
+      {user && (
+        <div className="product-section">
+          <ReportContentButton targetType="product" targetId={product.id} />
         </div>
       )}
     </>

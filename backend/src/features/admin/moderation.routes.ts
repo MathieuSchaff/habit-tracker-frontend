@@ -15,7 +15,13 @@ import { z } from 'zod'
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
-import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import {
+  getAuthedUserId,
+  requireAdmin,
+  requireContentModerator,
+  requireJwtAuth,
+  requireNotBanned,
+} from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
   moderateIngredient,
@@ -24,6 +30,8 @@ import {
   moderateReply,
   moderateReview,
   moderateThread,
+  previewIngredient,
+  previewProduct,
   previewReply,
   previewReview,
   previewThread,
@@ -37,15 +45,18 @@ const app = new Hono<AppEnv>()
 app.use('*', rateLimiterFunc)
 app.use('*', requireJwtAuth)
 app.use('*', requireNotBanned)
-app.use('*', requireAdmin)
-// Binds app.role='admin' inside a tx so admin_bypass RLS policies fire on
-// the cross-user writes that moderation performs. Without it, app_runtime
-// (NO BYPASSRLS) sees auth.role()=NULL and every UPDATE touches 0 rows.
+// Authz is per-route, NOT blanket: content moderation (reviews/threads/replies)
+// opens to admin∨contributor (« modérateur »), while force-private and catalogue-
+// sheet hide stay admin-only — they share this router (ADR-0006 S1).
+// Binds app.role to the caller's role inside a tx so the matching RLS policy fires
+// (admin_bypass for admin, the moderation policy for contributor). Without it,
+// app_runtime (NO BYPASSRLS) sees auth.role()=NULL and every UPDATE touches 0 rows.
 app.use('*', withRlsContext)
 
 export const adminModerationRoutes = app
   .patch(
     '/reviews/:id',
+    requireContentModerator,
     zValidator('param', idParam),
     zValidator('json', moderateContentBodySchema),
     async (c) => {
@@ -63,6 +74,7 @@ export const adminModerationRoutes = app
   )
   .patch(
     '/threads/:id',
+    requireContentModerator,
     zValidator('param', idParam),
     zValidator('json', moderateContentBodySchema),
     async (c) => {
@@ -80,6 +92,7 @@ export const adminModerationRoutes = app
   )
   .patch(
     '/replies/:id',
+    requireContentModerator,
     zValidator('param', idParam),
     zValidator('json', moderateContentBodySchema),
     async (c) => {
@@ -95,7 +108,7 @@ export const adminModerationRoutes = app
       return c.json(ok(result.data), HTTP_STATUS.OK)
     }
   )
-  .get('/reviews/:id', zValidator('param', idParam), async (c) => {
+  .get('/reviews/:id', requireContentModerator, zValidator('param', idParam), async (c) => {
     const { id } = c.req.valid('param')
     const result = await previewReview(c.get('db'), id)
     if (!isApiSuccess(result)) {
@@ -103,7 +116,7 @@ export const adminModerationRoutes = app
     }
     return c.json(ok(result.data), HTTP_STATUS.OK)
   })
-  .get('/threads/:id', zValidator('param', idParam), async (c) => {
+  .get('/threads/:id', requireContentModerator, zValidator('param', idParam), async (c) => {
     const { id } = c.req.valid('param')
     const result = await previewThread(c.get('db'), id)
     if (!isApiSuccess(result)) {
@@ -111,7 +124,7 @@ export const adminModerationRoutes = app
     }
     return c.json(ok(result.data), HTTP_STATUS.OK)
   })
-  .get('/replies/:id', zValidator('param', idParam), async (c) => {
+  .get('/replies/:id', requireContentModerator, zValidator('param', idParam), async (c) => {
     const { id } = c.req.valid('param')
     const result = await previewReply(c.get('db'), id)
     if (!isApiSuccess(result)) {
@@ -119,8 +132,25 @@ export const adminModerationRoutes = app
     }
     return c.json(ok(result.data), HTTP_STATUS.OK)
   })
+  .get('/products/:id', requireContentModerator, zValidator('param', idParam), async (c) => {
+    const { id } = c.req.valid('param')
+    const result = await previewProduct(c.get('db'), id)
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, {}))
+    }
+    return c.json(ok(result.data), HTTP_STATUS.OK)
+  })
+  .get('/ingredients/:id', requireContentModerator, zValidator('param', idParam), async (c) => {
+    const { id } = c.req.valid('param')
+    const result = await previewIngredient(c.get('db'), id)
+    if (!isApiSuccess(result)) {
+      return c.json(err(result.error), errorToStatus(result.error, {}))
+    }
+    return c.json(ok(result.data), HTTP_STATUS.OK)
+  })
   .patch(
     '/profiles/:userId/visibility',
+    requireAdmin,
     zValidator('param', userIdParam),
     zValidator('json', moderateProfileBodySchema),
     async (c) => {
@@ -145,6 +175,7 @@ export const adminModerationRoutes = app
   )
   .patch(
     '/products/:id',
+    requireContentModerator,
     zValidator('param', idParam),
     zValidator('json', moderateContentBodySchema),
     async (c) => {
@@ -162,6 +193,7 @@ export const adminModerationRoutes = app
   )
   .patch(
     '/ingredients/:id',
+    requireContentModerator,
     zValidator('param', idParam),
     zValidator('json', moderateContentBodySchema),
     async (c) => {
