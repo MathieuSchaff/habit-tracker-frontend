@@ -11,7 +11,11 @@ import {
   withAuth,
 } from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
-import { createTestAdminUser, createTestUser } from '../../../tests/helpers/test-factories'
+import {
+  createTestAdminUser,
+  createTestContributorUser,
+  createTestUser,
+} from '../../../tests/helpers/test-factories'
 
 async function login(client: TestClient, email: string, password: string): Promise<string> {
   const res = await client.auth.login.$post({ json: { email, password } })
@@ -31,17 +35,21 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
   let adminId: string
   let userToken: string
   let adminToken: string
+  let contributorToken: string
 
   beforeEach(async () => {
     client = await createTestClient()
     const toto = TEST_CREDENTIALS.toto
     const admin = TEST_CREDENTIALS.admin
+    const contributor = TEST_CREDENTIALS.contributor
     const user = await createTestUser(toto.rawEmail, toto.rawPassword)
     const adminUser = await createTestAdminUser(admin.rawEmail, admin.rawPassword)
+    await createTestContributorUser(contributor.rawEmail, contributor.rawPassword)
     userId = user.id
     adminId = adminUser.id
     userToken = await login(client, toto.rawEmail, toto.rawPassword)
     adminToken = await login(client, admin.rawEmail, admin.rawPassword)
+    contributorToken = await login(client, contributor.rawEmail, contributor.rawPassword)
   })
 
   afterEach(async () => {
@@ -68,6 +76,29 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
       reviewedBy: null,
       reviewedAt: null,
     })
+  })
+
+  // S2 (ADR-0006): a catalogue sheet is « Signaler »-able like a review.
+  it('user POSTs a report on a product sheet → 201', async () => {
+    const res = await client.reports.$post(
+      { json: { targetType: 'product', targetId: ANY_TARGET, reason: 'fiche spam / pub' } },
+      withAuth(userToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.CREATED)
+    const body = await res.json()
+    if (!body.success) throw new Error(`expected success, got ${JSON.stringify(body)}`)
+    expect(body.data.targetType).toBe('product')
+  })
+
+  it('user POSTs a report on an ingredient sheet → 201', async () => {
+    const res = await client.reports.$post(
+      { json: { targetType: 'ingredient', targetId: OTHER_TARGET, reason: 'fiche douteuse' } },
+      withAuth(userToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.CREATED)
+    const body = await res.json()
+    if (!body.success) throw new Error(`expected success, got ${JSON.stringify(body)}`)
+    expect(body.data.targetType).toBe('ingredient')
   })
 
   it('user POST rejects whitespace-only reason', async () => {
@@ -197,5 +228,34 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
       withAuth(userToken)
     )
     expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+  })
+
+  // S1 (ADR-0006): the report queue is owned by the moderator (contributor),
+  // not admin-exclusively. List + resolve/dismiss open to admin∨contributor.
+  it('contributor GETs the report queue → 200', async () => {
+    const res = await client.admin.reports.$get({ query: {} }, withAuth(contributorToken))
+    expect(res.status).toBe(HTTP_STATUS.OK)
+  })
+
+  it('contributor PATCHes a report to resolved → 200', async () => {
+    const [report] = await testDb
+      .insert(contentReports)
+      .values({
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'modo resolves',
+      })
+      .returning({ id: contentReports.id })
+    if (!report) throw new Error('report seed failed')
+
+    const res = await client.admin.reports[':id'].$patch(
+      { param: { id: report.id }, json: { status: 'resolved' } },
+      withAuth(contributorToken)
+    )
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    if (!body.success) throw new Error('contributor patch failed')
+    expect(body.data.status).toBe('resolved')
   })
 })

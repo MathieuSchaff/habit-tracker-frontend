@@ -5,7 +5,10 @@ import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: () => {
-    if (useAuthStore.getState().role !== 'admin') throw redirect({ to: '/' })
+    // The /admin shell is shared by admin + contributor (« modérateur »); admin-only
+    // surfaces (dashboard, users) gate themselves in their own child routes (ADR-0006 S1).
+    const role = useAuthStore.getState().role
+    if (role !== 'admin' && role !== 'contributor') throw redirect({ to: '/' })
   },
   component: AdminLayout,
 })

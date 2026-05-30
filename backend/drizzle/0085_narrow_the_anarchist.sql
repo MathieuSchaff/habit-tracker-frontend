@@ -1,0 +1,2 @@
+CREATE POLICY "user_product_reviews_moderation_select" ON "user_product_reviews" AS PERMISSIVE FOR SELECT TO "app_runtime" USING ((SELECT auth.role()) IN ('admin', 'contributor'));--> statement-breakpoint
+CREATE POLICY "user_product_reviews_moderation_update" ON "user_product_reviews" AS PERMISSIVE FOR UPDATE TO "app_runtime" USING ((SELECT auth.role()) IN ('admin', 'contributor')) WITH CHECK ((SELECT auth.role()) IN ('admin', 'contributor'));

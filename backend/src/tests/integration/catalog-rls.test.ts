@@ -60,6 +60,16 @@ async function insertProductTagAs(role: string) {
   })
 }
 
+// Count rows visible for `slug` under a given app.role via the NO-BYPASSRLS pool.
+async function selectProductCountAs(role: string, slug: string, contextUserId = '') {
+  return appRuntimeDb.transaction(async (tx) => {
+    await tx.execute(sql`SELECT set_config('app.user_id', ${contextUserId}, true)`)
+    await tx.execute(sql`SELECT set_config('app.role', ${role}, true)`)
+    const rows = await tx.select({ id: products.id }).from(products).where(eq(products.slug, slug))
+    return rows.length
+  })
+}
+
 describe('catalog RLS — fail closed', () => {
   it('allows anonymous SELECT on products (public read, no app.role)', async () => {
     // Public SELECT policy USING(true): must not require app.role
@@ -140,6 +150,28 @@ describe('catalog RLS — fail closed', () => {
   // it sets app.role='admin' LOCAL to the writing tx (the bug was a bare
   // SET LOCAL outside any tx → no-op → RLS denied the write). Exercises the
   // real helper on the shared app_runtime `db`, not a hand-rolled tx.
+  // S2 (ADR-0006, Option 1): select_visible exposes hidden submission rows to the
+  // moderator (admin∨contributor) so a sheet can be reviewed/restored; plain users
+  // (even the owner) and anon never see a hidden sheet — public reads stay honest.
+  it('hides a product sheet from role=user + anon, shows it to contributor + admin', async () => {
+    const owner = await createTestUser('rls-hidden@test.local', 'Azerty123!')
+    await testDb.insert(products).values({
+      createdBy: owner.id,
+      name: 'Hidden Probe',
+      brand: 'HiddenBrand',
+      category: 'skincare',
+      kind: 'serum',
+      unit: 'dropper',
+      slug: 'rls-hidden-probe',
+      moderationStatus: 'hidden',
+    })
+    // even the owner (role=user) cannot SELECT their own hidden sheet
+    expect(await selectProductCountAs('user', 'rls-hidden-probe', owner.id)).toBe(0)
+    expect(await selectProductCountAs('', 'rls-hidden-probe')).toBe(0)
+    expect(await selectProductCountAs('contributor', 'rls-hidden-probe')).toBe(1)
+    expect(await selectProductCountAs('admin', 'rls-hidden-probe')).toBe(1)
+  })
+
   it('withAdminRls can INSERT into an RLS-protected catalog table', async () => {
     const owner = await createTestUser('rls-withadmin@test.local', 'Azerty123!')
     await withAdminRls(async (tx) => {

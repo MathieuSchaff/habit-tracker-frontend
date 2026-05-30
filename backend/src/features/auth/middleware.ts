@@ -70,6 +70,18 @@ export const requireCatalogWrite = async (c: Context<AppEnv>, next: Next) => {
   await next()
 }
 
+// Gates content-moderation routes: admin OR contributor. Runs after requireJwtAuth
+// (needs userRole). The contributor (« modérateur ») wields the reversible,
+// content-scoped subset (hide/restore reviews/threads/replies, own the report queue);
+// the irreversible/account-level subset (force-private, bans) stays behind requireAdmin.
+export const requireContentModerator = async (c: Context<AppEnv>, next: Next) => {
+  const role = c.get('userRole')
+  if (role !== 'admin' && role !== 'contributor') {
+    return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
+  }
+  await next()
+}
+
 // Route-level gate for per-action bans (e.g. 'product_create', 'product_edit',
 // 'ingredient_edit'). The global 'global' scope is already enforced by
 // requireNotBanned upstream — this checks the action-specific scope only.

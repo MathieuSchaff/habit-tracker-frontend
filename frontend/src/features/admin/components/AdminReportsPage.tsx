@@ -9,6 +9,7 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
 import { adminQueries, useModerateContent, useResolveReport } from '@/lib/queries/admin'
+import { useAuthStore } from '@/store/auth'
 import { adminLabels, roleLabels, rolePillClass } from '../constants'
 
 const STATUSES: ReadonlyArray<{ value: ReportStatus; label: string }> = [
@@ -21,17 +22,23 @@ const SUCCESS_FEEDBACK_MS = 3500
 
 const TARGET_TO_MODERATE: Record<
   Exclude<ReportTargetType, 'profile'>,
-  'reviews' | 'threads' | 'replies'
+  'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
 > = {
   review: 'reviews',
   thread: 'threads',
   reply: 'replies',
+  product: 'products',
+  ingredient: 'ingredients',
 }
 
 export function AdminReportsPage() {
   const [status, setStatus] = useState<ReportStatus>('open')
+  // Account-level surface: the users list (emails, roles, ban state) is admin-only.
+  // A contributor (« modérateur ») gets a content-only queue — never account PII
+  // (ADR-0006 S1). Gate both the fetch (enabled) and every render of derived data.
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
   const { data } = useSuspenseQuery(adminQueries.reports(status))
-  const usersQuery = useSuspenseQuery(adminQueries.users())
+  const usersQuery = useQuery({ ...adminQueries.users(), enabled: isAdmin })
   const resolve = useResolveReport(status)
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -46,13 +53,13 @@ export function AdminReportsPage() {
 
   const reporterEmailById = useMemo(() => {
     const map = new Map<string, string>()
-    for (const u of usersQuery.data.items) map.set(u.id, u.email)
+    for (const u of usersQuery.data?.items ?? []) map.set(u.id, u.email)
     return map
   }, [usersQuery.data])
 
   const userById = useMemo(() => {
-    const map = new Map<string, (typeof usersQuery.data.items)[number]>()
-    for (const u of usersQuery.data.items) map.set(u.id, u)
+    const map = new Map<string, NonNullable<typeof usersQuery.data>['items'][number]>()
+    for (const u of usersQuery.data?.items ?? []) map.set(u.id, u)
     return map
   }, [usersQuery.data])
 
@@ -128,7 +135,8 @@ export function AdminReportsPage() {
               const isExpanded = expandedId === r.id
               const reporterEmail = reporterEmailById.get(r.reporterId) ?? null
               const canPreview = r.targetType !== 'profile'
-              const targetUser = r.targetType === 'profile' ? userById.get(r.targetId) : null
+              const targetUser =
+                isAdmin && r.targetType === 'profile' ? userById.get(r.targetId) : null
               return (
                 <>
                   <tr key={r.id}>
@@ -154,7 +162,7 @@ export function AdminReportsPage() {
                       )}
                     </td>
                     <td>{r.reason}</td>
-                    <td>{reporterEmail ?? <em>—</em>}</td>
+                    <td>{isAdmin ? (reporterEmail ?? <em>—</em>) : <em>—</em>}</td>
                     <td>
                       <Time iso={r.createdAt} relative />
                     </td>
@@ -173,7 +181,7 @@ export function AdminReportsPage() {
                             {isExpanded ? 'Replier' : 'Voir'}
                           </Button>
                         )}
-                        {r.targetType === 'profile' && (
+                        {isAdmin && r.targetType === 'profile' && (
                           <Link
                             to="/admin/users/$userId"
                             params={{ userId: r.targetId }}
@@ -239,6 +247,7 @@ function ContentPreviewPanel({
   targetId: string
 }) {
   const moderateTarget = TARGET_TO_MODERATE[targetType]
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
   const preview = useQuery(adminQueries.contentPreview(moderateTarget, targetId))
   const moderate = useModerateContent()
   const { confirm, dialog } = useConfirm()
@@ -299,6 +308,13 @@ function ContentPreviewPanel({
           </>
         )}
         {data.kind === 'reply' && <p>{data.content}</p>}
+        {data.kind === 'product' && (
+          <>
+            <strong>{data.name}</strong>
+            <p>{data.brand}</p>
+          </>
+        )}
+        {data.kind === 'ingredient' && <strong>{data.name}</strong>}
       </div>
       {data.moderationReason && (
         <p className="admin-reports-meta">Raison admin : {data.moderationReason}</p>
@@ -307,7 +323,7 @@ function ContentPreviewPanel({
         <Button variant="ghost" size="sm" loading={moderate.isPending} onClick={toggleVisibility}>
           {isHidden ? 'Restaurer' : 'Masquer'}
         </Button>
-        {data.authorId && (
+        {isAdmin && data.authorId && (
           <Link
             to="/admin/users/$userId"
             params={{ userId: data.authorId }}

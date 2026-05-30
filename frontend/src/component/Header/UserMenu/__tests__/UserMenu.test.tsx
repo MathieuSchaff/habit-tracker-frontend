@@ -11,6 +11,16 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   return { ...actual, useQuery: vi.fn() }
 })
 
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+      <a href={to}>{children}</a>
+    ),
+  }
+})
+
 vi.mock('@/lib/queries/auth', () => ({
   useLogout: vi.fn(),
 }))
@@ -21,6 +31,18 @@ vi.mock('@/store/auth', () => ({
 
 function setAuthState(isAuthenticated: boolean) {
   vi.mocked(useAuthStore).mockReturnValue(isAuthenticated as never)
+}
+
+// Selector-aware mock: applies the component's selector to a fake auth state so
+// useAuthStore(s => !!s.accessToken) and useAuthStore(s => s.role === 'admin')
+// each resolve correctly (mockReturnValue can't, it ignores the selector).
+function setAuthStore(state: {
+  accessToken: string | null
+  role: 'user' | 'admin' | 'contributor'
+}) {
+  vi.mocked(useAuthStore).mockImplementation(
+    (selector: unknown) => (selector as (s: typeof state) => unknown)(state) as never
+  )
 }
 
 function setProfile(profile: { username?: string; avatarUrl?: string | null } | null) {
@@ -78,6 +100,33 @@ describe('UserMenu', () => {
     fireEvent.click(screen.getByText(/Déconnexion/))
 
     expect(mutate).toHaveBeenCalledTimes(1)
+  })
+
+  // ADR-0006 S1: « Modération » reaches admin AND contributor (« modérateur »),
+  // and points at /admin/reports (the moderator's landing; /admin/users is admin-only).
+  it('shows the Modération link to /admin/reports for an admin', () => {
+    setAuthStore({ accessToken: 'tok', role: 'admin' })
+    render(<UserMenu />)
+    openMenu()
+
+    const link = screen.getByRole('link', { name: /Modération/i })
+    expect(link).toHaveAttribute('href', '/admin/reports')
+  })
+
+  it('shows the Modération link for a contributor', () => {
+    setAuthStore({ accessToken: 'tok', role: 'contributor' })
+    render(<UserMenu />)
+    openMenu()
+
+    expect(screen.getByRole('link', { name: /Modération/i })).toBeInTheDocument()
+  })
+
+  it('hides Modération from a plain user', () => {
+    setAuthStore({ accessToken: 'tok', role: 'user' })
+    render(<UserMenu />)
+    openMenu()
+
+    expect(screen.queryByText(/Modération/i)).not.toBeInTheDocument()
   })
 
   it('renders the username next to the avatar only when the sidebar is open', () => {

@@ -5,13 +5,16 @@ import { tenantPolicies } from '../_policies'
 import { users } from '../auth/users'
 
 // Polymorphic target: targetId can reference user_product_reviews / discussion_threads
-// / discussion_replies / users (for profile reports). No FK constraint because the
-// concrete table depends on targetType — admins resolve mismatches at review time.
+// / discussion_replies / users (for profile reports) / products / ingredients (catalogue
+// sheets, S2). No FK constraint because the concrete table depends on targetType —
+// admins resolve mismatches at review time.
 export const reportTargetTypeEnum = pgEnum('report_target_type', [
   'review',
   'thread',
   'reply',
   'profile',
+  'product',
+  'ingredient',
 ])
 
 export const reportStatusEnum = pgEnum('report_status', ['open', 'resolved', 'dismissed'])

@@ -2,7 +2,14 @@ import { z } from 'zod'
 
 // Mirror of the DB `report_target_type` enum
 // (backend/src/db/schema/monitoring/content-reports.ts).
-export const reportTargetTypeSchema = z.enum(['review', 'thread', 'reply', 'profile'])
+export const reportTargetTypeSchema = z.enum([
+  'review',
+  'thread',
+  'reply',
+  'profile',
+  'product',
+  'ingredient',
+])
 export type ReportTargetType = z.infer<typeof reportTargetTypeSchema>
 
 export const reportStatusSchema = z.enum(['open', 'resolved', 'dismissed'])
