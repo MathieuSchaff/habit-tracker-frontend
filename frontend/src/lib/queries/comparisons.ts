@@ -1,4 +1,4 @@
-import type { CreateComparisonInput, UpdateComparisonInput } from '@habit-tracker/shared'
+import type { CreateComparisonInput, UpdateComparisonInput } from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 

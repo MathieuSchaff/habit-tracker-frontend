@@ -4,7 +4,7 @@ import type {
   ModerateContentResult,
   ModerateProfileInput,
   ModerateProfileResult,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { and, eq, ne, sql } from 'drizzle-orm'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { detectKindTags, type ProductKind } from '@habit-tracker/shared'
+import { detectKindTags, type ProductKind } from '@aurore/shared'
 
 import { explainInci } from '../explain'
 import { detectAllAutoTags } from '../orchestrator'

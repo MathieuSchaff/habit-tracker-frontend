@@ -5,7 +5,7 @@ import type {
   ProductDomainTab,
   ProductSort,
   UpdateProductInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 export type { ProductSort }
 

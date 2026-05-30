@@ -1,4 +1,4 @@
-import { type ArticleListItem, BLOG_CATEGORY_LABELS } from '@habit-tracker/shared'
+import { type ArticleListItem, BLOG_CATEGORY_LABELS } from '@aurore/shared'
 
 import { Link } from '@tanstack/react-router'
 import type React from 'react'

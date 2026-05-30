@@ -5,7 +5,7 @@ import type {
   ProductKind,
   ProductTexture,
   ProductUnit,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import {

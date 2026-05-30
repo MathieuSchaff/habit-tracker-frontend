@@ -1,4 +1,4 @@
-import { relevanceValues, type TagSource } from '@habit-tracker/shared'
+import { relevanceValues, type TagSource } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import {

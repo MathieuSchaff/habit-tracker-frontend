@@ -13,7 +13,7 @@
 // Invoked inside the api container via `just explain-auto-tags` (env: INCI, KIND,
 // CATEGORY, COUNTS) — see scripts/just/audit.just.
 
-import { PRODUCT_KIND_LABELS, type ProductKind } from '@habit-tracker/shared'
+import { PRODUCT_KIND_LABELS, type ProductKind } from '@aurore/shared'
 
 import { eq, sql } from 'drizzle-orm'
 

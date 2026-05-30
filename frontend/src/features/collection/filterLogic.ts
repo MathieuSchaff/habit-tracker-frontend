@@ -1,4 +1,4 @@
-import { type DisplayScale, detectKindPrimaryType, type ProductKind } from '@habit-tracker/shared'
+import { type DisplayScale, detectKindPrimaryType, type ProductKind } from '@aurore/shared'
 
 import { compareInstant } from '@/lib/dates'
 import { type CriteriaWeights, calculateWeightedScore } from '@/lib/helpers/reviews'

@@ -5,8 +5,8 @@ import type {
   Task,
   UpdateSubtaskInput,
   UpdateTaskInput,
-} from '@habit-tracker/shared'
-import { taskSchema } from '@habit-tracker/shared'
+} from '@aurore/shared'
+import { taskSchema } from '@aurore/shared'
 
 import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm'
 

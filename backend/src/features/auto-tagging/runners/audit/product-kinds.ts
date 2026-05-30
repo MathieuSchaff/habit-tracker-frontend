@@ -14,7 +14,7 @@
 //   bun run src/features/auto-tagging/runners/audit-product-kinds.ts --write     # apply certain
 //   bun run src/features/auto-tagging/runners/audit-product-kinds.ts --slug s    # single product
 
-import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@habit-tracker/shared'
+import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

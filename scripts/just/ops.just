@@ -2,7 +2,7 @@ import '_vars.just'
 import 'dev.just'
 
 # Launch production environment
-prod: env-check
+prod: env-prod-check
     {{COMPOSE_PROD}} up -d --build
 
 # Show production logs
@@ -13,9 +13,14 @@ prod-logs:
 prod-down:
     {{COMPOSE_PROD}} down
 
-# Apply migrations on prod DB
+# Apply migrations on prod DB (in-container, same bun-sql migrator as dev/test/e2e).
 prod-migrate:
-    {{COMPOSE_PROD}} exec api sh -c "cd /app && bun x drizzle-kit migrate"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    printf "{{RED}}⚠ PROD MIGRATE — tape 'PROD' pour confirmer{{NC}}\n"
+    read -r -p "> " C
+    [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    {{COMPOSE_PROD}} exec -T api sh -c "cd backend && bun run src/db/migrate.ts"
 
 # Reload Nginx config without downtime
 nginx-reload:
@@ -26,6 +31,7 @@ stop:
     {{COMPOSE_DEV}} down 2>/dev/null || true
     {{COMPOSE_PROD}} down 2>/dev/null || true
     {{COMPOSE_TEST}} down 2>/dev/null || true
+    {{COMPOSE_E2E}} down 2>/dev/null || true
 
 # Restart dev environment
 restart: dev-down dev
@@ -66,15 +72,15 @@ shell-db:
 shell-frontend:
     {{COMPOSE_DEV}} exec frontend /bin/sh
 
-# Generate SSL certificates
-ssl-init:
+# Generate SSL certificates. Usage: just ssl-init <domain> <email>
+ssl-init domain email:
     #!/usr/bin/env bash
-    printf '\033[0;33m⚠ Edit domain and email in scripts/just/ops.just before running\033[0m\n'
+    printf '\033[0;33m⚠ Cert request: {{domain}} <{{email}}>\033[0m\n'
     read -p "Continue? [y/N] " confirm && [ "$confirm" = "y" ] || exit 1
     {{COMPOSE_PROD}} exec certbot \
         certbot certonly --webroot -w /var/www/certbot \
-        -d votredomaine.com \
-        --email votre@email.com \
+        -d {{domain}} \
+        --email {{email}} \
         --agree-tos \
         --no-eff-email
 
@@ -113,6 +119,7 @@ clean-soft:
     {{COMPOSE_DEV}} down 2>/dev/null || true
     {{COMPOSE_PROD}} down 2>/dev/null || true
     {{COMPOSE_TEST}} down 2>/dev/null || true
+    {{COMPOSE_E2E}} down 2>/dev/null || true
     just ts-clean
 
 # Remove project images (force rebuild)
@@ -130,18 +137,18 @@ health:
 stats:
     docker stats --no-stream
 
-# Check .env files presence
+# Check both .env files present (deploy verification)
 env-check:
     @test -f .env.dev  || (printf "{{YELLOW}}Warning: .env.dev missing{{NC}}\n"  && exit 1)
     @test -f .env.prod || (printf "{{YELLOW}}Warning: .env.prod missing{{NC}}\n" && exit 1)
 
-# Install dependencies
-install:
-    bun install
+# Check .env.prod present (gate for `prod` — a prod host has no .env.dev)
+env-prod-check:
+    @test -f .env.prod || (printf "{{YELLOW}}Warning: .env.prod missing{{NC}}\n" && exit 1)
 
-# Radical clean and fresh reinstall
+# Radical clean: wipe node_modules (Docker root-owned) + reinstall. Keeps bun.lock (reproducible).
 clean-install:
-    docker run --rm -v $PWD:/app -w /app alpine sh -c "rm -rf node_modules backend/node_modules frontend/node_modules shared/node_modules bun.lock"
+    docker run --rm -v $PWD:/app -w /app alpine sh -c "rm -rf node_modules backend/node_modules frontend/node_modules shared/node_modules"
     bun install --no-cache
 
 # Build Docker images

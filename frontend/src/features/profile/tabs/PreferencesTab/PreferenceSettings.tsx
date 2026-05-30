@@ -1,4 +1,4 @@
-import type { DisplayScale } from '@habit-tracker/shared'
+import type { DisplayScale } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { useRef } from 'react'

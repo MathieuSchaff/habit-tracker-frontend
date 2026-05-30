@@ -1,4 +1,4 @@
-import { err, HTTP_STATUS } from '@habit-tracker/shared'
+import { err, HTTP_STATUS } from '@aurore/shared'
 
 import type { Context, MiddlewareHandler, Next } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'

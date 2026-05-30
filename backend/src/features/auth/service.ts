@@ -9,8 +9,8 @@ import type {
   RawPassword,
   RefreshResult,
   SignupResult,
-} from '@habit-tracker/shared'
-import { err, ok } from '@habit-tracker/shared'
+} from '@aurore/shared'
+import { err, ok } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 
@@ -281,7 +281,7 @@ export async function changePassword(
 ): Promise<ChangePasswordResult> {
   try {
     const user = await getFullUserById(ctx.db, userId)
-    if (!user || !user.passwordHash) {
+    if (!user?.passwordHash) {
       return err('invalid_credentials')
     }
 

@@ -32,7 +32,7 @@
     touch-action: manipulation;
     width: 100%;
     border-top: 3px solid var(--pcc-accent);
-    /*biome-ignore lint: this feature exist*/
+    /* corner-*-shape is a valid CSS Shapes property */
     corner-top-right-shape: scoop;
     transition:
       box-shadow var(--transition-fast) ease,

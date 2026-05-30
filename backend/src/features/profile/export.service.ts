@@ -6,7 +6,7 @@ import {
   type SkinType,
   USER_EXPORT_SCHEMA_VERSION,
   type UserExport,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

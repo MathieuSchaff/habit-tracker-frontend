@@ -1,10 +1,10 @@
-import { HTTP_STATUS, ok, replaceProductTagsSchema } from '@habit-tracker/shared'
+import { HTTP_STATUS, ok, replaceProductTagsSchema } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
+import { zValidator } from '../../../utils/validator'
 import {
   requireCatalogWrite,
   requireJwtAuth,

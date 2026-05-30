@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { HTTP_STATUS } from '@habit-tracker/shared'
+import { HTTP_STATUS } from '@aurore/shared'
 
 import { createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'

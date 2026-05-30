@@ -1,4 +1,4 @@
-import type { CreateReplyInput, CreateThreadInput } from '@habit-tracker/shared'
+import type { CreateReplyInput, CreateThreadInput } from '@aurore/shared'
 
 import { and, count, desc, eq } from 'drizzle-orm'
 

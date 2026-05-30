@@ -14,7 +14,7 @@ import {
   SKINCARE_INGREDIENT_TAG_CATEGORY_META,
   SUPPLEMENT_INGREDIENT_TAG_CATEGORY_META,
   type TagCategoryMeta,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { z } from 'zod'
 

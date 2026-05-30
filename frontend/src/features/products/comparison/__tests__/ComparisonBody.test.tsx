@@ -1,4 +1,4 @@
-import type { EnrichedComparisonProduct } from '@habit-tracker/shared'
+import type { EnrichedComparisonProduct } from '@aurore/shared'
 
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'

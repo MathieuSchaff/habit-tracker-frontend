@@ -2,7 +2,7 @@ import type {
   ProfileUpdateInput,
   UpdatePrivacySettingsInput,
   UserDermoProfileUpdateInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -99,6 +99,7 @@ export const useUpdateDermoProfile = () => {
     mutationFn: async (data: UserDermoProfileUpdateInput) => {
       const res = await api.profile.dermo.$patch({ json: data })
       const json = await res.json()
+      if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
       return json.data
     },
     onSuccess: (data) => {

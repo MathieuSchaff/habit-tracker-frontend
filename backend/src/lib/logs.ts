@@ -4,7 +4,7 @@ import {
   ingredientChangesSchema,
   type ProductChanges,
   productChangesSchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import type { ZodType } from 'zod'
 

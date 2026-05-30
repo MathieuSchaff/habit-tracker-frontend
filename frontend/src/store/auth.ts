@@ -1,4 +1,4 @@
-import type { UserPublic } from '@habit-tracker/shared'
+import type { UserPublic } from '@aurore/shared'
 
 import { create } from 'zustand'
 

@@ -11,7 +11,7 @@
 // the cutover from inline pass coordination (seenSlugs / topConcern locals)
 // to registry-driven dispatch.
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
 import { buildPassContext } from './lib/build-pass-context'
 import { mergeProposal, primaryPromote } from './lib/merge'

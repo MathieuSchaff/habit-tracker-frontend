@@ -1,5 +1,5 @@
-import type { ProductKind, ProductTexture } from '@habit-tracker/shared'
-import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, ProductTexture } from '@aurore/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { resolveIngredients } from '../../lib/ingredient-resolver'
 

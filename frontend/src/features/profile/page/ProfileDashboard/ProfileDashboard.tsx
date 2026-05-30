@@ -1,4 +1,4 @@
-import type { ProfileUpdateInput } from '@habit-tracker/shared'
+import type { ProfileUpdateInput } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Settings, Shield, Sparkles } from 'lucide-react'

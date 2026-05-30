@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { createIngredientSchema, updateIngredientSchema } from '@habit-tracker/shared'
+import { createIngredientSchema, updateIngredientSchema } from '@aurore/shared'
 
 describe('createIngredientSchema — type × category cross-check', () => {
   it('accepts category from the matching type set', () => {

@@ -6,14 +6,14 @@ import {
   ok,
   updateIngredientRouteSchema,
   verifyQualityBodySchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { stripAdminFields } from '../../lib/catalog'
+import { zValidator } from '../../utils/validator'
 import {
   getAuthedUserId,
   getAuthedUserRole,

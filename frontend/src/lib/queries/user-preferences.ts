@@ -1,4 +1,4 @@
-import type { UpdateUserPreferencesInput } from '@habit-tracker/shared'
+import type { UpdateUserPreferencesInput } from '@aurore/shared'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 

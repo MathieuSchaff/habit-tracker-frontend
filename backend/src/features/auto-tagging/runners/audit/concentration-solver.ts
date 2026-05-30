@@ -18,7 +18,7 @@
 //   JSON_OUT        optional — write detailed per-entry rows + slug summary
 //   SLUG            optional — restrict audit to one Aurore ingredient slug
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { analyzeINCI, type MatchedEvidence } from 'algo-derm'
 import { and, eq, isNotNull, sql } from 'drizzle-orm'

@@ -1,4 +1,4 @@
-import type { UserDermoProfile } from '@habit-tracker/shared'
+import type { UserDermoProfile } from '@aurore/shared'
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'

@@ -1,4 +1,4 @@
-import type { AdminDashboard } from '@habit-tracker/shared'
+import type { AdminDashboard } from '@aurore/shared'
 
 import { eq, gt, isNull, or, sql } from 'drizzle-orm'
 

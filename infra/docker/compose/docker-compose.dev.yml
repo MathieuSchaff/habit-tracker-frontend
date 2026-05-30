@@ -98,7 +98,7 @@ services:
 
 # Déclaration obligatoire des volumes nommés utilisés dans les services.
 # Sans cette section, Docker Compose refuse de démarrer.
-# Docker les préfixe automatiquement avec le nom du projet : habit-tracker_<nom>
+# Docker les préfixe automatiquement avec le nom du projet : aurore_<nom>
 # Contrairement aux bind mounts (./dossier), ces volumes sont gérés par Docker
 # et stockés dans /var/lib/docker/volumes/ — jamais écrasés par tes fichiers locaux.
 volumes:

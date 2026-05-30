@@ -11,7 +11,7 @@ import {
   SKINCARE_PRODUCT_TAG_TAXONOMY,
   SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
   SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { ingredientTagMap } from '../data/ingredient-tags'
 import { allProductTagsMap } from '../data/products'

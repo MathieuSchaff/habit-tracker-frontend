@@ -12,7 +12,7 @@
 // Env:
 //   DUMP_FALSE_POS=1   include full INCI in false-pos report for review
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { normalize, splitINCI, stripPreamble } from 'algo-derm'
 import { eq, sql } from 'drizzle-orm'

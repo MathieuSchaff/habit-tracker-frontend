@@ -1,10 +1,10 @@
-import { createTagSchema, HTTP_STATUS, ok, updateTagSchema } from '@habit-tracker/shared'
+import { createTagSchema, HTTP_STATUS, ok, updateTagSchema } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
+import { zValidator } from '../../utils/validator'
 import { requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { TagError } from '../product-tags/tag-error'

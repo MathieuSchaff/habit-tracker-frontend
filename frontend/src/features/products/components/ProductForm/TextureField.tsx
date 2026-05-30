@@ -2,7 +2,7 @@ import {
   PRODUCT_TEXTURE_LABELS,
   PRODUCT_TEXTURE_VALUES,
   type ProductCategory,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'

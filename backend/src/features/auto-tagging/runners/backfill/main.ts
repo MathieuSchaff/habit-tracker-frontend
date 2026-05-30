@@ -38,7 +38,7 @@ import {
   type ProductCategory,
   type ProductKind,
   type ProductTexture,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { eq, inArray, sql } from 'drizzle-orm'
 

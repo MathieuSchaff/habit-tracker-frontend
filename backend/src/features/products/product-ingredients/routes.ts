@@ -3,14 +3,14 @@ import {
   HTTP_STATUS,
   ok,
   PRODUCT_CONCENTRATION_UNIT_VALUES,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../../app-env'
 import { isUniqueViolation } from '../../../lib/helpers'
+import { zValidator } from '../../../utils/validator'
 import {
   requireCatalogWrite,
   requireJwtAuth,

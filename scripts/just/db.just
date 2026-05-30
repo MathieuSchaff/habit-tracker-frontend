@@ -34,17 +34,17 @@ db-migrate:
 # Generate migration files from schema (dev-only)
 db-generate:
     @printf "{{CYAN}}Generating migration files...{{NC}}\n"
-    cd backend && set -a && source ../.env.dev && set +a && bun x drizzle-kit generate
+    cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit generate
 
 # ⚠️ Bypass migrations — loses FORCE RLS + auth.* (prefer db-migrate). Dev-only.
 db-push:
     @printf "{{CYAN}}Schema sync (push)...{{NC}}\n"
-    cd backend && set -a && source ../.env.dev && set +a && bun x drizzle-kit push
+    cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit push
 
 # Launch Drizzle Studio GUI (dev-only, localhost)
 db-studio:
     @printf "{{CYAN}}Launching Drizzle Studio on http://localhost:4983{{NC}}\n"
-    cd backend && set -a && source ../.env.dev && set +a && bun x drizzle-kit studio --port 4983
+    cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit studio --port 4983
 
 # ─── Stats (read-only) ──────────────────────────────────────────────────────
 
@@ -52,12 +52,9 @@ db-studio:
 db-stats:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{CYAN}}DB stats ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/audit/stats-db.ts
 
@@ -67,12 +64,9 @@ db-stats:
 db-seed:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     if [ "$TARGET" = "prod" ]; then
         printf "{{RED}}⚠ PROD SEED — tape 'PROD' pour confirmer{{NC}}\n"
         read -r -p "> " C
@@ -97,12 +91,9 @@ db-seed-merge-safe: db-backup db-seed-merge audit-db
 db-seed-reset:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{YELLOW}}⚠ ATTENTION: --reset will TRUNCATE products + ingredients + tag relations!\n"
     printf "  If the target DB has more products than the JS seed, the guard will refuse unless SEED_FORCE_RESET=1.{{NC}}\n"
     if [ "$TARGET" = "prod" ]; then
@@ -120,12 +111,9 @@ db-seed-reset:
 db-clean:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{YELLOW}}⚠ ATTENTION: All data will be deleted!{{NC}}\n"
     if [ "$TARGET" = "prod" ]; then
         printf "{{RED}}⚠⚠ PROD WIPE — tape 'I DESTROY PROD' pour confirmer{{NC}}\n"
@@ -147,12 +135,9 @@ db-reset: db-clean db-migrate db-seed
 db-backup:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     mkdir -p ./backups
     TS=$(date +%Y%m%d_%H%M%S)
     if [ "$TARGET" = "prod" ]; then
@@ -173,12 +158,9 @@ db-backup:
 db-restore file:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     if [ "$TARGET" = "prod" ]; then
         printf "{{RED}}⚠⚠ PROD RESTORE from {{file}} — tape 'I DESTROY PROD' pour confirmer{{NC}}\n"
         read -r -p "> " C

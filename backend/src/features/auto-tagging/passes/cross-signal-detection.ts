@@ -21,8 +21,8 @@
 // Rinse-off kinds (cleanser, body-wash, mask, patch) are excluded from
 // leave-on photosensitivity warnings — context.leaveOn matters here.
 
-import type { ProductKind } from '@habit-tracker/shared'
-import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import type { ProductAssessment } from 'algo-derm'
 

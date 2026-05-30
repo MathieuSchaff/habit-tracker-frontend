@@ -4,7 +4,7 @@ import {
   type RoutineTag,
   repurchaseFlag,
   userProductStatus,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
 import {
@@ -95,9 +95,7 @@ export const userProductReviews = pgTable(
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),
     // Speeds up the public product reviews surface (#7); only public rows hit it.
-    index('user_product_reviews_public_idx')
-      .on(t.userProductId)
-      .where(sql`${t.isPublic} = true`),
+    index('user_product_reviews_public_idx').on(t.userProductId).where(sql`${t.isPublic} = true`),
     check('upr_tolerance_range', sql`${t.tolerance} BETWEEN 1 AND 5`),
     check('upr_efficacy_range', sql`${t.efficacy} BETWEEN 1 AND 5`),
     check('upr_sensoriality_range', sql`${t.sensoriality} BETWEEN 1 AND 5`),

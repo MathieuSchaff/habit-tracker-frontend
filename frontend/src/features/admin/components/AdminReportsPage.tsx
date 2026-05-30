@@ -1,4 +1,4 @@
-import type { ReportStatus, ReportTargetType } from '@habit-tracker/shared'
+import type { ReportStatus, ReportTargetType } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'

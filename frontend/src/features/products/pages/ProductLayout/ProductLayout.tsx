@@ -1,4 +1,4 @@
-import { getProductKindLabel } from '@habit-tracker/shared'
+import { getProductKindLabel } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'

@@ -24,7 +24,7 @@
 // Tunables via env:
 //   LIMIT       optional       — cap product count (debug)
 
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import { eq, sql } from 'drizzle-orm'
 

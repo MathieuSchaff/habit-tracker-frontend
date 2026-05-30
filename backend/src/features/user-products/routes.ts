@@ -9,9 +9,8 @@ import {
   updatePurchaseSchema,
   updateUserProductReviewSchema,
   updateUserProductSchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
@@ -20,6 +19,7 @@ import type { AppEnv } from '../../app-env'
 import { userProductReviews } from '../../db/schema/products/user-products'
 import { logger } from '../../lib/logger'
 import { recalculateSignalForUser } from '../../services/dermoSignalService'
+import { zValidator } from '../../utils/validator'
 import { isUserBannedForScope } from '../auth/ban.service'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'

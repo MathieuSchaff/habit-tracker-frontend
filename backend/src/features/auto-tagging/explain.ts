@@ -12,7 +12,7 @@
 // primitives (no logic fork). `final` is asserted ≡ detectAllAutoTags by the
 // invariant in tests/explain.test.ts, so the trace can't drift from the engine.
 
-import type { SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import { buildPassContext } from './lib/build-pass-context'
 import { mergeProposal, primaryPromote } from './lib/merge'
@@ -32,7 +32,7 @@ import { AUTO_TAG_PASSES } from './passes/registry'
 
 const ELIGIBLE: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
-export interface ExplainProposal {
+interface ExplainProposal {
   tagSlug: SkincareProductTagSlug
   relevance: AutoTagRelevance
   source: AutoTagSource
@@ -44,12 +44,12 @@ export interface ExplainProposal {
   supersededBy?: { relevance: AutoTagRelevance; source: AutoTagSource }
 }
 
-export interface ExplainLayer {
+interface ExplainLayer {
   name: string
   proposals: ExplainProposal[]
 }
 
-export interface ExplainDrop {
+interface ExplainDrop {
   reason: DropReason
   // algo-derm candidate id (its `tagProduct` tag id, not the Aurore slug — most
   // drop reasons fire before slug mapping).
@@ -57,7 +57,7 @@ export interface ExplainDrop {
   count: number
 }
 
-export interface ExplainPromotion {
+interface ExplainPromotion {
   tagSlug: SkincareProductTagSlug
   from: AutoTagRelevance
 }

@@ -1,4 +1,4 @@
-import { hasFragranceComponent } from '@habit-tracker/shared'
+import { hasFragranceComponent } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'

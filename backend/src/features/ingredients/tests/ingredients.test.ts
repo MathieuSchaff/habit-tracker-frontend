@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { listIngredientsSearchSchema } from '@habit-tracker/shared'
+import { listIngredientsSearchSchema } from '@aurore/shared'
 
 import { addTagToIngredient, createIngredientTag } from '../../../features/ingredient-tags/service'
 import { testDb } from '../../../tests/db.test.config'

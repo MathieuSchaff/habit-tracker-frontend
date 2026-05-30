@@ -5,7 +5,7 @@ import type {
   CreateBanResult,
   UpdateBanInput,
   UpdateBanResult,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { desc, eq, sql } from 'drizzle-orm'
 

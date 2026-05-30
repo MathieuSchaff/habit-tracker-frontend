@@ -1,4 +1,4 @@
-import type { AppType } from '@habit-tracker/backend'
+import type { AppType } from '@aurore/backend'
 
 import { hc, type InferResponseType } from 'hono/client'
 

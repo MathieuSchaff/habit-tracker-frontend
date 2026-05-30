@@ -10,7 +10,7 @@ import type {
   UpdateUserPreferencesInput,
   UserDermoProfile,
   UserDermoProfileUpdateInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { and, count, eq } from 'drizzle-orm'
 
@@ -361,7 +361,7 @@ export async function getPublicProfileByUsername(
     )
     .limit(1)
 
-  if (!row || !row.username) return null
+  if (!row?.username) return null
 
   return {
     username: row.username,

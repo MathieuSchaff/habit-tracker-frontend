@@ -1,4 +1,4 @@
-import type { BanScope, CreateBanInput } from '@habit-tracker/shared'
+import type { BanScope, CreateBanInput } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'

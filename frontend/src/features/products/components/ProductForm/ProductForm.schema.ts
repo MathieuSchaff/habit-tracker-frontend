@@ -8,7 +8,7 @@ import {
   type ProductTexture,
   type ProductUnit,
   type UpdateProductInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { z } from 'zod'
 

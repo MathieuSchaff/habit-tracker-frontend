@@ -1,4 +1,4 @@
-import type { CreateReportInput, ListReportsResponse, ReportStatus } from '@habit-tracker/shared'
+import type { CreateReportInput, ListReportsResponse, ReportStatus } from '@aurore/shared'
 
 import { desc, eq } from 'drizzle-orm'
 

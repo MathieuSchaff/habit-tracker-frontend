@@ -5,7 +5,7 @@ import type {
   Task,
   UpdateSubtaskInput,
   UpdateTaskInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 

@@ -1,4 +1,4 @@
-import type { ProductKind, ProductUnit } from '@habit-tracker/shared'
+import type { ProductKind, ProductUnit } from '@aurore/shared'
 
 export type ProductListItem = {
   id: string

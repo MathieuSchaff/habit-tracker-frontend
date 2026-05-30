@@ -1,5 +1,5 @@
-import type { SkinConcern, SkinType, UserDermoProfileUpdateInput } from '@habit-tracker/shared'
-import { SKIN_CONCERNS, SKIN_TYPES } from '@habit-tracker/shared'
+import type { SkinConcern, SkinType, UserDermoProfileUpdateInput } from '@aurore/shared'
+import { SKIN_CONCERNS, SKIN_TYPES } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import clsx from 'clsx'

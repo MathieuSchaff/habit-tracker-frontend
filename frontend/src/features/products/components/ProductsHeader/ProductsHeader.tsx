@@ -1,4 +1,4 @@
-import type { ProductDomainTab } from '@habit-tracker/shared'
+import type { ProductDomainTab } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'

@@ -5,12 +5,12 @@ import type {
   IngredientType,
   ListIngredientsSearchFilters,
   UpdateIngredientInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 import {
   createIngredientSchema,
   DOMAIN_INGREDIENT_FILTER_CATEGORIES,
   updateIngredientSchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'

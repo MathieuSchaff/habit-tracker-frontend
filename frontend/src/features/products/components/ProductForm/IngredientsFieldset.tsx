@@ -1,4 +1,4 @@
-import type { ProductConcentrationUnit } from '@habit-tracker/shared'
+import type { ProductConcentrationUnit } from '@aurore/shared'
 
 import { Trash2 } from 'lucide-react'
 import { useState } from 'react'

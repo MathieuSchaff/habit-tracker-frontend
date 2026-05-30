@@ -7,7 +7,7 @@
 // Categories: skincare + solaire + bodycare. Other categories (haircare,
 // dental, supplements) carry no INCI-derived safety signal yet.
 
-import type { ProductKind, SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
 import type { ProductAssessment } from 'algo-derm'
 

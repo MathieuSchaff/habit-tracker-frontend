@@ -9,7 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
 import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
 

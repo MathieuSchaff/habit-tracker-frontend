@@ -14,7 +14,7 @@
 //   --write   apply UPDATEs (default = dry-run, reports per-source counts)
 //   LIMIT     cap the product set for debugging
 
-import type { ProductKind, ProductTexture, TagSource } from '@habit-tracker/shared'
+import type { ProductKind, ProductTexture, TagSource } from '@aurore/shared'
 
 import { eq, inArray, sql } from 'drizzle-orm'
 

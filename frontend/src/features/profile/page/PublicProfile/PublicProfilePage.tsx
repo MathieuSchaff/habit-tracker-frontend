@@ -1,4 +1,4 @@
-import type { PublicProfileView } from '@habit-tracker/shared'
+import type { PublicProfileView } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 

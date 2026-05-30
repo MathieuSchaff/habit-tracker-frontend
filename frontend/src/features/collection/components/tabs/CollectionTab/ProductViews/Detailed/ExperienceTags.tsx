@@ -5,7 +5,7 @@ import {
   type RoutineTag,
   ressentiTags,
   routineTags,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { preferencesLabels, ressentiLabels, routineLabels } from '@/features/collection/constants'

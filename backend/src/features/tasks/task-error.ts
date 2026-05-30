@@ -1,4 +1,4 @@
-import type { TaskErrorCode } from '@habit-tracker/shared'
+import type { TaskErrorCode } from '@aurore/shared'
 
 export class TaskError extends Error {
   constructor(

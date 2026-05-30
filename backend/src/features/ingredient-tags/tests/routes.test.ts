@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { HTTP_STATUS } from '@habit-tracker/shared'
+import { HTTP_STATUS } from '@aurore/shared'
 
 import { createIngredient } from '../../../features/ingredients/service'
 import { testDb } from '../../../tests/db.test.config'
@@ -317,6 +317,7 @@ describe('Ingredient Tag Routes', () => {
 
       expectStatus(res, HTTP_STATUS.OK)
       const data = await res.json()
+      if (!data.success) throw new Error('delete tag failed')
       expect(data.data).toBeNull()
     })
 

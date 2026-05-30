@@ -1,4 +1,4 @@
-import type { ProfilePublic } from '@habit-tracker/shared'
+import type { ProfilePublic } from '@aurore/shared'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'

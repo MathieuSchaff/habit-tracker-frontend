@@ -3,12 +3,8 @@ import type {
   BlogCategory,
   CreateArticleInput,
   UpdateArticleInput,
-} from '@habit-tracker/shared'
-import {
-  articleListItemSchema,
-  articleResponseSchema,
-  BLOG_CATEGORY_VALUES,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
+import { articleListItemSchema, articleResponseSchema, BLOG_CATEGORY_VALUES } from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, asc, eq, ilike, isNotNull, type SQL, sql } from 'drizzle-orm'

@@ -1,4 +1,4 @@
-import { COMPARISON_MAX_PRODUCTS, COMPARISON_MIN_PRODUCTS } from '@habit-tracker/shared'
+import { COMPARISON_MAX_PRODUCTS, COMPARISON_MIN_PRODUCTS } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'

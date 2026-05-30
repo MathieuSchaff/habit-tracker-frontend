@@ -1,4 +1,4 @@
-import type { ProfilePublic, ProfileUpdateInput } from '@habit-tracker/shared'
+import type { ProfilePublic, ProfileUpdateInput } from '@aurore/shared'
 
 import clsx from 'clsx'
 import { ExternalLink, Pencil } from 'lucide-react'

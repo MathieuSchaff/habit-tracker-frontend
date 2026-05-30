@@ -1,4 +1,4 @@
-import type { ReportTargetType } from '@habit-tracker/shared'
+import type { ReportTargetType } from '@aurore/shared'
 
 import { Flag } from 'lucide-react'
 import { useState } from 'react'

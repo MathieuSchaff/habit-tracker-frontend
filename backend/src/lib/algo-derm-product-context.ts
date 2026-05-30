@@ -1,4 +1,4 @@
-import type { ProductKind } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
 
 import type { ProductContext } from 'algo-derm'
 

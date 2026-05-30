@@ -1,4 +1,4 @@
-import type { BlogCategory } from '@habit-tracker/shared'
+import type { BlogCategory } from '@aurore/shared'
 
 import { dentalArticles } from './dental'
 import { haircareArticles } from './haircare'

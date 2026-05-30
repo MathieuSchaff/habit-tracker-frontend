@@ -2,7 +2,7 @@ import {
   PRODUCT_CONCENTRATION_UNIT_LABELS,
   PRODUCT_CONCENTRATION_UNIT_VALUES,
   type ProductConcentrationUnit,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import './DoseField.css'
 

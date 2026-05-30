@@ -19,7 +19,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
 import { SQL } from 'bun'
 
-import { HTTP_STATUS } from '@habit-tracker/shared'
+import { HTTP_STATUS } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/bun-sql'

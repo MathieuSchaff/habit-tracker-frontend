@@ -1,4 +1,4 @@
-import { BLOG_CATEGORY_VALUES } from '@habit-tracker/shared'
+import { BLOG_CATEGORY_VALUES } from '@aurore/shared'
 
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
 

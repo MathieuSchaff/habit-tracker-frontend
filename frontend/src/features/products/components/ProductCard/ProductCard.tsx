@@ -1,4 +1,4 @@
-import { getProductKindLabel, PRODUCT_KINDS, PRODUCT_UNITS } from '@habit-tracker/shared'
+import { getProductKindLabel, PRODUCT_KINDS, PRODUCT_UNITS } from '@aurore/shared'
 
 import { Link } from '@tanstack/react-router'
 import { Check, Plus } from 'lucide-react'

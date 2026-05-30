@@ -1,4 +1,4 @@
-import { BLOG_CATEGORY_VALUES, type BlogCategory } from '@habit-tracker/shared'
+import { BLOG_CATEGORY_VALUES, type BlogCategory } from '@aurore/shared'
 
 import { createFileRoute, notFound, stripSearchParams, useNavigate } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'

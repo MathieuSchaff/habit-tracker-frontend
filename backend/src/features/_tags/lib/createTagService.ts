@@ -1,5 +1,5 @@
-import type { CreateTagInput, UpdateTagInput } from '@habit-tracker/shared'
-import { createTagSchema, updateTagSchema } from '@habit-tracker/shared'
+import type { CreateTagInput, UpdateTagInput } from '@aurore/shared'
+import { createTagSchema, updateTagSchema } from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { and, eq, getTableColumns } from 'drizzle-orm'

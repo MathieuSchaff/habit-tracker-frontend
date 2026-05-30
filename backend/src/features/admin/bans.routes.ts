@@ -7,15 +7,15 @@ import {
   isApiSuccess,
   ok,
   updateBanBodySchema,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
+import { zValidator } from '../../utils/validator'
 import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { createBan, liftBan, listUserBans, listUsers, updateBan } from './bans.service'

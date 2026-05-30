@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import type { SkinType } from '@habit-tracker/shared'
+import type { SkinType } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 

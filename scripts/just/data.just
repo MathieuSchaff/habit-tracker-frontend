@@ -15,17 +15,10 @@ import '_vars.just'
 ingest-peta:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ -n "${WRITE:-}" ]; then
-        printf "{{RED}}⚠ PROD WRITE (ingest-peta) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-peta)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Ingest PETA cruelty-free ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/ingest/peta-cruelty-free/main.ts \
@@ -37,17 +30,10 @@ ingest-peta:
 ingest-obf:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ -n "${WRITE:-}" ]; then
-        printf "{{RED}}⚠ PROD WRITE (ingest-obf) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-obf)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Ingest OBF brand labels ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/ingest/obf-brand-labels/main.ts \
@@ -66,17 +52,10 @@ ingest-incidecoder phase:
         crawl|match|fetch|apply) ;;
         *) printf "{{RED}}phase invalide: crawl|match|fetch|apply{{NC}}\n"; exit 1 ;;
     esac
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ "{{phase}}" = "apply" ]; then
-        printf "{{RED}}⚠ PROD WRITE (incidecoder apply) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ "{{phase}}" = "apply" ]; then confirm_prod "WRITE (incidecoder apply)"; fi
     printf "{{CYAN}}Ingest INCIDecoder phase {{phase}} ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/ingest/incidecoder/main.ts --{{phase}}
 
@@ -86,12 +65,9 @@ ingest-incidecoder phase:
 audit-imported-products:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE (output/)" || echo "console")
     printf "{{CYAN}}Audit imported products ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/maintenance/audit-imported-products.ts \
@@ -101,17 +77,10 @@ audit-imported-products:
 dedupe-product-variants:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
-    if [ "$TARGET" = "prod" ] && [ -n "${APPLY:-}" ]; then
-        printf "{{RED}}⚠ PROD WRITE (dedupe variants) — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (dedupe variants)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Dedupe product variants ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/maintenance/dedupe-product-variants.ts \
@@ -122,11 +91,8 @@ dedupe-product-variants:
 scan-db-duplicates backup:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{CYAN}}Scan DB duplicates from {{backup}} ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/maintenance/scan-db-duplicates.ts {{backup}}

@@ -1,17 +1,12 @@
-import {
-  HTTP_STATUS,
-  listReportsQuerySchema,
-  ok,
-  resolveReportBodySchema,
-} from '@habit-tracker/shared'
+import { HTTP_STATUS, listReportsQuerySchema, ok, resolveReportBodySchema } from '@aurore/shared'
 
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
 import { rateLimiterFunc } from '../../utils/rateLimiter'
+import { zValidator } from '../../utils/validator'
 import {
   getAuthedUserId,
   requireContentModerator,

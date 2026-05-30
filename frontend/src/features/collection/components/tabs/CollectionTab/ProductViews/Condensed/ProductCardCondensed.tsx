@@ -1,4 +1,4 @@
-import type { UserProductStatus } from '@habit-tracker/shared'
+import type { UserProductStatus } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'

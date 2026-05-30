@@ -98,10 +98,13 @@ Useful commands:
 | `just db-migrate`                   | Apply migrations locally           |
 | `just db-push`                      | Sync schema without migration      |
 | `just db-studio`                    | Drizzle UI (http://localhost:4983) |
-| `just db-seed`                      | Inject test data                   |
+| `just db-seed`                      | Push CORE catalog seed (idempotent) |
 | `just db-reset`                     | Wipe + migrate + seed              |
 | `just db-backup`                    | Backup to `./backups/`             |
 | `just db-restore ./backups/xxx.sql` | Restore from a `.sql` file         |
+| `just db-snapshot`                  | Dump DB → `data.sql` (dev source of truth) |
+| `just db-snapshot-load`             | Reload `data.sql` (⚠ truncates tables)     |
+| `just db-snapshot-reset`            | Clean + migrate + load `data.sql`          |
 
 ## Vendored `algo-derm`
 
@@ -138,7 +141,7 @@ Backend-only: the frontend receives the precomputed `ProductAssessment`. The bun
 
 ### Editor shows errors / Docker crashes at startup
 
-Symptom: `Cannot find module '@habit-tracker/shared'` (legacy package name, kept for now to avoid an invasive rename across imports).
+Symptom: `Cannot find module '@aurore/shared'` (workspace symlink not built — run `bun install` then `tsc -b` to build the shared package).
 
 ```bash
 just ts-clean && just ts-build
@@ -149,15 +152,15 @@ Then restart Docker and make sure `just ts-check` is running in a separate termi
 ### Docker issues
 
 ```bash
-just stop
-just dev-rebuild
-just clean && just dev-fresh
+just stop                     # stop all stacks
+just dev-rebuild              # rebuild images (DB preserved)
+just clean-soft               # drop containers, keep volumes (DB safe)
+just clean && just dev-fresh  # ⚠ destroys ALL Docker data incl. the local DB (pgdata)
 ```
 
 ## Production
 
-1. Create `.env.prod` from `.env.prod.example`.
-2. Update the domain and email in `scripts/just/ops.just` (`ssl-init`).
-3. Run `just prod-migrate` to apply migrations.
-4. Run `just prod` to start services.
-5. Run `just ssl-init` to generate the SSL certificate.
+1. Create `.env.prod` from `.env.prod.example` and fill **every** secret — the API validates env at boot (`backend/src/config/env.ts`) and crash-loops if any required var is missing.
+2. Run `just prod` to start services.
+3. Run `just prod-migrate` to apply migrations (execs into the running api container).
+4. Run `just ssl-init <domain> <email>` to generate the SSL certificate.

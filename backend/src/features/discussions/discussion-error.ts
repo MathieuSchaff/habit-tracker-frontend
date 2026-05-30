@@ -1,4 +1,4 @@
-import type { DiscussionErrorCode } from '@habit-tracker/shared'
+import type { DiscussionErrorCode } from '@aurore/shared'
 
 export class DiscussionError extends Error {
   constructor(

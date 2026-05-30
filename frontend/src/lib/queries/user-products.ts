@@ -2,7 +2,7 @@ import type {
   CreateUserProductInput,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 

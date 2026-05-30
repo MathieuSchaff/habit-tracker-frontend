@@ -1,4 +1,4 @@
-import type { UploadErrorCode } from '@habit-tracker/shared'
+import type { UploadErrorCode } from '@aurore/shared'
 
 export class UploadError extends Error {
   constructor(public code: UploadErrorCode | 'not_found') {

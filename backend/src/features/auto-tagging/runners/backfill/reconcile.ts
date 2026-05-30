@@ -19,7 +19,7 @@ import {
   PRODUCT_CATEGORY_TO_DOMAIN_TAB,
   type ProductKind,
   type ProductTexture,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { eq, inArray, ne } from 'drizzle-orm'
 

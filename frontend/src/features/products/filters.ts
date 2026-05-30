@@ -13,7 +13,7 @@ import {
   SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
   SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
   type TagCategoryMeta,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { z } from 'zod'
 

@@ -1,4 +1,4 @@
-import type { BlogCategory } from '@habit-tracker/shared'
+import type { BlogCategory } from '@aurore/shared'
 
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 

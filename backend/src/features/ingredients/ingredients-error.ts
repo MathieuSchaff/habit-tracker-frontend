@@ -1,4 +1,4 @@
-import type { IngredientErrorCode } from '@habit-tracker/shared'
+import type { IngredientErrorCode } from '@aurore/shared'
 
 // This is my custom error box for ingredients. I use it to send a specific code
 // so the front-end knows exactly what went wrong (like "not found" or "already exists").

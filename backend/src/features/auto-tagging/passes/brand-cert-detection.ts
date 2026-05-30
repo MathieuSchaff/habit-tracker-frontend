@@ -11,7 +11,7 @@
 //   - `cruelty-free` and `bio-naturel` have no INCI emitter, so brand is
 //     the sole source.
 
-import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import {
   type BrandCertification,

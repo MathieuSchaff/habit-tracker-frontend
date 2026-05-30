@@ -1,4 +1,4 @@
-import { ok } from '@habit-tracker/shared'
+import { ok } from '@aurore/shared'
 
 import { Hono } from 'hono'
 

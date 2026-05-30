@@ -1,4 +1,4 @@
-import { HAIRCARE_INGREDIENT_TAG_SLUGS as H } from '@habit-tracker/shared'
+import { HAIRCARE_INGREDIENT_TAG_SLUGS as H } from '@aurore/shared'
 
 import type { IngredientTagMap } from '../../ingredient-tags'
 import { SKINCARE_INGREDIENT_TAG_SLUGS } from '../../tags'

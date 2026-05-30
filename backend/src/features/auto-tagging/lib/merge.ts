@@ -17,7 +17,7 @@ import {
   type ProductKind,
   SKINCARE_CONCERN_SLUGS,
   type SkincareProductTagSlug,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import type { AutoTagProposal, AutoTagRelevance } from './pass-types'
 

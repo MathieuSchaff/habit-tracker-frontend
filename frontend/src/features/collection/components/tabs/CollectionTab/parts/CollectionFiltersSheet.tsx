@@ -1,4 +1,4 @@
-import { getProductTagLabel } from '@habit-tracker/shared'
+import { getProductTagLabel } from '@aurore/shared'
 
 import clsx from 'clsx'
 import { FilterX, X } from 'lucide-react'

@@ -1,4 +1,4 @@
-import type { CommonErrorCode } from '@habit-tracker/shared'
+import type { CommonErrorCode } from '@aurore/shared'
 
 export class ReportError extends Error {
   constructor(

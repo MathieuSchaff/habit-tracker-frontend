@@ -1,6 +1,6 @@
 import '../discussions.css'
 
-import type { DiscussionThread } from '@habit-tracker/shared'
+import type { DiscussionThread } from '@aurore/shared'
 
 import { Link } from '@tanstack/react-router'
 import { MessageSquare } from 'lucide-react'

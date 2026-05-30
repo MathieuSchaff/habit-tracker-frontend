@@ -13,12 +13,9 @@ import '_vars.just'
 audit-inci-quality:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
-    case "$TARGET" in
-        dev)  COMPOSE="{{COMPOSE_DEV}}" ;;
-        prod) COMPOSE="{{COMPOSE_PROD}}" ;;
-        *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
-    esac
+    target_compose
     printf "{{CYAN}}Audit INCI quality ($TARGET)...{{NC}}\n"
     $COMPOSE exec \
         ${FULL:+-e INCI_AUDIT_FULL=1} \

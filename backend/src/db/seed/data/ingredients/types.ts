@@ -4,7 +4,7 @@ import type {
   IngredientType,
   SkincareIngredientCategory,
   SupplementCategory,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import type { INGREDIENT_SLUGS } from './ingredient-slugs'
 

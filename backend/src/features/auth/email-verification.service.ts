@@ -1,6 +1,6 @@
 import { CryptoHasher } from 'bun'
 
-import { err, ok } from '@habit-tracker/shared'
+import { err, ok } from '@aurore/shared'
 
 import { and, eq, isNull, sql } from 'drizzle-orm'
 

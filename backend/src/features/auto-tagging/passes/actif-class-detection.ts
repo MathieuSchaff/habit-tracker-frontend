@@ -26,8 +26,8 @@
 // (vitamin-e/HA/ceramides functional below 1% are tagged anyway by manual
 // annotators; AHA/BHA/PHA breakpoint reads also disagreed with gold).
 
-import type { ProductKind } from '@habit-tracker/shared'
-import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@habit-tracker/shared'
+import type { ProductKind } from '@aurore/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { isAlphabeticalINCI, resolveIngredients } from '../lib/ingredient-resolver'
 

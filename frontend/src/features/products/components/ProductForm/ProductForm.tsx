@@ -1,4 +1,4 @@
-import type { ProductCategory, ProductConcentrationUnit } from '@habit-tracker/shared'
+import type { ProductCategory, ProductConcentrationUnit } from '@aurore/shared'
 import {
   getProductTagCategory,
   PRODUCT_AMOUNT_UNIT_LABELS,
@@ -10,7 +10,7 @@ import {
   PRODUCT_KINDS,
   PRODUCT_UNIT_LABELS,
   PRODUCT_UNITS,
-} from '@habit-tracker/shared'
+} from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'

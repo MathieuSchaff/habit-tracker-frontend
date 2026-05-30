@@ -1,5 +1,5 @@
-import type { BlogCategory } from '@habit-tracker/shared'
-import { BLOG_CATEGORY_LABELS, BLOG_CATEGORY_VALUES } from '@habit-tracker/shared'
+import type { BlogCategory } from '@aurore/shared'
+import { BLOG_CATEGORY_LABELS, BLOG_CATEGORY_VALUES } from '@aurore/shared'
 
 import { Eye, EyeOff } from 'lucide-react'
 import { useRef, useState } from 'react'

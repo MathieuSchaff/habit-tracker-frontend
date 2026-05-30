@@ -1,4 +1,4 @@
-import { signupSchema } from '@habit-tracker/shared'
+import { signupSchema } from '@aurore/shared'
 
 import { describe, expect, it } from 'vitest'
 
