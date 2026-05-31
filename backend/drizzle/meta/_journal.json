@@ -610,6 +610,13 @@
       "when": 1780104738198,
       "tag": "0086_military_clea",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1780254702109,
+      "tag": "0087_narrow_big_bertha",
+      "breakpoints": true
     }
   ]
 }

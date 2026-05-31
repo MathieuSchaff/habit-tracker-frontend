@@ -33,6 +33,7 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
   let client: TestClient
   let userId: string
   let adminId: string
+  let contributorId: string
   let userToken: string
   let adminToken: string
   let contributorToken: string
@@ -44,9 +45,13 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
     const contributor = TEST_CREDENTIALS.contributor
     const user = await createTestUser(toto.rawEmail, toto.rawPassword)
     const adminUser = await createTestAdminUser(admin.rawEmail, admin.rawPassword)
-    await createTestContributorUser(contributor.rawEmail, contributor.rawPassword)
+    const contributorUser = await createTestContributorUser(
+      contributor.rawEmail,
+      contributor.rawPassword
+    )
     userId = user.id
     adminId = adminUser.id
+    contributorId = contributorUser.id
     userToken = await login(client, toto.rawEmail, toto.rawPassword)
     adminToken = await login(client, admin.rawEmail, admin.rawPassword)
     contributorToken = await login(client, contributor.rawEmail, contributor.rawPassword)
@@ -257,5 +262,152 @@ describe('Content reports — user POST + admin GET/PATCH', () => {
     const body = await res.json()
     if (!body.success) throw new Error('contributor patch failed')
     expect(body.data.status).toBe('resolved')
+  })
+
+  // S3 (ADR-0006): escalate-to-admin. Orthogonal to status — the report stays
+  // open while escalated; escalatedBy records the moderator who handed it up.
+  it('contributor escalates a report → escalatedAt + escalatedBy set, status stays open', async () => {
+    const [report] = await testDb
+      .insert(contentReports)
+      .values({
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'beyond my scope',
+      })
+      .returning({ id: contentReports.id })
+    if (!report) throw new Error('report seed failed')
+
+    const before = Date.now()
+    const res = await client.admin.reports[':id'].escalate.$patch(
+      { param: { id: report.id } },
+      withAuth(contributorToken)
+    )
+
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    if (!body.success) throw new Error(`escalate failed: ${JSON.stringify(body)}`)
+    expect(body.data.escalatedBy).toBe(contributorId)
+    expect(body.data.escalatedAt && Date.parse(body.data.escalatedAt)).toBeGreaterThanOrEqual(
+      before
+    )
+    expect(body.data.status).toBe('open')
+  })
+
+  it('admin can escalate a report', async () => {
+    const [report] = await testDb
+      .insert(contentReports)
+      .values({
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'admin escalates too',
+      })
+      .returning({ id: contentReports.id })
+    if (!report) throw new Error('report seed failed')
+
+    const res = await client.admin.reports[':id'].escalate.$patch(
+      { param: { id: report.id } },
+      withAuth(adminToken)
+    )
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    if (!body.success) throw new Error('admin escalate failed')
+    expect(body.data.escalatedBy).toBe(adminId)
+  })
+
+  it('escalate returns 404 on missing report', async () => {
+    const ghost = '019d0000-0000-7000-8000-00000000bad1'
+    const res = await client.admin.reports[':id'].escalate.$patch(
+      { param: { id: ghost } },
+      withAuth(contributorToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
+  })
+
+  it('non-moderator escalate → 403', async () => {
+    const [report] = await testDb
+      .insert(contentReports)
+      .values({
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'unauthorized escalate',
+      })
+      .returning({ id: contentReports.id })
+    if (!report) throw new Error('report seed failed')
+
+    const res = await client.admin.reports[':id'].escalate.$patch(
+      { param: { id: report.id } },
+      withAuth(userToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+  })
+
+  it('admin GET filters escalated=true', async () => {
+    await testDb.insert(contentReports).values([
+      {
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'plain open',
+      },
+      {
+        reporterId: userId,
+        targetType: 'thread',
+        targetId: OTHER_TARGET,
+        reason: 'escalated one',
+        escalatedAt: new Date().toISOString(),
+        escalatedBy: adminId,
+      },
+    ])
+
+    const res = await client.admin.reports.$get(
+      { query: { escalated: 'true' } },
+      withAuth(adminToken)
+    )
+
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    if (!body.success) throw new Error('escalated filter failed')
+    expect(body.data.items.length).toBe(1)
+    expect(body.data.items[0]?.reason).toBe('escalated one')
+  })
+
+  // status + escalated compose with AND: an escalated-but-resolved report must be
+  // excluded from the open+escalated view (only the open escalated one matches).
+  it('admin GET combines status=open AND escalated=true', async () => {
+    await testDb.insert(contentReports).values([
+      {
+        reporterId: userId,
+        targetType: 'review',
+        targetId: ANY_TARGET,
+        reason: 'open + escalated',
+        escalatedAt: new Date().toISOString(),
+        escalatedBy: adminId,
+      },
+      {
+        reporterId: userId,
+        targetType: 'thread',
+        targetId: OTHER_TARGET,
+        reason: 'resolved + escalated',
+        status: 'resolved',
+        reviewedBy: adminId,
+        reviewedAt: new Date().toISOString(),
+        escalatedAt: new Date().toISOString(),
+        escalatedBy: adminId,
+      },
+    ])
+
+    const res = await client.admin.reports.$get(
+      { query: { status: 'open', escalated: 'true' } },
+      withAuth(adminToken)
+    )
+
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    if (!body.success) throw new Error('combined filter failed')
+    expect(body.data.items.length).toBe(1)
+    expect(body.data.items[0]?.reason).toBe('open + escalated')
   })
 })
