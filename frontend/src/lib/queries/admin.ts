@@ -16,7 +16,8 @@ const adminKeys = {
   all: ['admin'] as const,
   users: () => [...adminKeys.all, 'users'] as const,
   userBans: (userId: string) => [...adminKeys.all, 'users', userId, 'bans'] as const,
-  reports: (status?: ReportStatus) => [...adminKeys.all, 'reports', { status }] as const,
+  reports: (status?: ReportStatus, escalated?: boolean) =>
+    [...adminKeys.all, 'reports', { status, escalated }] as const,
   preview: (target: ModerateTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
   dashboard: () => [...adminKeys.all, 'dashboard'] as const,
@@ -48,12 +49,13 @@ export const adminQueries = {
       enabled: !!userId,
     }),
 
-  reports: (status?: ReportStatus) =>
+  reports: (status?: ReportStatus, escalated?: boolean) =>
     queryOptions({
-      queryKey: adminKeys.reports(status),
+      queryKey: adminKeys.reports(status, escalated),
       queryFn: async () => {
         const query: Record<string, string> = {}
         if (status) query.status = status
+        if (escalated) query.escalated = 'true'
         const res = await api.admin.reports.$get({ query })
         if (!res.ok) throw new Error('Failed to fetch admin reports')
         const json = await res.json()
@@ -147,7 +149,7 @@ export function useModerateProfileVisibility(userId: string) {
   })
 }
 
-export function useResolveReport(statusFilter?: ReportStatus) {
+export function useResolveReport() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, body }: { id: string; body: ResolveReportInput }) => {
@@ -160,9 +162,27 @@ export function useResolveReport(statusFilter?: ReportStatus) {
       if (!json.success) throw new Error('Resolve report error')
       return json.data
     },
+    // Broad prefix: a resolve from the admin « Escaladés » tab (escalated key) must
+    // refresh that view too, which a status-only key would miss (partial match).
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: adminKeys.reports(statusFilter) })
-      qc.invalidateQueries({ queryKey: adminKeys.reports() })
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
+    },
+  })
+}
+
+export function useEscalateReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.admin.reports[':id'].escalate.$patch({ param: { id } })
+      if (!res.ok) throw new Error('Failed to escalate report')
+      const json = await res.json()
+      if (!json.success) throw new Error('Escalate report error')
+      return json.data
+    },
+    // Broad prefix: refresh every status/escalated view (2-element key matches all).
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
     },
   })
 }

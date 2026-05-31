@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useModerateContent, useResolveReport } from '@/lib/queries/admin'
+import { useEscalateReport, useModerateContent, useResolveReport } from '@/lib/queries/admin'
 import { renderWithProviders } from '@/test/utils'
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -29,6 +29,7 @@ vi.mock('@/lib/queries/admin', async (importOriginal) => {
     ...actual,
     useResolveReport: vi.fn(),
     useModerateContent: vi.fn(),
+    useEscalateReport: vi.fn(),
   }
 })
 
@@ -52,6 +53,8 @@ type ReportItem = {
   reporterId: string
   reviewedBy: string | null
   status: 'open' | 'resolved' | 'dismissed'
+  escalatedAt: string | null
+  escalatedBy: string | null
   createdAt: string
 }
 
@@ -82,6 +85,8 @@ const baseReports: ReportItem[] = [
     reporterId: REPORTER.id,
     reviewedBy: null,
     status: 'open',
+    escalatedAt: null,
+    escalatedBy: null,
     createdAt: '2026-05-21T10:00:00Z',
   },
   {
@@ -92,6 +97,8 @@ const baseReports: ReportItem[] = [
     reporterId: REPORTER.id,
     reviewedBy: null,
     status: 'open',
+    escalatedAt: null,
+    escalatedBy: null,
     createdAt: '2026-05-21T11:00:00Z',
   },
 ]
@@ -130,6 +137,7 @@ function setupQueries(reports: ReportItem[], preview: unknown = null) {
 function setupMutations() {
   const resolve = vi.fn()
   const moderate = vi.fn()
+  const escalate = vi.fn()
   vi.mocked(useResolveReport).mockReturnValue({
     mutate: resolve,
     isPending: false,
@@ -138,7 +146,11 @@ function setupMutations() {
     mutate: moderate,
     isPending: false,
   } as unknown as ReturnType<typeof useModerateContent>)
-  return { resolve, moderate }
+  vi.mocked(useEscalateReport).mockReturnValue({
+    mutate: escalate,
+    isPending: false,
+  } as unknown as ReturnType<typeof useEscalateReport>)
+  return { resolve, moderate, escalate }
 }
 
 describe('AdminReportsPage', () => {
@@ -268,6 +280,8 @@ describe('AdminReportsPage', () => {
       reporterId: REPORTER.id,
       reviewedBy: null,
       status: 'open',
+      escalatedAt: null,
+      escalatedBy: null,
       createdAt: '2026-05-30T10:00:00Z',
     }
     setupQueries([productReport], {
@@ -313,5 +327,59 @@ describe('AdminReportsPage', () => {
 
     expect(screen.getByRole('tab', { name: 'Résolus' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tab', { name: 'Ouverts' })).toHaveAttribute('aria-selected', 'false')
+  })
+
+  // S3 (ADR-0006): escalate-to-admin. Orthogonal to status — a row stays open while
+  // escalated; the « Escaladés » view is admin-only.
+  it('escalates an open report after confirmation', async () => {
+    setupQueries([baseReports[0]])
+    const { escalate } = setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Escalader' }))
+    const confirmDialog = await screen.findByRole('alertdialog')
+    await userEvent.click(
+      Array.from(confirmDialog.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Escalader'
+      ) as HTMLButtonElement
+    )
+
+    await waitFor(() => {
+      expect(escalate).toHaveBeenCalledWith(
+        'rep-1',
+        expect.objectContaining({ onSuccess: expect.any(Function) })
+      )
+    })
+  })
+
+  it('shows the Escaladé badge and hides the escalate button on an escalated report', () => {
+    const escalated: ReportItem = {
+      ...baseReports[0],
+      escalatedAt: '2026-05-31T10:00:00Z',
+      escalatedBy: 'usr-modo',
+    }
+    setupQueries([escalated])
+    setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    expect(screen.getByText('Escaladé')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Escalader' })).not.toBeInTheDocument()
+  })
+
+  it('shows the Escaladés tab for an admin', () => {
+    setupQueries(baseReports)
+    setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    expect(screen.getByRole('tab', { name: 'Escaladés' })).toBeInTheDocument()
+  })
+
+  it('hides the Escaladés tab from a contributor', () => {
+    setRole('contributor')
+    setupQueries(baseReports)
+    setupMutations()
+    renderWithProviders(<AdminReportsPage />)
+
+    expect(screen.queryByRole('tab', { name: 'Escaladés' })).not.toBeInTheDocument()
   })
 })
