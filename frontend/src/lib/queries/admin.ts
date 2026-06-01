@@ -290,6 +290,9 @@ export function useModerateContent() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: adminKeys.preview(vars.target, vars.id) })
+      // Hiding/restoring a product or ingredient shifts it between the catalog
+      // queue's À-vérifier/Masqués views; no-op when no queue is mounted.
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'catalog-queue'] })
     },
   })
 }

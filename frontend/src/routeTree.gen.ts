@@ -30,7 +30,9 @@ import { Route as AuthBannedRouteImport } from './routes/auth/banned'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminCatalogRouteImport } from './routes/admin/catalog'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
@@ -160,11 +162,22 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminCatalogRoute = AdminCatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSubmissionsRoute =
+  AuthenticatedSubmissionsRouteImport.update({
+    id: '/submissions',
+    path: '/submissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -306,7 +319,9 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
+  '/submissions': typeof AuthenticatedSubmissionsRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -351,7 +366,9 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/submissions': typeof AuthenticatedSubmissionsRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -398,7 +415,9 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/submissions': typeof AuthenticatedSubmissionsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -447,7 +466,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/collection'
     | '/profile'
+    | '/submissions'
     | '/tasks'
+    | '/admin/catalog'
     | '/admin/reports'
     | '/admin/suggested-edits'
     | '/admin/users'
@@ -492,7 +513,9 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/profile'
+    | '/submissions'
     | '/tasks'
+    | '/admin/catalog'
     | '/admin/reports'
     | '/admin/suggested-edits'
     | '/admin/users'
@@ -538,7 +561,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/_authenticated/collection'
     | '/_authenticated/profile'
+    | '/_authenticated/submissions'
     | '/_authenticated/tasks'
+    | '/admin/catalog'
     | '/admin/reports'
     | '/admin/suggested-edits'
     | '/admin/users'
@@ -754,11 +779,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/catalog': {
+      id: '/admin/catalog'
+      path: '/catalog'
+      fullPath: '/admin/catalog'
+      preLoaderRoute: typeof AdminCatalogRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/submissions': {
+      id: '/_authenticated/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -953,6 +992,7 @@ const AuthenticatedCollectionRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSubmissionsRoute: typeof AuthenticatedSubmissionsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedIngredientsNewRoute: typeof AuthenticatedIngredientsNewRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
@@ -964,6 +1004,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSubmissionsRoute: AuthenticatedSubmissionsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedIngredientsNewRoute: AuthenticatedIngredientsNewRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
@@ -977,6 +1018,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AdminRouteRouteChildren {
+  AdminCatalogRoute: typeof AdminCatalogRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSuggestedEditsRoute: typeof AdminSuggestedEditsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -985,6 +1027,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminCatalogRoute: AdminCatalogRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSuggestedEditsRoute: AdminSuggestedEditsRoute,
   AdminUsersRoute: AdminUsersRoute,

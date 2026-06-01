@@ -176,6 +176,16 @@
   color: var(--text-muted);
 }
 
+.admin-pill--verified {
+  background: oklch(from var(--color-success) l c h / 0.15);
+  color: var(--color-success);
+}
+
+.admin-pill--unverified {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
 .admin-card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);

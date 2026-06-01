@@ -14,6 +14,8 @@ export const adminLabels = {
   pillForced: 'Forcé',
   emptySuggestedEdits: 'Aucune correction proposée.',
   navSuggestedEdits: 'Corrections',
+  navCatalog: 'Catalogue',
+  emptyCatalogQueue: 'Aucune fiche dans cette vue.',
 } as const
 
 type UserRole = 'user' | 'admin' | 'contributor'
