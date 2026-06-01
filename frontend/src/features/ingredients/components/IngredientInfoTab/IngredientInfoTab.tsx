@@ -14,6 +14,7 @@ import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
+import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
 import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { useAuthStore } from '@/store/auth'
@@ -146,6 +147,7 @@ export function IngredientInfoTab() {
       {user && (
         <div className="ingredient-section">
           <ReportContentButton targetType="ingredient" targetId={ingredient.id} />
+          <SuggestEditButton targetType="ingredient" targetId={ingredient.id} />
         </div>
       )}
     </>

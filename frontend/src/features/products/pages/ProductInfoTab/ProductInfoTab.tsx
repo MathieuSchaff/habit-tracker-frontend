@@ -15,6 +15,7 @@ import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
+import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
 import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -237,6 +238,7 @@ export function ProductInfoTab() {
       {user && (
         <div className="product-section">
           <ReportContentButton targetType="product" targetId={product.id} />
+          <SuggestEditButton targetType="product" targetId={product.id} />
         </div>
       )}
     </>

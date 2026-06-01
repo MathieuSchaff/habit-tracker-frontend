@@ -4,7 +4,8 @@ import type {
   ModerateProfileInput,
   ReportStatus,
   ResolveReportInput,
-  UpdateRoleInput,
+  ReviewSuggestedEditInput,
+  SuggestedEditStatus,
 } from '@aurore/shared'
 
 type ModerateTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
@@ -18,6 +19,8 @@ const adminKeys = {
   users: () => [...adminKeys.all, 'users'] as const,
   userBans: (userId: string) => [...adminKeys.all, 'users', userId, 'bans'] as const,
   reports: (status?: ReportStatus) => [...adminKeys.all, 'reports', { status }] as const,
+  suggestedEdits: (status?: SuggestedEditStatus) =>
+    [...adminKeys.all, 'suggested-edits', { status }] as const,
   preview: (target: ModerateTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
   dashboard: () => [...adminKeys.all, 'dashboard'] as const,
@@ -59,6 +62,20 @@ export const adminQueries = {
         if (!res.ok) throw new Error('Failed to fetch admin reports')
         const json = await res.json()
         if (!json.success) throw new Error('Admin reports error')
+        return json.data
+      },
+    }),
+
+  suggestedEdits: (status?: SuggestedEditStatus) =>
+    queryOptions({
+      queryKey: adminKeys.suggestedEdits(status),
+      queryFn: async () => {
+        const query: Record<string, string> = {}
+        if (status) query.status = status
+        const res = await api.admin['suggested-edits'].$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch suggested edits')
+        const json = await res.json()
+        if (!json.success) throw new Error('Suggested edits error')
         return json.data
       },
     }),
@@ -148,28 +165,6 @@ export function useModerateProfileVisibility(userId: string) {
   })
 }
 
-export function useDemoteToUser(userId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (body: UpdateRoleInput) => {
-      const res = await api.admin.users[':id'].role.$patch({
-        param: { id: userId },
-        json: body,
-      })
-      if (!res.ok) {
-        const json = (await res.json()) as { error?: string }
-        throw new Error(json.error ?? 'Failed to update role')
-      }
-      const json = await res.json()
-      if (!json.success) throw new Error('Update role error')
-      return json.data
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: adminKeys.users() })
-    },
-  })
-}
-
 export function useResolveReport(statusFilter?: ReportStatus) {
   const qc = useQueryClient()
   return useMutation({
@@ -186,6 +181,23 @@ export function useResolveReport(statusFilter?: ReportStatus) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.reports(statusFilter) })
       qc.invalidateQueries({ queryKey: adminKeys.reports() })
+    },
+  })
+}
+
+export function useReviewSuggestedEdit(statusFilter?: SuggestedEditStatus) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: ReviewSuggestedEditInput }) => {
+      const res = await api.admin['suggested-edits'][':id'].$patch({ param: { id }, json: body })
+      if (!res.ok) throw new Error('Failed to review suggested edit')
+      const json = await res.json()
+      if (!json.success) throw new Error('Review suggested edit error')
+      return json.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminKeys.suggestedEdits(statusFilter) })
+      qc.invalidateQueries({ queryKey: adminKeys.suggestedEdits() })
     },
   })
 }

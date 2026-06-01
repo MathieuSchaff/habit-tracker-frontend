@@ -52,6 +52,12 @@ vi.mock('@/features/discussions/components/ReportContentButton', () => ({
   ReportContentButton: () => null,
 }))
 
+// SuggestEditButton uses useProposeSuggestedEdit (useMutation) → needs a QueryClient;
+// this suite renders bare. Not under test here.
+vi.mock('@/features/discussions/components/SuggestEditButton', () => ({
+  SuggestEditButton: () => null,
+}))
+
 function setProduct(overrides: Record<string, unknown> = {}) {
   vi.mocked(useSuspenseQuery).mockReturnValue({
     data: {

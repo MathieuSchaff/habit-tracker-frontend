@@ -1,12 +1,14 @@
 import { Link, Outlet } from '@tanstack/react-router'
-import { Flag, Gauge, Shield, Users } from 'lucide-react'
+import { Flag, Gauge, PencilLine, Shield, Users } from 'lucide-react'
 
 import { useAuthStore } from '@/store/auth'
 import '@/features/admin/admin.css'
 
+import { adminLabels } from '../constants'
+
 export function AdminLayout() {
   // Dashboard + Utilisateurs are account/structure surfaces → admin-only. A
-  // contributor (« modérateur ») sees only Signalements (ADR-0006 S1).
+  // contributor (« modérateur ») sees the content surfaces: Signalements + Corrections (ADR-0006).
   const isAdmin = useAuthStore((state) => state.role === 'admin')
   return (
     <div className="admin-shell">
@@ -44,6 +46,14 @@ export function AdminLayout() {
           >
             <Flag size={16} aria-hidden="true" />
             <span>Signalements</span>
+          </Link>
+          <Link
+            to="/admin/suggested-edits"
+            className="admin-sidebar__link"
+            activeProps={{ className: 'admin-sidebar__link is-active' }}
+          >
+            <PencilLine size={16} aria-hidden="true" />
+            <span>{adminLabels.navSuggestedEdits}</span>
           </Link>
         </nav>
       </aside>
