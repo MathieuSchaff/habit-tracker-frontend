@@ -1,4 +1,4 @@
-import type { BanScope, CreateBanInput } from '@aurore/shared'
+import type { BanScope, CreateBanInput, UpdateRoleInput } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
@@ -16,6 +16,7 @@ import { parseDatetimeLocalAsUTC } from '@/lib/dates'
 import {
   adminQueries,
   useCreateBan,
+  useDemoteToUser,
   useLiftBan,
   useModerateProfileVisibility,
 } from '@/lib/queries/admin'
@@ -82,7 +83,64 @@ export function AdminUserDetailPage() {
       <CreateBanCard userId={userId} />
       <BansListCard userId={userId} bans={bansQuery.data} />
       <ProfileVisibilityCard userId={userId} initialForced={user.forcedPrivateByAdmin} />
+      {user.role === 'contributor' && <RoleCard userId={userId} />}
     </section>
+  )
+}
+
+// Admin-only revocation of the moderator role. Reversible by design: the copy
+// frames it as removing rights, not punishing a person, and a role can be
+// granted again later. Only shown for a contributor target.
+function RoleCard({ userId }: { userId: string }) {
+  const demote = useDemoteToUser(userId)
+  const { confirm, dialog } = useConfirm()
+  const [reason, setReason] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDemote() {
+    setError(null)
+    const ok = await confirm({
+      title: 'Rétrograder ce modérateur ?',
+      message:
+        'Ses droits de modération sont retirés et le compte redevient un utilisateur. Réversible : un rôle pourra lui être accordé à nouveau.',
+      confirmLabel: 'Rétrograder',
+      variant: 'danger',
+    })
+    if (!ok) return
+    const body: UpdateRoleInput = { role: 'user' }
+    if (reason.trim().length > 0) body.reason = reason.trim()
+    // No success message: on success the users query is invalidated, this card's
+    // target stops being a contributor, and the card unmounts — the disappearing
+    // card + updated role pill are the (calm) confirmation. Errors keep it mounted.
+    demote.mutate(body, {
+      onError: (err) => setError(err.message),
+    })
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Rôle</h2>
+      <p className="admin-page__lede">
+        Retirer les droits de modération de ce compte. Action réversible.
+      </p>
+      <div className="admin-card__field">
+        <Input
+          label="Raison (optionnel)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          maxLength={500}
+        />
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        {error && <FormMessage variant="error">{error}</FormMessage>}
+      </div>
+      <div className="admin-form__actions">
+        <Button loading={demote.isPending} onClick={handleDemote}>
+          Rétrograder en utilisateur
+        </Button>
+      </div>
+      {dialog}
+    </div>
   )
 }
 

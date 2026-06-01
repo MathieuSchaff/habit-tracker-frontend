@@ -32,10 +32,6 @@ export type ResolveReportInput = z.infer<typeof resolveReportBodySchema>
 
 export const listReportsQuerySchema = z.object({
   status: reportStatusSchema.optional(),
-  // Admin-facing escalated view (ADR-0006 S3). Only ever sent as 'true'; query
-  // params arrive as strings, so match the literal rather than coerce (a coerced
-  // boolean treats any non-empty string, incl. 'false', as true).
-  escalated: z.literal('true').optional(),
 })
 
 export type ListReportsQuery = z.infer<typeof listReportsQuerySchema>
@@ -49,8 +45,6 @@ export type ReportView = {
   status: ReportStatus
   reviewedBy: string | null
   reviewedAt: string | null
-  escalatedAt: string | null
-  escalatedBy: string | null
   createdAt: string
 }
 

@@ -4,6 +4,7 @@ import type {
   ModerateProfileInput,
   ReportStatus,
   ResolveReportInput,
+  UpdateRoleInput,
 } from '@aurore/shared'
 
 type ModerateTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
@@ -16,8 +17,7 @@ const adminKeys = {
   all: ['admin'] as const,
   users: () => [...adminKeys.all, 'users'] as const,
   userBans: (userId: string) => [...adminKeys.all, 'users', userId, 'bans'] as const,
-  reports: (status?: ReportStatus, escalated?: boolean) =>
-    [...adminKeys.all, 'reports', { status, escalated }] as const,
+  reports: (status?: ReportStatus) => [...adminKeys.all, 'reports', { status }] as const,
   preview: (target: ModerateTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
   dashboard: () => [...adminKeys.all, 'dashboard'] as const,
@@ -49,13 +49,12 @@ export const adminQueries = {
       enabled: !!userId,
     }),
 
-  reports: (status?: ReportStatus, escalated?: boolean) =>
+  reports: (status?: ReportStatus) =>
     queryOptions({
-      queryKey: adminKeys.reports(status, escalated),
+      queryKey: adminKeys.reports(status),
       queryFn: async () => {
         const query: Record<string, string> = {}
         if (status) query.status = status
-        if (escalated) query.escalated = 'true'
         const res = await api.admin.reports.$get({ query })
         if (!res.ok) throw new Error('Failed to fetch admin reports')
         const json = await res.json()
@@ -149,7 +148,29 @@ export function useModerateProfileVisibility(userId: string) {
   })
 }
 
-export function useResolveReport() {
+export function useDemoteToUser(userId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: UpdateRoleInput) => {
+      const res = await api.admin.users[':id'].role.$patch({
+        param: { id: userId },
+        json: body,
+      })
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string }
+        throw new Error(json.error ?? 'Failed to update role')
+      }
+      const json = await res.json()
+      if (!json.success) throw new Error('Update role error')
+      return json.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminKeys.users() })
+    },
+  })
+}
+
+export function useResolveReport(statusFilter?: ReportStatus) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, body }: { id: string; body: ResolveReportInput }) => {
@@ -162,27 +183,9 @@ export function useResolveReport() {
       if (!json.success) throw new Error('Resolve report error')
       return json.data
     },
-    // Broad prefix: a resolve from the admin « Escaladés » tab (escalated key) must
-    // refresh that view too, which a status-only key would miss (partial match).
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
-    },
-  })
-}
-
-export function useEscalateReport() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await api.admin.reports[':id'].escalate.$patch({ param: { id } })
-      if (!res.ok) throw new Error('Failed to escalate report')
-      const json = await res.json()
-      if (!json.success) throw new Error('Escalate report error')
-      return json.data
-    },
-    // Broad prefix: refresh every status/escalated view (2-element key matches all).
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
+      qc.invalidateQueries({ queryKey: adminKeys.reports(statusFilter) })
+      qc.invalidateQueries({ queryKey: adminKeys.reports() })
     },
   })
 }
