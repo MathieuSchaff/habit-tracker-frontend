@@ -5,6 +5,7 @@ import { Leaf, MessageSquare, Pencil } from 'lucide-react'
 import { BackButton } from '@/component/Button/BackButton'
 import { Button } from '@/component/Button/Button'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
+import { CatalogQualityBadge } from '@/component/DataDisplay/CatalogQualityBadge/CatalogQualityBadge'
 import { DetailHero } from '@/component/Layout/DetailHero/DetailHero'
 import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
@@ -68,7 +69,12 @@ export function IngredientLayout() {
         title={ingredient.name}
         titleViewTransition={`ingredient-name-${slug}`}
         chips={
-          ingredient.category ? <Badge variant="default">{ingredient.category}</Badge> : undefined
+          ingredient.category || ingredient.catalogQuality === 'verified' ? (
+            <>
+              {ingredient.category && <Badge variant="default">{ingredient.category}</Badge>}
+              <CatalogQualityBadge quality={ingredient.catalogQuality} />
+            </>
+          ) : undefined
         }
       />
 

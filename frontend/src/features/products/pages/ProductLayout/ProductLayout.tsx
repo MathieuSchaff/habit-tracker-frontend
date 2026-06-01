@@ -6,6 +6,7 @@ import { MessageSquare, Pencil, Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Badge, type BadgeVariant } from '@/component/DataDisplay/Badge/Badge'
+import { CatalogQualityBadge } from '@/component/DataDisplay/CatalogQualityBadge/CatalogQualityBadge'
 import { DetailHero } from '@/component/Layout/DetailHero/DetailHero'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions, PageTopActionsRight } from '@/component/Layout/PageLayout/PageTopActions'
@@ -124,6 +125,7 @@ export function ProductLayout() {
             <Badge variant={getBadgeVariant(product.kind)} className="product-hero__kind">
               {getProductKindLabel(product.kind)}
             </Badge>
+            <CatalogQualityBadge quality={product.catalogQuality} />
             {product.totalAmount != null && product.totalAmount > 0 && (
               <span className="product-hero__amount">
                 {product.totalAmount} {product.amountUnit ?? product.unit}

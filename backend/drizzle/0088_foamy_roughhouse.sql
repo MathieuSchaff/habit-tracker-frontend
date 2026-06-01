@@ -1,0 +1,1 @@
+CREATE POLICY "user_bans_moderation_scoped" ON "user_bans" AS PERMISSIVE FOR ALL TO "app_runtime" USING ((SELECT auth.role()) = 'contributor' AND scope <> 'global') WITH CHECK ((SELECT auth.role()) = 'contributor' AND scope <> 'global');

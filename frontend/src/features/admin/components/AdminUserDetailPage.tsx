@@ -1,6 +1,6 @@
-import type { BanScope, CreateBanInput } from '@aurore/shared'
+import type { BanScope, CreateBanInput, UpdateRoleInput } from '@aurore/shared'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -16,9 +16,11 @@ import { parseDatetimeLocalAsUTC } from '@/lib/dates'
 import {
   adminQueries,
   useCreateBan,
+  useDemoteToUser,
   useLiftBan,
   useModerateProfileVisibility,
 } from '@/lib/queries/admin'
+import { useAuthStore } from '@/store/auth'
 import { adminLabels, roleLabels } from '../constants'
 
 const routeApi = getRouteApi('/admin/users_/$userId')
@@ -31,6 +33,10 @@ const SCOPE_OPTIONS: ReadonlyArray<{ value: BanScope; label: string }> = [
   { value: 'discussion_post', label: 'Publication dans les discussions' },
   { value: 'review_publish', label: 'Publication d’avis' },
 ]
+
+// Calm FR label for a scope (matches the picker); falls back to the raw value for any
+// scope absent from SCOPE_OPTIONS so the confirm dialog never shows the bare enum.
+const scopeLabel = (s: BanScope) => SCOPE_OPTIONS.find((o) => o.value === s)?.label ?? s
 
 // Hold success FormMessage banners for a moment so the user notices them.
 const SUCCESS_FEEDBACK_MS = 3500
@@ -47,15 +53,19 @@ function useTransientMessage(): [string | null, (msg: string | null) => void] {
 
 export function AdminUserDetailPage() {
   const { userId } = routeApi.useParams()
-  const usersQuery = useSuspenseQuery(adminQueries.users())
+  // The account header + force-private are admin-only (account surface). A contributor
+  // (« modérateur ») gets a content-only slice: pause/lift publications, no PII. The
+  // users() list is admin-only (403 for a contributor), so gate the fetch (ADR-0006 S4).
+  const isAdmin = useAuthStore((s) => s.role === 'admin')
+  const usersQuery = useQuery({ ...adminQueries.users(), enabled: isAdmin })
   const bansQuery = useSuspenseQuery(adminQueries.userBans(userId))
 
   const user = useMemo(
-    () => usersQuery.data.items.find((u) => u.id === userId),
-    [usersQuery.data, userId]
+    () => (isAdmin ? usersQuery.data?.items.find((u) => u.id === userId) : undefined),
+    [isAdmin, usersQuery.data, userId]
   )
 
-  if (!user) {
+  if (isAdmin && !user) {
     return (
       <section>
         <p className="admin-table__empty">{adminLabels.userNotFound}</p>
@@ -66,30 +76,109 @@ export function AdminUserDetailPage() {
 
   return (
     <section>
-      <header className="admin-page__header">
-        <div>
-          <h1 className="admin-page__title">{user.email}</h1>
-          <p className="admin-page__lede">
-            {roleLabels[user.role]} — {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'}{' '}
-            — créé <Time iso={user.createdAt} relative />
-          </p>
-        </div>
-        <Link to="/admin/users" className="admin-table__row-link">
-          ← Liste
-        </Link>
-      </header>
+      {isAdmin && user ? (
+        <header className="admin-page__header">
+          <div>
+            <h1 className="admin-page__title">{user.email}</h1>
+            <p className="admin-page__lede">
+              {roleLabels[user.role]} —{' '}
+              {user.emailVerifiedAt ? 'email vérifié' : 'email non vérifié'} — créé{' '}
+              <Time iso={user.createdAt} relative />
+            </p>
+          </div>
+          <Link to="/admin/users" className="admin-table__row-link">
+            ← Liste
+          </Link>
+        </header>
+      ) : (
+        <header className="admin-page__header">
+          <div>
+            <h1 className="admin-page__title">Publications en pause</h1>
+            <p className="admin-page__lede">
+              Mettre en pause ou réactiver les publications de cet utilisateur.
+            </p>
+          </div>
+          <Link to="/admin/reports" className="admin-table__row-link">
+            ← Signalements
+          </Link>
+        </header>
+      )}
 
-      <CreateBanCard userId={userId} />
-      <BansListCard userId={userId} bans={bansQuery.data} />
-      <ProfileVisibilityCard userId={userId} initialForced={user.forcedPrivateByAdmin} />
+      <CreateBanCard userId={userId} isAdmin={isAdmin} />
+      <BansListCard userId={userId} bans={bansQuery.data} isAdmin={isAdmin} />
+      {isAdmin && user && (
+        <ProfileVisibilityCard userId={userId} initialForced={user.forcedPrivateByAdmin} />
+      )}
+      {isAdmin && user?.role === 'contributor' && <RoleCard userId={userId} />}
     </section>
   )
 }
 
-function CreateBanCard({ userId }: { userId: string }) {
+// Admin-only revocation of the moderator role. Reversible by design: the copy
+// frames it as removing rights, not punishing a person, and a role can be
+// granted again later. Only shown for a contributor target.
+function RoleCard({ userId }: { userId: string }) {
+  const demote = useDemoteToUser(userId)
+  const { confirm, dialog } = useConfirm()
+  const [reason, setReason] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDemote() {
+    setError(null)
+    const ok = await confirm({
+      title: 'Rétrograder ce modérateur ?',
+      message:
+        'Ses droits de modération sont retirés et le compte redevient un utilisateur. Réversible : un rôle pourra lui être accordé à nouveau.',
+      confirmLabel: 'Rétrograder',
+      variant: 'danger',
+    })
+    if (!ok) return
+    const body: UpdateRoleInput = { role: 'user' }
+    if (reason.trim().length > 0) body.reason = reason.trim()
+    // No success message: on success the users query is invalidated, this card's
+    // target stops being a contributor, and the card unmounts — the disappearing
+    // card + updated role pill are the (calm) confirmation. Errors keep it mounted.
+    demote.mutate(body, {
+      onError: (err) => setError(err.message),
+    })
+  }
+
+  return (
+    <div className="admin-card">
+      <h2 className="admin-card__title">Rôle</h2>
+      <p className="admin-page__lede">
+        Retirer les droits de modération de ce compte. Action réversible.
+      </p>
+      <div className="admin-card__field">
+        <Input
+          label="Raison (optionnel)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          maxLength={500}
+        />
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        {error && <FormMessage variant="error">{error}</FormMessage>}
+      </div>
+      <div className="admin-form__actions">
+        <Button loading={demote.isPending} onClick={handleDemote}>
+          Rétrograder en utilisateur
+        </Button>
+      </div>
+      {dialog}
+    </div>
+  )
+}
+
+function CreateBanCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }) {
   const createBan = useCreateBan(userId)
   const { confirm, dialog } = useConfirm()
-  const [scope, setScope] = useState<BanScope>('global')
+  // 'global' (account lockout) is admin-only; a contributor pauses content scopes only.
+  const scopeOptions = useMemo(
+    () => (isAdmin ? SCOPE_OPTIONS : SCOPE_OPTIONS.filter((o) => o.value !== 'global')),
+    [isAdmin]
+  )
+  const [scope, setScope] = useState<BanScope>(isAdmin ? 'global' : 'review_publish')
   const [reason, setReason] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -104,9 +193,9 @@ function CreateBanCard({ userId }: { userId: string }) {
       body.expiresAt = parseDatetimeLocalAsUTC(expiresAt)
     }
     const ok = await confirm({
-      title: 'Appliquer ce ban ?',
-      message: `Scope : ${scope}. Le compte sera bloqué immédiatement.`,
-      confirmLabel: 'Bannir',
+      title: 'Mettre en pause ?',
+      message: `Portée : ${scopeLabel(scope)}. L’accès est suspendu immédiatement — réversible.`,
+      confirmLabel: 'Mettre en pause',
       variant: 'danger',
     })
     if (!ok) return
@@ -114,7 +203,7 @@ function CreateBanCard({ userId }: { userId: string }) {
       onSuccess: () => {
         setReason('')
         setExpiresAt('')
-        setSuccess('Ban appliqué.')
+        setSuccess('Mise en pause appliquée.')
       },
       onError: (err) => setError(err.message),
     })
@@ -122,12 +211,12 @@ function CreateBanCard({ userId }: { userId: string }) {
 
   return (
     <div className="admin-card">
-      <h2 className="admin-card__title">Créer un ban</h2>
+      <h2 className="admin-card__title">Mettre en pause</h2>
       <form onSubmit={handleSubmit}>
         <div className="admin-form__grid">
           <Select<BanScope>
-            label="Scope"
-            options={SCOPE_OPTIONS}
+            label="Portée"
+            options={scopeOptions}
             value={scope}
             onValueChange={(v) => v && setScope(v)}
           />
@@ -153,7 +242,7 @@ function CreateBanCard({ userId }: { userId: string }) {
         </div>
         <div className="admin-form__actions">
           <Button type="submit" loading={createBan.isPending}>
-            Bannir
+            Mettre en pause
           </Button>
         </div>
       </form>
@@ -171,7 +260,15 @@ type Ban = {
   bannedBy: string
 }
 
-function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
+function BansListCard({
+  userId,
+  bans,
+  isAdmin,
+}: {
+  userId: string
+  bans: Ban[]
+  isAdmin: boolean
+}) {
   const liftBan = useLiftBan(userId)
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -179,21 +276,21 @@ function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
 
   async function handleLift(banId: string, scope: BanScope) {
     const ok = await confirm({
-      title: 'Lever ce ban ?',
-      message: `Scope : ${scope}. L’accès est restauré immédiatement.`,
+      title: 'Lever la pause ?',
+      message: `Portée : ${scopeLabel(scope)}. L’accès est restauré immédiatement.`,
       confirmLabel: 'Lever',
     })
     if (!ok) return
     setPendingId(banId)
     liftBan.mutate(banId, {
-      onSuccess: () => setSuccess('Ban levé.'),
+      onSuccess: () => setSuccess('Pause levée.'),
       onSettled: () => setPendingId(null),
     })
   }
 
   return (
     <div className="admin-card">
-      <h2 className="admin-card__title">Bans en cours et historique</h2>
+      <h2 className="admin-card__title">Pauses en cours et historique</h2>
       <div aria-live="polite" aria-atomic="true">
         {success && <FormMessage variant="success">{success}</FormMessage>}
       </div>
@@ -201,7 +298,7 @@ function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
         <p className="admin-table__empty">{adminLabels.emptyBans}</p>
       ) : (
         <table className="admin-table">
-          <caption className="sr-only">Bans (actifs et historique)</caption>
+          <caption className="sr-only">Pauses (actives et historique)</caption>
           <thead>
             <tr>
               <th>Scope</th>
@@ -223,14 +320,20 @@ function BansListCard({ userId, bans }: { userId: string; bans: Ban[] }) {
                   <Time iso={b.createdAt} relative />
                 </td>
                 <td>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    loading={pendingId === b.id && liftBan.isPending}
-                    onClick={() => handleLift(b.id, b.scope)}
-                  >
-                    Lever
-                  </Button>
+                  {/* 'global' (account lockout) is admin-only to lift; a contributor sees
+                      no live control on it — prod RLS already filters it from this list. */}
+                  {isAdmin || b.scope !== 'global' ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      loading={pendingId === b.id && liftBan.isPending}
+                      onClick={() => handleLift(b.id, b.scope)}
+                    >
+                      Lever
+                    </Button>
+                  ) : (
+                    <em>—</em>
+                  )}
                 </td>
               </tr>
             ))}

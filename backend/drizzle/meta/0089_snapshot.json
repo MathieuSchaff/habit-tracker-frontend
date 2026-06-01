@@ -1,6 +1,6 @@
 {
-  "id": "bf9081f7-e9b1-4a46-852e-0a74baa224f5",
-  "prevId": "c235edbe-823a-4a26-aa32-51be7ed87c7d",
+  "id": "cded3cc4-6335-43a9-b9fb-fce3b0af6dc8",
+  "prevId": "8aa58e0e-e95f-44d5-931a-a91dba36211a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -222,6 +222,14 @@
           "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
+        },
+        "user_bans_moderation_scoped": {
+          "name": "user_bans_moderation_scoped",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": ["app_runtime"],
+          "using": "(SELECT auth.role()) = 'contributor' AND scope <> 'global'",
+          "withCheck": "(SELECT auth.role()) = 'contributor' AND scope <> 'global'"
         }
       },
       "checkConstraints": {},
@@ -2268,6 +2276,187 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.suggested_edits": {
+      "name": "suggested_edits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "proposer_id": {
+          "name": "proposer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "edit_target_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field": {
+          "name": "field",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proposed_value": {
+          "name": "proposed_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "suggested_edit_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "reviewed_by": {
+          "name": "reviewed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "suggested_edits_status_idx": {
+          "name": "suggested_edits_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "suggested_edits_proposer_idx": {
+          "name": "suggested_edits_proposer_idx",
+          "columns": [
+            {
+              "expression": "proposer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "suggested_edits_target_idx": {
+          "name": "suggested_edits_target_idx",
+          "columns": [
+            {
+              "expression": "target_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "target_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "suggested_edits_proposer_id_users_id_fk": {
+          "name": "suggested_edits_proposer_id_users_id_fk",
+          "tableFrom": "suggested_edits",
+          "tableTo": "users",
+          "columnsFrom": ["proposer_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "suggested_edits_reviewed_by_users_id_fk": {
+          "name": "suggested_edits_reviewed_by_users_id_fk",
+          "tableFrom": "suggested_edits",
+          "tableTo": "users",
+          "columnsFrom": ["reviewed_by"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "suggested_edits_tenant_isolation": {
+          "name": "suggested_edits_tenant_isolation",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": ["app_runtime"],
+          "using": "\"suggested_edits\".\"proposer_id\" = (SELECT auth.uid())",
+          "withCheck": "\"suggested_edits\".\"proposer_id\" = (SELECT auth.uid())"
+        },
+        "suggested_edits_admin_bypass": {
+          "name": "suggested_edits_admin_bypass",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": ["app_runtime"],
+          "using": "(SELECT auth.role()) = 'admin'",
+          "withCheck": "(SELECT auth.role()) = 'admin'"
+        },
+        "suggested_edits_moderation_select": {
+          "name": "suggested_edits_moderation_select",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": ["app_runtime"],
+          "using": "(SELECT auth.role()) IN ('admin', 'contributor')"
+        },
+        "suggested_edits_moderation_update": {
+          "name": "suggested_edits_moderation_update",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": ["app_runtime"],
+          "using": "(SELECT auth.role()) IN ('admin', 'contributor')",
+          "withCheck": "(SELECT auth.role()) IN ('admin', 'contributor')"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
     },
     "public.brand_certifications": {
       "name": "brand_certifications",
@@ -4732,6 +4921,16 @@
       "name": "security_severity",
       "schema": "public",
       "values": ["high", "low"]
+    },
+    "public.edit_target_type": {
+      "name": "edit_target_type",
+      "schema": "public",
+      "values": ["product", "ingredient"]
+    },
+    "public.suggested_edit_status": {
+      "name": "suggested_edit_status",
+      "schema": "public",
+      "values": ["pending", "accepted", "rejected"]
     },
     "public.collaborator_role": {
       "name": "collaborator_role",

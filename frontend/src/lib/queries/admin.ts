@@ -1,11 +1,15 @@
 import type {
+  CatalogKind,
+  CatalogQuality,
   CreateBanInput,
   ModerateContentInput,
   ModerateProfileInput,
+  ModerationStatus,
   ReportStatus,
   ResolveReportInput,
   ReviewSuggestedEditInput,
   SuggestedEditStatus,
+  UpdateRoleInput,
 } from '@aurore/shared'
 
 type ModerateTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
@@ -18,11 +22,14 @@ const adminKeys = {
   all: ['admin'] as const,
   users: () => [...adminKeys.all, 'users'] as const,
   userBans: (userId: string) => [...adminKeys.all, 'users', userId, 'bans'] as const,
-  reports: (status?: ReportStatus) => [...adminKeys.all, 'reports', { status }] as const,
+  reports: (status?: ReportStatus, escalated?: boolean) =>
+    [...adminKeys.all, 'reports', { status, escalated }] as const,
   suggestedEdits: (status?: SuggestedEditStatus) =>
     [...adminKeys.all, 'suggested-edits', { status }] as const,
   preview: (target: ModerateTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
+  catalogQueue: (kind: CatalogKind, quality?: CatalogQuality, status?: ModerationStatus) =>
+    [...adminKeys.all, 'catalog-queue', { kind, quality, status }] as const,
   dashboard: () => [...adminKeys.all, 'dashboard'] as const,
 }
 
@@ -52,12 +59,13 @@ export const adminQueries = {
       enabled: !!userId,
     }),
 
-  reports: (status?: ReportStatus) =>
+  reports: (status?: ReportStatus, escalated?: boolean) =>
     queryOptions({
-      queryKey: adminKeys.reports(status),
+      queryKey: adminKeys.reports(status, escalated),
       queryFn: async () => {
         const query: Record<string, string> = {}
         if (status) query.status = status
+        if (escalated) query.escalated = 'true'
         const res = await api.admin.reports.$get({ query })
         if (!res.ok) throw new Error('Failed to fetch admin reports')
         const json = await res.json()
@@ -91,6 +99,23 @@ export const adminQueries = {
         return json.data
       },
       staleTime: 30_000,
+    }),
+
+  catalogQueue: (kind: CatalogKind, quality?: CatalogQuality, status?: ModerationStatus) =>
+    queryOptions({
+      queryKey: adminKeys.catalogQueue(kind, quality, status),
+      queryFn: async () => {
+        const query: { kind: CatalogKind; quality?: CatalogQuality; status?: ModerationStatus } = {
+          kind,
+        }
+        if (quality) query.quality = quality
+        if (status) query.status = status
+        const res = await api.admin.moderation.catalog.$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch catalog queue')
+        const json = await res.json()
+        if (!json.success) throw new Error('Catalog queue error')
+        return json.data
+      },
     }),
 
   contentPreview: (target: ModerateTarget, id: string) =>
@@ -165,7 +190,29 @@ export function useModerateProfileVisibility(userId: string) {
   })
 }
 
-export function useResolveReport(statusFilter?: ReportStatus) {
+export function useDemoteToUser(userId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: UpdateRoleInput) => {
+      const res = await api.admin.users[':id'].role.$patch({
+        param: { id: userId },
+        json: body,
+      })
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string }
+        throw new Error(json.error ?? 'Failed to update role')
+      }
+      const json = await res.json()
+      if (!json.success) throw new Error('Update role error')
+      return json.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminKeys.users() })
+    },
+  })
+}
+
+export function useResolveReport() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, body }: { id: string; body: ResolveReportInput }) => {
@@ -178,9 +225,27 @@ export function useResolveReport(statusFilter?: ReportStatus) {
       if (!json.success) throw new Error('Resolve report error')
       return json.data
     },
+    // Broad prefix: a resolve from the admin « Escaladés » tab (escalated key) must
+    // refresh that view too, which a status-only key would miss (partial match).
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: adminKeys.reports(statusFilter) })
-      qc.invalidateQueries({ queryKey: adminKeys.reports() })
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
+    },
+  })
+}
+
+export function useEscalateReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.admin.reports[':id'].escalate.$patch({ param: { id } })
+      if (!res.ok) throw new Error('Failed to escalate report')
+      const json = await res.json()
+      if (!json.success) throw new Error('Escalate report error')
+      return json.data
+    },
+    // Broad prefix: refresh every status/escalated view (2-element key matches all).
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
     },
   })
 }
@@ -225,6 +290,31 @@ export function useModerateContent() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: adminKeys.preview(vars.target, vars.id) })
+    },
+  })
+}
+
+export function useVerifyCatalogItem() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ kind, id }: { kind: CatalogKind; id: string }) => {
+      const res =
+        kind === 'product'
+          ? await api.products[':id'].quality.$patch({
+              param: { id },
+              json: { quality: 'verified' },
+            })
+          : await api.ingredients[':id'].quality.$patch({
+              param: { id },
+              json: { quality: 'verified' },
+            })
+      if (!res.ok) throw new Error('Failed to verify catalog item')
+      const json = await res.json()
+      if (!json.success) throw new Error('Verify catalog error')
+      return json.data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'catalog-queue'] })
     },
   })
 }

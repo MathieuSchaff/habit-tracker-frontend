@@ -1,6 +1,7 @@
 import type {
   AdminUserListItem,
   ApiResponse,
+  BanScope,
   CreateBanInput,
   CreateBanResult,
   UpdateBanInput,
@@ -19,16 +20,17 @@ import { clearBanCache } from '../auth/ban.service'
 const ADMIN_USERS_LIST_LIMIT = 100
 
 type CreateBanArgs = {
-  adminId: string
+  // The moderator performing the ban (admin or contributor) — recorded as bannedBy.
+  actorId: string
   targetUserId: string
   body: CreateBanInput
 }
 
 export async function createBan(
   db: Database,
-  { adminId, targetUserId, body }: CreateBanArgs
+  { actorId, targetUserId, body }: CreateBanArgs
 ): Promise<CreateBanResult> {
-  if (adminId === targetUserId) {
+  if (actorId === targetUserId) {
     return { success: false, error: 'cannot_self_ban' }
   }
 
@@ -52,7 +54,7 @@ export async function createBan(
       userId: targetUserId,
       scope: body.scope,
       reason: body.reason ?? null,
-      bannedBy: adminId,
+      bannedBy: actorId,
       expiresAt: body.expiresAt ?? null,
     })
     .returning()
@@ -63,6 +65,18 @@ export async function createBan(
 
   clearBanCache(targetUserId)
   return { success: true, data: row }
+}
+
+// Reads a ban's scope so the route can gate a contributor away from 'global'
+// (account lockout) before liftBan runs. Returns null when the ban is absent —
+// the caller then falls through to liftBan's not_found path (ADR-0006 S4).
+export async function getBanScope(db: Database, banId: string): Promise<BanScope | null> {
+  const [row] = await db
+    .select({ scope: userBans.scope })
+    .from(userBans)
+    .where(eq(userBans.id, banId))
+    .limit(1)
+  return row?.scope ?? null
 }
 
 export async function listUserBans(db: Database, userId: string): Promise<UserBan[]> {

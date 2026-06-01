@@ -77,6 +77,32 @@ export type ListUsersResponse = {
   items: AdminUserListItem[]
 }
 
+// Admin-only demotion of a contributor back to a plain user (S6). The only
+// allowed target role is 'user'; promotion goes through the separate role-request
+// flow. reason is operational context (validated + logged) and is not persisted:
+// a demote is a one-shot mutation with no ongoing state row to attach it to,
+// unlike a ban row or a force-private flag, and no role-change audit table exists.
+export const updateRoleBodySchema = z.object({
+  role: z.literal('user'),
+  reason: z.string().trim().min(1).max(500).optional(),
+})
+
+export type UpdateRoleInput = z.infer<typeof updateRoleBodySchema>
+
+export type AdminRoleErrorCode = CommonErrorCode | 'cannot_self_demote' | 'not_a_contributor'
+
+export const adminRoleErrorMapping = {
+  cannot_self_demote: HTTP_STATUS.BAD_REQUEST,
+  not_a_contributor: HTTP_STATUS.CONFLICT,
+} as const satisfies Partial<Record<AdminRoleErrorCode, HttpStatus>>
+
+export type UpdateRoleResponse = {
+  id: string
+  role: 'user' | 'admin' | 'contributor'
+}
+
+export type UpdateRoleResult = ApiResponse<UpdateRoleResponse, AdminRoleErrorCode>
+
 // Mirror of the DB `moderation_status` enum (backend/src/db/schema/_moderation.ts).
 export const moderationStatusSchema = z.enum(['visible', 'hidden'])
 export type ModerationStatus = z.infer<typeof moderationStatusSchema>
@@ -144,3 +170,34 @@ export type ContentPreview = {
 )
 
 export type ContentPreviewResult = ApiResponse<ContentPreview, CommonErrorCode>
+
+// --- Catalog moderation queue (#16). The queue lists submitted catalog rows so a
+// moderator can verify (bless) or hide them. One request = one kind (a tab), so the
+// product-only `brand` field is null for ingredients. ContentPreview is the single-row
+// preview shape and lacks catalogQuality — hence this dedicated list item.
+export const catalogKindSchema = z.enum(['product', 'ingredient'])
+export type CatalogKind = z.infer<typeof catalogKindSchema>
+
+export const catalogQualitySchema = z.enum(['unverified', 'verified'])
+export type CatalogQuality = z.infer<typeof catalogQualitySchema>
+
+export const catalogQueueQuerySchema = z.object({
+  kind: catalogKindSchema,
+  quality: catalogQualitySchema.optional(),
+  status: moderationStatusSchema.optional(),
+})
+export type CatalogQueueQuery = z.infer<typeof catalogQueueQuerySchema>
+
+export type CatalogQueueItem = {
+  kind: CatalogKind
+  id: string
+  name: string
+  brand: string | null
+  slug: string
+  catalogQuality: CatalogQuality
+  moderationStatus: ModerationStatus
+  authorId: string | null
+  createdAt: string
+}
+
+export type CatalogQueueResponse = { items: CatalogQueueItem[] }

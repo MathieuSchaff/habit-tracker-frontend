@@ -23,6 +23,7 @@ export async function createTestApp() {
   const { publicProfileRoutes } = await import('../../features/profile/public-routes')
   const { taskRoutes } = await import('../../features/tasks/routes')
   const { userProductRoutes } = await import('../../features/user-products/routes')
+  const { meRoutes } = await import('../../features/catalog-submissions/routes')
   const { errorsRoute } = await import('../../features/errors/routes')
   const { ingredientDiscussionRoutes } = await import(
     '../../features/discussions/ingredient-discussion-routes'
@@ -62,6 +63,7 @@ export async function createTestApp() {
     .route('/api/ingredient-tags', ingredientTagDefRoutes)
     .route('/api/tasks', taskRoutes)
     .route('/api/user-products', userProductRoutes)
+    .route('/api/me', meRoutes)
     .route('/api/uploads', uploadsRoutes)
     .route('/api/errors', errorsRoute)
     .route('/api/articles', articleRoutes)

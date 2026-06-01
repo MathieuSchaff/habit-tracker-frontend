@@ -13,7 +13,11 @@ import {
   withAuth,
 } from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
-import { createTestAdminUser, createTestUser } from '../../../tests/helpers/test-factories'
+import {
+  createTestAdminUser,
+  createTestContributorUser,
+  createTestUser,
+} from '../../../tests/helpers/test-factories'
 import { clearBanCache } from '../../auth/ban.service'
 
 async function login(client: TestClient, email: string, password: string): Promise<string> {
@@ -411,5 +415,142 @@ describe('POST /admin/users/:id/bans', () => {
       error: 'banned',
       details: { reason: 'manual ops', expiresAt: null },
     })
+  })
+})
+
+// S4 (ADR-0006): the contributor (« modérateur ») wields the reversible, content-scoped
+// bans (scope !== 'global'); 'global' (account lockout) stays admin-only. These route-level
+// tests run as the table-owner `app` (BYPASSRLS), so they exercise the app-level guard +
+// handler scope gate; the DB-level RLS backstop is proven in tests/integration/user-bans-rls.
+describe('Contributor (modérateur) content-scoped bans', () => {
+  let client: TestClient
+  let targetId: string
+  let contributorId: string
+  let adminId: string
+  let contributorToken: string
+  let userToken: string
+
+  beforeEach(async () => {
+    client = await createTestClient()
+    clearBanCache()
+    const target = await createTestUser('s4-target@test.local', 'Azerty123!')
+    const contributor = await createTestContributorUser('s4-modo@test.local', 'Azerty123!')
+    const admin = await createTestAdminUser('s4-admin@test.local', 'Azerty123!')
+    targetId = target.id
+    contributorId = contributor.id
+    adminId = admin.id
+    contributorToken = await login(client, 's4-modo@test.local', 'Azerty123!')
+    userToken = await login(client, 's4-target@test.local', 'Azerty123!')
+  })
+
+  afterEach(async () => {
+    clearBanCache()
+    await testDb.delete(userBans)
+  })
+
+  it('contributor creates a content-scoped ban (review_publish) → 201, bannedBy=contributor', async () => {
+    const res = await client.admin.users[':id'].bans.$post(
+      { param: { id: targetId }, json: { scope: 'review_publish', reason: 'spam reviews' } },
+      withAuth(contributorToken)
+    )
+
+    expect(res.status as number).toBe(HTTP_STATUS.CREATED)
+    const body = await res.json()
+    if (!body.success) throw new Error(`expected success, got ${JSON.stringify(body)}`)
+    expect(body.data).toMatchObject({
+      userId: targetId,
+      scope: 'review_publish',
+      bannedBy: contributorId,
+    })
+  })
+
+  it('contributor creating a global ban → 403 forbidden', async () => {
+    const res = await client.admin.users[':id'].bans.$post(
+      { param: { id: targetId }, json: { scope: 'global', reason: 'nope' } },
+      withAuth(contributorToken)
+    )
+
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+    const body = await res.json()
+    expect(body).toMatchObject({ success: false, error: 'forbidden' })
+
+    const rows = await testDb.select().from(userBans).where(eq(userBans.userId, targetId))
+    expect(rows).toHaveLength(0)
+  })
+
+  it('contributor lifts a content-scoped ban → 200, row deleted', async () => {
+    const [inserted] = await testDb
+      .insert(userBans)
+      .values({ userId: targetId, scope: 'review_publish', bannedBy: adminId, reason: 'x' })
+      .returning({ id: userBans.id })
+    if (!inserted) throw new Error('insert failed in test')
+    clearBanCache()
+
+    const res = await client.admin.bans[':banId'].$delete(
+      { param: { banId: inserted.id } },
+      withAuth(contributorToken)
+    )
+
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const rows = await testDb.select().from(userBans).where(eq(userBans.id, inserted.id))
+    expect(rows).toHaveLength(0)
+  })
+
+  // The app-level gate returns 403 here (owner `app`, BYPASSRLS, so getBanScope sees the
+  // global row). Under prod RLS the same request is 404 (the row is hidden from the
+  // contributor → not_found); the DB-level denial is proven in user-bans-rls.test.ts.
+  it('contributor lifting a global ban → 403 forbidden, ban survives', async () => {
+    const [inserted] = await testDb
+      .insert(userBans)
+      .values({ userId: targetId, scope: 'global', bannedBy: adminId })
+      .returning({ id: userBans.id })
+    if (!inserted) throw new Error('insert failed in test')
+
+    const res = await client.admin.bans[':banId'].$delete(
+      { param: { banId: inserted.id } },
+      withAuth(contributorToken)
+    )
+
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+    const body = await res.json()
+    expect(body).toMatchObject({ success: false, error: 'forbidden' })
+
+    const rows = await testDb.select().from(userBans).where(eq(userBans.id, inserted.id))
+    expect(rows).toHaveLength(1)
+  })
+
+  it('contributor lists a user bans → 200 (queue reachable by modo)', async () => {
+    const res = await client.admin.users[':id'].bans.$get(
+      { param: { id: targetId } },
+      withAuth(contributorToken)
+    )
+    expect(res.status).toBe(HTTP_STATUS.OK)
+  })
+
+  // Pins the admin-vs-contributor boundary: PATCH stays requireAdmin, so a
+  // contributor is rejected (the plain-user 403 test can't catch a regression
+  // that loosened PATCH to requireContentModerator).
+  it('contributor cannot update a ban (PATCH stays admin-only) → 403', async () => {
+    const [inserted] = await testDb
+      .insert(userBans)
+      .values({ userId: targetId, scope: 'review_publish', bannedBy: adminId })
+      .returning({ id: userBans.id })
+    if (!inserted) throw new Error('insert failed in test')
+
+    const res = await client.admin.bans[':banId'].$patch(
+      { param: { banId: inserted.id }, json: { reason: 'nope' } },
+      withAuth(contributorToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+  })
+
+  it('plain user creating a content-scoped ban → 403, nothing inserted', async () => {
+    const res = await client.admin.users[':id'].bans.$post(
+      { param: { id: contributorId }, json: { scope: 'review_publish' } },
+      withAuth(userToken)
+    )
+    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
+    const rows = await testDb.select().from(userBans).where(eq(userBans.userId, contributorId))
+    expect(rows).toHaveLength(0)
   })
 })

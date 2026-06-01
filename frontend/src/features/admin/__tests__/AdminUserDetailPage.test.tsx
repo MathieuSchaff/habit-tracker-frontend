@@ -1,14 +1,19 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useCreateBan, useLiftBan, useModerateProfileVisibility } from '@/lib/queries/admin'
+import {
+  useCreateBan,
+  useDemoteToUser,
+  useLiftBan,
+  useModerateProfileVisibility,
+} from '@/lib/queries/admin'
 import { renderWithProviders } from '@/test/utils'
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>()
-  return { ...actual, useSuspenseQuery: vi.fn() }
+  return { ...actual, useSuspenseQuery: vi.fn(), useQuery: vi.fn() }
 })
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -31,16 +36,26 @@ vi.mock('@/lib/queries/admin', async (importOriginal) => {
     useCreateBan: vi.fn(),
     useLiftBan: vi.fn(),
     useModerateProfileVisibility: vi.fn(),
+    useDemoteToUser: vi.fn(),
   }
 })
 
+vi.mock('@/store/auth', () => ({ useAuthStore: vi.fn() }))
+
+import { useAuthStore } from '@/store/auth'
 import { AdminUserDetailPage } from '../components/AdminUserDetailPage'
 import { adminLabels } from '../constants'
+
+function setRole(role: 'user' | 'admin' | 'contributor') {
+  vi.mocked(useAuthStore).mockImplementation(
+    (selector: unknown) => (selector as (s: { role: typeof role }) => unknown)({ role }) as never
+  )
+}
 
 type User = {
   id: string
   email: string
-  role: 'user' | 'admin'
+  role: 'user' | 'admin' | 'contributor'
   emailVerifiedAt: string | null
   createdAt: string
   forcedPrivateByAdmin: boolean
@@ -64,14 +79,15 @@ const DEFAULT_USER: User = {
   forcedPrivateByAdmin: false,
 }
 
+const CONTRIBUTOR_USER: User = { ...DEFAULT_USER, role: 'contributor' }
+
 function setupQueries({ users, bans }: { users?: User[]; bans?: Ban[] }) {
+  // users() is admin-only → useQuery (gated by enabled:isAdmin); userBans() → useSuspenseQuery.
+  vi.mocked(useQuery).mockReturnValue({
+    data: { items: users ?? [DEFAULT_USER] },
+  } as unknown as ReturnType<typeof useQuery>)
   vi.mocked(useSuspenseQuery).mockImplementation((options: { queryKey: readonly unknown[] }) => {
-    // adminKeys.users() → length 2; userBans(userId) → length 4.
-    if (options.queryKey.length === 2) {
-      return { data: { items: users ?? [DEFAULT_USER] } } as unknown as ReturnType<
-        typeof useSuspenseQuery
-      >
-    }
+    // userBans(userId) → length 4.
     if (options.queryKey.length === 4) {
       return { data: bans ?? [] } as unknown as ReturnType<typeof useSuspenseQuery>
     }
@@ -95,7 +111,12 @@ function setupMutations() {
     mutate: moderateProfile,
     isPending: false,
   } as unknown as ReturnType<typeof useModerateProfileVisibility>)
-  return { createBan, liftBan, moderateProfile }
+  const demote = vi.fn()
+  vi.mocked(useDemoteToUser).mockReturnValue({
+    mutate: demote,
+    isPending: false,
+  } as unknown as ReturnType<typeof useDemoteToUser>)
+  return { createBan, liftBan, moderateProfile, demote }
 }
 
 function clickConfirmDialogButton(label: string) {
@@ -110,6 +131,7 @@ function clickConfirmDialogButton(label: string) {
 describe('AdminUserDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setRole('admin')
   })
 
   it("renders the user's email + role in the header when the user exists", () => {
@@ -135,13 +157,13 @@ describe('AdminUserDetailPage', () => {
     const { createBan } = setupMutations()
     renderWithProviders(<AdminUserDetailPage />)
 
-    // Default scope = global; no reason filled. Click the Bannir button in the create form.
-    const submitBtn = screen.getByRole('button', { name: 'Bannir' })
+    // Default scope = global (admin); no reason filled. Click the create-form submit.
+    const submitBtn = screen.getByRole('button', { name: 'Mettre en pause' })
     await userEvent.click(submitBtn)
 
-    // Confirm modal with confirmLabel='Bannir'.
+    // Confirm modal with confirmLabel='Mettre en pause'.
     await screen.findByRole('alertdialog')
-    await clickConfirmDialogButton('Bannir')
+    await clickConfirmDialogButton('Mettre en pause')
 
     await waitFor(() => {
       expect(createBan).toHaveBeenCalledTimes(1)
@@ -165,9 +187,9 @@ describe('AdminUserDetailPage', () => {
     if (!reasonField) throw new Error('create-ban reason textarea not found')
     fireEvent.change(reasonField, { target: { value: '  comportement abusif  ' } })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Bannir' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Mettre en pause' }))
     await screen.findByRole('alertdialog')
-    await clickConfirmDialogButton('Bannir')
+    await clickConfirmDialogButton('Mettre en pause')
 
     await waitFor(() => {
       expect(createBan).toHaveBeenCalledTimes(1)
@@ -233,5 +255,136 @@ describe('AdminUserDetailPage', () => {
     })
     const [body] = moderateProfile.mock.calls[0]
     expect(body).toMatchObject({ forcedPrivate: true })
+  })
+
+  it('does not render the demote card for a non-contributor user', () => {
+    setupQueries({}) // DEFAULT_USER has role 'user'
+    setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    expect(
+      screen.queryByRole('button', { name: 'Rétrograder en utilisateur' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('demotes a contributor to user after confirmation', async () => {
+    setupQueries({ users: [CONTRIBUTOR_USER] })
+    const { demote } = setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rétrograder en utilisateur' }))
+    await screen.findByRole('alertdialog')
+    await clickConfirmDialogButton('Rétrograder')
+
+    await waitFor(() => {
+      expect(demote).toHaveBeenCalledTimes(1)
+    })
+    expect(demote).toHaveBeenCalledWith(
+      { role: 'user' },
+      expect.objectContaining({ onError: expect.any(Function) })
+    )
+  })
+
+  it('passes the trimmed reason to the demote mutation', async () => {
+    setupQueries({ users: [CONTRIBUTOR_USER] })
+    const { demote } = setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    // Both the role card and the profile-visibility card expose a "Raison (optionnel)"
+    // input; scope to the role card via its demote button's containing card.
+    const roleCard = screen
+      .getByRole('button', { name: 'Rétrograder en utilisateur' })
+      .closest('.admin-card') as HTMLElement
+    fireEvent.change(within(roleCard).getByLabelText(/Raison \(optionnel\)/i), {
+      target: { value: '  curation inactive  ' },
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Rétrograder en utilisateur' }))
+    await screen.findByRole('alertdialog')
+    await clickConfirmDialogButton('Rétrograder')
+
+    await waitFor(() => {
+      expect(demote).toHaveBeenCalledTimes(1)
+    })
+    const [body] = demote.mock.calls[0]
+    expect(body).toMatchObject({ role: 'user', reason: 'curation inactive' })
+  })
+})
+
+// ADR-0006 S4: a contributor (« modérateur ») gets a content-only slice of this page —
+// pause/lift publications, with the account surface (email/role header, force-private)
+// gated out, and 'global' (account lockout) removed from the scope options.
+describe('AdminUserDetailPage — contributor content-only slice', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setRole('contributor')
+  })
+
+  it('hides the account header + force-private and drops global from the scope options', () => {
+    setupQueries({})
+    setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    expect(screen.getByRole('heading', { name: 'Publications en pause' })).toBeInTheDocument()
+    // No account PII and no account-level force-private toggle.
+    expect(screen.queryByText('target@seed.local')).not.toBeInTheDocument()
+    expect(screen.queryByRole('switch', { name: /Forcer privé/i })).not.toBeInTheDocument()
+    // 'global' (account lockout) is not an offered scope; content scopes are.
+    expect(
+      screen.queryByRole('option', { name: 'Global (toutes les actions)' })
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Publication d’avis' })).toBeInTheDocument()
+  })
+
+  it('submits a content-scoped pause with the default review_publish scope', async () => {
+    setupQueries({})
+    const { createBan } = setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mettre en pause' }))
+    await screen.findByRole('alertdialog')
+    await clickConfirmDialogButton('Mettre en pause')
+
+    await waitFor(() => {
+      expect(createBan).toHaveBeenCalledTimes(1)
+    })
+    expect(createBan).toHaveBeenCalledWith(
+      { scope: 'review_publish' },
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    )
+  })
+
+  it('shows no lift control on a global ban (admin-only to lift)', () => {
+    const globalBan: Ban = {
+      id: 'ban-g',
+      scope: 'global',
+      reason: null,
+      expiresAt: null,
+      createdAt: '2026-05-21T09:00:00Z',
+      bannedBy: 'admin-1',
+    }
+    setupQueries({ bans: [globalBan] })
+    setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    // The row renders, but a contributor gets no live "Lever" button on a global ban.
+    expect(screen.getByText('global')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Lever' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the lift control on a content-scoped ban', () => {
+    const contentBan: Ban = {
+      id: 'ban-c',
+      scope: 'review_publish',
+      reason: null,
+      expiresAt: null,
+      createdAt: '2026-05-21T09:00:00Z',
+      bannedBy: 'admin-1',
+    }
+    setupQueries({ bans: [contentBan] })
+    setupMutations()
+    renderWithProviders(<AdminUserDetailPage />)
+
+    expect(screen.getByRole('button', { name: 'Lever' })).toBeInTheDocument()
   })
 })
