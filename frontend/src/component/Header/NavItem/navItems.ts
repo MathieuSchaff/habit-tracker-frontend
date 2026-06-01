@@ -1,6 +1,6 @@
 import type { LinkProps } from '@tanstack/react-router'
 import type { LucideProps } from 'lucide-react'
-import { BookOpen, CircleCheckBig, FlaskConical } from 'lucide-react'
+import { BookOpen, CircleCheckBig, FileText, FlaskConical } from 'lucide-react'
 
 import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
 
@@ -17,4 +17,5 @@ export const navItems: NavItem[] = [
   { to: '/blog', icon: BookOpen, label: 'Blog' },
   { to: '/collection', icon: ChestIcon, label: 'Collection' },
   { to: '/tasks', icon: CircleCheckBig, label: 'Tâches' },
+  { to: '/submissions', icon: FileText, label: 'Mes soumissions' },
 ]
