@@ -14,7 +14,7 @@ import {
   requireNotBanned,
 } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
-import { escalateReport, listReports, resolveReport } from '../reports/service'
+import { listReports, resolveReport } from '../reports/service'
 
 const reportIdParam = z.object({ id: z.uuid() })
 
@@ -50,13 +50,3 @@ export const adminReportsRoutes = app
       return c.json(ok(report), HTTP_STATUS.OK)
     }
   )
-  // Escalate-to-admin (ADR-0006 S3). The blanket requireContentModerator is the
-  // right guard: a modo may escalate, an admin may too; the path adds no ban power.
-  .patch('/:id/escalate', zValidator('param', reportIdParam), async (c) => {
-    const { id } = c.req.valid('param')
-    const moderatorId = getAuthedUserId(c)
-
-    const report = await escalateReport(c.get('db'), { id, moderatorId })
-    logger.info({ moderatorId, reportId: id }, 'report escalated')
-    return c.json(ok(report), HTTP_STATUS.OK)
-  })

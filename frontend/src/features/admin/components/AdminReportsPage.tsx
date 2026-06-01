@@ -8,23 +8,14 @@ import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
-import {
-  adminQueries,
-  useEscalateReport,
-  useModerateContent,
-  useResolveReport,
-} from '@/lib/queries/admin'
+import { adminQueries, useModerateContent, useResolveReport } from '@/lib/queries/admin'
 import { useAuthStore } from '@/store/auth'
 import { adminLabels, roleLabels, rolePillClass } from '../constants'
 
-type ReportTab = ReportStatus | 'escalated'
-
-// The escalated view is admin-facing (a modo hands a case up, it leaves their concern).
-const TABS: ReadonlyArray<{ value: ReportTab; label: string; adminOnly?: boolean }> = [
+const STATUSES: ReadonlyArray<{ value: ReportStatus; label: string }> = [
   { value: 'open', label: 'Ouverts' },
   { value: 'resolved', label: 'Résolus' },
   { value: 'dismissed', label: 'Rejetés' },
-  { value: 'escalated', label: 'Escaladés', adminOnly: true },
 ]
 
 const SUCCESS_FEEDBACK_MS = 3500
@@ -41,25 +32,18 @@ const TARGET_TO_MODERATE: Record<
 }
 
 export function AdminReportsPage() {
-  const [tab, setTab] = useState<ReportTab>('open')
+  const [status, setStatus] = useState<ReportStatus>('open')
   // Account-level surface: the users list (emails, roles, ban state) is admin-only.
   // A contributor (« modérateur ») gets a content-only queue — never account PII
   // (ADR-0006 S1). Gate both the fetch (enabled) and every render of derived data.
   const isAdmin = useAuthStore((s) => s.role === 'admin')
-  const isEscalatedView = tab === 'escalated'
-  const statusFilter: ReportStatus | undefined = tab === 'escalated' ? undefined : tab
-  const { data } = useSuspenseQuery(
-    isEscalatedView ? adminQueries.reports(undefined, true) : adminQueries.reports(statusFilter)
-  )
+  const { data } = useSuspenseQuery(adminQueries.reports(status))
   const usersQuery = useQuery({ ...adminQueries.users(), enabled: isAdmin })
-  const resolve = useResolveReport()
-  const escalate = useEscalateReport()
+  const resolve = useResolveReport(status)
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const [escalatingId, setEscalatingId] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin)
 
   useEffect(() => {
     if (!success) return
@@ -101,21 +85,6 @@ export function AdminReportsPage() {
     )
   }
 
-  async function handleEscalate(id: string) {
-    const ok = await confirm({
-      title: 'Escalader à l’admin ?',
-      message:
-        'Le signalement est transmis à un administrateur pour les actions qui dépassent la modération de contenu. Action neutre et réversible.',
-      confirmLabel: 'Escalader',
-    })
-    if (!ok) return
-    setEscalatingId(id)
-    escalate.mutate(id, {
-      onSuccess: () => setSuccess('Signalement escaladé à l’admin.'),
-      onSettled: () => setEscalatingId(null),
-    })
-  }
-
   const items = data.items
 
   return (
@@ -128,16 +97,16 @@ export function AdminReportsPage() {
       </header>
 
       <div className="admin-filter-bar" role="tablist">
-        {visibleTabs.map((t) => (
+        {STATUSES.map((s) => (
           <button
             type="button"
-            key={t.value}
+            key={s.value}
             role="tab"
-            aria-selected={tab === t.value}
-            className={`admin-filter-bar__btn ${tab === t.value ? 'is-active' : ''}`}
-            onClick={() => setTab(t.value)}
+            aria-selected={status === s.value}
+            className={`admin-filter-bar__btn ${status === s.value ? 'is-active' : ''}`}
+            onClick={() => setStatus(s.value)}
           >
-            {t.label}
+            {s.label}
           </button>
         ))}
       </div>
@@ -199,9 +168,6 @@ export function AdminReportsPage() {
                     </td>
                     <td>
                       <span className={`admin-pill admin-pill--${r.status}`}>{r.status}</span>
-                      {r.escalatedAt && (
-                        <span className="admin-pill admin-pill--escalated">Escaladé</span>
-                      )}
                     </td>
                     <td>
                       <div className="admin-actions-inline">
@@ -242,16 +208,6 @@ export function AdminReportsPage() {
                             >
                               Rejeter
                             </Button>
-                            {!r.escalatedAt && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                loading={escalatingId === r.id && escalate.isPending}
-                                onClick={() => handleEscalate(r.id)}
-                              >
-                                Escalader
-                              </Button>
-                            )}
                           </>
                         )}
                         {r.status !== 'open' && (

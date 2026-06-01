@@ -1,5 +1,6 @@
 import {
   adminBanErrorMapping,
+  adminRoleErrorMapping,
   createBanBodySchema,
   err,
   errorToStatus,
@@ -7,6 +8,7 @@ import {
   isApiSuccess,
   ok,
   updateBanBodySchema,
+  updateRoleBodySchema,
 } from '@aurore/shared'
 
 import { Hono } from 'hono'
@@ -20,6 +22,7 @@ import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from 
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { createBan, liftBan, listUserBans, listUsers, updateBan } from './bans.service'
 import { getAdminDashboard } from './dashboard.service'
+import { demoteToUser } from './roles.service'
 
 const userIdParam = z.object({ id: z.uuid() })
 const banIdParam = z.object({ banId: z.uuid() })
@@ -107,6 +110,32 @@ export const adminBansRoutes = app
         },
         'ban updated'
       )
+      return c.json(ok(result.data), HTTP_STATUS.OK)
+    }
+  )
+  .patch(
+    '/users/:id/role',
+    requireAdmin,
+    zValidator('param', userIdParam),
+    zValidator('json', updateRoleBodySchema),
+    async (c) => {
+      const { id: targetUserId } = c.req.valid('param')
+      const body = c.req.valid('json')
+      const adminId = getAuthedUserId(c)
+
+      const result = await demoteToUser(c.get('db'), {
+        adminId,
+        targetUserId,
+        role: body.role,
+      })
+
+      if (!isApiSuccess(result)) {
+        return c.json(err(result.error), errorToStatus(result.error, adminRoleErrorMapping))
+      }
+
+      // No role-change audit table exists; reason is operational context, logged
+      // like other admin actions (ban lifted / report escalated), not persisted.
+      logger.info({ adminId, targetUserId, reason: body.reason ?? null }, 'contributor demoted')
       return c.json(ok(result.data), HTTP_STATUS.OK)
     }
   )
