@@ -329,6 +329,74 @@ describe('catalog routes — field-strip public projections', () => {
   })
 })
 
+describe('catalog routes — list endpoints strip admin fields', () => {
+  let client: TestClient
+  let userToken: string
+  let contributorToken: string
+
+  const ADMIN_FIELDS = [
+    'moderatedBy',
+    'moderationReason',
+    'moderatedAt',
+    'verifiedBy',
+    'verifiedAt',
+  ]
+
+  beforeEach(async () => {
+    client = await createTestClient()
+    const toto = TEST_CREDENTIALS.toto
+    const contrib = TEST_CREDENTIALS.contributor
+    await createTestUser(toto.rawEmail, toto.rawPassword)
+    await createTestContributorUser(contrib.rawEmail, contrib.rawPassword)
+    userToken = await loginAs(client, toto.rawEmail, toto.rawPassword)
+    contributorToken = await loginAs(client, contrib.rawEmail, contrib.rawPassword)
+  })
+
+  // A verified+visible row has verifiedBy/verifiedAt NON-NULL, so a leak can't
+  // hide behind null values. The row still appears in a public list (RLS only
+  // hides 'hidden' rows), proving any verify-stamp leak in the list projection.
+  it('GET /products list strips admin fields on a verified row', async () => {
+    const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
+    const createBody = await createRes.json()
+    if (!createBody.success) throw new Error('create failed')
+    await client.products[':id'].quality.$patch(
+      { param: { id: createBody.data.id }, json: { quality: 'verified' } },
+      withAuth(contributorToken)
+    )
+
+    const res = await client.products.$get({ query: { category: 'skincare' } })
+    const body = await res.json()
+    if (!body.success) throw new Error('list failed')
+    const items = body.data.items as Array<Record<string, unknown>>
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      for (const f of ADMIN_FIELDS) expect(item).not.toHaveProperty(f)
+    }
+  })
+
+  it('GET /ingredients list strips admin fields on a verified row', async () => {
+    const createRes = await client.ingredients.$post(
+      { json: VALID_INGREDIENT },
+      withAuth(userToken)
+    )
+    const createBody = await createRes.json()
+    if (!createBody.success) throw new Error('create failed')
+    await client.ingredients[':id'].quality.$patch(
+      { param: { id: createBody.data.id }, json: { quality: 'verified' } },
+      withAuth(contributorToken)
+    )
+
+    const res = await client.ingredients.$get({ query: {} })
+    const body = await res.json()
+    if (!body.success) throw new Error('list failed')
+    const items = body.data.items as Array<Record<string, unknown>>
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      for (const f of ADMIN_FIELDS) expect(item).not.toHaveProperty(f)
+    }
+  })
+})
+
 describe('catalog routes — read filters (?quality / ?status)', () => {
   let client: TestClient
   let userToken: string

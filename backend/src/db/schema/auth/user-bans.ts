@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm'
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, pgEnum, pgPolicy, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { tenantPolicies } from '../_policies'
+import { appRuntimeRole } from '../_roles'
 import { users } from './users'
 
 export const banScopeEnum = pgEnum('ban_scope', [
@@ -35,6 +36,18 @@ export const userBans = pgTable(
     index('user_bans_user_idx').on(t.userId),
     index('user_bans_user_scope_idx').on(t.userId, t.scope),
     ...tenantPolicies('user_bans', t.userId),
+    // ADR-0006 S4: the contributor (« modérateur ») wields the reversible, content-scoped
+    // bans — SELECT/INSERT/UPDATE/DELETE on any non-global ban. 'global' (account lockout)
+    // stays admin-only via admin_bypass above. The route layer returns a clean 403 before
+    // this fires; this is the DB backstop. Coarse FOR ALL is safe — bannedBy is audit-only
+    // and the only writer is the admin bans service.
+    pgPolicy('user_bans_moderation_scoped', {
+      as: 'permissive',
+      for: 'all',
+      to: appRuntimeRole,
+      using: sql`(SELECT auth.role()) = 'contributor' AND scope <> 'global'`,
+      withCheck: sql`(SELECT auth.role()) = 'contributor' AND scope <> 'global'`,
+    }),
   ]
 ).enableRLS()
 

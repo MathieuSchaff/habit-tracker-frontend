@@ -1,6 +1,6 @@
 {
-  "id": "bf9081f7-e9b1-4a46-852e-0a74baa224f5",
-  "prevId": "c235edbe-823a-4a26-aa32-51be7ed87c7d",
+  "id": "8aa58e0e-e95f-44d5-931a-a91dba36211a",
+  "prevId": "bf9081f7-e9b1-4a46-852e-0a74baa224f5",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -222,6 +222,14 @@
           "to": ["app_runtime"],
           "using": "(SELECT auth.role()) = 'admin'",
           "withCheck": "(SELECT auth.role()) = 'admin'"
+        },
+        "user_bans_moderation_scoped": {
+          "name": "user_bans_moderation_scoped",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": ["app_runtime"],
+          "using": "(SELECT auth.role()) = 'contributor' AND scope <> 'global'",
+          "withCheck": "(SELECT auth.role()) = 'contributor' AND scope <> 'global'"
         }
       },
       "checkConstraints": {},

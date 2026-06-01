@@ -1,4 +1,5 @@
 import {
+  catalogQueueQuerySchema,
   err,
   errorToStatus,
   HTTP_STATUS,
@@ -24,6 +25,7 @@ import {
 } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import {
+  listCatalogQueue,
   moderateIngredient,
   moderateProduct,
   moderateProfileVisibility,
@@ -54,6 +56,17 @@ app.use('*', requireNotBanned)
 app.use('*', withRlsContext)
 
 export const adminModerationRoutes = app
+  // First .get so the literal /catalog isn't shadowed by a /:id sibling.
+  .get(
+    '/catalog',
+    requireContentModerator,
+    zValidator('query', catalogQueueQuerySchema),
+    async (c) => {
+      const filters = c.req.valid('query')
+      const result = await listCatalogQueue(c.get('db'), filters)
+      return c.json(ok(result), HTTP_STATUS.OK)
+    }
+  )
   .patch(
     '/reviews/:id',
     requireContentModerator,

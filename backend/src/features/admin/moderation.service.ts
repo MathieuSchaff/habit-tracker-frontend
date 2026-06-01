@@ -1,4 +1,6 @@
 import type {
+  CatalogQueueQuery,
+  CatalogQueueResponse,
   ContentPreviewResult,
   ModerateContentInput,
   ModerateContentResult,
@@ -6,7 +8,7 @@ import type {
   ModerateProfileResult,
 } from '@aurore/shared'
 
-import { and, eq, ne, sql } from 'drizzle-orm'
+import { and, desc, eq, ne, sql } from 'drizzle-orm'
 
 import type { Database } from '../../db'
 import {
@@ -289,6 +291,53 @@ export async function previewIngredient(db: Database, id: string): Promise<Conte
     .limit(1)
   if (!row) return { success: false, error: 'not_found' }
   return { success: true, data: { kind: 'ingredient', authorUsername: null, ...row } }
+}
+
+// Runs under the router's withRlsContext (caller's role bound); a moderator's role
+// passes the select policy for hidden rows too — no admin bypass needed.
+export async function listCatalogQueue(
+  db: Database,
+  filters: CatalogQueueQuery
+): Promise<CatalogQueueResponse> {
+  const status = filters.status ?? 'visible'
+  if (filters.kind === 'product') {
+    // Only constrain quality when the caller asks for it: the "Masqués" view passes
+    // status='hidden' with no quality, intending all hidden rows — a default would
+    // hide verified-then-hidden products from the moderator who hid them.
+    const qualityClause = filters.quality ? eq(products.catalogQuality, filters.quality) : undefined
+    const rows = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        brand: products.brand,
+        slug: products.slug,
+        catalogQuality: products.catalogQuality,
+        moderationStatus: products.moderationStatus,
+        authorId: products.createdBy,
+        createdAt: products.createdAt,
+      })
+      .from(products)
+      .where(and(qualityClause, eq(products.moderationStatus, status)))
+      .orderBy(desc(products.createdAt))
+    return { items: rows.map((r) => ({ kind: 'product' as const, ...r })) }
+  }
+  const qualityClause = filters.quality
+    ? eq(ingredients.catalogQuality, filters.quality)
+    : undefined
+  const rows = await db
+    .select({
+      id: ingredients.id,
+      name: ingredients.name,
+      slug: ingredients.slug,
+      catalogQuality: ingredients.catalogQuality,
+      moderationStatus: ingredients.moderationStatus,
+      authorId: ingredients.createdBy,
+      createdAt: ingredients.createdAt,
+    })
+    .from(ingredients)
+    .where(and(qualityClause, eq(ingredients.moderationStatus, status)))
+    .orderBy(desc(ingredients.createdAt))
+  return { items: rows.map((r) => ({ kind: 'ingredient' as const, brand: null, ...r })) }
 }
 
 export async function moderateProfileVisibility(

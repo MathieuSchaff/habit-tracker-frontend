@@ -7,7 +7,7 @@ export const adminLabels = {
   statHiddenContent: 'Contenu(s) masqué(s)',
   statForcedPrivate: 'Profil(s) forcé(s) privé(s)',
   emptyReports: 'Aucun signalement.',
-  emptyBans: 'Aucun ban.',
+  emptyBans: 'Aucune mise en pause.',
   emptyUsersFiltered: 'Aucun email ne correspond.',
   emptyUsers: 'Aucun utilisateur.',
   userNotFound: 'Utilisateur introuvable.',
