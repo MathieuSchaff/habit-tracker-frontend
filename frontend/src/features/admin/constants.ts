@@ -12,6 +12,8 @@ export const adminLabels = {
   emptyUsers: 'Aucun utilisateur.',
   userNotFound: 'Utilisateur introuvable.',
   pillForced: 'Forcé',
+  emptySuggestedEdits: 'Aucune correction proposée.',
+  navSuggestedEdits: 'Corrections',
 } as const
 
 type UserRole = 'user' | 'admin' | 'contributor'

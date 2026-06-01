@@ -77,32 +77,6 @@ export type ListUsersResponse = {
   items: AdminUserListItem[]
 }
 
-// Admin-only demotion of a contributor back to a plain user (S6). The only
-// allowed target role is 'user'; promotion goes through the separate role-request
-// flow. reason is operational context (validated + logged) and is not persisted:
-// a demote is a one-shot mutation with no ongoing state row to attach it to,
-// unlike a ban row or a force-private flag, and no role-change audit table exists.
-export const updateRoleBodySchema = z.object({
-  role: z.literal('user'),
-  reason: z.string().trim().min(1).max(500).optional(),
-})
-
-export type UpdateRoleInput = z.infer<typeof updateRoleBodySchema>
-
-export type AdminRoleErrorCode = CommonErrorCode | 'cannot_self_demote' | 'not_a_contributor'
-
-export const adminRoleErrorMapping = {
-  cannot_self_demote: HTTP_STATUS.BAD_REQUEST,
-  not_a_contributor: HTTP_STATUS.CONFLICT,
-} as const satisfies Partial<Record<AdminRoleErrorCode, HttpStatus>>
-
-export type UpdateRoleResponse = {
-  id: string
-  role: 'user' | 'admin' | 'contributor'
-}
-
-export type UpdateRoleResult = ApiResponse<UpdateRoleResponse, AdminRoleErrorCode>
-
 // Mirror of the DB `moderation_status` enum (backend/src/db/schema/_moderation.ts).
 export const moderationStatusSchema = z.enum(['visible', 'hidden'])
 export type ModerationStatus = z.infer<typeof moderationStatusSchema>

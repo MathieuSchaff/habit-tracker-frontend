@@ -2,10 +2,8 @@
 export {
   type AdminBanErrorCode,
   type AdminDashboard,
-  type AdminRoleErrorCode,
   type AdminUserListItem,
   adminBanErrorMapping,
-  adminRoleErrorMapping,
   type BanScope,
   banScopeSchema,
   type ContentPreview,
@@ -26,11 +24,7 @@ export {
   moderationStatusSchema,
   type UpdateBanInput,
   type UpdateBanResult,
-  type UpdateRoleInput,
-  type UpdateRoleResponse,
-  type UpdateRoleResult,
   updateBanBodySchema,
-  updateRoleBodySchema,
   type VerifyQualityInput,
   verifyQualityBodySchema,
 } from './admin'
@@ -347,6 +341,21 @@ export {
   reportTargetTypeSchema,
   resolveReportBodySchema,
 } from './reports'
+export {
+  type CreateSuggestedEditInput,
+  createSuggestedEditBodySchema,
+  type EditTargetType,
+  editTargetTypeSchema,
+  type ListSuggestedEditsQuery,
+  type ListSuggestedEditsResponse,
+  listSuggestedEditsQuerySchema,
+  PROPOSABLE_FIELDS,
+  type ReviewSuggestedEditInput,
+  reviewSuggestedEditBodySchema,
+  type SuggestedEditStatus,
+  type SuggestedEditView,
+  suggestedEditStatusSchema,
+} from './suggested-edits'
 export {
   addIngredientTagSchema,
   type CreateTagInput,

@@ -28,6 +28,7 @@ import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthBannedRouteImport } from './routes/auth/banned'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -147,6 +148,11 @@ const AuthBannedRoute = AuthBannedRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSuggestedEditsRoute = AdminSuggestedEditsRouteImport.update({
+  id: '/suggested-edits',
+  path: '/suggested-edits',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
   '/auth/login': typeof AuthLoginRoute
@@ -440,6 +449,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/admin/reports'
+    | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
@@ -484,6 +494,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/admin/reports'
+    | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
     | '/admin/reports'
+    | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
     | '/auth/login'
@@ -726,6 +738,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/suggested-edits': {
+      id: '/admin/suggested-edits'
+      path: '/suggested-edits'
+      fullPath: '/admin/suggested-edits'
+      preLoaderRoute: typeof AdminSuggestedEditsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/reports': {
@@ -959,6 +978,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AdminRouteRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminSuggestedEditsRoute: typeof AdminSuggestedEditsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
@@ -966,6 +986,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
+  AdminSuggestedEditsRoute: AdminSuggestedEditsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,

@@ -1,14 +1,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  useCreateBan,
-  useDemoteToUser,
-  useLiftBan,
-  useModerateProfileVisibility,
-} from '@/lib/queries/admin'
+import { useCreateBan, useLiftBan, useModerateProfileVisibility } from '@/lib/queries/admin'
 import { renderWithProviders } from '@/test/utils'
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -36,7 +31,6 @@ vi.mock('@/lib/queries/admin', async (importOriginal) => {
     useCreateBan: vi.fn(),
     useLiftBan: vi.fn(),
     useModerateProfileVisibility: vi.fn(),
-    useDemoteToUser: vi.fn(),
   }
 })
 
@@ -46,7 +40,7 @@ import { adminLabels } from '../constants'
 type User = {
   id: string
   email: string
-  role: 'user' | 'admin' | 'contributor'
+  role: 'user' | 'admin'
   emailVerifiedAt: string | null
   createdAt: string
   forcedPrivateByAdmin: boolean
@@ -69,8 +63,6 @@ const DEFAULT_USER: User = {
   createdAt: '2026-01-15T00:00:00Z',
   forcedPrivateByAdmin: false,
 }
-
-const CONTRIBUTOR_USER: User = { ...DEFAULT_USER, role: 'contributor' }
 
 function setupQueries({ users, bans }: { users?: User[]; bans?: Ban[] }) {
   vi.mocked(useSuspenseQuery).mockImplementation((options: { queryKey: readonly unknown[] }) => {
@@ -103,12 +95,7 @@ function setupMutations() {
     mutate: moderateProfile,
     isPending: false,
   } as unknown as ReturnType<typeof useModerateProfileVisibility>)
-  const demote = vi.fn()
-  vi.mocked(useDemoteToUser).mockReturnValue({
-    mutate: demote,
-    isPending: false,
-  } as unknown as ReturnType<typeof useDemoteToUser>)
-  return { createBan, liftBan, moderateProfile, demote }
+  return { createBan, liftBan, moderateProfile }
 }
 
 function clickConfirmDialogButton(label: string) {
@@ -246,58 +233,5 @@ describe('AdminUserDetailPage', () => {
     })
     const [body] = moderateProfile.mock.calls[0]
     expect(body).toMatchObject({ forcedPrivate: true })
-  })
-
-  it('does not render the demote card for a non-contributor user', () => {
-    setupQueries({}) // DEFAULT_USER has role 'user'
-    setupMutations()
-    renderWithProviders(<AdminUserDetailPage />)
-
-    expect(
-      screen.queryByRole('button', { name: 'Rétrograder en utilisateur' })
-    ).not.toBeInTheDocument()
-  })
-
-  it('demotes a contributor to user after confirmation', async () => {
-    setupQueries({ users: [CONTRIBUTOR_USER] })
-    const { demote } = setupMutations()
-    renderWithProviders(<AdminUserDetailPage />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'Rétrograder en utilisateur' }))
-    await screen.findByRole('alertdialog')
-    await clickConfirmDialogButton('Rétrograder')
-
-    await waitFor(() => {
-      expect(demote).toHaveBeenCalledTimes(1)
-    })
-    expect(demote).toHaveBeenCalledWith(
-      { role: 'user' },
-      expect.objectContaining({ onError: expect.any(Function) })
-    )
-  })
-
-  it('passes the trimmed reason to the demote mutation', async () => {
-    setupQueries({ users: [CONTRIBUTOR_USER] })
-    const { demote } = setupMutations()
-    renderWithProviders(<AdminUserDetailPage />)
-
-    // Both the role card and the profile-visibility card expose a "Raison (optionnel)"
-    // input; scope to the role card via its demote button's containing card.
-    const roleCard = screen
-      .getByRole('button', { name: 'Rétrograder en utilisateur' })
-      .closest('.admin-card') as HTMLElement
-    fireEvent.change(within(roleCard).getByLabelText(/Raison \(optionnel\)/i), {
-      target: { value: '  curation inactive  ' },
-    })
-
-    await userEvent.click(screen.getByRole('button', { name: 'Rétrograder en utilisateur' }))
-    await screen.findByRole('alertdialog')
-    await clickConfirmDialogButton('Rétrograder')
-
-    await waitFor(() => {
-      expect(demote).toHaveBeenCalledTimes(1)
-    })
-    const [body] = demote.mock.calls[0]
-    expect(body).toMatchObject({ role: 'user', reason: 'curation inactive' })
   })
 })
