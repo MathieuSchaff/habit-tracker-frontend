@@ -1,3 +1,5 @@
+import type { RoleRequestStatus } from '@aurore/shared'
+
 /* Admin UI wording, centralized so tests and production import the same string.
    Renaming a label here updates both — prevents silent test drift after a copy
    tweak (see 2026-05-21 audit, PR 4 pattern). */
@@ -16,9 +18,19 @@ export const adminLabels = {
   navSuggestedEdits: 'Corrections',
   navCatalog: 'Catalogue',
   emptyCatalogQueue: 'Aucune fiche dans cette vue.',
+  navRoleRequests: 'Demandes modérateur',
+  statPendingRoleRequests: 'Demande(s) modérateur en attente',
+  emptyRoleRequests: 'Aucune demande dans cette vue.',
 } as const
 
 type UserRole = 'user' | 'admin' | 'contributor'
+
+export const roleRequestStatusLabels: Record<RoleRequestStatus, string> = {
+  pending: 'En attente',
+  approved: 'Acceptée',
+  rejected: 'Refusée',
+  cancelled: 'Annulée',
+}
 
 // 'contributor' surfaces as "Modérateur" in the UI; the code/DB role keeps its name.
 export const roleLabels: Record<UserRole, string> = {
@@ -32,6 +44,7 @@ const adminErrorMessages: Record<string, string> = {
   cannot_self_demote: 'Vous ne pouvez pas vous rétrograder vous-même.',
   cannot_self_ban: 'Vous ne pouvez pas vous mettre en pause.',
   already_banned: 'Ce compte est déjà en pause sur cette portée.',
+  not_pending: "Cette demande n'est plus en attente.",
   not_found: 'Utilisateur introuvable.',
   forbidden: 'Action non autorisée.',
   invalid_input: 'Données invalides.',

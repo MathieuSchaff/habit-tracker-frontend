@@ -33,8 +33,10 @@ export async function createTestApp() {
   const { adminBansRoutes } = await import('../../features/admin/bans.routes')
   const { adminModerationRoutes } = await import('../../features/admin/moderation.routes')
   const { adminReportsRoutes } = await import('../../features/admin/reports.routes')
+  const { adminRoleRequestsRoutes } = await import('../../features/admin/role-requests.routes')
   const { adminSuggestedEditsRoutes } = await import('../../features/admin/suggested-edits.routes')
   const { reportsRoutes } = await import('../../features/reports/routes')
+  const { roleRequestsRoutes } = await import('../../features/role-requests/routes')
   const { suggestedEditsRoutes } = await import('../../features/suggested-edits/routes')
 
   app.use('*', async (c, next) => {
@@ -71,6 +73,8 @@ export async function createTestApp() {
     .route('/api/admin/moderation', adminModerationRoutes)
     .route('/api/admin/reports', adminReportsRoutes)
     .route('/api/reports', reportsRoutes)
+    .route('/api/admin/role-requests', adminRoleRequestsRoutes)
+    .route('/api/role-requests', roleRequestsRoutes)
     .route('/api/admin/suggested-edits', adminSuggestedEditsRoutes)
     .route('/api/suggested-edits', suggestedEditsRoutes)
 

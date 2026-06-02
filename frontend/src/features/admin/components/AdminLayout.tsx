@@ -1,5 +1,5 @@
 import { Link, Outlet } from '@tanstack/react-router'
-import { Flag, Gauge, PackageCheck, PencilLine, Shield, Users } from 'lucide-react'
+import { Flag, Gauge, PackageCheck, PencilLine, Shield, UserCheck, Users } from 'lucide-react'
 
 import { useAuthStore } from '@/store/auth'
 import '@/features/admin/admin.css'
@@ -37,6 +37,16 @@ export function AdminLayout() {
             >
               <Users size={16} aria-hidden="true" />
               <span>Utilisateurs</span>
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              to="/admin/role-requests"
+              className="admin-sidebar__link"
+              activeProps={{ className: 'admin-sidebar__link is-active' }}
+            >
+              <UserCheck size={16} aria-hidden="true" />
+              <span>{adminLabels.navRoleRequests}</span>
             </Link>
           )}
           <Link

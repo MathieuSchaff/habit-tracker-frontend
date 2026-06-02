@@ -31,6 +31,7 @@ function mockDashboard(data: {
   hiddenThreads: number
   hiddenReplies: number
   forcedPrivateProfiles: number
+  pendingRoleRequests: number
 }) {
   vi.mocked(useSuspenseQuery).mockReturnValue({ data } as unknown as ReturnType<
     typeof useSuspenseQuery
@@ -42,7 +43,7 @@ describe('AdminDashboardPage', () => {
     vi.clearAllMocks()
   })
 
-  it('renders all four moderation stat cards with their counts', () => {
+  it('renders all five moderation stat cards with their counts', () => {
     mockDashboard({
       openReports: 7,
       activeBans: 2,
@@ -50,6 +51,7 @@ describe('AdminDashboardPage', () => {
       hiddenThreads: 1,
       hiddenReplies: 4,
       forcedPrivateProfiles: 5,
+      pendingRoleRequests: 6,
     })
     renderWithProviders(<AdminDashboardPage />)
 
@@ -64,6 +66,9 @@ describe('AdminDashboardPage', () => {
 
     expect(screen.getByText(adminLabels.statForcedPrivate)).toBeInTheDocument()
     expect(screen.getByText('5')).toBeInTheDocument()
+
+    expect(screen.getByText(adminLabels.statPendingRoleRequests)).toBeInTheDocument()
+    expect(screen.getByText('6')).toBeInTheDocument()
   })
 
   it('breaks down hidden content by kind in the third card', () => {
@@ -74,6 +79,7 @@ describe('AdminDashboardPage', () => {
       hiddenThreads: 4,
       hiddenReplies: 9,
       forcedPrivateProfiles: 0,
+      pendingRoleRequests: 0,
     })
     renderWithProviders(<AdminDashboardPage />)
 
@@ -88,14 +94,16 @@ describe('AdminDashboardPage', () => {
       hiddenThreads: 0,
       hiddenReplies: 0,
       forcedPrivateProfiles: 0,
+      pendingRoleRequests: 0,
     })
     renderWithProviders(<AdminDashboardPage />)
 
     const links = screen.getAllByRole('link')
-    // 4 stat cards = 4 links; targets are /admin/reports (x2) + /admin/users (x2).
-    expect(links).toHaveLength(4)
+    // 5 stat cards = 5 links: /admin/reports (x2) + /admin/users (x2) + /admin/role-requests (x1).
+    expect(links).toHaveLength(5)
     const hrefs = links.map((l) => l.getAttribute('href'))
     expect(hrefs.filter((h) => h === '/admin/reports')).toHaveLength(2)
     expect(hrefs.filter((h) => h === '/admin/users')).toHaveLength(2)
+    expect(hrefs.filter((h) => h === '/admin/role-requests')).toHaveLength(1)
   })
 })

@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { EyeOff, Flag, Shield, UserX } from 'lucide-react'
+import { EyeOff, Flag, Shield, UserCheck, UserX } from 'lucide-react'
 
 import { adminQueries } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
@@ -43,6 +43,11 @@ export function AdminDashboardPage() {
           <Shield size={20} aria-hidden="true" />
           <span className="admin-stat-card__value">{data.forcedPrivateProfiles}</span>
           <span className="admin-stat-card__label">{adminLabels.statForcedPrivate}</span>
+        </Link>
+        <Link to="/admin/role-requests" className="admin-stat-card">
+          <UserCheck size={20} aria-hidden="true" />
+          <span className="admin-stat-card__value">{data.pendingRoleRequests}</span>
+          <span className="admin-stat-card__label">{adminLabels.statPendingRoleRequests}</span>
         </Link>
       </div>
     </section>

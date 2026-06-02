@@ -104,6 +104,36 @@ describe('useImageUpload', () => {
     }
   })
 
+  it('dropFile rejects a non-image file', () => {
+    const { result } = renderHook(() =>
+      useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
+    )
+    act(() => {
+      result.current.dropFile(new File(['x'], 'note.txt', { type: 'text/plain' }))
+    })
+    expect(result.current.state.phase).toBe('error')
+    if (result.current.state.phase === 'error') {
+      expect(result.current.state.code).toBe('upload_invalid_format')
+    }
+  })
+
+  it('dropFile accepts an image MIME and passes the guard', () => {
+    const orig = URL.createObjectURL
+    URL.createObjectURL = () => 'blob:mock'
+    try {
+      const { result } = renderHook(() =>
+        useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
+      )
+      act(() => {
+        result.current.dropFile(new File(['x'], 'photo.jpg', { type: 'image/jpeg' }))
+      })
+      // Accepted MIME must not hit the rejection branch; image load is a no-op in jsdom so it stays idle.
+      expect(result.current.state.phase).toBe('idle')
+    } finally {
+      URL.createObjectURL = orig
+    }
+  })
+
   it('cancel returns to idle', () => {
     const { result } = renderHook(() =>
       useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })

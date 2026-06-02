@@ -27,6 +27,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 }
 
 const SOURCE_MAX_BYTES = 8 * 1024 * 1024
+const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export function useImageUpload(opts: UseImageUploadOptions) {
   const maxOutputBytes = opts.maxOutputBytes ?? (opts.outputSize === 1024 ? 200_000 : 500_000)
@@ -34,6 +35,28 @@ export function useImageUpload(opts: UseImageUploadOptions) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   // escape hatch for jsdom tests: avoids File/createObjectURL which are unavailable
   const testSourceImageRef = useRef<HTMLImageElement | null>(null)
+
+  const acceptFile = useCallback((file: File) => {
+    if (file.size > SOURCE_MAX_BYTES) {
+      setState({
+        phase: 'error',
+        code: 'source_too_large',
+        message: ERROR_MESSAGES.source_too_large,
+      })
+      return
+    }
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () =>
+      setState({ phase: 'cropping', sourceUrl: url, sourceFile: file, sourceImage: img })
+    img.onerror = () =>
+      setState({
+        phase: 'error',
+        code: 'upload_invalid_format',
+        message: ERROR_MESSAGES.upload_invalid_format,
+      })
+    img.src = url
+  }, [])
 
   const pickFile = useCallback(() => {
     if (!inputRef.current) {
@@ -44,32 +67,32 @@ export function useImageUpload(opts: UseImageUploadOptions) {
       el.addEventListener('change', () => {
         const file = el.files?.[0]
         if (!file) return
-        if (file.size > SOURCE_MAX_BYTES) {
-          setState({
-            phase: 'error',
-            code: 'source_too_large',
-            message: ERROR_MESSAGES.source_too_large,
-          })
-          return
-        }
-        const url = URL.createObjectURL(file)
-        const img = new Image()
-        img.onload = () =>
-          setState({ phase: 'cropping', sourceUrl: url, sourceFile: file, sourceImage: img })
-        img.onerror = () =>
-          setState({
-            phase: 'error',
-            code: 'upload_invalid_format',
-            message: ERROR_MESSAGES.upload_invalid_format,
-          })
-        img.src = url
+        acceptFile(file)
       })
       document.body.appendChild(el)
       inputRef.current = el
     }
+    // Clear any prior error so re-opening the picker (or cancelling it) leaves a usable idle state.
+    if (state.phase === 'error') setState({ phase: 'idle' })
     inputRef.current.value = ''
     inputRef.current.click()
-  }, [])
+  }, [acceptFile, state.phase])
+
+  // Drag-and-drop bypasses the file input's `accept`, so re-check the MIME type here.
+  const dropFile = useCallback(
+    (file: File) => {
+      if (!ACCEPTED_TYPES.has(file.type)) {
+        setState({
+          phase: 'error',
+          code: 'upload_invalid_format',
+          message: ERROR_MESSAGES.upload_invalid_format,
+        })
+        return
+      }
+      acceptFile(file)
+    },
+    [acceptFile]
+  )
 
   const cancel = useCallback(() => {
     if (state.phase === 'cropping') URL.revokeObjectURL(state.sourceUrl)
@@ -178,13 +201,14 @@ export function useImageUpload(opts: UseImageUploadOptions) {
     testSourceImageRef.current = img
   }
 
-  const api = { state, pickFile, confirmCrop, cancel } as const
+  const api = { state, pickFile, dropFile, confirmCrop, cancel } as const
   if (import.meta.env.MODE === 'test') {
     ;(api as unknown as Record<string, unknown>).__setSourceForTest = __setSourceForTest
   }
   return api as {
     state: Phase
     pickFile: () => void
+    dropFile: (file: File) => void
     confirmCrop: (area: CropArea) => Promise<{ url: string }>
     cancel: () => void
   }

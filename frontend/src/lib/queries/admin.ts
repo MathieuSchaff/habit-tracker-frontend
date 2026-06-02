@@ -8,7 +8,9 @@ import type {
   ModerationTarget,
   ReportStatus,
   ResolveReportInput,
+  ReviewRoleRequestInput,
   ReviewSuggestedEditInput,
+  RoleRequestStatus,
   SuggestedEditStatus,
   UpdateRoleInput,
 } from '@aurore/shared'
@@ -25,6 +27,8 @@ const adminKeys = {
     [...adminKeys.all, 'reports', { status, escalated }] as const,
   suggestedEdits: (status?: SuggestedEditStatus) =>
     [...adminKeys.all, 'suggested-edits', { status }] as const,
+  roleRequests: (status?: RoleRequestStatus) =>
+    [...adminKeys.all, 'role-requests', { status }] as const,
   preview: (target: ModerationTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
   catalogQueue: (kind: CatalogKind, quality?: CatalogQuality, status?: ModerationStatus) =>
@@ -83,6 +87,20 @@ export const adminQueries = {
         if (!res.ok) throw new Error('Failed to fetch suggested edits')
         const json = await res.json()
         if (!json.success) throw new Error('Suggested edits error')
+        return json.data
+      },
+    }),
+
+  roleRequests: (status?: RoleRequestStatus) =>
+    queryOptions({
+      queryKey: adminKeys.roleRequests(status),
+      queryFn: async () => {
+        const query: Record<string, string> = {}
+        if (status) query.status = status
+        const res = await api.admin['role-requests'].$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch role requests')
+        const json = await res.json()
+        if (!json.success) throw new Error('Role requests error')
         return json.data
       },
     }),
@@ -263,6 +281,29 @@ export function useReviewSuggestedEdit(statusFilter?: SuggestedEditStatus) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.suggestedEdits(statusFilter) })
       qc.invalidateQueries({ queryKey: adminKeys.suggestedEdits() })
+    },
+  })
+}
+
+export function useReviewRoleRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: ReviewRoleRequestInput }) => {
+      const res = await api.admin['role-requests'][':id'].$patch({ param: { id }, json: body })
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string }
+        throw new Error(json.error ?? 'review_failed')
+      }
+      const json = await res.json()
+      if (!json.success) throw new Error('review_failed')
+      return json.data
+    },
+    onSuccess: () => {
+      // Broad prefix: a decision moves a row between status tabs, so any cached
+      // status view must refresh — a { status } key only deep-matches its own filter.
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'role-requests'] })
+      // The dashboard's 5th card counts pending requests; refresh it after a decision.
+      qc.invalidateQueries({ queryKey: adminKeys.dashboard() })
     },
   })
 }

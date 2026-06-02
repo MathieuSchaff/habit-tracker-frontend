@@ -16,6 +16,7 @@ import {
   useUpdatePrivacySettings,
 } from '../../../../lib/queries/profile'
 import { ChangePasswordForm } from './ChangePasswordForm'
+import { RoleRequestSection } from './RoleRequestSection'
 import './AccountSettings.css'
 
 export const AccountSettings = () => {
@@ -167,6 +168,8 @@ export const AccountSettings = () => {
           </div>
         ) : null}
       </SettingsSection>
+
+      <RoleRequestSection />
 
       <SettingsSection
         title="Mes données"

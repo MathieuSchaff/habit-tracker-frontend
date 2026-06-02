@@ -25,6 +25,11 @@
   outline: none;
 }
 
+.image-upload__trigger--dragging {
+  border-style: solid;
+  border-color: var(--color-primary);
+}
+
 .image-upload--round .image-upload__trigger {
   width: 8rem;
   height: 8rem;
@@ -66,6 +71,20 @@
 .image-upload__trigger:hover .image-upload__hover,
 .image-upload__trigger:focus-visible .image-upload__hover {
   opacity: 1;
+}
+
+/* Dark scrim + white text matches the hover/progress overlays (readable in both themes).
+   pointer-events:none so the drop lands on the trigger, not this overlay. */
+.image-upload__drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0% 0 0 / 0.55);
+  color: oklch(100% 0 0);
+  font-size: var(--text-sm);
+  pointer-events: none;
 }
 
 .image-upload__progress {

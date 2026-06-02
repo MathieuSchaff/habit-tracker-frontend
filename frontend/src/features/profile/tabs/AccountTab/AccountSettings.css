@@ -108,6 +108,38 @@
   gap: var(--space-3);
 }
 
+/* Role request ("Devenir modérateur") section */
+.role-request-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.role-request-intro {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+.role-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.role-request-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.role-request-status-text {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+}
+
 /* Privacy section (merged from PrivacySettings) */
 .privacy-loading {
   color: var(--text-muted);

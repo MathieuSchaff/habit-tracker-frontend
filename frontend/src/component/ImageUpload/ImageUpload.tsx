@@ -1,4 +1,5 @@
 import { Image as ImageIcon, Upload } from 'lucide-react'
+import { useState } from 'react'
 
 import { CropModal } from './CropModal'
 import { useImageUpload } from './useImageUpload'
@@ -24,7 +25,13 @@ export const ImageUpload = ({
   onSuccess,
   onError,
 }: Props) => {
-  const { state, pickFile, confirmCrop, cancel } = useImageUpload({ endpoint, outputSize })
+  const { state, pickFile, dropFile, confirmCrop, cancel } = useImageUpload({
+    endpoint,
+    outputSize,
+  })
+  const [dragging, setDragging] = useState(false)
+  // 'error' is droppable too, so a rejected drop can be retried without the native picker.
+  const canDrop = state.phase === 'idle' || state.phase === 'error'
 
   const overlayLabel = shape === 'round' ? 'Changer la photo' : 'Changer'
 
@@ -40,7 +47,27 @@ export const ImageUpload = ({
 
   return (
     <div className={`image-upload image-upload--${shape}`}>
-      <button type="button" className="image-upload__trigger" onClick={pickFile} aria-label={alt}>
+      <button
+        type="button"
+        className={`image-upload__trigger${dragging ? ' image-upload__trigger--dragging' : ''}`}
+        onClick={pickFile}
+        onDragOver={(e) => {
+          e.preventDefault()
+          if (canDrop) setDragging(true)
+        }}
+        onDragLeave={(e) => {
+          // Ignore leaves onto child nodes (the image), which would otherwise flicker the state.
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false)
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragging(false)
+          if (!canDrop) return
+          const file = e.dataTransfer.files?.[0]
+          if (file) dropFile(file)
+        }}
+        aria-label={alt}
+      >
         {currentImageUrl && state.phase === 'idle' ? (
           <img className="image-upload__image" src={currentImageUrl} alt={alt} />
         ) : (
@@ -49,8 +76,16 @@ export const ImageUpload = ({
           </span>
         )}
 
-        {state.phase === 'idle' && currentImageUrl && (
-          <span className="image-upload__hover">{overlayLabel}</span>
+        {state.phase === 'idle' && currentImageUrl && !dragging && (
+          <span className="image-upload__hover" aria-hidden="true">
+            {overlayLabel}
+          </span>
+        )}
+
+        {dragging && (
+          <span className="image-upload__drop" aria-hidden="true">
+            Déposez l'image
+          </span>
         )}
 
         {(state.phase === 'compressing' || state.phase === 'uploading') && (
@@ -62,7 +97,9 @@ export const ImageUpload = ({
           </span>
         )}
 
-        {state.phase === 'error' && <span className="image-upload__error">{state.message}</span>}
+        {state.phase === 'error' && !dragging && (
+          <span className="image-upload__error">{state.message}</span>
+        )}
       </button>
 
       {state.phase === 'cropping' && (

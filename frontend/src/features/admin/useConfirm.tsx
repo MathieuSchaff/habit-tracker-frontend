@@ -9,6 +9,7 @@ type ReasonField = {
   placeholder?: string
   hint?: string
   required?: boolean
+  maxLength?: number
 }
 
 type ConfirmOptions = {
@@ -72,6 +73,7 @@ export function useConfirm() {
           placeholder={request.reason.placeholder}
           hint={request.reason.hint}
           required={request.reason.required}
+          maxLength={request.reason.maxLength}
           rows={3}
           value={reason}
           onChange={(e) => setReason(e.target.value)}

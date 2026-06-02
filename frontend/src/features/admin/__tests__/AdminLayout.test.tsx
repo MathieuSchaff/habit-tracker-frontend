@@ -34,6 +34,7 @@ describe('AdminLayout nav visibility (ADR-0006 S1)', () => {
     expect(screen.getByText('Tableau de bord')).toBeInTheDocument()
     expect(screen.getByText('Utilisateurs')).toBeInTheDocument()
     expect(screen.getByText('Signalements')).toBeInTheDocument()
+    expect(screen.getByText('Demandes modérateur')).toBeInTheDocument()
   })
 
   it('shows only Signalements to a contributor (dashboard + users stay admin-only)', () => {
@@ -43,5 +44,6 @@ describe('AdminLayout nav visibility (ADR-0006 S1)', () => {
     expect(screen.getByText('Signalements')).toBeInTheDocument()
     expect(screen.queryByText('Tableau de bord')).not.toBeInTheDocument()
     expect(screen.queryByText('Utilisateurs')).not.toBeInTheDocument()
+    expect(screen.queryByText('Demandes modérateur')).not.toBeInTheDocument()
   })
 })
