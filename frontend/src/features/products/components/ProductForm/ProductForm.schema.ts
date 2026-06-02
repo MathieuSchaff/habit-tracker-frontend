@@ -138,8 +138,12 @@ export function productEditFormToUpdateInput(
   original: ProductDetail
 ): UpdateProductInput {
   const clearOrOmit = <T>(trimmed: string, value: T | null, originalValue: unknown) => {
-    if (trimmed !== '') return value
-    return originalValue != null ? null : undefined
+    if (trimmed === '') return originalValue != null ? null : undefined
+    // Unchanged → omit. Re-sending an untouched value re-validates it, which
+    // rejects legacy data that predates a stricter rule (e.g. a long
+    // space-separated inci) and 400s an unrelated edit.
+    if (value === originalValue) return undefined
+    return value
   }
   const priceEuros = form.priceEuros.trim()
   const totalAmount = form.totalAmount.trim()

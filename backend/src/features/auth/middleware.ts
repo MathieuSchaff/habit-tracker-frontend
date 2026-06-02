@@ -1,6 +1,7 @@
 import { type BanScope, err, HTTP_STATUS } from '@aurore/shared'
 
 import type { Context, Next } from 'hono'
+import { getUserRole } from 'src/features/auth/user.utils'
 
 import type { AppEnv } from '../../app-env'
 import { isUserBanned, isUserBannedForScope } from './ban.service'
@@ -54,7 +55,12 @@ export const requireAdmin = async (c: Context<AppEnv>, next: Next) => {
 
 // admin OR contributor. Applied per-route on write verbs; RLS is the DB-level backstop (VULN-5).
 export const requireCatalogWrite = async (c: Context<AppEnv>, next: Next) => {
-  const role = c.get('userRole')
+  const userId = c.get('userId')
+  const db = c.get('db')
+  if (!userId) {
+    return c.json(err('unauthorized'), HTTP_STATUS.UNAUTHORIZED)
+  }
+  const role = await getUserRole(db, userId)
   if (role !== 'admin' && role !== 'contributor') {
     return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
   }
@@ -65,7 +71,12 @@ export const requireCatalogWrite = async (c: Context<AppEnv>, next: Next) => {
 // actions (hide/restore reviews, report queue). Irreversible account-level actions
 // (force-private, bans) stay behind requireAdmin.
 export const requireContentModerator = async (c: Context<AppEnv>, next: Next) => {
-  const role = c.get('userRole')
+  const userId = c.get('userId')
+  const db = c.get('db')
+  if (!userId) {
+    return c.json(err('unauthorized'), HTTP_STATUS.UNAUTHORIZED)
+  }
+  const role = await getUserRole(db, userId)
   if (role !== 'admin' && role !== 'contributor') {
     return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
   }

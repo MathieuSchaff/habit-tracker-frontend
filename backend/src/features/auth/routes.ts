@@ -20,9 +20,11 @@ import { csrf } from 'hono/csrf'
 
 import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
+import { withAdminRls } from '../../db/rls'
 import { usersSafe } from '../../db/schema'
 import { loginRateLimiterFunc, rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
+import { isUserBanned } from './ban.service'
 import { sendVerificationEmail } from './email.service'
 import { createVerificationToken, verifyEmailToken } from './email-verification.service'
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
@@ -99,6 +101,18 @@ export const jwtAuthRoutes = app
 
     if (!isApiSuccess(result)) {
       return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
+    }
+
+    // Reject banned users at login rather than letting them authenticate and
+    // be redirected after hey are authenticated
+    // so avoid race condition
+    // withAdminRls bypass the rls so it is visible when not authenticated
+    const ban = await withAdminRls((tx) => isUserBanned(tx, result.data.user.id, 'global', false))
+    if (ban) {
+      return c.json(
+        err('banned', { expiresAt: ban.expiresAt, reason: ban.reason }),
+        HTTP_STATUS.FORBIDDEN
+      )
     }
 
     setRefreshTokenCookie(c, result.data.refreshToken, env)
