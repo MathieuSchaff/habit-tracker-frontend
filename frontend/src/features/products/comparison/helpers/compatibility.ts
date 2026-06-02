@@ -9,7 +9,7 @@ export type CompatibilitySummary = {
   band: CompatibilityBand
   commonCount: number
   totalUnique: number
-  /** Calm one-liner. */
+  /** Short verdict — calm tone, no score, no winner. */
   verdict: string
   /** Short headline tag, e.g. "Compositions proches". */
   headline: string

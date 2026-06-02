@@ -11,7 +11,7 @@
 - **Revocation**: All tokens for a user can be revoked on password change or manual logout by clearing the `jti` (JWT ID) in the database.
 
 ### Password Hashing
-I use **Argon2** via Bun's native `password.hash` API — currently the industry standard for password hashing, resistant to GPU-based brute-force and side-channel attacks.
+**Argon2** via Bun's native `password.hash` API — currently the industry standard for password hashing, resistant to GPU-based brute-force and side-channel attacks.
 
 ### Session Security
 **Timing Attack Protection**: A dummy hash verification runs during login when a user is not found, keeping response time consistent regardless of whether the email exists.
