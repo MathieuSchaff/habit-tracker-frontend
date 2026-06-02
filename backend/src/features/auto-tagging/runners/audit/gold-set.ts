@@ -23,11 +23,12 @@ import path from 'node:path'
 import type { ProductKind } from '@aurore/shared'
 
 import { analyzeINCI, splitINCI } from 'algo-derm'
-import { eq, inArray, sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { ingredients, productIngredients, products } from '../../../../db/schema'
+import { products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
+import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
 import { summarizeByLayer } from '../../gold-set/layers'
 import {
@@ -85,39 +86,7 @@ async function main() {
     .where(inArray(products.slug, annotated))
 
   const productIds = dbProducts.map((p) => p.id)
-  const claimRows =
-    productIds.length === 0
-      ? []
-      : await db
-          .select({
-            productId: productIngredients.productId,
-            ingredientSlug: ingredients.slug,
-            concentrationValue: productIngredients.concentrationValue,
-            concentrationUnit: productIngredients.concentrationUnit,
-          })
-          .from(productIngredients)
-          .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-          .where(inArray(productIngredients.productId, productIds))
-  const claimsByProduct = new Map<
-    string,
-    {
-      ingredientSlug: string
-      concentrationValue: number
-      concentrationUnit: string
-    }[]
-  >()
-  for (const row of claimRows) {
-    if (!row.concentrationValue || !row.concentrationUnit) continue
-    const value = Number(row.concentrationValue)
-    if (!Number.isFinite(value)) continue
-    const arr = claimsByProduct.get(row.productId) ?? []
-    arr.push({
-      ingredientSlug: row.ingredientSlug,
-      concentrationValue: value,
-      concentrationUnit: row.concentrationUnit,
-    })
-    claimsByProduct.set(row.productId, arr)
-  }
+  const claimsByProduct = await fetchPercentClaimsByProduct(productIds)
 
   // Every annotated slug must exist in DB; missing = stale gold set (renamed/deleted product).
   const dbBySlug = new Map<string, (typeof dbProducts)[number]>()

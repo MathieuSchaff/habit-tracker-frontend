@@ -27,13 +27,12 @@ import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
 import {
   brandCertifications,
-  ingredients,
-  productIngredients,
   products,
   productTagLinks,
   productTagTypes,
 } from '../../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
+import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
 import { partitionEczemaReview } from '../../passes/formula'
 import { writeTagsForProduct } from '../../write'
@@ -94,31 +93,7 @@ const tagDefs = await db
 const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
 const tagIdToSlug = new Map(tagDefs.map((t) => [t.id, t.slug]))
 
-const claimRows = await db
-  .select({
-    productId: productIngredients.productId,
-    ingredientSlug: ingredients.slug,
-    concentrationValue: productIngredients.concentrationValue,
-    concentrationUnit: productIngredients.concentrationUnit,
-  })
-  .from(productIngredients)
-  .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-const claimsByProduct = new Map<
-  string,
-  { ingredientSlug: string; concentrationValue: number; concentrationUnit: string }[]
->()
-for (const r of claimRows) {
-  if (r.concentrationValue === null || r.concentrationUnit === null) continue
-  const v = Number(r.concentrationValue)
-  if (!Number.isFinite(v)) continue
-  const arr = claimsByProduct.get(r.productId) ?? []
-  arr.push({
-    ingredientSlug: r.ingredientSlug,
-    concentrationValue: v,
-    concentrationUnit: r.concentrationUnit,
-  })
-  claimsByProduct.set(r.productId, arr)
-}
+const claimsByProduct = await fetchPercentClaimsByProduct(prods.map((p) => p.id))
 const concentrationsByProduct = await fetchKnownConcentrationsByProduct(prods.map((p) => p.id))
 
 const cur = await db

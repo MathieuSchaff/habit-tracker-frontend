@@ -16,7 +16,10 @@ test.describe('Products page — "Ajouter" modal', () => {
   test('opens modal with product info and a status grid', async ({ page }) => {
     await page.goto('/products')
 
-    const card = page.locator('.list-card--product').first()
+    const card = page
+      .locator('.list-card--product')
+      .filter({ has: page.getByRole('button', { name: /^Ajouter / }) })
+      .first()
     await expect(card).toBeVisible({ timeout: 15_000 })
 
     const productName = await card.locator('.list-card__name').innerText()
@@ -38,7 +41,10 @@ test.describe('Products page — "Ajouter" modal', () => {
     page,
   }) => {
     await page.goto('/products')
-    const card = page.locator('.list-card--product').first()
+    const card = page
+      .locator('.list-card--product')
+      .filter({ has: page.getByRole('button', { name: /^Ajouter / }) })
+      .first()
     await expect(card).toBeVisible({ timeout: 15_000 })
     await card.getByRole('button', { name: /^Ajouter / }).click()
 
@@ -63,7 +69,10 @@ test.describe('Products page — "Ajouter" modal', () => {
     page,
   }) => {
     await page.goto('/products')
-    const card = page.locator('.list-card--product').first()
+    const card = page
+      .locator('.list-card--product')
+      .filter({ has: page.getByRole('button', { name: /^Ajouter / }) })
+      .first()
     await expect(card).toBeVisible({ timeout: 15_000 })
     await card.getByRole('button', { name: /^Ajouter / }).click()
 
@@ -94,17 +103,20 @@ test.describe('Products page — "Ajouter" modal', () => {
     expect(upReq.postDataJSON()).toMatchObject({ status: 'in_stock' })
 
     const purchaseReq = await purchasePromise
-    expect(purchaseReq.postDataJSON()).toMatchObject({
-      purchasedAt: '2026-04-20',
-      pricePaidCents: 1990,
-    })
+    const purchaseBody = purchaseReq.postDataJSON()
+    expect(purchaseBody.pricePaidCents).toBe(1990)
+    // purchasedAt is serialized as an ISO 8601 UTC timestamp.
+    expect(purchaseBody.purchasedAt).toMatch(/^2026-04-20/)
 
     await expect(dialog).toBeHidden({ timeout: 5_000 })
   })
 
   test('"Retour" from purchase step returns to status grid', async ({ page }) => {
     await page.goto('/products')
-    const card = page.locator('.list-card--product').first()
+    const card = page
+      .locator('.list-card--product')
+      .filter({ has: page.getByRole('button', { name: /^Ajouter / }) })
+      .first()
     await expect(card).toBeVisible({ timeout: 15_000 })
     await card.getByRole('button', { name: /^Ajouter / }).click()
 
@@ -120,7 +132,10 @@ test.describe('Products page — "Ajouter" modal', () => {
 
   test('close button dismisses modal without firing any POST', async ({ page }) => {
     await page.goto('/products')
-    const card = page.locator('.list-card--product').first()
+    const card = page
+      .locator('.list-card--product')
+      .filter({ has: page.getByRole('button', { name: /^Ajouter / }) })
+      .first()
     await expect(card).toBeVisible({ timeout: 15_000 })
     await card.getByRole('button', { name: /^Ajouter / }).click()
 
@@ -143,7 +158,7 @@ test.describe('Products page — "Créer" → /products/new', () => {
   test('"Créer" link navigates to the create form', async ({ page }) => {
     await page.goto('/products')
 
-    await page.getByRole('link', { name: 'Créer', exact: true }).click()
+    await page.getByRole('link', { name: 'Créer un produit', exact: true }).click()
 
     await expect(page).toHaveURL(/\/products\/new/)
     await expect(page.getByRole('heading', { name: 'Nouveau produit' })).toBeVisible()
@@ -202,10 +217,7 @@ test.describe('Products page — "Créer" → /products/new', () => {
       .locator('label', { hasText: 'Pompe' })
       .click()
     await page.locator('#edit-total-amount').fill('30')
-    await page
-      .getByRole('radiogroup', { name: 'Unité de contenance' })
-      .locator('label', { hasText: 'mL' })
-      .click()
+    await page.getByRole('combobox', { name: 'Unité de contenance' }).selectOption('ml')
     await page.locator('#edit-price').fill('29.90')
 
     const postPromise = page.waitForRequest(

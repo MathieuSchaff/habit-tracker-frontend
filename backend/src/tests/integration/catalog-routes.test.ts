@@ -7,6 +7,7 @@ import { clearBanCache } from '../../features/auth/ban.service'
 import { testDb } from '../db.test.config'
 import { setupDbTests } from '../db-setup'
 import { createTestClient, type TestClient, withAuth } from '../helpers/createTestClient'
+import { login as loginAs } from '../helpers/login'
 import { TEST_CREDENTIALS } from '../helpers/test-credentials'
 import {
   createTestAdminUser,
@@ -23,13 +24,6 @@ const VALID_PRODUCT = {
 } as const
 
 const VALID_INGREDIENT = { name: 'User Acid', type: 'skincare' } as const
-
-async function loginAs(client: TestClient, email: string, password: string): Promise<string> {
-  const res = await client.auth.login.$post({ json: { email, password } })
-  const data = await res.json()
-  if (!data.success) throw new Error('login failed in catalog-routes test')
-  return data.data.accessToken
-}
 
 setupDbTests()
 

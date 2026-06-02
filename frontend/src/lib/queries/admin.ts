@@ -5,14 +5,13 @@ import type {
   ModerateContentInput,
   ModerateProfileInput,
   ModerationStatus,
+  ModerationTarget,
   ReportStatus,
   ResolveReportInput,
   ReviewSuggestedEditInput,
   SuggestedEditStatus,
   UpdateRoleInput,
 } from '@aurore/shared'
-
-type ModerateTarget = 'reviews' | 'threads' | 'replies' | 'products' | 'ingredients'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -26,7 +25,7 @@ const adminKeys = {
     [...adminKeys.all, 'reports', { status, escalated }] as const,
   suggestedEdits: (status?: SuggestedEditStatus) =>
     [...adminKeys.all, 'suggested-edits', { status }] as const,
-  preview: (target: ModerateTarget, id: string) =>
+  preview: (target: ModerationTarget, id: string) =>
     [...adminKeys.all, 'preview', target, id] as const,
   catalogQueue: (kind: CatalogKind, quality?: CatalogQuality, status?: ModerationStatus) =>
     [...adminKeys.all, 'catalog-queue', { kind, quality, status }] as const,
@@ -116,9 +115,12 @@ export const adminQueries = {
         if (!json.success) throw new Error('Catalog queue error')
         return json.data
       },
+      // Queue only changes when a moderator acts (which invalidates it explicitly);
+      // suppress the default 0ms window-focus refetch mid-action.
+      staleTime: 30_000,
     }),
 
-  contentPreview: (target: ModerateTarget, id: string) =>
+  contentPreview: (target: ModerationTarget, id: string) =>
     queryOptions({
       queryKey: adminKeys.preview(target, id),
       queryFn: async () => {
@@ -273,7 +275,7 @@ export function useModerateContent() {
       id,
       body,
     }: {
-      target: ModerateTarget
+      target: ModerationTarget
       id: string
       body: ModerateContentInput
     }) => {
@@ -290,6 +292,8 @@ export function useModerateContent() {
       qc.invalidateQueries({ queryKey: adminKeys.preview(vars.target, vars.id) })
       // Hiding/restoring shifts a product or ingredient between catalog queue views; no-op when no queue is mounted.
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'catalog-queue'] })
+      // Owner's submissions dashboard renders the moderation badge + note; refresh it too (no-op when not mounted).
+      qc.invalidateQueries({ queryKey: ['catalog-submissions', 'mine'] })
     },
   })
 }
@@ -298,16 +302,11 @@ export function useVerifyCatalogItem() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ kind, id }: { kind: CatalogKind; id: string }) => {
-      const res =
-        kind === 'product'
-          ? await api.products[':id'].quality.$patch({
-              param: { id },
-              json: { quality: 'verified' },
-            })
-          : await api.ingredients[':id'].quality.$patch({
-              param: { id },
-              json: { quality: 'verified' },
-            })
+      const route = kind === 'product' ? api.products : api.ingredients
+      const res = await route[':id'].quality.$patch({
+        param: { id },
+        json: { quality: 'verified' },
+      })
       if (!res.ok) throw new Error('Failed to verify catalog item')
       const json = await res.json()
       if (!json.success) throw new Error('Verify catalog error')
@@ -315,6 +314,8 @@ export function useVerifyCatalogItem() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'catalog-queue'] })
+      // Verifying flips the owner's submissions badge to « Vérifiée ».
+      qc.invalidateQueries({ queryKey: ['catalog-submissions', 'mine'] })
     },
   })
 }

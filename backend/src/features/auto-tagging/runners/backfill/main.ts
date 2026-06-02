@@ -40,20 +40,22 @@ import {
   type ProductTexture,
 } from '@aurore/shared'
 
-import { eq, inArray, sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import type { Transaction } from '../../../../db/index'
 import { withAdminRls } from '../../../../db/rls'
 import {
   brandCertifications,
-  ingredients,
-  productIngredients,
   products,
   productTagLinks,
   productTagTypes,
 } from '../../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
+import {
+  fetchPercentClaimsByProduct,
+  type PercentClaim,
+} from '../../../../lib/fetch-percent-claims'
 import {
   AUTO_TAG_ELIGIBLE_CATEGORIES,
   type AutoTagSource,
@@ -82,12 +84,6 @@ interface ProductRow {
   inci: string | null
   category: ProductCategory
   texture: ProductTexture | null
-}
-
-interface PercentClaim {
-  ingredientSlug: string
-  concentrationValue: number
-  concentrationUnit: string
 }
 
 interface TagInfo {
@@ -154,36 +150,6 @@ function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
     throw new Error(`Product slug "${SLUG_ARG}" not found in DB (or not in an eligible category)`)
   }
   return subset
-}
-
-async function fetchClaimsByProduct(productIds: string[]): Promise<Map<string, PercentClaim[]>> {
-  const claimRows =
-    productIds.length === 0
-      ? []
-      : await db
-          .select({
-            productId: productIngredients.productId,
-            ingredientSlug: ingredients.slug,
-            concentrationValue: productIngredients.concentrationValue,
-            concentrationUnit: productIngredients.concentrationUnit,
-          })
-          .from(productIngredients)
-          .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-          .where(inArray(productIngredients.productId, productIds))
-  const claimsByProduct = new Map<string, PercentClaim[]>()
-  for (const row of claimRows) {
-    if (!row.concentrationValue || !row.concentrationUnit) continue
-    const value = Number(row.concentrationValue)
-    if (!Number.isFinite(value)) continue
-    const arr = claimsByProduct.get(row.productId) ?? []
-    arr.push({
-      ingredientSlug: row.ingredientSlug,
-      concentrationValue: value,
-      concentrationUnit: row.concentrationUnit,
-    })
-    claimsByProduct.set(row.productId, arr)
-  }
-  return claimsByProduct
 }
 
 async function fetchTagInfo(): Promise<{
@@ -412,7 +378,7 @@ async function main() {
 
   const { allProducts, brandCertMap } = await fetchProductsAndCerts()
   const subset = narrowSubset(allProducts)
-  const claimsByProduct = await fetchClaimsByProduct(subset.map((p) => p.id))
+  const claimsByProduct = await fetchPercentClaimsByProduct(subset.map((p) => p.id))
   const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
   const { tagSlugToInfo, tagIdToType } = await fetchTagInfo()
   const { existingMap, productsWithCuratedPrimary, manualPairs } =

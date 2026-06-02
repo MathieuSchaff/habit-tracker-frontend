@@ -1,0 +1,2 @@
+ALTER POLICY "ingredients_select_visible" ON "ingredients" TO app_runtime USING (moderation_status = 'visible' OR (SELECT auth.role()) IN ('admin', 'contributor') OR ("ingredients"."created_by" = (SELECT auth.uid()) AND current_setting('app.own_submissions', true) = 'on'));--> statement-breakpoint
+ALTER POLICY "products_select_visible" ON "products" TO app_runtime USING (moderation_status = 'visible' OR (SELECT auth.role()) IN ('admin', 'contributor') OR ("products"."created_by" = (SELECT auth.uid()) AND current_setting('app.own_submissions', true) = 'on'));

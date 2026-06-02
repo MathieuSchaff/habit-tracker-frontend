@@ -11,6 +11,7 @@ import { adminQueries, useModerateContent, useVerifyCatalogItem } from '@/lib/qu
 import { adminLabels } from '../constants'
 
 const SUCCESS_FEEDBACK_MS = 3500
+const ACTION_FAILED = 'L’action a échoué. Réessayez.'
 
 type View = 'to-verify' | 'hidden'
 
@@ -32,8 +33,8 @@ export function AdminCatalogPage() {
   const verify = useVerifyCatalogItem()
   const moderate = useModerateContent()
   const { confirm, dialog } = useConfirm()
-  const [pendingId, setPendingId] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!success) return
@@ -43,6 +44,30 @@ export function AdminCatalogPage() {
 
   const moderateTarget = kind === 'product' ? 'products' : 'ingredients'
 
+  // Tab switches drop stale feedback so a banner can't bleed into the next view's context.
+  function changeKind(next: CatalogKind) {
+    setSuccess(null)
+    setError(null)
+    setKind(next)
+  }
+  function changeView(next: View) {
+    setSuccess(null)
+    setError(null)
+    setView(next)
+  }
+
+  function submitModeration(id: string, next: 'visible' | 'hidden', reason?: string) {
+    setError(null)
+    setSuccess(null)
+    moderate.mutate(
+      { target: moderateTarget, id, body: reason ? { status: next, reason } : { status: next } },
+      {
+        onSuccess: () => setSuccess(next === 'hidden' ? 'Fiche masquée.' : 'Fiche restaurée.'),
+        onError: () => setError(ACTION_FAILED),
+      }
+    )
+  }
+
   async function handleVerify(id: string, name: string) {
     const ok = await confirm({
       title: 'Marquer comme vérifiée ?',
@@ -50,33 +75,40 @@ export function AdminCatalogPage() {
       confirmLabel: 'Vérifier',
     })
     if (!ok) return
-    setPendingId(id)
+    setError(null)
+    setSuccess(null)
     verify.mutate(
       { kind, id },
-      { onSuccess: () => setSuccess('Fiche vérifiée.'), onSettled: () => setPendingId(null) }
+      {
+        onSuccess: () => setSuccess('Fiche vérifiée.'),
+        onError: () => setError(ACTION_FAILED),
+      }
     )
   }
 
   async function handleHide(id: string, name: string, hidden: boolean) {
-    const next = hidden ? 'visible' : 'hidden'
-    const ok = await confirm({
-      title: next === 'hidden' ? 'Masquer cette fiche ?' : 'Restaurer cette fiche ?',
-      message:
-        next === 'hidden'
-          ? `« ${name} » disparaît des lectures publiques. Action réversible.`
-          : `« ${name} » redevient visible publiquement.`,
-      confirmLabel: next === 'hidden' ? 'Masquer' : 'Restaurer',
-      variant: next === 'hidden' ? 'danger' : 'default',
+    if (hidden) {
+      const ok = await confirm({
+        title: 'Restaurer cette fiche ?',
+        message: `« ${name} » redevient visible publiquement.`,
+        confirmLabel: 'Restaurer',
+      })
+      if (!ok) return
+      submitModeration(id, 'visible')
+      return
+    }
+    const { confirmed, reason } = await confirm({
+      title: 'Masquer cette fiche ?',
+      message: `« ${name} » disparaît des lectures publiques. Action réversible.`,
+      confirmLabel: 'Masquer',
+      variant: 'danger',
+      reason: {
+        label: 'Note du modérateur',
+        placeholder: 'Expliquez à l’auteur pourquoi (optionnel).',
+      },
     })
-    if (!ok) return
-    setPendingId(id)
-    moderate.mutate(
-      { target: moderateTarget, id, body: { status: next } },
-      {
-        onSuccess: () => setSuccess(next === 'hidden' ? 'Fiche masquée.' : 'Fiche restaurée.'),
-        onSettled: () => setPendingId(null),
-      }
-    )
+    if (!confirmed) return
+    submitModeration(id, 'hidden', reason || undefined)
   }
 
   const items = data.items
@@ -98,7 +130,7 @@ export function AdminCatalogPage() {
             role="tab"
             aria-selected={kind === k.value}
             className={`admin-filter-bar__btn ${kind === k.value ? 'is-active' : ''}`}
-            onClick={() => setKind(k.value)}
+            onClick={() => changeKind(k.value)}
           >
             {k.label}
           </button>
@@ -113,7 +145,7 @@ export function AdminCatalogPage() {
             role="tab"
             aria-selected={view === v.value}
             className={`admin-filter-bar__btn ${view === v.value ? 'is-active' : ''}`}
-            onClick={() => setView(v.value)}
+            onClick={() => changeView(v.value)}
           >
             {v.label}
           </button>
@@ -122,6 +154,7 @@ export function AdminCatalogPage() {
 
       <div aria-live="polite" aria-atomic="true">
         {success && <FormMessage variant="success">{success}</FormMessage>}
+        {error && <FormMessage variant="error">{error}</FormMessage>}
       </div>
 
       {items.length === 0 ? (
@@ -141,7 +174,6 @@ export function AdminCatalogPage() {
           <tbody>
             {items.map((item) => {
               const isHidden = item.moderationStatus === 'hidden'
-              const busy = pendingId === item.id
               return (
                 <tr key={item.id}>
                   <td>
@@ -165,7 +197,7 @@ export function AdminCatalogPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          loading={busy && verify.isPending}
+                          loading={verify.isPending && verify.variables?.id === item.id}
                           onClick={() => handleVerify(item.id, item.name)}
                         >
                           Vérifier
@@ -174,7 +206,7 @@ export function AdminCatalogPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        loading={busy && moderate.isPending}
+                        loading={moderate.isPending && moderate.variables?.id === item.id}
                         onClick={() => handleHide(item.id, item.name, isHidden)}
                       >
                         {isHidden ? 'Restaurer' : 'Masquer'}

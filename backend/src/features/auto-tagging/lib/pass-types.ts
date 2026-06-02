@@ -2,7 +2,7 @@
 // Passes declare their own relevance + source attribution; the orchestrator no
 // longer wraps slug arrays with hardcoded ('secondary', 'formula') tuples.
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
+import type { ProductKind, ProductTexture, SkincareProductTagSlug, TagSource } from '@aurore/shared'
 
 import type { ProductAssessment } from 'algo-derm'
 
@@ -10,16 +10,9 @@ import type { DetectAutoTagsOptions } from '../passes/auto-tag-detection'
 import type { BrandCertificationLookup } from '../passes/brand-cert-detection'
 import type { PercentClaimEvidence } from '../passes/percent-claim-detection'
 
-export type AutoTagSource =
-  | 'algo-derm'
-  | 'actif-class'
-  | 'kind'
-  | 'formula'
-  | 'cross-signal'
-  | 'interaction'
-  | 'concentration'
-  | 'brand'
-  | 'percent-claim'
+// The shared TagSource vocabulary minus 'manual' (emitted only by the
+// persistence layer, never the orchestrator). Derived so the two cannot drift.
+export type AutoTagSource = Exclude<TagSource, 'manual'>
 
 export type AutoTagRelevance = 'primary' | 'secondary' | 'avoid'
 

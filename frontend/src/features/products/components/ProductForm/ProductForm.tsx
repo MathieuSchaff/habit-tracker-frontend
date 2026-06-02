@@ -57,12 +57,15 @@ type ProductFormProps =
       mode: 'create'
       product?: never
       initialTags?: never
+      // Resubmit-after-hide seeds the identifying pair so the author doesn't retype it.
+      prefill?: { name?: string; brand?: string }
       onSuccess: (slug: string) => void
     }
   | {
       mode: 'edit'
       product: ProductDetail
       initialTags?: TagState[]
+      prefill?: never
       onSuccess: (slug: string) => void
     }
 
@@ -70,6 +73,7 @@ export function ProductForm({
   mode,
   product,
   initialTags = EMPTY_TAGS,
+  prefill,
   onSuccess,
 }: ProductFormProps) {
   const { data: allTags } = useQuery(productTagQueries.list())
@@ -78,8 +82,11 @@ export function ProductForm({
   const updateIngredient = useUpdateProductIngredient()
 
   const initialForm = useMemo<ProductEditFormInput>(
-    () => (mode === 'edit' ? productToEditForm(product) : emptyProductEditForm()),
-    [mode, product]
+    () =>
+      mode === 'edit'
+        ? productToEditForm(product)
+        : { ...emptyProductEditForm(), name: prefill?.name ?? '', brand: prefill?.brand ?? '' },
+    [mode, product, prefill?.name, prefill?.brand]
   )
   const [form, setForm] = useState<ProductEditFormInput>(initialForm)
 
@@ -96,7 +103,8 @@ export function ProductForm({
       allTags: domainTags,
     })
 
-  const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit')
+  // A prefilled brand came from an existing fiche, so treat it as confirmed (no extra click).
+  const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit' || !!prefill?.brand)
   const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
   const [slugModalOpen, setSlugModalOpen] = useState(false)
 

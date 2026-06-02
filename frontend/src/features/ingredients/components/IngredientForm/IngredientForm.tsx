@@ -30,12 +30,15 @@ type IngredientFormProps =
       mode: 'create'
       ingredient?: never
       initialTags?: TagState[]
+      // Resubmit-after-hide seeds the name so the author doesn't retype it.
+      prefill?: { name?: string }
       onSuccess: (slug: string) => void
     }
   | {
       mode: 'edit'
       ingredient: BaseIngredient
       initialTags?: TagState[]
+      prefill?: never
       onSuccess: (slug: string) => void
     }
 
@@ -43,6 +46,7 @@ export function IngredientForm({
   mode,
   ingredient,
   initialTags = EMPTY_TAGS,
+  prefill,
   onSuccess,
 }: IngredientFormProps) {
   const { data: allTags } = useQuery(productTagQueries.list())
@@ -50,7 +54,7 @@ export function IngredientForm({
   const isAdmin = role === 'admin'
 
   const [form, setForm] = useState<IngredientFormData>({
-    name: ingredient?.name ?? '',
+    name: ingredient?.name ?? prefill?.name ?? '',
     slug: ingredient?.slug ?? '',
     category: ingredient?.category ?? '',
     description: ingredient?.description ?? '',

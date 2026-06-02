@@ -1,7 +1,9 @@
 import '_vars.just'
 import 'dev.just'
 
-# Launch E2E stack (tmpfs DB + migrate + seed) and wait for frontend.
+# Launch E2E stack (tmpfs DB + migrate + snapshot restore) and wait for frontend.
+# Seeds from committed data.sql (full catalog + personas + reviews/bans) rather than
+# seed-core: faster on tmpfs and carries the curated skincare fixtures specs depend on.
 # Ports isolés (5174/3001/5434) — tourne en parallèle avec just dev.
 e2e-up: ts-build
     {{COMPOSE_E2E}} up -d --build
@@ -9,8 +11,9 @@ e2e-up: ts-build
     @until {{COMPOSE_E2E}} exec -T db pg_isready -U app -d appdb >/dev/null 2>&1; do sleep 1; done
     @printf "{{CYAN}}Migrations...{{NC}}\n"
     {{COMPOSE_E2E}} exec -T api bun run src/db/migrate.ts
-    @printf "{{CYAN}}Seed CORE...{{NC}}\n"
-    {{COMPOSE_E2E}} exec -T api bun run src/db/seed/seeders/seed-core.ts --reset
+    @printf "{{CYAN}}Seed from snapshot...{{NC}}\n"
+    {{COMPOSE_E2E}} exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 -c "DO \$\$ DECLARE r record; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname='public') LOOP EXECUTE 'TRUNCATE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE'; END LOOP; END \$\$;"
+    {{COMPOSE_E2E}} exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 < {{SNAPSHOT_FILE}} > /dev/null
     @printf "{{CYAN}}Waiting for frontend...{{NC}}\n"
     @until curl -sf http://localhost:5174 >/dev/null; do sleep 1; done
     @printf "{{GREEN}}✓ E2E stack ready on http://localhost:5174{{NC}}\n"

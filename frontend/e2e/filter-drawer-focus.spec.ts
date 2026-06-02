@@ -9,7 +9,10 @@ test.describe('FilterDrawer — focus trap (real browser only)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products')
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
-    await page.getByRole('button', { name: /^Filtrer$|^Filtrer \(/ }).click()
+    await page
+      .getByRole('button', { name: /^Filtrer$|^Filtrer \(/ })
+      .first()
+      .click()
     await expect(page.getByRole('dialog', { name: 'Filtres' })).toBeVisible()
   })
 

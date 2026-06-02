@@ -13,9 +13,7 @@ function isApi(req: { url(): string }, path: string | RegExp): boolean {
 // the default sort=newest makes the first card volatile across parallel tests
 // that create products mid-run.
 async function gotoFirstProductDetail(page: Page): Promise<string> {
-  const res = await page.request.get(
-    'http://localhost:3000/api/products?category=skincare&sort=name&limit=1'
-  )
+  const res = await page.request.get('/api/products?category=skincare&sort=name&limit=1')
   expect(res.ok()).toBe(true)
   const json = await res.json()
   const slug = json.data.items[0].slug as string
@@ -102,7 +100,7 @@ test.describe('Product edit — clearing nullable fields', () => {
   // PATCH is JWT-guarded; loginAsSeed only sets the refresh cookie. Re-login
   // to fish out an access token usable for setup mutations.
   async function getAccessToken(page: Page): Promise<string> {
-    const res = await page.request.post('http://localhost:3000/api/auth/login', {
+    const res = await page.request.post('/api/auth/login', {
       data: { email: 'seed@seed.com', password: 'Azerty123!seed' },
     })
     expect(res.ok()).toBe(true)
@@ -115,14 +113,12 @@ test.describe('Product edit — clearing nullable fields', () => {
     page: Page,
     sentinel: string
   ): Promise<{ slug: string; id: string }> {
-    const list = await page.request.get(
-      'http://localhost:3000/api/products?category=skincare&sort=name&limit=1'
-    )
+    const list = await page.request.get('/api/products?category=skincare&sort=name&limit=1')
     const slug = (await list.json()).data.items[0].slug as string
-    const detail = await page.request.get(`http://localhost:3000/api/products/${slug}`)
+    const detail = await page.request.get(`/api/products/${slug}`)
     const id = (await detail.json()).data.id as string
     const token = await getAccessToken(page)
-    const setup = await page.request.patch(`http://localhost:3000/api/products/${id}`, {
+    const setup = await page.request.patch(`/api/products/${id}`, {
       headers: { authorization: `Bearer ${token}` },
       data: { url: sentinel },
     })
@@ -152,7 +148,7 @@ test.describe('Product edit — clearing nullable fields', () => {
 
     // Re-fetch the canonical state from the API: url must be null after clear.
     const finalSlug = page.url().split('/').pop() as string
-    const after = await page.request.get(`http://localhost:3000/api/products/${finalSlug}`)
+    const after = await page.request.get(`/api/products/${finalSlug}`)
     expect((await after.json()).data.url).toBeNull()
   })
 
@@ -179,7 +175,7 @@ test.describe('Product edit — clearing nullable fields', () => {
     await expect(page.getByText(newNote)).toBeVisible()
 
     const finalSlug = page.url().split('/').pop() as string
-    const after = await page.request.get(`http://localhost:3000/api/products/${finalSlug}`)
+    const after = await page.request.get(`/api/products/${finalSlug}`)
     const data = (await after.json()).data
     expect(data.url).toBeNull()
     expect(data.notes).toBe(newNote)
@@ -190,7 +186,7 @@ test.describe('Product detail — Ajouter à la collection (top-right)', () => {
   test('opens modal seeded with the current product', async ({ page }) => {
     await gotoFirstProductDetail(page)
     const productName = await page.getByRole('heading', { level: 1 }).innerText()
-    const brand = await page.locator('.product-hero__brand').innerText()
+    const brand = await page.locator('.detail-hero__eyebrow a').innerText()
 
     await page.getByRole('button', { name: /Ajouter à la collection/ }).click()
 
@@ -262,6 +258,8 @@ test.describe('Product detail — Discussions tab', () => {
 
     await page.getByRole('tab', { name: 'Infos', exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/products/${slug}$`))
-    await expect(page.getByRole('heading', { name: 'Informations' })).toBeVisible()
+    await expect(
+      page.getByRole('tab', { name: 'Infos', exact: true, selected: true })
+    ).toBeVisible()
   })
 })
