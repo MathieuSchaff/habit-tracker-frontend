@@ -16,31 +16,24 @@
 
 import type { ProductKind, ProductTexture, TagSource } from '@aurore/shared'
 
-import { eq, inArray, sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
 import {
   brandCertifications,
-  ingredients,
-  productIngredients,
   products,
   productTagLinks,
   productTagTypes,
 } from '../../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
+import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { detectAllAutoTags } from '../..'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 
 const WRITE = process.argv.includes('--write')
 const LIMIT = process.env.LIMIT ? Number.parseInt(process.env.LIMIT, 10) : null
 const CHUNK = 500
-
-interface PercentClaim {
-  ingredientSlug: string
-  concentrationValue: number
-  concentrationUnit: string
-}
 
 async function main() {
   console.log(`🏷  Migrate tag_products.source (${WRITE ? 'WRITE' : 'DRY-RUN'})\n`)
@@ -62,37 +55,15 @@ async function main() {
 
   const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
 
-  const [certRows, claimRows, tagDefs] = await Promise.all([
+  const [certRows, claimsByProduct, tagDefs, concentrationsByProduct] = await Promise.all([
     db.select().from(brandCertifications),
-    db
-      .select({
-        productId: productIngredients.productId,
-        ingredientSlug: ingredients.slug,
-        concentrationValue: productIngredients.concentrationValue,
-        concentrationUnit: productIngredients.concentrationUnit,
-      })
-      .from(productIngredients)
-      .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId)),
+    fetchPercentClaimsByProduct(subset.map((p) => p.id)),
     db.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
+    fetchKnownConcentrationsByProduct(subset.map((p) => p.id)),
   ])
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
   const tagSlugToId = new Map(tagDefs.map((t) => [t.slug, t.id]))
-
-  const claimsByProduct = new Map<string, PercentClaim[]>()
-  for (const r of claimRows) {
-    if (!r.concentrationValue || !r.concentrationUnit) continue
-    const v = Number(r.concentrationValue)
-    if (!Number.isFinite(v)) continue
-    const arr = claimsByProduct.get(r.productId) ?? []
-    arr.push({
-      ingredientSlug: r.ingredientSlug,
-      concentrationValue: v,
-      concentrationUnit: r.concentrationUnit,
-    })
-    claimsByProduct.set(r.productId, arr)
-  }
-  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 
   const orchestratorSource = new Map<string, TagSource>()
   for (const p of subset) {

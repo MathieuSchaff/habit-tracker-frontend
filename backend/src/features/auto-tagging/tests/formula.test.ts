@@ -5,7 +5,6 @@ import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 import {
   detectAbsenceClaimsFromText,
   detectCernesPoches,
-  detectEczemaAtopie,
   detectEczemaAtopieFromName,
   detectFiniMat,
   detectKeratosePilaire,
@@ -350,100 +349,6 @@ describe('detectProtection', () => {
   })
   test('self-tanner without SPF does not fire', () => {
     expect(detectProtection('self-tanner', 'Autobronzant progressif', null)).toEqual([])
-  })
-})
-
-describe('detectEczemaAtopie', () => {
-  test('avena sativa kernel flour (colloidal oatmeal) on body-lotion → eczema-atopie', () => {
-    expect(
-      detectEczemaAtopie('Aqua, Glycerin, Avena Sativa Kernel Flour', 'body-lotion')
-    ).toContain(S.ECZEMA_ATOPIE)
-  })
-
-  test('avena sativa anywhere on serum → eczema-atopie (oat = OTC skin protectant)', () => {
-    const filler = Array.from({ length: 15 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectEczemaAtopie(`Aqua, ${filler}, Avena Sativa Kernel Extract`, 'serum')).toContain(
-      S.ECZEMA_ATOPIE
-    )
-  })
-
-  test('avena sativa on cleanser (rinse-off) → not flagged', () => {
-    expect(detectEczemaAtopie('Aqua, Avena Sativa Kernel Flour, Glycerin', 'cleanser')).toEqual([])
-  })
-
-  test('≥2 ceramides top 12 + no fragrance + no sulfate → eczema-atopie', () => {
-    expect(
-      detectEczemaAtopie(
-        'Aqua, Glycerin, Cetearyl Alcohol, Ceramide NP, Ceramide AP, Cholesterol',
-        'moisturizer'
-      )
-    ).toContain(S.ECZEMA_ATOPIE)
-  })
-
-  test('1 ceramide only → not flagged (≥2 required)', () => {
-    expect(
-      detectEczemaAtopie('Aqua, Glycerin, Cetearyl Alcohol, Ceramide NP', 'moisturizer')
-    ).toEqual([])
-  })
-
-  test('≥2 ceramides + parfum → not flagged (fragrance disqualifies)', () => {
-    expect(
-      detectEczemaAtopie(
-        'Aqua, Glycerin, Ceramide NP, Ceramide AP, Cholesterol, Parfum',
-        'moisturizer'
-      )
-    ).toEqual([])
-  })
-
-  test('≥2 ceramides + fragrance keyword → not flagged', () => {
-    expect(
-      detectEczemaAtopie(
-        'Aqua, Glycerin, Ceramide NP, Ceramide AP, Cholesterol, Fragrance',
-        'moisturizer'
-      )
-    ).toEqual([])
-  })
-
-  test('ceramides past position 12 → not counted (functional concentration cap)', () => {
-    const filler = Array.from({ length: 12 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectEczemaAtopie(`Aqua, ${filler}, Ceramide NP, Ceramide AP`, 'moisturizer')).toEqual(
-      []
-    )
-  })
-
-  test('ceramide combo + sodium lauryl sulfate top 5 → not flagged (sulfate disqualifies)', () => {
-    expect(
-      detectEczemaAtopie(
-        'Aqua, Sodium Lauryl Sulfate, Ceramide NP, Ceramide AP, Cholesterol',
-        'body-lotion'
-      )
-    ).toEqual([])
-  })
-
-  test('null/empty INCI → []', () => {
-    expect(detectEczemaAtopie(null, 'moisturizer')).toEqual([])
-    expect(detectEczemaAtopie('', 'moisturizer')).toEqual([])
-  })
-
-  test('avena sativa kernel + parfum on leave-on → still flagged via oat trigger', () => {
-    expect(
-      detectEczemaAtopie('Aqua, Avena Sativa Kernel Flour, Glycerin, Parfum', 'body-lotion')
-    ).toContain(S.ECZEMA_ATOPIE)
-  })
-
-  test('≥2 ceramides + PARFUM/FRAGRANCE slash-form → not flagged (slash→space normalize)', () => {
-    expect(
-      detectEczemaAtopie(
-        'Aqua, Glycerin, Ceramide NP, Ceramide AP, Cholesterol, Parfum/Fragrance',
-        'moisturizer'
-      )
-    ).toEqual([])
-  })
-
-  test('avena sativa flower/leaf/stem juice (not kernel) → not flagged', () => {
-    expect(
-      detectEczemaAtopie('Aqua, Avena Sativa Flower/Leaf/Stem Juice, Glycerin', 'serum')
-    ).toEqual([])
   })
 })
 

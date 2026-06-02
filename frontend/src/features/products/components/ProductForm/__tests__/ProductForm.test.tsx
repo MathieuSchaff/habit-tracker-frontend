@@ -127,6 +127,28 @@ describe('ProductForm', () => {
     expect(mockSubmit).toHaveBeenCalledTimes(1)
   })
 
+  it('prefills name + brand in create mode and treats the prefilled brand as confirmed', () => {
+    const queryClient = createTestQueryClient()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ProductForm
+          mode="create"
+          prefill={{ name: 'Crème mystère', brand: 'BrandX' }}
+          onSuccess={vi.fn()}
+        />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue('Crème mystère')
+    expect(screen.getByLabelText('Marque')).toHaveValue('BrandX')
+
+    // Brand arrived pre-confirmed, so picking kind + unit alone unlocks submit — no brand re-entry.
+    fireEvent.click(screen.getByRole('radio', { name: 'Sérum' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Pompe' }))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).not.toBeDisabled()
+  })
+
   it('submits the edit form once a field has been modified (form becomes dirty)', () => {
     const queryClient = createTestQueryClient()
     const onSuccess = vi.fn()

@@ -9,10 +9,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
-import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
-
-import { mapKindToContext } from '../../../lib/algo-derm-product-context'
-import { stripMarketingPreamble } from '../lib/ingredient-resolver'
+import { buildPassContext } from '../lib/build-pass-context'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
 import { detectAutoTags } from '../passes/auto-tag-detection'
 import { algoDermPass } from '../passes/auto-tag-detection-pass'
@@ -21,9 +18,8 @@ import { occlusifPass } from '../passes/formula/film-former-pass'
 import { detectPeauNormale } from '../passes/formula/peau-normale'
 import { peauNormalePass } from '../passes/formula/peau-normale-pass'
 
-// Minimal test-only context builder. Mirrors what slice #4's `buildPassContext`
-// will do in production — kept inline here so this slice doesn't reach into
-// the orchestrator. Once #4 lands, tests can migrate to the production helper.
+// Delegates to the production context builder so passes are tested through the
+// same seam the orchestrator uses (no drift between test and prod context).
 function makeCtx(
   input: Pick<PassContext, 'kind' | 'category'> & {
     inci?: string | null
@@ -32,32 +28,17 @@ function makeCtx(
     description?: string | null
   }
 ): PassContext {
-  const inci = input.inci ?? null
-  const hasInci = !!inci?.trim()
-  const cleanedInci = hasInci ? stripMarketingPreamble(inci ?? '') : ''
-  const ingredients = hasInci ? splitINCI(cleanedInci) : []
-  const normalizedIngredients = hasInci ? ingredients.map(normalize) : []
-  const assessment = hasInci
-    ? analyzeINCI(cleanedInci, { context: mapKindToContext(input.kind) })
-    : undefined
-  return {
-    inci,
-    kind: input.kind,
-    category: input.category,
-    brand: input.brand ?? null,
-    texture: null,
-    name: input.name ?? null,
-    description: input.description ?? null,
-    percentClaims: undefined,
-    knownConcentrations: undefined,
-    brandCertifications: undefined,
-    hasInci,
-    cleanedInci,
-    ingredients,
-    normalizedIngredients,
-    assessment,
-    detectAutoTagsOptions: {},
-  }
+  return buildPassContext(
+    {
+      inci: input.inci ?? null,
+      kind: input.kind,
+      category: input.category,
+      brand: input.brand,
+      name: input.name,
+      description: input.description,
+    },
+    {}
+  )
 }
 
 describe('algoDermPass', () => {

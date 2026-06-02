@@ -1,7 +1,6 @@
 export { detectAbsenceClaimsFromText } from './absence-claims'
 export { detectCernesPoches } from './cernes-poches'
 export {
-  detectEczemaAtopie,
   detectEczemaAtopieFromName,
   eczemaAtopieDescriptionNeedsReview,
   partitionEczemaReview,

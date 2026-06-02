@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsSeed } from './helpers/auth'
+import { registerFreshUser } from './helpers/auth'
 
 test.describe('Profile — completion strip', () => {
   test('shows strip with both section buttons for empty profile', async ({ page }) => {
-    await loginAsSeed(page)
+    await registerFreshUser(page)
     await page.goto('/profile')
 
     const strip = page.getByRole('complementary', { name: 'Compléter le profil' })
@@ -15,12 +15,13 @@ test.describe('Profile — completion strip', () => {
   })
 
   test('clicking "Mes informations" opens the hero edit form', async ({ page }) => {
-    await loginAsSeed(page)
+    await registerFreshUser(page)
     await page.goto('/profile')
 
     const strip = page.getByRole('complementary', { name: 'Compléter le profil' })
     await strip.getByRole('button', { name: 'Mes informations' }).click()
 
-    await expect(page.getByLabel("Nom d'utilisateur")).toBeVisible()
+    // Scope to the textbox: a sibling Toggle's hint also matches this label.
+    await expect(page.getByRole('textbox', { name: "Nom d'utilisateur" })).toBeVisible()
   })
 })

@@ -27,6 +27,22 @@ export const roleLabels: Record<UserRole, string> = {
   contributor: 'Modérateur',
 }
 
+const adminErrorMessages: Record<string, string> = {
+  not_a_contributor: "Ce compte n'est pas modérateur.",
+  cannot_self_demote: 'Vous ne pouvez pas vous rétrograder vous-même.',
+  cannot_self_ban: 'Vous ne pouvez pas vous mettre en pause.',
+  already_banned: 'Ce compte est déjà en pause sur cette portée.',
+  not_found: 'Utilisateur introuvable.',
+  forbidden: 'Action non autorisée.',
+  invalid_input: 'Données invalides.',
+  server_error: 'Erreur serveur. Réessayer.',
+  rate_limit_exceeded: 'Trop de tentatives. Réessayer plus tard.',
+}
+
+export function getAdminErrorMessage(err: Error): string {
+  return adminErrorMessages[err.message] ?? 'Une erreur est survenue.'
+}
+
 // Pill colour per role; plain user keeps the neutral base, no modifier.
 const rolePillModifier: Record<UserRole, string> = {
   user: '',

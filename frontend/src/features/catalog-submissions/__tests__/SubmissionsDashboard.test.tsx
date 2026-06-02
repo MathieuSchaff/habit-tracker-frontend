@@ -13,11 +13,30 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
   return {
     ...actual,
-    Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string }) => (
-      <a href={to} {...(rest as object)}>
-        {children}
-      </a>
-    ),
+    Link: ({
+      children,
+      to,
+      search,
+      ...rest
+    }: {
+      children: React.ReactNode
+      to: string
+      search?: Record<string, string | undefined>
+    }) => {
+      const qs = search
+        ? new URLSearchParams(
+            Object.fromEntries(Object.entries(search).filter(([, v]) => v != null)) as Record<
+              string,
+              string
+            >
+          ).toString()
+        : ''
+      return (
+        <a href={qs ? `${to}?${qs}` : to} {...(rest as object)}>
+          {children}
+        </a>
+      )
+    },
   }
 })
 
@@ -89,7 +108,20 @@ describe('SubmissionsDashboard', () => {
     expect(screen.getByText('Masquée')).toBeInTheDocument()
     expect(screen.getByText('Doublon d’une fiche existante.')).toBeInTheDocument()
     const resubmit = screen.getByRole('link', { name: 'Resoumettre' })
-    expect(resubmit).toHaveAttribute('href', '/ingredients/new')
+    const url = new URL(resubmit.getAttribute('href') ?? '', 'http://t')
+    expect(url.pathname).toBe('/ingredients/new')
+    expect(url.searchParams.get('name')).toBe(BASE.name)
+  })
+
+  it('Resoumettre on a hidden product prefills name + brand on /products/new', () => {
+    setupItems([{ ...BASE, moderationStatus: 'hidden', moderationReason: 'Spam.' }])
+    renderWithProviders(<SubmissionsDashboard />)
+
+    const resubmit = screen.getByRole('link', { name: 'Resoumettre' })
+    const url = new URL(resubmit.getAttribute('href') ?? '', 'http://t')
+    expect(url.pathname).toBe('/products/new')
+    expect(url.searchParams.get('name')).toBe(BASE.name)
+    expect(url.searchParams.get('brand')).toBe(BASE.brand)
   })
 
   it('renders the empty state when there are no submissions', () => {

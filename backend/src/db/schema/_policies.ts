@@ -82,13 +82,17 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
 export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgColumn) {
   return [
     // Public reads see 'visible' rows; the moderator (admin∨contributor) also sees
-    // 'hidden' so a reported sheet can be reviewed/restored (ADR-0006 S2). Browse
-    // honesty for plain users + anon is unchanged, they only ever match 'visible'.
+    // 'hidden' so a reported sheet can be reviewed/restored (ADR-0006 S2). The owner
+    // sees their own 'hidden' rows ONLY while app.own_submissions is set (the
+    // /me/submissions path) — plain browse stays honest, the author's hidden sheet
+    // never resurfaces in the public grid. This owner clause is the DB-layer scope
+    // for getMySubmissions; its createdBy filter is then defence-in-depth, not the
+    // sole guard against leaking other users' hidden rows.
     pgPolicy(`${name}_select_visible`, {
       as: 'permissive',
       for: 'select',
       to: appRuntimeRole,
-      using: sql`moderation_status = 'visible' OR (SELECT auth.role()) IN ('admin', 'contributor')`,
+      using: sql`moderation_status = 'visible' OR (SELECT auth.role()) IN ('admin', 'contributor') OR (${createdByColumn} = (SELECT auth.uid()) AND current_setting('app.own_submissions', true) = 'on')`,
     }),
     // Admin/contributor insert anything (incl. seed/CLI via withAdminRls, which
     // sets no app.user_id); user inserts own row only while unverified + visible.

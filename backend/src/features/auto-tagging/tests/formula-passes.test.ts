@@ -11,10 +11,7 @@ import { describe, expect, test } from 'bun:test'
 
 import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
-import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
-
-import { mapKindToContext } from '../../../lib/algo-derm-product-context'
-import { stripMarketingPreamble } from '../lib/ingredient-resolver'
+import { buildPassContext } from '../lib/build-pass-context'
 import { asProposals } from '../lib/pass-helpers'
 import type { Pass, PassContext } from '../lib/pass-types'
 import {
@@ -74,32 +71,17 @@ function makeCtx(input: {
   name?: string | null
   description?: string | null
 }): PassContext {
-  const inci = input.inci ?? null
-  const hasInci = !!inci?.trim()
-  const cleanedInci = hasInci ? stripMarketingPreamble(inci ?? '') : ''
-  const ingredients = hasInci ? splitINCI(cleanedInci) : []
-  const normalizedIngredients = hasInci ? ingredients.map(normalize) : []
-  const assessment = hasInci
-    ? analyzeINCI(cleanedInci, { context: mapKindToContext(input.kind) })
-    : undefined
-  return {
-    inci,
-    kind: input.kind,
-    category: input.category,
-    brand: null,
-    texture: input.texture ?? null,
-    name: input.name ?? null,
-    description: input.description ?? null,
-    percentClaims: undefined,
-    knownConcentrations: undefined,
-    brandCertifications: undefined,
-    hasInci,
-    cleanedInci,
-    ingredients,
-    normalizedIngredients,
-    assessment,
-    detectAutoTagsOptions: {},
-  }
+  return buildPassContext(
+    {
+      inci: input.inci ?? null,
+      kind: input.kind,
+      category: input.category,
+      texture: input.texture,
+      name: input.name,
+      description: input.description,
+    },
+    {}
+  )
 }
 
 // Cases tuned to actually trigger their detector — the equality check still

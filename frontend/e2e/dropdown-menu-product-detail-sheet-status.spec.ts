@@ -18,7 +18,9 @@ test.describe('DropdownMenu × ProductDetailSheet — status picker', () => {
     // ShelfView affiche les UserProducts du seed sous forme de cards.
     // On clique la 1ère card pour ouvrir la Sheet — pas d'assumption sur le nom
     // produit (varie selon seed).
-    const firstCard = page.locator('.prod-card-wrapper, .prod-card').first()
+    // Click the explicit details button — the card wrapper is non-interactive,
+    // its center only landed on this button for some seed layouts.
+    const firstCard = page.getByRole('button', { name: /^Voir les détails/ }).first()
     await expect(firstCard).toBeVisible({ timeout: 15_000 })
     await firstCard.click()
 
@@ -57,7 +59,9 @@ test.describe('DropdownMenu × ProductDetailSheet — status picker', () => {
   test('D3 oracle: Escape ferme le menu sans fermer la Sheet', async ({ page }) => {
     await page.goto('/collection')
 
-    const firstCard = page.locator('.prod-card-wrapper, .prod-card').first()
+    // Click the explicit details button — the card wrapper is non-interactive,
+    // its center only landed on this button for some seed layouts.
+    const firstCard = page.getByRole('button', { name: /^Voir les détails/ }).first()
     await expect(firstCard).toBeVisible({ timeout: 15_000 })
     await firstCard.click()
 
@@ -82,7 +86,9 @@ test.describe('DropdownMenu × ProductDetailSheet — status picker', () => {
   test('kb nav: ArrowDown navigue dans les items', async ({ page }) => {
     await page.goto('/collection')
 
-    const firstCard = page.locator('.prod-card-wrapper, .prod-card').first()
+    // Click the explicit details button — the card wrapper is non-interactive,
+    // its center only landed on this button for some seed layouts.
+    const firstCard = page.getByRole('button', { name: /^Voir les détails/ }).first()
     await expect(firstCard).toBeVisible({ timeout: 15_000 })
     await firstCard.click()
 

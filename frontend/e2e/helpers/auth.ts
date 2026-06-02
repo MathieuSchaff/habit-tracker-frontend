@@ -15,3 +15,14 @@ export async function loginAsSeed(page: Page): Promise<void> {
   })
   expect(res.ok(), `login failed (${res.status()})`).toBe(true)
 }
+
+// Register a throwaway account so the profile starts empty — needed by tests
+// that assert onboarding state (the seeded personas all have complete profiles).
+// Signup sets the refreshToken cookie on the context, same as login.
+export async function registerFreshUser(page: Page): Promise<void> {
+  const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`
+  const res = await page.request.post('/api/auth/signup', {
+    data: { email, password: 'Abcdef12!' },
+  })
+  expect(res.ok(), `signup failed (${res.status()})`).toBe(true)
+}

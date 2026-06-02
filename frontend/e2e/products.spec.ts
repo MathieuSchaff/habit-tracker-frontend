@@ -41,117 +41,126 @@ test.describe('Products page', () => {
   test('sort dropdown changes URL sort param', async ({ page }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: /^Tri :/ }).click()
+    await page.getByRole('button', { name: /^Trier ·/ }).click()
     await page.getByRole('menuitem', { name: 'Nom (A-Z)' }).click()
 
     await expect(page).toHaveURL(/[?&]sort=name/)
-    await expect(page.getByRole('button', { name: /^Tri : Nom \(A-Z\)/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Trier · Nom \(A-Z\)/ })).toBeVisible()
   })
 
   test('search combobox finds product and navigates to detail', async ({ page }) => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
-    await search.fill('retinol')
+    await search.fill('kurl')
 
-    const firstResult = page.getByRole('option').first()
-    await expect(firstResult).toBeVisible({ timeout: 10_000 })
-    await firstResult.click()
+    // Facet/fallback sections render above raw results, so target the product
+    // result by name rather than the first option.
+    const result = page.getByRole('option', { name: /Kurl Nectar Hair Primer/i })
+    await expect(result).toBeVisible({ timeout: 10_000 })
+    await result.click()
 
-    await expect(page).toHaveURL(/\/products\/[^/]+/)
+    await expect(page).toHaveURL(/\/products\/[^/?]+/)
   })
 
   test('search ingredient footer click navigates to filtered list', async ({ page }) => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
-    await search.fill('vitamine c')
+    await search.fill('sodium hyaluronate')
 
     const entry = page
-      .getByRole('option', { name: /voir tous les produits avec vitamine c/i })
+      .getByRole('option', { name: /voir tous les produits avec Acide hyaluronique/i })
       .first()
     await expect(entry).toBeVisible({ timeout: 10_000 })
     await entry.click()
 
-    await expect(page).toHaveURL(/ingredient=.*vitamin-c/)
+    await expect(page).toHaveURL(/ingredient=.*sodium-hyaluronate/)
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
   })
 
-  test('search Enter on ingredient match navigates to filtered list', async ({ page }) => {
+  test('search Enter navigates to ?q= free-text filtered list', async ({ page }) => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
-    await search.fill('niacinamide')
+    await search.fill('kurl')
 
-    // Wait for option (proves debounced match logic ran) before pressing Enter.
+    // Wait for the fallback option (proves debounced match logic ran) before
+    // pressing Enter. Since 34ca1b91 Enter submits a free-text query, not the
+    // highlighted option.
     await expect(
-      page.getByRole('option', { name: /voir tous les produits avec niacinamide/i }).first()
+      page.getByRole('option', { name: /voir tous les résultats pour "kurl"/i }).first()
     ).toBeVisible({ timeout: 10_000 })
     await search.press('Enter')
 
-    await expect(page).toHaveURL(/ingredient=.*niacinamide/)
+    await expect(page).toHaveURL(/[?&]q=kurl/)
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
   })
 
   test('search brand footer click navigates to filtered list', async ({ page }) => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
-    await search.fill('avène')
+    await search.fill('florame')
 
-    const entry = page.getByRole('option', { name: /voir tous les produits avène/i })
+    const entry = page.getByRole('option', { name: /voir tous les produits florame/i })
     await expect(entry).toBeVisible({ timeout: 10_000 })
     await entry.click()
 
-    // "Avène" is URL-encoded as "Av%C3%A8ne" by the default TanStack Router serializer.
-    await expect(page).toHaveURL(/brand=.*Av%C3%A8ne/)
+    await expect(page).toHaveURL(/brand=.*Florame/)
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
   })
 
   test('search free-text fallback (D3) navigates to ?q= filtered list', async ({ page }) => {
     const search = page.getByRole('combobox', { name: 'Rechercher un produit' })
-    await search.fill('matifiant')
+    await search.fill('mask')
 
     // No brand/ingredient match → fallback option rendered.
-    const entry = page.getByRole('option', { name: /voir tous les résultats pour "matifiant"/i })
+    const entry = page.getByRole('option', { name: /voir tous les résultats pour "mask"/i })
     await expect(entry).toBeVisible({ timeout: 10_000 })
     await entry.click()
 
-    await expect(page).toHaveURL(/[?&]q=matifiant/)
+    await expect(page).toHaveURL(/[?&]q=mask/)
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
     // Active filter chip surfaces the live query.
-    await expect(page.getByRole('button', { name: /Retirer le filtre.*matifiant/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Retirer le filtre.*mask/i })).toBeVisible()
   })
 
-  test('filter drawer opens, kind chip toggles, applies filter and active chip removes it', async ({
+  test('filter drawer opens, zone chip toggles, applies filter and active chip removes it', async ({
     page,
   }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: /^Filtrer$|^Filtrer \(/ }).click()
+    await page
+      .getByRole('button', { name: /^Filtrer$|^Filtrer \(/ })
+      .first()
+      .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
     await expect(drawer).toBeVisible()
 
-    // Open the "Recherche précise" advanced accordion which hosts the kind sub-filter.
-    await drawer.getByRole('button', { name: /Recherche précise/ }).click()
-
-    const kindGroup = drawer.getByRole('group', { name: 'Options pour Format' })
-    const kindChip = kindGroup.getByRole('button', { name: 'Nettoyant', exact: true })
-    await expect(kindChip).toBeVisible()
-    await kindChip.click()
-    await expect(kindChip).toHaveAttribute('aria-pressed', 'true')
+    // "Zone" is an essential, default-open tag group — no accordion expand needed.
+    const zoneGroup = drawer.getByRole('group', { name: 'Options pour Zone' })
+    const zoneChip = zoneGroup.getByRole('button', { name: /^Visage/ })
+    await expect(zoneChip).toBeVisible()
+    await zoneChip.click()
+    await expect(zoneChip).toHaveAttribute('aria-pressed', 'true')
 
     await drawer.getByRole('button', { name: 'Appliquer les filtres sélectionnés' }).click()
     await expect(drawer).toBeHidden()
 
-    const activeChip = page.getByRole('button', { name: /Retirer le filtre Nettoyant/ })
+    const activeChip = page.getByRole('button', { name: /Retirer le filtre Visage/ })
     await expect(activeChip).toBeVisible()
-    await expect(page).toHaveURL(/kind=.*cleanser/)
+    await expect(page).toHaveURL(/skin_zone=/)
 
     await activeChip.click()
     await expect(activeChip).toBeHidden()
-    await expect(page).not.toHaveURL(/kind=.*cleanser/)
+    await expect(page).not.toHaveURL(/skin_zone=/)
   })
 
   test('price filter applies, shows chip, and chip removes it', async ({ page }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: /^Filtrer$|^Filtrer \(/ }).click()
+    await page
+      .getByRole('button', { name: /^Filtrer$|^Filtrer \(/ })
+      .first()
+      .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
 
+    // Price lives in a collapsed <details> accordion; expand it before filling.
+    await drawer.getByRole('heading', { name: 'Prix' }).click()
     const minInput = drawer.getByLabel('Prix minimum en euros')
     await minInput.fill('50')
     await minInput.press('Enter')
@@ -171,36 +180,46 @@ test.describe('Products page', () => {
   test('"Tout effacer" clears all active filters', async ({ page }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    // Seed two filters: a kind via drawer + a price range.
-    await page.getByRole('button', { name: /^Filtrer$|^Filtrer \(/ }).click()
+    // Seed two tag filters from default-open essential groups; both commit
+    // together on Apply (no price-accordion navigation race).
+    await page
+      .getByRole('button', { name: /^Filtrer$|^Filtrer \(/ })
+      .first()
+      .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
 
-    await drawer.getByRole('button', { name: /Recherche précise/ }).click()
-    const kindGroup = drawer.getByRole('group', { name: 'Options pour Format' })
-    await kindGroup.getByRole('button', { name: 'Sérum', exact: true }).click()
-
-    const minInput = drawer.getByLabel('Prix minimum en euros')
-    await minInput.fill('20')
-    await minInput.press('Enter')
+    await drawer
+      .getByRole('group', { name: 'Options pour Zone' })
+      .getByRole('button', { name: /^Visage/ })
+      .click()
+    await drawer.getByRole('button', { name: /^Barrière cutanée/ }).click()
 
     await drawer.getByRole('button', { name: 'Appliquer les filtres sélectionnés' }).click()
     await expect(drawer).toBeHidden()
 
-    await expect(page.getByRole('button', { name: /Retirer le filtre Sérum/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Retirer le filtre Prix/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Retirer le filtre Visage/ })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /Retirer le filtre Barrière cutanée/ })
+    ).toBeVisible()
 
     await page.getByRole('button', { name: 'Retirer tous les filtres' }).click()
 
-    await expect(page.getByRole('button', { name: /Retirer le filtre Sérum/ })).toBeHidden()
-    await expect(page.getByRole('button', { name: /Retirer le filtre Prix/ })).toBeHidden()
+    await expect(page.getByRole('button', { name: /Retirer le filtre Visage/ })).toBeHidden()
+    await expect(
+      page.getByRole('button', { name: /Retirer le filtre Barrière cutanée/ })
+    ).toBeHidden()
   })
 
   test('impossible price filter shows empty state with reset action', async ({ page }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: /^Filtrer$|^Filtrer \(/ }).click()
+    await page
+      .getByRole('button', { name: /^Filtrer$|^Filtrer \(/ })
+      .first()
+      .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
 
+    await drawer.getByRole('heading', { name: 'Prix' }).click()
     // Min > Max yields zero rows on any tab.
     await drawer.getByLabel('Prix minimum en euros').fill('99999')
     await drawer.getByLabel('Prix maximum en euros').fill('100000')

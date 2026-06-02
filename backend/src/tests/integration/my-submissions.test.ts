@@ -6,15 +6,9 @@ import { products } from '../../db/schema/products/products'
 import { testDb } from '../db.test.config'
 import { setupDbTests } from '../db-setup'
 import { createTestClient, type TestClient, withAuth } from '../helpers/createTestClient'
+import { login } from '../helpers/login'
 import { TEST_CREDENTIALS } from '../helpers/test-credentials'
 import { createTestContributorUser, createTestUser } from '../helpers/test-factories'
-
-async function login(client: TestClient, email: string, password: string): Promise<string> {
-  const res = await client.auth.login.$post({ json: { email, password } })
-  const data = await res.json()
-  if (!data.success) throw new Error('login failed in my-submissions test setup')
-  return data.data.accessToken
-}
 
 setupDbTests()
 

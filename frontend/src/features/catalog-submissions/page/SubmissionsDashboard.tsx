@@ -66,6 +66,11 @@ export function SubmissionsDashboard() {
                     )}
                     <Button
                       to={item.kind === 'product' ? '/products/new' : '/ingredients/new'}
+                      search={
+                        item.kind === 'product'
+                          ? { name: item.name, brand: item.brand ?? undefined }
+                          : { name: item.name }
+                      }
                       variant="outline"
                       size="sm"
                     >

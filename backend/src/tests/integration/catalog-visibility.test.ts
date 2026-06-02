@@ -295,6 +295,60 @@ describe('catalog visibility — RLS: hidden product excluded from public reads 
     expect(names).not.toContain('Hidden Serum')
     expect(names).toContain('Visible Serum')
   })
+
+  it('GET /products does not return the owner own hidden product (browse stays honest)', async () => {
+    const app = await buildRlsApp()
+    const ownerEmail = 'rls-owner-browse@test.local'
+    const ownerPw = 'Azerty123!'
+    const owner = await createTestUser(ownerEmail, ownerPw)
+
+    await createProduct(
+      owner.id,
+      'admin',
+      {
+        name: 'Owner Visible Serum',
+        brand: 'OwnerVisibleBrand',
+        category: 'skincare' as const,
+        kind: 'serum' as const,
+        unit: 'dropper' as const,
+      },
+      testDb,
+      { autoTag: false }
+    )
+    const hidden = await createProduct(
+      owner.id,
+      'admin',
+      {
+        name: 'Owner Hidden Serum',
+        brand: 'OwnerHiddenBrand',
+        category: 'skincare' as const,
+        kind: 'serum' as const,
+        unit: 'dropper' as const,
+      },
+      testDb,
+      { autoTag: false }
+    )
+    await testDb
+      .update(products)
+      .set({ moderationStatus: 'hidden' })
+      .where(eq(products.id, hidden.id))
+
+    const token = await loginViaApp(app, ownerEmail, ownerPw)
+    const res = await app.request('/products?category=skincare', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const body = (await res.json()) as {
+      success: true
+      data: { items: Array<{ name: string }> }
+    }
+
+    expect(body.success).toBe(true)
+    const names = body.data.items.map((i) => i.name)
+    // app.own_submissions is unset on the browse path, so the owner's hidden sheet
+    // must not resurface here — it surfaces only via GET /me/submissions.
+    expect(names).not.toContain('Owner Hidden Serum')
+    expect(names).toContain('Owner Visible Serum')
+  })
 })
 
 // 3. Join cross-feature: hidden product drops join rows (T-1)

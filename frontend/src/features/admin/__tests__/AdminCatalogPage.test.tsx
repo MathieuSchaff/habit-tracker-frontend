@@ -165,4 +165,65 @@ describe('AdminCatalogPage', () => {
     expect(screen.getByRole('button', { name: 'Restaurer' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Vérifier' })).not.toBeInTheDocument()
   })
+
+  it('forwards the moderator note typed on hide as body.reason', async () => {
+    setupQuery([UNVERIFIED_PRODUCT])
+    const { moderate } = setupMutations()
+    renderWithProviders(<AdminCatalogPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer' }))
+    await userEvent.type(await screen.findByLabelText('Note du modérateur'), 'spam')
+    await confirmDialog('Masquer')
+
+    await waitFor(() => {
+      expect(moderate).toHaveBeenCalledWith(
+        {
+          target: 'products',
+          id: UNVERIFIED_PRODUCT.id,
+          body: { status: 'hidden', reason: 'spam' },
+        },
+        expect.objectContaining({ onError: expect.any(Function) })
+      )
+    })
+  })
+
+  it('surfaces an error banner when a hide mutation fails', async () => {
+    setupQuery([UNVERIFIED_PRODUCT])
+    const verify = vi.fn()
+    const moderate = vi.fn((_vars, opts?: { onError?: () => void }) => opts?.onError?.())
+    vi.mocked(useVerifyCatalogItem).mockReturnValue({
+      mutate: verify,
+      isPending: false,
+    } as unknown as ReturnType<typeof useVerifyCatalogItem>)
+    vi.mocked(useModerateContent).mockReturnValue({
+      mutate: moderate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useModerateContent>)
+    renderWithProviders(<AdminCatalogPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer' }))
+    await confirmDialog('Masquer')
+
+    expect(await screen.findByText(/action a échoué/i)).toBeInTheDocument()
+  })
+
+  it('surfaces an error banner when a verify mutation fails', async () => {
+    setupQuery([UNVERIFIED_PRODUCT])
+    const verify = vi.fn((_vars, opts?: { onError?: () => void }) => opts?.onError?.())
+    const moderate = vi.fn()
+    vi.mocked(useVerifyCatalogItem).mockReturnValue({
+      mutate: verify,
+      isPending: false,
+    } as unknown as ReturnType<typeof useVerifyCatalogItem>)
+    vi.mocked(useModerateContent).mockReturnValue({
+      mutate: moderate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useModerateContent>)
+    renderWithProviders(<AdminCatalogPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
+    await confirmDialog('Vérifier')
+
+    expect(await screen.findByText(/action a échoué/i)).toBeInTheDocument()
+  })
 })

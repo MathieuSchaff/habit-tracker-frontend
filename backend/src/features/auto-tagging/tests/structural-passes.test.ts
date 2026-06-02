@@ -8,12 +8,9 @@ import { describe, expect, test } from 'bun:test'
 
 import { detectKindTags, SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
-import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
-
 import type { BrandCertification } from '../../../db/schema/products/brand-certifications'
 import { normalizeBrand } from '../../../db/schema/products/brand-certifications'
-import { mapKindToContext } from '../../../lib/algo-derm-product-context'
-import { stripMarketingPreamble } from '../lib/ingredient-resolver'
+import { buildPassContext } from '../lib/build-pass-context'
 import { asProposals } from '../lib/pass-helpers'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
 import { detectActifClasses } from '../passes/actif-class-detection'
@@ -39,32 +36,16 @@ function makeCtx(
     percentClaims?: PassContext['percentClaims']
   }
 ): PassContext {
-  const inci = input.inci ?? null
-  const hasInci = !!inci?.trim()
-  const cleanedInci = hasInci ? stripMarketingPreamble(inci ?? '') : ''
-  const ingredients = hasInci ? splitINCI(cleanedInci) : []
-  const normalizedIngredients = hasInci ? ingredients.map(normalize) : []
-  const assessment = hasInci
-    ? analyzeINCI(cleanedInci, { context: mapKindToContext(input.kind) })
-    : undefined
-  return {
-    inci,
-    kind: input.kind,
-    category: input.category,
-    brand: input.brand ?? null,
-    texture: null,
-    name: null,
-    description: null,
-    percentClaims: input.percentClaims,
-    knownConcentrations: undefined,
-    brandCertifications: input.brandCertifications,
-    hasInci,
-    cleanedInci,
-    ingredients,
-    normalizedIngredients,
-    assessment,
-    detectAutoTagsOptions: {},
-  }
+  return buildPassContext(
+    {
+      inci: input.inci ?? null,
+      kind: input.kind,
+      category: input.category,
+      brand: input.brand,
+      percentClaims: input.percentClaims,
+    },
+    { brandCertifications: input.brandCertifications }
+  )
 }
 
 const ACTIF_INCI = 'Aqua, Niacinamide, Ascorbic Acid, Tocopherol, Glycerin, Squalane'

@@ -21,7 +21,7 @@ import {
   useModerateProfileVisibility,
 } from '@/lib/queries/admin'
 import { useAuthStore } from '@/store/auth'
-import { adminLabels, roleLabels } from '../constants'
+import { adminLabels, getAdminErrorMessage, roleLabels } from '../constants'
 
 const routeApi = getRouteApi('/admin/users_/$userId')
 
@@ -132,7 +132,7 @@ function RoleCard({ userId }: { userId: string }) {
     if (reason.trim().length > 0) body.reason = reason.trim()
     // No toast: the card unmounts on success (contributor gone), which is the confirmation.
     demote.mutate(body, {
-      onError: (err) => setError(err.message),
+      onError: (err) => setError(getAdminErrorMessage(err)),
     })
   }
 
@@ -198,7 +198,7 @@ function CreateBanCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }
         setExpiresAt('')
         setSuccess('Mise en pause appliquée.')
       },
-      onError: (err) => setError(err.message),
+      onError: (err) => setError(getAdminErrorMessage(err)),
     })
   }
 
