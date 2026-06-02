@@ -2,7 +2,7 @@ import type { BanScope } from '@aurore/shared'
 
 import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 
-import type { Database } from '../../db'
+import type { Database, Transaction } from '../../db'
 import { type UserBan, userBans } from '../../db/schema'
 
 // Admin-pool query bypasses RLS: identity-layer read, caller already authenticated
@@ -34,13 +34,19 @@ function writeCache(userId: string, ban: UserBan | null): void {
 }
 
 // Matches the given scope or any active 'global' ban. Active = expiresAt IS NULL OR expiresAt > now().
+// useCache=false reads fresh and skips the cache entirely. The login gate uses
+// it: a one-shot security check shouldn't trust (nor warm) the request-path
+// cache, else a login warms `null` and masks a ban applied seconds later.
 export async function isUserBanned(
-  db: Database,
+  db: Database | Transaction,
   userId: string,
-  scope: 'global' = 'global'
+  scope: 'global' = 'global',
+  useCache = true
 ): Promise<UserBan | null> {
-  const cached = readCache(userId)
-  if (cached) return cached.ban
+  if (useCache) {
+    const cached = readCache(userId)
+    if (cached) return cached.ban
+  }
 
   const nowIso = new Date().toISOString()
   const rows = await db
@@ -57,7 +63,7 @@ export async function isUserBanned(
     .limit(1)
 
   const ban = rows[0] ?? null
-  writeCache(userId, ban)
+  if (useCache) writeCache(userId, ban)
   return ban
 }
 

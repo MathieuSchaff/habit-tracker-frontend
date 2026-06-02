@@ -74,6 +74,41 @@ test.describe('Product detail — Modifier', () => {
     await expect(page.getByText(newNote)).toBeVisible()
   })
 
+  // Legacy products carry a long space-separated inci that predates the
+  // comma-or-short write rule. Editing notes must not re-validate (and 400 on)
+  // that untouched field — the form omits unchanged values.
+  test('editing notes on a product with legacy long inci does not 400', async ({ page }) => {
+    const slug = 'avene-dermabsolu-creme-jour'
+    const detail = await page.request.get(`/api/products/${slug}`)
+    const inci = (await detail.json()).data.inci as string
+    // Guard: this fixture must still be the legacy shape, else the test is moot.
+    expect(inci.length).toBeGreaterThan(100)
+    expect(inci).not.toContain(',')
+
+    await page.goto(`/products/${slug}/edit`)
+    await expect(page).toHaveURL(new RegExp(`/products/${slug}/edit$`))
+
+    const newNote = `e2e legacy-inci ${Date.now()}`
+    await page.locator('#edit-notes').fill(newNote)
+
+    const patchPromise = page.waitForRequest(
+      (req) => req.method() === 'PATCH' && /\/api\/products\/[0-9a-f-]{36}$/.test(req.url())
+    )
+    const respPromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'PATCH' && /\/api\/products\/[0-9a-f-]{36}$/.test(res.url())
+    )
+    await page.getByRole('button', { name: /^Enregistrer$|^Enregistrement…$/ }).click()
+
+    const req = await patchPromise
+    // Unchanged inci is omitted, not re-sent.
+    expect('inci' in req.postDataJSON()).toBe(false)
+    expect((await respPromise).status()).toBe(200)
+
+    await expect(page).toHaveURL(/\/products\/[^/]+$/, { timeout: 15_000 })
+    await expect(page.getByText(newNote)).toBeVisible()
+  })
+
   test('"Annuler" returns to detail without firing PATCH', async ({ page }) => {
     const slug = await gotoFirstProductDetail(page)
     await page.getByRole('link', { name: /Modifier/ }).click()

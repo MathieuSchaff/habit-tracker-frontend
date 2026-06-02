@@ -638,6 +638,13 @@
       "when": 1780365074626,
       "tag": "0090_lowly_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1780433900000,
+      "tag": "0091_role_admin_promotion_backstop",
+      "breakpoints": true
     }
   ]
 }
