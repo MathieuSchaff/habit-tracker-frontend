@@ -1,36 +1,30 @@
 // Gold-set annotations for auto-tag precision/recall measurement (audit O2).
 //
-// A hand-maintained corpus (~1226 products as of 2026-05-25) where each product
-// is hand-judged on the 26 focus tags listed below. Used to compute precision / recall / F1 / Brier /
-// ECE per tag from the orchestrator output, so calibration moves can be
-// verified against a stable ground truth instead of running blind.
+// Hand-maintained corpus (~1226 products as of 2026-05-25), each product judged
+// on the 29 focus tags. Drives precision/recall/F1/Brier/ECE per tag so
+// calibration changes can be verified against stable ground truth.
 //
-// Selective annotation: a tag is `present` when the annotator confirms it
-// fits, `absent` when it explicitly does not, otherwise `unrated`. Unrated
-// tags do not contribute to per-tag metrics — they are out of scope for that
-// product (often outside the annotator's confidence). This keeps the gold
-// set small enough to maintain by hand without forcing exhaustive judgments.
+// Selective annotation: `present` = annotator confirms the tag fits, `absent` =
+// explicitly does not, otherwise `unrated`. Unrated tags are excluded from
+// per-tag metrics, keeping the corpus maintainable without exhaustive judgments.
 //
-// Schema is intentionally narrow: no per-tag confidence by the annotator,
-// no relevance distinction (gold focuses on `secondary` membership; the
-// orchestrator's `avoid` decisions are validated via the existing safety-net
-// tests, not the gold set).
+// Schema is narrow by design: no annotator confidence, no relevance distinction.
+// Gold targets `secondary` membership; `avoid` correctness is validated via
+// safety-net tests, not the gold set.
 
 import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
 export const GOLD_SET_SCHEMA_VERSION = '2026-05-08' as const
 
-// 29 tags in scope for the focus-calibration gold set. Mirrors the
-// "calibrated 2026-05-08" subset documented in AUTO-TAGS.md §"Récap reprise":
-//   - 9 actif-class clusters recalibrated to recall=100% (positionCap: ∞)
-//   - 3 sensoriels Tier-1 (formula heuristics)
-//   - 3 acid clusters carrying the design-conserved positionCap=10 drift
-//   - 10 algo-derm concerns (acne-imperfections, anti-age, hyperpigmentation, barriere-cutanee, apaisant, deshydratation, pores-sebum, rougeurs-vasculaires, eclat-teint-uniforme, protection) — §20 piste f pilot
-//   - 4 formula-pass concerns (keratose-pilaire, eczema-atopie, reparation-cutanee, cernes-poches) — §20 piste f, formula-layer expansion
+// 29 focus tags, "calibrated 2026-05-08" subset (AUTO-TAGS.md §"Récap reprise"):
+//   - 9 actif-class clusters (positionCap: ∞)
+//   - 3 sensoriel Tier-1 (formula heuristics)
+//   - 3 acid clusters (positionCap=10 drift preserved by design)
+//   - 10 algo-derm concerns, §20 piste f pilot
+//   - 4 formula-pass concerns, §20 piste f, formula-layer expansion
 //
-// `satisfies` enforces every entry resolves to a real Aurore tag slug at
-// compile time — drift on a renamed slug shows up as a TS error here, not
-// at benchmark runtime.
+// `satisfies` catches slug renames at compile time instead of silently skewing
+// benchmark metrics at runtime.
 export const GOLD_SET_FOCUS_TAGS = [
   'retinoids',
   'vitamin-c',
@@ -44,7 +38,7 @@ export const GOLD_SET_FOCUS_TAGS = [
   'fini-mat',
   'texture-legere',
   'texture-riche',
-  // formula-pass concern layer — §20 piste f
+  // formula-pass concern layer (§20 piste f)
   'keratose-pilaire',
   'eczema-atopie',
   'reparation-cutanee',
@@ -52,7 +46,7 @@ export const GOLD_SET_FOCUS_TAGS = [
   'aha',
   'bha',
   'pha',
-  // algo-derm concern layer — §20 piste f pilot
+  // algo-derm concern layer (§20 piste f pilot)
   'acne-imperfections',
   'anti-age',
   'hyperpigmentation',
@@ -77,27 +71,19 @@ export interface GoldSetAnnotation {
   productSlug: string
   kind: ProductKind
   category: string
-  // Confirmed-correct tags. Annotator vouches that this tag fits the product.
   present: GoldSetFocusTag[]
-  // Confirmed-incorrect tags. Annotator vouches that this tag does NOT fit.
-  // A tag in neither `present` nor `absent` is `unrated` — metrics ignore it.
+  // Tag in neither `present` nor `absent` is `unrated`: excluded from metrics.
   absent: GoldSetFocusTag[]
-  // ISO date of annotation creation or last edit. Bootstrap stamps "" until
-  // the annotator fills `present`/`absent`.
+  // Bootstrap stamps "" until the annotator fills `present`/`absent`.
   annotatedAt: string
-  // Hint surfaced by the bootstrap: which focus tag(s) caused this product
-  // to be sampled. Non-authoritative — present to help the annotator focus
-  // when triaging the corpus.
+  // Which focus tag(s) caused this product to be sampled. Non-authoritative.
   sampledFor?: GoldSetFocusTag[]
-  // Free-text reasoning for borderline calls. Optional.
   notes?: string
 }
 
 export interface GoldSetFile {
   schemaVersion: typeof GOLD_SET_SCHEMA_VERSION
-  // Optional free-form ruleset id — pinned at bootstrap time for traceability
-  // (e.g. "products-branch@a4934d1f"). Lets a benchmark report tie metrics
-  // to the rule version that produced them.
+  // Pinned at bootstrap time so benchmark reports can be tied to a rule version.
   rulesetVersion?: string
   annotations: GoldSetAnnotation[]
 }
@@ -109,8 +95,7 @@ export class GoldSetValidationError extends Error {
   }
 }
 
-// Strict load: validates schema version, no duplicate productSlug, every
-// tag in present/absent ∈ FOCUS_TAGS, present ∩ absent = ∅. Mutates nothing.
+// Validates: schema version, no duplicate productSlug, every tag ∈ FOCUS_TAGS, present ∩ absent = ∅.
 export async function loadGoldSet(path: string): Promise<GoldSetFile> {
   const file = Bun.file(path)
   if (!(await file.exists())) {
@@ -212,10 +197,8 @@ function checkTagList(value: unknown, field: string, where: string): GoldSetFocu
   return out
 }
 
-// Stable serializer for diff-friendly file writes. Sorts annotations by
-// productSlug, sorts present/absent/sampledFor alphabetically, omits
-// undefined optional fields. Use for `gold-set-bootstrap` and any future
-// programmatic editor.
+// Deterministic serializer for diff-friendly writes: sorts by productSlug,
+// sorts present/absent/sampledFor alphabetically, omits undefined fields.
 export function serializeGoldSet(file: GoldSetFile): string {
   const sorted = [...file.annotations].sort((a, b) => a.productSlug.localeCompare(b.productSlug))
   const out = {

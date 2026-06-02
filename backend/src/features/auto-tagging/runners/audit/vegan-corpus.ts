@@ -1,26 +1,17 @@
-// Spot-check audit for the `vegan` auto-tag (audit B.7).
+// Spot-check audit for the vegan auto-tag (audit B.7). Read-only.
 //
-// Read-only. Random sample of products marked `vegan` in tag_products,
-// scanned against an EXTENDED ambiguous-animal-pattern list — broader than
-// `formula-detection.ts:ANIMAL_PATTERNS` — to surface candidate false
-// positives. The vegan tag fires at 80 % of the corpus (`AUTO-TAGS.md` §T1
-// application), which makes precision validation the bottleneck before
-// trusting it on UI.
+// Random sample of vegan-tagged products scanned against an extended
+// ambiguous-animal-pattern list (broader than formula-detection.ts:ANIMAL_PATTERNS).
+// Vegan fires at ~80% of corpus, so precision is the bottleneck before trusting it on UI.
 //
-// Output: per-product table of suspect INCI matches + per-pattern hit count.
-// Decision is offline (resserrer ANIMAL_PATTERNS vs deferral T4 brand-level).
+// Output: per-product suspect INCI matches + per-pattern hit count.
+// Decision (tighten ANIMAL_PATTERNS vs deferral T4 brand-level) is offline.
 //
-// Tunables via env:
-//   SAMPLE_SIZE  optional 30   — number of random products to inspect
-//   SEED         optional       — deterministic random sample (any string)
-//   PRUNE        optional 1     — destructive: delete vegan tag_products rows
-//                                 for products with Tier A INCI matches across
-//                                 the FULL corpus (ignores SAMPLE_SIZE). Skips
-//                                 the random scan; runs the targeted prune only.
-//                                 Backfill is insert-only (no delete), so this
-//                                 path is required to retroactively clean FP.
-//
-// Run: bun run backend/src/features/auto-tagging/runners/audit/vegan-corpus.ts
+// Env:
+//   SAMPLE_SIZE  optional 30  : products to inspect
+//   SEED         optional     : deterministic sample (any string)
+//   PRUNE        optional 1   : delete vegan rows for Tier A INCI matches across FULL corpus.
+//                               Backfill is insert-only, so this is required to retroactively clean FP.
 
 import { normalize, splitINCI } from 'algo-derm'
 import { and, eq, ilike, inArray, or } from 'drizzle-orm'
@@ -33,34 +24,23 @@ const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 
 const SEED = process.env.SEED
 const PRUNE = process.env.PRUNE === '1'
 
-// Ambiguous patterns NOT in `formula-detection.ts:ANIMAL_PATTERNS` today.
-// Each entry: pattern + rationale. Goal is to find products where these
-// surface so we can decide whether to add the pattern or accept the FP risk.
+// Patterns not yet in formula-detection.ts:ANIMAL_PATTERNS.
+// Tier A: clearly animal, add to ANIMAL_PATTERNS if found.
+//   gelatin/gelatine: collagen-derived, porcine/bovine/marine origin
+//   oyster: mollusk; colostrum: bovine milk; lactalbumin: milk protein
+//   bee venom/apitoxin: apiculture byproduct; egg/albumin: chicken-derived
+//   pearl / lactoperoxidase: already in ANIMAL_PATTERNS post-B.7 (mirrored
+//     here to verify zero hits on re-run; non-zero = regression).
 //
-// Tier A (clearly animal — should add to ANIMAL_PATTERNS if found):
-//   gelatin / gelatine    — collagen-derived, dairy/marine/porcine origin
-//   oyster                — mollusk
-//   colostrum             — bovine milk derivative
-//   lactalbumin           — milk protein
-//   bee venom / apitoxin  — apiculture byproduct
-//   egg / albumin         — chicken-derived
-// (Already covered by ANIMAL_PATTERNS as of 2026-05-08 audit pass:
-//   pearl extract / powder / protein → `pearl ` (post-B.7);
-//   lactoperoxidase → standalone (post-B.7).
-//  Kept here so the audit re-scans them and reports zero hits if patterns hold.)
+// Tier B: ambiguous (animal or plant, INCI alone can't distinguish).
+//   stearic acid: bovine tallow historically, mostly plant today
+//   palmitic acid: same ambiguity; cetyl alcohol: palm or animal fat
+//   glycerin: skipped (90%+ corpus hit rate, too noisy)
 //
-// Tier B (ambiguous — could be animal OR plant; flag for review):
-//   stearic acid         — bovine tallow derivative historically; today
-//                          mostly plant, but no INCI distinction
-//   glycerin             — same ambiguity (skipped — too noisy, glycerin in 90 %+ corpus)
-//   palmitic acid        — same ambiguity as stearic
-//   cetyl alcohol        — same ambiguity (palm or animal fat)
-//
-// Tier C (already covered by current ANIMAL_PATTERNS — sanity bucket):
-//   collagen, keratin, milk, snail, beeswax, lanolin, etc.
+// Tier C (already covered, sanity bucket): collagen, keratin, milk, snail, beeswax, lanolin.
 const TIER_A_PATTERNS = [
   'gelatin',
-  'gelatine', // FR
+  'gelatine',
   'oyster',
   'colostrum',
   'lactalbumin',
@@ -68,8 +48,6 @@ const TIER_A_PATTERNS = [
   'apitoxin',
   'egg ',
   'albumin',
-  // Mirrored from formula-detection.ts ANIMAL_PATTERNS (post-B.7) so re-runs
-  // verify zero hits — non-zero would mean the pattern regressed.
   'pearl ',
   'lactoperoxidase',
 ] as const
@@ -99,7 +77,6 @@ async function main() {
   console.log(`🥬 Audit vegan corpus (spot-check)`)
   console.log(`   sample_size=${SAMPLE_SIZE}${SEED ? ` · seed=${SEED}` : ' · random'}\n`)
 
-  // All products tagged vegan. Joined to product_tags_defs to filter by slug.
   const veganRows = await db
     .select({
       id: products.id,
@@ -119,7 +96,6 @@ async function main() {
   const withInci = veganRows.filter((r) => r.inci?.trim())
   console.log(`   ${withInci.length} avec INCI exploitable\n`)
 
-  // Sample. Deterministic if SEED set (cheap mulberry32).
   const rng = SEED ? makeSeededRng(SEED) : Math.random
   const sample = sampleRandom(withInci, SAMPLE_SIZE, rng)
 
@@ -163,7 +139,6 @@ async function main() {
     }
   }
 
-  // Reporting
   console.log(`🎯 Échantillon`)
   console.log(`   ${sample.length} produits inspectés`)
   console.log(`   ${tierAHits.length} matches Tier A (clairement animal — FP candidates)`)
@@ -201,7 +176,6 @@ async function main() {
     console.log()
   }
 
-  // Per-pattern frequency summary.
   if (patternFreq.size > 0) {
     console.log(`📈 Fréquence par pattern (toutes tiers)`)
     const sorted = [...patternFreq.entries()].sort((a, b) => b[1] - a[1])
@@ -212,7 +186,6 @@ async function main() {
     console.log()
   }
 
-  // Decision hint based on Tier A count.
   console.log(`🧭 Recommandation`)
   if (tierAHits.length === 0) {
     console.log(`   Tier A = 0 sur ${sample.length} → précision actuelle solide.`)
@@ -236,9 +209,7 @@ async function main() {
   console.log()
 }
 
-// Targeted prune of confirmed Tier A FP across the full corpus. SQL filter
-// builds an OR over Tier A patterns mirrored in `formula-detection.ts`
-// ANIMAL_PATTERNS, so the prune scope tracks the source-of-truth list.
+// SQL OR over Tier A patterns; prune scope tracks formula-detection.ts:ANIMAL_PATTERNS.
 async function pruneFalsePositives(): Promise<void> {
   console.log(`🪦 Prune vegan FP (Tier A INCI match → DELETE tag_products row)`)
 
@@ -286,7 +257,7 @@ async function pruneFalsePositives(): Promise<void> {
 
 function sampleRandom<T>(arr: readonly T[], k: number, rng: () => number): T[] {
   if (k >= arr.length) return [...arr]
-  // Reservoir sampling (algorithm R).
+  // Algorithm R reservoir sampling.
   const out = arr.slice(0, k) as T[]
   for (let i = k; i < arr.length; i++) {
     const j = Math.floor(rng() * (i + 1))
@@ -295,7 +266,7 @@ function sampleRandom<T>(arr: readonly T[], k: number, rng: () => number): T[] {
   return out
 }
 
-// Mulberry32 — fast deterministic PRNG. Seed string hashed via FNV-1a.
+// Mulberry32 PRNG; seed hashed via FNV-1a.
 function makeSeededRng(seed: string): () => number {
   let h = 2166136261 >>> 0
   for (let i = 0; i < seed.length; i++) {

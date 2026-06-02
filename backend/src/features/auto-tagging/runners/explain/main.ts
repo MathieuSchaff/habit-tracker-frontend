@@ -1,17 +1,17 @@
-// Explain CLI for the auto-tag pipeline. Read-only — no writes, no DB mutation.
+// Explain CLI for the auto-tag pipeline. Read-only: no writes, no DB mutation.
 //
 // Two modes:
 //   1. INCI trace (default): `bun run .../explain/main.ts [--kind serum]
-//      [--category skincare] "<raw INCI>"` — prints the layers that fired, each
+//      [--category skincare] "<raw INCI>": prints the layers that fired, each
 //      proposal + its merge outcome, why algo-derm candidates were dropped, the
 //      primary promotion, and the final tag set. Wraps `explainInci` (the shared
 //      service); the CLI only parses argv and formats.
-//   2. Catalogue counts: `--counts` — GROUP BY on tag_products for the real
+//   2. Catalogue counts: `--counts`, GROUP BY on tag_products for the real
 //      stored counts per tag / cluster (product_tags.type) / level (relevance).
 //      Not the audit runner (that aggregates dry-run predictions, not stored rows).
 //
 // Invoked inside the api container via `just explain-auto-tags` (env: INCI, KIND,
-// CATEGORY, COUNTS) — see scripts/just/audit.just.
+// CATEGORY, COUNTS); see scripts/just/audit.just.
 
 import { PRODUCT_KIND_LABELS, type ProductKind } from '@aurore/shared'
 
@@ -22,8 +22,6 @@ import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
 
 const VALID_KINDS = new Set(Object.keys(PRODUCT_KIND_LABELS))
-
-// Argv
 
 interface Args {
   counts: boolean
@@ -46,8 +44,6 @@ function parseArgs(argv: string[]): Args {
   }
   return { counts, kind, category, inci: positional.join(' ') }
 }
-
-// INCI trace
 
 function printTrace(trace: ExplainTrace, kind: string, category: string): void {
   console.log(`🔍 Explain auto-tags — kind=${kind} category=${category}\n`)
@@ -88,10 +84,8 @@ function printTrace(trace: ExplainTrace, kind: string, category: string): void {
   console.log()
 }
 
-// Catalogue counts
-
 async function runCounts(): Promise<void> {
-  // Bypass RLS so the count covers the full catalogue (mirrors the audit runner).
+  // SET LOCAL bypasses RLS so the count covers the full catalogue.
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const rows = await db
     .select({
@@ -134,8 +128,6 @@ async function runCounts(): Promise<void> {
   console.log()
 }
 
-// Helpers
-
 function sortDesc(m: Map<string, number>): [string, number][] {
   return [...m.entries()].sort((a, b) => b[1] - a[1])
 }
@@ -147,8 +139,6 @@ function pad(s: string, w: number): string {
 function rpad(s: string, w: number): string {
   return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
-
-// Main
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))

@@ -7,7 +7,7 @@ export function nowISO(): string {
 }
 
 // Bun.sql returns timestamptz columns as PG-formatted strings
-// ("2026-05-07 06:42:48.729+00") — normalize to ISO 8601 UTC at the API
+// ("2026-05-07 06:42:48.729+00"), normalize to ISO 8601 UTC at the API
 // boundary so the wire matches the documented convention.
 export function normalizeInstant(value: string): string {
   return new Date(value).toISOString()
@@ -17,7 +17,7 @@ export function todayCalendarUTC(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-// Extract the calendar-date portion (UTC) from an ISO instant — never local tz.
+// Extract the calendar-date portion (UTC) from an ISO instant, never local tz.
 export function instantToCalendar(iso: string): string {
   return iso.slice(0, 10)
 }

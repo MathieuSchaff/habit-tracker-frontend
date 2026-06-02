@@ -1,4 +1,4 @@
-// Pass wrapper around `detectKindTags` — ADR-0001.
+// Pass wrapper around `detectKindTags`. ADR-0001.
 //
 // Kind-derived TYPE_* / STEP_* / ZONE_* / MOMENT_* / TEXTURE_* tags.
 // `detectKindTags` lives in `@aurore/shared` because the same mapping

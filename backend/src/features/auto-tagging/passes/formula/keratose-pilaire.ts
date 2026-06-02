@@ -5,16 +5,15 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Keratose-pilaire
 // KP-specific signal for body leave-on products. Two triggers:
-//   A) Urea in top 8 INCI — at functional keratolytic concentration (≥ 10 %)
-//      urea sits early. Tail urea is humectant trace (< 5 %) and won't help KP.
-//   B) Lactic acid + ammonium lactate both in top 10 — the AmLactin / Lac-Hydrin
+//   A) Urea in top 8 INCI: at functional keratolytic concentration (>=10%)
+//      urea sits early. Tail urea is humectant trace (<5%) and won't help KP.
+//   B) Lactic acid + ammonium lactate both in top 10: the AmLactin / Lac-Hydrin
 //      buffered-lactate format used clinically for KP. Either alone is just a
 //      pH adjuster, but the combo signals the buffered formulation.
 //
-// Eligible kinds: body-lotion, body-oil. Exclude rinse-off (wash, scrub) —
-// contact time too short for keratolysis. Exclude hand/foot cream — different
+// Eligible kinds: body-lotion, body-oil. Exclude rinse-off (wash, scrub):
+// contact time too short for keratolysis. Exclude hand/foot cream: different
 // concern domain (cracked skin, not the perifollicular bumps of KP).
 
 const KP_ELIGIBLE_KINDS = new Set<ProductKind>(['body-lotion', 'body-oil'])

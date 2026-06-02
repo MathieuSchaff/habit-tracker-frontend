@@ -1,13 +1,13 @@
-// Per-tag hit-rate budgets — calibration drift detector for auto-tagging.
+// Per-tag hit-rate budgets: calibration drift detector for auto-tagging.
 //
 // Each entry caps the proportion of products (within a category) that may fire
 // a given tag. The `CHECK=1` mode of `runners/audit/main.ts` validates the
 // current corpus against this table:
 //
-//   FAIL — hit_rate > max  (regression: tag fires on too much of the corpus)
-//   FAIL — min defined and hit_rate < min  (structural tag stopped firing)
-//   WARN — tag fires but has no budget entry  (unrecorded — add one)
-//   OK   — within bounds
+//   FAIL: hit_rate > max  (regression: tag fires on too much of the corpus)
+//   FAIL: min defined and hit_rate < min  (structural tag stopped firing)
+//   WARN: tag fires but has no budget entry  (unrecorded, add one)
+//   OK: within bounds
 //
 // Why per-category: skincare/solaire/bodycare have different INCI distributions
 // (sunscreens are filter-heavy, body washes are surfactant-heavy). A single
@@ -17,13 +17,13 @@
 // How to (re)seed: run `DUMP_BUDGETS=1 just audit-auto-tags`, paste the emitted
 // block here, then tighten the sensitive tags (comedogene, non-comedogene,
 // peau-sensible, hypoallergenique) by hand. The auto baseline is
-// `max = min(1, ceil(current_hit_rate * 1.5, 0.05))` — generous headroom on
+// `max = min(1, ceil(current_hit_rate * 1.5, 0.05))`: generous headroom on
 // most tags but too loose for safety-relevant signals.
 //
 // `min` is optional. Set it for tags that MUST fire on a category (e.g. a
 // kind-derived `zone-visage` on skincare). Absent → only the max cap applies.
 //
-// Tags with `allow: false` in TAG_CONFIG are excluded — they already drop
+// Tags with `allow: false` in TAG_CONFIG are excluded; they already drop
 // upstream and never need a budget. Tags re-emitted from `passes/formula/*`
 // (peaux_atopiques, repulpant, matifiant) are covered here under their Aurore
 // slugs; their algo-derm candidates fall as `unmapped` and don't show in the
@@ -59,10 +59,10 @@ export type TagBudgetTable = Partial<
 // sensitives hand-tightened below that (see markers).
 //
 // Sensitives:
-//   - `comedogene`        — leave-on only, safety-relevant. Tight cap.
-//   - `non-comedogene`    — high-stake claim, must not creep on noisy INCI.
-//   - `peau-sensible`     — broad proxy for reactive-skin avoid flows.
-//   - `hypoallergenique`  — regulatory-adjacent claim.
+//   - `comedogene`: leave-on only, safety-relevant. Tight cap.
+//   - `non-comedogene`: high-stake claim, must not creep on noisy INCI.
+//   - `peau-sensible`: broad proxy for reactive-skin avoid flows.
+//   - `hypoallergenique`: regulatory-adjacent claim.
 export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   skincare: {
     'sans-sulfates': { max: 1.0 }, // hit_rate=80.9%

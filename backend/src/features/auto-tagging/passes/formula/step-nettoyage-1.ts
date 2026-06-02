@@ -5,7 +5,6 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Step-nettoyage-1
 // First step of a double-cleanse: oil/balm cleanser. Used to dissolve sebum,
 // makeup, and sunscreen before a water-based second cleanser. Distinguishing
 // signal:
@@ -54,7 +53,7 @@ const OIL_BALM_PATTERNS = [
 // Aligned with algo-derm `sulfate_surfactant` heuristic group rule
 // `[lauryl, laureth, myreth, coco, cetearyl, coceth] × [sulfate]`. Each
 // alkyl variant listed explicitly here so substring matcher catches
-// `Sodium Coco-Sulfate`, `Disodium Coceth Sulfate`, etc. — without these,
+// `Sodium Coco-Sulfate`, `Disodium Coceth Sulfate`, etc.; without these,
 // foam cleansers using SLES alternatives would slip through and FP-tag
 // as `step-nettoyage-1` (oil cleanser). Sulfonate kept for olefin-type
 // anionic surfactants.
@@ -81,7 +80,6 @@ export function detectStepNettoyage1(
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
 
-  // Trigger A: oil/ester in top 3
   const oilCap = Math.min(ingredients.length, STEP1_OIL_POSITION_CAP)
   let oilFound = false
   for (let i = 0; i < oilCap; i++) {
@@ -92,7 +90,7 @@ export function detectStepNettoyage1(
   }
   if (!oilFound) return []
 
-  // Trigger B: no ionic surfactant in top 5 (rules out foaming gel cleansers)
+  // No ionic surfactant in top 5 (rules out foaming gel cleansers)
   const surfCap = Math.min(ingredients.length, STEP1_SURFACTANT_EXCLUSION_CAP)
   for (let i = 0; i < surfCap; i++) {
     if (IONIC_SURFACTANT_PATTERNS.some((p) => ingredients[i].includes(p))) return []

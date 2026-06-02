@@ -18,7 +18,7 @@ export type Transaction = PgTransaction<
   ExtractTablesWithRelations<typeof schema>
 >
 
-// Accepts both the main db instance and a transaction — use this in services
+// Accepts both the main db instance and a transaction, use this in services
 export type DB = BunSQLDatabase<typeof schema> | Transaction
 
 export const db = drizzle(client, { schema }) as Database

@@ -96,10 +96,9 @@ export async function moderateProduct(
   args: ModerateArgs
 ): Promise<ModerateContentResult> {
   if (args.body.status === 'visible') {
-    // Unhiding can collide with a live row that took this product's name+brand
-    // while it was hidden (V-3). Pre-check surfaces that row (409 + details) so
-    // the admin can resolve it, instead of a bare 23505. Only name+brand can clash
-    // — the full slug index keeps this product's own slug reserved meanwhile.
+    // Unhiding can collide with a visible row that claimed this product's name+brand
+    // while it was hidden (V-3). Pre-check surfaces that row (409 + details) instead
+    // of a bare 23505. The full slug index keeps this product's slug reserved meanwhile.
     const [self] = await db
       .select({ name: products.name, brand: products.brand })
       .from(products)
@@ -139,9 +138,7 @@ export async function moderateProduct(
     if (!row) return { success: false, error: 'not_found' }
     return { success: true, data: row }
   } catch (e) {
-    // Unhiding (→ visible) can re-collide with the partial unique index on
-    // visible rows (V-3) → re-throw 409 so withRlsContext rolls back; a
-    // catch-and-return on an aborted tx would COMMIT it (= 500).
+    // Re-throw so withRlsContext rolls back; a catch-and-return on an aborted tx would COMMIT it (500).
     translateUniqueViolation(e, () => new ProductError('product_already_exists'))
   }
 }
@@ -151,9 +148,8 @@ export async function moderateIngredient(
   args: ModerateArgs
 ): Promise<ModerateContentResult> {
   if (args.body.status === 'visible') {
-    // Unhiding can collide with a live ingredient that took this one's slug while
-    // it was hidden (V-3 — ingredient slug index is partial-visible). Pre-check
-    // surfaces that row (409 + details) so the admin can resolve it.
+    // Unhiding can collide with an ingredient that claimed this slug while hidden
+    // (V-3, partial-visible slug index). Pre-check surfaces that row (409 + details).
     const [self] = await db
       .select({ slug: ingredients.slug })
       .from(ingredients)
@@ -293,17 +289,15 @@ export async function previewIngredient(db: Database, id: string): Promise<Conte
   return { success: true, data: { kind: 'ingredient', authorUsername: null, ...row } }
 }
 
-// Runs under the router's withRlsContext (caller's role bound); a moderator's role
-// passes the select policy for hidden rows too — no admin bypass needed.
+// withRlsContext binds the caller's role; the moderation select policy covers hidden rows, no admin bypass needed.
 export async function listCatalogQueue(
   db: Database,
   filters: CatalogQueueQuery
 ): Promise<CatalogQueueResponse> {
   const status = filters.status ?? 'visible'
   if (filters.kind === 'product') {
-    // Only constrain quality when the caller asks for it: the "Masqués" view passes
-    // status='hidden' with no quality, intending all hidden rows — a default would
-    // hide verified-then-hidden products from the moderator who hid them.
+    // Only constrain quality when explicitly requested: the hidden view passes no quality,
+    // intending all hidden rows; a default would suppress verified-then-hidden entries.
     const qualityClause = filters.quality ? eq(products.catalogQuality, filters.quality) : undefined
     const rows = await db
       .select({

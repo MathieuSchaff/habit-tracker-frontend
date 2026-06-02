@@ -36,7 +36,6 @@ export async function handleGoogleCallback(
 
     const { sub: googleSub, email, picture } = claims
 
-    // Check if user already exists via Google account
     const existingByGoogle = await getUserByGoogleSub(ctx.db, googleSub)
 
     if (existingByGoogle) {
@@ -44,7 +43,7 @@ export async function handleGoogleCallback(
       return ok({ user: toPublicUser(existingByGoogle), ...tokenPair })
     }
 
-    // Link to existing local account with same email
+    // Link Google sub to existing local account with the same email.
     const existingByEmail = await getUser(ctx.db, email)
 
     if (existingByEmail) {
@@ -53,7 +52,6 @@ export async function handleGoogleCallback(
       return ok({ user: toPublicUser(existingByEmail), ...tokenPair })
     }
 
-    // Create new user from Google sign-up
     const user = await ctx.db.transaction(async (tx) => {
       const newUser = await createUser(tx, {
         email: emailSchema.parse(email),
@@ -61,7 +59,7 @@ export async function handleGoogleCallback(
         emailVerifiedAt: nowISO(),
       })
       await tx.update(users).set({ googleSub }).where(eq(users.id, newUser.id))
-      // Set RLS context so the profiles insert passes WITH CHECK on app_runtime.
+      // RLS context required so the profiles INSERT passes WITH CHECK on app_runtime.
       await bindRlsContext(tx, newUser.id)
       await createProfile(tx, newUser.id, { avatarUrl: picture ?? null })
       return newUser

@@ -42,9 +42,7 @@ const TARGET_TO_MODERATE: Record<
 
 export function AdminReportsPage() {
   const [tab, setTab] = useState<ReportTab>('open')
-  // Account-level surface: the users list (emails, roles, ban state) is admin-only.
-  // A contributor (« modérateur ») gets a content-only queue — never account PII
-  // (ADR-0006 S1). Gate both the fetch (enabled) and every render of derived data.
+  // Moderator gets content-only queue, never account PII (ADR-0006 S1).
   const isAdmin = useAuthStore((s) => s.role === 'admin')
   const isEscalatedView = tab === 'escalated'
   const statusFilter: ReportStatus | undefined = tab === 'escalated' ? undefined : tab

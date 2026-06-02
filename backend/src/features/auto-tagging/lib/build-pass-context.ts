@@ -1,14 +1,10 @@
-// Builds a `PassContext` once per product (ADR-0001 cutover).
+// Builds a `PassContext` once per product (ADR-0001).
 //
-// Performs the §D.3 hoist: split INCI + analyze it once, share the result
-// across every pass that touches normalized ingredients or the algo-derm
-// assessment. The orchestrator no longer juggles these locals — it just
-// hands the context to `AUTO_TAG_PASSES`.
+// §D.3 hoist: split INCI + analyze once, shared across all passes.
 //
-// Marketing preamble ("...Ingrédients : ...") is stripped before splitINCI
-// so position-rules (top-8 butter/wax for texture-riche, etc.) don't fire
-// on prose chunks for products with French/Korean brand prose ahead of the
-// real INCI list (~589 seed products affected pre-cleanup).
+// Marketing preamble is stripped before splitINCI so position-rules
+// (top-8 butter/wax for texture-riche, etc.) don't fire on prose chunks
+// (~589 seed products with French/Korean brand prose ahead of the INCI list).
 
 import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
 

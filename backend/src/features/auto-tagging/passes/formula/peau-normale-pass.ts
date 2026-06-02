@@ -1,4 +1,4 @@
-// Pass wrapper around `detectPeauNormale` — ADR-0001.
+// Pass wrapper around `detectPeauNormale`, ADR-0001.
 //
 // Reads `prior` to satisfy the detector's `alreadyProposedSkinTypes` argument
 // (abstain when any non-neutral skin_type already fired). The orchestrator no

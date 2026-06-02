@@ -24,13 +24,13 @@ export function FilterAccordion<T extends string>({
     (sum, sf) => sum + (localFilters[sf.key]?.length ?? 0),
     0
   )
-  // Lock initial open at mount; browser owns it after so React never re-asserts and overrides a native toggle.
+  // Read once at mount; browser owns toggle state after, React must not re-assert.
   const [initialOpen] = useState(() => group.defaultOpen || totalSelected > 0)
   const detailsRef = useRef<HTMLDetailsElement>(null)
   const summaryRef = useRef<HTMLElement>(null)
   const contentId = useId()
 
-  // Escape inside a chip closes the accordion; otherwise it would bubble to the parent <dialog> and close the whole drawer.
+  // Stops Escape from bubbling to the parent <dialog>, which would close the whole drawer.
   const escapeHandler = (e: React.KeyboardEvent) => {
     if (e.key !== 'Escape') return
     const details = detailsRef.current
@@ -52,7 +52,7 @@ export function FilterAccordion<T extends string>({
         className="filter-accordion__trigger"
         aria-controls={contentId}
       >
-        {/* h3 inside <summary>: preserves SR heading nav without breaking the required first-child position. */}
+        {/* h3 inside <summary>: preserves screen-reader heading nav without breaking the required first-child position. */}
         <h3 className="filter-accordion__label">{group.label}</h3>
         <div className="filter-accordion__meta">
           {totalSelected > 0 && (

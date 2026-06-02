@@ -130,7 +130,7 @@ aurore/
 
 ## Quick start
 
-> **Important**: the monorepo has a `shared` TypeScript package. Docker doesn't always have the build cache at startup, so build the types locally first.
+> **Important**: `just dev` runs a host-side TypeScript preflight before Docker starts. Dev containers execute TypeScript source directly; host `dist/` files are for typechecking, not runtime.
 
 ```bash
 # First-time setup: deps, hooks and env template

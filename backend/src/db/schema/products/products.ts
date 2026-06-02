@@ -38,16 +38,13 @@ export const products = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     brand: text('brand').notNull(),
-    // broad category: skincare, complément, haircare, etc.
     category: text('category').notNull().$type<ProductCategory>(),
-    // specific product type within a category: serum, cleanser, gélule, etc.
     kind: text('kind').notNull().$type<ProductKind>(),
-    // Sensoriel feel — orthogonal to `kind`. A `cleanser` can be gel/mousse/
-    // huile/baume; a `moisturizer` can be creme/gel/lait. NULL when not yet
-    // captured (admin-curated for the long tail). Drives S5 sensoriel tagging.
+    // Orthogonal to `kind`: a cleanser can be gel/mousse/huile/baume. NULL when
+    // not yet captured (admin-curated for the long tail). Drives S5 sensoriel tagging.
     texture: text('texture').$type<ProductTexture>(),
-    // amountUnit differs from unit when dosage and container units differ
-    // (e.g. dosed in "gouttes" but the bottle is in "mL"). When identical, amountUnit is null.
+    // Differs from amountUnit when dosage and container units differ
+    // (e.g. dosed in "gouttes" but bottle in "mL"). When identical, amountUnit is null.
     unit: text('unit').notNull().$type<ProductUnit>(),
     inci: text('inci'),
     description: text('description'),
@@ -70,17 +67,15 @@ export const products = pgTable(
       .on(sql`norm(${t.name})`, sql`norm(${t.brand})`)
       .where(sql`${t.moderationStatus} = 'visible'`),
     uniqueIndex('products_slug_unique').on(t.slug),
-    // Trigram GIN indexes feed `searchProducts` / `findSimilarProducts` —
-    // both rely on `similarity()` and `ILIKE %q%` which seq-scan otherwise.
+    // `searchProducts`/`findSimilarProducts` use `similarity()` + `ILIKE %q%`, which seq-scan without these.
     index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
     index('products_brand_trgm_idx').using('gin', sql`${t.brand} gin_trgm_ops`),
     check(
       'products_category_check',
       sql`${t.category} IN ('skincare','solaire','complement','haircare','bodycare','dental')`
     ),
-    // Cross-field: kind must be valid FOR its category. Values mirror
-    // shared/src/products/kinds.ts PRODUCT_KINDS map. Keep in sync if either set
-    // changes. Literal lists chosen for audit-friendliness (cf 0057 precedent).
+    // kind must be valid for its category. Values mirror PRODUCT_KINDS in shared/src/products/kinds.ts.
+    // Keep in sync if either set changes. Literal lists for audit-friendliness (see migration 0057).
     check(
       'products_kind_category_check',
       sql`(

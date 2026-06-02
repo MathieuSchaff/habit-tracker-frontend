@@ -1,9 +1,6 @@
 // Pass interface for the auto-tag pipeline (ADR-0001).
-//
-// Each pass receives a hoisted `PassContext` and the dedup'd `prior` accumulator,
-// and returns proposals carrying their own relevance + source metadata. The
-// orchestrator no longer wraps slug arrays with hardcoded ('secondary', 'formula')
-// tuples — passes declare their own attribution.
+// Passes declare their own relevance + source attribution; the orchestrator no
+// longer wraps slug arrays with hardcoded ('secondary', 'formula') tuples.
 
 import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
@@ -26,9 +23,8 @@ export type AutoTagSource =
 
 export type AutoTagRelevance = 'primary' | 'secondary' | 'avoid'
 
-// `confidence` is populated by the algo-derm pass for concern tags so the
-// post-step primary promotion can read it back from the accumulator (no
-// side-channel through orchestrator-local variables).
+// `confidence` lets the primary-promote step read algo-derm concern scores
+// back from the accumulator without a side-channel through orchestrator locals.
 export interface AutoTagProposal {
   readonly tagSlug: SkincareProductTagSlug
   readonly relevance: AutoTagRelevance
@@ -36,20 +32,16 @@ export interface AutoTagProposal {
   readonly confidence?: number
 }
 
-// Public-facing shape returned by `detectAllAutoTags`. Strips `confidence`
-// because downstream persistence (DB writers, audit CSV, backfill stats)
-// uses only (tagSlug, relevance, source). Kept mutable to preserve the
-// pre-ADR-0001 API contract.
+// Public shape returned by `detectAllAutoTags`. Strips `confidence` because
+// downstream consumers (DB writers, audit CSV) use only (tagSlug, relevance,
+// source). Mutable to preserve the pre-ADR-0001 API contract.
 export interface AutoTagPair {
   tagSlug: SkincareProductTagSlug
   relevance: AutoTagRelevance
   source: AutoTagSource
 }
 
-// Built once per product by the orchestrator. Hoisted INCI work
-// (`cleanedInci`, `ingredients`, `normalizedIngredients`, `assessment`) is
-// shared across every pass — the §D.3 hoist that today's orchestrator
-// already performs, lifted into a typed context.
+// Built once per product; hoisted INCI work shared across every pass (§D.3 hoist).
 export interface PassContext {
   readonly inci: string | null | undefined
   readonly kind: ProductKind

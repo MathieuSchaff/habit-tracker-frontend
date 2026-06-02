@@ -1,19 +1,12 @@
 // Shared helper for detectors that need a normalized INCI ingredient array.
 //
-// `detectAllAutoTags` (orchestrator.ts) hoists `splitINCI(inci).map(normalize)`
-// once per product so the full pass registry can share the same array (audit
-// O3 D.3 — avoid splitINCI × N when many detectors fire on the same product).
-//
-// Each detector accepts an optional `hoisted` array as last argument:
-//   - When provided (orchestrator path), reuse it directly.
-//   - When omitted (direct call from tests / runners that don't hoist),
-//     fall back to splitting locally — backward compatible.
+// `hoisted` allows the orchestrator to share a single splitINCI result across
+// all passes (audit O3 D.3). When omitted, falls back to splitting locally
+// for test/runner callers that don't hoist.
 
 import { normalize, splitINCI, stripPreamble } from 'algo-derm'
 
-// Re-export under the legacy local name so existing callers stay untouched.
-// algo-derm `stripPreamble` is now the source of truth for the marker regex
-// (parser.ts) — Aurore consumers used to ship a duplicate of the same logic.
+// Legacy alias: algo-derm `stripPreamble` is the source of truth; Aurore used to duplicate it.
 export const stripMarketingPreamble = stripPreamble
 
 export function resolveIngredients(
@@ -25,12 +18,10 @@ export function resolveIngredients(
   return splitINCI(stripPreamble(inci)).map(normalize)
 }
 
-// Korean brands and some EU products list INCI alphabetically rather than by
-// concentration. Position-based detector rules (top 8 butter/wax, top 10
-// AHA/BHA, etc.) then mean nothing. Detect: take first 8 letter-starting
-// tokens (skip digit-prefixed like "1,2-hexanediol"), require non-decreasing
-// order AND ≥ 3 distinct first letters (rules out repeated single-letter
-// fixtures and short INCIs that happen to be sorted).
+// Korean brands and some EU products list INCI alphabetically, not by concentration.
+// Position-based rules (top-8 butter/wax, top-10 AHA/BHA, etc.) are meaningless on these.
+// Detection: first 8 letter-starting tokens (skips digit-prefixed like "1,2-hexanediol"),
+// non-decreasing order, and ≥3 distinct first letters (avoids short sorted-by-chance INCIs).
 const ALPHA_DETECT_WINDOW = 8
 const ALPHA_DETECT_MIN_TOKENS = 5
 const ALPHA_DETECT_MIN_DISTINCT_LETTERS = 3

@@ -1,8 +1,6 @@
-// Helpers shared by Pass implementations (ADR-0001).
-//
-// `asProposals` wraps slug-emitting detectors with constant metadata.
-// `priorSlugsBySource` / `priorSlugSet` let later passes read upstream pass
-// output from the dedup'd accumulator without orchestrator-managed state.
+// Pass helpers. ADR-0001.
+// `priorSlugsBySource` / `priorSlugSet` let passes read upstream output from
+// the dedup'd accumulator without orchestrator-managed state.
 
 import type { SkincareProductTagSlug } from '@aurore/shared'
 

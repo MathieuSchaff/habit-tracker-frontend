@@ -1,7 +1,3 @@
-/**
- * I use this to see if the error is because a value already exists in the database.
- * PostgreSQL uses the code 23505 for unique problems.
- */
 export function isUniqueViolation(e: unknown): boolean {
   if (!(e instanceof Error)) return false
 
@@ -11,7 +7,7 @@ export function isUniqueViolation(e: unknown): boolean {
     return e.errno || e.code
   }
 
-  // Drizzle often hides the real error inside the "cause" property, so I check there first.
+  // Drizzle wraps the driver error in `cause`.
   if ('cause' in e && e.cause instanceof Error) {
     return getErrorCode(e.cause) === '23505'
   }

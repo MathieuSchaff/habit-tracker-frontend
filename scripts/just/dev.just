@@ -2,7 +2,7 @@ import '_vars.just'
 
 ALGO_DERM_DIR := "../algo-derm"
 
-# Launch dev environment (builds types first)
+# Launch dev environment after host-side TypeScript preflight
 dev: ts-build
     {{COMPOSE_DEV}} up --build
 
@@ -10,20 +10,18 @@ dev: ts-build
 dev-down:
     {{COMPOSE_DEV}} down
 
-# Launch dev in background (builds types first)
+# Launch dev in background after host-side TypeScript preflight
 dev-d: ts-build
     {{COMPOSE_DEV}} up -d --build
 
 # Full clean + install + types + docker (preserves pgdata)
 dev-fresh: ts-clean install-deps ts-build
     {{COMPOSE_DEV}} down 2>/dev/null || true
-    docker volume rm aurore_root_node_modules aurore_backend_node_modules aurore_frontend_node_modules 2>/dev/null || true
     {{COMPOSE_DEV}} up --build
 
 # Full rebuild without cache (after adding dependencies)
-dev-rebuild:
+dev-rebuild: ts-build
     {{COMPOSE_DEV}} down
-    docker volume rm aurore_root_node_modules aurore_backend_node_modules aurore_frontend_node_modules 2>/dev/null || true
     {{COMPOSE_DEV}} build --no-cache
     {{COMPOSE_DEV}} up
 
@@ -63,7 +61,6 @@ vendor-algo-derm:
 # Full backend rebuild (volumes + image)
 reinstall-backend:
     {{COMPOSE_DEV}} down
-    docker volume rm aurore_backend_node_modules aurore_root_node_modules 2>/dev/null || true
     {{COMPOSE_DEV}} build --no-cache api
     {{COMPOSE_DEV}} up -d
     @printf "{{GREEN}}✓ Backend reinstalled{{NC}}\n"
@@ -71,7 +68,6 @@ reinstall-backend:
 # Full frontend rebuild (volumes + image)
 reinstall-frontend:
     {{COMPOSE_DEV}} down
-    docker volume rm aurore_frontend_node_modules aurore_root_node_modules 2>/dev/null || true
     {{COMPOSE_DEV}} build --no-cache frontend
     {{COMPOSE_DEV}} up -d
     @printf "{{GREEN}}✓ Frontend reinstalled{{NC}}\n"
@@ -80,7 +76,7 @@ reinstall-frontend:
 ts-check:
     bunx tsc -b --watch
 
-# Build shared + backend types (required before Docker)
+# Host-side preflight: TanStack routes + TypeScript project check
 ts-build:
     @printf "{{CYAN}}Generating TanStack routes...{{NC}}\n"
     cd frontend && bunx @tanstack/router-cli generate

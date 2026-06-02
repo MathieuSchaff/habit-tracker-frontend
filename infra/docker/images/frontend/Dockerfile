@@ -2,7 +2,7 @@
 FROM oven/bun:1.3.12-alpine AS builder
 WORKDIR /app
 
-# Copier structure workspace
+# Manifests workspace
 COPY package.json bun.lock ./
 COPY frontend/package.json frontend/
 COPY shared/package.json shared/
@@ -10,16 +10,16 @@ COPY backend/package.json backend/
 COPY vendor/ vendor/
 RUN bun install --frozen-lockfile
 
-# Copie complète des workspaces
+# Source needed for typecheck + Vite build
 COPY frontend/ frontend/
 COPY shared/ shared/
 COPY backend/ backend/
 
-# 🔥 Build des types (obligatoire pour Hono RPC + schémas)
+# Build declarations consumed by frontend/package.json `tsc -b`
 RUN cd /app/shared && bun run build
 RUN cd /app/backend && bun run build
 
-# Build Vite
+# Typecheck + Vite build
 WORKDIR /app/frontend
 ENV NODE_ENV=production
 RUN bun run build

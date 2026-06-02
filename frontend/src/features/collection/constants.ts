@@ -58,7 +58,6 @@ export const pdsLabels = {
 // Holy Grail is sentiment=6, not a status - orthogonal to these tabs.
 export const PRIMARY_SHELF_ORDER: UserProductStatus[] = ['in_stock', 'wishlist', 'watched']
 
-// Past products and rejects live in the "Plus" overflow.
 export const SECONDARY_SHELF_ORDER: UserProductStatus[] = ['archived', 'avoided']
 
 // "Tout" excludes archived + avoided so the default view stays calm.
@@ -106,7 +105,6 @@ export const sortLabels: Record<SortOption, string> = {
   price_desc: 'Prix ↓',
 }
 
-// Card chip color thresholds (score out of 20).
 export const SCORE_THRESHOLDS = {
   gold: 17,
   rare: 14,

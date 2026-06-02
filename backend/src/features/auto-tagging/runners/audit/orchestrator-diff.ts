@@ -1,35 +1,16 @@
-// Snapshot + diff runner for the auto-tag orchestrator (audit O1).
+// Snapshot + diff runner for the auto-tag orchestrator (audit O1). Read-only.
 //
-// Read-only. Two modes, both write CSV — no DB mutation.
+// Snapshot mode (BASELINE unset): writes full (product, tag, relevance, source) set to CSV_OUT.
+// Diff mode (BASELINE set): computes delta vs prior snapshot; action in {added, removed, relevance_changed}.
+// Source-only changes are intentionally not reported (no observable effect).
 //
-//   1. Snapshot mode (BASELINE unset)
-//      Runs `detectAllAutoTags` on every eligible product and writes the
-//      complete (product, tag, relevance, source) set to CSV_OUT. Use this
-//      to pin the current rule output before changing calibration.
+// Needed because backfill is insert-only (onConflictDoNothing/onConflictDoUpdate('avoid')):
+// it cannot surface what a rule tightening would remove. Only two snapshots can.
 //
-//   2. Diff mode (BASELINE set)
-//      Runs the orchestrator NOW, then reads the BASELINE CSV (a prior
-//      snapshot) and writes the delta to CSV_OUT:
-//        action ∈ { added, removed, relevance_changed }
-//      Source changes alone (same product/tag/relevance, different source)
-//      are intentionally NOT reported — they're rule reshuffles with no
-//      observable effect.
-//
-// Workflow for measuring a calibration change:
-//   1. CSV_OUT=baseline.csv bun run …/audit-orchestrator-diff.ts
-//   2. (edit rules, e.g. tighten a pattern in passes/formula/)
-//   3. CSV_OUT=diff.csv BASELINE=baseline.csv bun run …/audit-orchestrator-diff.ts
-//   4. Spot-check diff.csv — a tightening should add 0 / remove some.
-//
-// Why this is needed: backfill is insert-only with onConflictDoNothing /
-// onConflictDoUpdate('avoid'). It cannot tell you what *would have been
-// removed* by a rule tightening. Only the orchestrator's would-emit set,
-// captured at two moments, surfaces removals.
-//
-// Tunables via env:
-//   CSV_OUT     required       — path to write
-//   BASELINE    optional       — path to prior snapshot CSV; switches to diff mode
-//   LIMIT       optional       — cap product count (debug)
+// Env:
+//   CSV_OUT     required : path to write
+//   BASELINE    optional : prior snapshot CSV; switches to diff mode
+//   LIMIT       optional : cap product count (debug)
 
 import type { ProductKind } from '@aurore/shared'
 
@@ -58,9 +39,7 @@ export interface Row {
   source: AutoTagSource
 }
 
-// Diff row keyed by (product_slug, tag_slug). Source is informational; the
-// canonical observable is (relevance) — diff mode reports the source as it
-// was on each side, but does NOT generate a row when only source changed.
+// Keyed by (product_slug, tag_slug). Source is informational only; no row when source alone changed.
 export interface DiffRow {
   action: 'added' | 'removed' | 'relevance_changed'
   productSlug: string
@@ -96,7 +75,6 @@ async function main() {
 
   const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
 
-  // Compute current (would-emit) set.
   const currentRows: Row[] = []
   for (const p of subset) {
     const pairs: AutoTagPair[] = detectAllAutoTags({
@@ -126,7 +104,6 @@ async function main() {
     return
   }
 
-  // Diff mode
   const baselineRows = await readSnapshot(BASELINE)
   console.log(`📊 Baseline`)
   console.log(`   ${baselineRows.length} paires lues depuis ${BASELINE}\n`)
@@ -150,7 +127,6 @@ async function main() {
     return
   }
 
-  // Per-tag breakdown — each tag × action triple, sorted by total impact.
   const byTagAction = new Map<string, number>()
   for (const d of diff) {
     const k = `${d.action}:${d.tagSlug}`
@@ -172,8 +148,7 @@ async function main() {
 }
 
 export function computeDiff(baseline: readonly Row[], current: readonly Row[]): DiffRow[] {
-  // Index baseline + current by (productSlug, tagSlug). Within a single
-  // product+tag, orchestrator dedups so there's at most one row per side.
+  // Orchestrator dedupes (productSlug, tagSlug): at most one row per side.
   const keyOf = (r: Row): string => `${r.productSlug}\t${r.tagSlug}`
   const baselineMap = new Map<string, Row>()
   for (const r of baseline) baselineMap.set(keyOf(r), r)
@@ -182,7 +157,6 @@ export function computeDiff(baseline: readonly Row[], current: readonly Row[]): 
 
   const diff: DiffRow[] = []
 
-  // Removed: in baseline, not in current.
   for (const [k, b] of baselineMap) {
     if (currentMap.has(k)) continue
     diff.push({
@@ -196,7 +170,6 @@ export function computeDiff(baseline: readonly Row[], current: readonly Row[]): 
     })
   }
 
-  // Added or relevance_changed: walk current.
   for (const [k, c] of currentMap) {
     const b = baselineMap.get(k)
     if (!b) {
@@ -220,7 +193,7 @@ export function computeDiff(baseline: readonly Row[], current: readonly Row[]): 
         sourceAfter: c.source,
       })
     }
-    // Same relevance, possibly different source → ignored (not observable).
+    // Same relevance, possibly different source: ignored (not observable).
   }
 
   // Stable sort: action then tagSlug then productSlug.

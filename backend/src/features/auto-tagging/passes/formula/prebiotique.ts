@@ -4,7 +4,6 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Prebiotique
 // Prebiotic / probiotic INCI patterns. Ferments are included (probiotics):
 // they deliver live or lysed microbiome-active material.
 

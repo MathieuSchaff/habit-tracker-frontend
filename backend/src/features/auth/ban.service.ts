@@ -5,10 +5,9 @@ import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 import type { Database } from '../../db'
 import { type UserBan, userBans } from '../../db/schema'
 
-// In-process TTL cache. Admin-pool query bypasses RLS — acceptable here because
-// the caller is already authenticated by requireJwtAuth and we only read
-// identity-layer state. A 30s TTL bounds the window in which a freshly banned
-// user keeps getting through (vs ~15min token lifetime without enforcement).
+// Admin-pool query bypasses RLS: identity-layer read, caller already authenticated
+// by requireJwtAuth. 30s TTL bounds window where a freshly banned user gets through
+// (vs ~15min token lifetime without enforcement).
 const CACHE_TTL_MS = 30_000
 const CACHE_MAX = 5000
 
@@ -27,15 +26,14 @@ function readCache(userId: string): CacheEntry | null {
 
 function writeCache(userId: string, ban: UserBan | null): void {
   if (cache.size >= CACHE_MAX) {
-    // Evict oldest insertion. Map iteration is insertion-ordered.
+    // Map iteration is insertion-ordered, so first key is oldest.
     const oldest = cache.keys().next().value
     if (oldest !== undefined) cache.delete(oldest)
   }
   cache.set(userId, { ban, expiresAt: Date.now() + CACHE_TTL_MS })
 }
 
-// Returns the most recent active ban that covers `scope` (or any active
-// 'global' ban). Active means expiresAt IS NULL OR expiresAt > now().
+// Matches the given scope or any active 'global' ban. Active = expiresAt IS NULL OR expiresAt > now().
 export async function isUserBanned(
   db: Database,
   userId: string,
@@ -63,9 +61,8 @@ export async function isUserBanned(
   return ban
 }
 
-// Per-scope variant used by requireNotBannedScope (no cache — write paths are
-// cold compared to /auth/session, and a per-scope cache key would complicate
-// invalidation when bans are created or lifted).
+// No cache: write paths are cold vs /auth/session, and per-scope cache keys complicate
+// invalidation when bans are created or lifted.
 export async function isUserBannedForScope(
   db: Database,
   userId: string,
@@ -88,13 +85,13 @@ export async function isUserBannedForScope(
   return rows[0] ?? null
 }
 
-// Test/admin helper: invalidate the cache when a ban is created/lifted out-of-band.
+// Invalidate cache when a ban is created/lifted out-of-band (test/admin helper).
 export function clearBanCache(userId?: string): void {
   if (userId) cache.delete(userId)
   else cache.clear()
 }
 
-// Test-only observability: count entries in the cache.
+// Test-only: counts entries in the ban cache.
 export function _banCacheSize(): number {
   return cache.size
 }

@@ -1,11 +1,6 @@
-// Shared `avoid` pair computation, used by both `seed-core` (fresh init)
-// and `backfill-auto-tags` (post-snapshot rehydrate). Centralised so the two
-// runners cannot drift on which products receive a safety override —
-// `make dev-fresh` followed by `make backfill-auto-tags` must be a no-op
-// on the avoid pairs (audit §C.5 parity goal).
-//
-// Categories: skincare + solaire + bodycare. Other categories (haircare,
-// dental, supplements) carry no INCI-derived safety signal yet.
+// Shared avoid-pair computation for seed-core and backfill-auto-tags.
+// Centralised so the two runners cannot drift (audit §C.5 parity goal).
+// Haircare, dental, supplements carry no INCI-derived safety signal yet.
 
 import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
@@ -31,15 +26,9 @@ export function isAvoidEligibleCategory(category: string): boolean {
   return AVOID_ELIGIBLE_CATEGORIES.has(category)
 }
 
-// `actifClasses` is optional: pass the precomputed list when the caller
-// already has it (backfill computes it for the secondary cluster pairs)
-// to skip the redundant `detectActifClasses` call.
-//
-// `assessment` is optional too. When provided, interaction-driven avoid
-// (cumulative irritation stacks → `peau-sensible`) runs. When absent, the
-// interaction pass is skipped — callers that want full coverage must pass
-// it. Tests can omit; production runners (seed-core, backfill, audit)
-// must hoist `analyzeINCI` once and forward it here to keep parity.
+// `actifClasses`: pass precomputed to skip a redundant `detectActifClasses` call.
+// `assessment`: when provided, interaction avoid (cumulative irritation -> peau-sensible)
+// runs. Production runners must hoist `analyzeINCI` and forward it; tests can omit.
 export function computeAvoidCandidates(
   inci: string | null | undefined,
   kind: ProductKind,
@@ -51,10 +40,8 @@ export function computeAvoidCandidates(
   if (!isAvoidEligibleCategory(category)) return []
 
   const candidates: AvoidCandidate[] = []
-  // Same tag from multiple sources (e.g. retinoid+AHA cross-signal AND
-  // alcohol+parfum interaction both flag peau-sensible) → emit once, keep
-  // the first source seen. Source is metadata for stats; the avoid pair
-  // itself is the same.
+  // Same tag from multiple sources: emit once, keep first source seen.
+  // Source is stats metadata; the avoid pair itself is the same.
   const seenTags = new Set<SkincareProductTagSlug>()
   const push = (tagSlug: SkincareProductTagSlug, source: AvoidSource) => {
     if (seenTags.has(tagSlug)) return

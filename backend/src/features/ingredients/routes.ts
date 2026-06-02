@@ -52,7 +52,7 @@ const searchQuery = z.object({
 })
 
 // Comma-separated slugs. Capped at 2000 chars so a stray client never seq-scans
-// the table — handler splits + caps at 50 entries before hitting the DB.
+// the table, handler splits + caps at 50 entries before hitting the DB.
 const bySlugsQuery = z.object({
   slugs: z.string().min(1).max(2000),
 })

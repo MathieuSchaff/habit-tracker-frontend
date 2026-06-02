@@ -1,4 +1,4 @@
-// Pass wrappers for the formula detector family — ADR-0001 slice #3b.
+// Pass wrappers for the formula detector family, ADR-0001 slice #3b.
 //
 // All emit `source: 'formula'`, `relevance: 'secondary'`. Each wrapper is a
 // thin adapter binding the `PassContext` fields its underlying detector reads.

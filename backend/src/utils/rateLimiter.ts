@@ -6,10 +6,7 @@ import { rateLimiter } from 'hono-rate-limiter'
 import type { AppEnv } from '../app-env'
 
 // https://honohub.dev/docs/rate-limiter/configuration
-// a regarder s'il faut changer le store
-// pour l'instant le store est :
-// "By default, hono-rate-limiter uses an in-memory store (MemoryStore)"
-// Il faudrait plus tard changer le store
+// In-memory store (MemoryStore) by default; switch to Redis for multi-replica.
 const skipLimiter = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
 
 function clientIp(c: Context): string {
@@ -42,7 +39,7 @@ export const rateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
     })
 
 // Stricter limiter for /auth/login and /auth/mobile/login. Unlike the global
-// one, it COUNTS failed requests — that's the whole point: blunting password
+// one, it COUNTS failed requests, that's the whole point: blunting password
 // spraying. Paired with per-user DB lockout (see auth/service.ts) for accounts
 // targeted across rotating IPs.
 export const loginRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter

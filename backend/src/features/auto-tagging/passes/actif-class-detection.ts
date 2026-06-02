@@ -1,30 +1,17 @@
 // Pharmacological cluster detection for skincare products.
 //
-// Reads a product's INCI string, splits + normalizes via algo-derm
-// (`splitINCI` + `normalize`), and matches each ingredient name against
-// per-cluster substring patterns to emit the `actif_class` product tag
-// slugs that apply.
+// Patterns target canonical INCI fragments (lowercase, post-algo-derm normalize).
+// Matcher is OR-of-substring; add a pattern = add a new INCI alias.
 //
-// Patterns target canonical INCI fragments (lowercase, after algo-derm
-// normalization). Order inside `patterns` doesn't matter; the matcher
-// is OR-of-substring. Adding a new pattern = adding a new INCI alias
-// the cluster should catch.
+// Position gating: actifs at position 25+ are rarely at functional concentration
+// (AHA as pH adjuster, trace niacinamide). Each cluster declares `positionCap`.
+// pH-dependent acids (AHA/BHA/PHA) use a tight cap; antioxidants/humectants/
+// ceramides use Infinity because the gold-set tags them regardless of INCI position.
 //
-// Position gating: an actif at position 25+ in INCI is almost never at
-// functional concentration (retinol stabilizer trace, AHA used as pH
-// adjuster, niacinamide in trace amounts). Each cluster declares a
-// `positionCap` — only the first N normalized ingredients are scanned
-// for that cluster's patterns. pH-dependent acids (AHA/BHA/PHA) keep a
-// tight cap; all other clusters use `positionCap: Infinity` because
-// the manual gold-set tags antioxidants/humectants/ceramides regardless
-// of INCI position (functional sub-1%).
-//
-// Note: an earlier attempt gated this pass on
-// `assessment.matchedEvidenceByName.<ing>.concentrationEstimate.belowBreakpoint`,
-// reasoning that the EU <1% zone signal would replace position caps cleanly.
-// Gold-set audit (2026-05-14) rejected it: macro F1 dropped 0.995 → 0.930
-// (vitamin-e/HA/ceramides functional below 1% are tagged anyway by manual
-// annotators; AHA/BHA/PHA breakpoint reads also disagreed with gold).
+// An earlier attempt gated on `concentrationEstimate.belowBreakpoint` (EU <1% zone)
+// to replace position caps. Gold-set audit (2026-05-14) rejected it: macro F1 dropped
+// 0.995 -> 0.930 (vitamin-e/HA/ceramides are functional below 1%; AHA/BHA/PHA
+// breakpoint reads also disagreed with gold).
 
 import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
@@ -33,20 +20,15 @@ import { isAlphabeticalINCI, resolveIngredients } from '../lib/ingredient-resolv
 
 const DEFAULT_POSITION_CAP = 12
 
-// Clusters whose patterns must also be scanned against the raw lowercase INCI
-// string (pre-normalize). algo-derm's `applyCompositeFerment` strips the
-// substrate from `LACTOBACILLUS/PUNICA GRANATUM FRUIT FERMENT EXTRACT` →
-// `lactobacillus ferment extract` by design (postbiotic risk profile is
-// organism-driven, not substrate-driven). For polyphenols tagging the
-// substrate IS the source of the polyphenolic actif, so we re-scan the raw
-// INCI for the same pattern list to recover those hits. Position cap is not
-// enforced here because the raw INCI is unsplit — fine since polyphenols
-// already use `positionCap: Infinity`.
+// Clusters that need a secondary scan against the raw lowercase INCI (pre-normalize).
+// algo-derm `applyCompositeFerment` strips the substrate from ferment names by design
+// (postbiotic risk is organism-driven). For polyphenols the substrate IS the actif
+// source, so re-scan raw INCI to recover those hits. No position cap here because the
+// raw string is unsplit; polyphenols already use positionCap: Infinity anyway.
 const RAW_SCAN_SLUGS = new Set<SkincareProductTagSlug>([SKINCARE_PRODUCT_TAG_SLUGS.POLYPHENOLS])
 
-// Cleansers/exfoliants/scrubs put surfactants and humectants first; pH-driven
-// actives (AHA/BHA/PHA) sit further down (pos 12-18 typical) but at functional
-// concentration. Use the looser cap for these kinds.
+// AHA/BHA/PHA sit at pos 12-18 in rinse-off formulas (surfactant-heavy push),
+// but are at functional concentration there. Looser cap for these kinds.
 const RINSE_OFF_LIKE_KINDS = new Set<ProductKind>([
   'cleanser',
   'body-wash',
@@ -58,22 +40,19 @@ const RINSE_OFF_LIKE_KINDS = new Set<ProductKind>([
 export interface ActifClassDef {
   slug: SkincareProductTagSlug
   patterns: string[]
-  // Top-N INCI position to scan. Below default if the actif must be at
-  // functional concentration to count (acids, enzymes, humectants).
+  // Tighter than default when the actif must be at functional concentration (acids).
   positionCap?: number
-  // Override cap for cleansers/exfoliants where actives sit deeper.
+  // Looser cap for cleansers/exfoliants where actives sit deeper.
   positionCapRinseOff?: number
 }
 
 export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS,
-    // Vit-A derivatives dosed 0.01-1 % — encapsulated/stabilized forms
-    // sit deep in INCI (only_db median pos 26, p90 39). Cap removed to
-    // align with manual corpus. Pattern list already covers every variant
-    // observed in the corpus (retinol/retinal/retinyl X/retinoate +
-    // synthetic retinoids). `bakuchiol` and `beta-carotene` excluded —
-    // both are functional retinol alternatives but not chemically vit-A.
+    // Vit-A derivatives dosed 0.01-1%: encapsulated forms sit deep in INCI
+    // (median pos 26, p90 39). Cap removed to align with manual corpus.
+    // `bakuchiol` and `beta-carotene` excluded: functional alternatives, not
+    // chemically vit-A.
     patterns: [
       'retinol',
       'retinal',
@@ -96,12 +75,9 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.VITAMIN_C,
-    // Vit-C esters dosed at trace (oxidation-prone, formulators stabilize
-    // at sub-1 % deep in the formula — only_db median pos 25, p90 40).
-    // Cap removed to align with manual corpus. Pattern list covers every
-    // variant observed (ascorbic acid + 8 esters); substring matching
-    // catches `3-O-ethyl ascorbic acid` via `ethyl ascorbic acid` and
-    // glommed forms like `vitamin c ester (ascorbyl palmitate)`.
+    // Vit-C esters stabilized at sub-1% deep in formula (median pos 25, p90 40).
+    // Cap removed to align with manual corpus. Substring matching catches
+    // `3-O-ethyl ascorbic acid` via `ethyl ascorbic acid` and glommed forms.
     patterns: [
       'ascorbic acid',
       'ascorbyl glucoside',
@@ -112,41 +88,28 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'ascorbyl palmitate',
       'ascorbyl tetraisopalmitate',
       'glyceryl ascorbate',
-      // Marketing INCI: "Vitamin C Ester (Ascorbyl Palmitate)" sometimes
-      // gets normalized in a way that drops the parenthetical, leaving
-      // `vitamin c ester` as the residual token without `ascorbyl palmitate`
-      // matching. Substring catches this edge case.
+      // Catches "Vitamin C Ester (Ascorbyl Palmitate)" when normalization
+      // drops the parenthetical, leaving `vitamin c ester` as the residual.
       'vitamin c ester',
-      // FR translated INCI (Korean brands with FR-market labelling, e.g.
-      // mary&may glutathione eye cream listing "Acide Ascorbique" at tail).
-      // algo-derm normalize collapses `-ique` → `-ic`, but the FR `acide X`
-      // word order is preserved when a trailing junk sentence prevents the
-      // parser's FR→EN swap → match the post-normalize residual form.
+      // FR-translated INCI (Korean brands, FR market). algo-derm collapses
+      // `-ique` -> `-ic` but keeps `acide X` word order when a trailing junk
+      // sentence blocks the FR->EN swap.
       'acide ascorbic',
     ],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.VITAMIN_E,
-    // Vit-E is antioxidant preservative — always sits in the tail of INCI
-    // (≤1 % cosmetic dosing). Manual corpus tags it regardless of position;
-    // 100 % of only_db drift was past pos 12. Full-scan with no cap aligns
-    // the detector with the manual baseline.
-    //
-    // `tocopheryl` substring catches all esters (acetate / succinate /
-    // nicotinate / linoleate / phosphate / glucoside / ferulate / …).
-    // `tocopherol` catches free forms (alpha-/beta-/gamma-/delta-/mixed).
-    // `tocotrienol` is the vit-E sub-family (rare but functional).
-    // `vitamin e` / `vitamine-e` catch the marketing-form residual after
-    // algo-derm strips the parens content ("Vitamin E (A-Tocopherol)" →
-    // "vitamin e"; "vitamine-E (tocophérol acétate)" → "vitamine-e").
+    // Vit-E sits in INCI tail (<=1% dosing); 100% of only_db drift was past
+    // pos 12. Manual corpus tags regardless of position, so cap removed.
+    // `tocopheryl` catches all esters; `vitamin e`/`vitamine-e` catch the
+    // marketing-form residual after algo-derm strips parens content.
     patterns: ['tocopherol', 'tocopheryl', 'tocotrienol', 'vitamin e', 'vitamine-e'],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
-    // French variants ("acide X") match products whose INCI was translated
-    // FR — common for FR pharmacy / Korean brand FR-localized listings.
+    // `acide X` variants for FR-translated INCI (FR pharmacy, Korean brand FR listings).
     patterns: [
       'glycolic acid',
       'lactic acid',
@@ -158,27 +121,22 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'acide lactique',
       'acide mandelique',
     ],
-    // Acids below position 10 are pH adjusters, not exfoliants — except in
-    // cleansers/exfoliants where surfactant-heavy formulas push the acid
-    // actif to pos 12-18 (CeraVe SA cleanser, Etude House AHA peel gel).
+    // Acids at pos > 10 are pH adjusters, not exfoliants, in leave-on products.
+    // Rinse-off cap is looser because surfactant-heavy formulas push acids to pos 12-18.
     positionCap: 10,
     positionCapRinseOff: 20,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.BHA,
     patterns: ['salicylic acid', 'acide salicylique', 'betaine salicylate'],
-    // Free SA + betaine salicylate (direct salt) at trace concentration
-    // (pos > 10 leave-on) is preservative or sub-functional, not
-    // exfoliant. Rinse-off cap looser per surfactant displacement.
+    // Free SA + betaine salicylate at pos > 10 leave-on = preservative, not exfoliant.
     positionCap: 10,
     positionCapRinseOff: 20,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.BHA,
-    // Capryloyl salicylic acid = Mexoryl-style ester (slow-release,
-    // skin-anchored), functional at 0.05-0.1 % and routinely listed
-    // pos 13-20 in serums/moisturizers (LRP Effaclar Mat, Abib
-    // glutathiosome). No preservative usage → position cap dropped.
+    // Slow-release ester, functional at 0.05-0.1% and routinely at pos 13-20.
+    // No preservative usage, so position cap dropped.
     patterns: ['capryloyl salicylic acid'],
     positionCap: Number.POSITIVE_INFINITY,
   },
@@ -190,24 +148,18 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.ENZYMES_EXFOLIANTS,
-    // Bio-actives dosed mg-range — manual corpus tags them at any INCI
-    // position (only_db median pos 20, p90 38). `lipase` added for
-    // multi-enzyme exfoliants (Dermalogica Daily Superfoliant, Prequel
-    // Milk Peel) where manual annotation fires but the previous pattern
-    // list missed it. `protease` substring catches generic enzyme
-    // listings; `papain`/`bromelain`/`subtilisin` cover named variants.
+    // Bio-actives dosed mg-range; manual corpus tags at any position (median 20, p90 38).
+    // `lipase` added: missed by prior pattern list in multi-enzyme exfoliants.
+    // `protease` catches generic enzyme listings; named variants covered separately.
     patterns: ['papain', 'bromelain', 'subtilisin', 'protease', 'lipase'],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.CERAMIDES,
-    // Stratum-corneum lipids dosed sub-1 % — barrier-repair blends list
-    // them deep in the formula (only_db median pos 27, p90 39). Cap
-    // removed to align with manual corpus. `ng` and `as` types added
-    // (uncommon but observed in cica/relipidant blends). `phytosphingosine`
-    // tested but rejected: every manual product containing it also lists
-    // a ceramide variant, so it adds 0 to recall but 24 over-tags on
-    // soothing/cica products that aren't manually classified as ceramides.
+    // Sub-1% dosing; listed deep (median pos 27, p90 39). Cap removed to align
+    // with manual corpus. `ng`/`as` types added (observed in cica/relipidant blends).
+    // `phytosphingosine` rejected: 0 recall gain but 24 over-tags on soothing
+    // products not classified as ceramides in the gold-set.
     patterns: [
       'ceramide np',
       'ceramide ap',
@@ -225,48 +177,35 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.HYALURONIC_ACID,
-    // HA dosed at ≤ 1 % cosmetic — sits in INCI tail but functional as
-    // humectant at any position (manual corpus tags it accordingly: 100 %
-    // of only_db drift past pos 10, median pos 19, p90 34). The single
-    // `hyaluron` substring catches every variant: hyaluronic acid,
-    // sodium / potassium / acetylated / hydrolyzed / crosspolymer /
-    // dimethylsilanol / hydroxypropyltrimonium hyaluronate, plus UK
-    // spelling and ester glommings.
+    // <=1% cosmetic dosing; functional at any position (100% of only_db drift past
+    // pos 10, median 19, p90 34). `hyaluron` catches all variants including
+    // crosspolymer, modified, and non-standard spelling forms.
     patterns: ['hyaluron'],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.PEPTIDES,
-    // Peptides dosed mg-range — always sit in INCI tail (median pos 25 in
-    // manual corpus, p90 42) but signaling-active at trace concentration.
-    // `peptide` substring catches every chain length (di/tri/tetra/penta/
-    // hexa/hepta/octa/nona/deca/oligo/poly) and every acyl prefix
-    // (palmitoyl/acetyl/myristoyl). Brand names retained for INCI that
-    // list the marketing name instead of the technical one.
+    // Signaling-active at trace; always in INCI tail (median pos 25, p90 42).
+    // `peptide` catches all chain lengths and acyl prefixes. Brand names retained
+    // for INCI that list marketing names instead of technical INCI names.
     patterns: ['peptide', 'matrixyl', 'argireline', 'syn-ake', 'pdrn'],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.POLYPHENOLS,
-    // Botanical polyphenol sources dosed at trace (extract %); manual
-    // corpus tags them past pos 12 (median 22, p90 35). Broadened
-    // patterns drop the `leaf extract` qualifier on `camellia sinensis`
-    // (catches seed oil too — manual baseline tags both forms) and add
-    // `vitis vinifera` (grape — top-8 missed variant). Full-scan cap
-    // matches manual annotation regardless of position.
+    // Trace dosing; manual corpus tags past pos 12 (median 22, p90 35). Cap removed.
+    // `camellia sinensis` without `leaf extract` qualifier catches seed oil too
+    // (manual baseline tags both forms). `vitis vinifera` added as top-8 missed variant.
     patterns: [
       'resveratrol',
       'epigallocatechin',
       'ferulic acid',
-      // Ferulic acid esters (ethylhexyl/ethyl ferulate) used as
-      // oil-soluble antioxidants in modern serums; same polyphenol
+      // Ferulic acid esters (ethylhexyl/ethyl ferulate): same polyphenol
       // pharmacophore, missed by `ferulic acid` substring.
       'ferulate',
       'camellia sinensis',
-      // Marketing form for green tea: when INCI lists "Green Tea
-      // (Camellia Sinensis Leaf) Extract", algo-derm strips the Latin
-      // parenthetical and leaves `green tea extract`. Substring catches
-      // the residual.
+      // algo-derm strips the Latin parenthetical from "Green Tea (Camellia Sinensis
+      // Leaf) Extract", leaving `green tea extract` as the residual.
       'green tea',
       'curcuma longa',
       'rosmarinus officinalis',
@@ -276,52 +215,38 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'quercetin',
       'vitis vinifera',
       'melissa officinalis',
-      // Milk thistle: `silybum marianum` (plant) + `silymarin`
-      // (standardized flavonolignan complex, alt INCI form).
+      // Both plant name and alt INCI form (standardized flavonolignan complex).
       'silybum marianum',
       'silymarin',
-      // Theobroma cacao aliases evaluated (audit 2026-05-13) and rejected:
-      // even restricted to `extract` forms (excluding cocoa butter), the
-      // 62 over-tag products outweighed the 2 recall gains. Manual
-      // baseline judges trace cacao extract as non-functional polyphenol
-      // dose; keep alignment with that signal.
+      // Theobroma cacao rejected (audit 2026-05-13): 62 over-tags vs 2 recall gains.
+      // Manual baseline judges trace cacao extract as non-functional polyphenol dose.
     ],
     positionCap: Number.POSITIVE_INFINITY,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.TYROSINASE_INHIBITORS,
-    // Pigmentation-targeted actives dosed sub-1 % — manual corpus tags
-    // them at any INCI position (only_db median 18, p90 33). Cap removed.
-    // Pattern list extended with competitive binders (`undecylenoyl
-    // phenylalanine` = Sepiwhite/melanostatin) and resorcinol-family
-    // (`hexylresorcinol`). `arbutin` substring catches `alpha-arbutin`
-    // and `deoxyarbutin`.
-    //
-    // Excluded by mechanism mismatch / over-broadening:
-    // - `glycyrrhiza` / `glycyrrhizate` (licorice extract) — ubiquitous
-    //   soothing/cica ingredient (+401 over-tags); only pigmentation when
+    // Sub-1% dosing; manual corpus tags at any position (median 18, p90 33). Cap removed.
+    // `arbutin` catches `alpha-arbutin` and `deoxyarbutin` via substring.
+    // Excluded by mechanism mismatch:
+    // - `glycyrrhiza`/`glycyrrhizate`: +401 over-tags; pigmentation signal only when
     //   combined with kojic/arbutin/morus alba (already caught).
-    // - `niacinamide` — inhibits melanosome transfer, not tyrosinase;
-    //   would over-broaden the cluster to most niacinamide products.
+    // - `niacinamide`: inhibits melanosome transfer, not tyrosinase; would over-broaden
+    //   to most niacinamide products.
     patterns: [
       'kojic acid',
       'arbutin',
       'tranexamic acid',
-      // French INCI translation (Korean serum lines available in FR market).
+      // FR-translated INCI (Korean serum lines, FR market).
       'acide tranexamique',
       'ellagic acid',
       'morus alba',
       'undecylenoyl phenylalanine',
       'hexylresorcinol',
-      // Mela B3 patented anti-pigment actif (La Roche-Posay) — direct
-      // tyrosinase pathway inhibitor, not over-broad.
+      // Mela B3 (La Roche-Posay): direct tyrosinase pathway inhibitor.
       '2-mercaptonicotinoyl glycine',
-      // Boldine (diacetyl boldine = Lumiskin) — competitive tyrosinase
-      // inhibitor used in serums anti-taches.
+      // Boldine (diacetyl boldine = Lumiskin): competitive tyrosinase inhibitor.
       'boldine',
-      // Azelaic acid — competitive tyrosinase inhibitor + anti-acne; used
-      // pure in dermato lines (Skinoren, Anua azelaic, Nine-Less, Colibri).
-      // Specific token, low over-tag risk.
+      // Competitive tyrosinase inhibitor + anti-acne; specific token, low over-tag risk.
       'azelaic acid',
       'acide azélaïque',
     ],
@@ -335,13 +260,11 @@ export function detectActifClasses(
   kind?: ProductKind
 ): SkincareProductTagSlug[] {
   const resolved = resolveIngredients(inci, hoistedIngredients)
-  // Defensive filter — hoisted callers control the array shape; protect
-  // against an upstream that includes empty tokens.
+  // Guard against empty tokens from hoisted callers.
   const ingredients = resolved.filter(Boolean)
   if (ingredients.length === 0) return []
 
-  // Korean brands often list INCI alphabetically — position-based caps then
-  // mean nothing. Detect once and bypass position gating per cluster.
+  // Korean brands often list INCI alphabetically; position caps are meaningless then.
   const isAlpha = isAlphabeticalINCI(ingredients)
   const isRinseOffLike = kind !== undefined && RINSE_OFF_LIKE_KINDS.has(kind)
 

@@ -7,9 +7,8 @@ import { users, usersSafe } from '../../db/schema'
 
 type DemoteArgs = { adminId: string; targetUserId: string; role: 'user' }
 
-// Demote a contributor back to a plain user. Admin-only (gated at the route).
-// Only contributors are demotable here — admins and existing users are rejected
-// so the "demote a moderator" affordance can't silently change other roles.
+// Only contributors are demotable: rejects admins and plain users so the affordance
+// cannot silently change unintended roles.
 export async function demoteToUser(
   db: Database,
   { adminId, targetUserId, role }: DemoteArgs

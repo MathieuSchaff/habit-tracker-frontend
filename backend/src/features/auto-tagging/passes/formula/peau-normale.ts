@@ -18,8 +18,6 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // the vegan absence-tag floor, now that vegan is in algo-derm).
 const MIN_INCI_LENGTH = 5
 
-// Retinoid patterns used to exclude products with vitamin-A derivatives from
-// peau-normale (strong actifs = not a neutral baseline product).
 const RETINOID_PATTERNS = [
   'retinol',
   'retinal',
@@ -77,7 +75,6 @@ export function detectPeauNormale(
 ): SkincareProductTagSlug[] {
   if (!PEAU_NORMALE_KINDS.has(kind)) return []
 
-  // Abstain if any non-neutral skin_type was already proposed.
   for (const slug of alreadyProposedSkinTypes) {
     if (OTHER_SKIN_TYPE_SLUGS.has(slug)) return []
   }

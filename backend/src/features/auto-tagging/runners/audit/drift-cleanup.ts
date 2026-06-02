@@ -1,10 +1,6 @@
-// One-shot cleanup — remove manual cluster tags identified as false positives
-// by drift-classify.ts (no INCI evidence of the actif in the formula).
-//
-// Each entry was reviewed against the full product INCI; see the audit log in
-// /tmp/drift-fp.txt (run drift-classify.ts with DUMP_FALSE_POS=1).
-//
-// Dry-run by default. Set APPLY=1 to commit the deletes.
+// Remove manual cluster tags identified as false positives by drift-classify.ts
+// (no INCI evidence of the actif). Each entry reviewed against full INCI;
+// see /tmp/drift-fp.txt (DUMP_FALSE_POS=1). Dry-run by default; APPLY=1 commits.
 
 import { and, eq } from 'drizzle-orm'
 
@@ -13,7 +9,7 @@ import { products, productTagLinks, productTagTypes } from '../../../../db/schem
 
 const APPLY = process.env.APPLY === '1'
 
-// (productSlug, tagSlug) pairs to remove. 17 rows / 15 products.
+// (productSlug, tagSlug) pairs to remove.
 const TO_DELETE: Array<{ product: string; tag: string; reason: string }> = [
   {
     product: 'purito-mighty-bamboo-panthenol-cream',
@@ -131,9 +127,7 @@ async function main() {
   let removed = 0
   let missing = 0
 
-  // Wrap the delete loop in one admin tx so RLS accepts the DELETEs (bare
-  // SET LOCAL outside a tx is a no-op). Catalog SELECTs are public, but reading
-  // them on `tx` keeps the loop single-connection.
+  // withAdminRls: bare SET LOCAL outside a tx is a no-op (RLS would reject DELETEs).
   await withAdminRls(async (tx) => {
     for (const row of TO_DELETE) {
       const product = await tx
@@ -170,7 +164,7 @@ async function main() {
         console.log(`  ${count > 0 ? '✓' : '○'} ${row.product} ← ${row.tag} (${row.reason})`)
         removed += count
       } else {
-        // Dry-run: just check existence
+        // dry-run: check existence only
         const exists = await tx
           .select({ pId: productTagLinks.productId })
           .from(productTagLinks)

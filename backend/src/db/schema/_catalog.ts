@@ -9,7 +9,7 @@ export const catalogQualityEnum = pgEnum('catalog_quality', ['unverified', 'veri
 
 // Spread into a catalog table (products, ingredients) to opt it into the
 // submission workflow. verified_by/at are NULL for unverified rows and for the
-// legacy backfill (a verified row MAY have NULL stamps — see the verify CHECK).
+// legacy backfill (a verified row MAY have NULL stamps, see the verify CHECK).
 export const catalogQualityColumns = {
   catalogQuality: catalogQualityEnum('catalog_quality').notNull().default('unverified'),
   verifiedBy: uuid('verified_by').references(() => users.id, { onDelete: 'set null' }),

@@ -7,9 +7,8 @@ import type { User, UserSafe } from '../../db/schema'
 import { profiles, users, usersSafe } from '../../db/schema'
 import { normalizeInstant } from '../../utils/dates'
 
-// Maps a snake_case row returned by SELECT * FROM auth.find_user_*() into the
-// camelCase User shape Drizzle would have produced. Lives here because the
-// SECURITY DEFINER functions are the only path that hands back password_hash.
+// Maps raw SELECT * from auth.find_user_*() SECURITY DEFINER fns into the Drizzle User shape.
+// SECURITY DEFINER fns are the only path that exposes password_hash to app_runtime.
 function mapUserRow(row: Record<string, unknown> | undefined): User | null {
   if (!row || row.id == null) return null
   return {
@@ -29,9 +28,7 @@ function mapUserRow(row: Record<string, unknown> | undefined): User | null {
   }
 }
 
-// Returns the full user with password_hash (for login verification only).
-// Goes through SECURITY DEFINER fn — direct SELECT password_hash is denied
-// to app_runtime since migration 0038.
+// Direct SELECT password_hash is denied to app_runtime since migration 0038.
 export async function getUser(db: DB, email: string) {
   const normalizedEmail = email.trim().toLowerCase()
   const result = await db.execute(
@@ -40,16 +37,11 @@ export async function getUser(db: DB, email: string) {
   return mapUserRow((result as unknown as Record<string, unknown>[])[0])
 }
 
-// Used by Google OAuth callback to find an existing user linked by their
-// stable Google sub. Goes through SECURITY DEFINER fn — direct SELECT
-// google_sub is denied to app_runtime since migration 0038.
+// Direct SELECT google_sub is denied to app_runtime since migration 0038.
 export async function getUserByGoogleSub(db: DB, googleSub: string) {
   const result = await db.execute(sql`SELECT * FROM auth.find_user_by_google_sub(${googleSub})`)
   return mapUserRow((result as unknown as Record<string, unknown>[])[0])
 }
-// Accepts both User (with hash, from SECURITY DEFINER fns) and UserSafe (view
-// projection, from createUser RETURNING). Structural type — the wider User is
-// assignable to the narrower UserSafe param.
 export function toPublicUser(user: UserSafe): UserPublic {
   return {
     id: user.id,
@@ -86,8 +78,7 @@ export async function getUserById(db: DB, userId: string): Promise<UserPublic | 
   }
 }
 
-// Returns the full user including password_hash (used by changePassword to
-// verify the current password). Goes through SECURITY DEFINER fn.
+// Returns password_hash via SECURITY DEFINER fn, used by changePassword only.
 export async function getFullUserById(db: DB, userId: string) {
   const result = await db.execute(sql`SELECT * FROM auth.find_user_with_hash_by_id(${userId})`)
   return mapUserRow((result as unknown as Record<string, unknown>[])[0])
@@ -101,7 +92,6 @@ export async function createUser(
     isDemo?: boolean
   }
 ) {
-  // Validate email format before insertion
   emailSchema.parse(userData.email)
 
   const [user] = await db

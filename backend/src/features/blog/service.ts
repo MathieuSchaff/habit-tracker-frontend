@@ -53,7 +53,6 @@ export async function listArticles(db: DB, filters: ArticleSearchFilters, isAdmi
 
   const conditions: SQL[] = []
 
-  // Non-admins always see published articles only
   const publishedOnly = isAdmin ? (filters.publishedOnly ?? true) : true
   if (publishedOnly) {
     conditions.push(isNotNull(articles.publishedAt))

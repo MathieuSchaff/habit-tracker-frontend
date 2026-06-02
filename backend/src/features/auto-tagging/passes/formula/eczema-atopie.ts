@@ -7,42 +7,32 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 
 import { IONIC_SURFACTANT_PATTERNS } from './step-nettoyage-1'
 
-// Eczema-atopie
-// UNWIRED from the registry (2026-05-26): the oat/ceramide signal scored
-// P=0.000 against the locked gold criterion (present iff name/desc *names* atopy)
-// — signature mismatch, it tags a barrier-friendly/relipidant population, not the
-// named-atopic shelf. `eczema-atopie` now emits only from name (detectEczemaAtopieFromName
-// below). Kept here for reuse by a future barrier-support / relipidant tag; do
-// not re-wire to eczema-atopie. Open question (backlog): does eczema-atopie mean
-// "marketed-for atopy" (current) or "suitable-for atopic skin"?
+// UNWIRED from the registry (2026-05-26): the oat/ceramide signal scored P=0.000
+// against the locked gold criterion (present iff name/desc names atopy): signature
+// mismatch: it tags a barrier-friendly/relipidant population, not the named-atopic
+// shelf. eczema-atopie now emits only from detectEczemaAtopieFromName below.
+// Kept for reuse by a future barrier-support/relipidant tag; do not re-wire to eczema-atopie.
+// Open question (backlog): "marketed-for atopy" (current) vs "suitable-for atopic skin"?
 //
-// Atopic-friendly formula. Two triggers:
-//   A) `avena sativa kernel` anywhere in INCI — colloidal oatmeal (kernel
-//      flour / kernel extract / kernel oil) is the FDA-recognized OTC skin
-//      protectant for eczema (avenanthramides + beta-glucans). `avena sativa
-//      flower/leaf/stem juice` is excluded: different botanical part, not
-//      OTC-recognized, common as a generic soothing actif in non-AD products.
-//   B) ≥ 2 distinct ceramide variants in top 12 AND 0 fragrance keyword AND
-//      0 ionic sulfate surfactant in top 5. Single ceramide is hydration
-//      polish; pairs target stratum-corneum lipid replenishment (CeraVe,
-//      Avène Tolerance, La Roche-Posay Lipikar). Fragrance is the most-cited
-//      AD flare trigger — exclude any `parfum`/`fragrance`/`aroma` declaration.
-//      Sulfates are barrier-disrupting on AD-prone skin.
+// Atopic-friendly formula detector. Two triggers:
+//   A) avena sativa kernel anywhere in INCI: FDA-recognized OTC skin protectant
+//      (avenanthramides + beta-glucans). avena sativa flower/leaf/stem juice excluded:
+//      different botanical part, not OTC-recognized.
+//   B) >= 2 distinct ceramide variants in top 12, no fragrance keyword, no ionic
+//      sulfate in top 5. Single ceramide = hydration polish; pairs = stratum-corneum
+//      lipid replenishment (CeraVe, Avene Tolerance, La Roche-Posay Lipikar).
+//      Fragrance is the most-cited AD flare trigger. Sulfates disrupt barrier.
 //
-// Leave-on only: rinse-off contact time too short for either pathway to matter
-// (Lodén 2003 on cumulative surfactant exposure; oat OTC label requires
-// "leave on the affected area" usage).
+// Leave-on only: rinse-off contact time too short (Lodén 2003; oat OTC label
+// requires "leave on the affected area").
 //
-// Replaces algo-derm `peaux_atopiques` mapping (fired on 22 % corpus / 3 %
-// agree, too permissive). The algo-derm slug has no TAG_CONFIG entry — its
-// candidate is dropped as `unmapped`. Original detector landed in f3fd5e2f;
-// split into passes/formula/ at 211219d5.
+// Replaces algo-derm peaux_atopiques (22 % corpus / 3 % agree). The algo-derm
+// slug has no TAG_CONFIG entry and drops as unmapped.
 
 const ATOPIE_OAT_PATTERN = 'avena sativa kernel'
 
-// Mirror actif-class CERAMIDES patterns (single source of truth would import
-// ACTIF_CLASS_DEFS, but coupling is heavier than the duplication cost — these
-// patterns are stable taxonomy). Keep aligned with actif-class-detection.ts.
+// Duplicated from actif-class CERAMIDES: coupling cost exceeds duplication cost
+// for stable taxonomy. Keep aligned with actif-class-detection.ts.
 const ATOPIE_CERAMIDE_PATTERNS = [
   'ceramide np',
   'ceramide ap',
@@ -57,14 +47,11 @@ const ATOPIE_CERAMIDE_PATTERNS = [
   'ceramide 6',
 ]
 
-// Functional concentration: ceramides past pos 12 are dosage trace, not the
-// CeraVe-style relipidant claim eczema-friendly formulas are built around.
+// Ceramides past pos 12 are trace-dose, not the relipidant claim AD formulas are built around.
 const ATOPIE_CERAMIDE_POSITION_CAP = 12
 
-// Substring match: the slash-form `PARFUM/FRAGRANCE` normalizes to a single
-// `parfum fragrance` token (algo-derm parser collapses `/` to space), which
-// would slip past an exact-match check. `aroma` substring carries minimal
-// FP risk — no common INCI ingredient embeds it as a substring.
+// PARFUM/FRAGRANCE collapses to "parfum fragrance" (algo-derm collapses / to space)
+// so exact-match would miss it. aroma as substring has minimal FP risk.
 const ATOPIE_FRAGRANCE_PATTERNS = ['parfum', 'fragrance', 'aroma']
 
 const ATOPIE_SULFATE_POSITION_CAP = 5
@@ -87,12 +74,10 @@ export function detectEczemaAtopie(
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
 
-  // Trigger A: oatmeal anywhere → atopie-friendly regardless of other actifs
   if (ingredients.some((ing) => ing.includes(ATOPIE_OAT_PATTERN))) {
     return [S.ECZEMA_ATOPIE]
   }
 
-  // Trigger B: ceramide relipidant pair + fragrance-free + no sulfate top 5
   const ceramideCap = Math.min(ingredients.length, ATOPIE_CERAMIDE_POSITION_CAP)
   let ceramideHits = 0
   for (let i = 0; i < ceramideCap; i++) {
@@ -115,20 +100,15 @@ export function detectEczemaAtopie(
   return [S.ECZEMA_ATOPIE]
 }
 
-// Additive recall pass: the INCI detector above keys on oat/ceramide chemistry
-// and misses the named atopic shelf (Atoderm/Xeracalm/Xémose…), which carries no
-// reliable INCI signal. Matches "atopi" / "eczéma" / "eczema" (EN) in name OR
-// description — EU-regulated claims (cosmetic→medical-device borderline) brands
-// use only when genuinely positioned for atopy. High precision in BOTH fields:
-// negation/differential-diagnosis prose ("déconseillé aux peaux atopiques", "à
-// différencier d'une dermatite atopique") lives only in ingredient/article copy,
-// never in products.description, so it never reaches this function. Snapshot-bound
-// hit/FP counts: sessions/2026-05-25-gold-eczema-atopie-pilot.md. Latent
-// gap: a future description that contraindicates atopy would false-positive here
-// — withheld by partitionEczemaReview at every detectAllAutoTags write/audit
-// consumer (negation+atopy → manual review, not auto-tag) rather than by gating
-// this regex, which would drop the positive forms. Lipikar-style broad brand lines excluded (span non-atopy
-// SKUs). No kind gate: an atopy-named cleanser is still atopy-positioned.
+// Named-atopic shelf (Atoderm/Xeracalm/Xemose) carries no reliable INCI signal;
+// the chemistry detector above misses it. EU-regulated claims at the cosmetic-to-
+// medical-device borderline are used only when genuinely positioned for atopy, so
+// precision is high in both name and description. Contraindication prose lives only
+// in ingredient/article copy, never in products.description.
+// Latent FP: a description that contraindicates atopy would trigger here; handled
+// by partitionEczemaReview at every write/audit consumer rather than gating this
+// regex (gating would drop the positive forms). No kind gate: an atopy-named
+// cleanser is still atopy-positioned.
 const ATOPIE_NAME_RE = /atopi|ecz[ée]ma/i
 
 export function detectEczemaAtopieFromName(
@@ -141,36 +121,28 @@ export function detectEczemaAtopieFromName(
   return []
 }
 
-// Contraindication cues that invert the atopy signal: a description naming atopy
-// alongside one of these positions AGAINST atopic skin, not for it. `psoriasis`
-// and other co-indication terms are deliberately absent — "soulage eczéma/
-// psoriasis" is a positive claim. This is a forward sentinel for the ingest
-// pipeline, not a live filter on the detector above.
+// Cues that invert the atopy signal. psoriasis absent deliberately: "soulage
+// eczema/psoriasis" is a positive claim. Sentinel for the ingest pipeline,
+// not a live filter on the detector above.
 const ATOPIE_CONTRAINDICATION_RE =
   /non recommand|déconseill|ne pas (utiliser|appliquer)|contre-indiqu|à différenc|ne convient pas|éviter (sur|en cas|le contour)/i
 
-// True when a description names atopy under a contraindication — the latent FP
-// case detectEczemaAtopieFromName cannot distinguish. The ingest pipeline routes
-// these to manual review instead of auto-tagging eczema-atopie, preserving recall
-// on the positive forms (no regex gating).
+// True when a description names atopy under a contraindication: the latent FP
+// detectEczemaAtopieFromName cannot distinguish. Ingest routes these to manual
+// review to preserve recall on positive forms.
 export function eczemaAtopieDescriptionNeedsReview(
   description: string | null | undefined
 ): boolean {
-  // Require the atopy token and the contraindication cue in the SAME sentence:
-  // a boilerplate caveat ("éviter le contour des yeux") in its own sentence,
-  // next to a positive atopy claim, must not trip the sentinel. Split on
-  // sentence boundaries only — not commas, so "déconseillé, aux peaux
-  // atopiques" still counts as one contraindicating clause.
+  // Both tokens must appear in the same sentence: a boilerplate caveat in its own
+  // sentence must not trip the sentinel. Split on sentence boundaries, not commas,
+  // so "deconseille, aux peaux atopiques" counts as one contraindicating clause.
   const sentences = (description ?? '').split(/[.;!\n]+/)
   return sentences.some((s) => ATOPIE_NAME_RE.test(s) && ATOPIE_CONTRAINDICATION_RE.test(s))
 }
 
-// Single withholding point shared by every detectAllAutoTags consumer that
-// writes or audits tags (live product service, seed-core, backfill, reconcile).
-// Pulls the eczema-atopie pair when the description contraindicates atopy and
-// flips `withheld` so batch callers can surface the product for manual review.
-// Lives here, not at each call site, so the live intake path cannot drift out of
-// sync with the runners.
+// Shared withholding point for all detectAllAutoTags consumers (seed-core, backfill,
+// reconcile, live service). Centralised here so the live intake path cannot drift
+// out of sync with the runners.
 export function partitionEczemaReview<T extends { tagSlug: SkincareProductTagSlug }>(
   pairs: readonly T[],
   description: string | null | undefined

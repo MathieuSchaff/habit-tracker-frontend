@@ -148,10 +148,8 @@ export async function createReply(
   input: CreateReplyInput,
   database: DB = db
 ) {
-  // Filter on moderationStatus so a hidden thread cannot accept new replies.
-  // Without it the insert succeeds, the reply stays invisible (parent is
-  // filtered in listThreads/getThreadWithReplies) but contradicts the intent
-  // of moderation and pollutes the DB with reply rows on stale threads.
+  // Rejects replies on hidden threads: insert would succeed but the reply would
+  // be invisible and pollute the DB with rows on moderated threads.
   const [thread] = await database
     .select({ id: discussionThreads.id })
     .from(discussionThreads)

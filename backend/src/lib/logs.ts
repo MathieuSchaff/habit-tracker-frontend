@@ -13,7 +13,7 @@ import { ingredientEdits, productEdits } from '../db/schema'
 import { areEqual } from './helpers'
 
 interface EditTableConfig<TChanges> {
-  table: typeof productEdits | typeof ingredientEdits // I can add more tables here later if needed
+  table: typeof productEdits | typeof ingredientEdits
   entityIdColumn: string
   schema: ZodType<TChanges>
 }

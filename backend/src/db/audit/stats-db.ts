@@ -14,8 +14,6 @@ import {
   usersSafe,
 } from '../schema'
 
-// helpers
-
 function section(title: string) {
   console.log(`\n── ${title} ${'─'.repeat(Math.max(0, 48 - title.length))}`)
 }
@@ -25,8 +23,6 @@ function row(label: string, value: number | string, indent = 0) {
   const dotted = label.padEnd(36 - indent, '.')
   console.log(`${pad}${dotted} ${value}`)
 }
-
-// queries
 
 async function productStats() {
   section('Products')
@@ -163,8 +159,6 @@ async function contentStats() {
   row('articles published', published)
   row('articles draft', totalArticles - published)
 }
-
-// main
 
 async function main() {
   console.log(`DB Stats — ${new Date().toISOString()}`)

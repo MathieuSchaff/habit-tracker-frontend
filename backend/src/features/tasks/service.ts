@@ -50,7 +50,6 @@ export async function getActiveTasks(userId: string, database: Database = db): P
       and(
         eq(tasks.userId, userId),
         sql`${tasks.status} != 'done'`,
-        // I only want tasks that are not snoozed or where the snooze is finished today.
         or(isNull(tasks.snoozedUntil), lte(tasks.snoozedUntil, today))
       )
     )
@@ -66,7 +65,7 @@ export async function getTodayTasks(userId: string, database: Database = db): Pr
     .where(
       and(
         eq(tasks.userId, userId),
-        // I use UTC to be sure the date is the same as the client.
+        // Compare in UTC so the calendar day matches the client.
         sql`DATE(${tasks.doneAt} AT TIME ZONE 'UTC') = ${today}::date`
       )
     )
@@ -108,7 +107,6 @@ export async function updateTask(
   if (input.energy !== undefined) updateValues.energy = input.energy
   if (input.status !== undefined) {
     updateValues.status = input.status
-    // If the user says it is done, I put the date of today.
     if (input.status === 'done') updateValues.doneAt = nowISO()
   }
   if (input.snoozedUntil !== undefined) {
@@ -160,7 +158,7 @@ export async function createSubtask(
     .from(subtasks)
     .where(eq(subtasks.taskId, taskId))
 
-  // I use the count to put the new subtask at the end of the list.
+  // Append at tail: count == next available index.
   const order = Number(existing[0]?.count ?? 0)
 
   const [subtask] = await database

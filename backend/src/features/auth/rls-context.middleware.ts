@@ -4,63 +4,42 @@ import type { Context, Next } from 'hono'
 import type { AppEnv } from '../../app-env'
 import { getAuthedUserRole } from './middleware'
 
-// Wrap authenticated requests in a tx and bind the request in question with RLS context.
-// Must run AFTER requireJwtAuth so c.get('userId') is set.
-// Skips when userId is absent (ex: public GET routes with optional auth).
+// Wraps authenticated requests in a tx and sets RLS context (app.user_id, app.role).
+// Must run after requireJwtAuth. Skips when userId is absent (public routes).
 //
-// Hono's onError swallows domain errors before they propagate back through next().
-// If the route ran a failing DB op (e.g. unique constraint), the Postgres transaction
-// is aborted and a subsequent COMMIT would throw a PostgresError (500).
-// We detect this via c.error (set by Hono when onError fires) and trigger an explicit
-// rollback via tx.rollback() — then suppress the resulting TransactionRollbackError
-// so the already-set error response (e.g. 409) is returned cleanly.
+// Invariant: services must re-throw DB errors. If a service swallows a DB error,
+// c.error stays null and this middleware commits an already-aborted tx, producing 500.
 //
-// INVARIANT: Services that touch the DB MUST re-throw Postgres errors (or domain
-// errors derived from them). If a service catches a DB error and returns a normal
-// response, Hono's onError does not fire, c.error stays null, and this middleware
-// attempts to COMMIT an already-aborted Postgres transaction — which throws 500.
-// Every service in this codebase currently re-throws; keep it that way.
+// Hono's onError fires before this middleware resumes, leaving the pg tx aborted.
+// We detect this via c.error and call tx.rollback() explicitly, then suppress the
+// resulting TransactionRollbackError so the already-set 4xx response propagates cleanly.
 export const withRlsContext = async (c: Context<AppEnv>, next: Next) => {
   const userId = c.get('userId')
 
-  // No identity set — this is a public request, skip RLS wrapping.
   if (!userId) {
     await next()
     return
   }
 
   const baseDb = c.get('db')
-  // Past the !userId guard above, so identity is set; throws rather than feed undefined to set_config.
+  // Throws if userId is set but role is not: programmer error (requireJwtAuth not chained).
   const role = getAuthedUserRole(c)
 
   try {
     await baseDb.transaction(async (tx) => {
-      // set config because se local only support literal string, so we woul ddo concatenation of strings
-      // can lead to sql injection. set_config is safer
+      // SET LOCAL only accepts literal strings, making concatenation an injection risk.
+      // set_config() takes a parameterized value, so it is safe.
       await tx.execute(sql`SELECT set_config('app.user_id', ${userId}, true)`)
       await tx.execute(sql`SELECT set_config('app.role', ${role}, true)`)
-      // replace the db handler with the transaction
       c.set('db', tx as unknown as typeof baseDb)
       await next()
-      // Hono's onError sets c.error when it handles a domain error. If a DB op
-      // inside next() failed (aborted the pg transaction), we must rollback before
-      // Drizzle tries to COMMIT the aborted transaction (which would throw 500).
       if (c.error) {
         tx.rollback()
       }
     })
   } catch (e) {
-    // Suppress the TransactionRollbackError we triggered above — the 409/4xx
-    // response from Hono's error handler is already set in c.res.
+    // Suppress expected rollback error; 4xx response is already set in c.res.
     if (e instanceof TransactionRollbackError) return
     throw e
   }
 }
-
-// Why the rollback check: Hono's onError runs before this middleware resumes after
-// the route throws. Postgres aborts the TX automatically on error, but Drizzle would
-// still attempt COMMIT → 500. Forcing rollback here lets TransactionRollbackError
-// surface cleanly, which the catch block below swallows (expected).
-//
-// Invariant: services must re-throw DB errors — a swallowed error leaves c.error null,
-// so the middleware commits an already-aborted TX and produces a spurious 500.

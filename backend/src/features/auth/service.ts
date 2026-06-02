@@ -49,20 +49,16 @@ export type AuthContext = {
   userAgent?: string
 }
 
-// Tests hash hundreds of fixture users; argon2id default (~70 ms) dominated the
-// wall-time. bcrypt cost=4 (~1-2 ms) keeps the real signup → hash → verify path
-// exercised end-to-end while cutting the cost ~50× in tests only.
-// Bun.password.verify auto-detects algorithm from the hash prefix, so verify
-// works across prod and test hashes interchangeably.
+// argon2id default (~70 ms) makes hashing hundreds of fixture users prohibitive in tests.
+// bcrypt cost=4 (~1-2 ms) keeps the full hash/verify path exercised while cutting cost ~50x.
+// Bun.password.verify auto-detects algorithm from the hash prefix, so prod and test hashes interoperate.
 const PASSWORD_HASH_OPTIONS: Parameters<typeof Bun.password.hash>[1] =
   process.env.NODE_ENV === 'test' ? { algorithm: 'bcrypt', cost: 4 } : undefined
 
-// Dummy hash to prevent timing attacks when user doesn't exist (takes same time to verify a wrong password)
+// Prevents timing attacks: verify always runs even when the user doesn't exist.
 const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy', PASSWORD_HASH_OPTIONS)
 
-// Account lockout: lock the user after N consecutive failed logins for D ms.
-// Defense-in-depth alongside the per-IP loginRateLimiter — caught attacker
-// rotating IPs against a single account.
+// Account lockout: defense-in-depth against attackers rotating IPs against a single account.
 const LOGIN_LOCKOUT_THRESHOLD = 5
 const LOGIN_LOCKOUT_DURATION_MS = 15 * 60 * 1000
 
@@ -128,7 +124,7 @@ export async function signup(
         passwordHash,
         emailVerifiedAt: null,
       })
-      // Set RLS context so the profiles insert passes WITH CHECK on app_runtime.
+      // profiles insert requires app_runtime user_id set for WITH CHECK to pass.
       await bindRlsContext(tx, user.id)
       await createProfile(tx, user.id)
       return user
@@ -171,12 +167,9 @@ export async function login(
   try {
     const user = await getUser(ctx.db, email)
 
-    // Always verify against DUMMY_HASH if user doesn't exist (prevents timing attacks)
     const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
 
-    // Locked accounts: refuse even a correct password until the lockout expires.
-    // Order matters — runs after the dummy hash to keep timing uniform across
-    // (locked vs unknown email) paths.
+    // Lockout check runs after hash verify to keep timing uniform across locked vs unknown-email paths.
     if (user?.lockedUntil && Date.parse(user.lockedUntil) > Date.now()) {
       return err('account_locked')
     }
@@ -216,7 +209,7 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
     const payload = await verifyRefreshToken(rawRefreshToken, ctx.refreshSecret)
     if (!payload) return err('invalid_token')
 
-    // Verify token exists and hasn't been revoked (double-check after JWT validation)
+    // Double-check DB: JWT valid but token may have been revoked since issuance.
     const storedToken = await findValidRefreshToken(ctx.db, payload.jti)
     if (!storedToken) {
       logger.warn({ userId: payload.sub }, 'Potential token replay')
@@ -243,10 +236,8 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       const graceCutoffMs = Date.now() - 24 * 60 * 60 * 1000
       if (Date.parse(user.createdAt) < graceCutoffMs) return err('email_not_verified')
     }
-    // Order matters: cleanup runs BEFORE createTokenPair, which is safe because
-    // it only deletes expired or already-revoked tokens — not the active one
-    // being used right now (payload.jti). If createTokenPair fails, the caller
-    // still holds a valid token and can retry.
+    // Cleanup before createTokenPair: only deletes expired/revoked tokens, not the active
+    // payload.jti. If createTokenPair fails, the caller still holds a valid token.
     await cleanupUserRefreshTokens(ctx.db, payload.sub)
 
     const tokens = await createTokenPair(ctx, payload.sub, user.role)
@@ -320,10 +311,10 @@ export async function createDemo(
         emailVerifiedAt: nowISO(),
         isDemo: true,
       })
-      // Set RLS context so all inserts in this transaction pass WITH CHECK on app_runtime.
+      // app_runtime user_id required for WITH CHECK on all subsequent inserts in this tx.
       await bindRlsContext(tx, created.id)
       await createProfile(tx, created.id)
-      // Seed inside the transaction so app.user_id is still set for RLS-protected tables.
+      // Seed inside the transaction so app.user_id is set for RLS-protected tables.
       await seedDemoData(created.id, tx as unknown as Database)
       return created
     })

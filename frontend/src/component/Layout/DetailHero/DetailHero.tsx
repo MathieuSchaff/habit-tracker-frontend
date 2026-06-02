@@ -4,15 +4,15 @@ import type { ReactNode } from 'react'
 import './DetailHero.css'
 
 interface DetailHeroProps {
-  /** Visual artefact on the left - ProductImage, IconBox, etc. Sized by the caller. */
+  /** ProductImage, IconBox, etc. Sized by the caller. */
   media: ReactNode
-  /** Small overline above the title - brand · kind for products, category for ingredients. */
+  /** Overline above the title - brand · kind for products, category for ingredients. */
   eyebrow?: ReactNode
-  /** Main heading. Rendered as <h1>. */
+  /** Rendered as h1. */
   title: ReactNode
-  /** View Transition name applied on the title (for cross-route morphs). */
+  /** View Transition name on the title (cross-route morphs). */
   titleViewTransition?: string
-  /** Calm chip row under the title - Badge, amount, count. */
+  /** Chip row under the title - Badge, amount, count. */
   chips?: ReactNode
   /** Right-aligned aside - price or status. */
   aside?: ReactNode

@@ -126,7 +126,7 @@ export const profileRoute = app
     return c.body(null, 204)
   })
 
-  // RGPD Article 20 — data portability. JSON dump of every tenant-scoped row
+  // RGPD Article 20: data portability. JSON dump of every tenant-scoped row
   // the user owns. RLS narrows reads to auth.uid(); discussions are filtered
   // by author_id explicitly (no RLS on those tables).
   .get('/export', async (c) => {

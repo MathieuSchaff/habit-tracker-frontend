@@ -5,11 +5,9 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Cernes-poches
-// Eye-area concern. Caffeine = vasoconstrictor (dark circles) + decongestant
-// (puffiness). Peptides = microcirculation / firmness. Detection only on
-// `eye-cream` kind to avoid tagging serums/moisturizers that incidentally
-// contain peptides for non-periorbital reasons.
+// Eye-area concern. Caffeine = vasoconstrictor (dark circles) + decongestant (puffiness);
+// peptides = microcirculation/firmness. eye-cream kind only: serums/moisturizers
+// with incidental peptides should not get this tag.
 
 const CERNES_PATTERNS = [
   'caffeine',

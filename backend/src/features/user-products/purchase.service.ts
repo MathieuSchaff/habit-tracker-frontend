@@ -80,7 +80,6 @@ export async function openPurchase(
   input: OpenPurchaseInput,
   db: DB
 ) {
-  // find the purchase and check the user is the owner
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -90,7 +89,7 @@ export async function openPurchase(
     throw new PurchaseError('purchase_not_found')
   }
 
-  // can't have two purchases open at the same time for one user product
+  // at most one open purchase per user-product at a time
   const active = await db.query.purchases.findFirst({
     where: and(
       eq(purchases.userProductId, purchase.userProductId),
@@ -123,7 +122,6 @@ export async function finishPurchase(
 ) {
   await verifyOwnership(userId, userProductId, db)
 
-  // find the open purchase and close it
   const [result] = await db
     .update(purchases)
     .set({ finishedAt: instantToCalendar(input.finishedAt) })
@@ -147,7 +145,6 @@ export async function updatePurchase(
   input: UpdatePurchaseInput,
   db: DB
 ) {
-  // use a join with userProduct to check ownership at same time
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },
@@ -175,7 +172,6 @@ export async function updatePurchase(
 }
 
 export async function deletePurchase(userId: string, purchaseId: string, db: DB) {
-  // same thing, check the owner with a join before delete
   const purchase = await db.query.purchases.findFirst({
     where: eq(purchases.id, purchaseId),
     with: { userProduct: true },

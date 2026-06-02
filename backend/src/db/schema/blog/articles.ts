@@ -21,7 +21,7 @@ export const articles = pgTable(
     content: text('content').notNull().default(''),
     category: blogCategoryEnum('category').notNull(),
     coverImageUrl: text('cover_image_url'),
-    // null = brouillon, sinon date de publication
+    // null = draft; set to publish the article
     publishedAt: timestamp('published_at', { withTimezone: true, mode: 'string' }),
     ...timestamps,
   },

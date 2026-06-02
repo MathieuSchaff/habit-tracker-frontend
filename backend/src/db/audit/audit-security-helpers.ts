@@ -12,7 +12,7 @@ export function isHttpUrl(value: string | null | undefined): value is string {
 
 // Requires a letter after < so chemistry notation (<1%, <5°C, <3 ans) is not
 // flagged as a false positive. Encoded variants (&#60;script) are safe in JSX
-// text nodes — React does not decode HTML entities there.
+// text nodes, React does not decode HTML entities there.
 export const HTML_TAG_RE = /<[a-z][^>]*>/i
 
 export function hasSuspiciousHtml(value: string | null | undefined): value is string {
@@ -20,7 +20,7 @@ export function hasSuspiciousHtml(value: string | null | undefined): value is st
   return HTML_TAG_RE.test(value)
 }
 
-// Article content is intentionally HTML — look for dangerous patterns specifically.
+// Article content is intentionally HTML, look for dangerous patterns specifically.
 export const DANGEROUS_CONTENT_PATTERNS = [
   /<script[\s>]/i,
   /\bon\w+\s*=/i,

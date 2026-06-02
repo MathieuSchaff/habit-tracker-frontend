@@ -11,9 +11,8 @@ import { hashJti } from './jwt.utils'
 
 type RefreshTokenRow = typeof refreshTokens.$inferSelect
 
-// Maps the snake_case row returned by SELECT * FROM auth.find_active_refresh_token
-// (only path that bypasses RLS for the pre-identity lookup) into the camelCase
-// shape Drizzle would have produced.
+// Maps the snake_case row from auth.find_active_refresh_token (SECURITY DEFINER,
+// bypasses RLS for pre-identity lookup) into the camelCase shape Drizzle produces.
 function mapRefreshTokenRow(row: Record<string, unknown> | undefined): RefreshTokenRow | null {
   if (!row || row.id == null) return null
   return {
@@ -44,25 +43,22 @@ export async function storeRefreshToken(db: DB, args: CreateRefreshTokenArgs) {
       })
     })
   } catch (error) {
-    // Should not happen — unique constraint on jtiHash ensures no duplicates
+    // jtiHash unique constraint violation: UUIDv7 collision is theoretically possible.
     logger.error({ err: error }, 'Failed to store refresh token')
     throw new Error('duplicate_refresh_token')
   }
 }
 
-// Pre-identity lookup: at this point we don't yet know whose token this is,
-// so RLS would filter the row out. Goes through SECURITY DEFINER fn that
-// bypasses RLS for this single read. Caller MUST verify row.userId against
-// the JWT payload's sub before trusting it.
+// Pre-identity lookup: RLS would filter the row because we don't know userId yet.
+// Uses SECURITY DEFINER fn to bypass RLS. Caller MUST verify row.userId against
+// JWT payload.sub before trusting it.
 export async function findValidRefreshToken(db: DB, jti: string) {
   const jtiHash = hashJti(jti)
   const result = await db.execute(sql`SELECT * FROM auth.find_active_refresh_token(${jtiHash})`)
   return mapRefreshTokenRow((result as unknown as Record<string, unknown>[])[0])
 }
 
-// Mark token as revoked when it's rotated (new token issued) or user logs out.
-// userId required so we can bind RLS context — the callers already know it
-// from JWT payload.sub, no extra lookup.
+// userId required to bind RLS context; callers already have it from JWT payload.sub.
 export async function revokeRefreshToken(db: DB, jti: string, userId: string) {
   const jtiHash = hashJti(jti)
   await db.transaction(async (tx) => {
@@ -74,7 +70,7 @@ export async function revokeRefreshToken(db: DB, jti: string, userId: string) {
   })
 }
 
-// Revoke all tokens for user if we detect token replay (security incident)
+// Full revocation on token replay detection (security incident response).
 export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
   await db.transaction(async (tx) => {
     await bindRlsContext(tx, userId)
@@ -85,7 +81,7 @@ export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
   })
 }
 
-// Delete expired or revoked tokens from database (fire-and-forget cleanup after login)
+// Fire-and-forget cleanup of expired/revoked tokens after login.
 export async function cleanupUserRefreshTokens(db: DB, userId: string) {
   const now = nowISO()
   await db.transaction(async (tx) => {

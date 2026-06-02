@@ -1,5 +1,5 @@
 // Backfill INCI-derived and kind-derived tags for all skincare/solaire/bodycare
-// products already in DB. Detection logic lives in `features/auto-tagging/orchestrator.ts` —
+// products already in DB. Detection logic lives in `features/auto-tagging/orchestrator.ts`,
 // shared with `db/seed/seeders/seed-core.ts` so the two runners cannot drift on which
 // passes run or what relevance precedence applies.
 //
@@ -28,9 +28,9 @@
 //   bun run backend/src/features/auto-tagging/runners/backfill/main.ts --slug <s> # single product
 //
 // Env tunables:
-//   CONF_OVERRIDE   float  — raise every algo-derm per-tag confidenceFloor (computed_score) to this
-//   INCLUDE_DROPPED 1      — surface allow:false tags in report (no writes)
-//   LIMIT           int    — cap product count
+//   CONF_OVERRIDE   float: raise every algo-derm per-tag confidenceFloor (computed_score) to this
+//   INCLUDE_DROPPED 1: surface allow:false tags in report (no writes)
+//   LIMIT           int: cap product count
 
 import {
   DOMAIN_PRODUCT_FILTER_CATEGORIES,
@@ -95,20 +95,12 @@ interface TagInfo {
   tagType: string
 }
 
-// Brand certifications: pre-load once, then pass as immutable Map to the
-// orchestrator. Map key = `lower(trim(brand))` produced via `normalizeBrand`
-// — same convention as the seed (`brandNormalized` PK).
+// Map key = lower(trim(brand)) via normalizeBrand, same as brandNormalized PK in seed.
 type BrandCertMap = Map<string, typeof brandCertifications.$inferSelect>
 
-// V1/V2 gate: V1 backfill inserts product_type_v2 primaries when curation is
-// absent; re-running the gate on "any primary row" would block V2 (concern)
-// from firing on products V1 already touched, so we treat only the V1-emittable
-// tagType as "auto" here. Concern primaries are considered curated even when
-// V2 added them in a prior run — re-promotion would be a no-op
-// (dbRel='primary' → skipped branch), so the heuristic stays consistent.
+// Only product_type_v2 primaries count as "auto": concern primaries must not
+// block V2 from firing on products V1 already touched (see classify.ts gate).
 const AUTO_PRIMARY_TAG_TYPES = new Set(['product_type_v2'])
-
-// Setup
 
 function validateParams(): void {
   if (
@@ -210,8 +202,7 @@ async function fetchTagInfo(): Promise<{
   return { tagSlugToInfo, tagIdToType }
 }
 
-// Fetch existing (productId, tagId) → relevance + the tagType behind the
-// tagId so we can tell curated primaries apart from V1 auto primaries.
+// Loads tagType per tagId to distinguish curated primaries from V1 auto primaries.
 async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
   existingMap: Map<string, Relevance>
   productsWithCuratedPrimary: Set<string>
@@ -239,11 +230,9 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
   return { existingMap, productsWithCuratedPrimary, manualPairs }
 }
 
-// Detection
-
-// Orchestrator already dedups intra-product (avoid > secondary). The map here
-// just translates `tagSlug → tagId` and drops candidates whose slug is unknown
-// to the current `product_tags_defs` (legacy slug remap).
+// Orchestrator already dedups intra-product (avoid > secondary). This map
+// translates tagSlug to tagId and drops candidates whose slug is unknown
+// to the current product_tags_defs (legacy slug remap).
 function detectCandidates(
   subset: ProductRow[],
   claimsByProduct: Map<string, PercentClaim[]>,
@@ -257,9 +246,8 @@ function detectCandidates(
 } {
   const candidateMap = new Map<string, Candidate>()
   let noInci = 0
-  // partitionEczemaReview withholds the eczema-atopie tag when a description
-  // names atopy under a contraindication (it would invert the claim); the
-  // withheld product is surfaced for manual review. Guards the future retag.
+  // partitionEczemaReview withholds eczema-atopie when the description names atopy
+  // under a contraindication (inverted claim); withheld products surface for manual review.
   const eczemaReviewQueue: { slug: string; name: string; description: string }[] = []
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
@@ -312,8 +300,6 @@ function detectCandidates(
   }
   return { candidateMap, noInci, eczemaReviewQueue }
 }
-
-// Report
 
 function reportPlan(
   subset: ProductRow[],
@@ -368,11 +354,9 @@ function reportPlan(
   }
 }
 
-// Write
-
 const CHUNK = 500
 
-// Insert new pairs (secondary/actif/kind/formula) — doNothing preserves manual tags.
+// onConflictDoNothing preserves manual tags.
 async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<number> {
   let inserted = 0
   for (let i = 0; i < toInsert.length; i += CHUNK) {
@@ -397,11 +381,8 @@ async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<n
   return inserted
 }
 
-// Upsert pairs that must override an existing lower-precedence row:
-//    - avoid over secondary/primary  (safety signal must win)
-//    - primary over secondary        (kind-derived headline promotion)
-// Per-row relevance is taken from the candidate; Drizzle's `set` clause uses
-// EXCLUDED.{relevance, source} so the upserted values match what we inserted.
+// Overrides lower-precedence rows: avoid > secondary/primary, primary > secondary.
+// Drizzle's set clause uses EXCLUDED.{relevance, source}.
 async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Promise<number> {
   let upserted = 0
   for (let i = 0; i < toUpsert.length; i += CHUNK) {
@@ -424,8 +405,6 @@ async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Prom
   }
   return upserted
 }
-
-// Main
 
 async function main() {
   validateParams()

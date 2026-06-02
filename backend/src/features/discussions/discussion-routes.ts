@@ -30,14 +30,12 @@ const replyParam = z.object({
   replyId: z.uuid(),
 })
 
-// Builds the discussion route chain for either /products/:slug or /ingredients/:slug.
-// Both surfaces share identical CRUD shape; only the entity discriminator changes.
+// GET = anonymous OK. Non-GET = auth + ban-check. Split into two middleware so
+// requireNotBanned's short-circuit 403 propagates back through Hono compose
+// (see products/routes.ts for the same fix).
 export function createDiscussionRoutes(entityType: EntityType) {
   const app = new Hono<AppEnv>()
 
-  // GET = anonymous OK. Non-GET = auth + ban-check. Split into two middleware so
-  // requireNotBanned's short-circuit 403 propagates back through Hono compose
-  // (see products/routes.ts for the same fix).
   app.use('*', async (c, next) => {
     if (c.req.method === 'GET') return next()
     return requireJwtAuth(c, next)

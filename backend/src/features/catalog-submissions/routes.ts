@@ -7,9 +7,8 @@ import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { getMySubmissions } from './service'
 
-// No withRlsContext here: getMySubmissions intentionally reads via withAdminRls to
-// bypass the select_visible policy and surface the owner's own hidden rows. Adding
-// withRlsContext would nest the two and make the role-setting order fragile.
+// No withRlsContext: getMySubmissions uses withAdminRls to bypass select_visible and show the
+// owner's hidden rows. Nesting both makes SET LOCAL role order fragile.
 const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)

@@ -42,10 +42,10 @@ export function classifyCandidates(
   manualPairs: Set<string>
 ): ClassifyResult {
   const toInsert: Candidate[] = []
-  const toUpsert: Candidate[] = [] // override an existing lower-precedence relevance
+  const toUpsert: Candidate[] = []
   let skipped = 0
-  let primaryInserts = 0 // brand-new primary rows (no prior pair in DB)
-  let primaryUpserts = 0 // secondary → primary upgrade on an existing pair
+  let primaryInserts = 0
+  let primaryUpserts = 0
 
   for (const c of candidateMap.values()) {
     const effective = applyV1V2Gate(c, productsWithCuratedPrimary)
@@ -63,13 +63,10 @@ export function classifyCandidates(
     } else if (!isManual && effective.relevance === 'avoid' && dbRel !== 'avoid') {
       toUpsert.push(effective)
     } else if (!isManual && effective.relevance === 'primary' && dbRel === 'secondary') {
-      // Kind-derived TYPE_* / concern primary already inserted as secondary by
-      // an earlier backfill; gate above confirmed no curated primary exists.
+      // Kind-derived primary inserted as secondary by an earlier backfill; gate confirmed no curated primary exists.
       toUpsert.push(effective)
       primaryUpserts++
     } else {
-      // Includes: detected=secondary ∧ db=primary (preserve manual curation),
-      // and any candidate whose PK is held by a manual row (isManual).
       skipped++
     }
   }

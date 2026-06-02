@@ -15,7 +15,6 @@ import { RichText } from '@/component/Typography/RichText/RichText'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
-import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { useAuthStore } from '@/store/auth'
 import { ingredientLabels } from '../../constants'
@@ -101,7 +100,7 @@ export function IngredientInfoTab() {
           <SectionHeader title="Détail" variant="primary" />
           <RichText>
             <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-              {normalizeLatexMarkdown(ingredient.content)}
+              {ingredient.content}
             </Markdown>
           </RichText>
         </div>

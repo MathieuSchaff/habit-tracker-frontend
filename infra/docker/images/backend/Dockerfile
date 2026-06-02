@@ -19,9 +19,6 @@ COPY tsconfig.json ./
 COPY backend/ ./backend/
 COPY shared/ ./shared/
 
-# 🔥 Plus besoin de rm -rf car typescript n'est pas dans shared/
-RUN bunx tsc -b shared/tsconfig.json
-
 WORKDIR /app/backend
 EXPOSE 3000
 CMD ["bun", "--watch", "src/index.ts"]
@@ -31,26 +28,24 @@ FROM oven/bun:1.3.12-debian AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 
-# 1. On copie les fichiers de configuration racine
+# Manifests racine du workspace
 COPY package.json bun.lock tsconfig.json bunfig.toml ./
 
-# 2. On prépare TOUS les dossiers (y compris frontend)
+# Dossiers workspace requis par bun install
 RUN mkdir -p backend shared frontend
 
-# 3. On copie les manifestes de TOUS les packages
+# Manifests des packages workspace
 COPY backend/package.json backend/
 COPY shared/package.json shared/
 COPY frontend/package.json frontend/
 COPY vendor/ vendor/
 
-# 4. L'installation fonctionnera maintenant
-RUN bun install --frozen-lockfile
+# Production runtime deps only
+RUN bun install --frozen-lockfile --production
 
-# 5. On continue le reste
+# Runtime source
 COPY backend/ ./backend/
 COPY shared/ ./shared/
-
-RUN cd /app/shared && bun run build
 
 USER bun
 EXPOSE 3000

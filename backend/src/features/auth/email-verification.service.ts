@@ -28,7 +28,7 @@ export async function createVerificationToken(db: DB, userId: string): Promise<s
   const tokenHash = hashToken(rawToken)
   const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS).toISOString()
 
-  // Mark all previous tokens as used so only one token is valid at a time
+  // Invalidate all previous tokens so only one is valid at a time.
   await db
     .update(emailVerifications)
     .set({ usedAt: sql`now()` })
@@ -60,7 +60,7 @@ export async function verifyEmailToken(db: DB, rawToken: string) {
     return err('token_expired' as const)
   }
 
-  // Check if user already verified their email from another request
+  // Guard against concurrent verification requests: treat already-verified as success.
   const [userRow] = await db
     .select({ emailVerifiedAt: usersSafe.emailVerifiedAt })
     .from(usersSafe)

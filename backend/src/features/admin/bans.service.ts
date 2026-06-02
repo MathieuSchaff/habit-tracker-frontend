@@ -15,12 +15,10 @@ import { type UserBan, userBans, usersSafe } from '../../db/schema'
 import { profiles } from '../../db/schema/auth/users'
 import { clearBanCache } from '../auth/ban.service'
 
-// V1 lists the 100 most recent users — no pagination / search until admin volume
-// justifies it. Cap exists to avoid accidental table scans through the API.
+// Cap avoids accidental full-table scans; no pagination until admin volume justifies it.
 const ADMIN_USERS_LIST_LIMIT = 100
 
 type CreateBanArgs = {
-  // The moderator performing the ban (admin or contributor) — recorded as bannedBy.
   actorId: string
   targetUserId: string
   body: CreateBanInput
@@ -67,9 +65,7 @@ export async function createBan(
   return { success: true, data: row }
 }
 
-// Reads a ban's scope so the route can gate a contributor away from 'global'
-// (account lockout) before liftBan runs. Returns null when the ban is absent —
-// the caller then falls through to liftBan's not_found path (ADR-0006 S4).
+// Returns null when the ban is absent; caller falls through to liftBan's not_found path (ADR-0006 S4).
 export async function getBanScope(db: Database, banId: string): Promise<BanScope | null> {
   const [row] = await db
     .select({ scope: userBans.scope })
@@ -115,7 +111,7 @@ export async function updateBan(
   if (body.reason !== undefined) updates.reason = body.reason
   if (body.expiresAt !== undefined) updates.expiresAt = body.expiresAt
 
-  // Defensive: zod's .refine guarantees at least one field, but keep the guard
+  // Zod's .refine guarantees at least one field at the route layer, but guard here
   // so the service is safe under direct calls (seed, future internal callers).
   if (Object.keys(updates).length === 0) {
     return { success: false, error: 'invalid_input' }
@@ -136,9 +132,7 @@ export async function listUsers(db: Database): Promise<AdminUserListItem[]> {
       role: usersSafe.role,
       emailVerifiedAt: usersSafe.emailVerifiedAt,
       createdAt: usersSafe.createdAt,
-      // LEFT JOIN: profile row is optional during the brief window between
-      // user signup and profile creation. Coerce to false so the API always
-      // returns a boolean.
+      // Profile row is absent during the window between signup and profile creation; coerce to boolean.
       forcedPrivateByAdmin: sql<boolean>`COALESCE(${profiles.forcedPrivateByAdmin}, false)`,
     })
     .from(usersSafe)

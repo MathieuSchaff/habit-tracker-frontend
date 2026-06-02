@@ -6,12 +6,9 @@ import {
 } from '../../db/schema/tags/tags'
 import { createTagService } from '../_tags/lib/createTagService'
 
-// getById, list, update, delete have no callers today. They stay
-// symmetric with the product-tag service because future admin tooling
-// for the ingredient taxonomy is plausible (custom UX tags, pedagogical
-// groupings) and regenerating Drizzle wrappers later costs more than
-// the ~60 LOC kept. KEEP BY DESIGN: if a future audit re-flags them,
-// the correct fix is to wire admin routes (Phase 2), NOT to delete.
+// KEEP BY DESIGN: getById/list/update/delete have no callers today but mirror
+// product-tag service symmetry for future admin tooling. Correct fix if re-flagged:
+// wire admin routes (Phase 2), not delete.
 
 type IngredientTagLink = typeof ingredientTagLinks.$inferSelect
 

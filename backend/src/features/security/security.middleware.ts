@@ -4,7 +4,6 @@ import type { Context, Next } from 'hono'
 import type { AppEnv } from '../../app-env'
 import { isUserBlocked, logSecurityEvent } from './security.service'
 
-// Fields that hold user-supplied URLs.
 const URL_FIELDS = new Set(['url', 'imageUrl', 'avatarUrl', 'coverImageUrl'])
 
 interface Detection {
@@ -23,7 +22,7 @@ function scanBody(body: unknown, prefix = ''): Detection[] {
 
     const field = prefix ? `${prefix}.${key}` : key
 
-    // HIGH — dangerous URL protocol in a URL field (javascript:, vbscript:, data:, encoded
+    // HIGH: dangerous URL protocol in a URL field (javascript:, vbscript:, data:, encoded
     // variants…). sanitizeUrl returns 'about:blank' for anything it considers unsafe,
     // covering edge cases our regex would miss (&#106;avascript:, java\nscript:, etc.).
     if (URL_FIELDS.has(key) && sanitizeUrl(value) === 'about:blank') {
@@ -31,13 +30,12 @@ function scanBody(body: unknown, prefix = ''): Detection[] {
       continue
     }
 
-    // HIGH — HTML tags in any field (covers inci, name, description…)
+    // HIGH: HTML tags in any field (covers inci, name, description…)
     if (/<[a-z][^>]*>/i.test(value)) {
       detections.push({ field, payload: value, eventType: 'html_injection', severity: 'high' })
       continue
     }
 
-    // LOW — http:// instead of https:// in URL fields
     if (URL_FIELDS.has(key) && /^http:\/\//i.test(value)) {
       detections.push({ field, payload: value, eventType: 'http_url', severity: 'low' })
     }
@@ -53,7 +51,6 @@ export function securityScan() {
 
     const db = c.get('db')
 
-    // Repeat offenders are blocked before parsing any body.
     if (await isUserBlocked(db, userId)) {
       return c.json({ success: false, error: 'forbidden' }, 403)
     }

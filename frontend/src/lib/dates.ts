@@ -1,9 +1,8 @@
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-// API contract: every wire date is ISO 8601 UTC. Calendar dates round to
-// midnight UTC ("YYYY-MM-DDT00:00:00.000Z"). Native <input type="date"> only
-// understands "YYYY-MM-DD", so forms must convert at the boundary.
+// Wire dates are ISO 8601 UTC. Calendar dates round to midnight UTC.
+// <input type="date"> only understands "YYYY-MM-DD", so forms convert at the boundary.
 
 export function toDateInputValue(iso: string | null | undefined): string {
   return iso ? iso.slice(0, 10) : ''
@@ -17,16 +16,13 @@ export function todayDateInputValue(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-// ISO instant for now - use when writing wire dates from the frontend.
-// Wraps the only sanctioned `new Date().toISOString()` call so components
-// stay free of raw Date allocations.
+// Single sanctioned call site for raw Date allocation in components.
 export function nowInstant(): string {
   return new Date().toISOString()
 }
 
-// `<input type="datetime-local">` returns a tz-naive local string
-// ("2026-05-22T14:30"). `new Date(x).toISOString()` would silently apply the
-// browser's local tz, leaking it onto the wire. Reinterpret as UTC instead.
+// datetime-local inputs return tz-naive strings; new Date(x).toISOString() would apply the
+// browser's local tz and leak it onto the wire. Reinterpret as UTC instead.
 export function parseDatetimeLocalAsUTC(value: string): string {
   const trimmed = value.trim()
   if (!trimmed) return ''
@@ -34,11 +30,11 @@ export function parseDatetimeLocalAsUTC(value: string): string {
   return `${withSeconds}.000Z`
 }
 
-// Locale always FR - components must not fall back to browser locale.
+// Locale always FR; components must not fall back to browser locale.
 
 type FormatStyle = 'short' | 'medium' | 'long' | 'monthYear'
 
-// Hoisted to module scope - Intl constructors allocate per call, so build once per style.
+// Module-scope: Intl constructors are expensive, build once per style.
 const FORMATTERS: Record<FormatStyle, Intl.DateTimeFormat> = {
   short: new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
   medium: new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -54,8 +50,7 @@ export function formatInstant(
   return FORMATTERS[style].format(new Date(iso))
 }
 
-// ISO 8601 UTC strings sort lexicographically - no Date allocation needed.
-// Use `compareInstant(b, a)` for descending (most recent first).
+// ISO 8601 UTC strings sort lexicographically; use compareInstant(b, a) for descending.
 export function compareInstant(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
 }

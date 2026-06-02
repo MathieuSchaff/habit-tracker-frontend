@@ -16,7 +16,7 @@ export const securityEvents = pgTable(
     // e.g. 'javascript_url' | 'html_injection' | 'data_url' | 'http_url'
     eventType: text('event_type').notNull(),
     field: text('field').notNull(),
-    // Truncated at 200 chars — enough for fingerprinting, not a full payload dump
+    // Truncated at 200 chars: enough for fingerprinting, not a full payload dump
     payload: text('payload').notNull(),
     route: text('route').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })

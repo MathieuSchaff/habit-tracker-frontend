@@ -85,11 +85,10 @@ export async function verifyRefreshToken(
 }
 
 export async function extractRefreshToken(c: Context<AppEnv>): Promise<string | null> {
-  // Check cookie first (browsers always have HttpOnly cookie access)
   const fromCookie = getCookie(c, 'refresh_token')
   if (fromCookie) return fromCookie
 
-  // For mobile apps, accept from request body if Content-Type is JSON
+  // Mobile clients cannot read HttpOnly cookies, so accept token from JSON body.
   const contentType = c.req.header('Content-Type')
   if (contentType?.includes('application/json')) {
     try {

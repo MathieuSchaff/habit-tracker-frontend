@@ -8,7 +8,7 @@
 //
 // Sampling strategy
 // -----------------
-// For each focus tag (16 total — 9 actif-class clusters, 4 sensoriels T1,
+// For each focus tag (16 total: 9 actif-class clusters, 4 sensoriels T1,
 // 3 acid clusters), we draw:
 //   - POSITIVES_PER_TAG products that currently carry the tag in DB. Picked
 //     to span product kinds so the metric isn't dominated by serum-only.
@@ -28,11 +28,11 @@
 // previous draw; the previous selection stays stable.
 //
 // Tunables via env:
-//   SAMPLE_SIZE         optional 70    — total unique products to draw
-//   POSITIVES_PER_TAG   optional 4     — currently-tagged samples per tag
-//   NEGATIVES_PER_TAG   optional 2     — currently-untagged samples per tag
-//   SEED                optional 42    — PRNG seed
-//   GOLD_SET_PATH       optional       — output JSON path
+//   SAMPLE_SIZE         optional 70: total unique products to draw
+//   POSITIVES_PER_TAG   optional 4: currently-tagged samples per tag
+//   NEGATIVES_PER_TAG   optional 2: currently-untagged samples per tag
+//   SEED                optional 42: PRNG seed
+//   GOLD_SET_PATH       optional: output JSON path
 
 import path from 'node:path'
 
@@ -93,8 +93,6 @@ interface MergeResult {
   updatedSampledFor: number
 }
 
-// Setup
-
 function validateParams(): void {
   if (
     !Number.isFinite(SAMPLE_SIZE) ||
@@ -119,6 +117,7 @@ function logHeader(): void {
 }
 
 async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: ProductRow[] }> {
+  // SET LOCAL bypasses RLS to read the full catalogue.
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const all = await db
     .select({
@@ -136,9 +135,7 @@ async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: P
   return { all, eligible }
 }
 
-// Pull the (productId → Set<tagSlug>) map by joining tag_products with
-// product_tags_defs. Filtered to focus tags only — anything else is irrelevant
-// for sampling.
+// Filtered to focus tags only; other tags are irrelevant for sampling.
 async function fetchTagsByProduct(): Promise<Map<string, Set<string>>> {
   const focusTagDefIds = await db
     .select({ id: productTagTypes.id, slug: productTagTypes.slug })
@@ -175,14 +172,11 @@ async function fetchTagsByProduct(): Promise<Map<string, Set<string>>> {
   return tagsByProduct
 }
 
-// Pool construction
-
 function buildPools(eligible: ProductRow[], tagsByProduct: Map<string, Set<string>>): PoolsState {
   const poolsByTag = new Map<GoldSetFocusTag, Pools>()
   for (const tag of GOLD_SET_FOCUS_TAGS) poolsByTag.set(tag, { positives: [], negatives: [] })
 
-  // Track the dominant kind per tag (most-frequent kind among positives) so
-  // negatives are drawn from the same kind, not random across the corpus.
+  // Track dominant kind per tag so negatives are drawn from the same kind.
   const kindFreqByTag = new Map<GoldSetFocusTag, Map<string, number>>()
   for (const tag of GOLD_SET_FOCUS_TAGS) kindFreqByTag.set(tag, new Map())
 
@@ -200,8 +194,7 @@ function buildPools(eligible: ProductRow[], tagsByProduct: Map<string, Set<strin
   return { poolsByTag, kindFreqByTag }
 }
 
-// Negatives draw: sample products in the dominant kind that lack the tag.
-// Computed after the positives pass so we know each tag's dominant kind.
+// Computed after positives so the dominant kind per tag is known.
 function addNegativesToPools(
   eligible: ProductRow[],
   tagsByProduct: Map<string, Set<string>>,
@@ -244,11 +237,7 @@ function logPoolsTable({ poolsByTag, kindFreqByTag }: PoolsState): void {
   console.log()
 }
 
-// Selection round-robin
-
-// Round-robin draw: cycle through tags, take next positive/negative until
-// we hit SAMPLE_SIZE unique products. `sampledFor` accumulates every tag
-// that selected the same product.
+// sampledFor accumulates every tag that selected the same product (multi-tag products).
 function drawSelection(state: PoolsState): Map<string, SelectionEntry> {
   const rng = mulberry32(SEED >>> 0)
   for (const pools of state.poolsByTag.values()) {
@@ -257,12 +246,9 @@ function drawSelection(state: PoolsState): Map<string, SelectionEntry> {
   }
 
   const selected = new Map<string, SelectionEntry>()
-  // First pass: positives — diversify by stratifying within each tag's pool
-  // by kind. Stratification is approximate (we shuffled, so kinds are
-  // already randomly interleaved; we simply take the first POSITIVES_PER_TAG
-  // entries from the shuffle), good enough for a 60-80 sample budget.
+  // Shuffle already interleaves kinds; taking the first POSITIVES_PER_TAG entries
+  // is approximate stratification, adequate for a 60-80 sample budget.
   drawRound(state.poolsByTag, selected, POSITIVES_PER_TAG, 'positives')
-  // Second pass: negatives, same round-robin.
   drawRound(state.poolsByTag, selected, NEGATIVES_PER_TAG, 'negatives')
   return selected
 }
@@ -293,12 +279,7 @@ function drawRound(
   }
 }
 
-// Merge with existing annotations
-
-// Merge with existing annotations: preserve every entry that already
-// carries any present/absent decision, append new skeletons for newly
-// sampled products. Entries the new draw doesn't include are KEPT —
-// bootstrap is additive, never destructive.
+// Additive: entries not in the new draw are preserved. Only empty entries get sampledFor updated.
 function mergeAnnotations(
   existing: GoldSetFile,
   selected: Map<string, SelectionEntry>
@@ -316,8 +297,7 @@ function mergeAnnotations(
       if (a.present.length > 0 || a.absent.length > 0) preservedFilled++
       continue
     }
-    // Existing entry that the draw also picked. Update sampledFor only when
-    // the entry is empty (otherwise we'd churn the file on every bootstrap).
+    // Update sampledFor only on empty entries to avoid churning the file on every run.
     if (a.present.length === 0 && a.absent.length === 0) {
       const newSampledFor = [...sel.sampledFor].sort()
       const oldSampledFor = [...(a.sampledFor ?? [])].sort()
@@ -331,7 +311,6 @@ function mergeAnnotations(
     }
   }
 
-  // Append products newly selected (not already in the file).
   for (const [slug, sel] of selected) {
     if (existingBySlug.has(slug)) continue
     merged.push({
@@ -358,8 +337,6 @@ function logFinal(merged: MergeResult, existingLen: number): void {
   console.log(`   ${merged.preservedFilled} entrées avec annotations remplies (préservées)\n`)
   console.log(`✨ Bootstrap terminé. Édite ${GOLD_SET_PATH} pour annoter les nouvelles entrées.\n`)
 }
-
-// Main
 
 async function main() {
   validateParams()
@@ -389,8 +366,6 @@ async function main() {
 
   logFinal(result, existing.annotations.length)
 }
-
-// Helpers
 
 function pickDominantKind(freq: Map<string, number>): string | null {
   let best: string | null = null
@@ -438,8 +413,7 @@ async function tryLoadExisting(p: string): Promise<GoldSetFile> {
   return loadGoldSet(p)
 }
 
-// Mulberry32 — small, fast, deterministic 32-bit PRNG. Same seed → same
-// sequence. Adequate for sampling (not a cryptographic RNG).
+// Mulberry32: deterministic 32-bit PRNG. Not a cryptographic RNG.
 function mulberry32(a: number): () => number {
   return () => {
     a = (a + 0x6d2b79f5) | 0

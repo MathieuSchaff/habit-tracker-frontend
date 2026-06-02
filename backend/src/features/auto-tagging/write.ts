@@ -1,11 +1,11 @@
 // Runtime auto-tag writer. Single-product wrapper used by
 // `features/products/service.ts create/updateProduct()` to derive tags inline
-// at intake. Same orchestrator as the batch backfill — diverges
+// at intake. Same orchestrator as the batch backfill; diverges
 // only in I/O shape (one product, fetch what's needed, insert pairs).
 //
 // Idempotent via `onConflictDoNothing` on the (productId, productTagId) PK.
 // Unknown slugs (orchestrator emits a tag whose `product_tags_defs` row is
-// missing) are silently dropped — keeps the runtime path resilient when new
+// missing) are silently dropped; keeps the runtime path resilient when new
 // orchestrator rules ship before the seed catches up.
 
 import {
@@ -60,7 +60,7 @@ export async function writeTagsForProduct(
 
   // Sequential, not Promise.all: when `database` is a transaction these reads
   // share one connection, and Bun's SQL pipelines concurrent statements then
-  // misroutes their result sets — an empty tag-defs read silently drops every
+  // misroutes their result sets; an empty tag-defs read silently drops every
   // tag (rows=0) while the DELETE still wipes existing rows. The reconcile /
   // backfill runners pass a tx (withAdminRls), so the fan-out must be serial.
   const certRows = await database.select().from(brandCertifications)
@@ -124,8 +124,7 @@ export async function writeTagsForProduct(
     { brandCertifications: brandCertMap }
   )
 
-  // Withhold eczema-atopie on a contraindicating description (the runners surface
-  // these for manual review; the runtime path just declines to auto-tag).
+  // Withhold eczema-atopie on a contraindicating description; runtime declines to auto-tag.
   const { kept } = partitionEczemaReview(pairs, product.description)
   const rows = kept.flatMap((pair) => {
     const info = tagSlugToInfo.get(pair.tagSlug)
@@ -140,11 +139,8 @@ export async function writeTagsForProduct(
     ]
   })
 
-  // Replace this product's auto-tag rows atomically so a shrunk INCI drops
-  // the now-invalid tags. Manual rows (source = 'manual') are preserved —
-  // they live under a separate CRUD path (createTagService) and must not be
-  // wiped by a retag. Inside a transaction so a partial state is never
-  // visible to readers.
+  // Atomic replace so a shrunk INCI drops stale tags. Manual rows are preserved
+  // (separate CRUD path, must not be wiped by retag).
   return database.transaction(async (tx) => {
     await tx
       .delete(productTagLinks)
@@ -158,7 +154,7 @@ export async function writeTagsForProduct(
   })
 }
 
-// Frozen contract — `computeFingerprint` keys on this string. See ADR-0002.
+// Frozen contract: `computeFingerprint` keys on this string. See ADR-0002.
 export const AUTOTAG_SKIP_EVENT_KIND = 'product_autotag_skipped' as const
 
 export interface AutoTagSkipMeta {

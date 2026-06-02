@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apk add --no-cache curl
 
-# Copier structure workspace
+# Manifests workspace
 COPY package.json bun.lock bunfig.toml ./
 COPY frontend/package.json frontend/
 COPY shared/package.json shared/
@@ -13,7 +13,7 @@ COPY backend/package.json backend/
 COPY vendor/ vendor/
 RUN bun install --frozen-lockfile
 
-# Le code source est monté en volume (voir docker-compose.dev.yml)
+# Le code source et les configs frontend sont montés par docker-compose.dev.yml
 WORKDIR /app/frontend
 EXPOSE 5173
 CMD ["bun", "run", "dev", "--host", "0.0.0.0"]

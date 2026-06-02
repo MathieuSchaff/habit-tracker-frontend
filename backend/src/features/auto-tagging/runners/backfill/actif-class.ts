@@ -1,16 +1,6 @@
-// Surgical backfill after restoring the dev DB from snapshot/data.sql.
-//
-// The snapshot predates the actif_class taxonomy, so the 16 cluster slugs
-// (retinoids, vitamin-c, aha…) and their associations are missing. This
-// script re-applies them without touching anything else:
-//
-//   1. inserts the 16 product_tags + 16 ingredient_tags defs (idempotent)
-//   2. re-creates ingredient ↔ actif_class pairs from skincareTagMap.secondary
-//   3. re-derives product ↔ actif_class pairs from each skincare product's
-//      live INCI in DB via detectActifClasses() — same logic as seed-core
-//      runs at clean seed.
-//
-// Safe to re-run; uses onConflictDoNothing on every insert.
+// Backfill actif_class taxonomy after restoring dev DB from snapshot/data.sql.
+// The snapshot predates actif_class, so 16 cluster slugs and associations are missing.
+// Re-applies without touching anything else; all inserts use onConflictDoNothing.
 
 import { eq, sql } from 'drizzle-orm'
 
@@ -33,7 +23,6 @@ async function main() {
   await db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL app.role = 'admin'`)
 
-    // 1. Tag defs — actif_class category only.
     const productDefs = productTagData.filter((t) => t.tagType === 'actif_class')
     const ingredientDefs = ingredientTagData.filter((t) => t.tagType === 'actif_class')
 
@@ -53,7 +42,7 @@ async function main() {
       `✅ defs : ${productDefs.length} product_tags + ${ingredientDefs.length} ingredient_tags (actif_class)`
     )
 
-    // 2. Re-fetch id maps now that the new defs are committed in this tx.
+    // Re-fetch id maps after the new defs are visible in this tx.
     const [productTagRows, ingredientTagRows, ingredientRows] = await Promise.all([
       tx.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
       tx
@@ -66,8 +55,6 @@ async function main() {
     const ingredientTagIdBySlug = new Map(ingredientTagRows.map((r) => [r.slug, r.id]))
     const ingredientIdBySlug = new Map(ingredientRows.map((r) => [r.slug, r.id]))
 
-    // 3. tag_ingredients : every entry of skincareTagMap.secondary that
-    // matches an actif_class slug.
     const actifClassIngredientSlugs = new Set<string>(ingredientDefs.map((t) => t.slug))
     const ingPairs: { ingredientId: string; ingredientTagId: string; relevance: 'secondary' }[] = []
     const missingIngredients = new Set<string>()
@@ -98,7 +85,6 @@ async function main() {
       }`
     )
 
-    // 4. tag_products : re-derive from each skincare product's INCI in DB.
     const skincareProducts = await tx
       .select({ id: products.id, inci: products.inci })
       .from(products)

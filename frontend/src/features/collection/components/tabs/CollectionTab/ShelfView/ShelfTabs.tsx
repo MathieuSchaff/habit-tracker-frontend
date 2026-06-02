@@ -25,10 +25,8 @@ interface ShelfTabsProps {
 
 const HOLY_GRAIL_COLOR = 'var(--status-color-holy-grail)'
 const REPURCHASE_COLOR = 'var(--status-color-repurchase)'
-// Negative-framing statuses (archived, avoided) lose their accent in the
-// Plus dropdown to keep it calm. Same reasoning as the .pds-repurchase-btn.no
-// neutralization (anti-patterns.md #18): a personal decision shouldn't be
-// color-encoded as a warning.
+// Negative-framing statuses (archived, avoided) are neutral in the dropdown: personal decisions
+// shouldn't carry a warning color (anti-patterns.md #18).
 const NEUTRAL_SECONDARY_COLOR = 'var(--text-muted)'
 
 export function ShelfTabs({

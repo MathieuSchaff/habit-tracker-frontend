@@ -31,8 +31,7 @@ const app = new Hono<AppEnv>()
 app.use('*', rateLimiterFunc)
 app.use('*', requireJwtAuth)
 app.use('*', requireNotBanned)
-// All routes here are moderator-reachable (list + review) → blanket guard is safe
-// (mirrors admin/reports.routes.ts; no admin-only verb mixed in).
+// All routes are moderator-reachable (list + review); no admin-only verb mixed in, blanket guard is safe.
 app.use('*', requireContentModerator)
 app.use('*', withRlsContext)
 

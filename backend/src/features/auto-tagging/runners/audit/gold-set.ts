@@ -1,34 +1,22 @@
-// Gold-set benchmark runner — measures per-tag precision/recall/F1/Brier/ECE
-// of the orchestrator output against a hand-annotated corpus (~260 products
-// as of 2026-05-23).
+// Gold-set benchmark: per-tag P/R/F1/Brier/ECE against hand-annotated corpus
+// (~260 products). Read-only on DB.
 //
-// Read-only on the DB. The annotations live in
-// `backend/src/features/auto-tagging/data/gold-set/annotations.json` (loaded with the
-// validator from `gold-set/fixtures.ts`) and stand-in for ground truth on
-// the 15 focus tags listed in `GOLD_SET_FOCUS_TAGS`.
+// Annotations: gold-set/annotations.json (loaded via fixtures.ts).
+// Focus tags: GOLD_SET_FOCUS_TAGS (15 tags).
 //
 // Pipeline per product:
-//   1. detectAllAutoTags(product) — orchestrator output (15 focus tags or
-//      none). Source is `algo-derm` when the tag came from passe 1; that's
-//      the only deterministic-confidence source. Other passes emit a tag
-//      with no probabilistic confidence — we record p=1.0 for emitted and
-//      p=0.0 for not emitted, which collapses Brier to misclassification
-//      rate (intentional — calibration only meaningful for passe 1).
-//   2. detectAutoTags(inci, kind, { assessment, ingredients }) — re-ran
-//      separately to recover algo-derm confidence per emitted tag. Hoisted
-//      assessment/ingredients are reused by the orchestrator path so the
-//      double-call is cheap.
+//   1. detectAllAutoTags: orchestrator emission set.
+//   2. detectAutoTags: algo-derm confidence per emitted tag (passe 1 only).
+//      Other passes emit deterministic: p=1.0 emitted / p=0.0 not emitted,
+//      collapsing Brier to misclassification rate (calibration only valid for passe 1).
+//      assessment/ingredients hoisted so the double-call is cheap.
 //
-// Drift hard-fails the run: an annotated productSlug missing from DB
-// surfaces as an error with the slug list, so an outdated gold set is a
-// noisy diff (you re-bootstrap or remove the orphan slug, never silently
-// skip).
+// Missing annotated slug hard-fails: stale gold set must be fixed, never silently skipped.
 //
-// Tunables via env:
-//   GOLD_SET_PATH    optional       — alternative annotations.json path
-//   CSV_OUT          optional       — per (product, tag) prediction CSV
-//   STRICT           optional 1     — fail if any annotation has empty
-//                                     present AND empty absent (TODO entry)
+// Env:
+//   GOLD_SET_PATH    optional   : alternative annotations.json path
+//   CSV_OUT          optional   : per (product, tag) prediction CSV
+//   STRICT           optional 1 : fail if any annotation has empty present AND absent
 
 import path from 'node:path'
 
@@ -131,9 +119,7 @@ async function main() {
     claimsByProduct.set(row.productId, arr)
   }
 
-  // Drift check — every annotation slug must exist in DB. Otherwise gold
-  // set is stale (a product was renamed or deleted) and the metric on that
-  // entry is meaningless.
+  // Every annotated slug must exist in DB; missing = stale gold set (renamed/deleted product).
   const dbBySlug = new Map<string, (typeof dbProducts)[number]>()
   for (const p of dbProducts) dbBySlug.set(p.slug, p)
   const missing = annotated.filter((s) => !dbBySlug.has(s))
@@ -143,7 +129,7 @@ async function main() {
     )
   }
 
-  // Sanity check — annotated category must still be auto-tag eligible.
+  // Category must still be auto-tag eligible; gold set may outlive category changes.
   const ineligibleCategories: string[] = []
   const eligibleSet = new Set<string>(AUTO_TAG_ELIGIBLE_CATEGORIES)
   for (const p of dbProducts) {
@@ -157,15 +143,12 @@ async function main() {
     )
   }
 
-  // Run the orchestrator + passe 1 on every annotated product, collect
-  // (tagSlug → confidence) per product.
   const rowsPerProduct = new Map<string, Map<GoldSetFocusTag, { emitted: boolean; conf: number }>>()
   let withInci = 0
 
   for (const p of dbProducts) {
     if (!p.inci?.trim()) {
-      // No INCI → no emission possible. Record all focus tags as not-emitted
-      // so downstream metric loop sees the absence consistently.
+      // No INCI: record all focus tags as not-emitted so the metric loop sees consistent absence.
       const m = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
       for (const t of GOLD_SET_FOCUS_TAGS) m.set(t, { emitted: false, conf: 0 })
       rowsPerProduct.set(p.slug, m)
@@ -176,7 +159,6 @@ async function main() {
     const ingredients = splitINCI(p.inci)
     const assessment = analyzeINCI(p.inci, { context: mapKindToContext(p.kind as ProductKind) })
 
-    // Algo-derm passe 1 — confidence per emitted tag.
     const algoTags = detectAutoTags(p.inci, p.kind as ProductKind, {
       assessment,
       ingredients,
@@ -184,7 +166,6 @@ async function main() {
     const algoConfBySlug = new Map<string, number>()
     for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
 
-    // Full orchestrator emission — used to know whether the tag fires at all.
     const orchPairs = detectAllAutoTags({
       inci: p.inci,
       kind: p.kind as ProductKind,
@@ -197,8 +178,7 @@ async function main() {
     const m = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
     for (const t of GOLD_SET_FOCUS_TAGS) {
       const emitted = emittedSlugs.has(t)
-      // If algo-derm passe 1 emitted with confidence, use that; otherwise
-      // treat deterministic emit as p=1.0, no-emit as p=0.0.
+      // Use algo-derm confidence when available; deterministic passes get p=1.0/p=0.0.
       const algoConf = algoConfBySlug.get(t)
       const conf = emitted ? (algoConf !== undefined ? algoConf : 1) : 0
       m.set(t, { emitted, conf })
@@ -212,7 +192,6 @@ async function main() {
     `   ${withInci} avec INCI · ${gold.annotations.length - withInci} sans INCI (pred=0 forcé)\n`
   )
 
-  // Build per-tag metrics. Skip products where the tag is unrated.
   const perTag: PerTagMetrics[] = []
   const csvRows: string[] = []
   if (CSV_OUT) {
@@ -248,7 +227,6 @@ async function main() {
     perTag.push(computePerTagMetrics(tag, samples))
   }
 
-  // Reporting
   console.log(`📋 Per-tag metrics`)
   console.log(
     `   ${pad('tag', 22)} ${rpad('rated', 5)} ${rpad('TP', 4)} ${rpad('FP', 4)} ${rpad('FN', 4)} ${rpad('TN', 4)} ${rpad('P', 6)} ${rpad('R', 6)} ${rpad('F1', 6)} ${rpad('Brier', 6)} ${rpad('ECE', 6)}`
@@ -271,8 +249,7 @@ async function main() {
   )
   console.log(`   micro  P=${fmt(micro.precision)}  R=${fmt(micro.recall)}  F1=${fmt(micro.f1)}`)
 
-  // Per-layer breakdown — makes coverage gaps explicit (a layer with 0 focus
-  // tags is unmeasured, a target for gold-set expansion). Macro per layer.
+  // Layer with 0 focus tags is unmeasured: target for gold-set expansion.
   console.log(`\n🧱 Par couche`)
   console.log(
     `   ${pad('couche', 12)} ${rpad('tags', 4)} ${rpad('rated', 5)} ${rpad('P', 6)} ${rpad('R', 6)} ${rpad('F1', 6)} ${rpad('Brier', 6)} ${rpad('ECE', 6)}`
@@ -288,7 +265,6 @@ async function main() {
     )
   }
 
-  // Surface tags with no rated samples — annotators may have skipped them.
   const unrated = perTag.filter((m) => m.rated === 0).map((m) => m.tagSlug)
   if (unrated.length > 0) {
     console.log(

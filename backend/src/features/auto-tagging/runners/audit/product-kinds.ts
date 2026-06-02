@@ -1,18 +1,14 @@
-// Audit `products.kind` mistags via name patterns.
-//
-// Detects products where the current `kind` doesn't match the name signal —
-// e.g., "Baume Yeux" with kind=moisturizer should be eye-cream. Surfaces
-// upstream data quality bugs that downstream detectors (texture, kind-tag,
-// formula) inherit as FPs.
+// Detect products where kind doesn't match name signal (e.g., "Baume Yeux" kind=moisturizer).
+// Upstream kind bugs propagate as FPs to texture, kind-tag, and formula detectors.
 //
 // Confidence tiers:
-//   certain    — strong, unambiguous signal. --write applies the fix.
-//   likely     — strong but context-dependent. Reported, not auto-applied.
+//   certain: --write applies the fix
+//   likely: reported only, not auto-applied
 //
 // Usage:
-//   bun run src/features/auto-tagging/runners/audit-product-kinds.ts             # dry-run
-//   bun run src/features/auto-tagging/runners/audit-product-kinds.ts --write     # apply certain
-//   bun run src/features/auto-tagging/runners/audit-product-kinds.ts --slug s    # single product
+//   bun run .../audit-product-kinds.ts            # dry-run
+//   bun run .../audit-product-kinds.ts --write    # apply certain
+//   bun run .../audit-product-kinds.ts --slug s   # single product
 
 import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@aurore/shared'
 
@@ -38,13 +34,12 @@ interface KindRule {
   match: RegExp
   forbidden?: RegExp
   expected: ProductKind
-  // Skip flagging if current kind is already in this set (treated as acceptable).
   okIfKindIn?: ReadonlySet<ProductKind>
   confidence: Confidence
   why: string
 }
 
-// Reverse map kind → category (PRODUCT_KINDS is grouped by category).
+// PRODUCT_KINDS is grouped by category; reverse to kind → category.
 const KIND_TO_CATEGORY: Record<ProductKind, ProductCategory> = (() => {
   const map = {} as Record<ProductKind, ProductCategory>
   for (const [cat, kinds] of Object.entries(PRODUCT_KINDS)) {
@@ -55,14 +50,10 @@ const KIND_TO_CATEGORY: Record<ProductKind, ProductCategory> = (() => {
   return map
 })()
 
-// First match wins. Order by signal specificity — most decisive first so
-// e.g. "Eau Micellaire Visage Yeux Lèvres" routes to cleanser (demaquillant
-// rule), not eye-cream / lip-care.
-//
-// Forbidden patterns deliberately omit a trailing `\b` to allow conjugated
-// suffixes ("démaquillant" → "démaquillante") without listing every variant.
+// First match wins: ordered by signal specificity so "Eau Micellaire Visage Yeux Lèvres"
+// routes to cleanser (demaquillant rule), not eye-cream/lip-care.
+// Forbidden patterns omit trailing \b to allow conjugated suffixes (e.g. "démaquillante").
 const RULES: KindRule[] = [
-  // certain (auto-write)
   {
     name: 'demaquillant',
     match: /\bd[eé]maquillant|\bmicellair|\bmicellar/i,
@@ -74,9 +65,7 @@ const RULES: KindRule[] = [
   {
     name: 'shampoo',
     match: /\bshampo+ing?\b|\bshampoo\b/i,
-    // Exclude pre/post-shampoo treatments, body wash. Démêlant is intentionally
-    // NOT in the forbidden list — "shampoing démêlant" combos are primarily
-    // shampoos with conditioning properties (rule order ensures shampoo wins).
+    // Démêlant intentionally not forbidden: "shampoing démêlant" = shampoo (rule order ensures it wins).
     forbidden:
       /\bapr[eéèê]s[-\s]?shampo+ing?|\bavant[-\s]?shampo+ing?|\bconditioner|\bdouche|\bshower/i,
     expected: 'shampoo',
@@ -100,7 +89,7 @@ const RULES: KindRule[] = [
   {
     name: 'deodorant',
     match: /\bd[eé]odorant|\bantiperspirant/i,
-    // Combo products (déo-douche) are ambiguous — let body-wash rule consider them.
+    // Déo-douche combos deferred to body-wash rule.
     forbidden: /\bdouche|\bshower/i,
     expected: 'deodorant',
     confidence: 'certain',
@@ -109,11 +98,10 @@ const RULES: KindRule[] = [
   {
     name: 'eye-cream',
     match: /\b(yeux|eye)\b/i,
-    // Exclude makeup-removal products, lash/brow tools, multi-zone cleansers.
     forbidden:
       /\bd[eé]maquillant|\bmicellair|\bmicellar|\bcils\b|\bsourcils\b|\bmascara|\bliner|\bcrayon|\bpencil|\bfard|\bshadow|\bprimer/i,
     expected: 'eye-cream',
-    // Eye patches and eye masks are alternative legitimate kinds — admin's call.
+    // patch/mask are admin's call for eye patches/masks.
     okIfKindIn: new Set<ProductKind>(['eye-cream', 'patch', 'mask']),
     confidence: 'certain',
     why: '"yeux/eye" → eye-cream',
@@ -121,7 +109,7 @@ const RULES: KindRule[] = [
   {
     name: 'lip-care',
     match: /\b(l[èe]vres?|levers?|lip)\b/i,
-    // Exclude chemistry tokens (lipid/liposome), makeup, multi-zone cleansers.
+    // Exclude chemistry tokens (lipid/liposome) and makeup.
     forbidden:
       /\blipid|\bliposom|\blipo[-\s]?soluble|\bd[eé]maquillant|\bmicellair|\bmicellar|yeux\s+et\s+l[èe]vres|l[èe]vres\s+et\s+yeux/i,
     expected: 'lip-care',
@@ -130,9 +118,8 @@ const RULES: KindRule[] = [
     why: '"lèvres/lip" → lip-care',
   },
 
-  // Hair-mask / hair-oil before hair-misc fallback (rule order = priority).
-  // Promoted to certain after gold-set audit confirmed 14/14 unambiguous: forbidden
-  // patterns exclude body/shampoo/SPF combos, okIfKindIn accepts any haircare kind.
+  // hair-mask/hair-oil before hair-misc: order = priority. Promoted to certain after
+  // gold-set audit confirmed 14/14 unambiguous (forbidden excludes body/shampoo/SPF combos).
   {
     name: 'hair-mask',
     match: /(?=.*\b(cheveux|capi[ll]?aire|cuir\s+chevelu|scalp|dercos)\b)(?=.*\b(masque|mask)\b)/i,
@@ -171,7 +158,7 @@ const RULES: KindRule[] = [
   {
     name: 'aftershave',
     match: /\brasage|\bafter[-\s]?shave|\baftershave/i,
-    // Shaving foam/cream/gel = cleanser, not balm — forbidden excludes those.
+    // Shaving foam/cream/gel = cleanser, not balm.
     forbidden: /\bgel\s+moussant|\bmousse\b|\bcr[èe]me\s+[àa]\s+raser/i,
     expected: 'balm',
     confidence: 'certain',
@@ -179,13 +166,10 @@ const RULES: KindRule[] = [
   },
   {
     name: 'body-wash',
-    // `body wash` allows up to 2 intervening words (e.g., "Body Moisturizing Wash").
-    // `lavante?s?` paired with huile/gel/crème routes Avène/Ducray/A-Derma rinse-off
-    // products mistagged moisturizer/body-oil to body-wash.
+    // body wash allows 2 intervening words ("Body Moisturizing Wash").
+    // lavante?s? routes Avène/Ducray/A-Derma rinse-off products mistagged moisturizer/body-oil.
     match:
       /\bdouche|\bshower|\bbody[-\s]+(?:\w+\s+){0,2}wash\b|\b(?:baby|kids?)\s+wash\b|\b(?:huile|gel|cr[èe]me|cream)\s+lavante?s?\b/i,
-    // Hair+body combos with explicit "& Cheveux" stay shampoo (combo);
-    // deodorant combos stay deodorant.
     forbidden: /\bcorps\s*(?:&|et)\s*cheveux|\bbody\s*(?:&|and)\s*hair|\bd[eé]o[-\s]?douche/i,
     expected: 'body-wash',
     okIfKindIn: new Set<ProductKind>(['body-wash', 'cleanser']),
@@ -194,7 +178,6 @@ const RULES: KindRule[] = [
   },
   {
     name: 'wash-off-mask',
-    // Korean-format rinse-off masks ("Wash Off Pack" / "Wash Off Mask").
     match: /\bwash[-\s]off\s+(?:pack|mask)\b/i,
     expected: 'mask',
     okIfKindIn: new Set<ProductKind>(['mask', 'patch', 'exfoliant']),
@@ -204,7 +187,6 @@ const RULES: KindRule[] = [
   {
     name: 'hand-cream',
     match: /\bmains\b|\bhand\b/i,
-    // Skip hand washes, hand sanitizers, multi-zone (face+hands), SPF combos.
     forbidden:
       /\bhydroalcoolique|\bsanitizer|\bhand[-\s]?wash|\blavant\b|\bvisage\b|\bface\b|\bspf\d|\bsolaire\b/i,
     expected: 'hand-cream',
@@ -222,8 +204,7 @@ const RULES: KindRule[] = [
   {
     name: 'body-lotion',
     match: /\bcorps\b|\bbody\b/i,
-    // Skip non-lotion body products (oil, scrub, wash, sunscreen, mist, mask,
-    // serums, combo boxes…). The " + " pattern catches multi-product gift sets.
+    // " + " catches multi-product gift sets.
     forbidden:
       /\bdouche|\bshower|\bgommage|\bscrub|\bhuile|\boil\b|\bcheveux|\bhair\b|\bwash\b|\blavant|\bnettoyant|\bcleanser|\bcleansing|\bsavon\b|\bsoap\b|\bpain\b|\blingettes?\b|\bwipes?\b|\bmist\b|\bbrume\b|\bspf\d|\bsolaire\b|\bsunscreen\b|\bautobronzant|\bself[-\s]?tan|\bapr[eéè]s[-\s]?soleil|\bafter[-\s]?sun|\bmasque\b|\bmask\b|\bs[eé]rum\b|\sserum\b|\s\+\s|\bm[eé]nopause\b/i,
     expected: 'body-lotion',
@@ -248,16 +229,12 @@ const RULES: KindRule[] = [
   },
   {
     name: 'cleanser-face',
-    // Last-resort cleanser signal: rinse-off face products mistagged moisturizer
-    // (most common drift) or spot-treatment/conditioner. Body & hair routed earlier.
+    // Last-resort: rinse-off face products mistagged moisturizer. Body/hair routed earlier.
     match: /\b(nettoyante?s?|cleansing|cleanser|whip\s+cleanser|(?:powder|enzyme|face)\s+wash)\b/i,
-    // Skip: body/multi-zone (body-lotion catches), hair, lip/eye/hand/foot variants,
-    // post-peeling care, sunscreen mousses, self-tanner mousses, after-sun.
     forbidden:
       /\bcorps\b|\bbody\b|\bcheveux\b|\bcapi[ll]?aire\b|\bcuir\s+chevelu\b|\bscalp\b|\bshampo+ing?\b|\bshampoo\b|\bdouche\b|\bshower\b|\bl[èe]vres?\b|\blip\b|\byeux\b|\beye\b|\bmains?\b|\bhand\b|\bpieds?\b|\bfoot\b|\bp[eé]eling\b|\bmousse\s+cr[eé]pitante|\bautobronzant|\bapr[eèé]s[-\s]?soleil|\bafter[-\s]?sun|\bspf\d|\bsolaire\b|\bsunscreen\b/i,
     expected: 'cleanser',
-    // Cleansing balms/oils keep their existing kind (balm/oil category is admin's call);
-    // exfoliants, masks, patches with cleansing in name keep their kind too.
+    // Cleansing balms/oils keep their kind (admin's call); exfoliants/masks/patches too.
     okIfKindIn: new Set<ProductKind>([
       'cleanser',
       'body-wash',
@@ -273,10 +250,8 @@ const RULES: KindRule[] = [
   },
 ]
 
-// Strip leading brand prefix from product name (case-insensitive). Without this,
-// brand names that contain rule-trigger words (e.g. "Eye Care") would falsely
-// match. The DB stores brand and name separately but names commonly repeat the
-// brand prefix as marketing convention.
+// Brand names containing rule-trigger words (e.g. "Eye Care") would falsely match.
+// Names commonly repeat the brand prefix as a marketing convention.
 function stripBrandPrefix(name: string, brand: string): string {
   if (!brand) return name
   const escaped = brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

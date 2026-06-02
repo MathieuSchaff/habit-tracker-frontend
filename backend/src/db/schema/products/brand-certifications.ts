@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 // Brand-level claims (vegan / cruelty-free / natural-or-organic certified)
-// keyed by `lower(trim(brand))`. Brands are free-text on `products.brand` —
+// keyed by `lower(trim(brand))`. Brands are free-text on `products.brand`,
 // no FK. Detector joins by normalized brand so casing/whitespace drift
 // between sources never breaks the lookup.
 //

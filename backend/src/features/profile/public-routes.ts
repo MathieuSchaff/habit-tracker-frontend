@@ -17,7 +17,7 @@ const app = new Hono<AppEnv>()
 
 // Anonymous reads allowed; optionalJwtAuth populates identity when present so
 // withRlsContext can bind app_runtime for logged-in callers (defense-in-depth
-// — the service projection is the primary gate).
+// the service projection is the primary gate).
 app.use('*', optionalJwtAuth)
 app.use('*', withRlsContext)
 

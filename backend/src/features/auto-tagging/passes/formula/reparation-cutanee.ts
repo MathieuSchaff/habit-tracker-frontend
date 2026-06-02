@@ -4,15 +4,14 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Reparation-cutanee
 // Cicatrisation / anti-inflammation actifs. Distinct from `barriere-cutanee`
-// (algo-derm — keys on ceramide + cholesterol lipid composition). Position
+// (algo-derm, keys on ceramide + cholesterol lipid composition). Position
 // cap 12: these actifs are typically dosed 0.1-2 % and stay early enough in
 // INCI when functional; past that, they're texture polish / preservative
 // boosters.
 
 const REPARATION_CUTANEE_PATTERNS = [
-  'panthenol', // provitamin B5 — covers d-panthenol, dl-panthenol
+  'panthenol', // provitamin B5: covers d-panthenol, dl-panthenol
   'allantoin',
   'centella asiatica', // catches "centella asiatica extract", "leaf extract", etc.
   'asiaticoside', // centella-derived isolate

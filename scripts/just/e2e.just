@@ -19,12 +19,9 @@ e2e-up: ts-build
 e2e-down:
     {{COMPOSE_E2E}} down
 
-# Recreate E2E stack from scratch. Drops the node_modules volumes so the rebuilt
-# image's deps repopulate them — a stale/empty named volume shadows /app/node_modules
-# and breaks @aurore/shared resolution (mirrors dev-rebuild / reinstall-backend).
+# Recreate E2E stack from scratch.
 e2e-reset:
     {{COMPOSE_E2E}} down
-    docker volume rm aurore-e2e_root_node_modules aurore-e2e_backend_node_modules aurore-e2e_frontend_node_modules 2>/dev/null || true
     just e2e-up
 
 # E2E stack logs

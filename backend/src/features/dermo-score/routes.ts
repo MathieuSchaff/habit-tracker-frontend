@@ -9,9 +9,8 @@ import { verifyAccessToken } from '../auth/jwt.utils'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { computeProductDermoScore } from './service'
 
-// Optional JWT auth: populate userId/role if a valid bearer is provided,
-// otherwise let the request through anonymously. Used by public reads that
-// still benefit from a logged-in profile (here: personalized dermo score).
+// Populates userId/role when a valid bearer is present; falls through anonymously otherwise.
+// Allows personalized dermo score on a public endpoint without requiring authentication.
 const optionalJwtAuth = async (c: Context<AppEnv>, next: Next) => {
   const authHeader = c.req.header('Authorization')
   if (!authHeader?.startsWith('Bearer ')) return next()

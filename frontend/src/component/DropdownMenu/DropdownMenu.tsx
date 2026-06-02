@@ -54,18 +54,14 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  // Tells Content which item to focus when the menu opens. ArrowUp on the
-  // trigger sets 'last' (per ARIA APG menu-button); everything else defaults
-  // to 'first'. Ref (not state) so toggling it doesn't re-render.
+  // ArrowUp sets 'last' (ARIA APG menu-button); everything else defaults to 'first'.
+  // Ref (not state) so toggling it doesn't re-render.
   const initialFocusRef = useRef<InitialFocus>('first')
   const menuId = useId()
 
   const close = useCallback(() => {
     setIsOpen(false)
-    // Return focus to the trigger so keyboard users keep their place. Skip if
-    // the trigger node was detached (route change unmounting the parent,
-    // ancestor dialog closing concurrently) - focusing a detached node no-ops
-    // and steals focus from whatever the browser would otherwise hand it to.
+    // Skip if detached: focusing a detached node steals focus from whatever the browser would otherwise hand to.
     const trigger = triggerRef.current
     if (trigger && document.contains(trigger)) trigger.focus()
   }, [])
@@ -76,13 +72,10 @@ export function DropdownMenu({ children, className }: DropdownMenuProps) {
   }, [])
   const toggle = useCallback(() => setIsOpen((v) => !v), [])
 
-  // useCaptureDismiss (not useClickOutside): the portaled menu floats over
-  // sibling product cards. A mousedown-based dismiss would close the menu
-  // AND let the underlying card click through (navigating by surprise on
-  // mobile). See hook docs for the tap-block rationale.
-  // Multi-ref: portaled content sits outside wrapperRef, so both refs count
-  // as "inside". Gated on isOpen so closed menus keep no listener
-  // (one DropdownMenu per product card × N cards adds up).
+  // useCaptureDismiss (not useClickOutside): portaled menu floats over sibling product cards;
+  // mousedown-based dismiss would let the underlying card click through on mobile.
+  // Multi-ref: portaled content sits outside wrapperRef, so both refs count as "inside".
+  // Gated on isOpen: one DropdownMenu per card x N cards adds up.
   useCaptureDismiss([wrapperRef, contentRef], () => setIsOpen(false), { enabled: isOpen })
 
   useEscapeKey(() => {
@@ -132,7 +125,6 @@ function DropdownMenuTrigger({ children }: DropdownMenuTriggerProps) {
   return cloneElement(children as ReactElement<any>, {
     ref: (node: HTMLElement | null) => {
       triggerRef.current = node
-      // Forward to existing ref if any.
       const childRef = (children as unknown as { ref?: React.Ref<HTMLElement> }).ref
       if (typeof childRef === 'function') childRef(node)
       else if (childRef && 'current' in childRef)
@@ -145,9 +137,7 @@ function DropdownMenuTrigger({ children }: DropdownMenuTriggerProps) {
     },
     onKeyDown: (e: React.KeyboardEvent) => {
       children.props.onKeyDown?.(e)
-      // ARIA APG menu-button: ArrowDown opens with focus on first item,
-      // ArrowUp opens with focus on last. Enter/Space already work via
-      // the button's native click → toggle path.
+      // ARIA APG menu-button: ArrowDown=first, ArrowUp=last. Enter/Space go via the native click.
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         open('first')
@@ -184,10 +174,8 @@ function DropdownMenuContent({
 }: DropdownMenuContentProps) {
   const { isOpen, close, triggerRef, contentRef, menuId, initialFocusRef } = useDropdownMenu()
   const [coords, setCoords] = useState<MenuCoords | null>(null)
-  // Portal target captured in state (not read inline at render): keeps the
-  // triggerRef.current lookup out of the render path (concurrent-mode safe),
-  // recomputes only on open, and locks the menu to the container it opened in
-  // so a dialog closing mid-open doesn't teleport the menu and drop focus.
+  // Captured in state (not inline at render): concurrent-mode safe, locks to the container
+  // it opened in so a dialog closing mid-open doesn't teleport the menu.
   const [portalTarget, setPortalTarget] = useState<Element>(() => document.body)
 
   useLayoutEffect(() => {
@@ -195,10 +183,8 @@ function DropdownMenuContent({
     setPortalTarget(triggerRef.current?.closest('dialog[open]') ?? document.body)
   }, [isOpen, triggerRef])
 
-  // Compute fixed position from the trigger rect. useLayoutEffect runs after the
-  // menu is in the DOM but before paint, so the user never sees the (0,0)
-  // first-render position. Repeats on resize/scroll so the menu follows the
-  // trigger when the page moves.
+  // useLayoutEffect: runs before paint so (0,0) first-render is never visible.
+  // Repeats on resize/scroll so the menu follows the trigger.
   useLayoutEffect(() => {
     if (!isOpen) return
 
@@ -221,9 +207,7 @@ function DropdownMenuContent({
       const maxLeft = window.innerWidth - margin - cr.width
       if (left > maxLeft) left = maxLeft
 
-      // Same clamp vertically - covers short viewports (mobile portrait + keyboard
-      // open) and trigger placement near the bottom edge. No auto-flip yet:
-      // intentional follow-up if a real overflow case bites.
+      // Vertical clamp: short viewports (mobile + soft keyboard) and bottom-edge triggers. No auto-flip yet.
       const maxTop = window.innerHeight - margin - cr.height
       if (top > maxTop) top = maxTop
       if (top < margin) top = margin
@@ -241,17 +225,12 @@ function DropdownMenuContent({
     }
   }, [isOpen, side, align, triggerRef, contentRef])
 
-  // Reset coords once closed so the next open recomputes from scratch.
   useEffect(() => {
     if (!isOpen) setCoords(null)
   }, [isOpen])
 
-  // Focus the initial item once opened so arrow keys work right away.
-  // `initialFocusRef` is set by the trigger (or defaults to 'first') just
-  // before isOpen flips, so by the time this effect runs the choice is settled.
-  // Reads items live from the DOM (querySelectorAll) - Fragment children,
-  // nested wrappers, and conditional remounts are all picked up without a
-  // separate registration step.
+  // initialFocusRef is set by the trigger just before isOpen flips, so by the time this runs the choice is settled.
+  // Live DOM query picks up Fragment children and conditional remounts without a registration step.
   useEffect(() => {
     if (!isOpen) return
     const id = requestAnimationFrame(() => {
@@ -263,19 +242,15 @@ function DropdownMenuContent({
     return () => cancelAnimationFrame(id)
   }, [isOpen, contentRef, initialFocusRef])
 
-  // Tell ancestor <dialog> handlers (Sheet/Modal) to skip their Escape close
-  // path while a menu is open, so Escape collapses the menu first instead of
-  // closing both layers at once. Counter (not boolean) handles nested menus.
+  // Counter on body lets ancestor <dialog> handlers skip their Escape path while a menu is open.
+  // Counter (not boolean) handles nested menus.
   useEffect(() => {
     if (!isOpen) return
     const next = Number.parseInt(document.body.dataset.dropdownMenuOpen ?? '0', 10) + 1
     document.body.dataset.dropdownMenuOpen = String(next)
     return () => {
-      // Defer decrement past the current task: when the menu closes via
-      // Escape, React unmounts before the browser dispatches the dialog's
-      // `cancel` event. If we cleared the flag here, DialogPrimitive.handleCancel
-      // would see no menu and close the dialog too. setTimeout(0) lands after
-      // cancel, so the dialog stays put.
+      // Defer: on Escape, React unmounts before the browser dispatches the dialog's cancel event.
+      // Clearing synchronously would let DialogPrimitive.handleCancel close the dialog too.
       setTimeout(() => {
         const prev = Number.parseInt(document.body.dataset.dropdownMenuOpen ?? '1', 10) - 1
         if (prev <= 0) delete document.body.dataset.dropdownMenuOpen
@@ -286,9 +261,6 @@ function DropdownMenuContent({
 
   if (!isOpen) return null
 
-  // Live DOM query - items source of truth is `[role=menuitem]` under
-  // contentRef, not a registered collection. Survives parent re-renders,
-  // Fragments, nested wrappers, and conditional remounts for free.
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const items = Array.from(
       contentRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
@@ -314,9 +286,7 @@ function DropdownMenuContent({
     }
   }
 
-  // Pre-measure: render at (0,0) on first commit so useLayoutEffect can measure
-  // the content size. useLayoutEffect runs synchronously before paint, so the
-  // (0,0) frame is never visible - by the time the browser paints, coords is set.
+  // Render at (0,0) on first commit so useLayoutEffect can measure content size; never visible.
   const style: React.CSSProperties = coords
     ? { position: 'fixed', top: `${coords.top}px`, left: `${coords.left}px` }
     : { position: 'fixed', top: 0, left: 0 }
@@ -338,9 +308,7 @@ function DropdownMenuContent({
     </div>
   )
 
-  // Native <dialog open> via showModal() places the dialog in the browser's
-  // top layer; anything portaled to document.body renders BELOW that layer
-  // regardless of z-index. Target resolved in the open-effect above.
+  // showModal() puts the dialog in the top layer; document.body portals render below it.
   return createPortal(content, portalTarget)
 }
 
@@ -375,16 +343,14 @@ function DropdownMenuItem({
   // biome-ignore lint/suspicious/noExplicitAny: cloneElement ref typing across element kinds
   return cloneElement(children as ReactElement<any>, {
     ref: (node: HTMLElement | null) => {
-      // Forward to the child's existing ref only - kb nav reads items from the
-      // DOM live (querySelectorAll under contentRef), no central registration.
+      // KB nav reads items live from the DOM; no central registration needed.
       const childRef = (children as unknown as { ref?: React.Ref<HTMLElement> }).ref
       if (typeof childRef === 'function') childRef(node)
       else if (childRef && 'current' in childRef)
         (childRef as React.MutableRefObject<HTMLElement | null>).current = node
     },
     role: 'menuitem',
-    // Roving tabIndex: focus is moved imperatively via arrow keys, so items
-    // stay out of the natural tab sequence (WAI-ARIA APG Menu pattern).
+    // Roving tabIndex: focus moved imperatively via arrow keys (WAI-ARIA APG Menu).
     tabIndex: -1,
     className: itemClass,
     onClick: (e: React.MouseEvent) => {

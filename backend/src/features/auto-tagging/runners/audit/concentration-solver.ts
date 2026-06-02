@@ -1,9 +1,9 @@
-// Concentration-solver calibration audit — measures how well algo-derm's
+// Concentration-solver calibration audit: measures how well algo-derm's
 // per-ingredient concentration estimator (Beta posterior + solver QP) matches
 // brand-claimed percentages stored in `product_ingredients.concentration_value`.
 //
 // Read-only on the DB. Per product:
-//   1. analyzeINCI(inci) — cold, NO knownConcentrations passed (otherwise the
+//   1. analyzeINCI(inci), cold, NO knownConcentrations passed (otherwise the
 //      solver would trivially pin to the claim and the audit becomes circular).
 //   2. For each Aurore claim row, find the matching MatchedEvidence entry by
 //      slug-fuzzy matching against m.evidence.inci + m.evidence.aliases.
@@ -15,8 +15,8 @@
 // far outside any plausible posterior).
 //
 // Env:
-//   JSON_OUT        optional — write detailed per-entry rows + slug summary
-//   SLUG            optional — restrict audit to one Aurore ingredient slug
+//   JSON_OUT        optional: write detailed per-entry rows + slug summary
+//   SLUG            optional: restrict audit to one Aurore ingredient slug
 
 import type { ProductKind } from '@aurore/shared'
 
@@ -165,9 +165,7 @@ async function main() {
       continue
     }
 
-    // Per-product inverted index: slug-form → MatchedEvidence. Drawn from
-    // m.ingredient (raw INCI), m.evidence.inci (canonical), m.evidence.aliases.
-    // First write wins so canonical entries shadow aliases.
+    // Inverted index: slug-form → MatchedEvidence. First write wins so canonical entries shadow aliases.
     const matchedBySlug = new Map<string, MatchedEvidence>()
     const register = (key: string, m: MatchedEvidence): void => {
       const slug = toSlug(key)
@@ -222,7 +220,6 @@ async function main() {
     }
   }
 
-  // Coverage
   const matched = entries.filter(isMatched)
   const unmatched = entries.filter((e): e is UnmatchedEntry => !e.matched)
   const reasonCounts = unmatched.reduce<Record<string, number>>((acc, e) => {
@@ -239,7 +236,6 @@ async function main() {
   if (analyzeErrors > 0) console.log(`   ${analyzeErrors} analyzeINCI errors`)
   console.log()
 
-  // Per-slug metrics
   const bySlug = new Map<string, MatchedEntry[]>()
   for (const e of matched) {
     const arr = bySlug.get(e.ingredientSlug) ?? []
@@ -281,7 +277,6 @@ async function main() {
     )
   }
 
-  // Global
   const allSolver = matched.filter(hasSolver)
   console.log()
   console.log(`📈 Global`)
@@ -293,7 +288,6 @@ async function main() {
     `   beta    MAE=${fmt(mean(matched.map((e) => e.absMeanErr)))}            CI cov=${fmt(matched.filter((e) => e.inBetaCI).length / Math.max(1, matched.length))}`
   )
 
-  // Outliers
   const outliers = [...allSolver].sort((a, b) => b.absSolverErr - a.absSolverErr).slice(0, 20)
   if (outliers.length > 0) {
     console.log(`\n🔥 Top ${outliers.length} solver outliers`)

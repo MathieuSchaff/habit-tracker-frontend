@@ -17,7 +17,7 @@ $EDITOR .env.dev
 just dev-fresh
 ```
 
-The monorepo has a `shared` TypeScript package. Docker does not always have the build cache at startup, so build the types locally first.
+Dev containers run TypeScript source directly. `just dev` runs `ts-build` first as a host-side preflight: it generates TanStack routes and checks TypeScript project references before Docker starts.
 
 ## Daily workflow
 
@@ -30,7 +30,7 @@ The monorepo has a `shared` TypeScript package. Docker does not always have the 
 
 | Command          | Description                        |
 | :--------------- | :--------------------------------- |
-| `just dev`       | Build types + start Docker         |
+| `just dev`       | Typecheck + start Docker           |
 | `just dev-fresh` | Full cleanup + install + start     |
 | `just ts-check`  | TypeScript watch mode (host)       |
 | `just ts-build`  | Generate types and TanStack routes |
@@ -141,13 +141,14 @@ Backend-only: the frontend receives the precomputed `ProductAssessment`. The bun
 
 ### Editor shows errors / Docker crashes at startup
 
-Symptom: `Cannot find module '@aurore/shared'` (workspace symlink not built — run `bun install` then `tsc -b` to build the shared package).
+Symptom: `Cannot find module '@aurore/shared'` usually means workspace dependencies are stale or missing. Reinstall deps and rebuild the Docker image.
 
 ```bash
-just ts-clean && just ts-build
+bun install
+just dev-rebuild
 ```
 
-Then restart Docker and make sure `just ts-check` is running in a separate terminal on the host.
+For editor/type errors, also run `just ts-check` in a separate terminal on the host.
 
 ### Docker issues
 

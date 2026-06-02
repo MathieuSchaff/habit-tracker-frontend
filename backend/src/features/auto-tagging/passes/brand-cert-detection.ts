@@ -1,15 +1,9 @@
-// Brand-level label emission (T4.C). Pure lookup — no INCI inspection. The
-// orchestrator pre-loads all brand certifications into a Map once per run
-// (seed-core, backfill-auto-tags) so per-product cost is O(1).
+// Brand-level label emission (T4.C). Pure lookup, no INCI inspection.
+// Orchestrator pre-loads brand certifications once per run; per-product cost is O(1).
 //
-// Co-fire policy:
-//   - `vegan` may also fire from `detectVegan` (INCI absence). Both pairs
-//     for the same (product, vegan) collapse via the orchestrator's per-tag
-//     dedup; the source winner is whichever proposes first (formula vs
-//     brand). That's fine — relevance is identical (`secondary`); only
-//     telemetry differs.
-//   - `cruelty-free` and `bio-naturel` have no INCI emitter, so brand is
-//     the sole source.
+// Co-fire: vegan may also fire from the INCI absence pass; duplicates collapse
+// via orchestrator dedup (relevance identical, only telemetry differs).
+// cruelty-free and bio-naturel have no INCI emitter; brand is the sole source.
 
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
