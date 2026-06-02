@@ -17,8 +17,7 @@ interface PublicReviewsSectionProps {
   slug: string
 }
 
-// Doc-prescribed neutral labels.
-// Tight wording, no medical, no winners, no scores.
+// Neutral labels: no medical, no winners, no scores.
 const AXIS_LABELS: Record<ReviewAxisKey, string> = {
   tolerance: 'Tolérance',
   efficacy: 'Effet ressenti',

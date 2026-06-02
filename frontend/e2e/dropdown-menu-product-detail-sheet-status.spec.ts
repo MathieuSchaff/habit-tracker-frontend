@@ -5,8 +5,7 @@ import { loginAsSeed } from './helpers/auth'
 // Oracle pour les findings D1 (portal vers <dialog open> top layer), D2
 // (itemsRef survit aux re-renders), D3 (Escape menu ne ferme pas la Sheet),
 // D15 (focus return même si trigger reparent éventuellement).
-// Site #1 du composant DropdownMenu — celui qui a déclenché l'audit
-// 2026-05-20.
+// Site #1 du composant DropdownMenu — celui qui a déclenché l'audit 2026-05-20.
 
 test.beforeEach(async ({ page }) => {
   await loginAsSeed(page)
