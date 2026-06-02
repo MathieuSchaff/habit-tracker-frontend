@@ -27,7 +27,6 @@ export const discussionThreads = pgTable(
     index('discussion_threads_product_idx').on(t.productId),
     index('discussion_threads_ingredient_idx').on(t.ingredientId),
     index('discussion_threads_author_idx').on(t.authorId),
-    // exactly one entity must be set
     check(
       'discussion_threads_entity_xor',
       sql`(${t.productId} IS NOT NULL)::int + (${t.ingredientId} IS NOT NULL)::int = 1`

@@ -23,11 +23,10 @@ const app = new Hono<AppEnv>()
 app.use('*', rateLimiterFunc)
 app.use('*', requireJwtAuth)
 app.use('*', requireNotBanned)
-// The report queue is owned by the moderator (admin∨contributor), not admin-only
-// (ADR-0006 S1). All routes here are list + resolve/dismiss → blanket guard is safe.
+// Report queue is moderator-reachable, not admin-only (ADR-0006 S1); all routes are
+// list/resolve/dismiss, so blanket guard is safe.
 app.use('*', requireContentModerator)
-// content_reports has no RLS today, but the chain stays consistent with
-// bans/moderation so any future enableRLS() on the table is covered.
+// content_reports has no RLS today; chain kept consistent so enableRLS() on the table needs no route change.
 app.use('*', withRlsContext)
 
 export const adminReportsRoutes = app
@@ -50,8 +49,7 @@ export const adminReportsRoutes = app
       return c.json(ok(report), HTTP_STATUS.OK)
     }
   )
-  // Escalate-to-admin (ADR-0006 S3). The blanket requireContentModerator is the
-  // right guard: a modo may escalate, an admin may too; the path adds no ban power.
+  // ADR-0006 S3: both contributor and admin may escalate; blanket guard is correct, no ban power added.
   .patch('/:id/escalate', zValidator('param', reportIdParam), async (c) => {
     const { id } = c.req.valid('param')
     const moderatorId = getAuthedUserId(c)

@@ -6,7 +6,7 @@ import { users } from '../auth/users'
 
 // Polymorphic target: targetId can reference user_product_reviews / discussion_threads
 // / discussion_replies / users (for profile reports) / products / ingredients (catalogue
-// sheets, S2). No FK constraint because the concrete table depends on targetType —
+// sheets, S2). No FK constraint because the concrete table depends on targetType,
 // admins resolve mismatches at review time.
 export const reportTargetTypeEnum = pgEnum('report_target_type', [
   'review',
@@ -48,7 +48,7 @@ export const contentReports = pgTable(
     ...tenantPolicies('content_reports', t.reporterId),
     // The queue is owned by the moderator (admin∨contributor). Under prod RLS the
     // base tenant policies only expose a reporter's own rows, so a contributor saw
-    // an empty queue — this grants the moderation read+update surface (ADR-0006 S3).
+    // an empty queue. This grants the moderation read+update surface (ADR-0006 S3).
     ...moderationPolicies('content_reports'),
   ]
 ).enableRLS()

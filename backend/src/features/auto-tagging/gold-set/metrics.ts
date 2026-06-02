@@ -1,16 +1,12 @@
 // Pure metric primitives for the gold-set benchmark (audit O2).
-//
-// Kept separate from the runner so they are trivial to unit-test without
-// touching the DB. Inputs are plain (p, y) sample arrays.
+// Separated from the runner to allow DB-free unit tests.
 //
 // Conventions:
-//   p ∈ [0, 1]   predicted probability for the tag on the product
-//   y ∈ {0, 1}   gold-truth label (1 = present, 0 = absent)
+//   p ∈ [0, 1]   predicted probability
+//   y ∈ {0, 1}   gold label (1 = present, 0 = absent)
 //
-// For deterministic detectors (passes 2-6 in the orchestrator) the predicted
-// probability collapses to {0, 1}: emitted → 1, not emitted → 0. Brier then
-// reduces to misclassification rate and ECE collapses to a single bin —
-// this is intentional and signals "no calibration signal to inspect".
+// Deterministic detectors (passes 2-6) collapse p to {0,1}: Brier reduces to
+// misclassification rate and ECE collapses to a single bin by design.
 
 export interface Sample {
   p: number
@@ -26,14 +22,14 @@ export interface ConfusionCounts {
 
 export interface PerTagMetrics {
   tagSlug: string
-  // Counts on rated products only (tag annotated as present OR absent).
+  // Counts on rated products only (annotated present OR absent).
   tp: number
   fp: number
   fn: number
   tn: number
-  // Number of rated products = tp+fp+fn+tn. 0 means nothing to measure.
+  // tp+fp+fn+tn. 0 means nothing to measure.
   rated: number
-  // Nullable when denominator is 0. NaN signals "undefined for this slice".
+  // NaN when denominator is 0.
   precision: number
   recall: number
   f1: number
@@ -42,16 +38,14 @@ export interface PerTagMetrics {
 }
 
 export interface BinStat {
-  // Half-open bin index 0..nBins-1. Bin k covers [k/nBins, (k+1)/nBins),
-  // except the last bin which is closed on the right ([..., 1.0]).
+  // Half-open [k/nBins, (k+1)/nBins); last bin closed on the right.
   bin: number
   count: number
   avgConfidence: number
   accuracy: number
 }
 
-// Brier score: mean squared error of probabilistic predictions.
-// Range [0, 1]. Lower is better. 0 = perfect, 0.25 = random, 1 = perfectly wrong.
+// Brier score: MSE of probabilistic predictions. Range [0,1], lower is better.
 export function computeBrier(samples: readonly Sample[]): number {
   if (samples.length === 0) return Number.NaN
   let sum = 0
@@ -62,13 +56,9 @@ export function computeBrier(samples: readonly Sample[]): number {
   return sum / samples.length
 }
 
-// Expected Calibration Error over `nBins` equal-width confidence bins.
-// Standard reliability-diagram metric (Guo et al., 2017): weighted average
-// of |avg_confidence_in_bin - accuracy_in_bin|.
-//
-// Range [0, 1]. Lower is better. 0 = perfectly calibrated.
-//
-// Empty bins contribute 0 (excluded from the weighted average).
+// Expected Calibration Error (Guo et al., 2017): weighted mean of
+// |avg_confidence - accuracy| per bin. Range [0,1], lower is better.
+// Empty bins are excluded from the weighted average.
 export function computeECE(samples: readonly Sample[], nBins = 10): number {
   if (samples.length === 0) return Number.NaN
   const stats = bucketByConfidence(samples, nBins)
@@ -80,8 +70,7 @@ export function computeECE(samples: readonly Sample[], nBins = 10): number {
   return total
 }
 
-// Per-bin breakdown (useful for reliability diagrams). Empty bins included
-// as zeros so callers can show a stable bin axis.
+// Empty bins included as zeros so callers can render a stable reliability-diagram axis.
 export function bucketByConfidence(samples: readonly Sample[], nBins = 10): BinStat[] {
   if (nBins < 1) throw new Error('nBins must be >= 1')
   const sums = Array.from({ length: nBins }, () => ({ n: 0, conf: 0, acc: 0 }))
@@ -103,14 +92,10 @@ export function bucketByConfidence(samples: readonly Sample[], nBins = 10): BinS
 function binIndex(p: number, nBins: number): number {
   if (p <= 0) return 0
   if (p >= 1) return nBins - 1
-  // Half-open bins: [k/N, (k+1)/N). The last bin closes on the right via
-  // the p>=1 short-circuit above, so confidence==1 lands in bin N-1 (not
-  // a phantom bin N from rounding).
+  // p>=1 short-circuits above, so confidence==1 lands in bin N-1, not a phantom bin N.
   return Math.min(nBins - 1, Math.floor(p * nBins))
 }
 
-// TP/FP/FN/TN for a binary classifier on a (predicted, label) pair list.
-// `predicted` is the boolean emit decision; `label` is the gold ground truth.
 export function computeConfusion(
   rows: readonly { predicted: boolean; label: 0 | 1 }[]
 ): ConfusionCounts {
@@ -127,14 +112,9 @@ export function computeConfusion(
   return { tp, fp, fn, tn }
 }
 
-// Wraps everything for one tag. Provide rated-product samples — never include
-// products where the tag is unrated, otherwise the metric is meaningless.
+// Only pass rated-product rows: unrated products must be excluded before calling.
 export function computePerTagMetrics(
   tagSlug: string,
-  // Each entry is one rated product for this tag.
-  // `p`: predicted probability (orchestrator emit confidence; 0 if not emitted)
-  // `y`: 1 if gold says present, 0 if gold says absent
-  // `predicted`: whether the orchestrator emitted the tag (for confusion)
   rows: readonly { p: number; y: 0 | 1; predicted: boolean }[]
 ): PerTagMetrics {
   const conf = computeConfusion(rows.map((r) => ({ predicted: r.predicted, label: r.y })))
@@ -163,8 +143,7 @@ export function computePerTagMetrics(
   }
 }
 
-// Macro = unweighted mean of per-tag metrics. Skips tags with NaN metric
-// (e.g. precision undefined when no positives predicted).
+// Unweighted mean across tags. NaN metrics (e.g., precision when no positives) are skipped.
 export function macroAverage(metrics: readonly PerTagMetrics[]): {
   precision: number
   recall: number
@@ -181,9 +160,7 @@ export function macroAverage(metrics: readonly PerTagMetrics[]): {
   }
 }
 
-// Micro = pool TP/FP/FN/TN across tags then compute. Implicitly weights tags
-// by sample count, so a 2-product tag and a 50-product tag contribute
-// proportionally — opposite of macro.
+// Pools TP/FP/FN/TN across tags: implicitly weights by sample count (opposite of macro).
 export function microAverage(metrics: readonly PerTagMetrics[]): {
   precision: number
   recall: number

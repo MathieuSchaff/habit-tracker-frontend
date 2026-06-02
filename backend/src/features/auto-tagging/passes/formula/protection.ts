@@ -3,10 +3,9 @@ import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Protection
 // Recall recovery for the `protection` concern (re-emits an algo-derm slug,
 // ADR-0004). The algo-derm pass keys on antioxidant INCI and tagged only
-// ~25/399 sunscreens — it both over-tags antioxidant serums and misses real
+// ~25/399 sunscreens; it both over-tags antioxidant serums and misses real
 // UV protection. This pass closes the recall hole with a mechanical rule:
 //   - kind === 'sunscreen'      → a sunscreen protects from UV by definition.
 //   - SPF/FPS stated in name/desc → any stated index protects physically,

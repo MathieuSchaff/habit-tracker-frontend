@@ -42,7 +42,7 @@ export function DialogPrimitive({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const generatedId = useId()
   const titleId = labelledBy ?? generatedId
-  // showModal() locks background scroll natively; manual lock only on fallback path.
+  // showModal() locks scroll natively; manual lock only when falling back to open attribute.
   const needsManualLock = useRef(false)
 
   useEffect(() => {
@@ -75,19 +75,17 @@ export function DialogPrimitive({
 
   useScrollLock(needsManualLock.current)
 
-  // Native fires "cancel" on Escape; route unmount through React instead of letting the browser close alone.
-  // Skip when a DropdownMenu is open above - Escape should peel the menu first, then the dialog on a second press.
+  // Route cancel through React instead of letting the browser close the dialog alone.
+  // Skip while a DropdownMenu is open: Escape should peel the menu first.
   const handleCancel = (e: React.SyntheticEvent<HTMLDialogElement>) => {
     e.preventDefault()
     if (document.body.dataset.dropdownMenuOpen) return
     onClose()
   }
 
-  // Backdrop clicks land on the dialog element itself; content clicks bubble with a different target.
-  // Also guard by click coordinates: native <select> dismiss events can misroute to the dialog
-  // element even when the pointer is within the panel (e.g. selecting then clicking empty panel area).
-  // getBoundingClientRect() returns the panel's visual bounds, so out-of-bounds = true backdrop hit.
-  // Zero-size rect = jsdom / no-layout env: skip coordinate check and close unconditionally.
+  // Content clicks bubble with a different target than the dialog element.
+  // Coordinate guard: native <select> dismiss events can misroute to the dialog even when
+  // the pointer is inside the panel. Zero-size rect (jsdom) skips the coordinate check.
   const closeOnBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     if (!closeOnBackdrop) return
     if (e.target !== dialogRef.current) return

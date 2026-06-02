@@ -34,11 +34,9 @@ const SCOPE_OPTIONS: ReadonlyArray<{ value: BanScope; label: string }> = [
   { value: 'review_publish', label: 'Publication d’avis' },
 ]
 
-// Calm FR label for a scope (matches the picker); falls back to the raw value for any
-// scope absent from SCOPE_OPTIONS so the confirm dialog never shows the bare enum.
+// Falls back to the raw value so the confirm dialog never shows a bare enum.
 const scopeLabel = (s: BanScope) => SCOPE_OPTIONS.find((o) => o.value === s)?.label ?? s
 
-// Hold success FormMessage banners for a moment so the user notices them.
 const SUCCESS_FEEDBACK_MS = 3500
 
 function useTransientMessage(): [string | null, (msg: string | null) => void] {
@@ -53,9 +51,8 @@ function useTransientMessage(): [string | null, (msg: string | null) => void] {
 
 export function AdminUserDetailPage() {
   const { userId } = routeApi.useParams()
-  // The account header + force-private are admin-only (account surface). A contributor
-  // (« modérateur ») gets a content-only slice: pause/lift publications, no PII. The
-  // users() list is admin-only (403 for a contributor), so gate the fetch (ADR-0006 S4).
+  // Account header + force-private are admin-only. A contributor gets content-only (no PII).
+  // users() returns 403 for contributors, so gate the fetch (ADR-0006 S4).
   const isAdmin = useAuthStore((s) => s.role === 'admin')
   const usersQuery = useQuery({ ...adminQueries.users(), enabled: isAdmin })
   const bansQuery = useSuspenseQuery(adminQueries.userBans(userId))
@@ -114,9 +111,7 @@ export function AdminUserDetailPage() {
   )
 }
 
-// Admin-only revocation of the moderator role. Reversible by design: the copy
-// frames it as removing rights, not punishing a person, and a role can be
-// granted again later. Only shown for a contributor target.
+// Shown only for a contributor target; role can be granted again later.
 function RoleCard({ userId }: { userId: string }) {
   const demote = useDemoteToUser(userId)
   const { confirm, dialog } = useConfirm()
@@ -135,9 +130,7 @@ function RoleCard({ userId }: { userId: string }) {
     if (!ok) return
     const body: UpdateRoleInput = { role: 'user' }
     if (reason.trim().length > 0) body.reason = reason.trim()
-    // No success message: on success the users query is invalidated, this card's
-    // target stops being a contributor, and the card unmounts — the disappearing
-    // card + updated role pill are the (calm) confirmation. Errors keep it mounted.
+    // No toast: the card unmounts on success (contributor gone), which is the confirmation.
     demote.mutate(body, {
       onError: (err) => setError(err.message),
     })
@@ -173,7 +166,7 @@ function RoleCard({ userId }: { userId: string }) {
 function CreateBanCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }) {
   const createBan = useCreateBan(userId)
   const { confirm, dialog } = useConfirm()
-  // 'global' (account lockout) is admin-only; a contributor pauses content scopes only.
+  // 'global' (account lockout) is admin-only; contributors pause content scopes only.
   const scopeOptions = useMemo(
     () => (isAdmin ? SCOPE_OPTIONS : SCOPE_OPTIONS.filter((o) => o.value !== 'global')),
     [isAdmin]
@@ -320,8 +313,7 @@ function BansListCard({
                   <Time iso={b.createdAt} relative />
                 </td>
                 <td>
-                  {/* 'global' (account lockout) is admin-only to lift; a contributor sees
-                      no live control on it — prod RLS already filters it from this list. */}
+                  {/* 'global' lift is admin-only; RLS filters it from a contributor's list. */}
                   {isAdmin || b.scope !== 'global' ? (
                     <Button
                       variant="ghost"

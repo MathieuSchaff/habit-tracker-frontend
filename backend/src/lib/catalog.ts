@@ -1,5 +1,3 @@
-// Catalog submission helpers shared by products + ingredients (CQ-1).
-
 import { sql } from 'drizzle-orm'
 
 import type { DB } from '../db/index'
@@ -14,7 +12,7 @@ type SubmissionCountFn = 'count_recent_product_submissions' | 'count_recent_ingr
 
 // Quality stamp for a new catalog row. Contributors and admins create verified
 // rows (stamped with who/when); a plain user creates an unverified row with no
-// stamp — the verify CHECK (V-2) forbids a stamp on an unverified row.
+// stamp, the verify CHECK (V-2) forbids a stamp on an unverified row.
 export function resolveCatalogQuality(role: CatalogRole, userId: string) {
   const verified = role === 'admin' || role === 'contributor'
   return {
@@ -51,7 +49,7 @@ export function stripAdminFields<T extends Partial<Record<AdminFields, unknown>>
 }
 
 // Rate-limits self-service catalog submissions (C-2). Counts the user's recent
-// rows via a SECURITY DEFINER function so hidden rows still count — hiding spam
+// rows via a SECURITY DEFINER function so hidden rows still count, hiding spam
 // must not refill the quota. Contributors and admins are exempt.
 export async function assertWithinSubmissionRateLimit(
   database: DB,

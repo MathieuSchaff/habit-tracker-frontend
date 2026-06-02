@@ -117,8 +117,8 @@ export const userProductRoutes = app
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
 
-      // review_publish gates only writes that leave the review public; upsert
-      // preserves existing isPublic when input omits it, so resolve first.
+      // review_publish ban must be checked against the resolved final isPublic,
+      // not the raw input: upsert preserves existing isPublic when input omits it.
       let resultingPublic = input.isPublic
       if (resultingPublic === undefined) {
         const existing = await db.query.userProductReviews.findFirst({
@@ -144,8 +144,7 @@ export const userProductRoutes = app
 
       const result = await upsertUserProductReview(userId, id, input, db)
 
-      // Fire-and-forget: recalculate dermo signal after review save.
-      // Does not block the HTTP response.
+      // Fire-and-forget: does not block the HTTP response.
       recalculateSignalForUser(userId, id, db).catch((err) =>
         logger.error({ err }, 'dermoSignal recalculation failed')
       )

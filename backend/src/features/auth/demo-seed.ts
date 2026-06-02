@@ -6,8 +6,7 @@ import { createSubtask, createTask, updateTask } from '../tasks/service'
 import { addPurchase, finishPurchase, openPurchase } from '../user-products/purchase.service'
 import { createUserProduct, upsertUserProductReview } from '../user-products/service'
 
-// API contract is ISO datetime UTC for every wire date — including calendar dates
-// (purchasedAt, openedAt, snoozedUntil…). Backend boundary truncates to YYYY-MM-DD.
+// Wire dates are ISO datetime UTC; backend boundary truncates to YYYY-MM-DD.
 const d = (date: Date) => date.toISOString()
 
 export async function seedDemoData(userId: string, db: Database) {
@@ -20,7 +19,6 @@ export async function seedDemoData(userId: string, db: Database) {
 }
 
 async function seedDemoTasks(userId: string, db: Database) {
-  // Active tasks with subtasks
   const tRoutine = await createTask(
     { title: 'Tester la routine du soir', energy: 'low' },
     userId,
@@ -40,7 +38,6 @@ async function seedDemoTasks(userId: string, db: Database) {
   await createSubtask(tSdb.id, { title: 'Trier les produits périmés' }, db)
   await createSubtask(tSdb.id, { title: 'Ranger les nouvelles commandes' }, db)
 
-  // Inbox tasks
   await createTask({ title: 'Prendre rendez-vous chez le dermatologue', energy: 'low' }, userId, db)
   await createTask({ title: "Chercher un SPF teinté pour l'été", energy: 'medium' }, userId, db)
   await createTask(
@@ -49,7 +46,6 @@ async function seedDemoTasks(userId: string, db: Database) {
     db
   )
 
-  // Snoozed task (visible in 4 days)
   const tSnooze = await createTask(
     { title: 'Faire le bilan de la routine du mois', energy: 'low' },
     userId,
@@ -65,7 +61,6 @@ async function seedDemoTasks(userId: string, db: Database) {
     db
   )
 
-  // Done tasks
   const tDone1 = await createTask(
     { title: 'Lire les avis sur le nouvel acide glycolique', energy: 'low' },
     userId,
@@ -92,15 +87,13 @@ async function seedDemoCollection(userId: string, db: Database) {
     return
   }
 
-  // Status distribution across the 15 products.
-  // Holy Grail is now sentiment=6 (orthogonal to status), not its own status.
+  // Holy Grail is sentiment=6 (orthogonal to status), not its own status.
   const assignments: Array<{
     status: 'in_stock' | 'wishlist' | 'archived' | 'avoided' | 'watched'
     sentiment?: number
     wouldRepurchase?: 'yes' | 'no' | 'unsure'
     comment?: string
   }> = [
-    // in_stock (5)
     {
       status: 'in_stock',
       sentiment: 4,
@@ -116,11 +109,9 @@ async function seedDemoCollection(userId: string, db: Database) {
     },
     { status: 'in_stock' },
     { status: 'in_stock', sentiment: 4, wouldRepurchase: 'yes' },
-    // wishlist (3)
     { status: 'wishlist' },
     { status: 'wishlist', comment: 'Très bien noté sur les forums, à tester absolument.' },
     { status: 'wishlist' },
-    // in_stock + Holy Grail sentiment (2)
     {
       status: 'in_stock',
       sentiment: 6,
@@ -128,7 +119,6 @@ async function seedDemoCollection(userId: string, db: Database) {
       comment: 'Résultats visibles en 2 semaines. Je ne change plus.',
     },
     { status: 'in_stock', sentiment: 6, wouldRepurchase: 'yes' },
-    // archived (2)
     {
       status: 'archived',
       sentiment: 2,
@@ -136,7 +126,6 @@ async function seedDemoCollection(userId: string, db: Database) {
       comment: 'Trop riche pour ma peau, bouchait les pores.',
     },
     { status: 'archived', sentiment: 3, wouldRepurchase: 'no' },
-    // avoided (2)
     {
       status: 'avoided',
       sentiment: 1,
@@ -144,7 +133,6 @@ async function seedDemoCollection(userId: string, db: Database) {
       comment: 'Réaction cutanée — parfum trop agressif.',
     },
     { status: 'avoided' },
-    // watched (1)
     { status: 'watched', comment: 'Nouveau lancement à surveiller.' },
   ]
 
@@ -167,7 +155,7 @@ async function seedDemoCollection(userId: string, db: Database) {
 
     if (!up) continue
 
-    // Reviews for rated products. Holy Grail (sentiment=6) caps review axes at 5.
+    // Holy Grail (sentiment=6) caps review axes at 5.
     if (config.sentiment) {
       const reviewBase = Math.min(5, config.sentiment)
       await upsertUserProductReview(
@@ -183,8 +171,6 @@ async function seedDemoCollection(userId: string, db: Database) {
       )
     }
 
-    // Purchase history: in_stock + archived get them. Holy Grail (sentiment=6)
-    // implies a deeper history (old finished + currently open).
     if (config.status === 'in_stock' || config.status === 'archived') {
       const isHolyGrail = config.sentiment === 6
       await seedDemoPurchases(userId, up.id, isHolyGrail ? 'holy_grail' : config.status, db)
@@ -199,7 +185,6 @@ async function seedDemoPurchases(
   db: Database
 ) {
   if (pattern === 'archived') {
-    // One finished purchase in the past
     const p = await addPurchase(
       userId,
       userProductId,
@@ -215,7 +200,6 @@ async function seedDemoPurchases(
   }
 
   if (pattern === 'holy_grail') {
-    // Old finished purchase + currently open one
     const old = await addPurchase(
       userId,
       userProductId,
@@ -241,7 +225,6 @@ async function seedDemoPurchases(
     return
   }
 
-  // in_stock: 50% chance of a currently open purchase, rest just purchased
   const hasOpen = Math.random() > 0.5
   const p = await addPurchase(
     userId,

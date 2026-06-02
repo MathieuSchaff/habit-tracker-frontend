@@ -6,7 +6,7 @@ import type { DB } from '../../../db'
 import { products, productTagTypes } from '../../../db/schema'
 import { ProductError } from '../product-error'
 
-// Reject tag links that don't belong to the product's domain — e.g. a
+// Reject tag links that don't belong to the product's domain, e.g. a
 // hair_type tag attached to a skincare product. Zod can't enforce this
 // (cross-row relational rule), and the frontend filter alone is not a
 // boundary against direct API calls or service-level seeds.

@@ -108,7 +108,6 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
     entry.onSelect()
   }
 
-  // Filter empty sections; wrap each onSelect to clean up UI state the caller's onSelect doesn't.
   const visibleSections = (sections?.(debouncedQuery) ?? [])
     .filter((s) => s.items.length > 0)
     .map((s) => ({
@@ -127,7 +126,6 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       setHighlightedIndex(-1)
     }
     if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown && onSubmitQuery) {
-      // No highlight: submit typed query as free text.
       e.preventDefault()
       onSubmitQuery(debouncedQuery)
       clearAndClose()

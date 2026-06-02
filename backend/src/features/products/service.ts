@@ -55,8 +55,7 @@ import { listTagsByProduct } from '../product-tags/service'
 import { ProductError } from './product-error'
 import { listIngredientsByProduct } from './product-ingredients/product-ingredients.service'
 
-// Trim + collapse internal whitespace. Applied to all user-typed string fields
-// so that update and create write identical normalized values.
+// Trim + collapse internal whitespace so create and update write identical normalized values.
 const normalizeString = (s: string) => s.trim().replace(/\s+/g, ' ')
 
 const NORMALIZED_STRING_FIELDS = ['name', 'brand', 'kind', 'unit', 'amountUnit'] as const
@@ -80,10 +79,9 @@ export async function createProduct(
     const name = normalizeString(input.name)
     const brand = normalizeString(input.brand)
 
-    // Tier-1 dedup (A-2): surface an existing VISIBLE row with the same
-    // normalized key (409 + existing). Scoped to visible so a hidden tombstone
-    // never blocks a re-submission (V-3) nor leaks. norm() matches the partial
-    // unique index (P-1); tier-2 (the 23505 catch below) guards races.
+    // Tier-1 dedup (A-2): 409 on visible row with same normalized key. Scoped to
+    // visible so a hidden tombstone never blocks re-submission (V-3) nor leaks.
+    // norm() matches partial unique index (P-1); 23505 catch below guards races.
     const [existing] = await database
       .select({
         id: products.id,
@@ -121,9 +119,8 @@ export async function createProduct(
 
     if (!product) throw new ProductError('product_creation_failed')
 
-    // Seed opts out: it runs a dedicated auto-tag phase after ingredients are
-    // linked (write.ts here sees none yet → partial set that PK-collides with
-    // the seed phase on product_tag_links).
+    // Seed passes autoTag:false: it runs a dedicated phase after ingredients are
+    // linked, so tagging here would see no ingredients and PK-collide with the seed phase.
     if (options.autoTag ?? true) {
       await writeTagsForProductFailSoft(database, product.id, { operation: 'create', userId })
     }
@@ -177,8 +174,7 @@ export async function getProductBySlug(slug: string, database: Database = db) {
   return row
 }
 
-// Full detail page payload: product + ingredients + tags. Single round-trip
-// so frontend Layout/Info/Edit/Sheet all share one cache entry.
+// Single round-trip so Layout/Info/Edit/Sheet share one cache entry.
 export async function getProductFullBySlug(slug: string, database: Database = db) {
   const product = await getProductBySlug(slug, database)
   const [ingredients, tags] = await Promise.all([
@@ -192,8 +188,7 @@ export async function getProductFullBySlug(slug: string, database: Database = db
   }
 }
 
-// createdBy/createdAt/id are immutable; quality + moderation + verify stamps are
-// admin/contributor-governed (V-2 frontier) — an edit can never flip them.
+// id/createdBy/createdAt are immutable; quality/moderation/verify stamps are admin-governed (V-2).
 const EXCLUDED_KEYS = new Set([
   'id',
   'createdBy',
@@ -222,10 +217,8 @@ const TRACKED_FIELDS = [
   'priceCents',
 ] as const
 
-// Fields consumed by the auto-tag orchestrator (`OrchestratorInput`). A change
-// to any of these can shift the detected tag set, so updateProduct retags
-// whenever one moves. Keep in sync with `OrchestratorInput` in
-// backend/src/features/auto-tagging/orchestrator.ts.
+// Any change to these can shift the detected tag set. Keep in sync with OrchestratorInput
+// in backend/src/features/auto-tagging/orchestrator.ts.
 const AUTOTAG_INPUT_FIELDS = [
   'inci',
   'kind',
@@ -245,7 +238,6 @@ function isColumnLike(obj: unknown): obj is { name: string } {
   )
 }
 
-// We update the product and we must save what changed in the logs
 export async function updateProduct(
   userId: string,
   id: string,
@@ -260,9 +252,8 @@ export async function updateProduct(
     }
   }
 
-  // Slug is intentionally NOT regenerated from name on update — silent URL
-  // changes break bookmarks, SEO and the BunnyCDN image filename derived at
-  // upload time. Caller must pass `slug` explicitly to rename (Phase 7-2).
+  // Slug is not regenerated from name: silent changes break bookmarks, SEO, and CDN image filenames.
+  // Caller must pass slug explicitly to rename.
   if (data.slug !== undefined) data.slug = slugify(data.slug)
 
   const setEntries = Object.entries(data).filter(([k]) => !EXCLUDED_KEYS.has(k))
@@ -279,7 +270,7 @@ export async function updateProduct(
     return sql`${sql.identifier(col.name)} = ${v}`
   })
 
-  // This is a special SQL to update and get the old values at the same time for the logs
+  // Raw SQL to return both new values and old values in one round-trip for the edit log.
   let result: Record<string, unknown>[]
   try {
     result = (await database.execute(sql`
@@ -299,19 +290,16 @@ export async function updateProduct(
     `)) as Record<string, unknown>[]
   } catch (e) {
     if (e instanceof ProductError) throw e
-    // A name/brand rename can collide with the partial unique index on visible
-    // rows (C-4) → 409. Re-throw so withRlsContext rolls back instead of
-    // committing an aborted tx (a swallowed 23505 surfaces as 500).
+    // Name/brand rename can collide with partial unique index on visible rows (C-4).
+    // Re-throw so withRlsContext rolls back; a swallowed 23505 surfaces as 500.
     translateUniqueViolation(e, () => new ProductError('product_already_exists'))
   }
 
   const row = result[0] as Record<string, unknown> | undefined
   if (!row) {
-    // UPDATE matched 0 rows. Under RLS that means the row is locked (now
-    // verified), not the caller's, or invisible — disambiguate so a locked row
-    // returns 403 instead of a misleading 404. A visible row found here exists
-    // but the caller may not edit it; none means truly absent/hidden. Never read
-    // rowCount (bun-postgres footgun).
+    // UPDATE matched 0 rows. Under RLS the row may be locked/not owned/invisible.
+    // Disambiguate: 403 if visible (caller can't edit it), 404 if absent.
+    // Never read rowCount (bun-postgres footgun).
     const [visible] = await database
       .select({ id: products.id })
       .from(products)
@@ -320,7 +308,6 @@ export async function updateProduct(
     throw new ProductError(visible ? 'unauthorized_access' : 'product_not_found')
   }
 
-  // I convert the database columns names back to the object format
   const newProduct: Record<string, unknown> = {}
   for (const [key, col] of Object.entries(products)) {
     if (isColumnLike(col)) {
@@ -349,9 +336,7 @@ export async function updateProduct(
   return newProduct as Product
 }
 
-// Stamp a product as verified. Route guard (requireCatalogWrite) limits callers
-// to admin/contributor; here we only set the quality stamp. One-way — un-verify
-// is out of scope.
+// One-way: un-verify is out of scope.
 export async function verifyProduct(
   actorId: string,
   id: string,
@@ -383,14 +368,11 @@ type ProductSummary = Pick<
   | 'amountUnit'
   | 'imageUrl'
 > & {
-  // Avoid-tag slugs matching the caller's profile (avoid_for). Empty when no
-  // profile filter is active. Drives the "Pour vous" preference flag on cards.
+  // Avoid-tag slugs matching the caller's profile. Empty when no profile filter is active.
   profileMatches: string[]
-  // Positive tags (relevance != 'avoid'). Card filters relevance='primary' to
-  // show top 3 chips; tagType drives chip styling (concern/skin_type/label).
+  // Positive tags only (relevance != 'avoid'). Card uses relevance='primary' for top 3 chips.
   tags: { slug: string; tagType: string; relevance: 'primary' | 'secondary' }[]
-  // Caller's shelf status for this product, null when anonymous or unshelved.
-  // Drives the catalog CTA: null → "Ajouter", else → calm shelf flag.
+  // null when anonymous or unshelved.
   userStatus: UserProductStatus | null
 }
 export type ProductsPage = {
@@ -400,7 +382,6 @@ export type ProductsPage = {
   limit: number
 }
 
-// This is the search with many filters
 export async function listProducts(
   filters: ListProductsFilters,
   database: Database = db,
@@ -430,9 +411,8 @@ export async function listProducts(
     )
   }
 
-  // Correlated EXISTS lets the planner short-circuit on first match per product
-  // and use product_ingredients_product_idx as the driving index. The previous
-  // `IN (SELECT ...)` materialized the full slug→productId set upfront.
+  // EXISTS short-circuits on first match per product via product_ingredients_product_idx.
+  // IN (SELECT ...) previously materialized the full set upfront.
   if (filters.ingredient) {
     const slugs = Array.isArray(filters.ingredient)
       ? filters.ingredient
@@ -467,9 +447,8 @@ export async function listProducts(
         )
     )
 
-  // routine_moment "matin"/"soir" filters also match products with no moment
-  // tag at all (= universal, usable any moment per UX intent). Restrictive
-  // moments (hebdomadaire, usage-localise, crise) keep strict EXISTS only.
+  // matin/soir also match products with no moment tag (universals, usable any moment).
+  // Restrictive moments (hebdomadaire, usage-localise, crise) keep strict EXISTS.
   const ROUTINE_MOMENT_UNIVERSAL = new Set(['moment-matin', 'moment-soir'])
   const routineMomentFilterCondition = (raw: string): SQL => {
     const slugs = raw.split(',').map((s) => s.trim())
@@ -491,8 +470,6 @@ export async function listProducts(
     return or(strict, noMomentTag) as SQL
   }
 
-  // Tag filters dispatched per domain — categories come from the shared taxonomy
-  // (single source of truth: shared/src/products/{domain}/tag-taxonomy.ts).
   if (filters.category === 'skincare') {
     for (const tagType of SKINCARE_PRODUCT_TAG_CATEGORIES) {
       const value = filters[tagType]
@@ -523,8 +500,6 @@ export async function listProducts(
     }
   }
 
-  // Price range — NULL priceCents is excluded when either bound is active
-  // (NULL comparisons in SQL are falsy, so gte/lte naturally drops them).
   if (filters.priceMin !== undefined) {
     conditions.push(gte(products.priceCents, filters.priceMin))
   }
@@ -532,8 +507,6 @@ export async function listProducts(
     conditions.push(lte(products.priceCents, filters.priceMax))
   }
 
-  // Free-text fallback: ILIKE on name OR brand. Used when the header search
-  // matched neither a known brand nor a known ingredient.
   if (filters.q) {
     const escaped = escapeLike(filters.q)
     conditions.push(
@@ -548,20 +521,14 @@ export async function listProducts(
     conditions.push(eq(products.moderationStatus, filters.status))
   }
 
-  // avoid_for is computed post-fetch as per-product profileMatches (badge UX)
-  // rather than excluding rows — keeps the catalog visible while flagging risks.
-  // Raw payload mixes skin types + user concern slugs (lay vocab). `resolveAvoidSlugs`
-  // remaps concern slugs to product tag concern slugs (clinical vocab); skin
-  // types pass through unchanged. Without it ~70% of avoid badges stay invisible
-  // due to vocab drift between SKIN_CONCERNS and the product_tags taxonomy.
+  // Post-fetch badge UX: flag rows rather than exclude them. resolveAvoidSlugs maps
+  // user concern vocab to product tag slugs; without it ~70% of avoid badges are invisible.
   const avoidSlugs = filters.avoid_for
     ? resolveAvoidSlugs(filters.avoid_for.split(',').filter(Boolean))
     : []
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
-  // NULLS LAST on price/date sorts so products without the field
-  // don't surface at the top of the list.
   const orderBy = (() => {
     switch (filters.sort) {
       case 'random':
@@ -622,8 +589,7 @@ export async function listProducts(
               )
             )
         : Promise.resolve([] as { productId: string; slug: string }[]),
-      // Positive tags only (relevance != 'avoid') drive card chips. Avoid is
-      // already handled by profileMatches above and would otherwise duplicate.
+      // Positive tags only: avoid is already in profileMatches, would duplicate.
       database
         .select({
           productId: productTagLinks.productId,
@@ -636,8 +602,7 @@ export async function listProducts(
         .where(
           and(inArray(productTagLinks.productId, itemIds), ne(productTagLinks.relevance, 'avoid'))
         ),
-      // Caller's shelf rows for these products. Explicit userId filter is
-      // belt-and-suspenders against RLS — tests run as DB owner and bypass RLS.
+      // Explicit userId filter: tests run as DB owner and bypass RLS.
       userId
         ? database
             .select({ productId: userProducts.productId, status: userProducts.status })
@@ -679,9 +644,7 @@ export async function listProducts(
 export type FilterOptions = {
   kinds: string[]
   brands: string[]
-  // Slug → number of products tagged. Only slugs with ≥1 product are present;
-  // the frontend iterates the shared taxonomy to drive chips and reads counts
-  // from this map (missing slug → count 0 → disabled chip).
+  // Only slugs with >=1 product are present. Frontend reads missing slug as count 0 (disabled chip).
   tagCounts: Record<string, number>
 }
 
@@ -745,7 +708,6 @@ export async function deleteProduct(
   await database.delete(products).where(eq(products.id, id))
 }
 
-// We look for products that look the same to avoid duplicates
 export async function findSimilarProducts(
   name: string,
   brand: string,
@@ -780,8 +742,6 @@ export async function findSimilarProducts(
     .orderBy(sql`similarity(lower(${products.name}), lower(${trimmedName})) DESC`, products.name)
 }
 
-// Simple search by name or brand. Paginates via offset; fetches limit+1 rows
-// to detect whether more pages remain without a separate COUNT(*) query.
 export async function getProductsByIds(
   ids: string[],
   database: Database = db

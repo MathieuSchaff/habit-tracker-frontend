@@ -2,19 +2,13 @@ import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Name/description-based override for absence labels (`sans-parfum`, etc.).
-// Algo-derm pass 1 derives these from INCI absence + coverage ≥ 0.7. Products
-// with short or scraped INCI miss the coverage gate even when the brand
-// explicitly claims the absence. Regulatory pressure on cosmetic claims makes
-// "sans parfum" / "fragrance-free" reliable when written in the product
-// name/description — strict literal match keeps false positives near zero
-// (comparative phrasings like "preferred over fragrance-free formulas" are
-// rare in product copy).
+// Name/description override for absence labels. Products with short/scraped INCI
+// miss the algo-derm coverage >= 0.7 gate even when the brand explicitly claims
+// the absence. Regulatory pressure makes "sans parfum"/"fragrance-free" reliable
+// in product name/description; strict literal match keeps FP near zero.
 //
-// Currently scoped to SANS_PARFUM. Other absences (sans-sulfates / sans-
-// silicones / sans-huiles-essentielles) have <15 name-claim occurrences in
-// the corpus — algo-derm coverage handles them well enough. Extend here if
-// the gap widens.
+// Scoped to SANS_PARFUM: other absences have <15 name-claim occurrences in the
+// corpus. Extend here if the gap widens.
 
 const SANS_PARFUM_PATTERN = /sans[\s-]+parfum|fragrance[\s-]*free|parfum[\s-]*free/
 

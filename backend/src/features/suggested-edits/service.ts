@@ -43,7 +43,7 @@ export async function listSuggestedEdits(db: Database, filters: { status?: Sugge
   return { items: rows }
 }
 
-// name/brand can collide with products_name_brand_unique_visible — normalize +
+// name/brand can collide with products_name_brand_unique_visible, normalize +
 // re-throw the 23505 so withRlsContext rolls back (catch-and-return on an aborted
 // tx would COMMIT it → spurious 500).
 function applyToSheet(
@@ -96,7 +96,7 @@ export async function reviewSuggestedEdit(
     if (!applied || applied.length === 0) throw new SuggestedEditError('not_found')
   }
 
-  // Write ONLY status/reviewedBy/reviewedAt — never field/proposedValue/proposerId.
+  // Write ONLY status/reviewedBy/reviewedAt, never field/proposedValue/proposerId.
   const [row] = await db
     .update(suggestedEdits)
     .set({ status: args.status, reviewedBy: args.reviewerId, reviewedAt: nowISO() })

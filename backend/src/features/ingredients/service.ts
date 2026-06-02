@@ -41,15 +41,14 @@ function normalizeEdit<T extends { createdAt: string }>(row: T): T {
   return { ...row, createdAt: normalizeInstant(row.createdAt) }
 }
 
-// I put these keys here because we must not let users change them.
-// They are reserved for the system, like the ID or the creation date.
+// Fields the caller may never overwrite; silently skipped in updateIngredient.
 const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 
 // Fields tracked in the audit log. Mirrors `ingredientChangesSchema` in shared/.
 const TRACKED_FIELDS = ['name', 'description', 'content', 'type', 'category'] as const
 
 // Tag axes accepted on `/api/ingredients`. Union of every domain's filter
-// categories — the same endpoint serves any selected ingredient_type.
+// categories, the same endpoint serves any selected ingredient_type.
 const TAG_AXES = [
   'concern',
   'skin_type',
@@ -112,7 +111,7 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
   const orderBy = filters.sort === 'random' ? sql`random()` : ingredients.name
 
   // avoid_for is computed post-fetch as per-ingredient profileMatches (badge UX)
-  // — mirrors products. Never excludes rows.
+  // Mirrors products. Never excludes rows.
   const avoidSlugs = filters.avoid_for ? filters.avoid_for.split(',').filter(Boolean) : []
 
   const [items, [{ total }]] = await Promise.all([
@@ -123,7 +122,7 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
         slug: ingredients.slug,
         type: ingredients.type,
         category: ingredients.category,
-        // Truncated to keep the list payload small — full text on detail page.
+        // Truncated to keep the list payload small, full text on detail page.
         description: sql<string | null>`left(${ingredients.description}, 120)`,
       })
       .from(ingredients)
@@ -174,7 +173,7 @@ export async function createIngredient(
 ) {
   createIngredientSchema.parse(input)
 
-  // I check if there are weird symbols like "<" to be sure no one puts bad code in the name.
+  // noHtml guard: `<` / `>` / `javascript:` in the name crash the seed noHtml check and can leak into rendered INCI lists.
   if (input.name.includes('<') || input.name.includes('>') || input.name.includes('javascript:')) {
     throw new IngredientError('ingredient_creation_failed', 'Nom invalide')
   }
@@ -187,7 +186,7 @@ export async function createIngredient(
     () => new IngredientError('ingredient_rate_limited')
   )
 
-  // Only admins can choose their own slug. For others, I derive it from the name.
+  // Non-admins cannot pick a custom slug; derive from name to prevent taxonomy squatting.
   const slug = input.slug && role === 'admin' ? slugify(input.slug) : slugify(input.name)
 
   try {
@@ -254,7 +253,7 @@ export async function updateIngredient(
 
   const oldIngredient = await getIngredientById(database, id)
 
-  // Again, I check for bad characters in the name to be safe.
+  // Same noHtml guard as createIngredient.
   if (
     data.name &&
     (data.name.includes('<') || data.name.includes('>') || data.name.includes('javascript:'))
@@ -262,19 +261,18 @@ export async function updateIngredient(
     throw new IngredientError('ingredient_update_failed', 'Nom invalide')
   }
 
-  // I only keep the fields that are really different from what we have in the database.
+  // Skip unchanged fields to avoid spurious UPDATE + audit entries.
   const filteredData: Partial<UpdateIngredientInput> = {}
 
   for (const key of Object.keys(data) as (keyof UpdateIngredientInput)[]) {
     if (IMMUTABLE_KEYS.has(key)) continue
     if (areEqual(oldIngredient[key as keyof typeof oldIngredient], data[key])) continue
-    // TS is a bit lost here with dynamic keys, so I use Object.assign to help it.
+    // Object.assign works around TS losing the index type on dynamic keys.
     Object.assign(filteredData, { [key]: data[key] })
   }
 
-  // If after the check nothing changed, I just return the old ingredient.
   if (Object.keys(filteredData).length === 0) {
-    // I also check if the updatedAt matches to be sure no one else changed it while I was working.
+    // Still check OCC so a stale client gets a 409, not a silent no-op.
     if (expectedUpdatedAt && oldIngredient.updatedAt !== expectedUpdatedAt) {
       throw new IngredientError('ingredient_update_conflict')
     }
@@ -316,7 +314,7 @@ export async function updateIngredient(
 }
 
 // Stamp an ingredient as verified. Route guard (requireCatalogWrite) limits
-// callers to admin/contributor; here we only set the quality stamp. One-way —
+// callers to admin/contributor; here we only set the quality stamp. One-way:
 // un-verify is out of scope.
 export async function verifyIngredient(database: DB, actorId: string, id: string) {
   const [row] = await database
@@ -356,7 +354,7 @@ export async function listIngredientEdits(database: DB, ingredientId: string) {
   return rows.map(normalizeEdit)
 }
 
-// Fuzzy search aligned with `searchProducts` — pg_trgm `similarity()` plus
+// Fuzzy search aligned with `searchProducts`: pg_trgm `similarity()` plus
 // ILIKE substring fallback (catches short queries below the trigram floor),
 // ordered by best similarity. Trigram GIN on name/slug feeds both branches.
 export async function searchIngredients(database: DB, query: string, limit = 10) {
@@ -390,7 +388,7 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .limit(limit)
 }
 
-// All tag categories used by any domain — bounds the query so unrelated tag
+// All tag categories used by any domain, bounds the query so unrelated tag
 // types (if ever introduced) don't leak into the drawer.
 const ALL_FILTER_CATEGORIES = Array.from(
   new Set(Object.values(DOMAIN_INGREDIENT_FILTER_CATEGORIES).flat())
@@ -432,7 +430,6 @@ export async function getIngredientFilterOptions(
   return { tags }
 }
 
-// This list is very light, I use it just to fill the small select boxes.
 export async function listAllIngredientOptions(database: DB) {
   return database
     .select({

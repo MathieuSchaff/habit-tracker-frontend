@@ -19,8 +19,8 @@ export const productIngredients = pgTable(
     // 2500 IU/drop → value: 2500, unit: "IU", per: "goutte"
     concentrationValue: numeric('concentration_value'),
     concentrationUnit: text('concentration_unit'), // "%", "IU", "mg", "mcg"
-    concentrationPer: text('concentration_per'), // "goutte", "gélule", "mL"
-    notes: text('notes'), // "forme liposomale", "encapsulé"
+    concentrationPer: text('concentration_per'), // "drop", "capsule", "mL"
+    notes: text('notes'), // "liposomal", "encapsulated"
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .notNull()
       .defaultNow(),

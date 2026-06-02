@@ -1,7 +1,7 @@
 // Dry-run audit for the pharmacological-cluster pass (audit O3).
 //
 // Read-only. Audit-auto-tags covers passe 1 (algo-derm tagProduct) only.
-// This runner targets passe 2 (`detectActifClasses`) — the 12 cluster slugs
+// This runner targets passe 2 (`detectActifClasses`): the 12 cluster slugs
 // (RETINOIDS, VITAMIN_C, AHA, BHA, PHA, CERAMIDES, HYALURONIC_ACID, PEPTIDES,
 // POLYPHENOLS, TYROSINASE_INHIBITORS, ENZYMES, VITAMIN_E).
 //
@@ -11,18 +11,18 @@
 //   new:   hit \ already-present (proposed additions)
 //   manual_only: cluster slugs in DB that the detector does NOT emit (audit
 //                signal: either the rule misses an INCI variant, or the
-//                manual tag was applied without the cluster firing — drift)
+//                manual tag was applied without the cluster firing, drift)
 //   top kinds: top 3 ProductKinds where the cluster fires, with counts.
 //              Catches gating drift (e.g. RETINOIDS firing on cleansers
 //              should be rare → backfill bug or INCI parsing edge).
 //
 // No writes. The clusters are emitted by `detectAllAutoTags` at relevance
-// 'secondary' source 'actif-class' — so this audit does NOT reflect the
+// 'secondary' source 'actif-class'; so this audit does NOT reflect the
 // orchestrator's avoid precedence (relevant only for grossesse / cross-
 // signal-avoid, not for clusters).
 //
 // Tunables via env:
-//   LIMIT       optional       — cap product count (debug)
+//   LIMIT       optional: cap product count (debug)
 
 import type { ProductKind } from '@aurore/shared'
 
@@ -62,7 +62,6 @@ async function main() {
 
   const subset = LIMIT ? skincare.slice(0, LIMIT) : skincare
 
-  // Existing (productId, slug) pairs scoped to the cluster slugs only.
   const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
   const existingRows = await db
     .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
@@ -112,8 +111,7 @@ async function main() {
       stat.byKind.set(kind, (stat.byKind.get(kind) ?? 0) + 1)
     }
 
-    // Manual-only: cluster slug present in DB but the detector did not fire.
-    // Surfaces drift between manual annotation and current rule set.
+    // manual_only: detector miss on a manually-tagged cluster slug, signals rule drift.
     for (const slug of existing) {
       if (!detected.has(slug)) {
         const stat = stats.get(slug)
@@ -126,7 +124,6 @@ async function main() {
     }
   }
 
-  // Reporting
   console.log(`📊 Couverture`)
   console.log(`   ${subset.length} produits skincare`)
   console.log(`   ${withInci} avec INCI exploitable · ${totalEmitted} paires émises\n`)
@@ -147,7 +144,6 @@ async function main() {
     )
   }
 
-  // By-kind breakdown — surfaces gating drift. Skip clusters with 0 hits.
   console.log(`\n📋 Top 3 kinds par cluster`)
   for (const [slug, s] of sorted) {
     if (s.hit === 0) continue
@@ -156,13 +152,11 @@ async function main() {
     console.log(`   ${pad(slug, 24)} ${summary}`)
   }
 
-  // Silence check — clusters allowed but never emitted.
   const silent = sorted.filter(([_, s]) => s.hit === 0).map(([slug]) => slug)
   if (silent.length > 0) {
     console.log(`\n⚪ Clusters 0 hit : ${silent.join(', ')}`)
   }
 
-  // Drift summary — where manual_only is high, the detector misses cases.
   const drift = sorted.filter(([_, s]) => s.manualOnly > 0)
   if (drift.length > 0) {
     console.log(`\n🔍 Drift (manual sans détection — patterns à investiguer)`)

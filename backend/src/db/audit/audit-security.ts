@@ -4,8 +4,8 @@
  *
  * Run with: bun run src/db/audit/audit-security.ts
  * Env:
- *   CSV_OUT=/tmp/findings.csv  — export all findings to CSV
- *   WRITE=1                    — apply auto-fixes for high-severity fixable findings
+ *   CSV_OUT=/tmp/findings.csv: export all findings to CSV
+ *   WRITE=1: apply auto-fixes for high-severity fixable findings
  */
 
 import { writeFile } from 'node:fs/promises'
@@ -27,27 +27,21 @@ import {
   stripHtml,
 } from './audit-security-helpers'
 
-// Types
-
 type Severity = 'high' | 'low'
 
 type Finding = {
   description: string
   severity: Severity
-  // CSV export fields
   table: string
   identifier: string
   field: string
   value: string
-  // Auto-fix
   fixable: boolean
   applyFix?: () => Promise<void>
 }
 
 type CheckResult = { name: string; findings: Finding[] }
 type Checker = (db: DB) => Promise<CheckResult>
-
-// Checkers
 
 async function checkProductUrls(db: DB): Promise<CheckResult> {
   const rows = await db
@@ -129,7 +123,7 @@ async function checkProductTextFields(db: DB): Promise<CheckResult> {
   return { name: 'product-text-fields', findings }
 }
 
-// name and brand are rendered in product cards — worth auditing even though React
+// name and brand are rendered in product cards, worth auditing even though React
 // auto-escapes JSX (guards against future unsafe render patterns).
 async function checkProductNameFields(db: DB): Promise<CheckResult> {
   const rows = await db
@@ -231,40 +225,25 @@ async function checkProfileTextFields(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    const bio = row.bio
-    if (hasSuspiciousHtml(bio))
+    for (const field of ['bio', 'username'] as const) {
+      const val = row[field]
+      if (!hasSuspiciousHtml(val)) continue
       findings.push({
-        description: `profile ${row.userId} — bio: ${preview(bio)}`,
+        description: `profile ${row.userId} — ${field}: ${preview(val)}`,
         severity: 'high',
         table: 'profiles',
         identifier: row.userId,
-        field: 'bio',
-        value: bio,
+        field,
+        value: val,
         fixable: true,
         applyFix: async () => {
           await db
             .update(profiles)
-            .set({ bio: stripHtml(bio) })
+            .set({ [field]: stripHtml(val) })
             .where(eq(profiles.userId, row.userId))
         },
       })
-    const username = row.username
-    if (hasSuspiciousHtml(username))
-      findings.push({
-        description: `profile ${row.userId} — username: ${preview(username)}`,
-        severity: 'high',
-        table: 'profiles',
-        identifier: row.userId,
-        field: 'username',
-        value: username,
-        fixable: true,
-        applyFix: async () => {
-          await db
-            .update(profiles)
-            .set({ username: stripHtml(username) })
-            .where(eq(profiles.userId, row.userId))
-        },
-      })
+    }
   }
   return { name: 'profile-text-fields', findings }
 }
@@ -306,44 +285,30 @@ async function checkArticleTitles(db: DB): Promise<CheckResult> {
 
   const findings: Finding[] = []
   for (const row of rows) {
-    if (hasSuspiciousHtml(row.title))
+    for (const field of ['title', 'excerpt'] as const) {
+      const val = row[field]
+      if (!hasSuspiciousHtml(val)) continue
       findings.push({
-        description: `article ${row.slug} — title: ${preview(row.title)}`,
+        description: `article ${row.slug} — ${field}: ${preview(val)}`,
         severity: 'high',
         table: 'articles',
         identifier: row.slug,
-        field: 'title',
-        value: row.title,
+        field,
+        value: val,
         fixable: true,
         applyFix: async () => {
           await db
             .update(articles)
-            .set({ title: stripHtml(row.title) })
+            .set({ [field]: stripHtml(val) })
             .where(eq(articles.id, row.id))
         },
       })
-    const excerpt = row.excerpt
-    if (hasSuspiciousHtml(excerpt))
-      findings.push({
-        description: `article ${row.slug} — excerpt: ${preview(excerpt)}`,
-        severity: 'high',
-        table: 'articles',
-        identifier: row.slug,
-        field: 'excerpt',
-        value: excerpt,
-        fixable: true,
-        applyFix: async () => {
-          await db
-            .update(articles)
-            .set({ excerpt: stripHtml(excerpt) })
-            .where(eq(articles.id, row.id))
-        },
-      })
+    }
   }
   return { name: 'article-titles', findings }
 }
 
-// Article content is expected to contain HTML — look for dangerous patterns only.
+// Article content is expected to contain HTML, look for dangerous patterns only.
 // Not auto-fixable: stripping content blindly could corrupt the article.
 async function checkArticleContent(db: DB): Promise<CheckResult> {
   const rows = await db.select({ slug: articles.slug, content: articles.content }).from(articles)
@@ -445,7 +410,7 @@ async function checkNonHttpsUrls(db: DB): Promise<CheckResult> {
   return { name: 'non-https-urls (LOW)', findings }
 }
 
-// Embedded URLs in text: spam vector. Not auto-fixed — needs human decision.
+// Embedded URLs in text: spam vector. Not auto-fixed, needs human decision.
 async function checkEmbeddedUrlsInText(db: DB): Promise<CheckResult> {
   const findings: Finding[] = []
 
@@ -503,8 +468,6 @@ async function checkEmbeddedUrlsInText(db: DB): Promise<CheckResult> {
   return { name: 'embedded-urls-in-text (LOW)', findings }
 }
 
-// Runner
-
 const checkers: Checker[] = [
   checkProductUrls,
   checkProductTextFields,
@@ -535,7 +498,6 @@ async function main() {
   const results = await Promise.all(checkers.map((c) => c(db)))
   const allFindings = results.flatMap((r) => r.findings)
 
-  // Display
   let totalHigh = 0
   let totalLow = 0
 
@@ -560,7 +522,6 @@ async function main() {
     console.log()
   }
 
-  // CSV export
   if (CSV_OUT) {
     const header = 'severity,table,identifier,field,value,fixable'
     const rows = allFindings.map((f) =>
@@ -577,7 +538,6 @@ async function main() {
     console.log(`📄 CSV written to ${CSV_OUT} (${allFindings.length} rows)\n`)
   }
 
-  // Auto-fix (WRITE=1, high-severity fixable only)
   if (WRITE) {
     const fixable = allFindings.filter(
       (f): f is Finding & { applyFix: NonNullable<Finding['applyFix']> } =>

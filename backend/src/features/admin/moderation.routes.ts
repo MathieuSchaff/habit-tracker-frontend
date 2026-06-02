@@ -47,16 +47,14 @@ const app = new Hono<AppEnv>()
 app.use('*', rateLimiterFunc)
 app.use('*', requireJwtAuth)
 app.use('*', requireNotBanned)
-// Authz is per-route, NOT blanket: content moderation (reviews/threads/replies)
-// opens to admin∨contributor (« modérateur »), while force-private and catalogue-
-// sheet hide stay admin-only — they share this router (ADR-0006 S1).
-// Binds app.role to the caller's role inside a tx so the matching RLS policy fires
-// (admin_bypass for admin, the moderation policy for contributor). Without it,
-// app_runtime (NO BYPASSRLS) sees auth.role()=NULL and every UPDATE touches 0 rows.
+// Authz is per-route, not blanket: content moderation opens to admin or contributor,
+// while force-private and catalog-hide stay admin-only, they share this router (ADR-0006 S1).
+// withRlsContext binds app.role inside a tx so the matching RLS policy fires;
+// without it, app_runtime sees auth.role()=NULL and every UPDATE touches 0 rows.
 app.use('*', withRlsContext)
 
 export const adminModerationRoutes = app
-  // First .get so the literal /catalog isn't shadowed by a /:id sibling.
+  // Literal /catalog must be registered before /:id to avoid path shadowing.
   .get(
     '/catalog',
     requireContentModerator,

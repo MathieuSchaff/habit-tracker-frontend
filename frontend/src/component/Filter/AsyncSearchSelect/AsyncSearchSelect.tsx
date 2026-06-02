@@ -30,9 +30,7 @@ type AsyncSearchSelectProps = {
   'aria-labelledby'?: string
 }
 
-// Async sibling of SearchSelect: same UX, but options come from a remote
-// search and selected chips are resolved server-side. Used when the option
-// list is too large to ship to the client (e.g. ingredients catalog).
+// Options come from a remote search; used when the list is too large to ship to the client.
 export function AsyncSearchSelect({
   selected,
   onToggle,
@@ -66,8 +64,7 @@ export function AsyncSearchSelect({
     enabled: debouncedQuery.length >= minChars,
   })
 
-  // Batch rapid chip toggles into a single resolve fetch; chips still render
-  // immediately via useLabelCache slug fallback while the debounce holds.
+  // Batch rapid chip toggles into a single fetch; useLabelCache slug fallback renders immediately.
   const debouncedSelected = useDebounce(selected, 300)
   const resolvedQuery = useQuery({
     ...resolveValuesQuery(debouncedSelected),
@@ -117,9 +114,8 @@ export function AsyncSearchSelect({
     onSelect: commitOption,
   })
 
-  // filtered.length is a deps trigger: listbox only mounts when results exist,
-  // which can lag showDropdown by one render (async query). Without it, ref is
-  // null on first run and inline coords stay empty.
+  // filtered.length in deps: listbox mounts one render after showDropdown (async query);
+  // without it, dropdownRef is null on first run and flip coords stay empty.
   useFlipPlacement(
     clickOutsideContainer,
     dropdownRef,

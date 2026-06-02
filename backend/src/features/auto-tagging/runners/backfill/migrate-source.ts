@@ -3,7 +3,7 @@
 // the orchestrator per product and updates each row that the current
 // orchestrator output covers to the actual AutoTagSource.
 //
-// Non-destructive — never deletes rows. Rows that the orchestrator does not
+// Non-destructive: never deletes rows. Rows that the orchestrator does not
 // emit (manualProductTagPairs from seed-core, admin PUTs, etc.) stay marked
 // 'manual'. Idempotent: re-running over a corrected DB is a no-op.
 //
@@ -94,8 +94,6 @@ async function main() {
   }
   const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 
-  // Pair-keyed source map. Key = `${productId}::${productTagId}` (matches the
-  // PK shape on tag_products).
   const orchestratorSource = new Map<string, TagSource>()
   for (const p of subset) {
     const pairs = detectAllAutoTags(
@@ -119,10 +117,7 @@ async function main() {
     }
   }
 
-  // Fetch every existing tag_products row so we know exactly which ones
-  // currently carry the default 'manual' source. Rows that orchestrator
-  // doesn't emit stay 'manual'; rows that match an orchestrator pair get
-  // bumped to the detected source.
+  // Rows the orchestrator doesn't emit stay 'manual'; matched rows get bumped to detected source.
   const existing = await db
     .select({
       pId: productTagLinks.productId,
@@ -131,8 +126,7 @@ async function main() {
     })
     .from(productTagLinks)
 
-  // Group rows to update by target source so we can issue one UPDATE per
-  // (source, chunk). Skip rows where current source already matches.
+  // Group by target source to issue one UPDATE per (source, chunk).
   const updatesBySource = new Map<TagSource, [string, string][]>()
   let alreadyCorrect = 0
   let stayManual = 0

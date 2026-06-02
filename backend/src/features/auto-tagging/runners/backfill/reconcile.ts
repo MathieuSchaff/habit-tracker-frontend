@@ -1,6 +1,6 @@
 // Full corpus reconcile: align every eligible product's auto-tags to the current
 // orchestrator. Unlike `main.ts` (additive + relevance-upgrade only), this also
-// removes stale rows and corrects relevance downgrades — it applies the intake
+// removes stale rows and corrects relevance downgrades; it applies the intake
 // primitive `writeTagsForProduct` (DELETE non-manual + INSERT) per product.
 // Manual rows (source = 'manual') are never touched.
 //
@@ -69,9 +69,8 @@ console.log(
 if (WRITE) {
   let reconciled = 0
   let written = 0
-  // writeTagsForProduct opens its own tx (DELETE non-manual + INSERT); passing
-  // `tx` nests it as a savepoint that inherits app.role='admin', so its RLS
-  // catalog writes are accepted. Bare invocation = no role set = RLS denies.
+  // Passing tx nests writeTagsForProduct as a savepoint inheriting app.role='admin'.
+  // Bare invocation has no role set, so RLS denies catalog writes.
   await withAdminRls(async (tx) => {
     for (const p of prods) {
       const r = await writeTagsForProduct(p.id, tx)
@@ -86,7 +85,6 @@ if (WRITE) {
   process.exit(0)
 }
 
-// Dry-run: read-only diff of orchestrator output vs current non-manual rows.
 const certRows = await db.select().from(brandCertifications)
 const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
 
@@ -138,11 +136,9 @@ for (const r of cur) {
   curByProduct.set(r.productId, m)
 }
 
-// A manual row holds the (product, tag) PK; writeTagsForProduct's INSERT
-// onConflictDoNothing yields to it, so an orchestrator-wanted tag already held
-// manually is a no-op, not a real insert. Tracked separately so the preview
-// matches what `--write` does and surfaces the manual×auto overlap instead of
-// inflating it into phantom recall.
+// Manual rows hold the PK; onConflictDoNothing yields to them, making
+// orchestrator-wanted tags on manual PKs a no-op. Tracked separately to
+// surface manual×auto overlap and prevent phantom recall inflation.
 const manualRows = await db
   .select({ productId: productTagLinks.productId, productTagId: productTagLinks.productTagId })
   .from(productTagLinks)
@@ -181,8 +177,7 @@ for (const p of prods) {
   const validTagTypes = domain
     ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
     : []
-  // Exclude the withheld eczema-atopie pair so the parity delta matches what the
-  // writers (seed-core, backfill, runtime) actually persist — no phantom inserts.
+  // Exclude withheld eczema-atopie so the parity delta matches what writers persist.
   const { kept } = partitionEczemaReview(pairs, p.description)
   const want = new Map<string, string>()
   for (const pair of kept) {

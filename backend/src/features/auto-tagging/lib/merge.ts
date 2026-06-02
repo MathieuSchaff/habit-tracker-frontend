@@ -1,16 +1,13 @@
 // Merge + primary-promotion logic for the auto-tag pipeline (ADR-0001).
 //
-// `mergeProposal` enforces per-tag precedence: avoid > primary > secondary.
-// Higher-relevance proposals replace lower; equal-relevance keeps the first
-// seen (so source attribution is stable for the upstream pass).
+// `mergeProposal`: avoid > primary > secondary. Higher-relevance replaces lower;
+// equal-relevance keeps the first seen (stable source attribution).
 //
-// `primaryPromote` runs once after all passes complete and mutates existing
-// proposals in place — it never introduces a new slug. Two rules today:
+// `primaryPromote` runs once after all passes, mutates in place, never adds slugs.
+// Two promotion rules:
 //   (a) Kind-derived TYPE_* primary (V1, deterministic from `kind`).
-//   (b) Top algo-derm concern primary (V2, highest-confidence concern when
-//       `confidence >= CONCERN_PRIMARY_CONFIDENCE_FLOOR`).
-// Both are guarded by the standard precedence check so an `avoid` signal
-// already in the accumulator is never demoted.
+//   (b) Top algo-derm concern (V2, highest-confidence concern >= CONCERN_PRIMARY_CONFIDENCE_FLOOR).
+// Both guarded by precedence so an existing `avoid` is never demoted.
 
 import {
   detectKindPrimaryType,
@@ -43,8 +40,7 @@ export function primaryPromote(
   byTag: Map<SkincareProductTagSlug, AutoTagProposal>,
   kind: ProductKind
 ): void {
-  // (a) Kind-derived TYPE_*. Slug comes from the kind alone; the entry may not
-  // even exist in `byTag` if the kind pass declined to emit it (rare).
+  // (a) Kind-derived TYPE_*. Entry may be absent if the kind pass declined to emit it.
   const primaryType = detectKindPrimaryType(kind)
   if (primaryType) {
     const existing = byTag.get(primaryType)
@@ -53,16 +49,12 @@ export function primaryPromote(
     }
   }
 
-  // (b) Top algo-derm concern. Read confidence back from the proposals
-  // themselves (ADR-0001 Q4-b2) instead of an orchestrator-local variable.
-  // `source === 'algo-derm'` is deliberate, not incidental: formula passes emit
-  // concerns with no confidence (boolean positioning detectors), so they can't
-  // be ranked against the floor and stay secondary by design — a positioning
-  // claim (`protection`, `eczema-atopie`) must not seize the primary slot from
-  // the kind-derived TYPE of rule (a). Only algo-derm's scored concerns promote.
-  // `relevance === 'secondary'` mirrors today's gate — algo-derm entries later
-  // overwritten by an `avoid` change source away from `'algo-derm'`, so this
-  // filter naturally excludes them.
+  // (b) Top algo-derm concern (ADR-0001 Q4-b2). `source === 'algo-derm'` is intentional:
+  // formula passes emit concerns without confidence (boolean positioning detectors),
+  // so they can't be ranked and must stay secondary. A positioning claim like `protection`
+  // or `eczema-atopie` must not seize the primary slot from the kind-derived TYPE of rule (a).
+  // `relevance === 'secondary'` filter excludes entries already overwritten by an `avoid` (which
+  // changes the source away from 'algo-derm').
   let topSlug: SkincareProductTagSlug | null = null
   let topConfidence = 0
   for (const p of byTag.values()) {

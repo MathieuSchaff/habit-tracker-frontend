@@ -105,11 +105,11 @@ export const profiles = pgTable(
       to: appRuntimeRole,
       using: sql`${t.profilePublic} AND NOT ${t.forcedPrivateByAdmin}`,
     }),
-    // #7 — expose the pseudonym when the reviewer has opted-in at least one
+    // #7: expose the pseudonym when the reviewer has opted-in at least one
     // public review, even if their profile master flag stays false. Leak
     // surface = "this user has shared a public review" (already inferable
     // from the review row). No other profile columns become visible here.
-    // Force-private blocks this path too — admin moderation is final.
+    // Force-private blocks this path too, admin moderation is final.
     // Moderation_status='visible' guard: once every public review of a user
     // is hidden by admin moderation, the profile must stop appearing through
     // this path too (otherwise the pseudonym leaks via a hypothetical future
@@ -222,7 +222,7 @@ export const refreshTokens = pgTable(
   ]
 ).enableRLS()
 
-// Safe projection of `users` exposed to app_runtime — excludes password_hash
+// Safe projection of `users` exposed to app_runtime, excludes password_hash
 // and google_sub. Created by migration 0038 (hand-written, .existing() so
 // drizzle-kit doesn't try to manage it). Use this for any read that doesn't
 // strictly need the secret columns.

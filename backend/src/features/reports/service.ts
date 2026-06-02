@@ -62,7 +62,7 @@ export async function resolveReport(
 
 // Escalation is orthogonal to status (ADR-0006 S3): the report stays open while
 // escalated, then resolves normally. The admin surfaces it via the escalated filter.
-// Re-escalating overwrites attribution (last escalator wins) — same posture as
+// Re-escalating overwrites attribution (last escalator wins), same posture as
 // resolveReport's reviewedBy; the UI hides the action once escalated.
 export async function escalateReport(db: Database, args: { id: string; moderatorId: string }) {
   const [row] = await db

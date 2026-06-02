@@ -1,16 +1,9 @@
-// Drift classifier — for products with manual cluster tags that the detector
-// doesn't fire on, partition them by ROOT CAUSE:
+// Partition manual cluster tags that the detector doesn't fire on by root cause:
+//   pos-cap     : pattern matches but past position cap
+//   false-pos   : no pattern match anywhere in INCI (manual tag likely wrong)
+//   parse-fail  : INCI empty or unsplittable
 //
-//   pos-cap     : pattern matches but past position cap (would fire if cap
-//                 relaxed)
-//   false-pos   : NO pattern matches anywhere in the INCI (manual tag is
-//                 likely wrong — actif simply not in formula)
-//   parse-fail  : INCI is empty / unsplittable (rare; usually upstream data)
-//
-// Read-only. Standalone — does not write to DB.
-//
-// Env:
-//   DUMP_FALSE_POS=1   include full INCI in false-pos report for review
+// Read-only. Env: DUMP_FALSE_POS=1 includes full INCI in false-pos report.
 
 import type { ProductKind } from '@aurore/shared'
 
@@ -44,9 +37,8 @@ async function main() {
     .where(eq(products.category, 'skincare'))
 
   const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
-  // BHA has 2 defs (different position caps for free SA vs capryloyl SA).
-  // Merge patterns by slug so a missed pattern in one def doesn't hide a
-  // match from the other.
+  // BHA has 2 defs (different position caps for free SA vs capryloyl SA): merge
+  // patterns by slug so a miss in one def doesn't hide a match from the other.
   const patternsBySlug = new Map<string, string[]>()
   for (const d of ACTIF_CLASS_DEFS) {
     const existing = patternsBySlug.get(d.slug) ?? []

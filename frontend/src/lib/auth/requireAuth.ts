@@ -8,7 +8,7 @@ import { silentRefresh } from '../queries/silentRefresh'
 type RequireAuthOptions = {
   queryClient: QueryClient
   pathname: string
-  /** Access token from router context - avoids reading Zustand store directly in route guards. */
+  /** From router context: avoids reading Zustand store directly in route guards. */
   accessToken: string | null
 }
 

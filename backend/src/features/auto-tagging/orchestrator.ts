@@ -1,15 +1,10 @@
-// Single source of truth for the auto-tag pipeline. Runs the AUTO_TAG_PASSES
-// registry left-to-right, dedup'd via `mergeProposal`, then promotes primaries.
+// Auto-tag pipeline. Runs AUTO_TAG_PASSES left-to-right, dedup'd via
+// `mergeProposal`, then promotes primaries.
 //
-// Consumed by:
-//   - `db/seed/seeders/seed-core.ts`                  (initial seed, fresh DB)
-//   - `features/auto-tagging/runners/backfill/main.ts` (post-snapshot rehydrate, idempotent)
-//   - `features/products/service.ts create/updateProduct()` (per-product, inline)
-//
-// Parity contract (`tests/auto-tag-orchestrator-parity.test.ts`) keeps all
-// three consumers' output identical for the same input. ADR-0001 describes
-// the cutover from inline pass coordination (seenSlugs / topConcern locals)
-// to registry-driven dispatch.
+// Consumed by seed-core (fresh DB), backfill runner (post-snapshot rehydrate),
+// and product service (per-product inline). Parity contract in
+// `tests/auto-tag-orchestrator-parity.test.ts` keeps all three consumers
+// identical for the same input. ADR-0001 describes the registry-driven design.
 
 import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
 
@@ -22,10 +17,8 @@ import { AUTO_TAG_PASSES } from './passes/registry'
 
 export type { AutoTagPair, AutoTagRelevance, AutoTagSource } from './lib/pass-types'
 
-// Categories where INCI/kind-derived tagging applies. Other categories
-// (haircare, dental, supplements) carry no INCI-derived signal yet. Tuple
-// is the source of truth — runners use it for typed `inArray` queries on
-// `products.category`; the Set is the runtime membership check.
+// Tuple is the source of truth for typed `inArray` queries; Set is the runtime check.
+// Haircare, dental, supplements carry no INCI-derived signal yet.
 export const AUTO_TAG_ELIGIBLE_CATEGORIES = ['skincare', 'solaire', 'bodycare'] as const
 const AUTO_TAG_ELIGIBLE_CATEGORIES_SET: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
@@ -33,40 +26,34 @@ export interface OrchestratorInput {
   inci: string | null | undefined
   kind: ProductKind
   category: string
-  // Free-text brand from `products.brand`. Brand-level detector lower-cases
-  // and normalizes whitespace before the lookup. Optional so callers without
-  // a brand (synthetic test fixtures) can omit it.
+  // Brand detector lower-cases and normalizes whitespace before lookup.
   brand?: string | null
-  // Physical texture (`products.texture`) — orthogonal to `kind`. When the
-  // admin sets this, texture-from-field emits `texture-gel`/`texture-mousse`/
-  // `texture-stick` directly. NULL → INCI fallback (gel only) takes over.
+  // When set by admin, texture-from-field emits the tag directly. NULL falls
+  // back to INCI-based detection (gel only).
   texture?: ProductTexture | null
-  // Product name — used by `detectTextureCremeEyeInci` for name-based
-  // cross-check (patch/serum/baume abstain; sparse-INCI cream fallback) and
-  // by `detectTextureBaumeFromName` / `detectTextureStickFromName`.
+  // Used by `detectTextureCremeEyeInci` (name cross-check) and
+  // `detectTextureBaumeFromName` / `detectTextureStickFromName`.
   name?: string | null
-  // Product marketing description — used by `detectAbsenceClaimsFromText`
-  // to recover `sans-parfum` when INCI is too short for algo-derm coverage.
+  // Used by `detectAbsenceClaimsFromText` to recover `sans-parfum` when INCI
+  // is too short for algo-derm coverage.
   description?: string | null
-  // Structured concentration evidence from product_ingredients. Used only as
-  // a strict fallback when INCI quality is fragile.
+  // Fallback concentration evidence from product_ingredients; used only when
+  // INCI quality is fragile.
   percentClaims?: readonly PercentClaimEvidence[]
-  // Curated concentrations (% units) keyed by ingredient NAME. Pin algo-derm's
-  // solver to real values, overriding its INCI-position Bayesian prior. Keyed
-  // by name (not slug) because algo-derm normalize() keeps hyphens — see
-  // lib/known-concentrations.ts. Absent → prior unchanged (byte-for-byte).
+  // Curated concentrations (% units) keyed by ingredient NAME (not slug):
+  // algo-derm normalize() keeps hyphens. Pins algo-derm's solver to real
+  // values, overriding the INCI-position Bayesian prior. Absent = prior unchanged.
   knownConcentrations?: Record<string, number>
 }
 
 export interface OrchestratorOptions {
-  // Forwarded to `detectAutoTags` (algo-derm pass 1) — see DetectAutoTagsOptions.
+  // Forwarded to `detectAutoTags`. See DetectAutoTagsOptions.
   confOverride?: number
   includeDropped?: boolean
   coverageMinOverride?: number
   disableFloors?: boolean
-  // Pre-loaded brand certifications keyed by normalized brand. Caller (seed
-  // runner / backfill runner) fetches once and passes it in; the orchestrator
-  // never queries DB directly. Undefined → brand pass no-ops.
+  // Caller fetches once and passes in; orchestrator never queries DB directly.
+  // Undefined = brand pass no-ops.
   brandCertifications?: BrandCertificationLookup
 }
 
@@ -84,9 +71,7 @@ export function detectAllAutoTags(
   }
   primaryPromote(byTag, product.kind)
 
-  // Strip `confidence` from the public return — only the primary-promote
-  // step needs it, and downstream consumers (DB writers, audit CSV) read
-  // only the (tagSlug, relevance, source) triple.
+  // Strip `confidence`: downstream consumers use only (tagSlug, relevance, source).
   return [...byTag.values()].map(({ tagSlug, relevance, source }) => ({
     tagSlug,
     relevance,

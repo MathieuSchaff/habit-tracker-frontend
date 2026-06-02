@@ -74,7 +74,6 @@ export const Tabs = <T extends string>({
     })
   }, [activeTab, variant, options])
 
-  // Keep the active tab visible when the list scrolls horizontally.
   useEffect(() => {
     if (!scrollable) return
     const btn = btnRefs.current[activeTab]

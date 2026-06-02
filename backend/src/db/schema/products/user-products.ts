@@ -45,7 +45,7 @@ export const userProducts = pgTable(
     sentiment: integer('sentiment'), // 1-6 (6 = Holy Grail)
     wouldRepurchase: repurchaseFlagEnum('would_repurchase'),
     comment: text('comment'),
-    // F10 — user-experience tag catalogs (slug values validated in shared/).
+    // Slug values validated in shared/; not FK-constrained to keep schema evolvable.
     ressenti: text('ressenti').array().$type<RessentiTag[]>().notNull().default(sql`'{}'`),
     routine: text('routine').array().$type<RoutineTag[]>().notNull().default(sql`'{}'`),
     preferences: text('preferences').array().$type<PreferencesTag[]>().notNull().default(sql`'{}'`),
@@ -56,12 +56,11 @@ export const userProducts = pgTable(
     index('user_products_status_idx').on(t.status),
     check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 6`),
     ...tenantPolicies('user_products', t.userId),
-    // #7 — let anon traverse user_products when a public review hangs off the
-    // row. Without it, `listPublicReviewsForProduct` (joins) and
-    // `profiles_select_for_public_review` (EXISTS sub-join) silently filter
-    // every row. Wrapping the EXISTS check in `user_product_has_public_review`
-    // (SECURITY DEFINER, migration 0067) breaks the cycle with
-    // user_product_reviews_tenant_isolation, which itself reads user_products.
+    // Allows reading user_products when a public review hangs off the row.
+    // Without it, `listPublicReviewsForProduct` joins and `profiles_select_for_public_review`
+    // EXISTS sub-joins silently filter every row. The SECURITY DEFINER wrapper
+    // `user_product_has_public_review` (migration 0067) breaks the RLS cycle with
+    // `user_product_reviews_tenant_isolation`, which itself reads user_products.
     pgPolicy('user_products_select_for_public_review', {
       as: 'permissive',
       for: 'select',
@@ -87,14 +86,14 @@ export const userProductReviews = pgTable(
     valueForMoney: integer('value_for_money'), // 1-5
     comment: text('comment'),
     isPublic: boolean('is_public').notNull().default(false),
-    // Opt-in: reveal this author's raw 1-5 ratings on the public surface (ADR 0005).
+    // Opt-in to exposing raw 1-5 ratings on the public surface (ADR 0005).
     ratingsPublic: boolean('ratings_public').notNull().default(false),
     ...moderationColumns,
     ...timestamps,
   },
   (t) => [
     index('user_product_reviews_user_product_idx').on(t.userProductId),
-    // Speeds up the public product reviews surface (#7); only public rows hit it.
+    // Partial index: only public rows are queried on the public reviews surface.
     index('user_product_reviews_public_idx').on(t.userProductId).where(sql`${t.isPublic} = true`),
     check('upr_tolerance_range', sql`${t.tolerance} BETWEEN 1 AND 5`),
     check('upr_efficacy_range', sql`${t.efficacy} BETWEEN 1 AND 5`),
@@ -102,7 +101,7 @@ export const userProductReviews = pgTable(
     check('upr_stability_range', sql`${t.stability} BETWEEN 1 AND 5`),
     check('upr_mixability_range', sql`${t.mixability} BETWEEN 1 AND 5`),
     check('upr_value_for_money_range', sql`${t.valueForMoney} BETWEEN 1 AND 5`),
-    // Ratings can only be public on a public review (unrepresentable otherwise).
+    // ratingsPublic requires isPublic: exposing ratings without the review text is meaningless.
     check(
       'upr_ratings_public_requires_public',
       sql`${t.ratingsPublic} = false OR ${t.isPublic} = true`
@@ -115,15 +114,14 @@ export const userProductReviews = pgTable(
           AND p.user_id = (SELECT auth.uid())
       )`
     ),
-    // Additive SELECT-only policy: any role can read rows opted-in as public.
-    // Owner CRUD still funneled through fkTenantPolicies above.
+    // Additive SELECT: any role can read public rows. Owner CRUD still flows through fkTenantPolicies.
     pgPolicy('user_product_reviews_select_public', {
       as: 'permissive',
       for: 'select',
       to: appRuntimeRole,
       using: sql`${t.isPublic} = true`,
     }),
-    // Lets contributor (« modérateur »), not just admin, read + hide/restore reviews.
+    // Lets contributor (moderator), not just admin, read and hide/restore reviews.
     ...moderationPolicies('user_product_reviews'),
   ]
 ).enableRLS()

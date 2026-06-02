@@ -5,9 +5,7 @@ import { adminQueries } from '@/lib/queries/admin'
 import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/admin/reports')({
-  // The users() list is admin-only (GET /admin/users → 403 for a contributor), so
-  // a moderator only prefetches the queue itself; their content-only view never
-  // reads the list (ADR-0006 S1).
+  // GET /admin/users → 403 for a moderator; prefetch the list only for admin (ADR-0006 S1).
   loader: ({ context }) => {
     const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(adminQueries.reports('open')),

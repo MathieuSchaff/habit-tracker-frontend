@@ -5,10 +5,8 @@ import { desc, eq } from 'drizzle-orm'
 import { withAdminRls } from '../../db/rls'
 import { ingredients, products } from '../../db/schema'
 
-// Owner-scoped: a user must see their OWN submissions incl. hidden ones + the
-// moderation reason, which the public select_visible RLS policy filters for a plain
-// user. We read under admin RLS, scoped strictly to the authed uid (no user-supplied
-// filter), so hidden-own rows surface ONLY here — never in public catalog reads.
+// Reads under admin RLS so hidden/moderated rows surface, but scoped strictly to the authed
+// uid. The public select_visible policy would filter them out for a regular user.
 export async function getMySubmissions(userId: string): Promise<MySubmissionsResponse> {
   return withAdminRls(async (tx) => {
     const prods = await tx

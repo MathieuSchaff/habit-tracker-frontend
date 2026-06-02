@@ -4,7 +4,6 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Pigments-verts
 // Color-correcting greens used to neutralize redness. Detected by INCI color-
 // index codes or chromium oxide / hydroxide green substrings.
 //

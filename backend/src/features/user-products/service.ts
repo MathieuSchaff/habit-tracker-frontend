@@ -15,7 +15,7 @@ import { userProductReviews, userProducts } from '../../db/schema/user-products'
 import { nowISO } from '../../utils/dates'
 import { UserProductError } from './user-product-error'
 
-// Moderation columns are admin-internal — keep them out of every Review-on-the-wire
+// Moderation columns are admin-internal, keep them out of every Review-on-the-wire
 // projection so frontend types never see them. Admin moderation surfaces query
 // them explicitly via the moderation service.
 const REVIEW_PUBLIC_EXCLUDE = {
@@ -130,9 +130,7 @@ export async function createUserProduct(userId: string, input: CreateUserProduct
       throw new UserProductError('user_product_creation_failed')
     }
 
-    // Append-only journal: log the initial transition (null → status) on
-    // creation, or the change (prev → new) when an existing row gets
-    // re-statused via upsert. Idle upserts (same status) write no row.
+    // Append-only: log initial transition (null -> status) or re-status via upsert; skip idle upserts.
     const fromStatus = existing?.status ?? null
     if (fromStatus !== result.status) {
       await tx.insert(userProductStatusLog).values({
@@ -192,9 +190,8 @@ export async function updateUserProduct(
 }
 
 export async function getUserProductStatusHistory(userId: string, userProductId: string, db: DB) {
-  // Ownership check first — fkTenantPolicies on the log already enforces it
-  // at the row level, but failing fast with a clear error beats an empty list
-  // when the caller passes a foreign id.
+  // fkTenantPolicies already enforces ownership at the row level, but an
+  // explicit check returns a clear error instead of an empty list on foreign id.
   const owner = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
     columns: { id: true },
@@ -244,9 +241,8 @@ export async function upsertUserProductReview(
     throw new UserProductError('user_product_not_found')
   }
 
-  // A public review must stay anchored to authored text (ADR 0005). Resolve the
-  // effective state from payload-or-existing so a bare { isPublic: true } toggle
-  // is validated against the comment already on the row.
+  // ADR 0005: public review requires authored text. Resolve effective values from
+  // payload-or-existing so a bare { isPublic: true } toggle validates the stored comment.
   const resultingPublic = input.isPublic ?? userProduct.review?.isPublic ?? false
   const resultingComment =
     input.comment !== undefined ? input.comment : (userProduct.review?.comment ?? null)
@@ -254,10 +250,9 @@ export async function upsertUserProductReview(
     throw new UserProductError('public_review_requires_comment')
   }
 
-  // Both the INSERT (the EXCLUDED row Postgres still CHECK-validates) and the UPDATE must
-  // carry the resolved is_public. When is_public flips to false, ratings_public must also
-  // be cleared — leaving it true on a private review violates upr_ratings_public_requires_public
-  // and causes an unhandled DB CHECK error (guaranteed crash for users retracting public reviews).
+  // Both INSERT and UPDATE carry resolved is_public. When is_public flips to false,
+  // ratings_public must be cleared too: leaving it set violates upr_ratings_public_requires_public
+  // (DB CHECK crash on retract).
   const reviewValues = {
     ...input,
     isPublic: resultingPublic,
@@ -293,10 +288,8 @@ export async function upsertUserProductReview(
   return result
 }
 
-// Public reviews surface (ADR 0005). RLS filters non-public rows; this service
-// trusts the policy, joins profiles for the pseudonym, lists only reviews with
-// an authored comment, and reveals the raw 1-5 ratings only when the author
-// opted in (ratings_public). Aurore computes/aggregates nothing.
+// ADR 0005: RLS filters non-public rows; ratings exposed only when author opted in.
+// Aurore never computes or aggregates scores.
 export async function listPublicReviewsForProduct(
   db: DB,
   slug: string
@@ -331,11 +324,9 @@ export async function listPublicReviewsForProduct(
         eq(userProductReviews.moderationStatus, 'visible'),
         eq(products.slug, slug),
         isNotNull(profiles.username),
-        // Defense-in-depth: RLS already hides force-private profiles for
-        // app_runtime; the explicit filter covers admin-pool paths (tests,
-        // backfill scripts, future privileged callers).
+        // Defense-in-depth: covers admin-pool paths (tests, backfill) where RLS may not apply.
         eq(profiles.forcedPrivateByAdmin, false),
-        // Comment-less public rows stay unlisted (legacy + app-layer rule, ADR 0005).
+        // ADR 0005: comment-less public rows stay unlisted (app-layer rule, not just RLS).
         sql`coalesce(trim(${userProductReviews.comment}), '') <> ''`
       )
     )
@@ -354,8 +345,7 @@ export async function listPublicReviewsForProduct(
       valueForMoney: showRatings ? row.valueForMoney : null,
       comment: row.comment,
       createdAt: row.createdAt,
-      // isNotNull guard above narrows username at the SQL layer.
-      // skinTypesPublic is null when no dermo row (LEFT JOIN) — treat as false.
+      // skinTypesPublic is null when no dermo row (LEFT JOIN); treat as false.
       reviewer: {
         username: row.username as string,
         profilePublic: row.profilePublic,

@@ -1,7 +1,5 @@
-// Pass wrapper around `detectBrandLevelLabels` — ADR-0001.
-//
-// Pure lookup against `ctx.brandCertifications`; no-ops when the map is
-// undefined (caller didn't pre-load brand certifications).
+// Pass wrapper around detectBrandLevelLabels (ADR-0001).
+// No-ops when ctx.brandCertifications is undefined (not pre-loaded).
 
 import { asProposals } from '../lib/pass-helpers'
 import type { Pass } from '../lib/pass-types'

@@ -14,7 +14,6 @@ import { z } from 'zod'
 
 import type { ProductDetail } from '@/lib/queries/products'
 
-// Every field is what the DOM holds (strings). FR messages surface directly in the form.
 export const productEditFormSchema = z.object({
   name: z.string().trim().min(1, 'Le nom du produit est obligatoire.').max(200),
   slug: z

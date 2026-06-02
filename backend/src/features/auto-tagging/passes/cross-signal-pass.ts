@@ -1,12 +1,6 @@
-// Pass wrappers around `detectCrossSignalTags` + `detectInteractionSecondaryTags`
-// (ADR-0001).
-//
-// `crossSignalPass` reads `actifSlugs` from `prior` instead of taking them as
-// a positional argument — orchestrator no longer juggles a local. The
-// `actif-class` pass must have run before this one (registry ordering).
-//
-// `interactionSecondaryPass` requires `ctx.assessment`; when INCI is empty
-// the assessment is undefined and the pass no-ops.
+// Pass wrappers around detectCrossSignalTags + detectInteractionSecondaryTags (ADR-0001).
+// crossSignalPass reads actifSlugs from prior; actif-class pass must run first.
+// interactionSecondaryPass no-ops when ctx.assessment is undefined (empty INCI).
 
 import { asProposals, priorSlugsBySource } from '../lib/pass-helpers'
 import type { Pass } from '../lib/pass-types'

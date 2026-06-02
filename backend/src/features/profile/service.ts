@@ -55,7 +55,7 @@ export async function getProfile(db: DB, userId: string): Promise<ProfilePublic 
   return profile ? toProfilePublic(profile) : null
 }
 
-// Explicit whitelist — never spread `data` straight into the UPDATE. RLS lets
+// Explicit whitelist, never spread `data` straight into the UPDATE. RLS lets
 // the owner write any column of their own profile row (tenant_isolation), so
 // the API layer is the only thing between an attacker and the moderation
 // columns (forcedPrivateByAdmin, moderatedBy, …). profileUpdateSchema is
@@ -168,7 +168,7 @@ export async function updateUserPreferences(
     .where(eq(userPreferences.userId, userId))
     .limit(1)
 
-  // We merge the old weights with the new ones so we don't lose the ones that are not in the input
+  // Merge to preserve criteria not included in the partial update.
   const currentWeights = existing?.criteriaWeights ?? DEFAULT_CRITERIA_WEIGHTS
   const mergedWeights = data.criteriaWeights
     ? { ...currentWeights, ...data.criteriaWeights }
@@ -277,7 +277,6 @@ export async function updatePrivacySettings(
       .where(eq(profiles.userId, userId))
       .returning({ userId: profiles.userId })
 
-    // null signals the caller that the profile row was not found
     if (!updated) return null
   }
 

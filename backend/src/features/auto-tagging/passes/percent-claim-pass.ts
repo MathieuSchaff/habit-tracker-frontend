@@ -1,4 +1,4 @@
-// Pass wrapper around `detectPercentClaimTags` — ADR-0001.
+// Pass wrapper around `detectPercentClaimTags`. ADR-0001.
 //
 // Strict fallback: only fires when INCI looks fragile (alphabetical /
 // truncated / marketing preamble). Reads structured `percentClaims` from

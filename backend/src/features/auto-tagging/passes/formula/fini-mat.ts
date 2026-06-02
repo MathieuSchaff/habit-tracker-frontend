@@ -4,13 +4,12 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Fini-mat / matifiant
 // Absorbent / mattifying powders. Functional only when in top 8 (past that
 // they're texture polish without enough mass to absorb sebum). Emits both
 // `fini-mat` (sensoriel) and `matifiant` (skin_effect): same trigger, two
 // axes. Replaces the algo-derm `matifiant` mapping (its `computed_score` rule
-// conflated the slug with `peau-grasse` set membership — identical product
-// set, different semantics). The algo-derm slug has no TAG_CONFIG entry —
+// conflated the slug with `peau-grasse` set membership (identical product
+// set, different semantics). The algo-derm slug has no TAG_CONFIG entry;
 // its candidate is dropped as `unmapped`. Here we tie matifiant to actual
 // absorbent ingredients, not skin-type inference.
 //

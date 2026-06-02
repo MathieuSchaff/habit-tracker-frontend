@@ -21,7 +21,7 @@ import { api } from '../api'
 import { ApiError, throwIfNotOk } from '../helpers/apiError'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 
-// Pre-serialization shape (arrays → CSV via buildListProductsQuery); local because Hono RPC expects Record<string,string>.
+// Pre-serialization shape; local because Hono RPC expects Record<string,string>.
 export type ListProductsFilters = {
   category?: ProductDomainTab
   kind?: string | string[]
@@ -51,7 +51,7 @@ export function buildListProductsQuery(
 
   if (filters.category !== undefined) query.category = filters.category
 
-  // avoid_for is profile-derived, kept separate from user-driven tag categories.
+  // avoid_for is profile-derived, not a user-driven tag category.
   const f = filters as Record<string, string | string[] | undefined>
   for (const key of FILTER_KEYS) addParam(key, f[key])
   addParam('avoid_for', filters.avoid_for)
@@ -90,12 +90,12 @@ export const productQueries = {
       staleTime: 5 * 60 * 1000,
     }),
 
-  // userKey scopes cache to caller identity; login/logout flips personalized fields without stale anonymous data.
+  // userKey scopes cache to caller identity so login/logout flips personalized fields.
   list: (filters: ListProductsFilters = {}, userKey: string | null = null) =>
     queryOptions({
       queryKey: [...productKeys.list(filters), userKey] as const,
       queryFn: async () => {
-        // Cast bridges Hono RPC's Zod discriminated union and our stringified record (accepted at runtime).
+        // Cast: Hono RPC's Zod union vs. our stringified record; accepted at runtime.
         const query = buildListProductsQuery(filters) as Parameters<
           typeof api.products.$get
         >[0]['query']
@@ -151,7 +151,7 @@ export const productQueries = {
       staleTime: 30 * 1000,
     }),
 
-  // Non-infinite variant for AsyncSearchSelect typeahead.
+  // Flat (non-paginated) variant for AsyncSearchSelect typeahead.
   searchFlat: (q: string) =>
     queryOptions({
       queryKey: [...productKeys.all, 'search-flat', q] as const,
@@ -179,7 +179,7 @@ export const productQueries = {
     }),
 
   checkDuplicate: (name: string, brand: string) => {
-    // Normalize so case/whitespace variants share one cache entry (server matches case-insensitively).
+    // Normalize so case/whitespace variants share one cache entry.
     const n = name.trim().toLowerCase()
     const b = brand.trim().toLowerCase()
     return queryOptions({
@@ -251,11 +251,10 @@ export function useCreateProduct() {
       return json.data
     },
     onSuccess: () => {
-      // Don't seed bySlug: POST returns row only, cache holds full ProductDetail with tags/ingredients.
+      // Don't seed bySlug: POST returns row only; cache holds full ProductDetail with tags/ingredients.
       qc.invalidateQueries({ queryKey: productKeys.lists() })
       qc.invalidateQueries({ queryKey: [...productKeys.all, 'brands'] })
     },
-    // Callers (useQuickAdd, AddToCollectionModal) own the contextual toast.
   })
 }
 
@@ -270,7 +269,7 @@ export function useUpdateProduct() {
       return json.data
     },
     onSuccess: (product) => {
-      // Invalidate (not setQueryData): PATCH returns row only, bySlug cache holds full ProductDetail.
+      // Invalidate (not setQueryData): PATCH returns row only; bySlug cache holds full ProductDetail.
       qc.invalidateQueries({ queryKey: productKeys.bySlug(product.slug) })
       qc.invalidateQueries({ queryKey: productKeys.lists() })
     },
@@ -412,7 +411,7 @@ export function useRemoveProductIngredient() {
       })
       if (!res.ok) throw new Error('Failed to remove product ingredient')
     },
-    // Drop the row immediately so unrelated rows stay interactive.
+    // Optimistic remove so unrelated rows stay interactive during the request.
     onMutate: (variables) => {
       return applyOptimisticUpdates(qc, variables, [
         optimisticCacheUpdate<RemoveProductIngredientVariables, BySlugData>({
@@ -442,7 +441,7 @@ export type ProductListItem = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.list>['queryFn']>>>
 >['items'][number]
 
-// Inferred from query so backend field additions surface without manual type sync.
+// Inferred from query; backend field additions surface automatically.
 export type ProductDetail = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.bySlug>['queryFn']>>>
 >

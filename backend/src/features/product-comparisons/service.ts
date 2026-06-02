@@ -33,13 +33,11 @@ export async function createComparison(
     .from(products)
     .where(inArray(products.id, ids))
 
-  // Reject the whole insert if any id is bogus — partial comparisons would
-  // surprise the UI which assumes every productId resolves.
+  // Reject all if any id is bogus: UI assumes every productId resolves.
   if (found.length !== ids.length) {
     throw new ProductComparisonError('comparison_invalid_products')
   }
 
-  // Atomic so a mid-flight failure can't leave a comparison row without items.
   return database.transaction(async (tx) => {
     const [comparison] = await tx
       .insert(productComparisons)
@@ -56,7 +54,7 @@ export async function createComparison(
       }))
     )
 
-    // Return a summary instead of the raw row so userId never leaks to the client.
+    // userId must not leak to the client.
     return {
       id: comparison.id,
       name: comparison.name,
@@ -115,8 +113,7 @@ export async function getEnrichedComparison(
     .from(products)
     .where(inArray(products.id, productIds))
 
-  // No `position` column on product_ingredients yet — order by createdAt and
-  // synthesize an index so the UI gets a stable, deterministic order.
+  // No position column on product_ingredients: order by createdAt, synthesize index for stable UI order.
   const ingredientRows = await database
     .select({
       productId: productIngredients.productId,
@@ -158,8 +155,7 @@ export async function getEnrichedComparison(
 
   const tagsByProduct = new Map<string, EnrichedComparisonProduct['tags']>()
   for (const row of tagRows) {
-    // Avoid surface tags carry an 'avoid' relevance which the comparator UI
-    // does not render — only positive tags belong here.
+    // Comparator UI renders positive tags only, not avoid.
     if (row.relevance !== 'primary' && row.relevance !== 'secondary') continue
     const list = tagsByProduct.get(row.productId) ?? []
     list.push({
@@ -216,7 +212,6 @@ export async function updateComparison(
   })
   if (!existing) throw new ProductComparisonError('comparison_not_found')
 
-  // Wrap rename + items rewrite so a partial update can't desync items vs name.
   await database.transaction(async (tx) => {
     if (input.name !== undefined) {
       await tx

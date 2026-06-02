@@ -22,7 +22,7 @@ type UpdateProductIngredientInput = Partial<
 >
 
 export async function addIngredientToProduct(db: DB, data: CreateProductIngredientInput) {
-  // I remove null and empty strings so Drizzle does not send bad data to the database
+  // Strip null/empty so Drizzle doesn't write bad values.
   const entries = Object.entries(data).filter(([_, v]) => v != null && v !== '')
   const cleanData = Object.fromEntries(entries) as CreateProductIngredientInput
 
@@ -110,7 +110,6 @@ export async function replaceProductIngredients(
   productId: string,
   data: Omit<CreateProductIngredientInput, 'productId'>[]
 ): Promise<ProductIngredient[]> {
-  // We use a transaction because we must delete everything before we insert the new list
   return db.transaction(async (tx) => {
     await tx.delete(productIngredients).where(eq(productIngredients.productId, productId))
 

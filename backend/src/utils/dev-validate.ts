@@ -2,7 +2,7 @@ import { logger } from '../lib/logger'
 
 // Runtime guard for service → API mappers. In dev/test we Zod-parse the
 // outgoing shape so a forgotten calendar↔instant conversion or a stale field
-// surfaces immediately. In prod we trust the TypeScript contract — the parse
+// surfaces immediately. In prod we trust the TypeScript contract, the parse
 // would add measurable latency on hot read paths.
 
 const isDev = process.env.NODE_ENV !== 'production'

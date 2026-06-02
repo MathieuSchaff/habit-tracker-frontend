@@ -10,7 +10,6 @@ interface ComboboxAriaProps {
   activeDescendant: string | undefined
 }
 
-// Self-contained section entries (own render + onSelect) so the Primitive stays domain-agnostic.
 export interface ComboboxSectionItem {
   id: string | number
   render: ReactNode
@@ -48,7 +47,6 @@ interface ComboboxPrimitiveProps<T> {
   children: (ariaProps: ComboboxAriaProps) => ReactNode
 }
 
-// Follows the WAI-ARIA Combobox (Listbox) pattern.
 export function ComboboxPrimitive<T>({
   items,
   sections,
@@ -78,10 +76,9 @@ export function ComboboxPrimitive<T>({
   const itemsRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  // <dialog> opened with showModal() lives in the browser top-layer, which renders above all
-  // regular stacking contexts regardless of z-index — even portals on document.body.
-  // Portaling into the dialog element itself keeps the dropdown in the same top-layer.
-  // Init to document.body so the portal renders on first pass; effect upgrades to dialog if present.
+  // showModal() top-layer renders above document.body portals regardless of z-index.
+  // Portal into the dialog element to stay in the same top-layer.
+  // Init to document.body; effect upgrades to dialog if present.
   const [portalTarget, setPortalTarget] = useState<Element>(() => document.body)
   useEffect(() => {
     const dialog = containerRef.current?.closest('dialog')
@@ -95,9 +92,8 @@ export function ComboboxPrimitive<T>({
   // totalEntries in deps so flip recalculates as async results stream in.
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
-  // useCaptureDismiss (not useClickOutside) because the dropdown is portaled
-  // over real click targets - see hook docs for the tap-block rationale.
-  // Multi-ref: both the trigger container and the portaled dropdown count as "inside".
+  // useCaptureDismiss (not useClickOutside): portaled dropdown sits over real click targets.
+  // Multi-ref: both trigger container and portaled dropdown count as "inside".
   useCaptureDismiss([containerRef, dropdownRef], onClose, { enabled: isOpen })
 
   useEffect(() => {
@@ -127,7 +123,7 @@ export function ComboboxPrimitive<T>({
   }, [isOpen, hasMore, onLoadMore])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Parent runs first so it can intercept e.g. Tab.
+    // Parent runs first so it can intercept Tab.
     onKeyDown?.(e)
     if (e.defaultPrevented) return
 
@@ -144,7 +140,7 @@ export function ComboboxPrimitive<T>({
         break
       case 'Enter':
         if (highlightedIndex >= 0) {
-          // Sections occupy indices 0..sectionEntries.length-1; main items follow. Mirrors visual order.
+          // Sections occupy indices 0..sectionEntries.length-1; main items follow.
           if (highlightedIndex < sectionEntries.length) {
             const sectionEntry = sectionEntries[highlightedIndex]
             if (sectionEntry) {
@@ -199,7 +195,6 @@ export function ComboboxPrimitive<T>({
                   aria-label="Suggestions"
                 >
                   {sections?.map((section, sIdx) => {
-                    // First global index of this section = sum of prior section sizes.
                     let baseIdx = 0
                     for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
                     const labelId = `${listboxId}-section-${section.id}`

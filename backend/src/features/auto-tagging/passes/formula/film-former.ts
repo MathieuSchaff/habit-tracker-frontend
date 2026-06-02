@@ -5,7 +5,6 @@ import { resolveIngredients } from '../../lib/ingredient-resolver'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Occlusif
 // True occlusives form a physical barrier; clinically relevant only when at
 // meaningful concentration (top 8 INCI). Squalane / dimethicone are excluded:
 // they are semi-occlusive emollients, not film-formers.
@@ -25,7 +24,7 @@ const OCCLUSIVE_PATTERNS = [
   'cera alba',
   'carnauba wax',
   'candelilla wax',
-  'shea butter', // butyrospermum parkii — semi-occlusive at high concentration
+  'shea butter', // butyrospermum parkii, semi-occlusive at high concentration
   'mango butter', // mangifera indica seed butter
 ]
 
@@ -47,22 +46,21 @@ export function detectOcclusifTags(
   return []
 }
 
-// Semi-occlusif
 // Emollient occlusion (TEWL reduction without forming an impermeable film).
-// Distinct from `occlusif` (petrolatum/lanolin/waxes — true film-formers).
+// Distinct from `occlusif` (petrolatum/lanolin/waxes, true film-formers).
 // Position cap is tighter (top 5) than occlusif (top 8): below pos 5 these
 // emollients are present at trace level and don't drive sensoriel/barrier
 // behavior. Mutex with `occlusif`: a petrolatum-led formula is functionally
-// occlusif even if squalane sits at pos 4 — emitting both blurs the
+// occlusif even if squalane sits at pos 4, emitting both blurs the
 // semantic split (R4 spec).
 //
 // Pattern coverage:
-//   - `squalane`  — substring stops at the trailing 'ne' so `squalene`
+//   - `squalane`: substring stops at the trailing 'ne' so `squalene`
 //     (animal-derived sebum lipid, INCI distinct) does NOT match.
-//   - `dimethicone` + `dimethiconol` — explicit list (substring `dimethicone`
+//   - `dimethicone` + `dimethiconol`: explicit list (substring `dimethicone`
 //     does not match `dimethiconol`). Cyclic silicones (cyclomethicone,
-//     cyclopentasiloxane) excluded — volatile, evaporate from skin.
-//   - `isohexadecane` — branched hydrocarbon emollient.
+//     cyclopentasiloxane) excluded, volatile, evaporate from skin.
+//   - `isohexadecane`: branched hydrocarbon emollient.
 
 const SEMI_OCCLUSIF_PATTERNS = ['squalane', 'dimethicone', 'dimethiconol', 'isohexadecane']
 const SEMI_OCCLUSIF_POSITION_CAP = 5
@@ -86,7 +84,7 @@ export function detectSemiOcclusif(
   if (ingredients.length === 0) return []
 
   // Mutex with occlusif: if a true film-former is present in top 8, the
-  // formula is occlusif — emitting semi-occlusif on top would dilute the
+  // formula is occlusif; emitting semi-occlusif on top would dilute the
   // distinction.
   const occlusifLimit = Math.min(ingredients.length, OCCLUSIVE_POSITION_CAP)
   for (let i = 0; i < occlusifLimit; i++) {

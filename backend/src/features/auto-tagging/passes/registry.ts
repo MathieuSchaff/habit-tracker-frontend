@@ -2,7 +2,7 @@
 //
 // Order matters:
 //   1. Per-tag dedup (mergeProposal) keeps the first proposal at a given
-//      relevance level — source attribution is stable for the earliest pass.
+//      relevance level; source attribution is stable for the earliest pass.
 //   2. Downstream passes read `prior` for upstream output:
 //        - cross-signal → reads `source='actif-class'`
 //        - avoid       → reads `source='actif-class'`
@@ -47,13 +47,13 @@ import { kindPass } from './kind-pass'
 import { percentClaimPass } from './percent-claim-pass'
 
 export const AUTO_TAG_PASSES: readonly Pass[] = [
-  // Pass 1 — algo-derm (concern / skin_type / comedogenicity / absences)
+  // Pass 1: algo-derm (concern / skin_type / comedogenicity / absences)
   algoDermPass,
-  // Pass 2 — pharmacological clusters; read by cross-signal + avoid via `prior`
+  // Pass 2: pharmacological clusters; read by cross-signal + avoid via `prior`
   actifClassPass,
-  // Pass 3 — kind-derived (TYPE / STEP / ZONE / MOMENT / TEXTURE)
+  // Pass 3: kind-derived (TYPE / STEP / ZONE / MOMENT / TEXTURE)
   kindPass,
-  // Pass 4 — formula detectors (order preserved from pre-cutover orchestrator)
+  // Pass 4: formula detectors (order preserved from pre-cutover orchestrator)
   occlusifPass,
   semiOcclusifPass,
   solairePass,
@@ -77,17 +77,17 @@ export const AUTO_TAG_PASSES: readonly Pass[] = [
   textureStickNamePass,
   textureCremeEyeInciPass,
   absenceClaimsTextPass,
-  // Pass 5 — cross-signal (reads `actif-class` via `prior`)
+  // Pass 5: cross-signal (reads `actif-class` via `prior`)
   crossSignalPass,
-  // Pass 5x — structured percent claims (strict fragile-INCI fallback)
+  // Pass 5x: structured percent claims (strict fragile-INCI fallback)
   percentClaimPass,
-  // Pass 5a — interaction-driven secondary (photosensitivity, etc.)
+  // Pass 5a: interaction-driven secondary (photosensitivity, etc.)
   interactionSecondaryPass,
-  // Pass 5b — brand-level labels (vegan / cruelty-free / bio-naturel)
+  // Pass 5b: brand-level labels (vegan / cruelty-free / bio-naturel)
   brandLevelPass,
-  // Pass 6 — avoid (reads `actif-class` via `prior` + ctx.assessment)
+  // Pass 6: avoid (reads `actif-class` via `prior` + ctx.assessment)
   avoidPass,
-  // Post — peau-normale runs LAST so it can read every skin_type slug already
+  // Post: peau-normale runs LAST so it can read every skin_type slug already
   // proposed (abstains when any non-neutral skin_type fired upstream).
   peauNormalePass,
 ] as const

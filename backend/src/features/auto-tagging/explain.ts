@@ -2,15 +2,13 @@
 //
 // Mirrors the orchestrator's dispatch (buildPassContext → AUTO_TAG_PASSES →
 // mergeProposal → primaryPromote) but captures the intermediate state the
-// orchestrator discards: which layer proposed each tag, what the merge did
-// with it, why algo-derm candidates were dropped, and which tags were
-// promoted to primary.
+// orchestrator discards: per-pass proposals, merge decisions, algo-derm drop
+// reasons, and promotion events.
 //
-// Why re-run the loop instead of calling detectAllAutoTags: the orchestrator
-// only returns the final (tagSlug, relevance, source) triples — the per-pass
-// proposals and drop reasons exist only mid-loop. This reuses the exact same
-// primitives (no logic fork). `final` is asserted ≡ detectAllAutoTags by the
-// invariant in tests/explain.test.ts, so the trace can't drift from the engine.
+// Re-runs the loop instead of calling detectAllAutoTags because the orchestrator
+// only returns final (tagSlug, relevance, source) triples; per-pass proposals
+// and drop reasons exist only mid-loop. Uses identical primitives (no logic fork).
+// `final` is asserted ≡ detectAllAutoTags in tests/explain.test.ts to prevent drift.
 
 import type { SkincareProductTagSlug } from '@aurore/shared'
 
@@ -37,10 +35,9 @@ interface ExplainProposal {
   relevance: AutoTagRelevance
   source: AutoTagSource
   confidence?: number
-  // Result of the per-tag dedup (mergeProposal): did this proposal hold the
-  // tag, or did a higher/earlier one take it?
+  // mergeProposal outcome: did this proposal win or get displaced?
   outcome: 'won' | 'superseded'
-  // Set when superseded — the proposal that holds the tag instead.
+  // Present when superseded: the winning proposal's identity.
   supersededBy?: { relevance: AutoTagRelevance; source: AutoTagSource }
 }
 
@@ -51,8 +48,7 @@ interface ExplainLayer {
 
 interface ExplainDrop {
   reason: DropReason
-  // algo-derm candidate id (its `tagProduct` tag id, not the Aurore slug — most
-  // drop reasons fire before slug mapping).
+  // algo-derm `tagProduct` id, not the Aurore slug: most drop reasons fire before slug mapping.
   candidateId: string
   count: number
 }
@@ -63,11 +59,11 @@ interface ExplainPromotion {
 }
 
 export interface ExplainTrace {
-  // category ∈ AUTO_TAG_ELIGIBLE_CATEGORIES. When false everything else is empty.
+  // false when category ∉ AUTO_TAG_ELIGIBLE_CATEGORIES; all other fields are empty.
   eligible: boolean
-  // Only layers that emitted ≥1 proposal, in registry order.
+  // Layers that emitted ≥1 proposal, in registry order.
   layers: ExplainLayer[]
-  // algo-derm drop reasons — the only layer with per-candidate drop tracking.
+  // algo-derm only: the only layer with per-candidate drop tracking.
   drops: ExplainDrop[]
   promotions: ExplainPromotion[]
   final: AutoTagPair[]
@@ -81,8 +77,7 @@ export function explainInci(
     return { eligible: false, layers: [], drops: [], promotions: [], final: [] }
   }
 
-  // Inject the audit drop hook into the algo-derm pass without changing its
-  // output: dropCounts records every gated candidate, includeDropped stays off.
+  // dropCounts records gated candidates without affecting pass output (includeDropped stays off).
   const dropCounts = new Map<string, number>()
   const baseCtx = buildPassContext(input, options)
   const ctx = {
@@ -99,8 +94,8 @@ export function explainInci(
     for (const p of proposals) mergeProposal(byTag, p)
   }
 
-  // Winner identity per tag captured BEFORE promotion: primaryPromote replaces
-  // promoted entries with fresh objects, breaking reference equality below.
+  // Snapshot before promotion: primaryPromote replaces entries with fresh objects,
+  // breaking reference equality used for the 'won'/'superseded' check below.
   const winnerBySlug = new Map(byTag)
   const relevanceBefore = new Map<SkincareProductTagSlug, AutoTagRelevance>()
   for (const [slug, p] of byTag) relevanceBefore.set(slug, p.relevance)
@@ -146,7 +141,7 @@ export function explainInci(
   }
 }
 
-// dropCounts keys are `${reason}:${candidateId}` (see auto-tag-detection.ts bumpDrop).
+// Key format: `${reason}:${candidateId}` (set by auto-tag-detection.ts bumpDrop).
 function parseDrops(dropCounts: ReadonlyMap<string, number>): ExplainDrop[] {
   const out: ExplainDrop[] = []
   for (const [k, count] of dropCounts) {

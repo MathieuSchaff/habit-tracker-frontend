@@ -26,9 +26,9 @@ export const ingredients = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
-    slug: text('slug').notNull(), // URL-friendly: "retinol", "azelaic-acid"
-    description: text('description').notNull().default(''), // short description
-    content: text('content').notNull().default(''), // wiki content (markdown)
+    slug: text('slug').notNull(),
+    description: text('description').notNull().default(''),
+    content: text('content').notNull().default(''),
     type: text('type').notNull().$type<IngredientType>(),
     // Free-text. Values depend on `type`: skincare/haircare/dental → "actif",
     // "humectant", "emollient", "filtre-uv", "tensioactif", "excipient".
@@ -46,7 +46,7 @@ export const ingredients = pgTable(
     index('ingredients_type_idx').on(t.type),
     index('ingredients_category_idx').on(t.category),
     // Trigram GIN feeds `searchIngredients` (ILIKE %q% + similarity() on
-    // name/slug) — used by the async ingredient autocomplete in the products
+    // name/slug), used by the async ingredient autocomplete in the products
     // filter.
     index('ingredients_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
     index('ingredients_slug_trgm_idx').using('gin', sql`${t.slug} gin_trgm_ops`),
@@ -55,7 +55,7 @@ export const ingredients = pgTable(
       sql`${t.type} IN ('skincare', 'haircare', 'dental', 'supplement')`
     ),
     // Cross-field: category must be NULL or a value from the type's set. Values
-    // duplicated from shared/src/ingredients/*/categories.ts — drizzle-kit can
+    // duplicated from shared/src/ingredients/*/categories.ts, drizzle-kit can
     // import constants from shared (TS source via Bun) but plain literal lists
     // keep this readable and audit-friendly. Keep in sync if either set changes.
     check(

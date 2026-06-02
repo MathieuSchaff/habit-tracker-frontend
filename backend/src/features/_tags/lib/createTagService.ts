@@ -29,7 +29,7 @@ export interface TagServiceConfig {
 
   // Insert payload shape for the link table (renames generic ownerId/tagId to
   // domain columns: productId/productTagId vs ingredientId/ingredientTagId).
-  // `source` is product-only — the ingredient impl drops it. Default 'manual'
+  // `source` is product-only, the ingredient impl drops it. Default 'manual'
   // when omitted so non-auto-tag callers don't have to opt in.
   buildLinkValues: (
     ownerId: string,
@@ -38,7 +38,7 @@ export interface TagServiceConfig {
     source?: string
   ) => Record<string, unknown>
 
-  // Drizzle select map for listTagsByOwner — encodes the projection
+  // Drizzle select map for listTagsByOwner: encodes the projection
   // key-renames that the public surface contract requires.
   linkProjection: Record<string, PgColumn>
 }

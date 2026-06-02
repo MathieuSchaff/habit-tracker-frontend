@@ -1,12 +1,7 @@
-// Pass wrapper around `computeAvoidCandidates` — ADR-0001.
-//
-// Only pass that legitimately emits multiple `AutoTagSource` values from a
-// single body: `cross-signal`, `interaction`, `concentration`. ADR-0001
-// explicitly allows mixed-source passes rather than splitting into three.
-//
-// `relevance` is always 'avoid'. `actifSlugs` come from `prior` via
-// `priorSlugsBySource(prior, 'actif-class')` — registry ordering must place
-// this pass after `actifClassPass`.
+// Pass wrapper around `computeAvoidCandidates`. ADR-0001.
+// Emits multiple sources (cross-signal, interaction, concentration) from one body;
+// ADR-0001 allows mixed-source passes rather than splitting. Registry ordering
+// must place this after `actifClassPass` (reads 'actif-class' from `prior`).
 
 import { priorSlugsBySource } from '../lib/pass-helpers'
 import type { AutoTagProposal, Pass } from '../lib/pass-types'

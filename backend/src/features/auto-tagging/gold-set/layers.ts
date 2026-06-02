@@ -1,7 +1,6 @@
-// Layer taxonomy for the gold-set benchmark: groups focus tags by the pipeline
-// layer that owns them, so coverage is reported per layer. An uncovered layer
-// (0 focus tags) surfaces explicitly as a gold-set expansion target (§20 piste f).
-// Layers map onto AutoTagSource — 'brand-cert' ↔ source 'brand', the rest identical.
+// Groups focus tags by pipeline layer for per-layer coverage reporting.
+// An uncovered layer (0 focus tags) surfaces as a gold-set expansion target (§20 piste f).
+// Layers map onto AutoTagSource: 'brand-cert' corresponds to source 'brand', the rest identical.
 
 import { type GoldSetFocusTag, isGoldSetFocusTag } from './fixtures'
 import { macroAverage, microAverage, type PerTagMetrics } from './metrics'
@@ -10,8 +9,8 @@ export const GOLD_SET_LAYERS = ['algo-derm', 'actif-class', 'brand-cert', 'formu
 
 export type GoldSetLayer = (typeof GOLD_SET_LAYERS)[number]
 
-// `satisfies` forces every focus tag to map to a real layer — a renamed or new
-// focus tag trips a compile error here instead of skewing the rollup silently.
+// `satisfies` forces every focus tag to map to a real layer: a renamed tag trips
+// a compile error here rather than silently skewing layer rollups.
 export const FOCUS_TAG_LAYER = {
   retinoids: 'actif-class',
   'vitamin-c': 'actif-class',
@@ -50,15 +49,15 @@ export function layerOf(tag: GoldSetFocusTag): GoldSetLayer {
 
 export interface LayerSummary {
   layer: GoldSetLayer
-  // Focus tags assigned to this layer; 0 means the layer is unmeasured.
+  // 0 means the layer is unmeasured in the current gold set.
   focusTagCount: number
   rated: number
   macro: ReturnType<typeof macroAverage>
   micro: ReturnType<typeof microAverage>
 }
 
-// focusTagCount is derived from the static map (not perTag) so an unrated layer
-// still reports its structural size; all four layers are always emitted in order.
+// focusTagCount comes from the static map, not perTag, so unrated layers still
+// report their structural size. All four layers are always emitted in order.
 export function summarizeByLayer(perTag: readonly PerTagMetrics[]): LayerSummary[] {
   const focusCountByLayer = new Map<GoldSetLayer, number>()
   for (const layer of GOLD_SET_LAYERS) focusCountByLayer.set(layer, 0)

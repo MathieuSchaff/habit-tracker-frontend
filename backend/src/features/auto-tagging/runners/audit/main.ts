@@ -1,44 +1,26 @@
-// Dry-run audit for INCI-derived auto-tags via algo-derm `tagProduct`.
+// Dry-run audit for INCI-derived auto-tags. Read-only.
 //
-// Read-only. Reads every product in AUTO_TAG_ELIGIBLE_CATEGORIES (skincare /
-// solaire / bodycare) with a non-empty INCI from the live DB, runs
-// `analyzeINCI` + `tagProduct`, applies `TAG_CONFIG` (per-tag
-// allow / confidenceFloor / coverageFloor / excludeRinseOff calibrated
-// 2026-05-07), and reports per-tag stats:
-//   - hit:    number of products that would receive the tag
-//   - agree:  hit ∩ already-present in tag_products (recall on existing manual labels)
-//   - new:    hit \ already-present (proposed additions)
-//   - avg_conf: average algo-derm confidence over hits
+// Reads every product in AUTO_TAG_ELIGIBLE_CATEGORIES with non-empty INCI,
+// runs analyzeINCI + detectAutoTags with TAG_CONFIG, reports per-tag stats:
+//   hit, agree (hit ∩ existing manual), new (hit \ existing), avg_conf.
 //
-// No writes. The companion runner `runners/backfill/main.ts` performs the
-// actual INSERT/UPSERT path once thresholds are calibrated.
+// Companion backfill runner: runners/backfill/main.ts.
 //
-// Tunables via env:
-//   CONF_OVERRIDE    optional       — raises every per-tag confidenceFloor (computed_score only) to this value (debug)
-//   CSV_OUT          optional       — path to write per-pair CSV for spot-check
-//   LIMIT            optional       — cap product count (debug)
-//   INCLUDE_DROPPED  optional 1     — include allow:false tags in the report (debug)
-//   DUMP_BUDGETS     optional 1     — emit a draft TAG_HIT_RATE_BUDGET block
-//                                     (per-category, max = ceil(hit_rate*1.5, 0.05))
-//                                     ready-to-paste into passes/tag-budgets.ts.
-//   CHECK            optional 1     — validate per-(slug, category) hit rates
-//                                     against TAG_HIT_RATE_BUDGET. Exit 1 on FAIL.
-//                                     Tags outside the budget table → FAIL
-//                                     (forces explicit budget for every new
-//                                     emitter; hardened 2026-05-13 after A3
-//                                     baseline landed 0 WARN).
-//   DUMP_BENEFITS    optional 1     — emit per-axis benefit-score quantile
-//                                     table (P25/P50/P75/P85/P90/P95) for
-//                                     B3 calibration. Supports per-category
-//                                     and per-category×kind breakdowns.
-//   BENEFITS_OUT     optional path  — also write raw (slug,category,kind,
-//                                     axis,benefit,confidence) CSV alongside
-//                                     the quantile table.
-//   DISABLE_FLOORS   optional 1     — bypass confidenceFloor/coverageFloor
-//                                     gates (per-tag + global). Use to inspect
-//                                     raw confidence distribution under the
-//                                     current calibration (skin_type tuning,
-//                                     §2 roadmap).
+// Env:
+//   CONF_OVERRIDE    optional   : override confidenceFloor for all tags (debug)
+//   CSV_OUT          optional   : path for per-pair CSV
+//   LIMIT            optional   : cap product count (debug)
+//   INCLUDE_DROPPED  optional 1 : include allow:false tags in report (debug)
+//   DUMP_BUDGETS     optional 1 : emit TAG_HIT_RATE_BUDGET draft for tag-budgets.ts
+//                                 (max = ceil(hit_rate*1.5, step=0.05))
+//   CHECK            optional 1 : validate hit rates vs TAG_HIT_RATE_BUDGET; exit 1 on FAIL.
+//                                 Tags absent from budget table = FAIL (explicit budget required
+//                                 for every emitter; hardened 2026-05-13 after A3 baseline).
+//   DUMP_BENEFITS    optional 1 : per-axis benefit-score quantile table (P25..P95) for B3
+//                                 calibration; per-category and per-category×kind breakdowns.
+//   BENEFITS_OUT     optional   : raw (slug,category,kind,axis,benefit,confidence) CSV
+//   DISABLE_FLOORS   optional 1 : bypass confidenceFloor/coverageFloor gates to inspect
+//                                 raw confidence distribution (skin_type tuning, §2 roadmap).
 
 import { analyzeINCI, splitINCI } from 'algo-derm'
 import { eq, inArray, sql } from 'drizzle-orm'
@@ -51,8 +33,6 @@ import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectAutoTags, TAG_CONFIG, type TagRule } from '../../passes/auto-tag-detection'
 import { type BudgetCategory, TAG_HIT_RATE_BUDGET } from '../../passes/tag-budgets'
 
-// Types
-
 interface TagStat {
   hit: number
   agree: number
@@ -62,13 +42,10 @@ interface TagStat {
   maxConf: number
 }
 
-// Interaction surfacing — `assessment.interactions` exposes the firable
-// subset of algo-derm `interaction_rules.json`: rules without profile
-// condition (no pregnant/sensitiveSkin/acneProne required) and without pH
-// condition (Aurore has no estimated_ph column today). The 5–6 firable
-// rules cover cumulative irritation/allergenicity stacks (alcohol+parfum,
-// alcohol+limonene, acid+alcohol, multi-EO) and the EU-banned MI/MCI in
-// leave-on. Audit doc §A.2 / §D.3.
+// assessment.interactions = firable subset of algo-derm interaction_rules.json:
+// no profile condition (pregnant/sensitiveSkin/acneProne) and no pH condition
+// (Aurore has no estimated_ph). Covers irritation/allergenicity stacks and
+// EU-banned MI/MCI in leave-on. Audit doc §A.2 / §D.3.
 interface InteractionStat {
   count: number
   axes: string[]
@@ -90,7 +67,6 @@ interface ProductRow {
 }
 
 interface AuditState {
-  // counters
   withInci: number
   withTags: number
   totalEmitted: number
@@ -100,7 +76,6 @@ interface AuditState {
   productsWithRegulatory: number
   productsWithInteractions: number
   totalInteractionHits: number
-  // maps
   tagFreq: Map<string, TagStat>
   tagFreqByCategory: Map<string, Map<string, TagStat>>
   subsetSizeByCategory: Map<string, number>
@@ -108,15 +83,11 @@ interface AuditState {
   regulatoryNoteFreq: Map<string, number>
   interactionFreq: Map<string, InteractionStat>
   dropCounts: Map<string, number>
-  // CSV
   csvRows: string[]
-  // B3 benefits
   benefitSamples: Map<BenefitAxisName, number[]>
   benefitSamplesByCategory: Map<string, Map<BenefitAxisName, number[]>>
   benefitCsvRows: string[]
 }
-
-// Env
 
 const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRIDE) : null
 const CSV_OUT = process.env.CSV_OUT
@@ -128,9 +99,8 @@ const DUMP_BENEFITS = process.env.DUMP_BENEFITS === '1'
 const BENEFITS_OUT = process.env.BENEFITS_OUT
 const DISABLE_FLOORS = process.env.DISABLE_FLOORS === '1'
 
-// Axes mirrored from algo-derm `BENEFIT_AXES` (src/engine/axes.ts). Type-only
-// import upstream — list duplicated here so the audit doesn't need a runtime
-// re-export. If algo-derm adds an axis, surface it manually after a bump.
+// Mirrored from algo-derm BENEFIT_AXES (type-only upstream): duplicated to avoid
+// a runtime re-export. Update manually after an algo-derm axis bump.
 const BENEFIT_AXES = [
   'soothing',
   'hydrating',
@@ -141,13 +111,7 @@ const BENEFIT_AXES = [
 ] as const
 type BenefitAxisName = (typeof BENEFIT_AXES)[number]
 
-// Helpers
-
-// Short rule formatter for the audit per-tag report column.
-//   ✓/✗ — allow flag
-//   c=0.85 — confidenceFloor (computed_score)
-//   v=0.7 — coverageFloor (absence + computed)
-//   L — excludeRinseOff (leave-on only)
+// ✓/✗=allow, c=confidenceFloor, v=coverageFloor, L=excludeRinseOff.
 function formatRule(r: TagRule): string {
   const parts: string[] = [r.allow ? '✓' : '✗']
   if (r.confidenceFloor !== undefined) parts.push(`c=${r.confidenceFloor.toFixed(2)}`)
@@ -201,8 +165,6 @@ function initState(): AuditState {
   }
 }
 
-// Loop: per-product aggregation
-
 function collectBenefitSamples(p: ProductRow, assessment: Assessment, state: AuditState): void {
   let catBucket = state.benefitSamplesByCategory.get(p.category)
   if (!catBucket) {
@@ -227,8 +189,7 @@ function collectBenefitSamples(p: ProductRow, assessment: Assessment, state: Aud
 function aggregateRegulatory(assessment: Assessment, state: AuditState): void {
   if (assessment.regulatoryNotes.length === 0) return
   state.productsWithRegulatory++
-  // Dedup within product — same regulatory note may surface for multiple
-  // ingredients (e.g. two different parabens both prohibited).
+  // Dedup: same note may surface for multiple ingredients (e.g. two parabens).
   const uniqueNotes = new Set(assessment.regulatoryNotes)
   for (const n of uniqueNotes) {
     state.regulatoryNoteFreq.set(n, (state.regulatoryNoteFreq.get(n) ?? 0) + 1)
@@ -300,8 +261,7 @@ function processProduct(
   state.withInci++
   state.withInciByCategory.set(p.category, (state.withInciByCategory.get(p.category) ?? 0) + 1)
 
-  // Single hoisted analyzeINCI — passed to detectAutoTags below and reused
-  // for regulatory surfacing. Saves a second algo-derm pass per product.
+  // Hoist analyzeINCI: reused by detectAutoTags and regulatory surfacing (avoids a second pass).
   const ingredients = splitINCI(p.inci)
   const assessment = analyzeINCI(p.inci, {
     context: {
@@ -331,8 +291,6 @@ function processProduct(
   state.totalEmitted += emittedHere
 }
 
-// Reports
-
 function reportCoverage(state: AuditState, subsetLen: number): void {
   console.log(`📊 Couverture`)
   console.log(`   ${subsetLen} produits (${AUTO_TAG_ELIGIBLE_CATEGORIES.join(' / ')})`)
@@ -358,7 +316,6 @@ function reportPerTag(state: AuditState): void {
   console.log(
     `   ${'─'.repeat(28)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(8)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(14)}`
   )
-  // Reverse-lookup auroreSlug → rule for the report column.
   const ruleBySlug = new Map<string, TagRule>()
   for (const r of Object.values(TAG_CONFIG)) if (r.auroreSlug) ruleBySlug.set(r.auroreSlug, r)
 
@@ -382,8 +339,7 @@ function reportSilentTags(state: AuditState): void {
   }
 }
 
-// Drives the A3 calibration-drift detector. `hit_rate` = hit / withInci(cat).
-// FAIL semantics live in CHECK mode below; this section is data-only.
+// hit_rate = hit / withInci(cat). FAIL semantics are in CHECK mode; this section is data-only.
 function reportPerCategory(state: AuditState): void {
   console.log(`\n🗂  Par catégorie · par tag (trié par hit DESC)`)
   for (const cat of AUTO_TAG_ELIGIBLE_CATEGORIES) {
@@ -443,10 +399,7 @@ function reportInteractions(state: AuditState): void {
   }
 }
 
-// Audit-only diagnostic. When chasing "why didn't tag X fire on product Y",
-// the most common questions are: was it absent, below confidence, dropped
-// for coverage, etc. This breakdown answers in aggregate. See
-// `auto-tag-detection.ts:DropReason`.
+// Aggregate breakdown of why tags didn't fire; see auto-tag-detection.ts:DropReason.
 function reportDrops(state: AuditState): void {
   if (state.dropCounts.size === 0) return
   console.log(`\n🪦 Candidats droppés (par raison × tag_id algo-derm)`)
@@ -463,8 +416,7 @@ function reportDrops(state: AuditState): void {
     bucket.set(tagId, n)
   }
 
-  // Report order — `not_present` first since it's typically the bulk; other
-  // reasons surface tunable gating decisions.
+  // not_present first: typically the bulk; others surface tunable gating decisions.
   const order = [
     'not_present',
     'disallowed',
@@ -497,10 +449,8 @@ async function writeCsv(state: AuditState): Promise<void> {
   console.log(`\n📄 CSV écrit : ${CSV_OUT} (${state.csvRows.length - 1} lignes)`)
 }
 
-// Auto baseline: max = max(0.05, ceil(hit_rate * 1.5, step=0.05)). Zero-hit
-// tags get the 0.05 floor so a rare future fire isn't an immediate FAIL.
-// Sensitives (comedogene / non-comedogene / peau-sensible / hypoallergenique)
-// should be tightened manually after pasting.
+// max = max(0.05, ceil(hit_rate*1.5, step=0.05)). Zero-hit tags get 0.05 floor.
+// Sensitives (comedogene/non-comedogene/peau-sensible/hypoallergenique) need manual tightening.
 function dumpBudgets(state: AuditState): void {
   console.log(`\n📋 DUMP_BUDGETS — paste into passes/tag-budgets.ts:\n`)
   console.log(`export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {`)
@@ -583,7 +533,7 @@ function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRo
       rows.push({ slug, category: cat, hitRate: rate, budget: budgetStr, status: 'OK' })
     }
   }
-  // Detect required tags (`min` set) that didn't fire at all.
+  // Required tags (min set) that fired zero times.
   for (const slug of Object.keys(catBudget)) {
     const b = catBudget[slug as keyof typeof catBudget]
     if (b?.min !== undefined && !bucket.has(slug)) {
@@ -666,8 +616,6 @@ async function dumpBenefits(state: AuditState): Promise<void> {
   }
 }
 
-// Setup
-
 function validateEnv(): void {
   if (
     CONF_OVERRIDE !== null &&
@@ -692,7 +640,6 @@ function logHeader(): void {
 }
 
 async function fetchSubset(): Promise<ProductRow[]> {
-  // Bypass RLS so the audit sees the full eligible catalogue.
   await db.execute(sql`SET LOCAL app.role = 'admin'`)
   const eligibleRows = await db
     .select({
@@ -709,8 +656,7 @@ async function fetchSubset(): Promise<ProductRow[]> {
   return LIMIT ? eligibleRows.slice(0, LIMIT) : eligibleRows
 }
 
-// Pre-fetch existing (productId, tagSlug) pairs so we can label each
-// emitted tag as agree (already manually present) vs new (proposal).
+// Labels each emitted tag as agree (already present) vs new (proposal).
 async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
   const existingRows = await db
     .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
@@ -728,8 +674,6 @@ async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
   return existingByProduct
 }
 
-// Main
-
 async function main() {
   validateEnv()
   logHeader()
@@ -741,7 +685,6 @@ async function main() {
   const state = initState()
   for (const p of subset) processProduct(p, state, existingByProduct, concentrationsByProduct)
 
-  // Reporting
   reportCoverage(state, subset.length)
   reportPerTag(state)
   reportSilentTags(state)
@@ -766,12 +709,10 @@ async function main() {
   }
 }
 
-// Output formatters
-
 function quantile(sortedAsc: number[], q: number): number {
   if (sortedAsc.length === 0) return 0
   if (sortedAsc.length === 1) return sortedAsc[0] ?? 0
-  // Linear interpolation (R-7 / numpy default).
+  // R-7 / numpy default linear interpolation.
   const pos = (sortedAsc.length - 1) * q
   const lo = Math.floor(pos)
   const hi = Math.ceil(pos)

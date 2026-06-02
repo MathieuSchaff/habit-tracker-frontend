@@ -19,7 +19,7 @@ export const suggestedEdits = pgTable(
     proposerId: uuid('proposer_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    // Polymorphic target — no FK; concrete sheet resolved at review time.
+    // Polymorphic target: no FK; concrete sheet resolved at review time.
     targetType: editTargetTypeEnum('target_type').notNull(),
     targetId: uuid('target_id').notNull(),
     field: text('field').notNull(),

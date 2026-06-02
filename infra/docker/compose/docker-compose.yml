@@ -2,10 +2,10 @@
 # Configuration de base commune à dev et prod
 # =========================
 # Explication:
-# On crée 5 linux containeurs isolés, chacun fait tourner différent services
+# Services isolés: db, api, frontend, nginx, certbot
 # Il y a 3 storage volumes qui sont persistants même quand on restart un conteneur
 # 1 network privé, comme ça les conteneurs peuvent communiquer entre eux.
-# Aucun fichier sur l'ordinateur hôte, a part la config nginx
+# En dev, docker-compose.dev.yml ajoute les bind mounts de code source.
 #
 services:
   # =========================
@@ -36,9 +36,7 @@ services:
 
   # =========================
   # API Backend (Bun + Hono)
-  # ca cherche un fichier : infra/docker/images/backend/Dockerfile
-  # et build une image à partir de ça
-  #
+  # Build via infra/docker/images/backend/Dockerfile
   # =========================
   api:
     container_name: app_api
@@ -70,8 +68,7 @@ services:
 
   # =========================
   # Frontend React (Vite)
-  # ca cherche un fichier : infra/docker/images/frontend/Dockerfile
-  #
+  # Build via infra/docker/images/frontend/Dockerfile
   # =========================
   frontend:
     container_name: app_frontend

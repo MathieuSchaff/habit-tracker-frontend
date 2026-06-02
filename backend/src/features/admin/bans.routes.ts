@@ -39,18 +39,14 @@ const app = new Hono<AppEnv>()
 app.use('*', rateLimiterFunc)
 app.use('*', requireJwtAuth)
 app.use('*', requireNotBanned)
-// Guards are applied PER-ROUTE below, NOT blanket: this router mounts at
-// '/api/admin', a prefix of the moderation/reports routers, so a blanket use('*')
-// guard leaks onto those siblings (Hono co-mount) and would re-impose admin-only on
-// the contributor-reachable moderation surface (ADR-0006 S1).
-// Split (ADR-0006 S4): the contributor (« modérateur ») creates/lifts/lists the
-// reversible content-scoped bans (scope !== 'global') via requireContentModerator +
-// an in-handler scope gate; the account-level 'global' lockout and the admin tools
-// (update, user list, dashboard) stay requireAdmin.
-// Binds app.role='admin' inside a tx so admin_bypass RLS policies fire on
-// the cross-user writes that admin bans perform (user_bans, profiles).
-// Without it, app_runtime (NO BYPASSRLS) sees auth.role()=NULL and every
-// INSERT/UPDATE/DELETE on FORCE-RLS tables touches 0 rows.
+// Guards are per-route, not blanket: this router mounts at '/api/admin', a prefix
+// shared with moderation/reports, so a blanket guard would leak onto those siblings
+// and block contributor-reachable routes (Hono co-mount trap, ADR-0006 S1).
+// ADR-0006 S4: contributors handle content-scoped bans (scope !== 'global') via
+// requireContentModerator + an in-handler scope gate; 'global' lockout and admin
+// tools stay requireAdmin.
+// withRlsContext binds app.role inside a tx so admin_bypass RLS fires on cross-user
+// writes; without it app_runtime sees auth.role()=NULL and every DML touches 0 rows.
 app.use('*', withRlsContext)
 
 export const adminBansRoutes = app
@@ -64,8 +60,8 @@ export const adminBansRoutes = app
       const body = c.req.valid('json')
       const actorId = getAuthedUserId(c)
 
-      // A contributor wields only the content-scoped bans; 'global' (account lockout)
-      // stays admin-only. Clean 403 before the write; RLS WITH CHECK is the DB backstop.
+      // Contributors are restricted to content-scoped bans; 'global' (account lockout) stays admin-only.
+      // Clean 403 before the write; RLS WITH CHECK is the DB backstop.
       if (getAuthedUserRole(c) !== 'admin' && body.scope === 'global') {
         return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
       }
@@ -92,12 +88,11 @@ export const adminBansRoutes = app
     const { banId } = c.req.valid('param')
     const actorId = getAuthedUserId(c)
 
-    // A contributor may lift only content-scoped bans; lifting a 'global' ban stays admin.
-    // This app-level gate is the guard in owner/BYPASSRLS contexts (route tests, dev). Under
-    // prod RLS (app_runtime), getBanScope cannot see a 'global' row for a contributor (the
-    // user_bans_moderation_scoped policy hides it) → scope is null → liftBan's 0-row DELETE
-    // denies it as not_found (404). Either path keeps the ban; the RLS DELETE is the prod
-    // enforcement (proven in tests/integration/user-bans-rls.test.ts).
+    // App-level gate for owner/BYPASSRLS contexts (tests, dev): contributors cannot lift 'global' bans.
+    // Under prod RLS, the user_bans_moderation_scoped policy hides 'global' rows from contributors,
+    // so getBanScope returns null and liftBan's 0-row DELETE yields not_found (404).
+    // Either path prevents the lift; the RLS DELETE is the prod enforcement
+    // (tested in tests/integration/user-bans-rls.test.ts).
     if (getAuthedUserRole(c) !== 'admin') {
       const scope = await getBanScope(c.get('db'), banId)
       if (scope === 'global') {
@@ -162,8 +157,7 @@ export const adminBansRoutes = app
         return c.json(err(result.error), errorToStatus(result.error, adminRoleErrorMapping))
       }
 
-      // No role-change audit table exists; reason is operational context, logged
-      // like other admin actions (ban lifted / report escalated), not persisted.
+      // No role-change audit table exists; reason is logged for operational context, not persisted.
       logger.info({ adminId, targetUserId, reason: body.reason ?? null }, 'contributor demoted')
       return c.json(ok(result.data), HTTP_STATUS.OK)
     }

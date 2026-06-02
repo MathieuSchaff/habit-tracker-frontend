@@ -2,7 +2,7 @@
 //
 // Read-only. The three acid clusters carry a positionCap of 10 by design
 // (acide pH-dépendant past pos 10 = pH adjuster / preservative trace, not
-// a functional exfoliant — see AUTO-TAGS.md §"AHA / BHA / PHA — drift
+// a functional exfoliant. See AUTO-TAGS.md §"AHA / BHA / PHA, drift
 // conservée par design"). Manual annotations are concentration-agnostic
 // and tag any product that contains the molecule, so 254 manual pairs
 // survive past the cap. Decision is offline, case-by-case (some are
@@ -17,15 +17,15 @@
 //     inci_excerpt (~6 tokens around the match).
 //
 // Tunables via env:
-//   CSV_OUT     optional       — path to write the override CSV (single file)
-//   CSV_DIR     optional       — write 3 split CSVs in this dir:
+//   CSV_OUT     optional: path to write the override CSV (single file)
+//   CSV_DIR     optional: write 3 split CSVs in this dir:
 //                                  delete.csv     · auto-classified safe-delete
 //                                  keep.csv       · auto-classified marketed
 //                                  borderline.csv · needs case-by-case review
-//   LIMIT       optional       — cap product count (debug)
-//   APPLY       optional 1     — destructive: DELETE pairs listed in
+//   LIMIT       optional: cap product count (debug)
+//   APPLY       optional 1, destructive: DELETE pairs listed in
 //                                APPLY_FROM_CSV. Skips the audit pass entirely.
-//   APPLY_FROM_CSV  required   — path to a CSV with header
+//   APPLY_FROM_CSV  required: path to a CSV with header
 //                                product_slug,tag_slug,…  (any extra cols
 //                                ignored). Pairs are deleted via composite
 //                                lookup (productId, productTagId).
@@ -44,7 +44,7 @@ const TARGET_SLUGS = ['aha', 'bha', 'pha'] as const
 type TargetSlug = (typeof TARGET_SLUGS)[number]
 
 // Mirrors `actif-class-detection.ts` cluster patterns for the 3 acid slugs.
-// Keep in sync if the detector evolves — the audit is meaningless if the
+// Keep in sync if the detector evolves; the audit is meaningless if the
 // pattern set drifts.
 const PATTERNS: Record<TargetSlug, readonly string[]> = {
   aha: [
@@ -82,7 +82,7 @@ type Verdict = 'delete' | 'keep' | 'borderline'
 // Rationale (matches the AUTO-TAGS.md "drift conservée par design" doc):
 //   - The detector cap=10 is the chemistry-aware policy. Past pos 10 the
 //     molecule is mostly inert (pH adjuster / preservative trace). Manual
-//     baselines are concentration-agnostic — they tag any product that
+//     baselines are concentration-agnostic; they tag any product that
 //     contains the molecule, including those where it has no exfoliant
 //     intent.
 //   - Marketing intent overrides chemistry when the product is sold as
@@ -99,7 +99,7 @@ type Verdict = 'delete' | 'keep' | 'borderline'
 //   3. Anti-acne / anti-pigmentation product + pos ≤ 19 → keep (adjunct).
 //   4. Position 20+ → delete (canonical inert past mid-tail).
 //   5. Position 15-19 in non-acne / non-pigmentation product → delete.
-//   6. Position 11-14 → borderline (truly ambiguous — case-by-case).
+//   6. Position 11-14 → borderline (truly ambiguous, case-by-case).
 const MARKET_MARKERS = [
   'aha',
   'bha',
@@ -133,7 +133,7 @@ const HAIR_MARKERS = [
   'ilcapil',
 ]
 
-// Acne / pigmentation product positioning — when the product is sold as
+// Acne / pigmentation product positioning: when the product is sold as
 // an acne or anti-pigmentation treatment, AHA/BHA at mid-position is the
 // canonical functional adjunct (not pH adjuster). Keep these regardless
 // of the molecule's exact INCI position up to 19.
@@ -258,7 +258,6 @@ async function main() {
         detectorAgrees++
         continue
       }
-      // Detector disagrees — find the matching pattern + earliest position.
       let bestIdx = -1
       let bestPattern = ''
       for (let i = 0; i < tokens.length; i++) {
@@ -272,8 +271,7 @@ async function main() {
         }
       }
       if (bestIdx === -1) {
-        // Manual tag without any pattern hit — orphan that no calibration
-        // touch can recover. Log to surface for separate review.
+        // No pattern hit: orphan annotation, no calibration fix can recover it.
         overrides.push({
           productSlug: p.slug,
           tagSlug: slug,
@@ -286,7 +284,6 @@ async function main() {
         continue
       }
 
-      // Excerpt: 1 token before through 5 tokens after the match.
       const start = Math.max(0, bestIdx - 1)
       const end = Math.min(tokens.length, bestIdx + 5)
       const inciExcerpt = tokens.slice(start, end).join(', ')
@@ -323,8 +320,6 @@ async function main() {
   }
   console.log()
 
-  // Position buckets — borderline 10–14 vs deep tail 20+ matters for
-  // the case-by-case call.
   const buckets: Record<TargetSlug, [number, number, number, number]> = {
     aha: [0, 0, 0, 0],
     bha: [0, 0, 0, 0],
@@ -390,7 +385,6 @@ async function main() {
     return a.productSlug.localeCompare(b.productSlug)
   })
 
-  // Auto-classification pre-pass — counted regardless of CSV output mode.
   const verdicts: Verdict[] = overrides.map(classify)
   const counts: Record<Verdict, number> = { delete: 0, keep: 0, borderline: 0 }
   for (const v of verdicts) counts[v]++
@@ -440,13 +434,8 @@ function csvLine(o: OverrideRow): string {
   ].join(',')
 }
 
-// Apply destructive DELETEs from an explicit CSV (cleanup pipeline).
-//
-// The audit's auto-classification is opinionated; the user always reviews
-// borderline rows before deletion. This mode reads the final
-// (product_slug, tag_slug) list as data, never as policy — so the same
-// runner can apply different cleanup decisions across sessions without
-// the verdict logic living in code.
+// Reads (product_slug, tag_slug) from a reviewed CSV as data, not policy,
+// so cleanup decisions stay offline and the verdict logic stays out of code.
 async function applyDeletions(): Promise<void> {
   if (!APPLY_FROM_CSV) {
     throw new Error('APPLY=1 requires APPLY_FROM_CSV (path to CSV inside container)')
@@ -472,8 +461,7 @@ async function applyDeletions(): Promise<void> {
   type Pair = { productSlug: string; tagSlug: string }
   const pairs: Pair[] = []
   for (const line of lines.slice(1)) {
-    // Naive split — apply CSVs are runner-generated, no embedded quotes
-    // expected in slug / tag columns (slugs are kebab-case ASCII).
+    // Runner-generated CSVs: slugs are kebab-case ASCII, no embedded quotes.
     const cols = line.split(',')
     const ps = (cols[colSlug] ?? '').trim()
     const ts = (cols[colTag] ?? '').trim()
@@ -486,8 +474,7 @@ async function applyDeletions(): Promise<void> {
 
   console.log(`   ${pairs.length} pairs à supprimer\n`)
 
-  // SET LOCAL only persists within the active transaction — wrap the
-  // entire write block so RLS sees the elevated role.
+  // SET LOCAL is tx-scoped: wrap the write block so RLS sees the elevated role.
   let deleted = 0
   let missing = 0
   let notFound = 0
@@ -522,9 +509,7 @@ async function applyDeletions(): Promise<void> {
         .where(
           sql`${productTagLinks.productId} = ${pid} AND ${productTagLinks.productTagId} = ${tid}`
         )
-      // Bun-postgres / drizzle returns the executed-row count under `count`
-      // (not `rowCount` like node-postgres). Falling back to rowCount keeps
-      // the runner portable if the driver swap.
+      // bun-postgres returns count, node-postgres returns rowCount.
       const r = result as unknown as { count?: number; rowCount?: number }
       const rowCount = r.count ?? r.rowCount ?? 0
       if (rowCount === 0) notFound++

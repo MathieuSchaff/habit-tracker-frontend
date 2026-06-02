@@ -140,9 +140,7 @@ export const useUpdatePrivacySettings = () => {
   })
 }
 
-// RGPD Article 20 portability. The download is a side-effect mutation, not a
-// cacheable query: every call is a fresh server-side dump, and we never want
-// React Query to re-issue it on focus/reconnect.
+// GDPR Art. 20 portability: fresh server dump on every call, never cached (no focus/reconnect refetch).
 export class ExportRateLimitError extends Error {
   retryAfterSec: number
   constructor(retryAfterSec: number) {

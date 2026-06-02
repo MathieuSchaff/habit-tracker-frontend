@@ -71,25 +71,20 @@ function checkResendLimit(userId: string): boolean {
 const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
-// In-process tests use app.request without an Origin header; csrf would 403 every POST.
-// CSRF only matters for browser-driven cross-origin flows, so skip it under NODE_ENV=test.
+// In-process tests have no Origin header; csrf would 403 every POST.
 if (env.NODE_ENV !== 'test') {
   app.use('*', csrf({ origin: (origin) => origin === env.FRONTEND_URL }))
 }
 
-// These authenticated routes write to users / refresh_tokens / email_verifications —
-// all tables kept outside RLS because auth lookups happen pre-identity. If RLS is ever
-// added to those tables (e.g. column-level secrets), this router must also register
-// withRlsContext alongside requireJwtAuth.
+// auth tables (users, refresh_tokens, email_verifications) are outside RLS: auth
+// lookups happen pre-identity. If RLS is added to those tables, register
+// withRlsContext alongside requireJwtAuth here.
 app.use('/logout', requireJwtAuth)
 app.use('/session', requireJwtAuth)
 app.use('/mobile/logout', requireJwtAuth)
 app.use('/resend-verification', requireJwtAuth)
-// Ban check runs after JWT on every authenticated auth route. /logout still
-// works for banned users — the ban service short-circuits before we reach
-// route handlers, but clearing a refresh token cookie does not require server
-// state (cookie is set client-side). Banned users will see /session return 403
-// 'banned' which the frontend uses to redirect to the banned page.
+// /logout intentionally skips requireNotBanned: banned users must still be able
+// to clear their refresh token cookie.
 app.use('/session', requireNotBanned)
 app.use('/resend-verification', requireNotBanned)
 

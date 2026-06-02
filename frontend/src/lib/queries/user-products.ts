@@ -104,7 +104,6 @@ export const useCreateUserProduct = () => {
   })
 }
 
-/** Optimistic update with rollback on server error. */
 export const useUpdateUserProduct = () => {
   const queryClient = useQueryClient()
   return useMutation({

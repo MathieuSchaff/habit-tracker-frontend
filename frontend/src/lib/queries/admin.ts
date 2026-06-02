@@ -129,8 +129,7 @@ export const adminQueries = {
         return json.data
       },
       enabled: !!id,
-      // Preview is read-on-demand from the admin panel; cache briefly so
-      // toggling visible/hidden via the moderate buttons reflects fast.
+      // Short stale so toggling visible/hidden reflects immediately after moderation.
       staleTime: 5_000,
     }),
 }
@@ -225,8 +224,7 @@ export function useResolveReport() {
       if (!json.success) throw new Error('Resolve report error')
       return json.data
     },
-    // Broad prefix: a resolve from the admin « Escaladés » tab (escalated key) must
-    // refresh that view too, which a status-only key would miss (partial match).
+    // Broad prefix: resolving from the escalated tab must also refresh that view; a status-only key would miss it.
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
     },
@@ -243,7 +241,7 @@ export function useEscalateReport() {
       if (!json.success) throw new Error('Escalate report error')
       return json.data
     },
-    // Broad prefix: refresh every status/escalated view (2-element key matches all).
+    // Broad prefix: refreshes all status/escalated views (2-element key partial match).
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
     },
@@ -290,8 +288,7 @@ export function useModerateContent() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: adminKeys.preview(vars.target, vars.id) })
-      // Hiding/restoring a product or ingredient shifts it between the catalog
-      // queue's À-vérifier/Masqués views; no-op when no queue is mounted.
+      // Hiding/restoring shifts a product or ingredient between catalog queue views; no-op when no queue is mounted.
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'catalog-queue'] })
     },
   })

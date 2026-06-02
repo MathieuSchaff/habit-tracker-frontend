@@ -7,7 +7,7 @@ import { userProductStatusEnum, userProducts } from './user-products'
 
 // Append-only journal of user_products.status transitions. Captures the
 // retrieval promise ("why did I reject this 3 months ago?") that a scalar
-// status column cannot answer. Service-layer writes — see
+// status column cannot answer. Service-layer writes, see
 // backend/src/features/user-products/service.ts.
 export const userProductStatusLog = pgTable(
   'user_product_status_log',

@@ -51,7 +51,6 @@ export function FilterDrawer<T extends string>({
 
   useScrollLock(open)
 
-  // Remember the opener so we can restore focus on close.
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement

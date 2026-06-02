@@ -1,7 +1,5 @@
-// Loads curated concentrations from product_ingredients, grouped per product,
-// as algo-derm `knownConcentrations` maps (keyed by ingredient name). Thin glue
-// over the pure `buildKnownConcentrations`; kept separate so that helper stays
-// DB-free (its test runs with a bogus DATABASE_URL).
+// Kept separate from buildKnownConcentrations so that helper stays DB-free
+// (its test suite runs with a bogus DATABASE_URL).
 
 import { eq, inArray } from 'drizzle-orm'
 

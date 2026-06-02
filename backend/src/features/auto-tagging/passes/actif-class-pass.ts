@@ -1,8 +1,5 @@
-// Pass wrapper around `detectActifClasses` — ADR-0001.
-//
-// Pharmacological clusters (RETINOIDS, VITAMIN_C, AHA, ...). Cross-signal and
-// avoid passes read this pass's output back from `prior` via
-// `priorSlugsBySource(prior, 'actif-class')`.
+// Pass wrapper around `detectActifClasses`. ADR-0001.
+// Cross-signal and avoid passes read output via `priorSlugsBySource(prior, 'actif-class')`.
 
 import { asProposals } from '../lib/pass-helpers'
 import type { Pass } from '../lib/pass-types'

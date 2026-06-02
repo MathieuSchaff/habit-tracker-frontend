@@ -3,21 +3,7 @@ import { type AnyPgColumn, pgPolicy } from 'drizzle-orm/pg-core'
 
 import { appRuntimeRole } from './_roles'
 
-// Helper for tenant-isolated tables (users own their rows via a direct user_id column).
-// Returns the 2 standard policies we use everywhere:
-//   - <name>_tenant_isolation : userId = auth.uid()
-//   - <name>_admin_bypass     : auth.role() = 'admin'
-//
-// Use only when the table has a direct user_id column. For FK-chained
-// ownership (e.g. subtasks → tasks.user_id), write the EXISTS form by hand.
-//
-// Example:
-//   export const tasks = pgTable('tasks', {
-//     userId: uuid('user_id').notNull(),
-//     // ...
-//   }, (t) => [
-//     ...tenantPolicies('tasks', t.userId),
-//   ]).enableRLS()
+// Requires a direct user_id column. For FK-chained ownership, use fkTenantPolicies.
 export function tenantPolicies(name: string, userIdColumn: AnyPgColumn) {
   return [
     pgPolicy(`${name}_tenant_isolation`, {
@@ -37,9 +23,7 @@ export function tenantPolicies(name: string, userIdColumn: AnyPgColumn) {
   ]
 }
 
-// Same shape but for tables where ownership is reached through a parent table.
-// Caller provides the EXISTS expression. Example:
-//   ...fkTenantPolicies('subtasks', sql`EXISTS (SELECT 1 FROM ${tasks} p WHERE p.id = ${t.taskId} AND p.user_id = (SELECT auth.uid()))`)
+// For FK-chained ownership: caller provides the EXISTS expression.
 export function fkTenantPolicies(name: string, ownershipExpr: SQL) {
   return [
     pgPolicy(`${name}_tenant_isolation`, {
@@ -60,7 +44,7 @@ export function fkTenantPolicies(name: string, ownershipExpr: SQL) {
 }
 
 // Catalog tables: public SELECT, writes gated by app.role.
-//   - <name>_select_public : USING (true). MUST NOT be gated by auth.role() —
+//   - <name>_select_public : USING (true). MUST NOT be gated by auth.role(),
 //     anonymous GETs skip withRlsContext, so app.role is empty; gating SELECT
 //     would break public browsing.
 //   - <name>_write_role : INSERT/UPDATE/DELETE gated by app.role.
@@ -89,7 +73,7 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
 }
 
 // Catalog SUBMISSION tables (products, ingredients): user-generated, public-read,
-// two-axis model — catalog_quality (unverified/verified) + moderation_status
+// two-axis model: catalog_quality (unverified/verified) + moderation_status
 // (visible/hidden). Distinct from catalogPolicies (tag defs, role-gated writes).
 //
 // Field-level integrity (no self-promotion to 'verified', admin-only moderation)
@@ -99,7 +83,7 @@ export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgCo
   return [
     // Public reads see 'visible' rows; the moderator (admin∨contributor) also sees
     // 'hidden' so a reported sheet can be reviewed/restored (ADR-0006 S2). Browse
-    // honesty for plain users + anon is unchanged — they only ever match 'visible'.
+    // honesty for plain users + anon is unchanged, they only ever match 'visible'.
     pgPolicy(`${name}_select_visible`, {
       as: 'permissive',
       for: 'select',
@@ -132,13 +116,10 @@ export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgCo
   ]
 }
 
-// Content-moderation policies for FK-owned, moderatable tables whose base policies
-// (fkTenantPolicies) grant moderation only to admin via admin_bypass. Adds the
-// contributor (« modérateur ») to the reversible moderation surface: read any row
-// (incl. hidden, for preview) and UPDATE it (ADR-0006 S1). Additive — owner CRUD and
-// admin_bypass still apply. The only write path is the moderation service, which sets
-// just the 4 moderation_* columns, so the coarse role gate is safe (mirrors the
-// V-2/C-1 posture of catalogSubmissionPolicies).
+// Extends base tenant policies to grant contributors the reversible moderation surface:
+// read any row (incl. hidden) and UPDATE it (ADR-0006 S1). Additive, owner CRUD and
+// admin_bypass still apply. Write path is the moderation service (4 moderation_* columns
+// only), so the coarse role gate is safe (mirrors V-2/C-1 of catalogSubmissionPolicies).
 export function moderationPolicies(name: string) {
   const roleCheck = sql`(SELECT auth.role()) IN ('admin', 'contributor')`
   return [

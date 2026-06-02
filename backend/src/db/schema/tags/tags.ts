@@ -17,7 +17,7 @@ import { ingredients } from '../ingredients/ingredients'
 import { products } from '../products/products'
 
 // Each domain has its own tag table. Slugs can be identical across
-// domains (e.g. 'peau-grasse' exists in both) — they are independent rows.
+// domains (e.g. 'peau-grasse' exists in both), they are independent rows.
 
 export const ingredientTagTypes = pgTable(
   'ingredient_tag_types',
@@ -55,7 +55,7 @@ export const productTagTypes = pgTable(
   ]
 ).enableRLS()
 
-// Junction tables — composite PK = uniqueness constraint
+// Junction tables use composite PK as the uniqueness constraint.
 export const relevanceEnum = pgEnum('relevance', relevanceValues)
 
 export const ingredientTagLinks = pgTable(
@@ -85,11 +85,8 @@ export const productTagLinks = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
     relevance: relevanceEnum('relevance').notNull().default('secondary'),
-    // Origin of the row — `manual` (any product-tags CRUD path) or one of the
-    // AutoTagSource values produced by the auto-tag orchestrator. Auto-tag
-    // intake deletes only rows where source != 'manual' before re-inserting,
-    // so manual curation survives retag cycles. Default 'manual' makes the
-    // pre-existing rows safe through the migration.
+    // Auto-tag intake deletes only rows where source != 'manual' before re-inserting,
+    // so manual curation survives retag cycles. Default 'manual' preserves pre-migration rows.
     source: text('source').$type<TagSource>().notNull().default('manual'),
   },
   (t) => [

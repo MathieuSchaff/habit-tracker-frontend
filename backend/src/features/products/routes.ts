@@ -59,10 +59,7 @@ const slugPreviewQuery = z.object({
 
 const productsApp = new Hono<AppEnv>()
 
-// Split into two middleware so each one's return value (a short-circuit 403 from
-// requireNotBanned, for instance) propagates back through Hono compose. A single
-// wrapper that calls `await requireNotBanned(c, next)` inside an inline lambda
-// silently discards the Response and triggers "Context is not finalized".
+// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 productsApp.use('*', async (c, next) => {
   return c.req.method === 'GET' ? optionalJwtAuth(c, next) : requireJwtAuth(c, next)
 })
@@ -83,7 +80,7 @@ export const productRoutes = productsApp
       return c.json(ok(options), HTTP_STATUS.OK)
     }
   )
-  // I put this route here because if I put it below, the slug route will take the request
+  // Must precede /:slug or the slug route captures this path.
   .get('/brands', async (c) => {
     const db = c.get('db')
     const brands = await getDistinctBrands(db)

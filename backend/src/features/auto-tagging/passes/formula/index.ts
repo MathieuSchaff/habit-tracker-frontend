@@ -1,7 +1,3 @@
-// Re-exports the formula-pass detectors so the orchestrator imports a single
-// barrel. Each file is one detector family — see the individual files for the
-// full rationale of each tag's signal.
-
 export { detectAbsenceClaimsFromText } from './absence-claims'
 export { detectCernesPoches } from './cernes-poches'
 export {
