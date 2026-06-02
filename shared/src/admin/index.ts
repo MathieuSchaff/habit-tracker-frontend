@@ -135,6 +135,7 @@ export type AdminDashboard = {
   hiddenThreads: number
   hiddenReplies: number
   forcedPrivateProfiles: number
+  pendingRoleRequests: number
 }
 
 // Admin override on a user profile. forcedPrivate=true hides every public

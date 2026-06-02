@@ -11,6 +11,7 @@ import { db } from './db/index'
 import { adminBansRoutes } from './features/admin/bans.routes'
 import { adminModerationRoutes } from './features/admin/moderation.routes'
 import { adminReportsRoutes } from './features/admin/reports.routes'
+import { adminRoleRequestsRoutes } from './features/admin/role-requests.routes'
 import { adminSuggestedEditsRoutes } from './features/admin/suggested-edits.routes'
 import { jwtAuthRoutes } from './features/auth'
 import { articleRoutes } from './features/blog'
@@ -26,6 +27,7 @@ import { productTagDefRoutes } from './features/product-tags/routes'
 import { productsFeature } from './features/products'
 import { profileRoute, publicProfileRoutes } from './features/profile'
 import { reportsRoutes } from './features/reports/routes'
+import { roleRequestsRoutes } from './features/role-requests/routes'
 import { suggestedEditsRoutes } from './features/suggested-edits/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
@@ -93,6 +95,8 @@ const routes = app
   .route('/api/admin/moderation', adminModerationRoutes)
   .route('/api/admin/reports', adminReportsRoutes)
   .route('/api/reports', reportsRoutes)
+  .route('/api/admin/role-requests', adminRoleRequestsRoutes)
+  .route('/api/role-requests', roleRequestsRoutes)
   .route('/api/admin/suggested-edits', adminSuggestedEditsRoutes)
   .route('/api/suggested-edits', suggestedEditsRoutes)
 

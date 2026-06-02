@@ -29,6 +29,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthBannedRouteImport } from './routes/auth/banned'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
+import { Route as AdminRoleRequestsRouteImport } from './routes/admin/role-requests'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminCatalogRouteImport } from './routes/admin/catalog'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
@@ -155,6 +156,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminSuggestedEditsRoute = AdminSuggestedEditsRouteImport.update({
   id: '/suggested-edits',
   path: '/suggested-edits',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRoleRequestsRoute = AdminRoleRequestsRouteImport.update({
+  id: '/role-requests',
+  path: '/role-requests',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/role-requests': typeof AdminRoleRequestsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/role-requests': typeof AdminRoleRequestsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/role-requests': typeof AdminRoleRequestsRoute
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/admin/catalog'
     | '/admin/reports'
+    | '/admin/role-requests'
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/admin/catalog'
     | '/admin/reports'
+    | '/admin/role-requests'
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/admin/catalog'
     | '/admin/reports'
+    | '/admin/role-requests'
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
@@ -770,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/suggested-edits'
       fullPath: '/admin/suggested-edits'
       preLoaderRoute: typeof AdminSuggestedEditsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/role-requests': {
+      id: '/admin/role-requests'
+      path: '/role-requests'
+      fullPath: '/admin/role-requests'
+      preLoaderRoute: typeof AdminRoleRequestsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/reports': {
@@ -1020,6 +1039,7 @@ const AuthenticatedRouteRouteWithChildren =
 interface AdminRouteRouteChildren {
   AdminCatalogRoute: typeof AdminCatalogRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminRoleRequestsRoute: typeof AdminRoleRequestsRoute
   AdminSuggestedEditsRoute: typeof AdminSuggestedEditsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1029,6 +1049,7 @@ interface AdminRouteRouteChildren {
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCatalogRoute: AdminCatalogRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminRoleRequestsRoute: AdminRoleRequestsRoute,
   AdminSuggestedEditsRoute: AdminSuggestedEditsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

@@ -356,6 +356,27 @@ export {
   resolveReportBodySchema,
 } from './reports'
 export {
+  type CancelRoleRequestErrorCode,
+  type CancelRoleRequestResult,
+  cancelRoleRequestErrorMapping,
+  type ListRoleRequestsQuery,
+  type ListRoleRequestsResponse,
+  listRoleRequestsQuerySchema,
+  type ReviewRoleRequestErrorCode,
+  type ReviewRoleRequestInput,
+  type ReviewRoleRequestResult,
+  type RoleRequestStatus,
+  type RoleRequestView,
+  reviewRoleRequestBodySchema,
+  reviewRoleRequestErrorMapping,
+  roleRequestStatusSchema,
+  type SubmitRoleRequestErrorCode,
+  type SubmitRoleRequestInput,
+  type SubmitRoleRequestResult,
+  submitRoleRequestBodySchema,
+  submitRoleRequestErrorMapping,
+} from './role-request'
+export {
   type CreateSuggestedEditInput,
   createSuggestedEditBodySchema,
   type EditTargetType,

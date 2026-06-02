@@ -3,7 +3,7 @@ import type { AdminDashboard } from '@aurore/shared'
 import { eq, gt, isNull, or, sql } from 'drizzle-orm'
 
 import type { Database } from '../../db'
-import { contentReports, userBans } from '../../db/schema'
+import { contentReports, roleRequests, userBans } from '../../db/schema'
 import { profiles } from '../../db/schema/auth/users'
 import { discussionReplies, discussionThreads } from '../../db/schema/products/discussions'
 import { userProductReviews } from '../../db/schema/products/user-products'
@@ -18,6 +18,7 @@ export async function getAdminDashboard(db: Database): Promise<AdminDashboard> {
     hiddenThreadsRows,
     hiddenRepliesRows,
     forcedPrivateRows,
+    pendingRoleRequestsRows,
   ] = await Promise.all([
     db
       .select({ count: sql<number>`COUNT(*)::int` })
@@ -43,6 +44,10 @@ export async function getAdminDashboard(db: Database): Promise<AdminDashboard> {
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(profiles)
       .where(eq(profiles.forcedPrivateByAdmin, true)),
+    db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(roleRequests)
+      .where(eq(roleRequests.status, 'pending')),
   ])
 
   return {
@@ -52,5 +57,6 @@ export async function getAdminDashboard(db: Database): Promise<AdminDashboard> {
     hiddenThreads: hiddenThreadsRows[0]?.count ?? 0,
     hiddenReplies: hiddenRepliesRows[0]?.count ?? 0,
     forcedPrivateProfiles: forcedPrivateRows[0]?.count ?? 0,
+    pendingRoleRequests: pendingRoleRequestsRows[0]?.count ?? 0,
   }
 }

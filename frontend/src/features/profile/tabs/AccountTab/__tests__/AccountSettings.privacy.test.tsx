@@ -37,6 +37,14 @@ vi.mock('@/lib/queries/profile', () => ({
   },
 }))
 
+// The Compte tab renders RoleRequestSection for role==='user'; stub its data hooks
+// so this privacy-focused unit test needs no QueryClient.
+vi.mock('@/lib/queries/role-requests', () => ({
+  roleRequestQueries: { mine: () => ({ queryKey: ['role-requests', 'me'], queryFn: vi.fn() }) },
+  useSubmitRoleRequest: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+  useCancelRoleRequest: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
+}))
+
 const ALL_FLAGS_OFF = {
   profilePublic: false,
   bioPublic: false,
