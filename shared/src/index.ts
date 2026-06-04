@@ -78,6 +78,10 @@ export {
   type UpdateArticleInput,
   updateArticleSchema,
 } from './blog'
+export {
+  type CompatibilityScoresRequest,
+  compatibilityScoresRequestSchema,
+} from './collection'
 export type { ApiError, ApiResponse, ApiSuccess } from './core'
 export {
   baseErrorMapping,

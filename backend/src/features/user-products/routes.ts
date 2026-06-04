@@ -17,8 +17,7 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { userProductReviews } from '../../db/schema/products/user-products'
-import { logger } from '../../lib/logger'
-import { recalculateSignalForUser } from '../../services/dermoSignalService'
+import { recalculateAllSignalsForUser } from '../../services/dermoSignalService'
 import { zValidator } from '../../utils/validator'
 import { isUserBannedForScope } from '../auth/ban.service'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
@@ -95,6 +94,12 @@ export const userProductRoutes = app
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
       const result = await updateUserProduct(userId, id, input, db)
+
+      // status/sentiment changes move products between the bad/good buckets.
+      if (input.status !== undefined || input.sentiment !== undefined) {
+        await recalculateAllSignalsForUser(userId, db)
+      }
+
       return c.json(ok(result), HTTP_STATUS.OK)
     }
   )
@@ -104,6 +109,8 @@ export const userProductRoutes = app
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     await deleteUserProduct(userId, id, db)
+    // Removing a product changes the collection's bucket totals.
+    await recalculateAllSignalsForUser(userId, db)
     return c.json(ok(null), HTTP_STATUS.OK)
   })
 
@@ -144,10 +151,13 @@ export const userProductRoutes = app
 
       const result = await upsertUserProductReview(userId, id, input, db)
 
-      // Fire-and-forget: does not block the HTTP response.
-      recalculateSignalForUser(userId, id, db).catch((err) =>
-        logger.error({ err }, 'dermoSignal recalculation failed')
-      )
+      // Only tolerance moves the bad/good buckets; editing a comment or visibility
+      // flag doesn't, so skip the full-collection recompute for those.
+      // Awaited inside the request tx: a detached promise would race the tx commit
+      // (one connection per tx) and run with no RLS context, silently dropping it.
+      if (input.tolerance !== undefined) {
+        await recalculateAllSignalsForUser(userId, db)
+      }
 
       return c.json(ok(result), HTTP_STATUS.OK)
     }

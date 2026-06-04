@@ -57,7 +57,8 @@ export function sortProducts(
   products: UserProduct[],
   sort: CollectionSearch['sort'],
   criteriaWeights: CriteriaWeights | undefined,
-  displayScale: DisplayScale | undefined
+  displayScale: DisplayScale | undefined,
+  compatScores?: Record<string, number | null>
 ): UserProduct[] {
   const copy = [...products]
   copy.sort((a, b) => {
@@ -77,6 +78,12 @@ export function sortProducts(
           getNumericReviewScore(b, criteriaWeights, displayScale) -
           getNumericReviewScore(a, criteriaWeights, displayScale)
         )
+      case 'compatibility_desc': {
+        // Null-last: products with no empirical score sort below scored ones.
+        const sa = compatScores?.[a.product.id] ?? Number.NEGATIVE_INFINITY
+        const sb = compatScores?.[b.product.id] ?? Number.NEGATIVE_INFINITY
+        return sb - sa
+      }
       default:
         return 0
     }

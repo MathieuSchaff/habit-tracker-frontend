@@ -5,7 +5,9 @@ import { z } from 'zod'
 import { CollectionPage } from '../../features/collection/page/CollectionPage'
 
 const collectionSearchSchema = z.object({
-  sort: z.enum(['name', 'note', 'sentiment', 'date', 'price_asc', 'price_desc']).default('name'),
+  sort: z
+    .enum(['name', 'note', 'sentiment', 'date', 'price_asc', 'price_desc', 'compatibility_desc'])
+    .default('name'),
   brand: z.string().default('all'),
   // Auto-derived TYPE_* tag from products.kind via detectKindPrimaryType.
   // Replaces the legacy raw `kind` filter (25 heterogeneous values) - ROADMAP §5 P2.
