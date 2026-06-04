@@ -38,20 +38,24 @@ const CHUNK = 500
 async function main() {
   console.log(`🏷  Migrate tag_products.source (${WRITE ? 'WRITE' : 'DRY-RUN'})\n`)
 
-  const allProducts = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      description: products.description,
-      brand: products.brand,
-      kind: products.kind,
-      inci: products.inci,
-      category: products.category,
-      texture: products.texture,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+  // Admin RLS elevation: products_select_visible hides non-`visible` rows from
+  // app_runtime; without it the source migration silently skips moderated products.
+  const allProducts = await withAdminRls((tx) =>
+    tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        description: products.description,
+        brand: products.brand,
+        kind: products.kind,
+        inci: products.inci,
+        category: products.category,
+        texture: products.texture,
+      })
+      .from(products)
+      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+  )
 
   const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
 

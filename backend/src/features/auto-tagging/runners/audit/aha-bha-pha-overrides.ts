@@ -37,8 +37,8 @@ import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectActifClasses } from '../../passes/actif-class-detection'
+import { fetchEligibleProducts } from './db'
 
 const TARGET_SLUGS = ['aha', 'bha', 'pha'] as const
 type TargetSlug = (typeof TARGET_SLUGS)[number]
@@ -207,20 +207,7 @@ async function main() {
   console.log(`🔍 Audit overrides AHA / BHA / PHA (manual past cap=10)`)
   console.log(`   targets=${TARGET_SLUGS.join(',')}${LIMIT ? ` · limit=${LIMIT}` : ''}\n`)
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const allProducts = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      kind: products.kind,
-      name: products.name,
-      inci: products.inci,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-
-  const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
+  const subset = await fetchEligibleProducts({ limit: LIMIT ?? undefined })
 
   const existingRows = await db
     .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })

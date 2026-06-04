@@ -1,19 +1,13 @@
 // Read-only trace of the auto-tag pipeline for a single INCI.
 //
-// Mirrors the orchestrator's dispatch (buildPassContext → AUTO_TAG_PASSES →
-// mergeProposal → primaryPromote) but captures the intermediate state the
-// orchestrator discards: per-pass proposals, merge decisions, algo-derm drop
-// reasons, and promotion events.
-//
-// Re-runs the loop instead of calling detectAllAutoTags because the orchestrator
-// only returns final (tagSlug, relevance, source) triples; per-pass proposals
-// and drop reasons exist only mid-loop. Uses identical primitives (no logic fork).
-// `final` is asserted ≡ detectAllAutoTags in tests/explain.test.ts to prevent drift.
+// Reads the orchestrator's one dispatch through the AutoTagTraceSink: per-pass
+// proposals (onPass), the pre-promote merge snapshot (onMerged), and algo-derm
+// drop reasons (dropCounts). `final` IS detectAllAutoTags' own return value, so
+// the trace cannot fork from it. explainInci adds only interpretation on top:
+// merge won/superseded outcomes and primary-promotion events.
 
 import type { SkincareProductTagSlug } from '@aurore/shared'
 
-import { buildPassContext } from './lib/build-pass-context'
-import { mergeProposal, primaryPromote } from './lib/merge'
 import type {
   AutoTagPair,
   AutoTagProposal,
@@ -22,11 +16,11 @@ import type {
 } from './lib/pass-types'
 import {
   AUTO_TAG_ELIGIBLE_CATEGORIES,
+  detectAllAutoTags,
   type OrchestratorInput,
   type OrchestratorOptions,
 } from './orchestrator'
-import type { DropReason } from './passes/auto-tag-detection'
-import { AUTO_TAG_PASSES } from './passes/registry'
+import type { DropReason } from './passes/algo-derm-detection'
 
 const ELIGIBLE: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
@@ -79,34 +73,28 @@ export function explainInci(
 
   // dropCounts records gated candidates without affecting pass output (includeDropped stays off).
   const dropCounts = new Map<string, number>()
-  const baseCtx = buildPassContext(input, options)
-  const ctx = {
-    ...baseCtx,
-    detectAutoTagsOptions: { ...baseCtx.detectAutoTagsOptions, dropCounts },
-  }
-
-  const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
   const rawLayers: { name: string; proposals: readonly AutoTagProposal[] }[] = []
-  for (const pass of AUTO_TAG_PASSES) {
-    const prior = [...byTag.values()]
-    const proposals = pass.run(ctx, prior)
-    if (proposals.length > 0) rawLayers.push({ name: pass.name, proposals })
-    for (const p of proposals) mergeProposal(byTag, p)
-  }
-
-  // Snapshot before promotion: primaryPromote replaces entries with fresh objects,
-  // breaking reference equality used for the 'won'/'superseded' check below.
-  const winnerBySlug = new Map(byTag)
+  let winnerBySlug = new Map<SkincareProductTagSlug, AutoTagProposal>()
   const relevanceBefore = new Map<SkincareProductTagSlug, AutoTagRelevance>()
-  for (const [slug, p] of byTag) relevanceBefore.set(slug, p.relevance)
 
-  primaryPromote(byTag, input.kind)
+  const final = detectAllAutoTags(input, options, {
+    dropCounts,
+    onPass(name, proposals) {
+      if (proposals.length > 0) rawLayers.push({ name, proposals })
+    },
+    onMerged(byTag) {
+      // Snapshot before promotion: primaryPromote replaces entries with fresh
+      // objects, breaking the reference equality used for won/superseded below.
+      winnerBySlug = new Map(byTag)
+      for (const [slug, p] of byTag) relevanceBefore.set(slug, p.relevance)
+    },
+  })
 
   const promotions: ExplainPromotion[] = []
-  for (const [slug, p] of byTag) {
-    const before = relevanceBefore.get(slug)
+  for (const p of final) {
+    const before = relevanceBefore.get(p.tagSlug)
     if (before && before !== p.relevance && p.relevance === 'primary') {
-      promotions.push({ tagSlug: slug, from: before })
+      promotions.push({ tagSlug: p.tagSlug, from: before })
     }
   }
 
@@ -133,15 +121,11 @@ export function explainInci(
     layers,
     drops: parseDrops(dropCounts),
     promotions,
-    final: [...byTag.values()].map(({ tagSlug, relevance, source }) => ({
-      tagSlug,
-      relevance,
-      source,
-    })),
+    final,
   }
 }
 
-// Key format: `${reason}:${candidateId}` (set by auto-tag-detection.ts bumpDrop).
+// Key format: `${reason}:${candidateId}` (set by algo-derm-detection.ts bumpDrop).
 function parseDrops(dropCounts: ReadonlyMap<string, number>): ExplainDrop[] {
   const out: ExplainDrop[] = []
   for (const [k, count] of dropCounts) {

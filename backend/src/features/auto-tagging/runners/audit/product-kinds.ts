@@ -89,7 +89,9 @@ const RULES: KindRule[] = [
   {
     name: 'deodorant',
     match: /\bd[eé]odorant|\bantiperspirant/i,
-    // Déo-douche combos deferred to body-wash rule.
+    // Products with both "déodorant" + "douche/shower" in the name are not deodorants —
+    // they fall to the body-wash rule (which matches on "douche"). "Déo-douche" brand names
+    // are excluded there too (body-wash forbidden) and keep their existing DB kind.
     forbidden: /\bdouche|\bshower/i,
     expected: 'deodorant',
     confidence: 'certain',

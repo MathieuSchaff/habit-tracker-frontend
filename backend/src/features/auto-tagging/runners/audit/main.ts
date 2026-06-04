@@ -4,6 +4,9 @@
 // runs analyzeINCI + detectAutoTags with TAG_CONFIG, reports per-tag stats:
 //   hit, agree (hit ∩ existing manual), new (hit \ existing), avg_conf.
 //
+// State aggregation lives in stats.ts, CHECK mode in check.ts, env flags in
+// env.ts; this file owns the reporters + the thin orchestrator (main).
+//
 // Companion backfill runner: runners/backfill/main.ts.
 //
 // Env:
@@ -22,94 +25,21 @@
 //   DISABLE_FLOORS   optional 1 : bypass confidenceFloor/coverageFloor gates to inspect
 //                                 raw confidence distribution (skin_type tuning, §2 roadmap).
 
-import { analyzeINCI, splitINCI } from 'algo-derm'
-import { eq, inArray, sql } from 'drizzle-orm'
-
-import { db } from '../../../../db'
-import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
-import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
-import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
-import { detectAutoTags, TAG_CONFIG, type TagRule } from '../../passes/auto-tag-detection'
-import { type BudgetCategory, TAG_HIT_RATE_BUDGET } from '../../passes/tag-budgets'
-
-interface TagStat {
-  hit: number
-  agree: number
-  new: number
-  sumConf: number
-  minConf: number
-  maxConf: number
-}
-
-// assessment.interactions = firable subset of algo-derm interaction_rules.json:
-// no profile condition (pregnant/sensitiveSkin/acneProne) and no pH condition
-// (Aurore has no estimated_ph). Covers irritation/allergenicity stacks and
-// EU-banned MI/MCI in leave-on. Audit doc §A.2 / §D.3.
-interface InteractionStat {
-  count: number
-  axes: string[]
-  adjustment: number
-  evidenceLevel: string
-}
-
-type Assessment = ReturnType<typeof analyzeINCI>
-type DetectedTag = ReturnType<typeof detectAutoTags>[number]
-
-interface ProductRow {
-  id: string
-  slug: string
-  name: string
-  brand: string
-  kind: Parameters<typeof mapKindToContext>[0]
-  category: string
-  inci: string | null
-}
-
-interface AuditState {
-  withInci: number
-  withTags: number
-  totalEmitted: number
-  totalAgree: number
-  totalNew: number
-  totalManualLabels: number
-  productsWithRegulatory: number
-  productsWithInteractions: number
-  totalInteractionHits: number
-  tagFreq: Map<string, TagStat>
-  tagFreqByCategory: Map<string, Map<string, TagStat>>
-  subsetSizeByCategory: Map<string, number>
-  withInciByCategory: Map<string, number>
-  regulatoryNoteFreq: Map<string, number>
-  interactionFreq: Map<string, InteractionStat>
-  dropCounts: Map<string, number>
-  csvRows: string[]
-  benefitSamples: Map<BenefitAxisName, number[]>
-  benefitSamplesByCategory: Map<string, Map<BenefitAxisName, number[]>>
-  benefitCsvRows: string[]
-}
-
-const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRIDE) : null
-const CSV_OUT = process.env.CSV_OUT
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
-const INCLUDE_DROPPED = process.env.INCLUDE_DROPPED === '1'
-const DUMP_BUDGETS = process.env.DUMP_BUDGETS === '1'
-const CHECK = process.env.CHECK === '1'
-const DUMP_BENEFITS = process.env.DUMP_BENEFITS === '1'
-const BENEFITS_OUT = process.env.BENEFITS_OUT
-const DISABLE_FLOORS = process.env.DISABLE_FLOORS === '1'
-
-// Mirrored from algo-derm BENEFIT_AXES (type-only upstream): duplicated to avoid
-// a runtime re-export. Update manually after an algo-derm axis bump.
-const BENEFIT_AXES = [
-  'soothing',
-  'hydrating',
-  'barrierSupport',
-  'antioxidant',
-  'brightening',
-  'seborrheicRegulation',
-] as const
-type BenefitAxisName = (typeof BENEFIT_AXES)[number]
+import { TAG_CONFIG, type TagRule } from '../../passes/algo-derm-detection'
+import { pad, rpad } from '../fmt'
+import { runCheck } from './check'
+import {
+  BENEFITS_OUT,
+  CHECK,
+  CONF_OVERRIDE,
+  CSV_OUT,
+  DUMP_BENEFITS,
+  DUMP_BUDGETS,
+  INCLUDE_DROPPED,
+  LIMIT,
+} from './env'
+import { type AuditState, BENEFIT_AXES, fetchAuditStats } from './stats'
 
 // ✓/✗=allow, c=confidenceFloor, v=coverageFloor, L=excludeRinseOff.
 function formatRule(r: TagRule): string {
@@ -118,177 +48,6 @@ function formatRule(r: TagRule): string {
   if (r.coverageFloor !== undefined) parts.push(`v=${r.coverageFloor.toFixed(2)}`)
   if (r.excludeRinseOff) parts.push('L')
   return parts.join(' ')
-}
-
-function emptyTagStat(): TagStat {
-  return { hit: 0, agree: 0, new: 0, sumConf: 0, minConf: 1, maxConf: 0 }
-}
-
-function updateTagStat(stat: TagStat, confidence: number, isAgree: boolean): void {
-  stat.hit++
-  stat.sumConf += confidence
-  stat.minConf = Math.min(stat.minConf, confidence)
-  stat.maxConf = Math.max(stat.maxConf, confidence)
-  if (isAgree) stat.agree++
-  else stat.new++
-}
-
-function initState(): AuditState {
-  const benefitSamples = new Map<BenefitAxisName, number[]>()
-  if (DUMP_BENEFITS) for (const ax of BENEFIT_AXES) benefitSamples.set(ax, [])
-  const csvRows: string[] = []
-  if (CSV_OUT) csvRows.push('product_slug,product_name,tag_slug,confidence,source,already_present')
-  const benefitCsvRows: string[] = []
-  if (DUMP_BENEFITS && BENEFITS_OUT)
-    benefitCsvRows.push('product_slug,category,kind,axis,benefit,confidence')
-  return {
-    withInci: 0,
-    withTags: 0,
-    totalEmitted: 0,
-    totalAgree: 0,
-    totalNew: 0,
-    totalManualLabels: 0,
-    productsWithRegulatory: 0,
-    productsWithInteractions: 0,
-    totalInteractionHits: 0,
-    tagFreq: new Map(),
-    tagFreqByCategory: new Map(),
-    subsetSizeByCategory: new Map(),
-    withInciByCategory: new Map(),
-    regulatoryNoteFreq: new Map(),
-    interactionFreq: new Map(),
-    dropCounts: new Map(),
-    csvRows,
-    benefitSamples,
-    benefitSamplesByCategory: new Map(),
-    benefitCsvRows,
-  }
-}
-
-function collectBenefitSamples(p: ProductRow, assessment: Assessment, state: AuditState): void {
-  let catBucket = state.benefitSamplesByCategory.get(p.category)
-  if (!catBucket) {
-    catBucket = new Map()
-    for (const ax of BENEFIT_AXES) catBucket.set(ax, [])
-    state.benefitSamplesByCategory.set(p.category, catBucket)
-  }
-  for (const axis of BENEFIT_AXES) {
-    const v = assessment.productBenefits[axis]?.benefit
-    if (typeof v !== 'number' || Number.isNaN(v)) continue
-    state.benefitSamples.get(axis)?.push(v)
-    catBucket.get(axis)?.push(v)
-    if (BENEFITS_OUT) {
-      const conf = assessment.productBenefits[axis]?.confidence ?? 0
-      state.benefitCsvRows.push(
-        `${p.slug},${p.category},${p.kind},${axis},${v.toFixed(4)},${conf.toFixed(4)}`
-      )
-    }
-  }
-}
-
-function aggregateRegulatory(assessment: Assessment, state: AuditState): void {
-  if (assessment.regulatoryNotes.length === 0) return
-  state.productsWithRegulatory++
-  // Dedup: same note may surface for multiple ingredients (e.g. two parabens).
-  const uniqueNotes = new Set(assessment.regulatoryNotes)
-  for (const n of uniqueNotes) {
-    state.regulatoryNoteFreq.set(n, (state.regulatoryNoteFreq.get(n) ?? 0) + 1)
-  }
-}
-
-function aggregateInteractions(assessment: Assessment, state: AuditState): void {
-  if (assessment.interactions.length === 0) return
-  state.productsWithInteractions++
-  state.totalInteractionHits += assessment.interactions.length
-  for (const interaction of assessment.interactions) {
-    const existing = state.interactionFreq.get(interaction.id)
-    if (existing) {
-      existing.count++
-    } else {
-      state.interactionFreq.set(interaction.id, {
-        count: 1,
-        axes: interaction.axes,
-        adjustment: interaction.adjustment,
-        evidenceLevel: interaction.evidenceLevel,
-      })
-    }
-  }
-}
-
-function aggregateDetected(
-  p: ProductRow,
-  detected: DetectedTag[],
-  existingSet: Set<string>,
-  state: AuditState
-): number {
-  let catBucket = state.tagFreqByCategory.get(p.category)
-  if (!catBucket) {
-    catBucket = new Map()
-    state.tagFreqByCategory.set(p.category, catBucket)
-  }
-  let emittedHere = 0
-  for (const t of detected) {
-    emittedHere++
-    const isAgree = existingSet.has(t.slug)
-    const stat = state.tagFreq.get(t.slug) ?? emptyTagStat()
-    updateTagStat(stat, t.confidence, isAgree)
-    state.tagFreq.set(t.slug, stat)
-    if (isAgree) state.totalAgree++
-    else state.totalNew++
-
-    const catStat = catBucket.get(t.slug) ?? emptyTagStat()
-    updateTagStat(catStat, t.confidence, isAgree)
-    catBucket.set(t.slug, catStat)
-
-    if (CSV_OUT) {
-      const safeName = (p.name ?? '').replaceAll('"', '""')
-      state.csvRows.push(
-        `${p.slug},"${safeName}",${t.slug},${t.confidence.toFixed(3)},${t.source},${isAgree}`
-      )
-    }
-  }
-  return emittedHere
-}
-
-function processProduct(
-  p: ProductRow,
-  state: AuditState,
-  existingByProduct: Map<string, Set<string>>,
-  concentrationsByProduct: Map<string, Record<string, number>>
-): void {
-  state.subsetSizeByCategory.set(p.category, (state.subsetSizeByCategory.get(p.category) ?? 0) + 1)
-  if (!p.inci?.trim()) return
-  state.withInci++
-  state.withInciByCategory.set(p.category, (state.withInciByCategory.get(p.category) ?? 0) + 1)
-
-  // Hoist analyzeINCI: reused by detectAutoTags and regulatory surfacing (avoids a second pass).
-  const ingredients = splitINCI(p.inci)
-  const assessment = analyzeINCI(p.inci, {
-    context: {
-      ...mapKindToContext(p.kind),
-      knownConcentrations: concentrationsByProduct.get(p.id),
-    },
-  })
-
-  const detected = detectAutoTags(p.inci, p.kind, {
-    ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
-    includeDropped: INCLUDE_DROPPED,
-    disableFloors: DISABLE_FLOORS,
-    assessment,
-    ingredients,
-    dropCounts: state.dropCounts,
-  })
-
-  if (DUMP_BENEFITS) collectBenefitSamples(p, assessment, state)
-  aggregateRegulatory(assessment, state)
-  aggregateInteractions(assessment, state)
-
-  const existingSet = existingByProduct.get(p.id) ?? new Set<string>()
-  state.totalManualLabels += existingSet.size
-
-  const emittedHere = aggregateDetected(p, detected, existingSet, state)
-  if (emittedHere > 0) state.withTags++
-  state.totalEmitted += emittedHere
 }
 
 function reportCoverage(state: AuditState, subsetLen: number): void {
@@ -399,7 +158,7 @@ function reportInteractions(state: AuditState): void {
   }
 }
 
-// Aggregate breakdown of why tags didn't fire; see auto-tag-detection.ts:DropReason.
+// Aggregate breakdown of why tags didn't fire; see algo-derm-detection.ts:DropReason.
 function reportDrops(state: AuditState): void {
   if (state.dropCounts.size === 0) return
   console.log(`\n🪦 Candidats droppés (par raison × tag_id algo-derm)`)
@@ -475,114 +234,6 @@ function dumpBudgets(state: AuditState): void {
   console.log(`}`)
 }
 
-interface CheckRow {
-  slug: string
-  category: string
-  hitRate: number
-  budget: string
-  status: 'OK' | 'FAIL' | 'WARN'
-  reason?: string
-}
-
-function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRow[]): number {
-  const bucket = state.tagFreqByCategory.get(cat)
-  const inciCount = state.withInciByCategory.get(cat) ?? 0
-  if (!bucket || inciCount === 0) return 0
-  const catBudget = TAG_HIT_RATE_BUDGET[cat] ?? {}
-  let fails = 0
-  for (const [slug, s] of bucket.entries()) {
-    const rate = s.hit / inciCount
-    const budget = catBudget[slug as keyof typeof catBudget]
-    if (!budget) {
-      rows.push({
-        slug,
-        category: cat,
-        hitRate: rate,
-        budget: '—',
-        status: 'FAIL',
-        reason: `no budget entry (add to TAG_HIT_RATE_BUDGET.${cat})`,
-      })
-      fails++
-      continue
-    }
-    const budgetStr =
-      budget.min !== undefined
-        ? `${(budget.min * 100).toFixed(0)}–${(budget.max * 100).toFixed(0)}%`
-        : `≤${(budget.max * 100).toFixed(0)}%`
-    if (rate > budget.max) {
-      rows.push({
-        slug,
-        category: cat,
-        hitRate: rate,
-        budget: budgetStr,
-        status: 'FAIL',
-        reason: `${(rate * 100).toFixed(1)}% > ${(budget.max * 100).toFixed(0)}%`,
-      })
-      fails++
-    } else if (budget.min !== undefined && rate < budget.min) {
-      rows.push({
-        slug,
-        category: cat,
-        hitRate: rate,
-        budget: budgetStr,
-        status: 'FAIL',
-        reason: `${(rate * 100).toFixed(1)}% < ${(budget.min * 100).toFixed(0)}%`,
-      })
-      fails++
-    } else {
-      rows.push({ slug, category: cat, hitRate: rate, budget: budgetStr, status: 'OK' })
-    }
-  }
-  // Required tags (min set) that fired zero times.
-  for (const slug of Object.keys(catBudget)) {
-    const b = catBudget[slug as keyof typeof catBudget]
-    if (b?.min !== undefined && !bucket.has(slug)) {
-      rows.push({
-        slug,
-        category: cat,
-        hitRate: 0,
-        budget: `${(b.min * 100).toFixed(0)}–${(b.max * 100).toFixed(0)}%`,
-        status: 'FAIL',
-        reason: `0% < ${(b.min * 100).toFixed(0)}% (silent required tag)`,
-      })
-      fails++
-    }
-  }
-  return fails
-}
-
-function runCheck(state: AuditState): number {
-  console.log(`\n🛂 CHECK · validate hit rates vs TAG_HIT_RATE_BUDGET`)
-  const rows: CheckRow[] = []
-  let failCount = 0
-  for (const cat of AUTO_TAG_ELIGIBLE_CATEGORIES) {
-    failCount += checkCategoryTags(cat as BudgetCategory, state, rows)
-  }
-  rows.sort((a, b) => {
-    const order = { FAIL: 0, WARN: 1, OK: 2 }
-    if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status]
-    return b.hitRate - a.hitRate
-  })
-  console.log(
-    `\n   ${pad('tag_slug', 28)} ${pad('category', 10)} ${rpad('rate', 7)} ${rpad('budget', 10)} status`
-  )
-  console.log(
-    `   ${'─'.repeat(28)} ${'─'.repeat(10)} ${'─'.repeat(7)} ${'─'.repeat(10)} ${'─'.repeat(6)}`
-  )
-  for (const r of rows) {
-    const icon = r.status === 'FAIL' ? '❌' : r.status === 'WARN' ? '⚠️ ' : '✅'
-    const reason = r.reason ? ` · ${r.reason}` : ''
-    console.log(
-      `   ${pad(r.slug, 28)} ${pad(r.category, 10)} ${rpad(`${(r.hitRate * 100).toFixed(1)}%`, 7)} ${rpad(r.budget, 10)} ${icon} ${r.status}${reason}`
-    )
-  }
-  const fails = rows.filter((r) => r.status === 'FAIL').length
-  const warns = rows.filter((r) => r.status === 'WARN').length
-  const oks = rows.filter((r) => r.status === 'OK').length
-  console.log(`\n   Summary: ${oks} OK · ${warns} WARN · ${fails} FAIL`)
-  return failCount
-}
-
 async function dumpBenefits(state: AuditState): Promise<void> {
   console.log(`\n📈 DUMP_BENEFITS — per-axis benefit-score distributions`)
   console.log(`   sample = one product × axis (eligible category, non-empty INCI)`)
@@ -639,53 +290,13 @@ function logHeader(): void {
   )
 }
 
-async function fetchSubset(): Promise<ProductRow[]> {
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-  const eligibleRows = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      brand: products.brand,
-      kind: products.kind,
-      category: products.category,
-      inci: products.inci,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-  return LIMIT ? eligibleRows.slice(0, LIMIT) : eligibleRows
-}
-
-// Labels each emitted tag as agree (already present) vs new (proposal).
-async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
-  const existingRows = await db
-    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-  const existingByProduct = new Map<string, Set<string>>()
-  for (const r of existingRows) {
-    let set = existingByProduct.get(r.pId)
-    if (!set) {
-      set = new Set()
-      existingByProduct.set(r.pId, set)
-    }
-    set.add(r.slug)
-  }
-  return existingByProduct
-}
-
 async function main() {
   validateEnv()
   logHeader()
 
-  const subset = await fetchSubset()
-  const existingByProduct = await fetchExistingByProduct()
-  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
+  const { state, subsetLength } = await fetchAuditStats()
 
-  const state = initState()
-  for (const p of subset) processProduct(p, state, existingByProduct, concentrationsByProduct)
-
-  reportCoverage(state, subset.length)
+  reportCoverage(state, subsetLength)
   reportPerTag(state)
   reportSilentTags(state)
   reportPerCategory(state)
@@ -738,14 +349,6 @@ function printQuantileRow(axis: string, xs: number[]): void {
 
 function pct(n: number, d: number): string {
   return d === 0 ? '0 %' : `${((n / d) * 100).toFixed(1)} %`
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-auto-tags.ts')) {

@@ -13,35 +13,11 @@
 
 import type { Pass } from '../lib/pass-types'
 import { actifClassPass } from './actif-class-pass'
+import { algoDermPass } from './algo-derm-pass'
 import { avoidPass } from './auto-tag-avoid-pass'
-import { algoDermPass } from './auto-tag-detection-pass'
 import { brandLevelPass } from './brand-cert-pass'
 import { crossSignalPass, interactionSecondaryPass } from './cross-signal-pass'
-import { occlusifPass } from './formula/film-former-pass'
-import {
-  absenceClaimsTextPass,
-  cernesPochesPass,
-  eczemaAtopieNamePass,
-  finiMatPass,
-  keratosePilairePass,
-  nonGrasPass,
-  pigmentsVertsPass,
-  prebiotiquePass,
-  protectionPass,
-  reparationCutaneePass,
-  repulpantPass,
-  semiOcclusifPass,
-  solairePass,
-  stepNettoyage1Pass,
-  textureBaumeNamePass,
-  textureCremeEyeInciPass,
-  textureCremeInciPass,
-  textureFromFieldPass,
-  textureGelInciPass,
-  textureLegerePass,
-  textureRichePass,
-  textureStickNamePass,
-} from './formula/formula-passes'
+import { FORMULA_PASSES } from './formula/formula-passes'
 import { peauNormalePass } from './formula/peau-normale-pass'
 import { kindPass } from './kind-pass'
 import { percentClaimPass } from './percent-claim-pass'
@@ -53,30 +29,9 @@ export const AUTO_TAG_PASSES: readonly Pass[] = [
   actifClassPass,
   // Pass 3: kind-derived (TYPE / STEP / ZONE / MOMENT / TEXTURE)
   kindPass,
-  // Pass 4: formula detectors (order preserved from pre-cutover orchestrator)
-  occlusifPass,
-  semiOcclusifPass,
-  solairePass,
-  prebiotiquePass,
-  protectionPass,
-  reparationCutaneePass,
-  eczemaAtopieNamePass,
-  repulpantPass,
-  keratosePilairePass,
-  stepNettoyage1Pass,
-  cernesPochesPass,
-  finiMatPass,
-  textureRichePass,
-  textureLegerePass,
-  nonGrasPass,
-  pigmentsVertsPass,
-  textureFromFieldPass,
-  textureGelInciPass,
-  textureCremeInciPass,
-  textureBaumeNamePass,
-  textureStickNamePass,
-  textureCremeEyeInciPass,
-  absenceClaimsTextPass,
+  // Pass 4: formula detectors (declarative table; order preserved from
+  // pre-cutover orchestrator — it is the dedup tiebreaker)
+  ...FORMULA_PASSES,
   // Pass 5: cross-signal (reads `actif-class` via `prior`)
   crossSignalPass,
   // Pass 5x: structured percent claims (strict fragile-INCI fallback)

@@ -28,6 +28,7 @@ import { inArray, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
+import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
 import { summarizeByLayer } from '../../gold-set/layers'
@@ -37,8 +38,10 @@ import {
   microAverage,
   type PerTagMetrics,
 } from '../../gold-set/metrics'
+import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
-import { detectAutoTags } from '../../passes/auto-tag-detection'
+import { detectAutoTags } from '../../passes/algo-derm-detection'
+import { pad, rpad } from '../fmt'
 
 const GOLD_SET_PATH =
   process.env.GOLD_SET_PATH ??
@@ -70,23 +73,31 @@ async function main() {
     )
   }
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
   const annotated = gold.annotations.map((a) => a.productSlug)
-  const dbProducts = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      kind: products.kind,
-      category: products.category,
-      inci: products.inci,
-    })
-    .from(products)
-    .where(inArray(products.slug, annotated))
+  // SET LOCAL is tx-scoped — elevation + select must share a transaction, else the
+  // admin role is a no-op and products_select_visible hides non-`visible` annotated rows.
+  const dbProducts = await db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL app.role = 'admin'`)
+    return tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        description: products.description,
+        kind: products.kind,
+        category: products.category,
+        inci: products.inci,
+      })
+      .from(products)
+      .where(inArray(products.slug, annotated))
+  })
 
   const productIds = dbProducts.map((p) => p.id)
   const claimsByProduct = await fetchPercentClaimsByProduct(productIds)
+  // The bench was the only orchestrator caller omitting concentrations; pass them for
+  // parity with write.ts/runners so dose-gated emissions (R4 peau-sensible) are measured
+  // faithfully once such a tag enters GOLD_SET_FOCUS_TAGS. No focus-tag impact today.
+  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(productIds)
 
   // Every annotated slug must exist in DB; missing = stale gold set (renamed/deleted product).
   const dbBySlug = new Map<string, (typeof dbProducts)[number]>()
@@ -116,30 +127,36 @@ async function main() {
   let withInci = 0
 
   for (const p of dbProducts) {
-    if (!p.inci?.trim()) {
-      // No INCI: record all focus tags as not-emitted so the metric loop sees consistent absence.
-      const m = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
-      for (const t of GOLD_SET_FOCUS_TAGS) m.set(t, { emitted: false, conf: 0 })
-      rowsPerProduct.set(p.slug, m)
-      continue
-    }
-    withInci++
+    const inci = p.inci?.trim() ? p.inci : null
+    if (inci) withInci++
 
-    const ingredients = splitINCI(p.inci)
-    const assessment = analyzeINCI(p.inci, { context: mapKindToContext(p.kind as ProductKind) })
-
-    const algoTags = detectAutoTags(p.inci, p.kind as ProductKind, {
-      assessment,
-      ingredients,
-    })
+    // algo-derm confidence needs INCI; the orchestrator runs regardless so that
+    // name/claim passes (rougeurs-vasculaires, eczema-atopie, protection) are still
+    // measured on no-INCI products — they fire from name/description, not INCI.
     const algoConfBySlug = new Map<string, number>()
-    for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
+    if (inci) {
+      // Strip preamble before split/analyze to match runtime (build-pass-context);
+      // raw prose skews the Pass-1 confidence feeding Brier/ECE.
+      const cleanedInci = stripMarketingPreamble(inci)
+      const ingredients = splitINCI(cleanedInci)
+      const assessment = analyzeINCI(cleanedInci, {
+        context: mapKindToContext(p.kind as ProductKind),
+      })
+      const algoTags = detectAutoTags(inci, p.kind as ProductKind, { assessment, ingredients })
+      for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
+    }
 
     const orchPairs = detectAllAutoTags({
       inci: p.inci,
       kind: p.kind as ProductKind,
       category: p.category,
+      // name/description are load-bearing: positioning passes (rougeurs-vasculaires,
+      // eczema-atopie, protection SPF, absence-claims) read them. Omitting them made
+      // the bench blind to every name-based pass (gold-set ↔ intake gap, backlog §20).
+      name: p.name,
+      description: p.description,
       percentClaims: claimsByProduct.get(p.id) ?? [],
+      knownConcentrations: concentrationsByProduct.get(p.id),
     })
     const emittedSlugs = new Set<string>()
     for (const pair of orchPairs) emittedSlugs.add(pair.tagSlug)
@@ -158,7 +175,7 @@ async function main() {
   console.log(`📊 Couverture`)
   console.log(`   ${gold.annotations.length} produits annotés`)
   console.log(
-    `   ${withInci} avec INCI · ${gold.annotations.length - withInci} sans INCI (pred=0 forcé)\n`
+    `   ${withInci} avec INCI · ${gold.annotations.length - withInci} sans INCI (passes nom/claim seules)\n`
   )
 
   const perTag: PerTagMetrics[] = []
@@ -252,14 +269,6 @@ async function main() {
 function fmt(x: number): string {
   if (Number.isNaN(x)) return '—'
   return x.toFixed(3)
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-gold-set.ts')) {

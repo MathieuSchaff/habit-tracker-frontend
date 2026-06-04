@@ -32,13 +32,7 @@
 //   INCLUDE_DROPPED 1: surface allow:false tags in report (no writes)
 //   LIMIT           int: cap product count
 
-import {
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
-  type ProductCategory,
-  type ProductKind,
-  type ProductTexture,
-} from '@aurore/shared'
+import type { ProductCategory, ProductKind, ProductTexture } from '@aurore/shared'
 
 import { inArray, sql } from 'drizzle-orm'
 
@@ -56,13 +50,13 @@ import {
   fetchPercentClaimsByProduct,
   type PercentClaim,
 } from '../../../../lib/fetch-percent-claims'
+import { resolveTagRows } from '../../lib/resolve-tag-rows'
 import {
   AUTO_TAG_ELIGIBLE_CATEGORIES,
   type AutoTagSource,
   detectAllAutoTags,
 } from '../../orchestrator'
-import { TAG_CONFIG } from '../../passes/auto-tag-detection'
-import { partitionEczemaReview } from '../../passes/formula'
+import { TAG_CONFIG } from '../../passes/algo-derm-detection'
 import { type Candidate, type ClassifyResult, classifyCandidates, type Relevance } from './classify'
 
 const WRITE = process.argv.includes('--write')
@@ -121,23 +115,28 @@ async function fetchProductsAndCerts(): Promise<{
   allProducts: ProductRow[]
   brandCertMap: BrandCertMap
 }> {
-  const allProducts = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      description: products.description,
-      brand: products.brand,
-      kind: products.kind,
-      inci: products.inci,
-      category: products.category,
-      texture: products.texture,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-  const certRows = await db.select().from(brandCertifications)
-  const brandCertMap: BrandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-  return { allProducts, brandCertMap }
+  // Admin RLS elevation: products_select_visible hides non-`visible` rows from the
+  // app_runtime role, so a plain read silently skips products in moderation and
+  // under-covers the backfill. The write path already elevates; the read must match.
+  return withAdminRls(async (tx) => {
+    const allProducts = await tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        description: products.description,
+        brand: products.brand,
+        kind: products.kind,
+        inci: products.inci,
+        category: products.category,
+        texture: products.texture,
+      })
+      .from(products)
+      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+    const certRows = await tx.select().from(brandCertifications)
+    const brandCertMap: BrandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
+    return { allProducts, brandCertMap }
+  })
 }
 
 function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
@@ -218,11 +217,6 @@ function detectCandidates(
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
 
-    const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[p.category]
-    const validTagTypes = domain
-      ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
-      : []
-
     const pairs = detectAllAutoTags(
       {
         inci: p.inci,
@@ -242,7 +236,7 @@ function detectCandidates(
       }
     )
 
-    const { kept, withheld } = partitionEczemaReview(pairs, p.description)
+    const { rows, withheld } = resolveTagRows(pairs, p, tagSlugToInfo)
     if (withheld) {
       eczemaReviewQueue.push({
         slug: p.slug,
@@ -250,17 +244,14 @@ function detectCandidates(
         description: p.description ?? '',
       })
     }
-    for (const pair of kept) {
-      const info = tagSlugToInfo.get(pair.tagSlug)
-      if (!info) continue
-      if (!validTagTypes.includes(info.tagType)) continue
-      candidateMap.set(`${p.id}:${info.id}`, {
+    for (const r of rows) {
+      candidateMap.set(`${p.id}:${r.tagId}`, {
         productId: p.id,
-        productTagId: info.id,
+        productTagId: r.tagId,
         slug: p.slug,
-        tagSlug: pair.tagSlug,
-        relevance: pair.relevance,
-        source: pair.source,
+        tagSlug: r.tagSlug,
+        relevance: r.relevance,
+        source: r.source,
       })
     }
   }

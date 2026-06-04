@@ -1,27 +1,42 @@
-// Pass wrappers for the formula detector family, ADR-0001 slice #3b.
+// Formula pass family (ADR-0001).
 //
-// All emit `source: 'formula'`, `relevance: 'secondary'`. Each wrapper is a
-// thin adapter binding the `PassContext` fields its underlying detector reads.
-// Detector internals are unchanged; the wrappers exist only so the orchestrator
-// can iterate a uniform `Pass[]` registry.
+// Every formula detector emits `source: 'formula'`, `relevance: 'secondary'`,
+// so the family is one declarative table instead of N hand-written `Pass`
+// objects. `formulaPass` stamps the shared metadata; each row binds the
+// `PassContext` fields its detector reads. Detector signatures are unchanged —
+// they stay directly unit-tested in `tests/formula.test.ts`.
 //
-// `occlusifPass` (film-former-pass.ts) and `peauNormalePass` (peau-normale-pass.ts)
-// were established in slice #2 and live in their own files.
+// Order is load-bearing: it is the pass-4 dedup tiebreaker (first-emitting pass
+// owns the source attribution) and is pinned by the orchestrator parity test.
+// `peauNormalePass` is not here — it runs last and reads `prior` (own file).
+
+import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import { asProposals } from '../../lib/pass-helpers'
-import type { Pass } from '../../lib/pass-types'
+import type { Pass, PassContext } from '../../lib/pass-types'
 import {
   detectAbsenceClaimsFromText,
+  detectAcneImperfectionsFromName,
+  detectAntiAgeFromName,
+  detectApaisantFromName,
+  detectBarriereCutaneeFromName,
   detectCernesPoches,
+  detectDeshydratationFromName,
+  detectEclatTeintFromName,
   detectEczemaAtopieFromName,
   detectFiniMat,
+  detectHyperpigmentationFromName,
   detectKeratosePilaire,
   detectNonGras,
+  detectOcclusifTags,
   detectPigmentsVerts,
+  detectPoresSebumFromName,
   detectPrebiotique,
   detectProtection,
   detectReparationCutanee,
   detectRepulpant,
+  detectRougeursVasculairesFromName,
+  detectSansSavon,
   detectSemiOcclusif,
   detectSolaireTags,
   detectStepNettoyage1,
@@ -35,142 +50,88 @@ import {
   detectTextureStickFromName,
 } from '.'
 
-export const semiOcclusifPass: Pass = {
-  name: 'formula:semi-occlusif',
-  run: (ctx) =>
-    asProposals(detectSemiOcclusif(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
+function formulaPass(
+  name: string,
+  detect: (ctx: PassContext) => readonly SkincareProductTagSlug[]
+): Pass {
+  return { name, run: (ctx) => asProposals(detect(ctx), 'formula') }
 }
 
-export const solairePass: Pass = {
-  name: 'formula:solaire',
-  run: (ctx) =>
-    asProposals(
-      detectSolaireTags(ctx.inci, ctx.kind, ctx.category, ctx.normalizedIngredients),
-      'formula'
-    ),
-}
-
-export const prebiotiquePass: Pass = {
-  name: 'formula:prebiotique',
-  run: (ctx) => asProposals(detectPrebiotique(ctx.inci, ctx.normalizedIngredients), 'formula'),
-}
-
-export const reparationCutaneePass: Pass = {
-  name: 'formula:reparation-cutanee',
-  run: (ctx) =>
-    asProposals(detectReparationCutanee(ctx.inci, ctx.normalizedIngredients), 'formula'),
-}
-
-export const protectionPass: Pass = {
-  name: 'formula:protection',
-  run: (ctx) => asProposals(detectProtection(ctx.kind, ctx.name, ctx.description), 'formula'),
-}
-
-export const eczemaAtopieNamePass: Pass = {
-  name: 'formula:eczema-atopie-name',
-  run: (ctx) => asProposals(detectEczemaAtopieFromName(ctx.name, ctx.description), 'formula'),
-}
-
-export const repulpantPass: Pass = {
-  name: 'formula:repulpant',
-  run: (ctx) =>
-    asProposals(detectRepulpant(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const keratosePilairePass: Pass = {
-  name: 'formula:keratose-pilaire',
-  run: (ctx) =>
-    asProposals(detectKeratosePilaire(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const stepNettoyage1Pass: Pass = {
-  name: 'formula:step-nettoyage-1',
-  run: (ctx) =>
-    asProposals(detectStepNettoyage1(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const cernesPochesPass: Pass = {
-  name: 'formula:cernes-poches',
-  run: (ctx) =>
-    asProposals(detectCernesPoches(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const finiMatPass: Pass = {
-  name: 'formula:fini-mat',
-  run: (ctx) => asProposals(detectFiniMat(ctx.inci, ctx.normalizedIngredients), 'formula'),
-}
-
-export const textureRichePass: Pass = {
-  name: 'formula:texture-riche',
-  run: (ctx) => asProposals(detectTextureRiche(ctx.inci, ctx.normalizedIngredients), 'formula'),
-}
-
-export const textureLegerePass: Pass = {
-  name: 'formula:texture-legere',
-  run: (ctx) =>
-    asProposals(detectTextureLegere(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const nonGrasPass: Pass = {
-  name: 'formula:non-gras',
-  run: (ctx) =>
-    asProposals(detectNonGras(ctx.inci, ctx.kind, ctx.normalizedIngredients), 'formula'),
-}
-
-export const pigmentsVertsPass: Pass = {
-  name: 'formula:pigments-verts',
-  run: (ctx) => asProposals(detectPigmentsVerts(ctx.inci, ctx.normalizedIngredients), 'formula'),
-}
-
-export const textureFromFieldPass: Pass = {
-  name: 'formula:texture-from-field',
-  run: (ctx) => asProposals(detectTextureFromField(ctx.texture), 'formula'),
-}
-
-export const textureGelInciPass: Pass = {
-  name: 'formula:texture-gel-inci',
-  run: (ctx) =>
-    asProposals(
-      detectTextureGelInci(ctx.inci, ctx.kind, ctx.texture, ctx.normalizedIngredients),
-      'formula'
-    ),
-}
-
-export const textureCremeInciPass: Pass = {
-  name: 'formula:texture-creme-inci',
-  run: (ctx) =>
-    asProposals(
-      detectTextureCremeInci(ctx.inci, ctx.kind, ctx.texture, ctx.normalizedIngredients),
-      'formula'
-    ),
-}
-
-export const textureBaumeNamePass: Pass = {
-  name: 'formula:texture-baume-name',
-  run: (ctx) => asProposals(detectTextureBaumeFromName(ctx.kind, ctx.texture, ctx.name), 'formula'),
-}
-
-export const textureStickNamePass: Pass = {
-  name: 'formula:texture-stick-name',
-  run: (ctx) => asProposals(detectTextureStickFromName(ctx.kind, ctx.texture, ctx.name), 'formula'),
-}
-
-export const textureCremeEyeInciPass: Pass = {
-  name: 'formula:texture-creme-eye-inci',
-  run: (ctx) =>
-    asProposals(
-      detectTextureCremeEyeInci(
-        ctx.inci,
-        ctx.kind,
-        ctx.texture,
-        ctx.name,
-        ctx.normalizedIngredients
-      ),
-      'formula'
-    ),
-}
-
-export const absenceClaimsTextPass: Pass = {
-  name: 'formula:absence-claims-text',
-  run: (ctx) => asProposals(detectAbsenceClaimsFromText(ctx.name, ctx.description), 'formula'),
-}
+// Pass 4. Same order as the pre-cutover orchestrator (preserves dedup outcomes).
+export const FORMULA_PASSES: readonly Pass[] = [
+  formulaPass('formula:occlusif', (c) => detectOcclusifTags(c.inci, c.normalizedIngredients)),
+  formulaPass('formula:semi-occlusif', (c) =>
+    detectSemiOcclusif(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:solaire', (c) =>
+    detectSolaireTags(c.inci, c.kind, c.category, c.normalizedIngredients)
+  ),
+  formulaPass('formula:prebiotique', (c) => detectPrebiotique(c.inci, c.normalizedIngredients)),
+  formulaPass('formula:protection', (c) => detectProtection(c.kind, c.name, c.description)),
+  formulaPass('formula:reparation-cutanee', (c) =>
+    detectReparationCutanee(c.inci, c.normalizedIngredients)
+  ),
+  formulaPass('formula:eczema-atopie-name', (c) =>
+    detectEczemaAtopieFromName(c.name, c.description)
+  ),
+  formulaPass('formula:rougeurs-vasculaires-name', (c) =>
+    detectRougeursVasculairesFromName(c.name, c.description)
+  ),
+  formulaPass('formula:hyperpigmentation-name', (c) =>
+    detectHyperpigmentationFromName(c.name, c.description)
+  ),
+  formulaPass('formula:eclat-teint-name', (c) => detectEclatTeintFromName(c.name, c.description)),
+  formulaPass('formula:pores-sebum-name', (c) => detectPoresSebumFromName(c.name, c.description)),
+  formulaPass('formula:deshydratation-name', (c) =>
+    detectDeshydratationFromName(c.name, c.description)
+  ),
+  formulaPass('formula:acne-imperfections-name', (c) =>
+    detectAcneImperfectionsFromName(c.name, c.description)
+  ),
+  formulaPass('formula:anti-age-name', (c) => detectAntiAgeFromName(c.name, c.description)),
+  formulaPass('formula:barriere-cutanee-name', (c) =>
+    detectBarriereCutaneeFromName(c.name, c.description)
+  ),
+  formulaPass('formula:apaisant-name', (c) => detectApaisantFromName(c.name, c.description)),
+  formulaPass('formula:repulpant', (c) => detectRepulpant(c.inci, c.kind, c.normalizedIngredients)),
+  formulaPass('formula:keratose-pilaire', (c) =>
+    detectKeratosePilaire(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:sans-savon', (c) =>
+    detectSansSavon(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:step-nettoyage-1', (c) =>
+    detectStepNettoyage1(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:cernes-poches', (c) =>
+    detectCernesPoches(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:fini-mat', (c) => detectFiniMat(c.inci, c.normalizedIngredients)),
+  formulaPass('formula:texture-riche', (c) => detectTextureRiche(c.inci, c.normalizedIngredients)),
+  formulaPass('formula:texture-legere', (c) =>
+    detectTextureLegere(c.inci, c.kind, c.normalizedIngredients)
+  ),
+  formulaPass('formula:non-gras', (c) => detectNonGras(c.inci, c.kind, c.normalizedIngredients)),
+  formulaPass('formula:pigments-verts', (c) =>
+    detectPigmentsVerts(c.inci, c.normalizedIngredients)
+  ),
+  formulaPass('formula:texture-from-field', (c) => detectTextureFromField(c.texture)),
+  formulaPass('formula:texture-gel-inci', (c) =>
+    detectTextureGelInci(c.inci, c.kind, c.texture, c.normalizedIngredients)
+  ),
+  formulaPass('formula:texture-creme-inci', (c) =>
+    detectTextureCremeInci(c.inci, c.kind, c.texture, c.normalizedIngredients)
+  ),
+  formulaPass('formula:texture-baume-name', (c) =>
+    detectTextureBaumeFromName(c.kind, c.texture, c.name)
+  ),
+  formulaPass('formula:texture-stick-name', (c) =>
+    detectTextureStickFromName(c.kind, c.texture, c.name)
+  ),
+  formulaPass('formula:texture-creme-eye-inci', (c) =>
+    detectTextureCremeEyeInci(c.inci, c.kind, c.texture, c.name, c.normalizedIngredients)
+  ),
+  formulaPass('formula:absence-claims-text', (c) =>
+    detectAbsenceClaimsFromText(c.name, c.description)
+  ),
+]

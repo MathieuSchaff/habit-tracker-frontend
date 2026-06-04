@@ -212,96 +212,82 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     })
     expect(got.some((p) => p.source === 'percent-claim' && p.tagSlug === S.RETINOIDS)).toBe(true)
   })
-})
 
-describe('detectAllAutoTags — runner pathway parity', () => {
-  // Both runners build their write payload by mapping `detectAllAutoTags`
-  // output to (slug, tagSlug, relevance) shape. This test simulates both
-  // pathways and asserts they produce identical pair sets — which is the
-  // operational guarantee that `make dev-fresh` followed by
-  // `make backfill-auto-tags` is a no-op on auto-tag pairs.
-  const fixture: { slug: string; product: OrchestratorInput }[] = [
-    {
-      slug: 'retinol-serum',
-      product: {
-        inci: 'Aqua, Glycerin, Retinol, Tocopherol, Phenoxyethanol',
+  // Formula passes unit-tested in formula.test.ts but with no orchestrator-level
+  // assertion: confirm each still survives the full pipeline (passes + dedup).
+  test('silicone serum: semi-occlusif + non-gras both fire', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Glycerin, Dimethicone, Niacinamide, Tocopherol',
         kind: 'serum',
         category: 'skincare',
-      },
-    },
-    {
-      slug: 'mineral-sunscreen',
-      product: {
-        inci: 'Aqua, Zinc Oxide, Titanium Dioxide, Glycerin',
-        kind: 'sunscreen',
-        category: 'solaire',
-      },
-    },
-    {
-      slug: 'body-retinoid-lotion',
-      product: {
-        inci: 'Aqua, Glycerin, Retinyl Palmitate, Shea Butter',
+      })
+    )
+    expect(slugs).toContain(S.SEMI_OCCLUSIF)
+    expect(slugs).toContain(S.NON_GRAS)
+  })
+
+  test('urea body lotion (bodycare): keratose-pilaire fires', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Urea, Glycerin, Petrolatum',
         kind: 'body-lotion',
         category: 'bodycare',
-      },
-    },
-    {
-      slug: 'plain-moisturizer',
-      product: {
-        inci: 'Aqua, Glycerin, Niacinamide, Hyaluronic Acid, Tocopherol, Phenoxyethanol',
+      })
+    )
+    expect(slugs).toContain(S.KERATOSE_PILAIRE)
+  })
+
+  test('plumping repair serum: repulpant + reparation-cutanee both fire', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Sodium Hyaluronate, Glycerin, Panthenol, Acetyl Hexapeptide-8',
+        kind: 'serum',
+        category: 'skincare',
+      })
+    )
+    expect(slugs).toContain(S.REPULPANT)
+    expect(slugs).toContain(S.REPARATION)
+  })
+
+  test('mattifying tinted prebiotic serum: prebiotique + fini-mat + pigments-verts fire', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Inulin, Silica, CI 77288, Glycerin',
+        kind: 'serum',
+        category: 'skincare',
+      })
+    )
+    expect(slugs).toContain(S.PREBIOTIQUE)
+    expect(slugs).toContain(S.FINI_MAT)
+    expect(slugs).toContain(S.PIGMENTS_VERTS)
+  })
+
+  test('classic emulsion moisturizer: texture-creme fires, peau-normale abstains', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Glycerin, Cetyl Alcohol, Cetearyl Alcohol, Glyceryl Stearate, Panthenol, Tocopherol',
         kind: 'moisturizer',
         category: 'skincare',
-      },
-    },
-    {
-      slug: 'no-inci-product',
-      product: { inci: null, kind: 'toner', category: 'skincare' },
-    },
-  ]
-
-  // Seed-core pathway: emit (slug, tagSlug, relevance) per product.
-  const seedCorePairs = (
-    items: typeof fixture
-  ): { slug: string; tagSlug: string; relevance: string }[] => {
-    const out: { slug: string; tagSlug: string; relevance: string }[] = []
-    for (const { slug, product } of items) {
-      for (const p of detectAllAutoTags(product)) {
-        out.push({ slug, tagSlug: p.tagSlug, relevance: p.relevance })
-      }
-    }
-    return out.sort((a, b) =>
-      a.slug === b.slug ? a.tagSlug.localeCompare(b.tagSlug) : a.slug.localeCompare(b.slug)
+      })
     )
-  }
-
-  // Backfill pathway: same input, same orchestrator call. Only difference in
-  // production is the tagSlug→tagId resolution + DB existing-row diff, which
-  // sit downstream of the orchestrator and apply identically.
-  const backfillPairs = (
-    items: typeof fixture
-  ): { slug: string; tagSlug: string; relevance: string }[] => {
-    const out: { slug: string; tagSlug: string; relevance: string }[] = []
-    for (const { slug, product } of items) {
-      for (const p of detectAllAutoTags(product)) {
-        out.push({ slug, tagSlug: p.tagSlug, relevance: p.relevance })
-      }
-    }
-    return out.sort((a, b) =>
-      a.slug === b.slug ? a.tagSlug.localeCompare(b.tagSlug) : a.slug.localeCompare(b.slug)
-    )
-  }
-
-  test('seed-core and backfill emit identical pair set on fixture', () => {
-    expect(backfillPairs(fixture)).toEqual(seedCorePairs(fixture))
+    expect(slugs).toContain(S.TEXTURE_CREME)
+    // peau-normale is a residual pass: it abstains once algo-derm classifies skin_type
+    // (peau-seche/peau-sensible here). Asserting the abstention is stable — unlike asserting it
+    // fires — and guards the pass-order-drift failure mode (README §Failure modes). Positive
+    // firing is covered by its unit test + the gold-set bench, not a synthetic orchestrator fixture.
+    expect(slugs).not.toContain(S.PEAU_NORMALE)
   })
 
-  test('fixture covers all eligibility categories', () => {
-    const cats = new Set(fixture.map((f) => f.product.category))
-    expect(cats).toEqual(new Set(AUTO_TAG_ELIGIBLE_CATEGORIES))
-  })
-
-  test('fixture has at least one avoid pair (covers safety pass)', () => {
-    const allPairs = fixture.flatMap((f) => detectAllAutoTags(f.product))
-    expect(allPairs.some((p) => p.relevance === 'avoid')).toBe(true)
+  test('eye balm named "Baume": texture-baume fires', () => {
+    const slugs = slugsOf(
+      detectAllAutoTags({
+        inci: 'Aqua, Glycerin, Cetearyl Alcohol, Caffeine, Panthenol',
+        kind: 'eye-cream',
+        category: 'skincare',
+        name: 'Baume Contour des Yeux',
+      })
+    )
+    expect(slugs).toContain(S.TEXTURE_BAUME)
   })
 })

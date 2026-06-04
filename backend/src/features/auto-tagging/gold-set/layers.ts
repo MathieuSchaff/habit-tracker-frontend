@@ -31,15 +31,18 @@ export const FOCUS_TAG_LAYER = {
   'eczema-atopie': 'formula',
   'reparation-cutanee': 'formula',
   'cernes-poches': 'formula',
-  'acne-imperfections': 'algo-derm',
-  'anti-age': 'algo-derm',
-  hyperpigmentation: 'algo-derm',
-  'barriere-cutanee': 'algo-derm',
-  apaisant: 'algo-derm',
-  deshydratation: 'algo-derm',
-  'pores-sebum': 'algo-derm',
-  'rougeurs-vasculaires': 'algo-derm',
-  'eclat-teint-uniforme': 'algo-derm',
+  // Re-emitted by formula name/claim positioning passes since R5 (algo-derm unwired).
+  'rougeurs-vasculaires': 'formula',
+  hyperpigmentation: 'formula',
+  'eclat-teint-uniforme': 'formula',
+  'pores-sebum': 'formula',
+  deshydratation: 'formula',
+  'acne-imperfections': 'formula',
+  'anti-age': 'formula',
+  'barriere-cutanee': 'formula',
+  apaisant: 'formula',
+  // protection stays algo-derm: its re-emission is a deterministic sunscreen-kind/SPF
+  // signal, not a name/claim positioning gate. Last concern left in this layer.
   protection: 'algo-derm',
 } as const satisfies Record<GoldSetFocusTag, GoldSetLayer>
 

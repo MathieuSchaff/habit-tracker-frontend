@@ -19,18 +19,18 @@ import { and, eq, ilike, inArray, or } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
+import { padTrunc, rpad } from '../fmt'
 
 const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 30
 const SEED = process.env.SEED
 const PRUNE = process.env.PRUNE === '1'
 
-// Patterns not yet in formula-detection.ts:ANIMAL_PATTERNS.
-// Tier A: clearly animal, add to ANIMAL_PATTERNS if found.
+// Tier A: clearly animal INCI — high-confidence FP signals for algo-derm vegan tagging.
+// Non-zero hit on a vegan-tagged product = FP candidate (prune with PRUNE=1).
 //   gelatin/gelatine: collagen-derived, porcine/bovine/marine origin
 //   oyster: mollusk; colostrum: bovine milk; lactalbumin: milk protein
 //   bee venom/apitoxin: apiculture byproduct; egg/albumin: chicken-derived
-//   pearl / lactoperoxidase: already in ANIMAL_PATTERNS post-B.7 (mirrored
-//     here to verify zero hits on re-run; non-zero = regression).
+//   pearl / lactoperoxidase: reference anchors — non-zero hit = regression.
 //
 // Tier B: ambiguous (animal or plant, INCI alone can't distinguish).
 //   stearic acid: bovine tallow historically, mostly plant today
@@ -147,14 +147,14 @@ async function main() {
   if (tierAHits.length > 0) {
     console.log(`🚨 Tier A — Faux positifs probables`)
     console.log(
-      `   ${pad('product_slug', 40)} ${pad('brand', 20)} ${pad('pattern', 18)} ${rpad('pos', 4)} matched_ingredient`
+      `   ${padTrunc('product_slug', 40)} ${padTrunc('brand', 20)} ${padTrunc('pattern', 18)} ${rpad('pos', 4)} matched_ingredient`
     )
     console.log(
       `   ${'─'.repeat(40)} ${'─'.repeat(20)} ${'─'.repeat(18)} ${'─'.repeat(4)} ${'─'.repeat(40)}`
     )
     for (const h of tierAHits) {
       console.log(
-        `   ${pad(h.productSlug, 40)} ${pad(h.brand, 20)} ${pad(h.pattern, 18)} ${rpad(String(h.position), 4)} ${h.matchedIngredient}`
+        `   ${padTrunc(h.productSlug, 40)} ${padTrunc(h.brand, 20)} ${padTrunc(h.pattern, 18)} ${rpad(String(h.position), 4)} ${h.matchedIngredient}`
       )
     }
     console.log()
@@ -163,14 +163,14 @@ async function main() {
   if (tierBHits.length > 0) {
     console.log(`⚠️  Tier B — Ambigus (origine animale OU végétale, INCI seul insuffisant)`)
     console.log(
-      `   ${pad('product_slug', 40)} ${pad('brand', 20)} ${pad('pattern', 18)} ${rpad('pos', 4)} matched_ingredient`
+      `   ${padTrunc('product_slug', 40)} ${padTrunc('brand', 20)} ${padTrunc('pattern', 18)} ${rpad('pos', 4)} matched_ingredient`
     )
     console.log(
       `   ${'─'.repeat(40)} ${'─'.repeat(20)} ${'─'.repeat(18)} ${'─'.repeat(4)} ${'─'.repeat(40)}`
     )
     for (const h of tierBHits) {
       console.log(
-        `   ${pad(h.productSlug, 40)} ${pad(h.brand, 20)} ${pad(h.pattern, 18)} ${rpad(String(h.position), 4)} ${h.matchedIngredient}`
+        `   ${padTrunc(h.productSlug, 40)} ${padTrunc(h.brand, 20)} ${padTrunc(h.pattern, 18)} ${rpad(String(h.position), 4)} ${h.matchedIngredient}`
       )
     }
     console.log()
@@ -181,7 +181,7 @@ async function main() {
     const sorted = [...patternFreq.entries()].sort((a, b) => b[1] - a[1])
     for (const [pat, n] of sorted) {
       const tier = (TIER_A_PATTERNS as readonly string[]).includes(pat) ? 'A' : 'B'
-      console.log(`   ${rpad(String(n), 4)} × ${pad(pat, 20)} (Tier ${tier})`)
+      console.log(`   ${rpad(String(n), 4)} × ${padTrunc(pat, 20)} (Tier ${tier})`)
     }
     console.log()
   }
@@ -281,14 +281,6 @@ function makeSeededRng(seed: string): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s.slice(0, w) : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-vegan-corpus.ts')) {

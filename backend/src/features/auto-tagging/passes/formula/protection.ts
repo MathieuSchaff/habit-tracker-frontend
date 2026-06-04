@@ -13,8 +13,9 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // Post-exposure kinds (after-sun, self-tanner) are excluded because they are
 // not `sunscreen`; without a stated SPF they stay absent (worksheet rule E).
 
-// SPF/FPS index, tolerating common separators (space, colon, dot, hyphen): `SPF 50`, `SPF-50`, `spf.30`.
-const SPF_CLAIM_RE = /\b(spf|fps)[\s:.-]*\d/i
+// SPF/FPS/IP index + "indice (de) protection", tolerating common separators.
+// Matches: `SPF 50`, `SPF-50`, `spf.30`, `IP50`, `FPS30`, `indice de protection`.
+const SPF_CLAIM_RE = /\b(spf|fps|ip)[\s:.-]*\d|\bindice\s+(?:de\s+)?protection\b/i
 
 export function detectProtection(
   kind: ProductKind,

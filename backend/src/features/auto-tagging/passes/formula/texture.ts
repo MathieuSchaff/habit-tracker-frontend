@@ -2,6 +2,7 @@ import type { ProductKind, ProductTexture } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { resolveIngredients } from '../../lib/ingredient-resolver'
+import { inciWindow } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
@@ -37,15 +38,13 @@ export function detectTextureRiche(
 ): SkincareProductTagSlug[] {
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
-  const cap = Math.min(ingredients.length, TEXTURE_RICHE_POSITION_CAP)
-
   // Each pattern can only count once (avoid 'butyrospermum parkii' + 'shea butter'
   // double-counting on a single ingredient that contains both substrings).
   const matchedPatterns = new Set<string>()
-  for (let i = 0; i < cap; i++) {
+  for (const ing of inciWindow(ingredients, TEXTURE_RICHE_POSITION_CAP)) {
     for (const p of BUTTER_WAX_PATTERNS) {
       if (matchedPatterns.has(p)) continue
-      if (ingredients[i].includes(p)) {
+      if (ing.includes(p)) {
         matchedPatterns.add(p)
         break
       }
@@ -144,15 +143,14 @@ export function detectTextureLegere(
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length < 3) return []
 
-  const top3 = ingredients.slice(0, 3)
+  const top3 = inciWindow(ingredients, 3)
   const hasLightBase =
     top3.some((ing) => WATER_TOKENS.some((t) => ing.includes(t))) ||
     top3.some((ing) => ing.includes('glycerin'))
   if (!hasLightBase) return []
 
-  const cap = Math.min(ingredients.length, 8)
-  for (let i = 0; i < cap; i++) {
-    if (HEAVY_EXCLUSION_PATTERNS.some((p) => ingredients[i].includes(p))) return []
+  for (const ing of inciWindow(ingredients, 8)) {
+    if (HEAVY_EXCLUSION_PATTERNS.some((p) => ing.includes(p))) return []
   }
 
   return [S.TEXTURE_LEGERE]
@@ -171,7 +169,7 @@ export function detectNonGras(
   if (!NON_GRAS_KINDS.has(kind)) return []
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
-  const top5 = ingredients.slice(0, Math.min(ingredients.length, 5))
+  const top5 = inciWindow(ingredients, 5)
 
   const hasLightSilicone = top5.some((ing) => SILICONE_LIGHT_PATTERNS.some((p) => ing.includes(p)))
   if (!hasLightSilicone) return []
@@ -251,7 +249,7 @@ export function detectTextureGelInci(
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
 
-  const top5 = ingredients.slice(0, Math.min(ingredients.length, TEXTURE_GEL_POSITION_CAP))
+  const top5 = inciWindow(ingredients, TEXTURE_GEL_POSITION_CAP)
   const hasGelFormer = top5.some((ing) => GEL_FORMER_PATTERNS.some((p) => ing.includes(p)))
   if (!hasGelFormer) return []
 
@@ -259,9 +257,8 @@ export function detectTextureGelInci(
     if (VEGETABLE_OIL_PATTERNS.some((p) => ing.includes(p))) return []
   }
 
-  const cap8 = Math.min(ingredients.length, 8)
-  for (let i = 0; i < cap8; i++) {
-    if (BUTTER_WAX_PATTERNS.some((p) => ingredients[i].includes(p))) return []
+  for (const ing of inciWindow(ingredients, 8)) {
+    if (BUTTER_WAX_PATTERNS.some((p) => ing.includes(p))) return []
   }
 
   // No silicone-led "gel-cream" hybrid (covered by `non-gras`/`semi-occlusif`).
@@ -353,8 +350,8 @@ export function detectTextureCremeInci(
   // Veto logic unreliable on sparse INCI: trust kind.
   if (ingredients.length < TEXTURE_CREME_MIN_INCI_FOR_VETO) return [S.TEXTURE_CREME]
 
-  const top5 = ingredients.slice(0, Math.min(ingredients.length, 5))
-  const top8 = ingredients.slice(0, Math.min(ingredients.length, 8))
+  const top5 = inciWindow(ingredients, 5)
+  const top8 = inciWindow(ingredients, 8)
   const firstIng = ingredients[0]
 
   // fallow-ignore-next-line code-duplication
@@ -459,9 +456,9 @@ export function detectTextureCremeEyeInci(
     return hint === 'creme' ? [S.TEXTURE_CREME] : []
   }
 
-  const top3 = ingredients.slice(0, Math.min(ingredients.length, 3))
-  const top5 = ingredients.slice(0, Math.min(ingredients.length, 5))
-  const top8 = ingredients.slice(0, Math.min(ingredients.length, 8))
+  const top3 = inciWindow(ingredients, 3)
+  const top5 = inciWindow(ingredients, 5)
+  const top8 = inciWindow(ingredients, 8)
 
   // fallow-ignore-next-line code-duplication
   // Veto 1: ionic surfactant top 5 → cleanser mistag

@@ -20,6 +20,7 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
+import { pad, rpad } from '../fmt'
 
 const VALID_KINDS = new Set(Object.keys(PRODUCT_KIND_LABELS))
 
@@ -130,14 +131,6 @@ async function runCounts(): Promise<void> {
 
 function sortDesc(m: Map<string, number>): [string, number][] {
   return [...m.entries()].sort((a, b) => b[1] - a[1])
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 async function main(): Promise<void> {

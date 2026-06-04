@@ -1,67 +1,24 @@
-// Shape tests for the 20 formula-family pass wrappers (ADR-0001 slice #3b).
+// Contract tests for the formula pass family (ADR-0001 declarative table).
 //
-// Each wrapper does `asProposals(detector(ctx fields), 'formula')`. The test
-// verifies that the wrapper's output equals the raw detector output mapped
-// the same way — catches arg-order bugs, dropped fields, wrong source string.
-//
-// `occlusifPass` (slice #2) and `peauNormalePass` (slice #2) live in their
-// own test files.
+// The family used to be N hand-written `Pass` objects, each with a tautological
+// shape test (`pass.run ≡ asProposals(detector(...))`). After the collapse it is
+// one `FORMULA_PASSES` table. Detector behaviour is owned by `tests/formula.test.ts`
+// (INCI in → slugs out) and orchestration by the parity test; these tests guard
+// only what the table itself owns: the shared metadata stamp, table integrity,
+// and that the non-INCI binds route the right `PassContext` field.
 
 import { describe, expect, test } from 'bun:test'
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
+import {
+  type ProductKind,
+  type ProductTexture,
+  SKINCARE_PRODUCT_TAG_SLUGS as S,
+  type SkincareProductTagSlug,
+} from '@aurore/shared'
 
 import { buildPassContext } from '../lib/build-pass-context'
-import { asProposals } from '../lib/pass-helpers'
-import type { Pass, PassContext } from '../lib/pass-types'
-import {
-  detectAbsenceClaimsFromText,
-  detectCernesPoches,
-  detectEczemaAtopieFromName,
-  detectFiniMat,
-  detectKeratosePilaire,
-  detectNonGras,
-  detectPigmentsVerts,
-  detectPrebiotique,
-  detectProtection,
-  detectReparationCutanee,
-  detectRepulpant,
-  detectSemiOcclusif,
-  detectSolaireTags,
-  detectStepNettoyage1,
-  detectTextureBaumeFromName,
-  detectTextureCremeEyeInci,
-  detectTextureCremeInci,
-  detectTextureFromField,
-  detectTextureGelInci,
-  detectTextureLegere,
-  detectTextureRiche,
-  detectTextureStickFromName,
-} from '../passes/formula'
-import {
-  absenceClaimsTextPass,
-  cernesPochesPass,
-  eczemaAtopieNamePass,
-  finiMatPass,
-  keratosePilairePass,
-  nonGrasPass,
-  pigmentsVertsPass,
-  prebiotiquePass,
-  protectionPass,
-  reparationCutaneePass,
-  repulpantPass,
-  semiOcclusifPass,
-  solairePass,
-  stepNettoyage1Pass,
-  textureBaumeNamePass,
-  textureCremeEyeInciPass,
-  textureCremeInciPass,
-  textureFromFieldPass,
-  textureGelInciPass,
-  textureLegerePass,
-  textureRichePass,
-  textureStickNamePass,
-} from '../passes/formula/formula-passes'
+import type { PassContext } from '../lib/pass-types'
+import { FORMULA_PASSES } from '../passes/formula/formula-passes'
 
 function makeCtx(input: {
   inci?: string | null
@@ -84,20 +41,13 @@ function makeCtx(input: {
   )
 }
 
-// Cases tuned to actually trigger their detector — the equality check still
-// works when the detector emits []. `expectNonEmpty: true` means the fixture
-// is rich enough that the detector should fire; flags wrapper-detector mismatches
-// that would otherwise hide behind two trivially-empty paths.
-type Case = {
-  name: string
-  pass: Pass
-  ctx: PassContext
-  expected: readonly SkincareProductTagSlug[]
-  expectNonEmpty?: boolean
+function runPass(name: string, ctx: PassContext): readonly SkincareProductTagSlug[] {
+  const pass = FORMULA_PASSES.find((p) => p.name === name)
+  if (!pass) throw new Error(`no formula pass named ${name}`)
+  return pass.run(ctx, []).map((p) => p.tagSlug)
 }
 
-// Squalane + dimethicone in top 5 (semi-occlusif signal), zero occlusive
-// patterns (cera alba / petrolatum) so the semi-occlusif mutex stays clear.
+// Fixtures rich enough to make several formula detectors fire.
 const richMoisturizer = makeCtx({
   inci: 'Aqua, Glycerin, Squalane, Dimethicone, Tocopherol, Panthenol',
   kind: 'moisturizer',
@@ -108,20 +58,16 @@ const sunscreen = makeCtx({
   kind: 'sunscreen',
   category: 'solaire',
 })
-const eyeCream = makeCtx({
-  inci: 'Aqua, Caffeine, Glycerin, Niacinamide, Tocopherol',
-  kind: 'eye-cream',
-  category: 'skincare',
-})
-// Oil-led cleanser — triggers step-nettoyage-1 via OIL_BALM_PATTERNS top 3.
 const cleanser = makeCtx({
   inci: 'Caprylic Capric Triglyceride, Olea Europaea Fruit Oil, Aqua, Glycerin',
   kind: 'cleanser',
   category: 'skincare',
 })
-// kind=moisturizer (not 'balm' — `TEXTURE_BAUME_NAME_KINDS` is
-// {eye-cream, moisturizer}) + name with 'Baume' → texture-baume-name fires.
-// Cera Alba + shea butter pos 1-2 also feed texture-riche (≥ 2 butter/wax top 8).
+const eyeCream = makeCtx({
+  inci: 'Aqua, Caffeine, Glycerin, Niacinamide, Tocopherol',
+  kind: 'eye-cream',
+  category: 'skincare',
+})
 const baumeNamed = makeCtx({
   inci: 'Cera Alba, Butyrospermum Parkii Butter, Tocopherol',
   kind: 'moisturizer',
@@ -136,11 +82,7 @@ const stickNamed = makeCtx({
   texture: null,
   name: 'Lip Stick',
 })
-const fieldTexture = makeCtx({
-  kind: 'moisturizer',
-  category: 'skincare',
-  texture: 'gel',
-})
+const fieldTexture = makeCtx({ kind: 'moisturizer', category: 'skincare', texture: 'gel' })
 const eczemaNamed = makeCtx({
   inci: 'Aqua, Glycerin, Butyrospermum Parkii Butter',
   kind: 'moisturizer',
@@ -154,210 +96,73 @@ const absenceText = makeCtx({
   description: 'Formulé sans alcool, sans parfum, testé sous contrôle dermatologique',
 })
 
-const cases: Case[] = [
-  {
-    name: 'semiOcclusifPass',
-    pass: semiOcclusifPass,
-    ctx: richMoisturizer,
-    expected: detectSemiOcclusif(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'solairePass',
-    pass: solairePass,
-    ctx: sunscreen,
-    expected: detectSolaireTags(
-      sunscreen.inci,
-      sunscreen.kind,
-      sunscreen.category,
-      sunscreen.normalizedIngredients
-    ),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'prebiotiquePass',
-    pass: prebiotiquePass,
-    ctx: richMoisturizer,
-    expected: detectPrebiotique(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
-  },
-  {
-    name: 'protectionPass',
-    pass: protectionPass,
-    ctx: sunscreen,
-    expected: detectProtection(sunscreen.kind, sunscreen.name, sunscreen.description),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'reparationCutaneePass',
-    pass: reparationCutaneePass,
-    ctx: richMoisturizer,
-    expected: detectReparationCutanee(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
-  },
-  {
-    name: 'repulpantPass',
-    pass: repulpantPass,
-    ctx: richMoisturizer,
-    expected: detectRepulpant(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'keratosePilairePass',
-    pass: keratosePilairePass,
-    ctx: richMoisturizer,
-    expected: detectKeratosePilaire(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'stepNettoyage1Pass',
-    pass: stepNettoyage1Pass,
-    ctx: cleanser,
-    expected: detectStepNettoyage1(cleanser.inci, cleanser.kind, cleanser.normalizedIngredients),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'cernesPochesPass',
-    pass: cernesPochesPass,
-    ctx: eyeCream,
-    expected: detectCernesPoches(eyeCream.inci, eyeCream.kind, eyeCream.normalizedIngredients),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'eczemaAtopieNamePass',
-    pass: eczemaAtopieNamePass,
-    ctx: eczemaNamed,
-    expected: detectEczemaAtopieFromName(eczemaNamed.name, eczemaNamed.description),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'finiMatPass',
-    pass: finiMatPass,
-    ctx: richMoisturizer,
-    expected: detectFiniMat(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
-  },
-  {
-    name: 'textureRichePass',
-    pass: textureRichePass,
-    ctx: baumeNamed,
-    expected: detectTextureRiche(baumeNamed.inci, baumeNamed.normalizedIngredients),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'textureLegerePass',
-    pass: textureLegerePass,
-    ctx: richMoisturizer,
-    expected: detectTextureLegere(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'nonGrasPass',
-    pass: nonGrasPass,
-    ctx: richMoisturizer,
-    expected: detectNonGras(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'pigmentsVertsPass',
-    pass: pigmentsVertsPass,
-    ctx: richMoisturizer,
-    expected: detectPigmentsVerts(richMoisturizer.inci, richMoisturizer.normalizedIngredients),
-  },
-  {
-    name: 'textureFromFieldPass',
-    pass: textureFromFieldPass,
-    ctx: fieldTexture,
-    expected: detectTextureFromField(fieldTexture.texture),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'textureGelInciPass',
-    pass: textureGelInciPass,
-    ctx: richMoisturizer,
-    expected: detectTextureGelInci(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.texture,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'textureCremeInciPass',
-    pass: textureCremeInciPass,
-    ctx: richMoisturizer,
-    expected: detectTextureCremeInci(
-      richMoisturizer.inci,
-      richMoisturizer.kind,
-      richMoisturizer.texture,
-      richMoisturizer.normalizedIngredients
-    ),
-  },
-  {
-    name: 'textureBaumeNamePass',
-    pass: textureBaumeNamePass,
-    ctx: baumeNamed,
-    expected: detectTextureBaumeFromName(baumeNamed.kind, baumeNamed.texture, baumeNamed.name),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'textureStickNamePass',
-    pass: textureStickNamePass,
-    ctx: stickNamed,
-    expected: detectTextureStickFromName(stickNamed.kind, stickNamed.texture, stickNamed.name),
-    expectNonEmpty: true,
-  },
-  {
-    name: 'textureCremeEyeInciPass',
-    pass: textureCremeEyeInciPass,
-    ctx: eyeCream,
-    expected: detectTextureCremeEyeInci(
-      eyeCream.inci,
-      eyeCream.kind,
-      eyeCream.texture,
-      eyeCream.name,
-      eyeCream.normalizedIngredients
-    ),
-  },
-  {
-    name: 'absenceClaimsTextPass',
-    pass: absenceClaimsTextPass,
-    ctx: absenceText,
-    expected: detectAbsenceClaimsFromText(absenceText.name, absenceText.description),
-    expectNonEmpty: true,
-  },
+const FIXTURES = [
+  richMoisturizer,
+  sunscreen,
+  cleanser,
+  eyeCream,
+  baumeNamed,
+  stickNamed,
+  fieldTexture,
+  eczemaNamed,
+  absenceText,
 ]
 
-describe('formula pass shape parity', () => {
-  for (const c of cases) {
-    test(`${c.name} wraps its detector with source='formula', relevance='secondary'`, () => {
-      const out = c.pass.run(c.ctx, [])
-      expect(out).toEqual(asProposals(c.expected, 'formula'))
-      if (c.expectNonEmpty) expect(out.length).toBeGreaterThan(0)
-    })
-  }
-})
+describe('formula pass table contract', () => {
+  test('entries are uniquely named with a formula: prefix', () => {
+    const names = FORMULA_PASSES.map((p) => p.name)
+    expect(new Set(names).size).toBe(names.length)
+    for (const n of names) expect(n.startsWith('formula:')).toBe(true)
+  })
 
-describe('formula pass invariants', () => {
-  test('every formula pass emits source=formula and relevance=secondary across the rich fixture', () => {
-    for (const c of cases) {
-      for (const p of c.pass.run(c.ctx, [])) {
-        expect(p.source).toBe('formula')
-        expect(p.relevance).toBe('secondary')
+  // Tripwire: a dropped/duplicated entry shifts the dedup order the parity test
+  // pins. Bump this deliberately when adding a formula pass.
+  test('the family has 33 passes', () => {
+    expect(FORMULA_PASSES.length).toBe(33)
+  })
+
+  test('formulaPass stamps source=formula, relevance=secondary on every proposal', () => {
+    for (const ctx of FIXTURES) {
+      for (const pass of FORMULA_PASSES) {
+        for (const p of pass.run(ctx, [])) {
+          expect(p.source).toBe('formula')
+          expect(p.relevance).toBe('secondary')
+        }
       }
     }
+  })
+
+  test('the table is live — fires non-empty across the rich fixtures', () => {
+    const total = FIXTURES.flatMap((ctx) => FORMULA_PASSES.flatMap((p) => p.run(ctx, [])))
+    expect(total.length).toBeGreaterThan(0)
+  })
+})
+
+// The binds for INCI-driven passes are exercised by formula.test.ts + parity.
+// These cover the passes that read a non-INCI field, where a wrong-field bind
+// would be the silent-arg failure this collapse set out to remove.
+describe('formula pass field binds', () => {
+  test('texture-from-field reads ctx.texture', () => {
+    expect(runPass('formula:texture-from-field', fieldTexture).length).toBeGreaterThan(0)
+  })
+
+  test('protection reads ctx.kind (sunscreen → protection)', () => {
+    expect(runPass('formula:protection', sunscreen)).toContain(S.PROTECTION)
+  })
+
+  test('texture-baume-name reads the product name', () => {
+    expect(runPass('formula:texture-baume-name', baumeNamed)).toContain(S.TEXTURE_BAUME)
+  })
+
+  test('texture-stick-name reads the product name', () => {
+    expect(runPass('formula:texture-stick-name', stickNamed)).toContain(S.TEXTURE_STICK)
+  })
+
+  test('eczema-atopie-name reads the product name', () => {
+    expect(runPass('formula:eczema-atopie-name', eczemaNamed)).toContain(S.ECZEMA_ATOPIE)
+  })
+
+  test('absence-claims reads name/description text', () => {
+    expect(runPass('formula:absence-claims-text', absenceText)).toContain(S.SANS_PARFUM)
   })
 })

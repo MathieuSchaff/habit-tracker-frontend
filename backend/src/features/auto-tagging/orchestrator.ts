@@ -57,18 +57,40 @@ export interface OrchestratorOptions {
   brandCertifications?: BrandCertificationLookup
 }
 
+// Optional trace hooks. The orchestrator owns the single dispatch loop; the sink
+// lets a reader (explainInci) observe per-pass proposals, the pre-promote merge
+// snapshot, and algo-derm drop counts without re-running the loop.
+export interface AutoTagTraceSink {
+  // Wired into ctx so the algo-derm gate records each dropped candidate.
+  dropCounts?: Map<string, number>
+  // One call per pass, in registry order, with the pass's raw proposals.
+  onPass?: (name: string, proposals: readonly AutoTagProposal[]) => void
+  // Called once after all passes merge, before primaryPromote mutates byTag.
+  onMerged?: (byTag: ReadonlyMap<SkincareProductTagSlug, AutoTagProposal>) => void
+}
+
 export function detectAllAutoTags(
   product: OrchestratorInput,
-  options: OrchestratorOptions = {}
+  options: OrchestratorOptions = {},
+  sink?: AutoTagTraceSink
 ): AutoTagPair[] {
   if (!AUTO_TAG_ELIGIBLE_CATEGORIES_SET.has(product.category)) return []
 
-  const ctx = buildPassContext(product, options)
+  const baseCtx = buildPassContext(product, options)
+  const ctx = sink?.dropCounts
+    ? {
+        ...baseCtx,
+        detectAutoTagsOptions: { ...baseCtx.detectAutoTagsOptions, dropCounts: sink.dropCounts },
+      }
+    : baseCtx
   const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
   for (const pass of AUTO_TAG_PASSES) {
     const prior = [...byTag.values()]
-    for (const proposal of pass.run(ctx, prior)) mergeProposal(byTag, proposal)
+    const proposals = pass.run(ctx, prior)
+    sink?.onPass?.(pass.name, proposals)
+    for (const proposal of proposals) mergeProposal(byTag, proposal)
   }
+  sink?.onMerged?.(byTag)
   primaryPromote(byTag, product.kind)
 
   // Strip `confidence`: downstream consumers use only (tagSlug, relevance, source).
