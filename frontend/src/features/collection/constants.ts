@@ -85,7 +85,14 @@ export const criteriaDefinitions: Record<keyof ReviewCriteria, string> = {
   valueForMoney: 'Le prix est-il justifié par les résultats et la durée de vie du flacon ?',
 }
 
-export type SortOption = 'name' | 'note' | 'sentiment' | 'date' | 'price_asc' | 'price_desc'
+export type SortOption =
+  | 'name'
+  | 'note'
+  | 'sentiment'
+  | 'date'
+  | 'price_asc'
+  | 'price_desc'
+  | 'compatibility_desc'
 
 export const sortOptions: SortOption[] = [
   'name',
@@ -94,6 +101,7 @@ export const sortOptions: SortOption[] = [
   'date',
   'price_asc',
   'price_desc',
+  'compatibility_desc',
 ]
 
 export const sortLabels: Record<SortOption, string> = {
@@ -103,6 +111,25 @@ export const sortLabels: Record<SortOption, string> = {
   date: 'Date',
   price_asc: 'Prix ↑',
   price_desc: 'Prix ↓',
+  compatibility_desc: 'Affinité',
+}
+
+// Empirical compatibility, surfaced as a calm indicative chip (never a number or
+// verdict, per the product vision). Mid-band and missing scores show nothing.
+export const COMPAT_THRESHOLDS = { favorite: 65, watch: 35 } as const
+
+export type CompatTone = 'favorite' | 'watch'
+
+export const compatLabels: Record<CompatTone, string> = {
+  favorite: 'proche de tes favoris',
+  watch: 'à regarder de près',
+}
+
+export function getCompatTone(score: number | null | undefined): CompatTone | null {
+  if (score == null) return null
+  if (score >= COMPAT_THRESHOLDS.favorite) return 'favorite'
+  if (score <= COMPAT_THRESHOLDS.watch) return 'watch'
+  return null
 }
 
 export const SCORE_THRESHOLDS = {

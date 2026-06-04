@@ -16,6 +16,7 @@ import { adminSuggestedEditsRoutes } from './features/admin/suggested-edits.rout
 import { jwtAuthRoutes } from './features/auth'
 import { articleRoutes } from './features/blog'
 import { meRoutes } from './features/catalog-submissions/routes'
+import { collectionRoutes } from './features/collection/routes'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
 import { healthRoute } from './features/health/routes'
@@ -87,6 +88,7 @@ const routes = app
   .route('/api/ingredient-tags', ingredientTagDefRoutes)
   .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
+  .route('/api/collection', collectionRoutes)
   .route('/api/me', meRoutes)
   .route('/api/uploads', uploadsRoutes)
   .route('/api/errors', errorsRoute)

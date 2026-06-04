@@ -1,9 +1,11 @@
 import { detectKindPrimaryType, type ProductKind } from '@aurore/shared'
 
+import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { createContext, type ReactNode, use, useCallback, useMemo, useState } from 'react'
 
 import { applyFilters, sortProducts } from '@/features/collection/filterLogic'
+import { compatibilityScoresQuery } from '@/lib/queries/compatibility'
 import type { UserPreferences } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
 import type { CollectionSearch } from '@/routes/_authenticated/collection.index'
@@ -43,6 +45,7 @@ type CollectionFilterContextValue = {
   filteredProducts: UserProduct[]
   filterOptions: { brands: string[]; productTypes: string[] }
   hasActiveFilters: boolean
+  compatScores: Record<string, number | null>
 
   setFilter: (updates: CollectionFilterUpdates) => void
   resetFilters: () => void
@@ -67,6 +70,9 @@ export function CollectionFilterProvider({
   // Local state - URL-bound search would re-run the route loader on every keystroke.
   const [q, setQ] = useState('')
 
+  const productIds = useMemo(() => userProducts?.map((p) => p.product.id) ?? [], [userProducts])
+  const { data: compatScores } = useQuery(compatibilityScoresQuery(productIds))
+
   const filterOptions = useMemo(() => {
     if (!userProducts) return { brands: [], productTypes: [] }
     const brands = Array.from(new Set(userProducts.map((p) => p.product.brand))).sort()
@@ -87,8 +93,20 @@ export function CollectionFilterProvider({
       { q, brand, productType, sentiment, repurchase, minNote, maxPrice },
       prefs?.criteriaWeights
     )
-    return sortProducts(filtered, sort, prefs?.criteriaWeights, prefs?.displayScale)
-  }, [userProducts, q, sort, prefs, brand, productType, sentiment, repurchase, minNote, maxPrice])
+    return sortProducts(filtered, sort, prefs?.criteriaWeights, prefs?.displayScale, compatScores)
+  }, [
+    userProducts,
+    q,
+    sort,
+    prefs,
+    brand,
+    productType,
+    sentiment,
+    repurchase,
+    minNote,
+    maxPrice,
+    compatScores,
+  ])
 
   const hasActiveFilters = useMemo(() => {
     return (
@@ -130,6 +148,7 @@ export function CollectionFilterProvider({
         filteredProducts,
         filterOptions,
         hasActiveFilters,
+        compatScores: compatScores ?? {},
         setFilter,
         resetFilters,
       }}
@@ -143,4 +162,11 @@ export function useCollectionFilter(): CollectionFilterContextValue {
   const ctx = use(CollectionFilterContext)
   if (!ctx) throw new Error('useCollectionFilter must be used within CollectionFilterProvider')
   return ctx
+}
+
+// Null-safe: returns the product's empirical compatibility score, or null when
+// outside the provider (e.g. unit tests rendering a card in isolation).
+export function useCompatScore(productId: string): number | null {
+  const ctx = use(CollectionFilterContext)
+  return ctx?.compatScores[productId] ?? null
 }

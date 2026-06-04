@@ -2,13 +2,19 @@ import type { UserProductStatus } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { Check, ChevronDown, SmilePlus } from 'lucide-react'
+import { Check, ChevronDown, SmilePlus, Sparkles } from 'lucide-react'
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from 'react'
 
 import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
-import { SCORE_THRESHOLDS, statusLabels } from '@/features/collection/constants'
+import {
+  compatLabels,
+  getCompatTone,
+  SCORE_THRESHOLDS,
+  statusLabels,
+} from '@/features/collection/constants'
+import { useCompatScore } from '@/features/collection/context/CollectionFilterContext'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import { calculateWeightedScore } from '@/lib/helpers/reviews'
 import { userPreferenceQueries } from '@/lib/queries/user-preferences'
@@ -131,6 +137,9 @@ export function ProductCardCondensed({
   const score = calculateWeightedScore(p.review, prefs?.criteriaWeights, displayScale)
   const priceEuros = p.product.priceCents ? `${(p.product.priceCents / 100).toFixed(0)}€` : null
 
+  const compatScore = useCompatScore(p.product.id)
+  const compatTone = p.status === 'archived' ? null : getCompatTone(compatScore)
+
   const scoreChipClass = getScoreChipClass(score)
   const statusClass = getStatusClass(p.status)
   const statusCfg = statusLabels[p.status]
@@ -220,6 +229,12 @@ export function ProductCardCondensed({
               </DropdownMenu>
             </span>
             {p.product.kind && <Badge variant="chip">{p.product.kind}</Badge>}
+            {compatTone && (
+              <span className={clsx('pcc-compat', `pcc-compat--${compatTone}`)}>
+                {compatTone === 'favorite' && <Sparkles size={11} aria-hidden="true" />}
+                {compatLabels[compatTone]}
+              </span>
+            )}
           </div>
           {priceEuros && <div className="prod-price">{priceEuros}</div>}
         </Card.Footer>

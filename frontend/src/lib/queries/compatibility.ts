@@ -1,0 +1,22 @@
+import { api } from '../api'
+
+export const compatibilityKeys = {
+  all: ['compatibility-scores'] as const,
+  forProducts: (productIds: string[]) =>
+    [...compatibilityKeys.all, [...productIds].sort()] as const,
+}
+
+// Batch fetch of the user's empirical compatibility score per product, for the
+// products currently in the collection. Keyed on the sorted id set so adding or
+// removing a product (which shifts the underlying signal) refetches.
+export const compatibilityScoresQuery = (productIds: string[]) => ({
+  queryKey: compatibilityKeys.forProducts(productIds),
+  queryFn: async () => {
+    const res = await api.collection['compatibility-scores'].$post({ json: { productIds } })
+    if (!res.ok) throw new Error('Failed to fetch compatibility scores')
+    const data = await res.json()
+    return data.data.scores
+  },
+  enabled: productIds.length > 0,
+  staleTime: 5 * 60 * 1000,
+})

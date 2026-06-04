@@ -7,6 +7,7 @@ import type {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { type ApiData, api } from '../api'
+import { compatibilityKeys } from './compatibility'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 import { productKeys } from './products'
 
@@ -135,6 +136,9 @@ export const useUpdateUserProduct = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
+      // status/sentiment moves the empirical signal but not the product-id set the
+      // compatibility query is keyed on, so it must be invalidated explicitly.
+      queryClient.invalidateQueries({ queryKey: compatibilityKeys.all })
     },
     meta: { errorMessage: 'Modification impossible — réessayez plus tard.' },
   })
@@ -192,6 +196,9 @@ export const useUpsertUserProductReview = () => {
     onSettled: (_, __, { id, input }) => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.detail(id) })
+      // A saved review (tolerance) shifts the signal but not the product-id set the
+      // compatibility query is keyed on — invalidate it explicitly.
+      queryClient.invalidateQueries({ queryKey: compatibilityKeys.all })
       // Public-reviews surface depends on isPublic flips - refetch whenever the
       // toggle is part of the patch. Predicate scoping avoids nuking unrelated
       // product caches (bySlug, lists, ingredients...).
