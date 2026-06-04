@@ -26,11 +26,13 @@
 
 import type { ProductKind } from '@aurore/shared'
 
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import { db } from '../../../../db'
-import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
+import { pad, rpad } from '../fmt'
+import { fetchEligibleProducts } from './db'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 const DUMP_DRIFT = process.env.DUMP_DRIFT === '1'
@@ -48,19 +50,10 @@ async function main() {
   console.log(`🧪 Audit actif-class (passe 2)`)
   console.log(`   ${ACTIF_CLASS_DEFS.length} clusters${LIMIT ? ` · limit=${LIMIT}` : ''}\n`)
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const skincare = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      kind: products.kind,
-      inci: products.inci,
-    })
-    .from(products)
-    .where(eq(products.category, 'skincare'))
-
-  const subset = LIMIT ? skincare.slice(0, LIMIT) : skincare
+  const subset = await fetchEligibleProducts({
+    categories: ['skincare'],
+    limit: LIMIT ?? undefined,
+  })
 
   const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
   const existingRows = await db
@@ -181,14 +174,6 @@ async function main() {
   }
 
   console.log(`\n✨ Audit terminé. Aucun INSERT effectué.\n`)
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-actif-class.ts')) {

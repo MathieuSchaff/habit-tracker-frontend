@@ -4,18 +4,28 @@ import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 
 import {
   detectAbsenceClaimsFromText,
+  detectAcneImperfectionsFromName,
+  detectAntiAgeFromName,
+  detectApaisantFromName,
+  detectBarriereCutaneeFromName,
   detectCernesPoches,
+  detectDeshydratationFromName,
+  detectEclatTeintFromName,
   detectEczemaAtopieFromName,
   detectFiniMat,
+  detectHyperpigmentationFromName,
   detectKeratosePilaire,
   detectNonGras,
   detectOcclusifTags,
   detectPeauNormale,
   detectPigmentsVerts,
+  detectPoresSebumFromName,
   detectPrebiotique,
   detectProtection,
   detectReparationCutanee,
   detectRepulpant,
+  detectRougeursVasculairesFromName,
+  detectSansSavon,
   detectSemiOcclusif,
   detectSolaireTags,
   detectStepNettoyage1,
@@ -104,12 +114,25 @@ describe('detectSemiOcclusif', () => {
 
 // detectGrossesseAvoid and detectVegan migrated to algo-derm (TAG_DEFS v7).
 // Pregnancy and vegan detection tested via detectAutoTags / detectAllAutoTags
-// in auto-tag-detection.test.ts and auto-tag-orchestrator-parity.test.ts.
+// in algo-derm-detection.test.ts and auto-tag-orchestrator-parity.test.ts.
 
 describe('detectSolaireTags — sanity', () => {
-  test('avobenzone in sunscreen → chemical filter', () => {
+  test('avobenzone in sunscreen → filtres-chimiques', () => {
     const tags = detectSolaireTags('Aqua, Avobenzone, Octocrylene', 'sunscreen', 'solaire')
-    expect(tags.length).toBeGreaterThan(0)
+    expect(tags).toContain(S.FILTRES_CHIMIQUES)
+    expect(tags).not.toContain(S.FILTRES_MINERAUX)
+  })
+
+  test('zinc oxide in sunscreen → filtres-mineraux', () => {
+    const tags = detectSolaireTags('Aqua, Zinc Oxide, Glycerin', 'sunscreen', 'solaire')
+    expect(tags).toContain(S.FILTRES_MINERAUX)
+    expect(tags).not.toContain(S.FILTRES_CHIMIQUES)
+  })
+
+  test('both chemical and mineral filters → both tags', () => {
+    const tags = detectSolaireTags('Aqua, Avobenzone, Titanium Dioxide', 'sunscreen', 'solaire')
+    expect(tags).toContain(S.FILTRES_CHIMIQUES)
+    expect(tags).toContain(S.FILTRES_MINERAUX)
   })
 
   test('zinc oxide in cica cream (skincare) → not flagged', () => {
@@ -119,7 +142,17 @@ describe('detectSolaireTags — sanity', () => {
 
 describe('detectPrebiotique — sanity', () => {
   test('inulin → prebiotique', () => {
-    expect(detectPrebiotique('Aqua, Inulin, Glycerin').length).toBeGreaterThan(0)
+    expect(detectPrebiotique('Aqua, Inulin, Glycerin')).toContain(S.PREBIOTIQUE)
+  })
+
+  test('lactobacillus ferment → prebiotique', () => {
+    expect(detectPrebiotique('Aqua, Glycerin, Lactobacillus Ferment, Niacinamide')).toContain(
+      S.PREBIOTIQUE
+    )
+  })
+
+  test('no prebiotic ingredient → empty', () => {
+    expect(detectPrebiotique('Aqua, Glycerin, Niacinamide, Tocopherol')).toEqual([])
   })
 })
 
@@ -349,6 +382,232 @@ describe('detectProtection', () => {
   })
   test('self-tanner without SPF does not fire', () => {
     expect(detectProtection('self-tanner', 'Autobronzant progressif', null)).toEqual([])
+  })
+})
+
+describe('detectRougeursVasculairesFromName', () => {
+  const RV = [S.ROUGEURS_VASCULAIRES]
+  test('fires when name names redness', () => {
+    expect(detectRougeursVasculairesFromName('Crème Anti-Rougeurs Rosakalm', null)).toEqual(RV)
+  })
+  test('fires on "rosacée"', () => {
+    expect(detectRougeursVasculairesFromName('Soin Rosacée', null)).toEqual(RV)
+  })
+  test('fires on English "redness" in description (recall path)', () => {
+    expect(detectRougeursVasculairesFromName('Cica Serum', 'targets facial redness')).toEqual(RV)
+  })
+  // Camouflage makeup masks redness optically, it does not target the concern.
+  test('does not fire on a color-correcting CC treatment', () => {
+    expect(
+      detectRougeursVasculairesFromName('Color Correcting Treatment', 'corrige les rougeurs')
+    ).toEqual([])
+  })
+  test('does not fire on a green primer that blurs redness', () => {
+    expect(
+      detectRougeursVasculairesFromName('Primer Vert', 'estompe les rougeurs visibles')
+    ).toEqual([])
+  })
+  // Recall-safe regression: a tinted *anti-redness* care keeps `teinté` — it must
+  // NOT be swept into the camouflage exclusion (Sensifine AR / Roséliane).
+  test('fires on a tinted anti-redness care (teinté not a camouflage token)', () => {
+    expect(detectRougeursVasculairesFromName('Soin Teinté Anti-Rougeurs SPF50', null)).toEqual(RV)
+  })
+  // Regression: a treatment whose copy says "les rougeurs s'estompent" (redness
+  // fades) is anti-redness positioning, not camouflage — `estompe` must not exclude it.
+  test('fires on an anti-redness treatment that says rougeurs s’estompent', () => {
+    expect(
+      detectRougeursVasculairesFromName(
+        'Redness Solutions Crème Anti-Rougeurs',
+        'réduit les rougeurs ; jour après jour, les rougeurs s’estompent'
+      )
+    ).toEqual(RV)
+  })
+  test('does not fire on a generic soothing product (no redness positioning)', () => {
+    expect(
+      detectRougeursVasculairesFromName('Crème Apaisante au Panthénol', 'Pour peaux sensibles')
+    ).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectRougeursVasculairesFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectHyperpigmentationFromName', () => {
+  const HP = [S.HYPERPIGMENTATION]
+  test('fires on "anti-taches"', () => {
+    expect(detectHyperpigmentationFromName('Sérum Anti-Taches', null)).toEqual(HP)
+  })
+  test('fires on English "dark spot"', () => {
+    expect(detectHyperpigmentationFromName('Dark Spot Corrector', null)).toEqual(HP)
+  })
+  // Generic radiance vocabulary belongs to eclat-teint-uniforme, not here.
+  test('does not fire on a generic radiance claim', () => {
+    expect(detectHyperpigmentationFromName('Sérum Éclaircissant Éclat', null)).toEqual([])
+  })
+  test('excludes an incidental pigment mention on a cleanser', () => {
+    expect(detectHyperpigmentationFromName('Gel Nettoyant', 'estompe les taches brunes')).toEqual(
+      []
+    )
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectHyperpigmentationFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectEclatTeintFromName', () => {
+  const ET = [S.ECLAT_TEINT]
+  test('fires on "teint terne"', () => {
+    expect(detectEclatTeintFromName('Soin Anti Teint Terne', null)).toEqual(ET)
+  })
+  test('fires on "unifie le teint"', () => {
+    expect(detectEclatTeintFromName('Sérum qui unifie le teint', null)).toEqual(ET)
+  })
+  // Same radiance vocabulary, but an eye product is excluded.
+  test('excludes an eye-area product', () => {
+    expect(detectEclatTeintFromName('Contour des Yeux Illuminateur', null)).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectEclatTeintFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectPoresSebumFromName', () => {
+  const PS = [S.PORES_SEBUM]
+  test('fires on "pores"', () => {
+    expect(detectPoresSebumFromName('Sérum Resserre les Pores', null)).toEqual(PS)
+  })
+  test('fires on "matifiant" / "peaux grasses"', () => {
+    expect(detectPoresSebumFromName('Fluide Matifiant', 'pour peaux grasses')).toEqual(PS)
+  })
+  test('does not fire on a generic moisturizer', () => {
+    expect(detectPoresSebumFromName('Crème Nourrissante', 'pour peaux sèches')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectPoresSebumFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectDeshydratationFromName', () => {
+  const DH = [S.DESHYDRATATION]
+  test('fires on "déshydratation"', () => {
+    expect(detectDeshydratationFromName('Sérum Anti-Déshydratation', null)).toEqual(DH)
+  })
+  test('fires when hydration is the named hero (acide hyaluronique)', () => {
+    expect(detectDeshydratationFromName('Sérum à l’Acide Hyaluronique', null)).toEqual(DH)
+  })
+  // SPF sunscreens name hydration incidentally — excluded (recall-safe).
+  test('excludes an SPF sunscreen that mentions hydration', () => {
+    expect(detectDeshydratationFromName('Fluide Hydratant SPF50', null)).toEqual([])
+  })
+  test('does not fire without hydration vocabulary', () => {
+    expect(detectDeshydratationFromName('Gel Nettoyant Purifiant', 'mousse douce')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectDeshydratationFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectAcneImperfectionsFromName', () => {
+  const AI = [S.ACNE_IMPERFECTIONS]
+  test('fires on "acné"', () => {
+    expect(detectAcneImperfectionsFromName('Soin Anti-Acné', null)).toEqual(AI)
+  })
+  test('fires on "imperfections"', () => {
+    expect(detectAcneImperfectionsFromName('Crème Anti-Imperfections', null)).toEqual(AI)
+  })
+  test('fires on English "blemish"', () => {
+    expect(detectAcneImperfectionsFromName('Anti-Blemish Solution', null)).toEqual(AI)
+  })
+  // "blemish" on a brightening product means pigment spot, not acne — excluded via `eclair`.
+  test('excludes a brightening "blemish" product', () => {
+    expect(
+      detectAcneImperfectionsFromName('Green Lemon Vita C Blemish Mask', 'effet eclaircissant')
+    ).toEqual([])
+  })
+  // Accented form: FR copy writes "éclaircissant" — the exclusion must match it too,
+  // else an "imperfections" trigger leaks a false acne tag (regex has no `u`/accent fold).
+  test('excludes an accented "éclaircissant" brightening product', () => {
+    expect(
+      detectAcneImperfectionsFromName('Sérum Éclaircissant', 'réduit les taches et imperfections')
+    ).toEqual([])
+  })
+  // "acné fongique" is a safety qualifier (a caution), not a target claim.
+  test('excludes an "acné fongique" qualifier', () => {
+    expect(
+      detectAcneImperfectionsFromName('Crème Hydratante', 'déconseillé en cas d’acné fongique')
+    ).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectAcneImperfectionsFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectAntiAgeFromName', () => {
+  const AA = [S.ANTI_AGE]
+  test('fires on "anti-âge"', () => {
+    expect(detectAntiAgeFromName('Crème Anti-Âge', null)).toEqual(AA)
+  })
+  test('fires on the retinoid family (rétinol)', () => {
+    expect(detectAntiAgeFromName('Sérum Rétinol 0.3%', null)).toEqual(AA)
+  })
+  test('fires on "bakuchiol" (declared retinol alternative)', () => {
+    expect(detectAntiAgeFromName('Bakuchiol Booster', null)).toEqual(AA)
+  })
+  test('fires on English "wrinkle"', () => {
+    expect(detectAntiAgeFromName('Wrinkle Smoothing Serum', null)).toEqual(AA)
+  })
+  // Regression: `\baging\b` must not match "packaging".
+  test('does not fire on "packaging" (no anti-age positioning)', () => {
+    expect(detectAntiAgeFromName('Gel Nettoyant', 'recyclable packaging, eco-friendly')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectAntiAgeFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectBarriereCutaneeFromName', () => {
+  const BC = [S.BARRIERE_CUTANEE]
+  test('fires on "réparateur" (French dermo category name)', () => {
+    expect(detectBarriereCutaneeFromName('Baume Réparateur', null)).toEqual(BC)
+  })
+  test('fires on English "skin barrier"', () => {
+    expect(detectBarriereCutaneeFromName('Skin Barrier Repair Cream', null)).toEqual(BC)
+  })
+  // Acne lines reuse "réparateur" — excluded (recall-safe).
+  test('excludes an acne-line "soin réparateur" (effaclar)', () => {
+    expect(detectBarriereCutaneeFromName('Effaclar H Soin Réparateur', null)).toEqual([])
+  })
+  // Anti-aging "repair" = cell turnover, not barrier — excluded.
+  test('excludes an anti-age "repair" serum', () => {
+    expect(detectBarriereCutaneeFromName('Night Repair Serum Anti-Âge', null)).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectBarriereCutaneeFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectApaisantFromName', () => {
+  const AP = [S.APAISANT]
+  test('fires when soothing is the product hero ("crème apaisante")', () => {
+    expect(detectApaisantFromName('Crème Apaisante', null)).toEqual(AP)
+  })
+  test('fires on English "soothing serum"', () => {
+    expect(detectApaisantFromName('Soothing Recovery Serum', null)).toEqual(AP)
+  })
+  test('fires on anti-redness positioning ("anti-rougeurs")', () => {
+    expect(detectApaisantFromName('Soin Anti-Rougeurs', null)).toEqual(AP)
+  })
+  // Foaming cleanser that mentions a soothing effect — excluded (gel moussant).
+  test('excludes a foaming cleanser ("gel moussant")', () => {
+    expect(
+      detectApaisantFromName('Gel Moussant Nettoyant', 'nettoie en douceur, effet apaisant')
+    ).toEqual([])
+  })
+  test('does not fire without soothing positioning', () => {
+    expect(detectApaisantFromName('Sérum Vitamine C', 'éclat et fermeté')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectApaisantFromName(null, null)).toEqual([])
   })
 })
 
@@ -795,7 +1054,7 @@ describe('detectPigmentsVerts', () => {
 
 // T1.7 vegan → migrated to algo-derm (TAG_DEFS v7)
 // detectVegan tests removed. Logic tested via detectAutoTags in
-// auto-tag-detection.test.ts.
+// algo-derm-detection.test.ts.
 
 // T1.8 — peau-normale heuristic
 describe('detectPeauNormale', () => {
@@ -1536,5 +1795,69 @@ describe('detectAbsenceClaimsFromText — sans-parfum override', () => {
 
   test('null name + null description → empty', () => {
     expect(detectAbsenceClaimsFromText(null, null)).toEqual([])
+  })
+})
+
+describe('detectSansSavon', () => {
+  test('syndet face cleanser (no soap) → sans-savon', () => {
+    expect(
+      detectSansSavon(
+        'Aqua, Sodium Cocoyl Isethionate, Cocamidopropyl Betaine, Glycerin',
+        'cleanser'
+      )
+    ).toContain(S.SANS_SAVON)
+  })
+
+  test('syndet body-wash → sans-savon', () => {
+    expect(detectSansSavon('Aqua, Sodium Laureth Sulfate, Coco-Glucoside', 'body-wash')).toContain(
+      S.SANS_SAVON
+    )
+  })
+
+  test('body-scrub syndet → sans-savon', () => {
+    expect(detectSansSavon('Aqua, Sucrose, Coco-Glucoside, Glycerin', 'body-scrub')).toContain(
+      S.SANS_SAVON
+    )
+  })
+
+  // Trap: acyl syndets (-oyl) are NOT soap, only fatty-acid salts (-ate) are.
+  test('sodium lauroyl sarcosinate (acyl syndet, not laurate) → sans-savon', () => {
+    expect(detectSansSavon('Aqua, Sodium Lauroyl Sarcosinate, Coco-Betaine', 'cleanser')).toContain(
+      S.SANS_SAVON
+    )
+  })
+
+  // Trap: fatty-acid esters (alcohol-bound, no alkali) are NOT soap.
+  test('cleanser with glyceryl stearate (ester, not soap) → sans-savon', () => {
+    expect(detectSansSavon('Aqua, Glyceryl Stearate, Coco-Glucoside', 'cleanser')).toContain(
+      S.SANS_SAVON
+    )
+  })
+
+  test('true soap bar (sodium palmate + sodium cocoate) → not flagged', () => {
+    expect(detectSansSavon('Sodium Palmate, Sodium Cocoate, Aqua, Glycerin', 'cleanser')).toEqual(
+      []
+    )
+  })
+
+  test('sodium cocoate (saponified) vs cocoyl: cocoate IS soap', () => {
+    expect(detectSansSavon('Aqua, Sodium Cocoate', 'body-wash')).toEqual([])
+  })
+
+  test('potassium soap (liquid castile) → not flagged', () => {
+    expect(detectSansSavon('Aqua, Potassium Olivate, Potassium Cocoate', 'cleanser')).toEqual([])
+  })
+
+  test('saponified-oil handmade soap → not flagged', () => {
+    expect(detectSansSavon('Saponified Olea Europaea Oil, Aqua', 'cleanser')).toEqual([])
+  })
+
+  test('non-cleansing kind (serum) → never tagged even without soap', () => {
+    expect(detectSansSavon('Aqua, Niacinamide, Glycerin', 'serum')).toEqual([])
+  })
+
+  test('null/empty INCI → [] (no evidence of absence)', () => {
+    expect(detectSansSavon(null, 'cleanser')).toEqual([])
+    expect(detectSansSavon('', 'cleanser')).toEqual([])
   })
 })

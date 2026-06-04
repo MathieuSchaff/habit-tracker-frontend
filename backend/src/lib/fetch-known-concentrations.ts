@@ -3,13 +3,13 @@
 
 import { eq, inArray } from 'drizzle-orm'
 
-import { type Database, db } from '../db'
+import { type DB, db } from '../db'
 import { ingredients, productIngredients } from '../db/schema'
 import { buildKnownConcentrations, type ConcentrationRow } from './known-concentrations'
 
 export async function fetchKnownConcentrationsByProduct(
   productIds: readonly string[],
-  database: Database = db
+  database: DB = db
 ): Promise<Map<string, Record<string, number>>> {
   if (productIds.length === 0) return new Map()
 

@@ -8,29 +8,18 @@
 // missing) are silently dropped; keeps the runtime path resilient when new
 // orchestrator rules ship before the seed catches up.
 
-import {
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
-  type ProductKind,
-  type ProductTexture,
-} from '@aurore/shared'
+import type { ProductKind, ProductTexture } from '@aurore/shared'
 
 import { and, eq, ne } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { DB } from '../../db/index'
-import {
-  brandCertifications,
-  ingredients,
-  productIngredients,
-  products,
-  productTagLinks,
-  productTagTypes,
-} from '../../db/schema'
-import { buildKnownConcentrations } from '../../lib/known-concentrations'
+import { brandCertifications, products, productTagLinks, productTagTypes } from '../../db/schema'
+import { fetchKnownConcentrationsByProduct } from '../../lib/fetch-known-concentrations'
+import { fetchPercentClaimsByProduct } from '../../lib/fetch-percent-claims'
 import { trackError } from '../errors'
+import { resolveTagRows } from './lib/resolve-tag-rows'
 import { detectAllAutoTags } from './orchestrator'
-import { partitionEczemaReview } from './passes/formula'
 
 interface WriteTagsResult {
   inserted: number
@@ -64,16 +53,10 @@ export async function writeTagsForProduct(
   // tag (rows=0) while the DELETE still wipes existing rows. The reconcile /
   // backfill runners pass a tx (withAdminRls), so the fan-out must be serial.
   const certRows = await database.select().from(brandCertifications)
-  const claimRows = await database
-    .select({
-      ingredientSlug: ingredients.slug,
-      ingredientName: ingredients.name,
-      concentrationValue: productIngredients.concentrationValue,
-      concentrationUnit: productIngredients.concentrationUnit,
-    })
-    .from(productIngredients)
-    .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-    .where(eq(productIngredients.productId, productId))
+  const percentClaims =
+    (await fetchPercentClaimsByProduct([productId], database)).get(productId) ?? []
+  const knownConcentrations =
+    (await fetchKnownConcentrationsByProduct([productId], database)).get(productId) ?? {}
   const tagDefs = await database
     .select({
       id: productTagTypes.id,
@@ -84,30 +67,6 @@ export async function writeTagsForProduct(
 
   const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
   const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
-
-  const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[product.category]
-  const validTagTypes = domain
-    ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
-    : []
-  const percentClaims = claimRows
-    .filter((r): r is typeof r & { concentrationValue: string; concentrationUnit: string } => {
-      return r.concentrationValue !== null && r.concentrationUnit !== null
-    })
-    .map((r) => ({
-      ingredientSlug: r.ingredientSlug,
-      concentrationValue: Number(r.concentrationValue),
-      concentrationUnit: r.concentrationUnit,
-    }))
-    .filter((c) => Number.isFinite(c.concentrationValue))
-
-  const knownConcentrations = buildKnownConcentrations(
-    claimRows.map((r) => ({
-      name: r.ingredientName,
-      slug: r.ingredientSlug,
-      concentrationValue: r.concentrationValue,
-      concentrationUnit: r.concentrationUnit,
-    }))
-  )
 
   const pairs = detectAllAutoTags(
     {
@@ -124,20 +83,15 @@ export async function writeTagsForProduct(
     { brandCertifications: brandCertMap }
   )
 
-  // Withhold eczema-atopie on a contraindicating description; runtime declines to auto-tag.
-  const { kept } = partitionEczemaReview(pairs, product.description)
-  const rows = kept.flatMap((pair) => {
-    const info = tagSlugToInfo.get(pair.tagSlug)
-    if (!info || !validTagTypes.includes(info.tagType)) return []
-    return [
-      {
-        productId: product.id,
-        productTagId: info.id,
-        relevance: pair.relevance,
-        source: pair.source,
-      },
-    ]
-  })
+  // Withhold eczema-atopie on a contraindicating description, resolve slugs to
+  // tag ids, drop domain-ineligible tag types — shared with backfill/reconcile.
+  const { rows: resolved } = resolveTagRows(pairs, product, tagSlugToInfo)
+  const rows = resolved.map((r) => ({
+    productId: product.id,
+    productTagId: r.tagId,
+    relevance: r.relevance,
+    source: r.source,
+  }))
 
   // Atomic replace so a shrunk INCI drops stale tags. Manual rows are preserved
   // (separate CRUD path, must not be wiped by retag).

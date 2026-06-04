@@ -14,12 +14,7 @@
 //   bun run …/runners/backfill/reconcile.ts --slug <s> # single product
 //
 // Env: LIMIT (cap product count).
-import {
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
-  type ProductKind,
-  type ProductTexture,
-} from '@aurore/shared'
+import type { ProductKind, ProductTexture } from '@aurore/shared'
 
 import { eq, inArray, ne } from 'drizzle-orm'
 
@@ -33,8 +28,8 @@ import {
 } from '../../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
+import { resolveTagRows } from '../../lib/resolve-tag-rows'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
-import { partitionEczemaReview } from '../../passes/formula'
 import { writeTagsForProduct } from '../../write'
 
 const WRITE = process.argv.includes('--write')
@@ -44,20 +39,24 @@ const SLUG_ARG = (() => {
 })()
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 
-let prods = await db
-  .select({
-    id: products.id,
-    slug: products.slug,
-    name: products.name,
-    description: products.description,
-    brand: products.brand,
-    kind: products.kind,
-    inci: products.inci,
-    category: products.category,
-    texture: products.texture,
-  })
-  .from(products)
-  .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+// Admin RLS elevation: products_select_visible hides non-`visible` rows from
+// app_runtime; without it the reconcile silently skips products in moderation.
+let prods = await withAdminRls((tx) =>
+  tx
+    .select({
+      id: products.id,
+      slug: products.slug,
+      name: products.name,
+      description: products.description,
+      brand: products.brand,
+      kind: products.kind,
+      inci: products.inci,
+      category: products.category,
+      texture: products.texture,
+    })
+    .from(products)
+    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+)
 if (SLUG_ARG) prods = prods.filter((p) => p.slug === SLUG_ARG)
 if (LIMIT) prods = prods.slice(0, LIMIT)
 
@@ -148,18 +147,10 @@ for (const p of prods) {
     { brandCertifications: brandCertMap }
   )
 
-  const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[p.category]
-  const validTagTypes = domain
-    ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
-    : []
-  // Exclude withheld eczema-atopie so the parity delta matches what writers persist.
-  const { kept } = partitionEczemaReview(pairs, p.description)
-  const want = new Map<string, string>()
-  for (const pair of kept) {
-    const info = tagSlugToInfo.get(pair.tagSlug)
-    if (!info || !validTagTypes.includes(info.tagType)) continue
-    want.set(info.id, pair.relevance)
-  }
+  // Same seam as the writers: withholds eczema-atopie, drops domain-ineligible
+  // types, so the parity delta matches exactly what would be persisted.
+  const { rows } = resolveTagRows(pairs, p, tagSlugToInfo)
+  const want = new Map(rows.map((r) => [r.tagId, r.relevance]))
 
   const have = curByProduct.get(p.id) ?? new Map<string, string>()
   const manualHave = manualByProduct.get(p.id) ?? new Set<string>()

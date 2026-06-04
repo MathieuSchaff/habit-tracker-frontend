@@ -34,7 +34,7 @@ describe('isAvoidEligibleCategory', () => {
 
 // grossesse-avoid signals migrated to algo-derm (pass 1 via grossesse_risque
 // MAPPED_TAG). computeAvoidCandidates no longer handles pregnancy detection —
-// see auto-tag-detection.test.ts and auto-tag-orchestrator-parity.test.ts for
+// see algo-derm-detection.test.ts and auto-tag-orchestrator-parity.test.ts for
 // end-to-end coverage of the avoid path.
 describe('computeAvoidCandidates — grossesse category guard', () => {
   test('retinol shampoo (haircare ineligible) → no candidates', () => {

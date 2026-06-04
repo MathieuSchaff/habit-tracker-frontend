@@ -52,6 +52,7 @@ import {
   serializeGoldSet,
 } from '../gold-set/fixtures'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../orchestrator'
+import { pad, rpad } from './fmt'
 
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 70)
 const POSITIVES_PER_TAG = Number(process.env.POSITIVES_PER_TAG ?? 4)
@@ -247,7 +248,7 @@ function drawSelection(state: PoolsState): Map<string, SelectionEntry> {
 
   const selected = new Map<string, SelectionEntry>()
   // Shuffle already interleaves kinds; taking the first POSITIVES_PER_TAG entries
-  // is approximate stratification, adequate for a 60-80 sample budget.
+  // is approximate stratification, adequate at current corpus scale.
   drawRound(state.poolsByTag, selected, POSITIVES_PER_TAG, 'positives')
   drawRound(state.poolsByTag, selected, NEGATIVES_PER_TAG, 'negatives')
   return selected
@@ -429,14 +430,6 @@ function shuffleInPlace<T>(arr: T[], rng: () => number): void {
     const j = Math.floor(rng() * (i + 1))
     ;[arr[i], arr[j]] = [arr[j], arr[i]]
   }
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('gold-set-bootstrap.ts')) {

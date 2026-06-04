@@ -26,6 +26,7 @@ import { and, eq, isNotNull, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
+import { pad, rpad } from '../fmt'
 
 const JSON_OUT = process.env.JSON_OUT
 const SLUG_FILTER = process.env.SLUG
@@ -321,12 +322,6 @@ function fmt(x: number): string {
 }
 function pct(x: number): string {
   return `${(x * 100).toFixed(1)}%`
-}
-function pad(s: string, w: number): string {
-  return s.length >= w ? s : s + ' '.repeat(w - s.length)
-}
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('concentration-solver.ts')) {

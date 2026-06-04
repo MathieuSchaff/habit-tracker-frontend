@@ -6,7 +6,7 @@ import type { ProductKind, ProductTexture, SkincareProductTagSlug, TagSource } f
 
 import type { ProductAssessment } from 'algo-derm'
 
-import type { DetectAutoTagsOptions } from '../passes/auto-tag-detection'
+import type { DetectAutoTagsOptions } from '../passes/algo-derm-detection'
 import type { BrandCertificationLookup } from '../passes/brand-cert-detection'
 import type { PercentClaimEvidence } from '../passes/percent-claim-detection'
 

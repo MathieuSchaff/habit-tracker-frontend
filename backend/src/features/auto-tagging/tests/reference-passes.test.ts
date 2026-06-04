@@ -1,9 +1,8 @@
-// Shape tests for the three reference passes (ADR-0001 slice #2).
-//
-// Each test asserts that `pass.run(ctx, prior)` produces proposals whose
-// (tagSlug, relevance, source) tuples match the underlying detector's output
-// modulo the wrapping metadata. Existing detector-level tests still cover
-// detector internals; these tests only prove the wrappers do not drop signal.
+// Behavioural tests for the two non-table reference passes (algo-derm,
+// peau-normale). These passes do real binding work the parity test cannot
+// pin in isolation: algo-derm forwards options + carries `confidence`, and
+// peau-normale abstains based on `prior`. The formula table passes (occlusif
+// included) are covered by formula.test.ts + the table contract test.
 
 import { describe, expect, test } from 'bun:test'
 
@@ -11,10 +10,8 @@ import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
 import { buildPassContext } from '../lib/build-pass-context'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
-import { detectAutoTags } from '../passes/auto-tag-detection'
-import { algoDermPass } from '../passes/auto-tag-detection-pass'
-import { detectOcclusifTags } from '../passes/formula/film-former'
-import { occlusifPass } from '../passes/formula/film-former-pass'
+import { detectAutoTags } from '../passes/algo-derm-detection'
+import { algoDermPass } from '../passes/algo-derm-pass'
 import { detectPeauNormale } from '../passes/formula/peau-normale'
 import { peauNormalePass } from '../passes/formula/peau-normale-pass'
 
@@ -81,28 +78,6 @@ describe('algoDermPass', () => {
     const tight = algoDermPass.run(baseCtx, [])
     const loose = algoDermPass.run(looseCtx, [])
     expect(loose.length).toBeGreaterThanOrEqual(tight.length)
-  })
-})
-
-describe('occlusifPass', () => {
-  test('wraps detectOcclusifTags output with source=formula, relevance=secondary', () => {
-    const inci = 'Petrolatum, Aqua, Glycerin, Cera Alba, Tocopherol'
-    const ctx = makeCtx({ inci, kind: 'balm', category: 'skincare' })
-
-    const slugs = detectOcclusifTags(ctx.inci, ctx.normalizedIngredients)
-    const out = occlusifPass.run(ctx, [])
-
-    expect(slugs.length).toBeGreaterThan(0)
-    expect(out).toEqual(
-      slugs.map((tagSlug) => ({ tagSlug, relevance: 'secondary', source: 'formula' }))
-    )
-    expect(out.every((p) => p.source === 'formula')).toBe(true)
-    expect(out.every((p) => p.relevance === 'secondary')).toBe(true)
-  })
-
-  test('empty INCI → no proposals', () => {
-    const ctx = makeCtx({ inci: null, kind: 'balm', category: 'skincare' })
-    expect(occlusifPass.run(ctx, [])).toEqual([])
   })
 })
 

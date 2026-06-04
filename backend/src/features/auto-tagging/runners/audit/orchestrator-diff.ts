@@ -14,17 +14,14 @@
 
 import type { ProductKind } from '@aurore/shared'
 
-import { inArray, sql } from 'drizzle-orm'
-
-import { db } from '../../../../db'
-import { products } from '../../../../db/schema'
 import {
-  AUTO_TAG_ELIGIBLE_CATEGORIES,
   type AutoTagPair,
   type AutoTagRelevance,
   type AutoTagSource,
   detectAllAutoTags,
 } from '../../orchestrator'
+import { padTrunc, rpad } from '../fmt'
+import { fetchEligibleProducts } from './db'
 
 const CSV_OUT = process.env.CSV_OUT
 const BASELINE = process.env.BASELINE
@@ -60,27 +57,18 @@ async function main() {
     `   out=${CSV_OUT}${BASELINE ? ` · baseline=${BASELINE}` : ''}${LIMIT ? ` · limit=${LIMIT}` : ''}\n`
   )
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const allProducts = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      kind: products.kind,
-      inci: products.inci,
-      category: products.category,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-
-  const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
+  const subset = await fetchEligibleProducts({ limit: LIMIT ?? undefined })
 
   const currentRows: Row[] = []
   for (const p of subset) {
+    // name/description feed the concern positioning-gates so they show in snapshots;
+    // dose-gating inputs (percentClaims/knownConcentrations) stay omitted (marginal).
     const pairs: AutoTagPair[] = detectAllAutoTags({
       inci: p.inci,
       kind: p.kind as ProductKind,
       category: p.category,
+      name: p.name,
+      description: p.description,
     })
     for (const pair of pairs) {
       currentRows.push({
@@ -134,13 +122,13 @@ async function main() {
   }
   const sorted = [...byTagAction.entries()].sort((a, b) => b[1] - a[1])
   console.log(`📋 Top 20 (action × tag_slug)`)
-  console.log(`   ${pad('action', 22)} ${pad('tag_slug', 32)} count`)
+  console.log(`   ${padTrunc('action', 22)} ${padTrunc('tag_slug', 32)} count`)
   console.log(`   ${'─'.repeat(22)} ${'─'.repeat(32)} ─────`)
   for (const [k, n] of sorted.slice(0, 20)) {
     const sep = k.indexOf(':')
     const action = k.slice(0, sep)
     const tagSlug = k.slice(sep + 1)
-    console.log(`   ${pad(action, 22)} ${pad(tagSlug, 32)} ${n}`)
+    console.log(`   ${padTrunc(action, 22)} ${padTrunc(tagSlug, 32)} ${n}`)
   }
   if (sorted.length > 20) console.log(`   … (${sorted.length - 20} buckets additionnels)`)
 
@@ -266,14 +254,6 @@ async function readSnapshot(path: string): Promise<Row[]> {
     })
   }
   return rows
-}
-
-function pad(s: string, w: number): string {
-  return s.length >= w ? s.slice(0, w) : s + ' '.repeat(w - s.length)
-}
-
-function rpad(s: string, w: number): string {
-  return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-orchestrator-diff.ts')) {
