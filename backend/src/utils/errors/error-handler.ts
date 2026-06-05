@@ -57,7 +57,12 @@ export async function globalErrorHandler(error: Error, c: Context) {
   if ('status' in error && typeof (error as HttpError).status === 'number') {
     const httpError = error as HttpError
     const status = httpError.status as ContentfulHttpStatus
-    return c.json(err('http_error', httpError.message), status)
+    logger.warn({ err: httpError, path: c.req.path, method: c.req.method }, 'HTTP error')
+    // Don't leak arbitrary error messages (libs/framework) to clients in prod; keep them server-side.
+    return c.json(
+      err('http_error', process.env.NODE_ENV === 'development' ? httpError.message : undefined),
+      status
+    )
   }
 
   logger.error({ err: error, path: c.req.path, method: c.req.method }, 'Unhandled internal error')

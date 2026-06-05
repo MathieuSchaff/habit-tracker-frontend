@@ -1,7 +1,8 @@
 import path from 'node:path'
 
+import babel from '@rolldown/plugin-babel'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
@@ -19,6 +20,12 @@ export default defineConfig({
       routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
     }),
     react(),
+    // React Compiler runs via Babel; plugin-react 6 dropped its inline babel option.
+    // Scope to app source so node_modules isn't transformed.
+    babel({
+      include: /src\/.*\.[jt]sx?$/,
+      presets: [reactCompilerPreset()],
+    }),
   ],
   resolve: {
     alias: {
