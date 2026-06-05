@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, dev ]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [ main, master, dev ]
 
 # Annule les jobs en cours si on repousse sur la même branche (gain de temps)
 concurrency:
@@ -96,7 +96,6 @@ jobs:
       - name: Prepare Backend DB & Run Tests
         env:
           DATABASE_URL: postgres://app:testpassword@localhost:5433/appdb_test
-        continue-on-error: true
         run: |
           cd backend && bun x drizzle-kit migrate
           mkdir -p test-results
@@ -221,7 +220,6 @@ jobs:
         run: just install-deps
 
       - name: Run Frontend Tests
-        continue-on-error: true
         run: |
           mkdir -p frontend/test-results
           cd frontend && bunx vitest run --reporter=junit --outputFile=test-results/frontend.xml
