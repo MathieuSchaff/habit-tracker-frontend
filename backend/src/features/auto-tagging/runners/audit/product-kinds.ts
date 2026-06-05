@@ -340,13 +340,13 @@ function auditProducts(subset: ProductRow[]): Mismatch[] {
 }
 
 function groupByRule(items: Mismatch[]): Map<string, Mismatch[]> {
-  const m = new Map<string, Mismatch[]>()
+  const byRule = new Map<string, Mismatch[]>()
   for (const item of items) {
-    const arr = m.get(item.ruleName) ?? []
+    const arr = byRule.get(item.ruleName) ?? []
     arr.push(item)
-    m.set(item.ruleName, arr)
+    byRule.set(item.ruleName, arr)
   }
-  return m
+  return byRule
 }
 
 function printTier(tier: string, items: Mismatch[]) {

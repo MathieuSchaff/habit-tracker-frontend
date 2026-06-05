@@ -81,19 +81,19 @@ export function detectStepNettoyage1(
   if (ingredients.length === 0) return []
 
   const oilCap = Math.min(ingredients.length, STEP1_OIL_POSITION_CAP)
-  let oilFound = false
+  let hasOilOrBalm = false
   for (let i = 0; i < oilCap; i++) {
-    if (OIL_BALM_PATTERNS.some((p) => ingredients[i].includes(p))) {
-      oilFound = true
+    if (OIL_BALM_PATTERNS.some((pattern) => ingredients[i].includes(pattern))) {
+      hasOilOrBalm = true
       break
     }
   }
-  if (!oilFound) return []
+  if (!hasOilOrBalm) return []
 
   // No ionic surfactant in top 5 (rules out foaming gel cleansers)
   const surfCap = Math.min(ingredients.length, STEP1_SURFACTANT_EXCLUSION_CAP)
   for (let i = 0; i < surfCap; i++) {
-    if (IONIC_SURFACTANT_PATTERNS.some((p) => ingredients[i].includes(p))) return []
+    if (IONIC_SURFACTANT_PATTERNS.some((pattern) => ingredients[i].includes(pattern))) return []
   }
 
   return [S.STEP_NETTOYAGE_1]

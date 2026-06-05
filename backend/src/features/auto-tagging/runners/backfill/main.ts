@@ -175,8 +175,8 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
 }> {
   const existingRows = await db
     .select({
-      pId: productTagLinks.productId,
-      tId: productTagLinks.productTagId,
+      productId: productTagLinks.productId,
+      productTagId: productTagLinks.productTagId,
       rel: productTagLinks.relevance,
       source: productTagLinks.source,
     })
@@ -185,12 +185,12 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
   const productsWithCuratedPrimary = new Set<string>()
   const manualPairs = new Set<string>()
   for (const r of existingRows) {
-    const pairKey = `${r.pId}:${r.tId}`
+    const pairKey = `${r.productId}:${r.productTagId}`
     existingMap.set(pairKey, r.rel as Relevance)
     if (r.source === 'manual') manualPairs.add(pairKey)
     if (r.rel !== 'primary') continue
-    const type = tagIdToType.get(r.tId)
-    if (type && !AUTO_PRIMARY_TAG_TYPES.has(type)) productsWithCuratedPrimary.add(r.pId)
+    const type = tagIdToType.get(r.productTagId)
+    if (type && !AUTO_PRIMARY_TAG_TYPES.has(type)) productsWithCuratedPrimary.add(r.productId)
   }
   return { existingMap, productsWithCuratedPrimary, manualPairs }
 }

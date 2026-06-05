@@ -23,7 +23,7 @@ const SOAP_SALT =
 const SOAP_OTHER = /saponif|\bsoap\b|\bsavon\b/
 
 function hasSoap(ingredients: readonly string[]): boolean {
-  return ingredients.some((i) => SOAP_SALT.test(i) || SOAP_OTHER.test(i))
+  return ingredients.some((ingredient) => SOAP_SALT.test(ingredient) || SOAP_OTHER.test(ingredient))
 }
 
 export function detectSansSavon(

@@ -54,6 +54,6 @@ export function partitionEczemaReview<T extends { tagSlug: SkincareProductTagSlu
   if (!eczemaAtopieDescriptionNeedsReview(description)) {
     return { kept: pairs, withheld: false }
   }
-  const kept = pairs.filter((p) => p.tagSlug !== S.ECZEMA_ATOPIE)
+  const kept = pairs.filter((pair) => pair.tagSlug !== S.ECZEMA_ATOPIE)
   return { kept, withheld: kept.length !== pairs.length }
 }

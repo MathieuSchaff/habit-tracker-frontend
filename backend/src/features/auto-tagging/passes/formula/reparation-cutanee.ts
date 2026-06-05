@@ -30,7 +30,7 @@ export function detectReparationCutanee(
   const limit = Math.min(ingredients.length, REPARATION_POSITION_CAP)
 
   for (let i = 0; i < limit; i++) {
-    if (REPARATION_CUTANEE_PATTERNS.some((p) => ingredients[i].includes(p))) {
+    if (REPARATION_CUTANEE_PATTERNS.some((pattern) => ingredients[i].includes(pattern))) {
       return [S.REPARATION]
     }
   }

@@ -67,7 +67,7 @@ const MAX_LEGIT_WORDS_PER_TOKEN = 15
 // prefix on otherwise-clean French derma INCI (Bioderma, Ducray, LRP) is
 // NOT fragile: stripMarketingPreamble removes the prefix and the rest
 // parses normally.
-function hasMarketingPreamble(inci: string): boolean {
+function hasResidualMarketingProse(inci: string): boolean {
   const cleaned = stripMarketingPreamble(inci)
   if (cleaned === inci) return false
   if (PROSE_VOCAB.test(cleaned)) return true
@@ -87,7 +87,7 @@ export function isFragileINCI(inci: string | null | undefined): boolean {
   const cleaned = stripMarketingPreamble(inci)
   const normalized = splitINCI(cleaned).map(normalize).filter(Boolean)
   if (normalized.length === 0) return true
-  return hasMarketingPreamble(inci) || looksTruncated(inci) || isAlphabeticalINCI(normalized)
+  return hasResidualMarketingProse(inci) || looksTruncated(inci) || isAlphabeticalINCI(normalized)
 }
 
 function toCanonicalSlug(raw: string): string {

@@ -66,9 +66,9 @@ export function detectTextureRiche(
   for (const group of canonicalGroups) {
     if (group.some((p) => matchedPatterns.has(p))) groupHits++
   }
-  const grouped = new Set(canonicalGroups.flat())
+  const groupedSynonyms = new Set(canonicalGroups.flat())
   for (const p of matchedPatterns) {
-    if (!grouped.has(p)) groupHits++
+    if (!groupedSynonyms.has(p)) groupHits++
   }
 
   return groupHits >= 2 ? [S.TEXTURE_RICHE] : []

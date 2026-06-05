@@ -262,9 +262,9 @@ function drawRound(
 ): void {
   const quotaUsed = new Map<GoldSetFocusTag, number>()
   for (const tag of GOLD_SET_FOCUS_TAGS) quotaUsed.set(tag, 0)
-  let progress = true
-  while (selected.size < SAMPLE_SIZE && progress) {
-    progress = false
+  let madeProgress = true
+  while (selected.size < SAMPLE_SIZE && madeProgress) {
+    madeProgress = false
     for (const tag of GOLD_SET_FOCUS_TAGS) {
       if (selected.size >= SAMPLE_SIZE) break
       const used = quotaUsed.get(tag) ?? 0
@@ -275,7 +275,7 @@ function drawRound(
       if (!next) continue
       addSelection(selected, next, tag)
       quotaUsed.set(tag, used + 1)
-      progress = true
+      madeProgress = true
     }
   }
 }
@@ -369,15 +369,15 @@ async function main() {
 }
 
 function pickDominantKind(freq: Map<string, number>): string | null {
-  let best: string | null = null
-  let bestN = 0
-  for (const [k, n] of freq) {
-    if (n > bestN) {
-      best = k
-      bestN = n
+  let dominantKind: string | null = null
+  let dominantCount = 0
+  for (const [kind, count] of freq) {
+    if (count > dominantCount) {
+      dominantKind = kind
+      dominantCount = count
     }
   }
-  return best
+  return dominantKind
 }
 
 function popNextUnselected(

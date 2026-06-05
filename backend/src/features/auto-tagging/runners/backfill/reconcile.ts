@@ -95,7 +95,7 @@ const tagIdToSlug = new Map(tagDefs.map((t) => [t.id, t.slug]))
 const claimsByProduct = await fetchPercentClaimsByProduct(prods.map((p) => p.id))
 const concentrationsByProduct = await fetchKnownConcentrationsByProduct(prods.map((p) => p.id))
 
-const cur = await db
+const storedAutoTagRows = await db
   .select({
     productId: productTagLinks.productId,
     productTagId: productTagLinks.productTagId,
@@ -103,11 +103,11 @@ const cur = await db
   })
   .from(productTagLinks)
   .where(ne(productTagLinks.source, 'manual'))
-const curByProduct = new Map<string, Map<string, string>>()
-for (const r of cur) {
-  const m = curByProduct.get(r.productId) ?? new Map()
+const storedByProduct = new Map<string, Map<string, string>>()
+for (const r of storedAutoTagRows) {
+  const m = storedByProduct.get(r.productId) ?? new Map()
   m.set(r.productTagId, r.relevance)
-  curByProduct.set(r.productId, m)
+  storedByProduct.set(r.productId, m)
 }
 
 // Manual rows hold the PK; onConflictDoNothing yields to them, making
@@ -150,12 +150,12 @@ for (const p of prods) {
   // Same seam as the writers: withholds eczema-atopie, drops domain-ineligible
   // types, so the parity delta matches exactly what would be persisted.
   const { rows } = resolveTagRows(pairs, p, tagSlugToInfo)
-  const want = new Map(rows.map((r) => [r.tagId, r.relevance]))
+  const desiredTagRelevance = new Map(rows.map((r) => [r.tagId, r.relevance]))
 
-  const have = curByProduct.get(p.id) ?? new Map<string, string>()
+  const persistedTagRelevance = storedByProduct.get(p.id) ?? new Map<string, string>()
   const manualHave = manualByProduct.get(p.id) ?? new Set<string>()
-  for (const [tagId, rel] of want) {
-    const h = have.get(tagId)
+  for (const [tagId, rel] of desiredTagRelevance) {
+    const h = persistedTagRelevance.get(tagId)
     if (h === undefined) {
       if (manualHave.has(tagId)) manualShadowed++
       else netInsert++
@@ -164,8 +164,8 @@ for (const p of prods) {
       relDirection.set(`${h}→${rel}`, (relDirection.get(`${h}→${rel}`) ?? 0) + 1)
     }
   }
-  for (const [tagId] of have) {
-    if (!want.has(tagId)) {
+  for (const [tagId] of persistedTagRelevance) {
+    if (!desiredTagRelevance.has(tagId)) {
       netDelete++
       const s = tagIdToSlug.get(tagId) ?? tagId
       delBySlug.set(s, (delBySlug.get(s) ?? 0) + 1)

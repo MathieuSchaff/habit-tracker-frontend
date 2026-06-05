@@ -12,7 +12,6 @@
     "types": ["vite/client"],
 
     /* 2. Résolution des modules (consomme les types) */
-    "baseUrl": ".",
     "paths": {
       "@aurore/shared": ["../shared/dist/index.d.ts"],
       "@aurore/backend": ["../backend/dist/index.d.ts"],

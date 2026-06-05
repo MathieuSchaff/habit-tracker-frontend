@@ -218,10 +218,10 @@ export function detectConcentrationAvoidTags(
   if (!LEAVE_ON_KINDS.has(kind)) return []
 
   const tags = new Set<SkincareProductTagSlug>()
-  for (const m of assessment.matchedEvidence) {
-    const { solverMeanPct, claimPct } = m.concentrationEstimate
+  for (const evidence of assessment.matchedEvidence) {
+    const { solverMeanPct, claimPct } = evidence.concentrationEstimate
     if (solverMeanPct === undefined) continue
-    const lowerInci = m.evidence.inci.toLowerCase()
+    const lowerInci = evidence.evidence.inci.toLowerCase()
 
     const cappedThreshold = CAPPED_DOSE_RULES[lowerInci]
     if (cappedThreshold !== undefined) {

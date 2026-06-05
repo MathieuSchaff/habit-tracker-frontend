@@ -332,36 +332,36 @@ async function main() {
 
   const byTagIng = new Map<TargetSlug, Map<string, number>>()
   for (const o of overrides) {
-    let m = byTagIng.get(o.tagSlug)
-    if (!m) {
-      m = new Map()
-      byTagIng.set(o.tagSlug, m)
+    let ingMap = byTagIng.get(o.tagSlug)
+    if (!ingMap) {
+      ingMap = new Map()
+      byTagIng.set(o.tagSlug, ingMap)
     }
-    m.set(o.ingredient, (m.get(o.ingredient) ?? 0) + 1)
+    ingMap.set(o.ingredient, (ingMap.get(o.ingredient) ?? 0) + 1)
   }
   for (const slug of TARGET_SLUGS) {
-    const m = byTagIng.get(slug)
-    if (!m) continue
+    const ingMap = byTagIng.get(slug)
+    if (!ingMap) continue
     console.log(`🧪 ${slug.toUpperCase()} top ingredients`)
-    const top = [...m.entries()].sort((a, b) => b[1] - a[1])
+    const top = [...ingMap.entries()].sort((a, b) => b[1] - a[1])
     for (const [ing, n] of top) console.log(`   ${String(n).padStart(5)} × ${ing}`)
     console.log()
   }
 
   const byTagKind = new Map<TargetSlug, Map<string, number>>()
   for (const o of overrides) {
-    let m = byTagKind.get(o.tagSlug)
-    if (!m) {
-      m = new Map()
-      byTagKind.set(o.tagSlug, m)
+    let kindMap = byTagKind.get(o.tagSlug)
+    if (!kindMap) {
+      kindMap = new Map()
+      byTagKind.set(o.tagSlug, kindMap)
     }
-    m.set(o.kind, (m.get(o.kind) ?? 0) + 1)
+    kindMap.set(o.kind, (kindMap.get(o.kind) ?? 0) + 1)
   }
   for (const slug of TARGET_SLUGS) {
-    const m = byTagKind.get(slug)
-    if (!m) continue
+    const kindMap = byTagKind.get(slug)
+    if (!kindMap) continue
     console.log(`📦 ${slug.toUpperCase()} top kinds`)
-    const top = [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+    const top = [...kindMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
     for (const [k, n] of top) console.log(`   ${String(n).padStart(5)} × ${k}`)
     console.log()
   }
@@ -450,13 +450,13 @@ async function applyDeletions(): Promise<void> {
   for (const line of lines.slice(1)) {
     // Runner-generated CSVs: slugs are kebab-case ASCII, no embedded quotes.
     const cols = line.split(',')
-    const ps = (cols[colSlug] ?? '').trim()
-    const ts = (cols[colTag] ?? '').trim()
-    if (!ps || !ts) continue
-    if (!TARGET_SLUGS.includes(ts as TargetSlug)) {
-      throw new Error(`${APPLY_FROM_CSV}: tag_slug ${ts} outside ${TARGET_SLUGS.join(',')}`)
+    const productSlug = (cols[colSlug] ?? '').trim()
+    const tagSlug = (cols[colTag] ?? '').trim()
+    if (!productSlug || !tagSlug) continue
+    if (!TARGET_SLUGS.includes(tagSlug as TargetSlug)) {
+      throw new Error(`${APPLY_FROM_CSV}: tag_slug ${tagSlug} outside ${TARGET_SLUGS.join(',')}`)
     }
-    pairs.push({ productSlug: ps, tagSlug: ts })
+    pairs.push({ productSlug, tagSlug })
   }
 
   console.log(`   ${pairs.length} pairs à supprimer\n`)

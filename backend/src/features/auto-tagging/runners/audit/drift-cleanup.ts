@@ -130,22 +130,22 @@ async function main() {
   // withAdminRls: bare SET LOCAL outside a tx is a no-op (RLS would reject DELETEs).
   await withAdminRls(async (tx) => {
     for (const row of TO_DELETE) {
-      const product = await tx
+      const productRow = await tx
         .select({ id: products.id })
         .from(products)
         .where(eq(products.slug, row.product))
         .limit(1)
-      if (product.length === 0) {
+      if (productRow.length === 0) {
         console.log(`  ⚠️  product not found: ${row.product}`)
         missing++
         continue
       }
-      const tagDef = await tx
+      const tagTypeRow = await tx
         .select({ id: productTagTypes.id })
         .from(productTagTypes)
         .where(eq(productTagTypes.slug, row.tag))
         .limit(1)
-      if (tagDef.length === 0) {
+      if (tagTypeRow.length === 0) {
         console.log(`  ⚠️  tag def not found: ${row.tag}`)
         missing++
         continue
@@ -156,8 +156,8 @@ async function main() {
           .delete(productTagLinks)
           .where(
             and(
-              eq(productTagLinks.productId, product[0]?.id),
-              eq(productTagLinks.productTagId, tagDef[0]?.id)
+              eq(productTagLinks.productId, productRow[0]?.id),
+              eq(productTagLinks.productTagId, tagTypeRow[0]?.id)
             )
           )
         const count = (result as unknown as { count: number }).count ?? 0
@@ -170,8 +170,8 @@ async function main() {
           .from(productTagLinks)
           .where(
             and(
-              eq(productTagLinks.productId, product[0]?.id),
-              eq(productTagLinks.productTagId, tagDef[0]?.id)
+              eq(productTagLinks.productId, productRow[0]?.id),
+              eq(productTagLinks.productTagId, tagTypeRow[0]?.id)
             )
           )
           .limit(1)

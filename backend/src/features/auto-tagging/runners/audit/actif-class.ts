@@ -130,42 +130,42 @@ async function main() {
   )
 
   const sorted = [...stats.entries()].sort((a, b) => b[1].hit - a[1].hit)
-  for (const [slug, s] of sorted) {
-    const agreePct = s.hit === 0 ? '—' : `${((s.agree / s.hit) * 100).toFixed(0)} %`
+  for (const [slug, stat] of sorted) {
+    const agreePct = stat.hit === 0 ? '—' : `${((stat.agree / stat.hit) * 100).toFixed(0)} %`
     console.log(
-      `   ${pad(slug, 24)} ${rpad(String(s.hit), 6)} ${rpad(String(s.agree), 6)} ${rpad(String(s.new), 6)} ${rpad(String(s.manualOnly), 8)} ${rpad(agreePct, 7)}`
+      `   ${pad(slug, 24)} ${rpad(String(stat.hit), 6)} ${rpad(String(stat.agree), 6)} ${rpad(String(stat.new), 6)} ${rpad(String(stat.manualOnly), 8)} ${rpad(agreePct, 7)}`
     )
   }
 
   console.log(`\n📋 Top 3 kinds par cluster`)
-  for (const [slug, s] of sorted) {
-    if (s.hit === 0) continue
-    const topKinds = [...s.byKind.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+  for (const [slug, stat] of sorted) {
+    if (stat.hit === 0) continue
+    const topKinds = [...stat.byKind.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
     const summary = topKinds.map(([k, n]) => `${k}=${n}`).join(', ')
     console.log(`   ${pad(slug, 24)} ${summary}`)
   }
 
-  const silent = sorted.filter(([_, s]) => s.hit === 0).map(([slug]) => slug)
+  const silent = sorted.filter(([_, stat]) => stat.hit === 0).map(([slug]) => slug)
   if (silent.length > 0) {
     console.log(`\n⚪ Clusters 0 hit : ${silent.join(', ')}`)
   }
 
-  const drift = sorted.filter(([_, s]) => s.manualOnly > 0)
+  const drift = sorted.filter(([_, stat]) => stat.manualOnly > 0)
   if (drift.length > 0) {
     console.log(`\n🔍 Drift (manual sans détection — patterns à investiguer)`)
-    for (const [slug, s] of drift) {
+    for (const [slug, stat] of drift) {
       console.log(
-        `   ${pad(slug, 24)} only_db=${s.manualOnly}${s.hit > 0 ? ` (vs hit=${s.hit})` : ' (no detector hit)'}`
+        `   ${pad(slug, 24)} only_db=${stat.manualOnly}${stat.hit > 0 ? ` (vs hit=${stat.hit})` : ' (no detector hit)'}`
       )
     }
   }
 
   if (DUMP_DRIFT) {
     console.log(`\n📦 Dump drift products (DUMP_DRIFT=1)`)
-    for (const [slug, s] of sorted) {
-      if (s.driftProducts.length === 0) continue
-      console.log(`\n── ${slug} (${s.driftProducts.length}) ──`)
-      for (const p of s.driftProducts) {
+    for (const [slug, stat] of sorted) {
+      if (stat.driftProducts.length === 0) continue
+      console.log(`\n── ${slug} (${stat.driftProducts.length}) ──`)
+      for (const p of stat.driftProducts) {
         const inciTrunc = p.inci ? p.inci.slice(0, 200) : '(no inci)'
         console.log(`  [${p.kind}] ${p.slug}`)
         console.log(`     ${inciTrunc}${(p.inci?.length ?? 0) > 200 ? '…' : ''}`)
