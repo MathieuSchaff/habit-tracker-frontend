@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@aurore/shared": "workspace:*",
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/young-serif": "^5.2.7",
     "@tanstack/react-query": "^5.101.0",
     "@tanstack/react-router": "^1.170.11",
     "@tanstack/router-core": "^1.171.9",

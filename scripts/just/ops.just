@@ -14,6 +14,9 @@ prod-down:
     {{COMPOSE_PROD}} down
 
 # Apply migrations on prod DB (in-container, same bun-sql migrator as dev/test/e2e).
+# Then realign the app_runtime role password: migration 0013 creates the role with a
+# placeholder via IF NOT EXISTS (never re-run), so the runtime pool can't authenticate
+# until ALTER ROLE matches APP_RUNTIME_PASSWORD. Idempotent — safe to re-run.
 prod-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -21,6 +24,10 @@ prod-migrate:
     read -r -p "> " C
     [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
     {{COMPOSE_PROD}} exec -T api sh -c "cd backend && bun run src/db/migrate.ts"
+    APP_PW=$(grep -E '^APP_RUNTIME_PASSWORD=' .env.prod 2>/dev/null | cut -d= -f2- || true)
+    [ -n "$APP_PW" ] || { printf "{{RED}}APP_RUNTIME_PASSWORD absent de .env.prod — ALTER ROLE non appliqué{{NC}}\n"; exit 1; }
+    {{COMPOSE_PROD}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '$APP_PW';"
+    printf "{{GREEN}}✓ app_runtime password aligné{{NC}}\n"
 
 # Reload Nginx config without downtime
 nginx-reload:

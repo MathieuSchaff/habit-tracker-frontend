@@ -7,6 +7,13 @@ services:
   db:
     restart: unless-stopped
     # Pas de port exposé en prod (sécurité)
+    mem_limit: 512m
+    cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   api:
     build:
@@ -15,6 +22,13 @@ services:
       target: prod
 
     restart: unless-stopped
+    mem_limit: 512m
+    cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     environment:
       NODE_ENV: production
@@ -34,6 +48,13 @@ services:
 
   frontend:
     restart: unless-stopped
+    mem_limit: 128m
+    cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     expose:
       - "80"
     healthcheck:
@@ -44,6 +65,13 @@ services:
       start_period: 10s
 
   nginx:
+    mem_limit: 96m
+    cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/nginx-health || exit 1"]
       interval: 30s

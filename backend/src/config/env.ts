@@ -1,6 +1,12 @@
 import { z } from 'zod'
 
-const WEAK_DB_PASSWORDS = ['CHANGE_ME_IMMEDIATELY', 'devpassword', 'testpassword'] as const
+// dev_password_123 was committed to public git history; reject it in prod too.
+const WEAK_DB_PASSWORDS = [
+  'CHANGE_ME_IMMEDIATELY',
+  'devpassword',
+  'testpassword',
+  'dev_password_123',
+] as const
 
 export const envSchema = z
   .object({
