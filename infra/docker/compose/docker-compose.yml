@@ -15,7 +15,8 @@ services:
   # Est monté dans /var/lib/docker/volumes sur l'ordi
   # =========================
   db:
-    image: postgres:18
+    # digest-pinned for reproducibility; bump consciously (Postgres on-disk format).
+    image: postgres:18@sha256:52e6ffd11fddd081ae63880b635b2a61c14008c17fc98cdc7ce5472265516dd0
     container_name: app_db
     # Au final : DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
     environment:
@@ -84,7 +85,8 @@ services:
   # Reverse Proxy (Nginx)
   # =========================
   nginx:
-    image: nginx:1.27-alpine
+    # 1.30.2-alpine, digest-pinned (CVE-2026-42945 "NGINX Rift" fixed in >=1.30.1). Bump digest to update.
+    image: nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
     container_name: app_nginx
     restart: unless-stopped
     depends_on:
@@ -108,7 +110,8 @@ services:
   # Certbot (Let's Encrypt)
   # =========================
   certbot:
-    image: certbot/certbot
+    # v5.6.0, digest-pinned (was floating :latest).
+    image: certbot/certbot@sha256:0107d084c225631fc64a8313e19adb07275f7296fde338f7dfa93986c80b2e3e
     container_name: app_certbot
     restart: unless-stopped
     volumes:

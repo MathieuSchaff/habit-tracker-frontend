@@ -25,7 +25,8 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # Production : Nginx
-FROM nginx:1.27-alpine
+# 1.30.2-alpine, digest-pinned (CVE-2026-42945 fixed in >=1.30.1). Bump digest to update.
+FROM nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 EXPOSE 80
