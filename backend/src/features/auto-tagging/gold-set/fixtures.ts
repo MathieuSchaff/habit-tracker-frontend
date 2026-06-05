@@ -130,12 +130,12 @@ export function validateGoldSet(value: unknown, path: string): GoldSetFile {
   const seen = new Set<string>()
   const annotations: GoldSetAnnotation[] = []
   for (let i = 0; i < root.annotations.length; i++) {
-    const a = root.annotations[i] as Record<string, unknown>
+    const annotation = root.annotations[i] as Record<string, unknown>
     const where = `${path} #${i}`
-    if (!a || typeof a !== 'object') {
+    if (!annotation || typeof annotation !== 'object') {
       throw new GoldSetValidationError(`Annotation must be an object at ${where}`)
     }
-    const slug = a.productSlug
+    const slug = annotation.productSlug
     if (typeof slug !== 'string' || slug.length === 0) {
       throw new GoldSetValidationError(`Missing or empty "productSlug" at ${where}`)
     }
@@ -144,8 +144,8 @@ export function validateGoldSet(value: unknown, path: string): GoldSetFile {
     }
     seen.add(slug)
 
-    const present = checkTagList(a.present, 'present', where)
-    const absent = checkTagList(a.absent, 'absent', where)
+    const present = checkTagList(annotation.present, 'present', where)
+    const absent = checkTagList(annotation.absent, 'absent', where)
     const overlap = present.filter((t) => absent.includes(t))
     if (overlap.length > 0) {
       throw new GoldSetValidationError(
@@ -153,19 +153,21 @@ export function validateGoldSet(value: unknown, path: string): GoldSetFile {
       )
     }
     const sampledFor =
-      a.sampledFor === undefined
+      annotation.sampledFor === undefined
         ? undefined
-        : (checkTagList(a.sampledFor, 'sampledFor', where) as GoldSetFocusTag[])
+        : (checkTagList(annotation.sampledFor, 'sampledFor', where) as GoldSetFocusTag[])
 
     annotations.push({
       productSlug: slug,
-      kind: a.kind as ProductKind,
-      category: typeof a.category === 'string' ? a.category : '',
+      kind: annotation.kind as ProductKind,
+      category: typeof annotation.category === 'string' ? annotation.category : '',
       present,
       absent,
-      annotatedAt: typeof a.annotatedAt === 'string' ? a.annotatedAt : '',
+      annotatedAt: typeof annotation.annotatedAt === 'string' ? annotation.annotatedAt : '',
       ...(sampledFor !== undefined ? { sampledFor } : {}),
-      ...(typeof a.notes === 'string' && a.notes.length > 0 ? { notes: a.notes } : {}),
+      ...(typeof annotation.notes === 'string' && annotation.notes.length > 0
+        ? { notes: annotation.notes }
+        : {}),
     })
   }
 

@@ -275,8 +275,8 @@ export function detectActifClasses(
         ? def.positionCapRinseOff
         : (def.positionCap ?? DEFAULT_POSITION_CAP)
     const cap = isAlpha ? ingredients.length : Math.min(ingredients.length, baseCap)
-    const window = ingredients.slice(0, cap)
-    if (def.patterns.some((p) => window.some((ing) => ing.includes(p)))) {
+    const cappedIngredients = ingredients.slice(0, cap)
+    if (def.patterns.some((p) => cappedIngredients.some((ing) => ing.includes(p)))) {
       found.add(def.slug)
     }
   }

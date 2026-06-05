@@ -28,9 +28,9 @@ const ALPHA_DETECT_MIN_DISTINCT_LETTERS = 3
 
 function pickLetterTokens(ingredients: readonly string[]): string[] {
   const out: string[] = []
-  for (const ing of ingredients) {
+  for (const ingredient of ingredients) {
     if (out.length >= ALPHA_DETECT_WINDOW) break
-    if (/^[a-z]/.test(ing)) out.push(ing)
+    if (/^[a-z]/.test(ingredient)) out.push(ingredient)
   }
   return out
 }

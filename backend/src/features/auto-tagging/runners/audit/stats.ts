@@ -94,12 +94,12 @@ function emptyTagStat(): TagStat {
   return { hit: 0, agree: 0, new: 0, sumConf: 0, minConf: 1, maxConf: 0 }
 }
 
-function updateTagStat(stat: TagStat, confidence: number, isAgree: boolean): void {
+function updateTagStat(stat: TagStat, confidence: number, isAlreadyTagged: boolean): void {
   stat.hit++
   stat.sumConf += confidence
   stat.minConf = Math.min(stat.minConf, confidence)
   stat.maxConf = Math.max(stat.maxConf, confidence)
-  if (isAgree) stat.agree++
+  if (isAlreadyTagged) stat.agree++
   else stat.new++
 }
 
@@ -264,7 +264,7 @@ function processProduct(
   state.totalEmitted += emittedHere
 }
 
-async function fetchSubset(): Promise<ProductRow[]> {
+async function fetchEligibleProductSubset(): Promise<ProductRow[]> {
   return fetchEligibleProducts({ limit: LIMIT ?? undefined })
 }
 
@@ -287,7 +287,7 @@ async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
 }
 
 export async function fetchAuditStats(): Promise<{ state: AuditState; subsetLength: number }> {
-  const subset = await fetchSubset()
+  const subset = await fetchEligibleProductSubset()
   const existingByProduct = await fetchExistingByProduct()
   const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 

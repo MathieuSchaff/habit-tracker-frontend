@@ -325,12 +325,12 @@ function quantile(sortedAsc: number[], q: number): number {
   if (sortedAsc.length === 1) return sortedAsc[0] ?? 0
   // R-7 / numpy default linear interpolation.
   const pos = (sortedAsc.length - 1) * q
-  const lo = Math.floor(pos)
-  const hi = Math.ceil(pos)
-  const wLo = sortedAsc[lo] ?? 0
-  if (lo === hi) return wLo
-  const wHi = sortedAsc[hi] ?? 0
-  return wLo + (wHi - wLo) * (pos - lo)
+  const lowerIdx = Math.floor(pos)
+  const upperIdx = Math.ceil(pos)
+  const valueLo = sortedAsc[lowerIdx] ?? 0
+  if (lowerIdx === upperIdx) return valueLo
+  const valueHi = sortedAsc[upperIdx] ?? 0
+  return valueLo + (valueHi - valueLo) * (pos - lowerIdx)
 }
 
 function printQuantileRow(axis: string, xs: number[]): void {

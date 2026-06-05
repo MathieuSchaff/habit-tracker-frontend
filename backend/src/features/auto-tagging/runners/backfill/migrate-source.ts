@@ -115,9 +115,9 @@ async function main() {
       alreadyCorrect++
       continue
     }
-    const arr = updatesBySource.get(detected) ?? []
-    arr.push([row.pId, row.tId])
-    updatesBySource.set(detected, arr)
+    const pendingPairs = updatesBySource.get(detected) ?? []
+    pendingPairs.push([row.pId, row.tId])
+    updatesBySource.set(detected, pendingPairs)
   }
 
   console.log(`📊 Produits scannés       : ${subset.length}`)

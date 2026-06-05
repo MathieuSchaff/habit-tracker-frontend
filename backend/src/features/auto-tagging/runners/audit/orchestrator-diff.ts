@@ -117,17 +117,17 @@ async function main() {
 
   const byTagAction = new Map<string, number>()
   for (const d of diff) {
-    const k = `${d.action}:${d.tagSlug}`
-    byTagAction.set(k, (byTagAction.get(k) ?? 0) + 1)
+    const actionTagKey = `${d.action}:${d.tagSlug}`
+    byTagAction.set(actionTagKey, (byTagAction.get(actionTagKey) ?? 0) + 1)
   }
   const sorted = [...byTagAction.entries()].sort((a, b) => b[1] - a[1])
   console.log(`📋 Top 20 (action × tag_slug)`)
   console.log(`   ${padTrunc('action', 22)} ${padTrunc('tag_slug', 32)} count`)
   console.log(`   ${'─'.repeat(22)} ${'─'.repeat(32)} ─────`)
-  for (const [k, n] of sorted.slice(0, 20)) {
-    const sep = k.indexOf(':')
-    const action = k.slice(0, sep)
-    const tagSlug = k.slice(sep + 1)
+  for (const [actionTagKey, n] of sorted.slice(0, 20)) {
+    const sep = actionTagKey.indexOf(':')
+    const action = actionTagKey.slice(0, sep)
+    const tagSlug = actionTagKey.slice(sep + 1)
     console.log(`   ${padTrunc(action, 22)} ${padTrunc(tagSlug, 32)} ${n}`)
   }
   if (sorted.length > 20) console.log(`   … (${sorted.length - 20} buckets additionnels)`)

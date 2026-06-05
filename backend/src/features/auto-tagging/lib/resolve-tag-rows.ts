@@ -32,9 +32,9 @@ export function resolveTagRows(
   product: { category: ProductCategory; description: string | null | undefined },
   tagSlugToInfo: ReadonlyMap<string, { id: string; tagType: string }>
 ): { rows: ResolvedTagRow[]; withheld: boolean } {
-  const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[product.category]
-  const validTagTypes = domain
-    ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[])
+  const domainTab = PRODUCT_CATEGORY_TO_DOMAIN_TAB[product.category]
+  const validTagTypes = domainTab
+    ? (DOMAIN_PRODUCT_FILTER_CATEGORIES[domainTab] as readonly string[])
     : []
 
   const { kept, withheld } = partitionEczemaReview(pairs, product.description)

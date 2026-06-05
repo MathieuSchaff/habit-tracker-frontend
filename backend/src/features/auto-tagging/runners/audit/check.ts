@@ -108,9 +108,9 @@ export function runCheck(state: AuditState): number {
       `   ${pad(r.slug, 28)} ${pad(r.category, 10)} ${rpad(`${(r.hitRate * 100).toFixed(1)}%`, 7)} ${rpad(r.budget, 10)} ${icon} ${r.status}${reason}`
     )
   }
-  const fails = rows.filter((r) => r.status === 'FAIL').length
+  const failingRowCount = rows.filter((r) => r.status === 'FAIL').length
   const warns = rows.filter((r) => r.status === 'WARN').length
   const oks = rows.filter((r) => r.status === 'OK').length
-  console.log(`\n   Summary: ${oks} OK · ${warns} WARN · ${fails} FAIL`)
+  console.log(`\n   Summary: ${oks} OK · ${warns} WARN · ${failingRowCount} FAIL`)
   return failCount
 }

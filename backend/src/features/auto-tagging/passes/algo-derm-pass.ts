@@ -16,12 +16,12 @@ export const algoDermPass: Pass = {
         : {}),
     })
     const out: AutoTagProposal[] = []
-    for (const t of tags) {
+    for (const tag of tags) {
       out.push({
-        tagSlug: t.slug,
-        relevance: t.relevance,
+        tagSlug: tag.slug,
+        relevance: tag.relevance,
         source: 'algo-derm',
-        confidence: t.confidence,
+        confidence: tag.confidence,
       })
     }
     return out

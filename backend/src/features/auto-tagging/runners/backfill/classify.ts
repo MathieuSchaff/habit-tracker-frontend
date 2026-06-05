@@ -28,8 +28,8 @@ export interface ClassifyResult {
 // V1-emittable tagType as "auto" when building productsWithCuratedPrimary.
 // Demote to secondary for curated products so the row is still inserted.
 export function applyV1V2Gate(c: Candidate, productsWithCuratedPrimary: Set<string>): Candidate {
-  const promoteAllowed = c.relevance === 'primary' && !productsWithCuratedPrimary.has(c.productId)
-  if (c.relevance === 'primary' && !promoteAllowed) {
+  const hasCuratedPrimary = productsWithCuratedPrimary.has(c.productId)
+  if (c.relevance === 'primary' && hasCuratedPrimary) {
     return { ...c, relevance: 'secondary' }
   }
   return c

@@ -271,10 +271,10 @@ async function main() {
   console.log(
     `   ${'─'.repeat(28)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(14)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
   )
-  for (const s of slugStats) {
-    const range = `${fmt(s.knownMin)}–${fmt(s.knownMax)}`
+  for (const slugStat of slugStats) {
+    const range = `${fmt(slugStat.knownMin)}–${fmt(slugStat.knownMax)}`
     console.log(
-      `   ${pad(s.slug, 28)} ${rpad(String(s.n), 4)} ${rpad(String(s.nSolver), 4)} ${rpad(range, 14)} ${rpad(fmt(s.solverMAE), 7)} ${rpad(fmt(s.solverRMSE), 7)} ${rpad(fmt(s.meanMAE), 7)} ${rpad(fmt(s.solverCICov), 6)} ${rpad(fmt(s.betaCICov), 6)}`
+      `   ${pad(slugStat.slug, 28)} ${rpad(String(slugStat.n), 4)} ${rpad(String(slugStat.nSolver), 4)} ${rpad(range, 14)} ${rpad(fmt(slugStat.solverMAE), 7)} ${rpad(fmt(slugStat.solverRMSE), 7)} ${rpad(fmt(slugStat.meanMAE), 7)} ${rpad(fmt(slugStat.solverCICov), 6)} ${rpad(fmt(slugStat.betaCICov), 6)}`
     )
   }
 

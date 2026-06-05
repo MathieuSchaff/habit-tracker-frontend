@@ -115,34 +115,36 @@ async function main() {
 
   for (const [cluster, cases] of driftByCluster) {
     if (cases.length === 0) continue
-    const fp = cases.filter((c) => c.bucket === 'false-pos')
-    const pc = cases.filter((c) => c.bucket === 'pos-cap')
-    const pf = cases.filter((c) => c.bucket === 'parse-fail')
-    totalFalsePos += fp.length
-    totalPosCap += pc.length
-    totalParseFail += pf.length
+    const falsePosCases = cases.filter((c) => c.bucket === 'false-pos')
+    const posCapCases = cases.filter((c) => c.bucket === 'pos-cap')
+    const parseFailCases = cases.filter((c) => c.bucket === 'parse-fail')
+    totalFalsePos += falsePosCases.length
+    totalPosCap += posCapCases.length
+    totalParseFail += parseFailCases.length
 
     console.log(`── ${cluster} (${cases.length}) ──`)
-    console.log(`   false-pos: ${fp.length}  pos-cap: ${pc.length}  parse-fail: ${pf.length}`)
+    console.log(
+      `   false-pos: ${falsePosCases.length}  pos-cap: ${posCapCases.length}  parse-fail: ${parseFailCases.length}`
+    )
 
-    if (fp.length > 0) {
+    if (falsePosCases.length > 0) {
       console.log(`\n   🚨 FALSE POSITIVES (no pattern match anywhere):`)
-      for (const c of fp) {
+      for (const c of falsePosCases) {
         console.log(`     [${c.kind}] ${c.slug}`)
         if (DUMP_FALSE_POS) {
           console.log(`        INCI: ${c.inci}`)
         }
       }
     }
-    if (pc.length > 0) {
+    if (posCapCases.length > 0) {
       console.log(`\n   📐 POSITION-CAP:`)
-      for (const c of pc) {
+      for (const c of posCapCases) {
         console.log(`     [${c.kind}] ${c.slug} → pos ${c.matchPositions.join(',')}`)
       }
     }
-    if (pf.length > 0) {
+    if (parseFailCases.length > 0) {
       console.log(`\n   ⚠️ PARSE-FAIL:`)
-      for (const c of pf) console.log(`     [${c.kind}] ${c.slug}`)
+      for (const c of parseFailCases) console.log(`     [${c.kind}] ${c.slug}`)
     }
     console.log()
   }

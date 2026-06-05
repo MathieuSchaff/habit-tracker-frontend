@@ -1,11 +1,11 @@
 import { type BanScope, err, HTTP_STATUS } from '@aurore/shared'
 
 import type { Context, Next } from 'hono'
-import { getUserRole } from 'src/features/auth/user.utils'
 
 import type { AppEnv } from '../../app-env'
 import { isUserBanned, isUserBannedForScope } from './ban.service'
 import { verifyAccessToken } from './jwt.utils'
+import { getUserRole } from './user.utils'
 
 export const requireJwtAuth = async (c: Context<AppEnv>, next: Next) => {
   const authHeader = c.req.header('Authorization')

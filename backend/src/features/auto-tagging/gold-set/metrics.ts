@@ -73,19 +73,23 @@ export function computeECE(samples: readonly Sample[], nBins = 10): number {
 // Empty bins included as zeros so callers can render a stable reliability-diagram axis.
 export function bucketByConfidence(samples: readonly Sample[], nBins = 10): BinStat[] {
   if (nBins < 1) throw new Error('nBins must be >= 1')
-  const sums = Array.from({ length: nBins }, () => ({ n: 0, conf: 0, acc: 0 }))
+  const binAccumulators = Array.from({ length: nBins }, () => ({
+    count: 0,
+    confSum: 0,
+    labelSum: 0,
+  }))
   for (const s of samples) {
     const bin = binIndex(s.p, nBins)
-    const b = sums[bin]
-    b.n++
-    b.conf += s.p
-    b.acc += s.y
+    const b = binAccumulators[bin]
+    b.count++
+    b.confSum += s.p
+    b.labelSum += s.y
   }
-  return sums.map((b, i) => ({
+  return binAccumulators.map((b, i) => ({
     bin: i,
-    count: b.n,
-    avgConfidence: b.n === 0 ? Number.NaN : b.conf / b.n,
-    accuracy: b.n === 0 ? Number.NaN : b.acc / b.n,
+    count: b.count,
+    avgConfidence: b.count === 0 ? Number.NaN : b.confSum / b.count,
+    accuracy: b.count === 0 ? Number.NaN : b.labelSum / b.count,
   }))
 }
 

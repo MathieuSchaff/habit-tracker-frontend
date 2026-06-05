@@ -62,19 +62,19 @@ export function detectRepulpant(
   // Pure glycerin top 5 (exact token: glyceryl-stearate / glyceryl-cocoate
   // are esters, not the humectant)
   const glyCap = Math.min(ingredients.length, REPULPANT_GLYCERIN_POSITION_CAP)
-  let glycerinFound = false
+  let hasGlycerin = false
   for (let i = 0; i < glyCap; i++) {
     if (ingredients[i] === REPULPANT_GLYCERIN_TOKEN) {
-      glycerinFound = true
+      hasGlycerin = true
       break
     }
   }
-  if (!glycerinFound) return []
+  if (!hasGlycerin) return []
 
-  const peptideFound = ingredients.some((ing) =>
+  const hasPeptide = ingredients.some((ing) =>
     REPULPANT_PEPTIDE_PATTERNS.some((p) => ing.includes(p))
   )
-  if (!peptideFound) return []
+  if (!hasPeptide) return []
 
   return [S.REPULPANT]
 }

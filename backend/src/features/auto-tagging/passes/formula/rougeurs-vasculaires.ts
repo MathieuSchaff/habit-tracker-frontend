@@ -26,8 +26,8 @@ export function detectRougeursVasculairesFromName(
   name: string | null | undefined,
   description: string | null | undefined
 ): SkincareProductTagSlug[] {
-  const hay = `${name ?? ''} ${description ?? ''}`
-  if (REDNESS_POSITION_RE.test(hay) && !CAMOUFLAGE_RE.test(hay)) {
+  const searchText = `${name ?? ''} ${description ?? ''}`
+  if (REDNESS_POSITION_RE.test(searchText) && !CAMOUFLAGE_RE.test(searchText)) {
     return [S.ROUGEURS_VASCULAIRES]
   }
   return []

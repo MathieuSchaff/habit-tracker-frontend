@@ -161,15 +161,15 @@ async function main() {
     const emittedSlugs = new Set<string>()
     for (const pair of orchPairs) emittedSlugs.add(pair.tagSlug)
 
-    const m = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
+    const predByTag = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
     for (const t of GOLD_SET_FOCUS_TAGS) {
       const emitted = emittedSlugs.has(t)
       // Use algo-derm confidence when available; deterministic passes get p=1.0/p=0.0.
       const algoConf = algoConfBySlug.get(t)
       const conf = emitted ? (algoConf !== undefined ? algoConf : 1) : 0
-      m.set(t, { emitted, conf })
+      predByTag.set(t, { emitted, conf })
     }
-    rowsPerProduct.set(p.slug, m)
+    rowsPerProduct.set(p.slug, predByTag)
   }
 
   console.log(`📊 Couverture`)
@@ -220,9 +220,9 @@ async function main() {
   console.log(
     `   ${'─'.repeat(22)} ${'─'.repeat(5)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
   )
-  for (const m of perTag) {
+  for (const tagMetrics of perTag) {
     console.log(
-      `   ${pad(m.tagSlug, 22)} ${rpad(String(m.rated), 5)} ${rpad(String(m.tp), 4)} ${rpad(String(m.fp), 4)} ${rpad(String(m.fn), 4)} ${rpad(String(m.tn), 4)} ${rpad(fmt(m.precision), 6)} ${rpad(fmt(m.recall), 6)} ${rpad(fmt(m.f1), 6)} ${rpad(fmt(m.brier), 6)} ${rpad(fmt(m.ece), 6)}`
+      `   ${pad(tagMetrics.tagSlug, 22)} ${rpad(String(tagMetrics.rated), 5)} ${rpad(String(tagMetrics.tp), 4)} ${rpad(String(tagMetrics.fp), 4)} ${rpad(String(tagMetrics.fn), 4)} ${rpad(String(tagMetrics.tn), 4)} ${rpad(fmt(tagMetrics.precision), 6)} ${rpad(fmt(tagMetrics.recall), 6)} ${rpad(fmt(tagMetrics.f1), 6)} ${rpad(fmt(tagMetrics.brier), 6)} ${rpad(fmt(tagMetrics.ece), 6)}`
     )
   }
 

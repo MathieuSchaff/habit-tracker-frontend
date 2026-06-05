@@ -98,18 +98,18 @@ export function explainInci(
     }
   }
 
-  const layers: ExplainLayer[] = rawLayers.map((l) => ({
-    name: l.name,
-    proposals: l.proposals.map((p) => {
+  const layers: ExplainLayer[] = rawLayers.map((layer) => ({
+    name: layer.name,
+    proposals: layer.proposals.map((p) => {
       const winner = winnerBySlug.get(p.tagSlug)
-      const won = winner === p
+      const proposalWon = winner === p
       return {
         tagSlug: p.tagSlug,
         relevance: p.relevance,
         source: p.source,
         ...(p.confidence !== undefined ? { confidence: p.confidence } : {}),
-        outcome: won ? ('won' as const) : ('superseded' as const),
-        ...(won || !winner
+        outcome: proposalWon ? ('won' as const) : ('superseded' as const),
+        ...(proposalWon || !winner
           ? {}
           : { supersededBy: { relevance: winner.relevance, source: winner.source } }),
       }
