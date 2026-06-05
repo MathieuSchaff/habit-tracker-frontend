@@ -22,6 +22,8 @@ services:
       target: prod
 
     restart: unless-stopped
+    # Laisse le handler SIGTERM drainer (cap interne 8s) avant le SIGKILL Docker.
+    stop_grace_period: 15s
     mem_limit: 512m
     cpus: "1.0"
     logging:

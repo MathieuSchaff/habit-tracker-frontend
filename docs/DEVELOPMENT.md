@@ -24,6 +24,28 @@ Dev containers run TypeScript source directly. `just dev` runs `ts-build` first 
 - Terminal 1: `just ts-check` — TypeScript watch mode on the host.
 - Terminal 2: `just dev` — Docker development stack.
 
+## Before Push Or PR
+
+Run the checks that match your change.
+
+| Change | Command |
+| :----- | :------ |
+| Any code change | `just audit-code` |
+| Backend or shared logic | `just test-backend` |
+| Frontend components, hooks or UI logic | `just test-frontend` |
+| Full non-E2E check | `just test` |
+| User flow changed in the browser | `just e2e` |
+| CSP, frontend deps or `frontend/src/main.tsx` changed | `just test-csp` |
+
+Quick path for most PRs:
+
+```bash
+just audit-code
+just test
+```
+
+Add `just e2e` when the change touches a real browser flow.
+
 ## Commands
 
 ### Development & types
@@ -39,14 +61,15 @@ Dev containers run TypeScript source directly. `just dev` runs `ts-build` first 
 
 ### Quality & tests
 
-| Command              | Description                    |
-| :------------------- | :----------------------------- |
-| `just lint-fix`      | Fix style with Biome           |
-| `just format`        | Format code                    |
-| `just test`          | Backend + frontend tests       |
-| `just test-backend`  | Backend tests (isolated DB)    |
-| `just test-frontend` | Vitest frontend tests          |
-| `just test-db-reset` | Reset the test DB from scratch |
+| Command              | Description                         |
+| :------------------- | :---------------------------------- |
+| `just audit-code`    | Full local audit, reports in `.audit-out/` |
+| `just lint-fix`      | Fix style with Biome                |
+| `just format`        | Format code                         |
+| `just test`          | Backend + frontend tests            |
+| `just test-backend`  | Backend tests (isolated DB)         |
+| `just test-frontend` | Vitest frontend tests               |
+| `just test-db-reset` | Reset the test DB from scratch      |
 
 See [`TESTING.md`](TESTING.md) for the quick map of backend, frontend and E2E test layers.
 
