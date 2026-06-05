@@ -30,13 +30,31 @@ OAuth login is delegated to Google (`backend/src/features/auth/google.service.ts
 All incoming data (JSON bodies, query parameters, URL parameters) is strictly validated using **Zod** schemas defined in the `shared` package. This prevents malformed data from reaching business logic and mitigates injection risks.
 
 ### Rate Limiting
-A global rate limiter (`hono-rate-limiter`, 100 requests / 15 min per IP) is applied to every API route in production. Health and favicon endpoints are skipped. The limiter is disabled in development to avoid blocking local iteration.
+Two layers protect the API in production:
+- **Edge (nginx)** — `limit_req` at 10 req/s per IP on all `/api/` routes.
+- **Application (`hono-rate-limiter`)** — 100 req / 15 min per IP on auth, admin and write/submission routes; a stricter 10 req / 15 min limiter that counts failed attempts guards login against password spraying, paired with per-user DB lockout. Health and favicon endpoints are skipped. Disabled in development to avoid blocking local iteration.
 
 ### CORS
 CORS is configured to only allow requests from the trusted `FRONTEND_URL` defined in environment variables.
 
 ### Error Handling
-A global error handler sanitizes all error responses. In production, internal stack traces are never exposed to the client.
+A global error handler sanitizes all error responses. In production, internal stack traces and arbitrary error messages — including those from third-party libraries that carry an HTTP status — are never exposed to the client; they are logged server-side and the client receives only a stable error code.
+
+---
+
+## Browser Security
+
+### Content-Security-Policy
+The production nginx config sends a strict CSP on every response: `script-src 'self'` (no `'unsafe-inline'`, no `'unsafe-eval'`), `style-src 'self' 'unsafe-inline'`, `font-src 'self'`, `img-src 'self' data:` plus the Bunny image CDN, `connect-src 'self'`, with `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`, and `object-src 'none'`. A local regression guard (`just test-csp`) builds the production bundle, serves it with the live CSP, and fails on any violation.
+
+### Self-hosted fonts
+Fonts are bundled via `@fontsource` rather than the Google Fonts CDN: no visitor IP is sent to a third party (GDPR), and the CSP needs no external font or style origins.
+
+### Other headers
+nginx also sends HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+
+### Upload limits
+Image uploads are bounded at the application layer (`bodyLimit` 1 MiB; avatars ≤200 KB, product images ≤500 KB) and at the edge (`client_max_body_size 2m`).
 
 ---
 
@@ -61,6 +79,19 @@ Application code still scopes queries by `userId` extracted from the verified JW
 
 ### Migrations
 All schema changes go through explicit SQL migration files — auditable, reviewable, and applied deliberately.
+
+---
+
+## Infrastructure & Supply Chain
+
+### Pinned container images
+Third-party images (Postgres, nginx, certbot) are pinned by digest, so production runs exactly the tested image rather than a floating tag. nginx is pinned to a release patched against CVE-2026-42945.
+
+### Leaked-credential guard
+The environment validator rejects known-weak or previously-committed development passwords in `DATABASE_URL` / `APP_DATABASE_URL` at production boot — failing fast instead of silently running with a compromised credential.
+
+### Secrets
+`.env.prod` is never committed (gitignored); secrets are generated with `openssl rand -base64`. The Postgres runtime role password is distinct and aligned at deploy time.
 
 ---
 

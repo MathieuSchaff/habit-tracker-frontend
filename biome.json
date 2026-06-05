@@ -16,6 +16,7 @@
       "!backend/src/db/seed/data/image-fetchers",
       "!backend/src/images/fetchers/*.ts",
       "!**/_archive",
+      "!.audit-out/**/*",
       "!docs",
       "!vendor",
       "!backend/src/db/seed/data/*.json"

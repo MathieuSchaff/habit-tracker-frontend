@@ -48,6 +48,8 @@ Dev containers run TypeScript source directly. `just dev` runs `ts-build` first 
 | `just test-frontend` | Vitest frontend tests          |
 | `just test-db-reset` | Reset the test DB from scratch |
 
+See [`TESTING.md`](TESTING.md) for the quick map of backend, frontend and E2E test layers.
+
 ### Backend tests
 
 Keep the test DB running during your session:
