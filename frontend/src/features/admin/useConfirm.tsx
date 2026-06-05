@@ -28,6 +28,11 @@ type ConfirmRequest = ConfirmOptions & {
   resolve: (value: boolean | ConfirmResult) => void
 }
 
+type ConfirmFn = {
+  (opts: ConfirmOptions & { reason: ReasonField }): Promise<ConfirmResult>
+  (opts: ConfirmOptions): Promise<boolean>
+}
+
 /**
  * Promise-based confirm modal - drop-in for `window.confirm` but calm.
  * Usage: `if (!(await confirm({ title: '…' }))) return; …`
@@ -42,15 +47,18 @@ export function useConfirm() {
   const [reason, setReason] = useState('')
   const pendingResolver = useRef<((value: boolean | ConfirmResult) => void) | null>(null)
 
-  function confirm(opts: ConfirmOptions & { reason: ReasonField }): Promise<ConfirmResult>
-  function confirm(opts: ConfirmOptions): Promise<boolean>
-  function confirm(opts: ConfirmOptions): Promise<boolean | ConfirmResult> {
-    setReason('')
-    return new Promise((resolve) => {
-      pendingResolver.current = resolve
-      setRequest({ ...opts, resolve })
-    })
-  }
+  // React Compiler can miscompile overloaded function declarations inside hooks by
+  // shadowing the function variable, so keep the overloads on a typed callback value.
+  const confirm = useCallback(
+    ((opts: ConfirmOptions) => {
+      setReason('')
+      return new Promise<boolean | ConfirmResult>((resolve) => {
+        pendingResolver.current = resolve
+        setRequest({ ...opts, resolve })
+      })
+    }) as ConfirmFn,
+    []
+  )
 
   const settle = useCallback((value: boolean | ConfirmResult) => {
     pendingResolver.current?.(value)

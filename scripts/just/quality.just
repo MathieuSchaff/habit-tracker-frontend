@@ -65,8 +65,14 @@ audit-code:
     printf "{{CYAN}}=== fallow dupes ==={{NC}}\n"
     npx fallow dupes 2>&1 | tee .audit-out/dupes.txt
     printf "{{CYAN}}=== react-doctor (React patterns/a11y/perf) ==={{NC}}\n"
-    cd frontend && npx react-doctor@latest --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
+    cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
     printf "{{GREEN}}Done. Rapports → .audit-out/{{NC}}\n"
+
+# Test the prod CSP against the prod build, locally, no Docker. Builds dist, serves it with the
+# CSP from infra/nginx/templates/default.conf.template, drives headless chromium, fails on any
+# violation. Test-only — nothing here ships to prod.
+test-csp:
+    cd frontend && bunx vite build && bun e2e/csp/check.ts
 
 # Check only test files
 lint-tests:
