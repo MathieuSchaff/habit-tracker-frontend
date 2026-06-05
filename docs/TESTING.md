@@ -14,6 +14,32 @@ This page is the quick map for local test commands. Detailed backend test author
 | E2E Playwright suite | `just e2e` |
 | Recreate E2E stack and reseed DB | `just e2e-up` or `just e2e-reset` |
 | Prod CSP regression guard | `just test-csp` |
+| Full code audit before PR | `just audit-code` |
+
+## Before Push Or PR
+
+For most PRs, run:
+
+```bash
+just audit-code
+just test
+```
+
+Add `just e2e` when the browser flow changed. Add `just test-csp` when CSP, frontend deps, or `frontend/src/main.tsx` changed.
+
+## Generated Results
+
+Most test commands print only in the terminal. These commands also write files:
+
+| Command | Output |
+| :------ | :----- |
+| `just audit-code` | `.audit-out/*.txt` |
+| `just test-backend-coverage` | `backend/coverage/` |
+| `just test-frontend-coverage` | `frontend/coverage/` |
+| `just e2e` | `frontend/test-results/` on failures; `frontend/playwright-report/` when a report is opened or generated |
+| `just test-bench` | `/tmp/aurore-backend-test.log` and `/tmp/aurore-backend-test.time` |
+
+These paths are local outputs and are ignored by Git. Delete them when they are stale.
 
 ## Backend Tests
 

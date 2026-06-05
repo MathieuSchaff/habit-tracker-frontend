@@ -105,4 +105,22 @@ const routes = app
 app.notFound((c) => c.json({ success: false, error: 'not_found' }, 404))
 
 export type AppType = typeof routes
-export default { port, fetch: app.fetch }
+
+const server = Bun.serve({ port, fetch: app.fetch })
+
+// Drain in-flight requests, then release DB connections on shutdown.
+// 8s hard cap stays under Docker's 10s SIGTERM→SIGKILL window.
+let shuttingDown = false
+const shutdown = async (signal: string) => {
+  if (shuttingDown) return
+  shuttingDown = true
+  logger.info(`${signal} received, shutting down`)
+  const forceExit = setTimeout(() => process.exit(1), 8000)
+  forceExit.unref()
+  await server.stop()
+  await db.$client.close()
+  clearTimeout(forceExit)
+  process.exit(0)
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
