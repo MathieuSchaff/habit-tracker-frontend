@@ -43,7 +43,7 @@ image-upload-batch:
     printf "{{CYAN}}Batch upload from output/images-source/ ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/upload/batch.ts
 
-# Patch products.image_url vers convention CDN. Env: APPLY (sans = dry-run).
+# Patch imageUrl dans les *.seed.ts vers convention CDN (pas la DB — re-seed pour appliquer). Env: APPLY (sans = dry-run).
 image-patch-urls:
     #!/usr/bin/env bash
     set -euo pipefail

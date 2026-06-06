@@ -22,6 +22,7 @@
 //   bun run backend/src/db/seed/ingest/peta-cruelty-free/main.ts --strict-prune # also remove stale `peta` from sources
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { sql } from 'drizzle-orm'
 
@@ -35,8 +36,12 @@ import {
 } from '../../../schema/products/brand-certifications'
 import { decidePetaStatus, type PerSlugStatus, parsePetaPageStatus, petaSlugVariants } from './lib'
 
-const CACHE_DIR = 'backend/tmp/cache/peta'
-const CACHE_FILE = `${CACHE_DIR}/results.json`
+// Anchored to the script (not CWD): the recipe runs this in-container at
+// /app/backend, where the bare 'backend/tmp/...' literal resolved to a
+// doubled 'backend/backend/tmp/...'. Five levels up lands on the backend
+// root, so cache lives under the gitignored backend/tmp/ from host or container.
+const CACHE_DIR = join(import.meta.dir, '..', '..', '..', '..', '..', 'tmp', 'cache', 'peta')
+const CACHE_FILE = join(CACHE_DIR, 'results.json')
 const POLITE_DELAY_MS = 250
 
 const REFRESH = process.argv.includes('--refresh')

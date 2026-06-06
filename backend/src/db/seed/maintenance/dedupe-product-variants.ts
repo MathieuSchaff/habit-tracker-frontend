@@ -13,7 +13,7 @@
  *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts
  */
 
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const DRY = process.argv.includes('--dry')
@@ -174,7 +174,9 @@ for (const file of files) {
 }
 
 if (!DRY && droppedSlugs.length > 0) {
-  const outFile = join(SEED_ROOT, 'output', 'dedupe-dropped.json')
+  const outDir = join(SEED_ROOT, 'output')
+  mkdirSync(outDir, { recursive: true })
+  const outFile = join(outDir, 'dedupe-dropped.json')
   writeFileSync(outFile, `${JSON.stringify(droppedSlugs, null, 2)}\n`)
   console.log(`\nlogged ${droppedSlugs.length} dropped slugs → output/dedupe-dropped.json`)
 }
