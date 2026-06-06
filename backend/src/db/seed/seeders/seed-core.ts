@@ -1,7 +1,7 @@
 import { type ProductKind, SKINCARE_INGREDIENT_CATEGORY_VALUES } from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { count, sql } from 'drizzle-orm'
+import { count, eq, sql } from 'drizzle-orm'
 
 import { detectAllAutoTags, partitionEczemaReview } from '../../../features/auto-tagging'
 import { addTagToIngredient } from '../../../features/ingredient-tags/service'
@@ -137,11 +137,14 @@ function computeProductSlug(input: { name: string; brand: string; slug?: string 
   return slugify(raw)
 }
 
-export async function seedCore(shouldClean = false) {
+export async function seedCore(shouldClean = false, shouldUpdate = false) {
   const idempotent = !shouldClean
-  console.log(
-    `🌱 Démarrage du seed CORE (Données de base + Produits manuels)${idempotent ? ' [idempotent]' : ' [RESET — table truncate]'}...\n`
-  )
+  const modeLabel = !idempotent
+    ? ' [RESET — table truncate]'
+    : shouldUpdate
+      ? ' [idempotent + update existants]'
+      : ' [idempotent]'
+  console.log(`🌱 Démarrage du seed CORE (Données de base + Produits manuels)${modeLabel}...\n`)
 
   // All inserts are atomic: if anything fails mid-way the DB rolls back cleanly
   await db.transaction(async (tx) => {
@@ -487,6 +490,23 @@ export async function seedCore(shouldClean = false) {
       )
     }
 
+    if (shouldUpdate && idempotent) {
+      const toUpdate = correctedIngredientData.filter((i) => existingIngredientSlugs.has(i.slug))
+      console.log(`   Ingrédients à mettre à jour : ${toUpdate.length}`)
+      for (const ing of toUpdate) {
+        await tx
+          .update(ingredients)
+          .set({
+            name: ing.name,
+            description: ing.description ?? '',
+            content: ing.content ?? '',
+            category: ing.category ?? null,
+          })
+          .where(eq(ingredients.slug, ing.slug))
+      }
+      console.log(`   ✅ ${toUpdate.length} ingrédients mis à jour`)
+    }
+
     await seedBatch(
       'ingrédients',
       ingredientsToInsert,
@@ -689,7 +709,8 @@ export async function seedCore(shouldClean = false) {
 // callers but is now a no-op (default already idempotent).
 if (import.meta.main || process.argv[1]?.endsWith('seed-core.ts')) {
   const shouldClean = process.argv.includes('--reset')
-  seedCore(shouldClean).catch((err) => {
+  const shouldUpdate = process.argv.includes('--update')
+  seedCore(shouldClean, shouldUpdate).catch((err) => {
     console.error('\n💥 Erreur fatale :', err instanceof Error ? err.message : err)
     process.exit(1)
   })

@@ -17,6 +17,7 @@ services:
       context: ../../..
       dockerfile: infra/docker/images/backend/Dockerfile
       target: dev
+    user: "${UID:-1000}:${GID:-1000}"
 
     volumes:
       # Bind mounts ciblés: Vite lit le code/config du host, les deps restent dans l'image.

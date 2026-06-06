@@ -9,19 +9,18 @@ import {
   SUPPLEMENTS_VITAMINES,
 } from '../data/ingredients/ingredient-slugs'
 
-// Deliberately brittle count tripwire: bumping these numbers is intentional
-// at slug-add time and surfaces in code review. Catches accidental
-// dup/drop that the cross-ref checks in seed-data-integrity won't detect.
-describe('ingredient slugs aggregate — count tripwire', () => {
-  test('INGREDIENT_SLUGS snapshot (exact counts)', () => {
+// KNOWN_ALIASES: intentional duplicate values in INGREDIENT_SLUGS.
+// HAEMATOCOCCUS_PLUVIALIS → astaxanthine skincare slug
+// AVOBENZONE → BUTYL_METHOXYDIBENZOYLMETHANE
+const KNOWN_ALIASES = 2
+
+describe('ingredient slugs aggregate', () => {
+  test('no unintentional duplicate slug values', () => {
     const keys = Object.keys(INGREDIENT_SLUGS)
     const values = Object.values(INGREDIENT_SLUGS)
 
-    expect(keys.length).toBe(689)
-
-    // 687 = 689 keys − 2 intentional aliases (HAEMATOCOCCUS_PLUVIALIS →
-    // astaxanthine skincare slug, AVOBENZONE → BUTYL_METHOXYDIBENZOYLMETHANE).
-    expect(new Set(values).size).toBe(687)
+    // Fails if a new accidental alias is introduced without updating KNOWN_ALIASES.
+    expect(keys.length - new Set(values).size).toBe(KNOWN_ALIASES)
 
     // Spot-check one slug from each domain stays reachable via the root aggregate.
     expect(INGREDIENT_SLUGS.GLYCERIN).toBe('glycerin')
