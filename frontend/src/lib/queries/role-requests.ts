@@ -2,10 +2,7 @@ import type { SubmitRoleRequestInput } from '@aurore/shared'
 
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { type ApiData, api } from '../api'
-
-// GET /me returns the user's latest request or null when they never asked.
-export type MyRoleRequest = ApiData<(typeof api)['role-requests']['me']['$get']>
+import { api } from '../api'
 
 const roleRequestKeys = {
   mine: ['role-requests', 'me'] as const,

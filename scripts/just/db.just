@@ -76,6 +76,19 @@ db-seed:
     $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts 2>&1 | tee "$LOG"
     printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
+# Update existing seed entries (name/description/content/category) without touching user-data.
+db-seed-update:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
+    mkdir -p "$(dirname "$LOG")"
+    printf "{{CYAN}}Updating existing CORE seed entries ($TARGET)...{{NC}}\n"
+    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts --update 2>&1 | tee "$LOG"
+    printf "{{GREEN}}✓ CORE seed updated ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
+
 # Alias — idempotent mode is default since Phase 5d
 db-seed-merge: db-seed
 
