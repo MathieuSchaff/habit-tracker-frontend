@@ -190,9 +190,9 @@ export async function createIngredient(
   const slug = input.slug && role === 'admin' ? slugify(input.slug) : slugify(input.name)
 
   try {
-    // Tier-1 dedup (A-2): surface an existing VISIBLE ingredient with the same
-    // slug (409 + existing). Scoped to visible so a hidden tombstone never
-    // blocks a re-submission (V-3) nor leaks; tier-2 below guards races.
+    // Reject as a duplicate (409 + existing) if a public ingredient already has this
+    // slug. Only public ones count, so a hidden/rejected one never blocks re-submission.
+    // This check can be raced by a concurrent insert; the 23505 catch below is the backstop.
     const [existing] = await database
       .select({ id: ingredients.id, slug: ingredients.slug, name: ingredients.name })
       .from(ingredients)
@@ -292,7 +292,7 @@ export async function updateIngredient(
 
   if (!newIngredient) {
     // 0-row UPDATE. With an optimistic lock set, the row moved under us (or is now
-    // RLS-locked) → 409 so the client reloads (CQ-2: OCC stays ahead of the 403).
+    // RLS-locked) → 409 so the client reloads (the optimistic-lock conflict wins over the 403).
     // Otherwise getIngredientById above already proved the row is visible, so a
     // 0-row update means it exists but the caller may not edit it (now verified or
     // not theirs) → 403. Never read rowCount (bun-postgres footgun). slug is

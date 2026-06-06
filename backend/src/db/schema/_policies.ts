@@ -78,7 +78,7 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
 //
 // Field-level integrity (no self-promotion to 'verified', admin-only moderation)
 // lives in the service field-strip + the verify CHECK, NOT here: the privileged
-// UPDATE branch lets contributors write any column at the RLS layer (V-2/C-1).
+// UPDATE branch lets contributors write any column at the RLS layer.
 export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgColumn) {
   return [
     // Public reads see 'visible' rows; the moderator (admin∨contributor) also sees
@@ -123,7 +123,7 @@ export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgCo
 // Extends base tenant policies to grant contributors the reversible moderation surface:
 // read any row (incl. hidden) and UPDATE it (ADR-0006 S1). Additive, owner CRUD and
 // admin_bypass still apply. Write path is the moderation service (4 moderation_* columns
-// only), so the coarse role gate is safe (mirrors V-2/C-1 of catalogSubmissionPolicies).
+// only), so the coarse role gate is safe (the field-level limits mirror catalogSubmissionPolicies).
 export function moderationPolicies(name: string) {
   const roleCheck = sql`(SELECT auth.role()) IN ('admin', 'contributor')`
   return [

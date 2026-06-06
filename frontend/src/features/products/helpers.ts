@@ -8,6 +8,18 @@ export function hasActivePriceRange(priceMin?: number, priceMax?: number): boole
   return priceMin !== undefined || priceMax !== undefined
 }
 
+// Single source of truth for avoidFor (skin types + concerns to down-rank), shared by
+// ProductsPage and the /products loader so the prefetched list queryKey matches the
+// component's first render even when dermo is already cached and profile_filter is on.
+type DermoLike = { skinTypes?: readonly string[] | null; skinConcerns: readonly string[] }
+export function deriveAvoidFor(
+  dermo: DermoLike | undefined | null,
+  profileFilter?: boolean
+): string[] {
+  if (!profileFilter || !dermo) return []
+  return [...(dermo.skinTypes ?? []), ...dermo.skinConcerns]
+}
+
 // Discovery mode = untouched listing. Any filter/price/query/sort exits it.
 export function isDiscoveryMode(args: {
   hasFilters: boolean

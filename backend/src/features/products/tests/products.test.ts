@@ -660,7 +660,7 @@ describe('Product Service', () => {
     })
 
     describe('tags aggregation', () => {
-      it('exposes positive tags as { slug, tagType, relevance } entries', async () => {
+      it('exposes primary tags only as { slug, tagType, relevance } entries', async () => {
         const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
         const oily = await createProductTag(testDb, { name: 'Grasse', category: 'skin_type' })
         const vegan = await createProductTag(testDb, {
@@ -686,11 +686,8 @@ describe('Product Service', () => {
           tagType: 'skin_type',
           relevance: 'primary',
         })
-        expect(tags).toContainEqual({
-          slug: vegan.slug,
-          tagType: 'product_characteristic',
-          relevance: 'secondary',
-        })
+        // secondary tags are list over-fetch; the card only renders primary chips
+        expect(tags.map((t) => t.slug)).not.toContain(vegan.slug)
       })
 
       it('excludes avoid-relevance tags from the tags array', async () => {
