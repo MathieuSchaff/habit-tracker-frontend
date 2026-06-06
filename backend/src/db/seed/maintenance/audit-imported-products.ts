@@ -417,6 +417,33 @@ const MODEL_VARIANT_WORDS = new Set([
   'reserve',
 ])
 
+// Fragrance / flavor descriptors that split a shared base formula into distinct
+// scented SKUs (Klorane cupuaçu shower gels by scent, flavored toothpastes).
+// Same INCI + different scent must not auto-merge. Non-exhaustive — extend as
+// new scented lines surface. `cupuacu` is excluded: it names the line, not a scent.
+const SCENT_WORDS = new Set([
+  'tiare',
+  'cedre',
+  'figuier',
+  'tonka',
+  'agrumes',
+  'bambou',
+  'oranger',
+  'frangipanier',
+  'menthe',
+  'menthol',
+  'eucalyptus',
+  'vanille',
+  'coco',
+  'citron',
+  'miel',
+])
+
+// Benefit / claim variants sharing a base formula but targeting a different
+// outcome (whitening toothpaste vs standard). Same INCI + different claim must
+// not auto-merge. Non-exhaustive — whitening axis for now, extend per cluster.
+const BENEFIT_WORDS = new Set(['blancheur', 'blanchissant', 'blanchissante', 'whitening'])
+
 function semanticNumbers(name: string): Set<string> {
   const stripped = deburr(name).replace(VOLUME_RE, ' ')
   const out = new Set<string>()
@@ -457,6 +484,18 @@ function modelVariantTokens(name: string, brand: string): Set<string> {
   const out = new Set<string>()
   for (const tok of stripName(name, brand).split(/\s+/))
     if (MODEL_VARIANT_WORDS.has(tok)) out.add(tok)
+  return out
+}
+
+function scentTokens(name: string, brand: string): Set<string> {
+  const out = new Set<string>()
+  for (const tok of stripName(name, brand).split(/\s+/)) if (SCENT_WORDS.has(tok)) out.add(tok)
+  return out
+}
+
+function benefitTokens(name: string, brand: string): Set<string> {
+  const out = new Set<string>()
+  for (const tok of stripName(name, brand).split(/\s+/)) if (BENEFIT_WORDS.has(tok)) out.add(tok)
   return out
 }
 
@@ -509,6 +548,10 @@ function classifyPair(a: UnifiedProductSeed, b: UnifiedProductSeed): ClassifyRes
     modelVariantTokens(b.name, b.brand)
   )
   if (modelDiff.size > 0) flags.push(`model-variant:${[...modelDiff].join(',')}`)
+  const scentDiff = symmetricDiff(scentTokens(a.name, a.brand), scentTokens(b.name, b.brand))
+  if (scentDiff.size > 0) flags.push(`scent-diff:${[...scentDiff].join(',')}`)
+  const benefitDiff = symmetricDiff(benefitTokens(a.name, a.brand), benefitTokens(b.name, b.brand))
+  if (benefitDiff.size > 0) flags.push(`benefit-diff:${[...benefitDiff].join(',')}`)
   const tintLetterDiff = symmetricDiff(tintLetterTokens(a.name), tintLetterTokens(b.name))
   if (tintLetterDiff.size > 0) flags.push(`tint-letter:${[...tintLetterDiff].join(',')}`)
   const lA = gammeLetters(a.name)
@@ -530,6 +573,8 @@ function classifyPair(a: UnifiedProductSeed, b: UnifiedProductSeed): ClassifyRes
       f.startsWith('color-diff:') ||
       f.startsWith('audience-diff:') ||
       f.startsWith('model-variant:') ||
+      f.startsWith('scent-diff:') ||
+      f.startsWith('benefit-diff:') ||
       f.startsWith('tint-letter:')
   )
   const combined = 0.6 * inci + 0.3 * name + 0.1 * (kindEq ? 1 : 0)
