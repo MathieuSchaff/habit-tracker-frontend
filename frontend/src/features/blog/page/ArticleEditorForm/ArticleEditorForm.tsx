@@ -2,11 +2,7 @@ import type { BlogCategory } from '@aurore/shared'
 import { BLOG_CATEGORY_LABELS, BLOG_CATEGORY_VALUES } from '@aurore/shared'
 
 import { Eye, EyeOff } from 'lucide-react'
-import { useRef, useState } from 'react'
-import Markdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
+import { lazy, Suspense, useRef, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
@@ -21,6 +17,8 @@ import { useCreateArticle, useUpdateArticle } from '@/lib/queries/articles'
 import './ArticleEditorForm.css'
 
 import { ARTICLE_FORM_ERRORS } from './ArticleEditorForm.constants'
+
+const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
 
 type ArticleData = {
   title: string
@@ -230,9 +228,9 @@ export function ArticleEditorForm({ mode, article, onSuccess, onCancel }: Articl
       {previewContent ? (
         <div className="article-editor-form__preview">
           <RichText>
-            <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-              {normalizeLatexMarkdown(form.content)}
-            </Markdown>
+            <Suspense fallback={<p>{form.content}</p>}>
+              <MarkdownMath>{normalizeLatexMarkdown(form.content)}</MarkdownMath>
+            </Suspense>
           </RichText>
         </div>
       ) : (

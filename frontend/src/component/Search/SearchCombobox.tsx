@@ -46,6 +46,8 @@ interface SearchComboboxProps<TItem, TQueryKey extends QueryKey> {
   sections?: (debouncedQuery: string) => ComboboxSection[]
   /** Fired on Enter when no item is highlighted; applies typed text as a free-text filter. */
   onSubmitQuery?: (query: string) => void
+  /** Intent signal: fires when the input gains focus (e.g. to defer-load facet data). */
+  onFocus?: () => void
   placeholder?: string
   label: string
   minChars?: number
@@ -58,6 +60,7 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   onSelect,
   sections,
   onSubmitQuery,
+  onFocus,
   placeholder = 'Rechercher...',
   label,
   minChars = 2,
@@ -181,7 +184,10 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
               setIsOpen(true)
               setHighlightedIndex(-1)
             }}
-            onFocus={() => query.length >= minChars && setIsOpen(true)}
+            onFocus={() => {
+              onFocus?.()
+              if (query.length >= minChars) setIsOpen(true)
+            }}
             autoComplete="off"
             aria-label={label}
             aria-expanded={showDropdown}

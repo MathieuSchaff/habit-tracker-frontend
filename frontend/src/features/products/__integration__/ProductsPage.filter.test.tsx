@@ -208,8 +208,9 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     })
   })
 
-  it('switching to the Cheveux tab re-fetches filter options for that category', async () => {
-    // Tab switch must requery filter-options with category=haircare; mount also fires a skincare call.
+  it('defers filter options to drawer open, then requeries per category on tab switch', async () => {
+    // filter-options is off the cold-load waterfall (deferred to Filter intent), so it must
+    // NOT fire at mount; opening the drawer fetches skincare, switching tab requeries haircare.
     const calls: (string | null)[] = []
     server.use(
       http.get('*/api/products/filter-options', ({ request }) => {
@@ -221,10 +222,14 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     const user = userEvent.setup()
     const { router } = renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
+    expect(calls).not.toContain('skincare')
+
+    await openFilterDrawer(user)
     await waitFor(() => {
       expect(calls).toContain('skincare')
     })
 
+    // Drawer stays open across tab switch; category change requeries with haircare.
     await user.click(screen.getByRole('tab', { name: /Cheveux/i }))
 
     await waitFor(() => {

@@ -16,7 +16,9 @@ import {
 
 import { z } from 'zod'
 
-import { filterSearchSchema } from '@/component/Filter'
+// Deep import: barrel would drag FilterDrawer/ChipGroup CSS into the eager
+// route-config graph (render-blocking). helpers.ts is zod-only.
+import { filterSearchSchema } from '@/component/Filter/helpers'
 import type { TabOption } from '@/component/Tabs/Tabs'
 
 export type FilterKey = AllIngredientTagCategory

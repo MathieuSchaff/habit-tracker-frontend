@@ -5,7 +5,10 @@ type TransitionInput = {
   toPathname: string
 }
 
-const isListPath = (p: string) => p === '/products/' || p === '/ingredients/'
+// Canonical pathnames in this app carry no trailing slash (navItems use '/products'),
+// but the router can surface either form; normalize so list-path matching is reliable.
+const stripSlash = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p)
+const isListPath = (p: string) => p === '/products' || p === '/ingredients'
 const isDetailPath = (p: string) => /^\/(products|ingredients)\/[^/]+\/?$/.test(p)
 const isSubPage = (p: string) => /^\/(products|ingredients)\/[^/]+\/(edit|discussions)/.test(p)
 const isDiscussionsPage = (p: string) => /^\/(products|ingredients)\/[^/]+\/discussions/.test(p)
@@ -22,7 +25,8 @@ function navIndex(path: string): number {
 }
 
 export function resolveTransitionType(input: TransitionInput): string[] | false {
-  const { fromPathname: from, toPathname: to } = input
+  const from = input.fromPathname === null ? null : stripSlash(input.fromPathname)
+  const to = stripSlash(input.toPathname)
   if (!from) return false
   // Same path = search-param-only change; no transition.
   if (from === to) return false

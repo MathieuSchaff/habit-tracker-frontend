@@ -1,6 +1,6 @@
 import { PRODUCT_DOMAIN_TAB_META, PRODUCT_DOMAIN_TABS, type ProductDomainTab } from '@aurore/shared'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { Package } from 'lucide-react'
 import { startTransition, useCallback, useMemo, useState } from 'react'
@@ -26,6 +26,7 @@ import {
   buildProductsApiFilters,
   buildResetSearchParams,
   hasActivePriceRange,
+  productsListApiFilters,
 } from '@/features/products/helpers'
 import { useProductsExtraChips } from '@/features/products/hooks/useProductsExtraChips'
 import { useProductsFilterGroups } from '@/features/products/hooks/useProductsFilterGroups'
@@ -96,22 +97,20 @@ export function ProductsPage() {
     navigate({ search: buildResetSearchParams, replace: true })
   }, [resetFilters, navigate])
 
-  const { data: filterOptions } = useQuery(productQueries.filterOptions(category))
+  // filter-options (tag counts + brand list) only feeds the drawer; keep it off the
+  // cold-load waterfall where it competes with the LCP grid. Prefetched on Filter intent.
+  const queryClient = useQueryClient()
+  const { data: filterOptions } = useQuery({
+    ...productQueries.filterOptions(category),
+    enabled: isDrawerOpen,
+  })
+  const handleFilterIntent = useCallback(() => {
+    void queryClient.prefetchQuery(productQueries.filterOptions(category))
+  }, [queryClient, category])
 
   const apiFilters = useMemo<ListProductsFilters>(
-    () =>
-      buildProductsApiFilters({
-        category,
-        filters,
-        avoidFor,
-        sort,
-        priceMin,
-        priceMax,
-        q,
-        page,
-        hasFilters,
-      }),
-    [category, filters, avoidFor, sort, priceMin, priceMax, q, page, hasFilters]
+    () => productsListApiFilters(search, avoidFor),
+    [search, avoidFor]
   )
 
   // Random sort: staleTime keeps order stable across back-nav (refetch reshuffles otherwise).
@@ -224,9 +223,14 @@ export function ProductsPage() {
             activeTab={category}
             onTabChange={handleDomainChange}
             tabOptions={DOMAIN_TAB_OPTIONS}
+            onFilterIntent={handleFilterIntent}
           />
 
-          <CollapsibleFiltersStrip count={effectiveFilterCount} onOpenDrawer={handleOpenDrawer}>
+          <CollapsibleFiltersStrip
+            count={effectiveFilterCount}
+            onOpenDrawer={handleOpenDrawer}
+            onFilterIntent={handleFilterIntent}
+          >
             <ProductsActiveBar
               activeTags={activeTags}
               filterGroups={filterGroups}

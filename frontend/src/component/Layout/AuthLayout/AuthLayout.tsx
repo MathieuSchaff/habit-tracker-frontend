@@ -1,6 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
+// CSS rides the auth-route chunk (AuthLayout wraps all /auth/* routes) instead of
+// shipping eager in index.css to every visitor.
+import '@/features/auth/styles/auth-shared.css'
+import './AuthLayout.css'
+
 type AuthLayoutProps = {
   children: ReactNode
   footer?: {

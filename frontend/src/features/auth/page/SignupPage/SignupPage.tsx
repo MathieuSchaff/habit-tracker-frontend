@@ -14,6 +14,8 @@ import { DemoButton } from '../../components/DemoButton/DemoButton'
 import { GoogleAuthButton } from '../../components/GoogleAuthButton/GoogleAuthButton'
 import { parseAuthForm } from '../../lib/parseAuthForm'
 
+import './SignupPage.css'
+
 type FieldErrors = Partial<Record<keyof SignupFormInput | 'form', string>>
 
 /* Exhaustive map: TS errors if a SignupErrorCode is added without a label here.

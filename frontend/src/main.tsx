@@ -40,12 +40,24 @@ const viewTransition = {
     }),
 }
 
-// A view transition snapshots then synchronously re-renders the whole page
-// before animating; on mobile/slow CPUs that freezes the main thread ~0.5s per
-// nav. Below --mobile (or with reduced-motion) we skip startViewTransition
-// entirely so nav stays instant. The router reads defaultViewTransition live
-// per nav, so swapping it on a media-query change is enough.
+// startViewTransition snapshots then synchronously re-renders the whole page
+// before animating; on slow CPUs that freezes the main thread ~840ms per nav. We
+// only pay that for the transitions that earn it — the list<->detail hero morph
+// (shared-element) and the detail tab swap. Every other nav (section fades,
+// generic fallback) skips VT and stays instant. Mobile (<=767px) / reduced-motion
+// skip everything. See view-transitions-mobile.md.
 const skipViewTransition = window.matchMedia('(max-width: 767px), (prefers-reduced-motion: reduce)')
+const KEEP_VT_TYPES = new Set(['shared-element', 'tab-switch'])
+
+function viewTransitionForNav(from: ParsedLocation | undefined, to: ParsedLocation) {
+  if (skipViewTransition.matches) return false
+  const types = resolveTransitionType({
+    fromPathname: from?.pathname ?? null,
+    toPathname: to.pathname,
+  })
+  if (!types) return false
+  return types.some((t) => KEEP_VT_TYPES.has(t)) ? viewTransition : false
+}
 
 const router = createRouter({
   routeTree,
@@ -58,13 +70,13 @@ const router = createRouter({
   scrollRestoration: true,
   // Delay pending UI so fast nav doesn't flash a loader.
   defaultPendingMs: 200,
-  defaultViewTransition: skipViewTransition.matches ? false : viewTransition,
+  defaultViewTransition: false,
 })
 
-skipViewTransition.addEventListener('change', (e) => {
-  // Router reads options.defaultViewTransition live per nav, so mutating it is
-  // enough (router.update would require re-passing context).
-  router.options.defaultViewTransition = e.matches ? false : viewTransition
+// Router reads options.defaultViewTransition live when it commits a nav (after
+// this event fires), so deciding per-nav here scopes VT without re-passing context.
+router.subscribe('onBeforeNavigate', ({ fromLocation, toLocation }) => {
+  router.options.defaultViewTransition = viewTransitionForNav(fromLocation, toLocation)
 })
 
 declare module '@tanstack/react-router' {

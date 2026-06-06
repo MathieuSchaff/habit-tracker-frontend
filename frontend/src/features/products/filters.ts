@@ -17,7 +17,9 @@ import {
 
 import { z } from 'zod'
 
-import { filterSearchSchema } from '@/component/Filter'
+// Deep import: pulling the schema from the barrel drags FilterDrawer/ChipGroup CSS
+// into the eager route-config graph (render-blocking). helpers.ts is zod-only.
+import { filterSearchSchema } from '@/component/Filter/helpers'
 
 export type TagFilterKey = AllProductTagCategory
 
@@ -93,6 +95,8 @@ export const productsSearchSchema = baseSchema.extend({
   priceMax: z.number().int().min(0).optional(),
   q: z.string().trim().min(1).max(100).optional(),
 })
+
+export type ProductsSearch = z.infer<typeof productsSearchSchema>
 
 export const productsSearchDefaults = {
   ...defaultValues,

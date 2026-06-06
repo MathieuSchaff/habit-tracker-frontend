@@ -26,6 +26,62 @@ export default defineConfig({
       include: /src\/.*\.[jt]sx?$/,
       presets: [reactCompilerPreset()],
     }),
+    // Body font (DM Sans 400 latin) ships via @fontsource CSS, so the browser only
+    // discovers it after parsing the eager CSS (HTML→CSS→woff2, 2 hops). Preload it
+    // by its real hashed name from the bundle to cut a render-blocking hop. Build-only.
+    {
+      name: 'preload-body-font',
+      transformIndexHtml(html, ctx) {
+        if (!ctx.bundle) return html
+        const font = Object.keys(ctx.bundle).find(
+          (f) => f.includes('dm-sans-latin-400-normal') && f.endsWith('.woff2')
+        )
+        if (!font) return html
+        return {
+          html,
+          tags: [
+            {
+              tag: 'link',
+              attrs: {
+                rel: 'preload',
+                as: 'font',
+                type: 'font/woff2',
+                href: `/${font}`,
+                crossorigin: '',
+              },
+              injectTo: 'head-prepend',
+            },
+          ],
+        }
+      },
+    },
+    // Rolldown emits a whitespace-only CSS asset for the vendor chunk and links it
+    // render-blocking in index.html. Drop the dead asset + its <link>. Build-only.
+    {
+      name: 'strip-empty-css',
+      transformIndexHtml(html, ctx) {
+        if (!ctx.bundle) return html
+        let out = html
+        for (const [name, asset] of Object.entries(ctx.bundle)) {
+          if (!name.endsWith('.css')) continue
+          const source = 'source' in asset && typeof asset.source === 'string' ? asset.source : ''
+          if (source.trim() !== '') continue
+          const next = out.replace(
+            new RegExp(
+              `\\s*<link[^>]*href="/${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`
+            ),
+            ''
+          )
+          // Only drop the asset when it was an eager <link> in the HTML. Lazy route-chunk
+          // CSS is injected by its JS chunk at runtime — deleting it would 404 on load.
+          if (next !== out) {
+            out = next
+            delete ctx.bundle[name]
+          }
+        }
+        return out
+      },
+    },
   ],
   resolve: {
     alias: {
@@ -49,12 +105,9 @@ export default defineConfig({
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/'))
             return 'react'
           if (id.includes('node_modules/@tanstack/')) return 'tanstack'
-          if (
-            id.includes('node_modules/zod/') ||
-            id.includes('node_modules/@hookform/') ||
-            id.includes('node_modules/react-hook-form/')
-          )
-            return 'forms'
+          if (id.includes('node_modules/zod/')) return 'forms'
+          // Route-scoped (/profile, products/new) — keep out of the eager vendor chunk
+          if (id.includes('node_modules/react-easy-crop/')) return undefined
           // Keep markdown/katex out — they are lazy-loaded per route, don't force them into a shared chunk
           if (
             id.includes('node_modules/katex/') ||
