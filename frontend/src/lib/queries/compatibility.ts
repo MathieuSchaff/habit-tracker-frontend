@@ -2,8 +2,7 @@ import { api } from '../api'
 
 export const compatibilityKeys = {
   all: ['compatibility-scores'] as const,
-  forProducts: (productIds: string[]) =>
-    [...compatibilityKeys.all, [...productIds].sort()] as const,
+  forProducts: (productIds: string[]) => [...compatibilityKeys.all, productIds.toSorted()] as const,
 }
 
 // Batch fetch of the user's empirical compatibility score per product, for the

@@ -1,7 +1,8 @@
 /* Per-route view transitions; types are set by the router in main.tsx and matched via :active-view-transition-type(). */
 
-/* Navbar opts out of all transitions. */
-::view-transition-group(main-nav) {
+/* Navbars (desktop sidebar + mobile bottom bar) opt out of all transitions. */
+::view-transition-group(main-nav),
+::view-transition-group(bottom-nav) {
   animation: none;
 }
 

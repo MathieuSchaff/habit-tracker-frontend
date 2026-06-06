@@ -60,6 +60,13 @@ const normalizeString = (s: string) => s.trim().replace(/\s+/g, ' ')
 
 const NORMALIZED_STRING_FIELDS = ['name', 'brand', 'kind', 'unit', 'amountUnit'] as const
 
+const PRODUCT_TAG_CATEGORIES_BY_DOMAIN = {
+  skincare: SKINCARE_PRODUCT_TAG_CATEGORIES,
+  haircare: HAIRCARE_PRODUCT_TAG_CATEGORIES,
+  dental: DENTAL_PRODUCT_TAG_CATEGORIES,
+  complement: SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
+} as const
+
 export async function createProduct(
   userId: string,
   role: CatalogRole,
@@ -382,15 +389,7 @@ export type ProductsPage = {
   limit: number
 }
 
-export async function listProducts(
-  filters: ListProductsFilters,
-  database: Database = db,
-  userId: string | null = null
-): Promise<ProductsPage> {
-  const page = filters.page ?? 1
-  const limit = filters.limit ?? 20
-  const offset = (page - 1) * limit
-
+function buildListConditions(filters: ListProductsFilters, database: Database): SQL[] {
   const conditions: SQL[] = []
 
   conditions.push(inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[filters.category]]))
@@ -470,34 +469,18 @@ export async function listProducts(
     return or(strict, noMomentTag) as SQL
   }
 
-  if (filters.category === 'skincare') {
-    for (const tagType of SKINCARE_PRODUCT_TAG_CATEGORIES) {
-      const value = filters[tagType]
-      if (!value) continue
-      if (tagType === 'routine_moment') {
-        conditions.push(routineMomentFilterCondition(value))
-        continue
-      }
-      conditions.push(tagFilterCondition(value, tagType))
+  // filters is a discriminated union on category; the merged tagType spans all domains, so the
+  // parallel lookup defeats narrowing. Tag fields are all string | undefined — cast is sound.
+  // routine_moment only exists in the skincare tuple; the special-case is a no-op elsewhere.
+  const tagFilters = filters as unknown as Record<string, string | undefined>
+  for (const tagType of PRODUCT_TAG_CATEGORIES_BY_DOMAIN[filters.category]) {
+    const value = tagFilters[tagType]
+    if (!value) continue
+    if (tagType === 'routine_moment') {
+      conditions.push(routineMomentFilterCondition(value))
+      continue
     }
-  } else if (filters.category === 'haircare') {
-    for (const tagType of HAIRCARE_PRODUCT_TAG_CATEGORIES) {
-      const value = filters[tagType]
-      if (!value) continue
-      conditions.push(tagFilterCondition(value, tagType))
-    }
-  } else if (filters.category === 'dental') {
-    for (const tagType of DENTAL_PRODUCT_TAG_CATEGORIES) {
-      const value = filters[tagType]
-      if (!value) continue
-      conditions.push(tagFilterCondition(value, tagType))
-    }
-  } else if (filters.category === 'complement') {
-    for (const tagType of SUPPLEMENT_PRODUCT_TAG_CATEGORIES) {
-      const value = filters[tagType]
-      if (!value) continue
-      conditions.push(tagFilterCondition(value, tagType))
-    }
+    conditions.push(tagFilterCondition(value, tagType))
   }
 
   if (filters.priceMin !== undefined) {
@@ -521,12 +504,106 @@ export async function listProducts(
     conditions.push(eq(products.moderationStatus, filters.status))
   }
 
+  return conditions
+}
+
+type ProductMeta = {
+  matchesByProduct: Map<string, string[]>
+  tagsByProduct: Map<string, ProductSummary['tags']>
+  statusByProduct: Map<string, UserProductStatus>
+}
+
+async function fetchProductMeta(
+  items: { id: string }[],
+  filters: ListProductsFilters,
+  userId: string | null,
+  database: Database
+): Promise<ProductMeta> {
+  const matchesByProduct = new Map<string, string[]>()
+  const tagsByProduct = new Map<string, ProductSummary['tags']>()
+  const statusByProduct = new Map<string, UserProductStatus>()
+
+  if (items.length === 0) {
+    return { matchesByProduct, tagsByProduct, statusByProduct }
+  }
+
   // Post-fetch badge UX: flag rows rather than exclude them. resolveAvoidSlugs maps
   // user concern vocab to product tag slugs; without it ~70% of avoid badges are invisible.
   const avoidSlugs = filters.avoid_for
     ? resolveAvoidSlugs(filters.avoid_for.split(',').filter(Boolean))
     : []
 
+  const itemIds = items.map((i) => i.id)
+
+  const [avoidRows, positiveTagRows, shelfRows] = await Promise.all([
+    avoidSlugs.length > 0
+      ? database
+          .select({ productId: productTagLinks.productId, slug: productTagTypes.slug })
+          .from(productTagLinks)
+          .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+          .where(
+            and(
+              inArray(productTagLinks.productId, itemIds),
+              inArray(productTagTypes.slug, avoidSlugs),
+              eq(productTagLinks.relevance, 'avoid')
+            )
+          )
+      : Promise.resolve([] as { productId: string; slug: string }[]),
+    // Positive tags only: avoid is already in profileMatches, would duplicate.
+    database
+      .select({
+        productId: productTagLinks.productId,
+        slug: productTagTypes.slug,
+        tagType: productTagTypes.tagType,
+        relevance: productTagLinks.relevance,
+      })
+      .from(productTagLinks)
+      .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+      .where(
+        and(inArray(productTagLinks.productId, itemIds), ne(productTagLinks.relevance, 'avoid'))
+      ),
+    // Explicit userId filter: tests run as DB owner and bypass RLS.
+    userId
+      ? database
+          .select({ productId: userProducts.productId, status: userProducts.status })
+          .from(userProducts)
+          .where(and(eq(userProducts.userId, userId), inArray(userProducts.productId, itemIds)))
+      : Promise.resolve([] as { productId: string; status: UserProductStatus }[]),
+  ])
+
+  for (const row of avoidRows) {
+    const list = matchesByProduct.get(row.productId) ?? []
+    list.push(row.slug)
+    matchesByProduct.set(row.productId, list)
+  }
+
+  for (const row of positiveTagRows) {
+    const list = tagsByProduct.get(row.productId) ?? []
+    list.push({
+      slug: row.slug,
+      tagType: row.tagType,
+      relevance: row.relevance as 'primary' | 'secondary',
+    })
+    tagsByProduct.set(row.productId, list)
+  }
+
+  for (const row of shelfRows) {
+    statusByProduct.set(row.productId, row.status)
+  }
+
+  return { matchesByProduct, tagsByProduct, statusByProduct }
+}
+
+export async function listProducts(
+  filters: ListProductsFilters,
+  database: Database = db,
+  userId: string | null = null
+): Promise<ProductsPage> {
+  const page = filters.page ?? 1
+  const limit = filters.limit ?? 20
+  const offset = (page - 1) * limit
+
+  const conditions = buildListConditions(filters, database)
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const orderBy = (() => {
@@ -568,69 +645,12 @@ export async function listProducts(
 
   const total = countResult[0]?.total ?? 0
 
-  const matchesByProduct = new Map<string, string[]>()
-  const tagsByProduct = new Map<string, ProductSummary['tags']>()
-  const statusByProduct = new Map<string, UserProductStatus>()
-
-  if (items.length > 0) {
-    const itemIds = items.map((i) => i.id)
-
-    const [avoidRows, positiveTagRows, shelfRows] = await Promise.all([
-      avoidSlugs.length > 0
-        ? database
-            .select({ productId: productTagLinks.productId, slug: productTagTypes.slug })
-            .from(productTagLinks)
-            .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-            .where(
-              and(
-                inArray(productTagLinks.productId, itemIds),
-                inArray(productTagTypes.slug, avoidSlugs),
-                eq(productTagLinks.relevance, 'avoid')
-              )
-            )
-        : Promise.resolve([] as { productId: string; slug: string }[]),
-      // Positive tags only: avoid is already in profileMatches, would duplicate.
-      database
-        .select({
-          productId: productTagLinks.productId,
-          slug: productTagTypes.slug,
-          tagType: productTagTypes.tagType,
-          relevance: productTagLinks.relevance,
-        })
-        .from(productTagLinks)
-        .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-        .where(
-          and(inArray(productTagLinks.productId, itemIds), ne(productTagLinks.relevance, 'avoid'))
-        ),
-      // Explicit userId filter: tests run as DB owner and bypass RLS.
-      userId
-        ? database
-            .select({ productId: userProducts.productId, status: userProducts.status })
-            .from(userProducts)
-            .where(and(eq(userProducts.userId, userId), inArray(userProducts.productId, itemIds)))
-        : Promise.resolve([] as { productId: string; status: UserProductStatus }[]),
-    ])
-
-    for (const row of avoidRows) {
-      const list = matchesByProduct.get(row.productId) ?? []
-      list.push(row.slug)
-      matchesByProduct.set(row.productId, list)
-    }
-
-    for (const row of positiveTagRows) {
-      const list = tagsByProduct.get(row.productId) ?? []
-      list.push({
-        slug: row.slug,
-        tagType: row.tagType,
-        relevance: row.relevance as 'primary' | 'secondary',
-      })
-      tagsByProduct.set(row.productId, list)
-    }
-
-    for (const row of shelfRows) {
-      statusByProduct.set(row.productId, row.status)
-    }
-  }
+  const { matchesByProduct, tagsByProduct, statusByProduct } = await fetchProductMeta(
+    items,
+    filters,
+    userId,
+    database
+  )
 
   const itemsWithMatches: ProductSummary[] = items.map((i) => ({
     ...i,
