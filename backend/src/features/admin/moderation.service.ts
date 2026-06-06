@@ -97,7 +97,7 @@ export async function moderateProduct(
 ): Promise<ModerateContentResult> {
   if (args.body.status === 'visible') {
     // Unhiding can collide with a visible row that claimed this product's name+brand
-    // while it was hidden (V-3). Pre-check surfaces that row (409 + details) instead
+    // while it was hidden. Pre-check surfaces that row (409 + details) instead
     // of a bare 23505. The full slug index keeps this product's slug reserved meanwhile.
     const [self] = await db
       .select({ name: products.name, brand: products.brand })
@@ -149,7 +149,7 @@ export async function moderateIngredient(
 ): Promise<ModerateContentResult> {
   if (args.body.status === 'visible') {
     // Unhiding can collide with an ingredient that claimed this slug while hidden
-    // (V-3, partial-visible slug index). Pre-check surfaces that row (409 + details).
+    // (partial-visible slug index). Pre-check surfaces that row (409 + details).
     const [self] = await db
       .select({ slug: ingredients.slug })
       .from(ingredients)

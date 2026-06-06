@@ -38,9 +38,11 @@ export async function getUserProducts(userId: string, db: DB) {
               productTag: true,
             },
           },
+          // Collection list only reads ingredient id+name (useCollectionAnalysis);
+          // the full row (description/content markdown) was ~100x over-fetch per load.
           productIngredients: {
             with: {
-              ingredient: true,
+              ingredient: { columns: { id: true, name: true } },
             },
           },
         },

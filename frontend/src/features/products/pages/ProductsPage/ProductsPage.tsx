@@ -25,6 +25,7 @@ import {
   buildDomainSwitchSearch,
   buildProductsApiFilters,
   buildResetSearchParams,
+  deriveAvoidFor,
   hasActivePriceRange,
   productsListApiFilters,
 } from '@/features/products/helpers'
@@ -65,10 +66,7 @@ export function ProductsPage() {
   })
 
   const avoidFor = useMemo(
-    () =>
-      profile_filter && dermoProfile
-        ? [...(dermoProfile.skinTypes ?? []), ...dermoProfile.skinConcerns]
-        : [],
+    () => deriveAvoidFor(dermoProfile, profile_filter),
     [profile_filter, dermoProfile]
   )
 

@@ -29,7 +29,6 @@ import {
   ilike,
   inArray,
   lte,
-  ne,
   notExists,
   or,
   type SQL,
@@ -86,9 +85,10 @@ export async function createProduct(
     const name = normalizeString(input.name)
     const brand = normalizeString(input.brand)
 
-    // Tier-1 dedup (A-2): 409 on visible row with same normalized key. Scoped to
-    // visible so a hidden tombstone never blocks re-submission (V-3) nor leaks.
-    // norm() matches partial unique index (P-1); 23505 catch below guards races.
+    // Reject as a duplicate if a public product already has the same name + brand
+    // (compared via norm(), the same normalization the DB unique index uses). Only
+    // public products count, so a hidden/rejected one never blocks re-submission.
+    // This check can be raced by a concurrent insert; the 23505 catch below is the backstop.
     const [existing] = await database
       .select({
         id: products.id,
@@ -195,7 +195,7 @@ export async function getProductFullBySlug(slug: string, database: Database = db
   }
 }
 
-// id/createdBy/createdAt are immutable; quality/moderation/verify stamps are admin-governed (V-2).
+// id/createdBy/createdAt are immutable; quality/moderation/verify stamps are admin-governed.
 const EXCLUDED_KEYS = new Set([
   'id',
   'createdBy',
@@ -297,7 +297,7 @@ export async function updateProduct(
     `)) as Record<string, unknown>[]
   } catch (e) {
     if (e instanceof ProductError) throw e
-    // Name/brand rename can collide with partial unique index on visible rows (C-4).
+    // Name/brand rename can collide with the partial unique index on visible rows.
     // Re-throw so withRlsContext rolls back; a swallowed 23505 surfaces as 500.
     translateUniqueViolation(e, () => new ProductError('product_already_exists'))
   }
@@ -377,7 +377,8 @@ type ProductSummary = Pick<
 > & {
   // Avoid-tag slugs matching the caller's profile. Empty when no profile filter is active.
   profileMatches: string[]
-  // Positive tags only (relevance != 'avoid'). Card uses relevance='primary' for top 3 chips.
+  // Primary tags only. The card's chips + its "+N" overflow count both key on
+  // relevance='primary'; secondary (~15/product) was pure list over-fetch.
   tags: { slug: string; tagType: string; relevance: 'primary' | 'secondary' }[]
   // null when anonymous or unshelved.
   userStatus: UserProductStatus | null
@@ -506,7 +507,7 @@ function buildListConditions(filters: ListProductsFilters, database: Database): 
 
   return conditions
 }
-
+// just for the clarity
 type ProductMeta = {
   matchesByProduct: Map<string, string[]>
   tagsByProduct: Map<string, ProductSummary['tags']>
@@ -549,7 +550,8 @@ async function fetchProductMeta(
             )
           )
       : Promise.resolve([] as { productId: string; slug: string }[]),
-    // Positive tags only: avoid is already in profileMatches, would duplicate.
+    // Primary tags only: the card renders relevance='primary' chips; secondary (~15/product)
+    // was list over-fetch, avoid already lives in profileMatches.
     database
       .select({
         productId: productTagLinks.productId,
@@ -560,7 +562,7 @@ async function fetchProductMeta(
       .from(productTagLinks)
       .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
       .where(
-        and(inArray(productTagLinks.productId, itemIds), ne(productTagLinks.relevance, 'avoid'))
+        and(inArray(productTagLinks.productId, itemIds), eq(productTagLinks.relevance, 'primary'))
       ),
     // Explicit userId filter: tests run as DB owner and bypass RLS.
     userId
