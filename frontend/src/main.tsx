@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { createRouter, type ParsedLocation, RouterProvider } from '@tanstack/react-router'
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -26,6 +26,27 @@ const ReactQueryDevtools = import.meta.env.DEV
       }))
     )
   : () => null
+const viewTransition = {
+  types: ({
+    fromLocation,
+    toLocation,
+  }: {
+    fromLocation?: ParsedLocation
+    toLocation: ParsedLocation
+  }) =>
+    resolveTransitionType({
+      fromPathname: fromLocation?.pathname ?? null,
+      toPathname: toLocation.pathname,
+    }),
+}
+
+// A view transition snapshots then synchronously re-renders the whole page
+// before animating; on mobile/slow CPUs that freezes the main thread ~0.5s per
+// nav. Below --mobile (or with reduced-motion) we skip startViewTransition
+// entirely so nav stays instant. The router reads defaultViewTransition live
+// per nav, so swapping it on a media-query change is enough.
+const skipViewTransition = window.matchMedia('(max-width: 767px), (prefers-reduced-motion: reduce)')
+
 const router = createRouter({
   routeTree,
   context: {
@@ -37,13 +58,13 @@ const router = createRouter({
   scrollRestoration: true,
   // Delay pending UI so fast nav doesn't flash a loader.
   defaultPendingMs: 200,
-  defaultViewTransition: {
-    types: ({ fromLocation, toLocation }) =>
-      resolveTransitionType({
-        fromPathname: fromLocation?.pathname ?? null,
-        toPathname: toLocation.pathname,
-      }),
-  },
+  defaultViewTransition: skipViewTransition.matches ? false : viewTransition,
+})
+
+skipViewTransition.addEventListener('change', (e) => {
+  // Router reads options.defaultViewTransition live per nav, so mutating it is
+  // enough (router.update would require re-passing context).
+  router.options.defaultViewTransition = e.matches ? false : viewTransition
 })
 
 declare module '@tanstack/react-router' {

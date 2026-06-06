@@ -1,5 +1,13 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { BookOpen, CircleCheckBig, FlaskConical, LogOut, MoreHorizontal, User } from 'lucide-react'
+import {
+  BookOpen,
+  CircleCheckBig,
+  FileText,
+  FlaskConical,
+  LogOut,
+  MoreHorizontal,
+  User,
+} from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLogout } from '../../../lib/queries/auth'
@@ -85,14 +93,12 @@ export function BottomNav() {
         aria-label="Menu supplémentaire"
         aria-hidden={!sheetOpen}
       >
-        <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
-          Accueil
-        </Link>
-        <Link to="/products" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <ProductNavIcon size={20} strokeWidth={1.5} aria-hidden="true" />
-          Produits
-        </Link>
+        {!isAuthenticated && (
+          <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
+            <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
+            Accueil
+          </Link>
+        )}
         <Link to="/ingredients" className="bottom-nav__sheet-link" onClick={closeSheet}>
           <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
           Ingrédients
@@ -109,6 +115,14 @@ export function BottomNav() {
             <Link to="/profile" className="bottom-nav__sheet-link" onClick={closeSheet}>
               <User size={20} strokeWidth={1.5} aria-hidden="true" />
               Profil
+            </Link>
+            <Link to="/submissions" className="bottom-nav__sheet-link" onClick={closeSheet}>
+              <FileText size={20} strokeWidth={1.5} aria-hidden="true" />
+              Mes soumissions
+            </Link>
+            <Link to="/tasks" className="bottom-nav__sheet-link" onClick={closeSheet}>
+              <CircleCheckBig size={20} strokeWidth={1.5} aria-hidden="true" />
+              Tâches
             </Link>
 
             <div className="bottom-nav__sheet-row">
@@ -164,13 +178,13 @@ export function BottomNav() {
         </Link>
 
         <Link
-          to="/tasks"
-          className={`bottom-nav__tab${isActive('/tasks') ? ' bottom-nav__tab--active' : ''}`}
-          aria-label="Tâches"
-          aria-current={isActive('/tasks') ? 'page' : undefined}
+          to="/products"
+          className={`bottom-nav__tab${isActive('/products') ? ' bottom-nav__tab--active' : ''}`}
+          aria-label="Produits"
+          aria-current={isActive('/products') ? 'page' : undefined}
         >
-          <CircleCheckBig size={22} strokeWidth={1.5} aria-hidden="true" />
-          Tâches
+          <ProductNavIcon size={22} strokeWidth={1.5} aria-hidden="true" />
+          Produits
         </Link>
 
         <button

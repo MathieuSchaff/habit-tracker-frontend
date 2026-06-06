@@ -35,6 +35,9 @@
     z-index: var(--z-modal);
     align-items: stretch;
     box-shadow: 0 -10px 40px oklch(0% 0 0 / 0.3);
+    /* Pull the fixed bar out of the root snapshot so route view transitions
+       don't slide/fade it (mirrors main-nav). */
+    view-transition-name: bottom-nav;
   }
 
   .bottom-nav__sheet {

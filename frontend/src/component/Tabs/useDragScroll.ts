@@ -21,7 +21,9 @@ export function useDragScroll<T extends HTMLElement>(
   const onPointerDown = useCallback(
     (e: React.PointerEvent<T>) => {
       if (!enabled || !ref.current) return
-      if (e.pointerType === 'mouse' && e.button !== 0) return
+      // Touch/pen use native scroll (smooth + momentum); JS drag is mouse-only.
+      if (e.pointerType !== 'mouse') return
+      if (e.button !== 0) return
       state.current = {
         active: true,
         startX: e.clientX,

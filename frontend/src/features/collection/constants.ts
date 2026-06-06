@@ -116,7 +116,7 @@ export const sortLabels: Record<SortOption, string> = {
 
 // Empirical compatibility, surfaced as a calm indicative chip (never a number or
 // verdict, per the product vision). Mid-band and missing scores show nothing.
-export const COMPAT_THRESHOLDS = { favorite: 65, watch: 35 } as const
+const COMPAT_THRESHOLDS = { favorite: 65, watch: 35 } as const
 
 export type CompatTone = 'favorite' | 'watch'
 

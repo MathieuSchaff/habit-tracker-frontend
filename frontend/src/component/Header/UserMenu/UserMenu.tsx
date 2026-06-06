@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
+import { FileText, LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { profileQueries } from '@/lib/queries/profile'
@@ -59,6 +59,12 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
               <Link to="/profile">
                 <User size={16} aria-hidden="true" />
                 <span>Profil</span>
+              </Link>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onSelect={onItemClick}>
+              <Link to="/submissions">
+                <FileText size={16} aria-hidden="true" />
+                <span>Mes soumissions</span>
               </Link>
             </DropdownMenu.Item>
             {isContentModerator && (

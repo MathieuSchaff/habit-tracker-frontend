@@ -24,6 +24,13 @@
     border-bottom: none;
   }
 
+  /* The scrolling strip butts against the opaque Plus pill; without a fade the last
+     partially-scrolled tab hard-clips and reads as hidden behind Plus. */
+  .shelf-tabs-row .underline-tabs {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent 100%);
+  }
+
   .shelf-tabs-plus {
     display: inline-flex;
     align-items: center;

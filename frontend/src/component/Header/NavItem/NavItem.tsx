@@ -1,5 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 
+import { useAuthStore } from '../../../store/auth'
 import { navItems } from './navItems'
 
 interface NavSideListProps {
@@ -9,10 +10,12 @@ interface NavSideListProps {
 
 export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isAuthenticated = useAuthStore((state) => !!state.accessToken)
+  const visibleItems = isAuthenticated ? navItems.filter((item) => item.to !== '/') : navItems
 
   return (
     <ul id="main-nav-list" className={`main-nav__list ${className}`}>
-      {navItems.map((item) => (
+      {visibleItems.map((item) => (
         <li key={item.to as string}>
           <Link
             to={item.to}

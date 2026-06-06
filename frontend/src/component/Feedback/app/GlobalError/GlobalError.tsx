@@ -115,7 +115,13 @@ export const GlobalError = ({ error, reset, is404 = false }: GlobalErrorProps) =
 
       <div className="global-error-actions">
         {reset && <Button onClick={() => reset()}>Réessayer</Button>}
-        <Button variant="outline" onClick={() => navigate({ to: '/' })}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            reset?.()
+            navigate({ to: '/' })
+          }}
+        >
           Retour à l'accueil
         </Button>
       </div>
