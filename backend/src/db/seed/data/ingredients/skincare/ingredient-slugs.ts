@@ -177,6 +177,7 @@ export const PEPTIDES = {
   TRIPEPTIDE_1: 'tripeptide-1', // INCI: Tripeptide-1 | stimulant collagène
   ACETYL_TETRAPEPTIDE_15: 'acetyl-tetrapeptide-15', // INCI: Acetyl Tetrapeptide-15 | peptide neuro-apaisant peaux sensibles
   ACETYL_HEXAPEPTIDE_51_AMIDE: 'acetyl-hexapeptide-51-amide', // INCI: Acetyl Hexapeptide-51 Amide | peptide modulateur immunitaire cutané
+  COPPER_LYSINATE_PROLINATE: 'copper-lysinate-prolinate', // INCI: Copper Lysinate/Prolinate | sel de cuivre de lysine+proline (Neodermyl), famille copper peptides
 } as const
 
 export const ANTIOXYDANTS_VITAMINES = {
@@ -377,6 +378,7 @@ export const PROBIOTIQUES_PREBIOTIQUES_POSTBIOTIQUES = {
   MICROBIOTA_REGULATOR: 'microbiota-regulator', // Régulateur du microbiote cutané | équilibre flore bactérienne cutanée
   MELABIOME_XP: 'melabiome-xp', // Complexe de postbiotiques et prébiotiques | rééquilibrage et protection microbiote
   GALACTOMYCES_FERMENT_FILTRATE: 'galactomyces-ferment-filtrate', // INCI: Galactomyces Ferment Filtrate | Pitera (SK-II), ferment riche en nutriments
+  RAHNELLA_SOY_PROTEIN_FERMENT: 'rahnella-soy-protein-ferment', // INCI: Rahnella/Soy Protein Ferment | postbiotique ferment de soja (Bio-Bustyl), soutien cutané
 } as const
 
 export const ACTIFS_ANTI_AGE_REPARATEURS = {
@@ -396,6 +398,7 @@ export const ACTIFS_ANTI_AGE_REPARATEURS = {
   HYDROLYZED_LUPINE_PROTEIN: 'hydrolyzed-lupine-protein', // INCI: Hydrolyzed Lupine Protein | peptides végétaux fermeté
   TRIMETHOXYBENZYL_ACETYLSINAPATE: 'trimethoxybenzyl-acetylsinapate', // INCI: Trimethoxybenzyl Acetylsinapate | actif anti-glycation et photoprotecteur
   ONOPORDUM_ACANTHIUM_EXTRACT: 'onopordum-acanthium-extract', // INCI: Onopordum Acanthium Extract | chardon argenté, anti-glycation et anti-âge
+  METHYLSILANOL_MANNURONATE: 'methylsilanol-mannuronate', // INCI: Methylsilanol Mannuronate | organosilicium topique (Algisium C), soutien cutané silicium
 } as const
 
 export const CIRCULATOIRE_DRAINAGE = {
@@ -414,6 +417,7 @@ export const TENSIOACTIFS_NETTOYANTS = {
   GLEDITSIA_TRIACANTHOS_SEED_EXTRACT: 'gleditsia-seed-extract', // INCI: Gleditsia Triacanthos Seed Extract | tensioactif / épaississant naturel doux
   PEG_20_GLYCERYL_TRIISOSTEARATE: 'peg-20-glyceryl-triisostearate', // INCI: PEG-20 Glyceryl Triisostearate | émulsifiant huileux (nettoyants)
   COCAMIDOPROPYL_HYDROXYSULTAINE: 'cocamidopropyl-hydroxysultaine', // INCI: Cocamidopropyl Hydroxysultaine | tensioactif amphotère doux
+  CAPRYLOYL_GLYCINE: 'capryloyl-glycine', // INCI: Capryloyl Glycine | amino acid alkyl amide, antimicrobien doux, séborégulateur
 } as const
 
 export const TEXTURANTS_FONCTIONNELS = {
@@ -433,6 +437,7 @@ export const TEXTURANTS_FONCTIONNELS = {
   BENTONITE: 'bentonite', // INCI: Bentonite | argile montmorillonite, absorbante et puifiante puissante
   CORN_STARCH_MODIFIED: 'corn-starch-modified', // INCI: Corn Starch Modified / Distarch Phosphate | amidon de maïs modifié, texturant matifiant absorbant
   BIOSACCHARIDE_GUM_4: 'biosaccharide-gum-4', // INCI: Biosaccharide Gum-4 | polysaccharide biotechnologique anti-pollution
+  AMMONIUM_ACRYLOYLDIMETHYLTAURATE_VP_COPOLYMER: 'ammonium-acryloyldimethyltaurate-vp-copolymer', // INCI: Ammonium Acryloyldimethyltaurate/VP Copolymer | gélifiant rhéologique (Aristoflex AVC)
 } as const
 
 export const DIVERS_NON_CLASSES = {

@@ -13,6 +13,15 @@ target_compose() {
     esac
 }
 
+# Echo a host-side report path .audit-out/db/<name>.<TARGET>.md, creating the dir.
+# Usage: $COMPOSE exec ... | tee "$(audit_out <name>)"
+audit_out() {
+    local dir
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/.audit-out/db"
+    mkdir -p "$dir"
+    printf '%s/%s.%s.md\n' "$dir" "$1" "${TARGET:-dev}"
+}
+
 # Typed prod confirmation. Args: LABEL [PHRASE=PROD]. Aborts on mismatch.
 confirm_prod() {
     local label="$1" phrase="${2:-PROD}" reply
