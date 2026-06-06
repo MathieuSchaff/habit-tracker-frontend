@@ -11,3 +11,6 @@ export COMPOSE_DEV  := "docker compose -f infra/docker/compose/docker-compose.ym
 export COMPOSE_PROD := "docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.prod.yml --env-file .env.prod -p aurore"
 COMPOSE_TEST := "docker compose -f infra/docker/compose/docker-compose.test.yml -p aurore-test"
 COMPOSE_E2E  := "docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml -f infra/docker/compose/docker-compose.e2e.yml --env-file .env.dev -p aurore-e2e"
+
+# Committed seed snapshot, restored by db-* and e2e-up.
+SNAPSHOT_FILE := "backend/src/db/snapshot/data.sql"

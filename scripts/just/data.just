@@ -11,7 +11,8 @@ import '_vars.just'
 
 # ─── Ingest ─────────────────────────────────────────────────────────────────
 
-# Import PETA cruelty-free brand status. Env: REFRESH, WRITE, STRICT_PRUNE.
+# Sonde PETA marque par marque (~220) → statut cruelty-free dans brand_certifications.
+# Env: REFRESH (re-fetch), WRITE (applique), STRICT_PRUNE (retire les `peta` périmés du seed).
 ingest-peta:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -26,7 +27,9 @@ ingest-peta:
         ${WRITE:+--write} \
         ${STRICT_PRUNE:+--strict-prune}
 
-# Import OBF brand labels. Env: DOWNLOAD, WRITE, THRESHOLD, NO_WHITELIST.
+# Télécharge le dump Open Beauty Facts (~17 MB) → agrège par marque vegan/cruelty-free/naturel
+# (claim si ≥THRESHOLD des produits portent le label) → enrichit brand_certifications.
+# Env: DOWNLOAD (force re-DL), WRITE, THRESHOLD (ratio, déf 0.5), NO_WHITELIST (toutes marques).
 ingest-obf:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -42,9 +45,9 @@ ingest-obf:
         ${THRESHOLD:+--threshold "$THRESHOLD"} \
         ${NO_WHITELIST:+--no-whitelist}
 
-# Scrape INCIDecoder par phases. Phase positionnelle: crawl|match|fetch|apply.
-# Usage: just ingest-incidecoder crawl
-#        TARGET=prod just ingest-incidecoder apply
+# Récupère des INCI propres sur INCIDecoder pour les produits à INCI faible. 4 phases séquentielles:
+#   crawl = liste produits/marque · match = associe aux tiens · fetch = récupère INCI · apply = écrit en DB.
+# Usage: just ingest-incidecoder crawl  (puis match, fetch, apply)  ·  TARGET=prod … apply
 ingest-incidecoder phase:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -60,8 +63,10 @@ ingest-incidecoder phase:
     $COMPOSE exec api bun run src/db/seed/ingest/incidecoder/main.ts --{{phase}}
 
 # ─── Maintenance produits ───────────────────────────────────────────────────
+# audit = rapport seul · dedupe = édite les fichiers seed · scan = lit un dump DB. Aucun n'écrit la DB live.
 
-# Détecte doublons produits post-import. Env: WRITE (output/imported-products-audit.{json,md}).
+# Scanne les produits → rapporte doublons, descriptions vides, INCI manquante, casse douteuse. Lecture seule.
+# Env: WRITE → écrit output/imported-products-audit.{json,md} (sinon console).
 audit-imported-products:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -73,7 +78,8 @@ audit-imported-products:
     $COMPOSE exec api bun run src/db/seed/maintenance/audit-imported-products.ts \
         ${WRITE:+--write}
 
-# Dédup variants produit. Env: APPLY (sans APPLY = dry-run).
+# Repère le même produit en plusieurs tailles dans les .seed.ts (-400ml, -recharge…) → supprime
+# les variantes, garde la canonique. Édite les fichiers seed. Env: APPLY (sans = dry-run).
 dedupe-product-variants:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -83,12 +89,15 @@ dedupe-product-variants:
     if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (dedupe variants)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Dedupe product variants ($MODE, $TARGET)...{{NC}}\n"
+    # script drops rows by default — APPLY unset injects --dry, the sole safety net; keep this polarity
     $COMPOSE exec api bun run src/db/seed/maintenance/dedupe-product-variants.ts \
         $([ -z "${APPLY:-}" ] && echo "--dry" || true)
 
-# Scan doublons DB depuis backup SQL. Argument positionnel = chemin backup.
-# Usage: just scan-db-duplicates /path/to/backup.sql
-scan-db-duplicates backup:
+# Scanne un dump SQL (COPY ou INSERT/--inserts) → 4 signaux de doublons:
+#   slug avec faute · kits/lots · INCI quasi-identiques même marque · paires base+recharge.
+# Path lu dans le conteneur api (CWD /app/backend), relatif à backend/. Défaut = snapshot commité.
+# Ex custom: just scan-db-duplicates src/db/my-dump.sql
+scan-db-duplicates backup="src/db/snapshot/data.sql":
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh

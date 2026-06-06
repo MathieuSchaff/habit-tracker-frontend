@@ -17,7 +17,8 @@
  * Usage: bun run backend/src/db/seed/maintenance/scan-db-duplicates.ts <backup.sql>
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 const backupPath = process.argv[2]
 if (!backupPath) {
@@ -26,14 +27,6 @@ if (!backupPath) {
 }
 
 const sql = readFileSync(backupPath, 'utf8')
-const startMatch = sql.match(/^COPY public\.products \([^)]*\) FROM stdin;\n/m)
-if (!startMatch) {
-  console.error('No COPY public.products block in backup')
-  process.exit(1)
-}
-const start = sql.indexOf(startMatch[0]) + startMatch[0].length
-const end = sql.indexOf('\n\\.\n', start)
-const block = sql.slice(start, end)
 
 type Row = {
   id: string
@@ -47,22 +40,80 @@ type Row = {
   imageUrl: string | null
 }
 
-const rows: Row[] = []
-for (const line of block.split('\n')) {
-  if (!line) continue
-  const c = line.split('\t')
-  rows.push({
-    id: c[0] ?? '',
-    name: c[2] ?? '',
-    brand: c[3] ?? '',
-    kind: c[4] ?? '',
-    inci: c[6] === '\\N' ? '' : (c[6] ?? ''),
-    totalAmount: c[8] === '\\N' ? '' : (c[8] ?? ''),
-    amountUnit: c[9] === '\\N' ? '' : (c[9] ?? ''),
-    slug: c[10] ?? '',
-    imageUrl: c[12] === '\\N' ? null : (c[12] ?? null),
-  })
+// pg_dump emits two formats: COPY ... FROM stdin (default backup) or
+// INSERT INTO ... VALUES (--inserts, used by the committed snapshot at
+// src/db/snapshot/data.sql). Support both — \N for COPY nulls, the bare
+// NULL keyword for INSERT — so the scanner runs on either source.
+function parseCopy(dump: string): string[][] | null {
+  const m = dump.match(/^COPY public\.products \([^)]*\) FROM stdin;\n/m)
+  if (!m) return null
+  const start = dump.indexOf(m[0]) + m[0].length
+  const end = dump.indexOf('\n\\.\n', start)
+  return dump
+    .slice(start, end)
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => line.split('\t'))
 }
+
+// Column-aware splitter for one `INSERT INTO ... VALUES (...)` tuple. Walks
+// chars so quoted strings (with '' escapes and embedded newlines/commas) and
+// the unquoted NULL keyword survive. NULL → \N to reuse the COPY mapping.
+function parseInserts(dump: string): string[][] {
+  const rows: string[][] = []
+  const PREFIX = 'INSERT INTO public.products VALUES ('
+  let i = dump.indexOf(PREFIX)
+  while (i !== -1) {
+    const cells: string[] = []
+    let cur = ''
+    let inStr = false
+    let quoted = false
+    let j = i + PREFIX.length
+    const push = () => cells.push(quoted ? cur : cur.trim() === 'NULL' ? '\\N' : cur.trim())
+    for (; j < dump.length; j++) {
+      const ch = dump[j]
+      if (inStr) {
+        if (ch === "'") {
+          if (dump[j + 1] === "'") {
+            cur += "'"
+            j++
+          } else inStr = false
+        } else cur += ch
+      } else if (ch === "'") {
+        inStr = true
+        quoted = true
+      } else if (ch === ',') {
+        push()
+        cur = ''
+        quoted = false
+      } else if (ch === ')') {
+        push()
+        break
+      } else cur += ch
+    }
+    rows.push(cells)
+    i = dump.indexOf(PREFIX, j)
+  }
+  return rows
+}
+
+const cells = parseCopy(sql) ?? parseInserts(sql)
+if (cells.length === 0) {
+  console.error('No public.products rows found (expected COPY or INSERT dump)')
+  process.exit(1)
+}
+
+const rows: Row[] = cells.map((c) => ({
+  id: c[0] ?? '',
+  name: c[2] ?? '',
+  brand: c[3] ?? '',
+  kind: c[4] ?? '',
+  inci: c[6] === '\\N' ? '' : (c[6] ?? ''),
+  totalAmount: c[8] === '\\N' ? '' : (c[8] ?? ''),
+  amountUnit: c[9] === '\\N' ? '' : (c[9] ?? ''),
+  slug: c[10] ?? '',
+  imageUrl: c[12] === '\\N' ? null : (c[12] ?? null),
+}))
 
 console.log(`Loaded ${rows.length} products from backup\n`)
 
@@ -220,6 +271,9 @@ const out = {
     jInci: p.jInci,
   })),
 }
-const outPath = 'backend/src/db/seed/output/scan-db-duplicates.json'
-require('node:fs').writeFileSync(outPath, JSON.stringify(out, null, 2))
+// Anchor to the script so the path is correct from any CWD (recipe runs it
+// in-container at /app/backend, where a repo-root-relative literal doubled the
+// `backend/` segment and crashed writeFileSync with ENOENT).
+const outPath = join(import.meta.dir, '..', 'output', 'scan-db-duplicates.json')
+writeFileSync(outPath, JSON.stringify(out, null, 2))
 console.log(`\nWrote ${outPath}`)

@@ -1,8 +1,6 @@
 import '_vars.just'
 import 'audit.just'
 
-SNAPSHOT_FILE := "backend/src/db/snapshot/data.sql"
-
 # Database recipes.
 # TARGET=dev (default) | prod. Confirmation interactive sur prod :
 #   - write : tape 'PROD'

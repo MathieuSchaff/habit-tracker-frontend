@@ -24,6 +24,7 @@
 // dump daily so a `--download` once a day is enough.
 
 import { existsSync, mkdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 
 import { sql } from 'drizzle-orm'
@@ -45,8 +46,12 @@ import {
 
 const OBF_DUMP_URL =
   'https://static.openbeautyfacts.org/data/en.openbeautyfacts.org.products.csv.gz'
-const CACHE_DIR = 'backend/tmp/cache/obf'
-const CACHE_FILE = `${CACHE_DIR}/products.csv.gz`
+// Anchored to the script (not CWD): the recipe runs this in-container at
+// /app/backend, where the bare 'backend/tmp/...' literal resolved to a
+// doubled 'backend/backend/tmp/...'. Five levels up lands on the backend
+// root, so cache lives under the gitignored backend/tmp/ from host or container.
+const CACHE_DIR = join(import.meta.dir, '..', '..', '..', '..', '..', 'tmp', 'cache', 'obf')
+const CACHE_FILE = join(CACHE_DIR, 'products.csv.gz')
 
 const FORCE_DOWNLOAD = process.argv.includes('--download')
 const WRITE = process.argv.includes('--write')
