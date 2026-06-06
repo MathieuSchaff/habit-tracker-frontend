@@ -3,10 +3,7 @@ import { BLOG_CATEGORY_LABELS } from '@aurore/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
-import Markdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
+import { lazy, Suspense } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
@@ -17,6 +14,8 @@ import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { articleQueries, useDeleteArticle } from '@/lib/queries/articles'
 import { useAuthStore } from '@/store/auth'
 import './BlogArticlePage.css'
+
+const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
 
 type BlogArticlePageProps = {
   slug: string
@@ -87,9 +86,9 @@ export function BlogArticlePage({ slug }: BlogArticlePageProps) {
       {article.excerpt && <p className="blog-article__excerpt">{article.excerpt}</p>}
 
       <RichText>
-        <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-          {normalizeLatexMarkdown(article.content)}
-        </Markdown>
+        <Suspense fallback={<p>{article.content}</p>}>
+          <MarkdownMath>{normalizeLatexMarkdown(article.content)}</MarkdownMath>
+        </Suspense>
       </RichText>
     </article>
   )

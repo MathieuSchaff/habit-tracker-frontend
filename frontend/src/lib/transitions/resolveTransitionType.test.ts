@@ -34,6 +34,26 @@ const cases: Case[] = [
     expected: ['crossfade', 'shared-element'],
   },
 
+  // Canonical app pathnames carry no trailing slash; list-path matching must still hold.
+  {
+    name: 'list → detail (no trailing slash)',
+    from: '/products',
+    to: '/products/abc',
+    expected: ['crossfade', 'shared-element'],
+  },
+  {
+    name: 'detail → list (no trailing slash)',
+    from: '/products/abc',
+    to: '/products',
+    expected: ['crossfade', 'shared-element'],
+  },
+  {
+    name: 'nav up (collection → products, no trailing slash)',
+    from: '/collection',
+    to: '/products',
+    expected: ['fade-nav-up'],
+  },
+
   {
     name: 'detail → discussions (same slug = tab swap)',
     from: '/products/abc',

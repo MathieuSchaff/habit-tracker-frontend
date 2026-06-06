@@ -31,6 +31,7 @@ type Props = {
   activeTab: ProductDomainTab
   onTabChange: (next: ProductDomainTab) => void
   tabOptions: TabOption<ProductDomainTab>[]
+  onFilterIntent?: () => void
 }
 
 function ProductsHeaderImpl({
@@ -44,10 +45,17 @@ function ProductsHeaderImpl({
   activeTab,
   onTabChange,
   tabOptions,
+  onFilterIntent,
 }: Props) {
   const navigate = useNavigate({ from: '/products/' })
-  const { data: brands = [] } = useQuery(productQueries.brands())
-  const { data: ingredients = [] } = useQuery(ingredientQueries.options())
+  // Search facet lists only matter once the combobox is engaged; gating on focus keeps
+  // them off the cold-load waterfall (they competed with the LCP grid).
+  const [searchActive, setSearchActive] = useState(false)
+  const { data: brands = [] } = useQuery({ ...productQueries.brands(), enabled: searchActive })
+  const { data: ingredients = [] } = useQuery({
+    ...ingredientQueries.options(),
+    enabled: searchActive,
+  })
 
   const [scrolled, setScrolled] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -166,6 +174,8 @@ function ProductsHeaderImpl({
               variant="primary"
               size="md"
               onClick={onOpenDrawer}
+              onPointerEnter={onFilterIntent}
+              onFocus={onFilterIntent}
               className="list-filter-btn"
               aria-label={
                 effectiveFilterCount > 0
@@ -206,6 +216,7 @@ function ProductsHeaderImpl({
                 sublabel: item.brand,
               })}
               onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
+              onFocus={() => setSearchActive(true)}
               sections={sections}
               onSubmitQuery={(q) => {
                 const trimmed = q.trim()
@@ -226,6 +237,7 @@ function ProductsHeaderImpl({
         visible={scrolled}
         count={effectiveFilterCount}
         onClick={onOpenDrawer}
+        onIntent={onFilterIntent}
       />
     </>
   )
@@ -237,6 +249,7 @@ type FloatingFilterButtonProps = {
   visible: boolean
   count: number
   onClick: () => void
+  onIntent?: () => void
 }
 
 const FLOATING_FILTER_Y_KEY = 'products-floating-filter-y'
@@ -255,7 +268,7 @@ function computeFloatingFilterBounds() {
   }
 }
 
-function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonProps) {
+function FloatingFilterButton({ visible, count, onClick, onIntent }: FloatingFilterButtonProps) {
   const { y, dragging, dragHandlers, withClickGuard } = useDraggableY({
     storageKey: FLOATING_FILTER_Y_KEY,
     computeBounds: computeFloatingFilterBounds,
@@ -270,6 +283,8 @@ function FloatingFilterButton({ visible, count, onClick }: FloatingFilterButtonP
       aria-label={`Filtrer${count > 0 ? ` (${count} actif${count > 1 ? 's' : ''})` : ''}`}
       tabIndex={visible ? 0 : -1}
       {...dragHandlers}
+      onPointerEnter={onIntent}
+      onFocus={onIntent}
       onClick={withClickGuard(onClick)}
     >
       <span className="products-floating-filter__icon-wrap">

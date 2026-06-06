@@ -2,7 +2,7 @@ import { DOMAIN_PRODUCT_FILTER_CATEGORIES, type ProductDomainTab } from '@aurore
 
 import type { FilterValues } from '@/component/Filter'
 import type { ListProductsFilters, ProductSort } from '@/lib/queries/products'
-import type { FilterKey, TagFilterKey } from './filters'
+import { FILTER_KEYS, type FilterKey, type ProductsSearch, type TagFilterKey } from './filters'
 
 export function hasActivePriceRange(priceMin?: number, priceMax?: number): boolean {
   return priceMin !== undefined || priceMax !== undefined
@@ -67,6 +67,29 @@ export function buildProductsApiFilters(args: {
     page: args.page,
     limit: 20,
   }
+}
+
+// Single source of truth for the list query input: both the /products loader (prefetch)
+// and ProductsPage call this so the queryKey matches and the prefetch lands.
+export function productsListApiFilters(
+  search: ProductsSearch,
+  avoidFor: string[]
+): ListProductsFilters {
+  const filters = Object.fromEntries(
+    FILTER_KEYS.map((k) => [k, search[k] ?? []])
+  ) as FilterValues<FilterKey>
+  const hasFilters = FILTER_KEYS.some((k) => (search[k]?.length ?? 0) > 0)
+  return buildProductsApiFilters({
+    category: search.category,
+    filters,
+    avoidFor,
+    sort: search.sort,
+    priceMin: search.priceMin,
+    priceMax: search.priceMax,
+    q: search.q,
+    page: search.page,
+    hasFilters,
+  })
 }
 
 // UI-level toggles outside FilterDrawer state. Tag filters reset via useListFilters.resetFilters().

@@ -6,11 +6,12 @@ import { Button } from '@/component/Button/Button'
 type Props = {
   count: number
   onOpenDrawer: () => void
+  onFilterIntent?: () => void
   children: ReactNode
 }
 
 // Mounts only when count > 0, so default-open keeps filters visible on first appearance.
-export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props) {
+export function CollapsibleFiltersStrip({ count, onOpenDrawer, onFilterIntent, children }: Props) {
   const [open, setOpen] = useState(true)
   if (count === 0) return null
   const plural = count > 1 ? 's' : ''
@@ -38,6 +39,8 @@ export function CollapsibleFiltersStrip({ count, onOpenDrawer, children }: Props
           variant="bare"
           className="products-chips-toggle__edit"
           onClick={onOpenDrawer}
+          onPointerEnter={onFilterIntent}
+          onFocus={onFilterIntent}
           aria-label="Modifier les filtres"
         >
           Modifier

@@ -59,10 +59,16 @@ export function DialogPrimitive({
       node.setAttribute('open', '')
       needsManualLock.current = true
     }
+    // Defer focus past the showModal() commit: focusing synchronously forces a layout
+    // reflow during the dialog open paint (~189ms LoAF). rAF lets the browser settle first.
+    let focusRaf = 0
     if (initialFocusRef?.current) {
-      initialFocusRef.current.focus()
+      focusRaf = requestAnimationFrame(() => {
+        initialFocusRef.current?.focus()
+      })
     }
     return () => {
+      if (focusRaf) cancelAnimationFrame(focusRaf)
       if (node.open) {
         try {
           node.close()

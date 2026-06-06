@@ -2,7 +2,6 @@
 /* Fonts self-hosted via @fontsource (imported in main.tsx) — no external CDN, GDPR-safe. */
 @import "./tokens/reset.css" layer(reset);
 @import "./tokens/colors-root.css" layer(variables);
-@import "./tokens/colors-palette-test.css" layer(variables);
 @import "./tokens/colors-light-terracota.css" layer(variables);
 @import "./tokens/colors-dark-terracota.css" layer(variables);
 /* foret + ardoise variants are lazy-loaded via store/theme.ts */
@@ -21,13 +20,3 @@
 @import "../component/Header/NavItem//NavItem.css" layer(components);
 
 @import "../component/Layout/AppLayout/AppLayout.css" layer(components);
-@import "../component/Layout/AuthLayout/AuthLayout.css" layer(components);
-
-@import "../features/products/styles/kinds.css" layer(components);
-@import "../features/auth/styles/auth-shared.css" layer(components);
-@import "../features/auth/page/SignupPage/SignupPage.css" layer(components);
-
-@import "../features/products/components/AddToCollectionModal/AddToCollectionModal.css"
-  layer(components);
-@import "../features/tasks/page/TasksPage.css" layer(components);
-@import "../features/tasks/components/TaskItem.css" layer(components);

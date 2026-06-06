@@ -1,11 +1,7 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { Package } from 'lucide-react'
-import { useMemo } from 'react'
-import Markdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
+import { lazy, Suspense, useMemo } from 'react'
 
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { NavArrow } from '@/component/DataDisplay/NavArrow/NavArrow'
@@ -19,6 +15,10 @@ import { ingredientQueries } from '@/lib/queries/ingredients'
 import { useAuthStore } from '@/store/auth'
 import { ingredientLabels } from '../../constants'
 import './IngredientInfoTab.css'
+
+// Plain prose: react-markdown only, no KaTeX. Detail block uses MarkdownMath (math-capable).
+const Markdown = lazy(() => import('react-markdown'))
+const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
 
 const MAX_VISIBLE_PRODUCTS = 5
 
@@ -73,7 +73,9 @@ export function IngredientInfoTab() {
         <div className="ingredient-section">
           <SectionHeader title="Profil" variant="primary" />
           <RichText>
-            <Markdown>{ingredient.description}</Markdown>
+            <Suspense fallback={<p>{ingredient.description}</p>}>
+              <Markdown>{ingredient.description}</Markdown>
+            </Suspense>
           </RichText>
         </div>
       )}
@@ -99,9 +101,9 @@ export function IngredientInfoTab() {
         <div className="ingredient-section">
           <SectionHeader title="Détail" variant="primary" />
           <RichText>
-            <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-              {ingredient.content}
-            </Markdown>
+            <Suspense fallback={<p>{ingredient.content}</p>}>
+              <MarkdownMath>{ingredient.content}</MarkdownMath>
+            </Suspense>
           </RichText>
         </div>
       )}
