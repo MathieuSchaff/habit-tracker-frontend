@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    /* 1. Monorepo setup */
+    "composite": true, // needed so other projects can reference this one
+    "rootDir": "./src", // where the source code is
+    "outDir": "./dist", // where the type files (.d.ts) go
+
+    /* 2. Types (the contract) */
+    "declaration": true, // emit .d.ts so the frontend can see the types
+    "declarationMap": false, // no type-to-JS map here (faster)
+    "emitDeclarationOnly": true, // only emit types; Bun runs the code
+
+    /* 3. Runtime (Bun / modern JS) */
+    "target": "ESNext", // use the newest JS features Bun supports
+    "module": "ESNext", // use modern import/export
+    "moduleResolution": "Bundler", // find modules like Bun or Vite do
+    "lib": ["ESNext"], // load the newest JS globals
+    "types": ["bun"], // add Bun globals (Bun.file, etc.)
+
+    /* 4. Strictness */
+    "strict": true, // turn on all safety checks
+    "skipLibCheck": true, // skip type checks in node_modules (faster)
+    "esModuleInterop": true, // ease importing old CommonJS modules
+    "isolatedModules": true // required by fast bundlers like Bun
+  },
+
+  /* 5. Include / exclude */
+  "include": ["src/**/*"], // build everything in src
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts", // skip test files
+    "src/db/seed/output/seeds" // raw scraper input (gitignored)
+  ],
+
+  /* references must be at the JSON root */
+  "references": [
+    { "path": "../shared" } // backend depends on shared
+  ]
+}

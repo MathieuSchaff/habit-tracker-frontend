@@ -162,6 +162,10 @@ clean-install:
 build:
     {{COMPOSE_PROD}} build
 
+# Render resolved compose config (merged overlays + interpolated env). TARGET: dev|prod.
+compose-config TARGET="dev":
+    @{{ if TARGET == "prod" { COMPOSE_PROD } else { COMPOSE_DEV } }} config
+
 # Diagnose type and Docker issues
 diagnose:
     #!/usr/bin/env bash

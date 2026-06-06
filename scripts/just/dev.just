@@ -83,11 +83,9 @@ ts-build:
     @printf "{{CYAN}}TypeScript global check...{{NC}}\n"
     bunx tsc -b
 
-# Verify types without watch (end of session, incremental)
+# Verify types without watch (end of session, incremental). Solution graph includes backend tests.
 ts-verify:
     bunx tsc -b
-    @printf "{{CYAN}}Typechecking backend tests...{{NC}}\n"
-    bunx tsc -p backend/tsconfig.test.json
 
 # Remove all dist/ and TS caches
 ts-clean:

@@ -43,7 +43,8 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
 
 const checkers: Checker[] = [checkTagProductDomainConsistency]
 
-const MAX_LINES_PER_CHECKER = 30
+// File output wants every violation; interactive console stays capped.
+const MAX_LINES_PER_CHECKER = process.env.AUDIT_DB_FULL ? Number.POSITIVE_INFINITY : 30
 
 async function main() {
   const results = await Promise.all(checkers.map((c) => c(db)))

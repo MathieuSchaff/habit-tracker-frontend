@@ -190,6 +190,34 @@ Le **PEG-20 Glyceryl Triisostearate** est un agent émulsifiant de référence p
     category: SKINCARE_INGREDIENT_CATEGORIES.TENSIOACTIF,
     description:
       'Tensioactif amphotère doux dérivé de coco, mousse onctueuse, tolérance excellente, alternative au cocamidopropyl betaine.',
-    content: '',
+    content: `# Cocamidopropyl Hydroxysultaine
+
+*Fiche à compléter.*`,
+  },
+  {
+    name: 'Capryloyl Glycine',
+    slug: INGREDIENT_SLUGS.CAPRYLOYL_GLYCINE,
+    type: 'skincare',
+    category: SKINCARE_INGREDIENT_CATEGORIES.ACTIF,
+    description:
+      "Dérivé d'acide aminé (glycine + acide caprylique C8), actif antimicrobien doux et séborégulateur utilisé comme agent de conditionnement et conservation.",
+    content: `# Capryloyl Glycine
+
+## INCI
+**CAPRYLOYL GLYCINE**
+
+## Origine
+Amide de l'acide caprylique (C8) et de la glycine. Famille des amino acid alkyl amides.
+
+## Rôle
+Antimicrobien doux, séborégulateur, agent de conditionnement cutané. Utilisé comme alternative ou complément aux conservateurs classiques (boosting). Études cliniques à 4 % sur scalp/sébum (PMID 33347705).
+
+## Sécurité
+Évalué par le CIR dans le rapport "Safety Assessment of Amino Acid Alkyl Amides as Used in Cosmetics" (PMID 28553738, DOI 10.1177/1091581816686048) : conclusion favorable lorsque **formulated to be non-irritating**. Signal indépendant à surveiller : un cas d'allergic contact dermatitis publié (PMID 30652324, DOI 10.1111/cod.13215).
+
+## Références
+- CIR — Amino Acid Alkyl Amides : PMID 28553738, DOI 10.1177/1091581816686048
+- Cas ACD : PMID 30652324, DOI 10.1111/cod.13215
+- Étude clinique scalp/sébum 4 % : PMID 33347705`,
   },
 ]

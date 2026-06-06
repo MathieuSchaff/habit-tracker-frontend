@@ -70,9 +70,11 @@ db-seed:
         read -r -p "> " C
         [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
     fi
+    LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
+    mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Pushing CORE seed deltas (idempotent, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts
-    printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET){{NC}}\n"
+    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts 2>&1 | tee "$LOG"
+    printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Alias — idempotent mode is default since Phase 5d
 db-seed-merge: db-seed
