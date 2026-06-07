@@ -6,8 +6,21 @@ import { IngredientInfoSkeleton } from '@/features/ingredients/components/skelet
 import { ingredientQueries } from '@/lib/queries/ingredients'
 
 export const Route = createFileRoute('/ingredients/$slug/')({
-  loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(ingredientQueries.bySlug(params.slug)),
+  loader: async ({ context, params }) => {
+    const { queryClient } = context
+    // Hoisted from post-mount into the loader to kill the serial RTT after the detail.
+    // products keys on the slug alone → start it in parallel with bySlug; tags needs the id.
+    // Non-critical (products list + tag pills) → swallow so a secondary failure can't error the page.
+    const products = queryClient
+      .ensureQueryData(ingredientQueries.products(params.slug))
+      .catch(() => null)
+    const ingredient = await queryClient.ensureQueryData(ingredientQueries.bySlug(params.slug))
+    await Promise.all([
+      products,
+      queryClient.ensureQueryData(ingredientQueries.tags(ingredient.id)).catch(() => null),
+    ])
+    return ingredient
+  },
   pendingComponent: IngredientInfoSkeleton,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
   component: IngredientInfoTab,

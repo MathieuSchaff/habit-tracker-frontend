@@ -14,6 +14,17 @@ dev-down:
 dev-d: ts-build
     {{COMPOSE_DEV}} up -d --build
 
+# Prod-like profiling: Caddy HTTP/2 + brotli + immutable over the prod build, /api → backend.
+# Closest local match to prod nginx (preview is h1, no immutable). Needs backend up: `just dev-d`.
+# Open https://localhost:8443 and accept the self-signed warning (h2 still negotiates).
+profile-prod:
+    cd frontend && bun run build
+    docker run --rm -p 8443:8443 \
+        --add-host host.docker.internal:host-gateway \
+        -v {{justfile_directory()}}/frontend/dist:/srv:ro \
+        -v {{justfile_directory()}}/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+        caddy:latest
+
 # Full clean + install + types + docker (preserves pgdata)
 dev-fresh: ts-clean install-deps ts-build
     {{COMPOSE_DEV}} down 2>/dev/null || true

@@ -1,0 +1,1 @@
+DROP INDEX "user_products_status_idx";
