@@ -53,7 +53,6 @@ export const userProducts = pgTable(
   },
   (t) => [
     uniqueIndex('user_products_user_product_unique').on(t.userId, t.productId),
-    index('user_products_status_idx').on(t.status),
     check('user_products_sentiment_range', sql`${t.sentiment} BETWEEN 1 AND 6`),
     ...tenantPolicies('user_products', t.userId),
     // Allows reading user_products when a public review hangs off the row.

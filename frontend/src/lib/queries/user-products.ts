@@ -4,7 +4,7 @@ import type {
   UpdateUserProductReviewInput,
 } from '@aurore/shared'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { type ApiData, api } from '../api'
 import { compatibilityKeys } from './compatibility'
@@ -49,15 +49,18 @@ export const userProductKeys = {
 }
 
 export const userProductQueries = {
-  list: () => ({
-    queryKey: userProductKeys.list(),
-    queryFn: async () => {
-      const res = await api['user-products'].$get()
-      if (!res.ok) throw new Error('Failed to fetch user products')
-      const data = await res.json()
-      return data.data
-    },
-  }),
+  list: () =>
+    queryOptions({
+      queryKey: userProductKeys.list(),
+      queryFn: async () => {
+        const res = await api['user-products'].$get()
+        if (!res.ok) throw new Error('Failed to fetch user products')
+        const data = await res.json()
+        return data.data
+      },
+      // Personal catalogue rarely mutates; mutations already invalidate via userProductKeys.all.
+      staleTime: 5 * 60 * 1000,
+    }),
   detail: (id: string) => ({
     queryKey: userProductKeys.detail(id),
     queryFn: async () => {

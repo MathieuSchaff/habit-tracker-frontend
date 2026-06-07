@@ -32,6 +32,7 @@ export default defineConfig({
       include: /src\/.*\.[jt]sx?$/,
       presets: [reactCompilerPreset()],
     }),
+
     // Body font (DM Sans 400 latin) ships via @fontsource CSS, so the browser only
     // discovers it after parsing the eager CSS (HTML→CSS→woff2, 2 hops). Preload it
     // by its real hashed name from the bundle to cut a render-blocking hop. Build-only.
