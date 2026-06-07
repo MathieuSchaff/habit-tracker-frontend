@@ -16,6 +16,11 @@ import {
   useUpdateIngredientTags,
 } from '@/lib/queries/ingredients'
 
+function trimmedField(value: string): string | undefined {
+  const trimmed = value.trim()
+  return trimmed || undefined
+}
+
 export type IngredientFormData = {
   name: string
   slug: string
@@ -79,11 +84,6 @@ export function useIngredientFormSubmit(args: Args) {
   const [updatedAtOverride, setUpdatedAtOverride] = useState<string | null>(null)
 
   const tagsPayload = () => args.tags.map((t) => ({ tagId: t.tagId, relevance: t.relevance }))
-
-  function trimmedField(value: string): string | undefined {
-    const trimmed = value.trim()
-    return trimmed || undefined
-  }
 
   async function submitCreate(): Promise<string> {
     const created = await createIngredient.mutateAsync({

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { resolveTransitionType } from './resolveTransitionType'
 
-// nav order (from NavItem.tsx): /, /products, /ingredients, /blog, /collection, /tasks.
-// The expectations below depend on that order — keep in sync if navItems reshuffles.
+// Only list<->detail and the detail tab swap run a VT; every other nav resolves
+// to false (skipped) — see main.tsx KEEP_VT_TYPES.
 type Case = {
   name: string
   from: string | null
@@ -48,10 +48,10 @@ const cases: Case[] = [
     expected: ['crossfade', 'shared-element'],
   },
   {
-    name: 'nav up (collection → products, no trailing slash)',
+    name: 'nav up (collection → products, no trailing slash) = skipped',
     from: '/collection',
     to: '/products',
-    expected: ['fade-nav-up'],
+    expected: false,
   },
 
   {
@@ -67,48 +67,46 @@ const cases: Case[] = [
     expected: ['tab-switch'],
   },
   {
-    // Different slugs are NOT a tab swap — falls through to slide-back (sub → detail).
-    name: 'discussions → detail with different slug = slide-back',
+    // Different slugs are NOT a tab swap → skipped (no longer falls through to a slide).
+    name: 'discussions → detail with different slug = skipped',
     from: '/products/abc/discussions',
     to: '/products/xyz',
-    expected: ['slide-back'],
+    expected: false,
   },
 
   {
-    name: 'detail → edit subpage',
+    name: 'detail → edit subpage = skipped',
     from: '/products/abc',
     to: '/products/abc/edit',
-    expected: ['slide-forward'],
+    expected: false,
   },
   {
-    name: 'edit subpage → detail',
+    name: 'edit subpage → detail = skipped',
     from: '/products/abc/edit',
     to: '/products/abc',
-    expected: ['slide-back'],
+    expected: false,
   },
 
-  { name: 'auth in', from: '/', to: '/auth/login', expected: ['fade-fast'] },
-  { name: 'auth out', from: '/auth/login', to: '/', expected: ['fade-fast'] },
+  { name: 'auth in = skipped', from: '/', to: '/auth/login', expected: false },
 
   {
-    name: 'nav down (products → blog)',
+    name: 'nav down (products → blog) = skipped',
     from: '/products/',
     to: '/blog/',
-    expected: ['fade-nav-down'],
+    expected: false,
   },
   {
-    name: 'nav up (collection → products)',
+    name: 'nav up (collection → products) = skipped',
     from: '/collection/',
     to: '/products/',
-    expected: ['fade-nav-up'],
+    expected: false,
   },
 
   {
-    // Neither side is a nav item nor a known shape → fallback.
-    name: 'fallback (blog article → profile)',
+    name: 'fallback (blog article → profile) = skipped',
     from: '/blog/article-x',
     to: '/profile/',
-    expected: ['fade-scale'],
+    expected: false,
   },
 ]
 

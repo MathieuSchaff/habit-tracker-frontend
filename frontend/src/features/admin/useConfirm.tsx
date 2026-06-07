@@ -49,16 +49,13 @@ export function useConfirm() {
 
   // React Compiler can miscompile overloaded function declarations inside hooks by
   // shadowing the function variable, so keep the overloads on a typed callback value.
-  const confirm = useCallback(
-    ((opts: ConfirmOptions) => {
-      setReason('')
-      return new Promise<boolean | ConfirmResult>((resolve) => {
-        pendingResolver.current = resolve
-        setRequest({ ...opts, resolve })
-      })
-    }) as ConfirmFn,
-    []
-  )
+  const confirm = useCallback((opts: ConfirmOptions) => {
+    setReason('')
+    return new Promise<boolean | ConfirmResult>((resolve) => {
+      pendingResolver.current = resolve
+      setRequest({ ...opts, resolve })
+    })
+  }, []) as ConfirmFn
 
   const settle = useCallback((value: boolean | ConfirmResult) => {
     pendingResolver.current?.(value)

@@ -23,6 +23,35 @@ export type HeroShellProps = {
   children: React.ReactNode
 }
 
+function renderAction(a: HeroAction, primaryStyle: boolean) {
+  const cls = `aur-btn aur-btn--lg aur-btn--${primaryStyle ? 'primary' : 'ghost'}`
+  const content = (
+    <>
+      {a.label}
+      {primaryStyle ? <ArrowRight size={16} aria-hidden="true" /> : null}
+    </>
+  )
+  if (a.to) {
+    return (
+      <Link to={a.to as never} className={cls}>
+        {content}
+      </Link>
+    )
+  }
+  if (a.href) {
+    return (
+      <a href={a.href} className={cls}>
+        {content}
+      </a>
+    )
+  }
+  return (
+    <button type="button" className={cls} onClick={a.onClick}>
+      {content}
+    </button>
+  )
+}
+
 export function HeroShell({
   badge,
   title,
@@ -33,35 +62,6 @@ export function HeroShell({
   layout = 'split',
   children,
 }: HeroShellProps) {
-  const renderAction = (a: HeroAction, primaryStyle: boolean) => {
-    const cls = `aur-btn aur-btn--lg aur-btn--${primaryStyle ? 'primary' : 'ghost'}`
-    const content = (
-      <>
-        {a.label}
-        {primaryStyle ? <ArrowRight size={16} aria-hidden="true" /> : null}
-      </>
-    )
-    if (a.to) {
-      return (
-        <Link to={a.to as never} className={cls}>
-          {content}
-        </Link>
-      )
-    }
-    if (a.href) {
-      return (
-        <a href={a.href} className={cls}>
-          {content}
-        </a>
-      )
-    }
-    return (
-      <button type="button" className={cls} onClick={a.onClick}>
-        {content}
-      </button>
-    )
-  }
-
   return (
     <section className={`aur-hero aur-hero--${layout}`}>
       <div className="aur-container">

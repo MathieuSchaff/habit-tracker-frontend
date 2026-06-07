@@ -1,13 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 
 export function useEscapeKey(handler: () => void) {
-  // Keep latest handler in a ref so listener stays attached across renders.
-  const callbackRef = useRef(handler)
-  callbackRef.current = handler
+  const onEscape = useEffectEvent(handler)
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') callbackRef.current()
+      if (event.key === 'Escape') onEscape()
     }
     document.addEventListener('keydown', listener)
     return () => document.removeEventListener('keydown', listener)

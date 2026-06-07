@@ -4,18 +4,22 @@ import {
   CircleCheckBig,
   FileText,
   FlaskConical,
+  LogIn,
   LogOut,
   MoreHorizontal,
   User,
+  UserPlus,
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 
+import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
+import { Sheet } from '@/component/Dialog/Sheet'
 import { useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { ThemeToggle } from '../../ThemeToggle/ThemeToggle'
-import './BottomNav.css'
 
-import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
+// Imported last so .bottom-nav__sheet overrides win the cascade over Sheet/DialogPrimitive base styles.
+import './BottomNav.css'
 
 export function BottomNav() {
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -23,53 +27,9 @@ export function BottomNav() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
   const logout = useLogout()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-
-  const closeSheet = useCallback(() => {
-    setSheetOpen(false)
-    triggerRef.current?.focus()
-  }, [])
+  // Native <dialog> (via Sheet) traps Tab, closes on Esc, and restores focus to the trigger.
+  const closeSheet = useCallback(() => setSheetOpen(false), [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
-
-  useEffect(() => {
-    if (sheetOpen) {
-      const firstFocusable = sheetRef.current?.querySelector<HTMLElement>('a, button')
-      firstFocusable?.focus()
-    }
-  }, [sheetOpen])
-
-  useEffect(() => {
-    if (!sheetOpen) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeSheet()
-        return
-      }
-
-      if (e.key === 'Tab') {
-        const focusable = sheetRef.current?.querySelectorAll<HTMLElement>(
-          'a, button, input, [tabindex]:not([tabindex="-1"])'
-        )
-        if (!focusable?.length) return
-
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault()
-          last.focus()
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault()
-          first.focus()
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [sheetOpen, closeSheet])
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -84,87 +44,84 @@ export function BottomNav() {
 
   return (
     <>
-      {sheetOpen && <div className="bottom-nav__overlay" onClick={closeSheet} aria-hidden="true" />}
-
-      <div
-        ref={sheetRef}
-        className={`bottom-nav__sheet${sheetOpen ? ' bottom-nav__sheet--open' : ''}`}
-        role="dialog"
-        aria-label="Menu supplémentaire"
-        aria-hidden={!sheetOpen}
-      >
-        {!isAuthenticated && (
-          <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
-            <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
-            Accueil
+      {sheetOpen && (
+        <Sheet onClose={closeSheet} className="bottom-nav__sheet">
+          <Sheet.Title className="sr-only">Menu supplémentaire</Sheet.Title>
+          {!isAuthenticated && (
+            <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
+              <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
+              Accueil
+            </Link>
+          )}
+          <Link to="/ingredients" className="bottom-nav__sheet-link" onClick={closeSheet}>
+            <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
+            Ingrédients
           </Link>
-        )}
-        <Link to="/ingredients" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <FlaskConical size={20} strokeWidth={1.5} aria-hidden="true" />
-          Ingrédients
-        </Link>
-        <Link to="/blog" className="bottom-nav__sheet-link" onClick={closeSheet}>
-          <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />
-          Blog
-        </Link>
+          <Link to="/blog" className="bottom-nav__sheet-link" onClick={closeSheet}>
+            <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />
+            Blog
+          </Link>
 
-        <div className="bottom-nav__sheet-divider" />
+          <div className="bottom-nav__sheet-divider" />
 
-        {isAuthenticated ? (
-          <>
-            <Link to="/profile" className="bottom-nav__sheet-link" onClick={closeSheet}>
-              <User size={20} strokeWidth={1.5} aria-hidden="true" />
-              Profil
-            </Link>
-            <Link to="/submissions" className="bottom-nav__sheet-link" onClick={closeSheet}>
-              <FileText size={20} strokeWidth={1.5} aria-hidden="true" />
-              Mes soumissions
-            </Link>
-            <Link to="/tasks" className="bottom-nav__sheet-link" onClick={closeSheet}>
-              <CircleCheckBig size={20} strokeWidth={1.5} aria-hidden="true" />
-              Tâches
-            </Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/profile" className="bottom-nav__sheet-link" onClick={closeSheet}>
+                <User size={20} strokeWidth={1.5} aria-hidden="true" />
+                Profil
+              </Link>
+              <Link to="/submissions" className="bottom-nav__sheet-link" onClick={closeSheet}>
+                <FileText size={20} strokeWidth={1.5} aria-hidden="true" />
+                Mes soumissions
+              </Link>
+              <Link to="/tasks" className="bottom-nav__sheet-link" onClick={closeSheet}>
+                <CircleCheckBig size={20} strokeWidth={1.5} aria-hidden="true" />
+                Tâches
+              </Link>
 
-            <div className="bottom-nav__sheet-row">
-              <span className="bottom-nav__sheet-row-label">Thème</span>
-              <ThemeToggle />
-            </div>
+              <div className="bottom-nav__sheet-row">
+                <span className="bottom-nav__sheet-row-label">Thème</span>
+                <ThemeToggle />
+              </div>
 
-            <div className="bottom-nav__sheet-divider" />
+              <div className="bottom-nav__sheet-divider" />
 
-            <button
-              type="button"
-              className="bottom-nav__sheet-logout"
-              onClick={handleLogout}
-              disabled={logout.isPending}
-            >
-              <LogOut size={20} strokeWidth={1.5} aria-hidden="true" />
-              {logout.isPending ? 'Déconnexion...' : 'Déconnexion'}
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="bottom-nav__sheet-row">
-              <span className="bottom-nav__sheet-row-label">Thème</span>
-              <ThemeToggle />
-            </div>
+              <button
+                type="button"
+                className="bottom-nav__sheet-logout"
+                onClick={handleLogout}
+                disabled={logout.isPending}
+              >
+                <LogOut size={20} strokeWidth={1.5} aria-hidden="true" />
+                {logout.isPending ? 'Déconnexion...' : 'Déconnexion'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="bottom-nav__sheet-row">
+                <span className="bottom-nav__sheet-row-label">Thème</span>
+                <ThemeToggle />
+              </div>
 
-            <div className="bottom-nav__sheet-divider" />
+              <div className="bottom-nav__sheet-divider" />
 
-            <Link
-              to="/auth/login"
-              search={{ redirect: undefined }}
-              className="bottom-nav__sheet-auth-link"
-              onClick={closeSheet}
-            >
-              Connexion
-            </Link>
-            <Link to="/auth/signup" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
-              S'inscrire
-            </Link>
-          </>
-        )}
-      </div>
+              <Link
+                to="/auth/login"
+                search={{ redirect: undefined }}
+                className="bottom-nav__sheet-auth-link"
+                onClick={closeSheet}
+              >
+                <LogIn size={20} strokeWidth={1.5} aria-hidden="true" />
+                Connexion
+              </Link>
+              <Link to="/auth/signup" className="bottom-nav__sheet-auth-link" onClick={closeSheet}>
+                <UserPlus size={20} strokeWidth={1.5} aria-hidden="true" />
+                S'inscrire
+              </Link>
+            </>
+          )}
+        </Sheet>
+      )}
 
       <nav className="bottom-nav" aria-label="Navigation principale mobile">
         <Link
@@ -188,7 +145,6 @@ export function BottomNav() {
         </Link>
 
         <button
-          ref={triggerRef}
           type="button"
           className={`bottom-nav__tab${sheetOpen ? ' bottom-nav__tab--sheet-open' : ''}`}
           onClick={toggleSheet}

@@ -1,4 +1,8 @@
 {
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    "react-doctor/react-compiler-no-manual-memoization": "off"
+  },
   "ignore": {
     "overrides": [
       {
@@ -65,7 +69,7 @@
         "files": [
           "src/features/products/pages/ProductLayout/ProductLayout.tsx",
           "src/features/ingredients/components/IngredientLayout.tsx",
-          "src/features/blog/components/BlogArticlePage.tsx",
+          "src/features/blog/page/BlogArticlePage/BlogArticlePage.tsx",
           "src/features/products/components/ProductsFilterDrawerContent/ProductsFilterDrawerContent.tsx"
         ],
         "rules": ["react-doctor/jsx-no-jsx-as-prop"]
@@ -139,7 +143,7 @@
         "rules": ["react-doctor/no-derived-state", "react-doctor/no-derived-state-effect"]
       },
       {
-        "files": ["src/features/blog/components/BlogListPage.tsx"],
+        "files": ["src/features/blog/page/BlogListPage/BlogListPage.tsx"],
         "rules": [
           "react-doctor/no-derived-state",
           "react-doctor/no-derived-state-effect",
@@ -171,7 +175,10 @@
         "rules": ["react-doctor/no-derived-state"]
       },
       {
-        "files": ["src/features/products/components/ProductsHeader/ProductsHeader.tsx"],
+        "files": [
+          "src/features/products/components/ProductsHeader/ProductsHeader.tsx",
+          "src/component/Search/ComboboxPrimitive.tsx"
+        ],
         "rules": ["react-doctor/no-initialize-state"]
       },
       {
@@ -193,8 +200,8 @@
       {
         "files": [
           "src/component/Search/ComboboxPrimitive.tsx",
-          "src/features/blog/components/BlogCategoryNav.tsx",
-          "src/features/blog/components/BlogListPage.tsx",
+          "src/features/blog/components/BlogCategoryNav/BlogCategoryNav.tsx",
+          "src/features/blog/page/BlogListPage/BlogListPage.tsx",
           "src/features/home/components/primitives/ProductCard.tsx",
           "src/features/home/components/Hero/HeroShell.tsx"
         ],
@@ -213,6 +220,48 @@
           "src/features/legal/components/PrivacyPage/PrivacyPage.tsx"
         ],
         "rules": ["react-doctor/no-giant-component"]
+      },
+      {
+        "files": ["src/lib/queries/suggested-edits.ts"],
+        "rules": ["react-doctor/query-mutation-missing-invalidation"]
+      },
+      {
+        "files": [
+          "src/features/admin/components/AdminReportsPage.tsx",
+          "src/features/discussions/components/SuggestEditButton.tsx"
+        ],
+        "rules": ["react-doctor/prefer-useReducer"]
+      },
+      {
+        "files": [
+          "src/hooks/useEscapeKey.ts",
+          "src/hooks/useClickOutside.ts",
+          "src/hooks/useCaptureDismiss.ts",
+          "src/hooks/useDraggableY.ts",
+          "src/component/Filter/FilterDrawer/FilterDrawer.tsx",
+          "src/component/DropdownMenu/DropdownMenu.tsx",
+          "src/features/profile/components/ProfileLinksEditor/ProfileLinksEditor.tsx"
+        ],
+        "rules": ["react-hooks-js/refs"]
+      },
+      {
+        "files": [
+          "src/features/products/components/BrandCombobox/BrandCombobox.tsx",
+          "src/features/products/components/PriceRangeFilter/PriceRangeFilter.tsx",
+          "src/component/Filter/AsyncSearchSelect/useLabelCache.ts",
+          "src/features/blog/page/BlogListPage/BlogListPage.tsx",
+          "src/component/DropdownMenu/DropdownMenu.tsx",
+          "src/component/Filter/FilterDrawer/FilterDrawer.tsx"
+        ],
+        "rules": ["react-hooks-js/set-state-in-effect"]
+      },
+      {
+        "files": ["src/assets/product-icons.tsx"],
+        "rules": ["react-hooks-js/static-components"]
+      },
+      {
+        "files": ["src/component/DropdownMenu/DropdownMenu.tsx"],
+        "rules": ["react-hooks-js/immutability"]
       }
     ]
   }

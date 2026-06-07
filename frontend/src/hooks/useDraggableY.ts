@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 
 type DraggableBounds = { minY: number; maxY: number }
 
@@ -20,15 +20,16 @@ export function useDraggableY({
   enabled = true,
 }: Options) {
   // Latest computeBounds without forcing the caller to memoise it.
-  const computeBoundsRef = useRef(computeBounds)
-  computeBoundsRef.current = computeBounds
+  const recomputeBounds = useEffectEvent(computeBounds)
 
-  const boundsRef = useRef<DraggableBounds>(computeBounds())
+  const boundsRef = useRef<DraggableBounds | null>(null)
+  if (boundsRef.current === null) boundsRef.current = computeBounds()
   const [y, setY] = useState(() => {
     if (typeof window === 'undefined') return 0
     const raw = window.localStorage.getItem(storageKey)
     const parsed = raw === null ? 0 : Number(raw)
-    return Number.isFinite(parsed) ? clamp(parsed, boundsRef.current) : 0
+    const bounds = boundsRef.current
+    return bounds && Number.isFinite(parsed) ? clamp(parsed, bounds) : 0
   })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ startClientY: number; startY: number; moved: boolean } | null>(null)
@@ -36,8 +37,9 @@ export function useDraggableY({
 
   useEffect(() => {
     const onResize = () => {
-      boundsRef.current = computeBoundsRef.current()
-      setY((cur) => clamp(cur, boundsRef.current))
+      const next = recomputeBounds()
+      boundsRef.current = next
+      setY((cur) => clamp(cur, next))
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -51,13 +53,14 @@ export function useDraggableY({
     },
     onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
       const drag = dragRef.current
-      if (!drag) return
+      const bounds = boundsRef.current
+      if (!drag || !bounds) return
       const dy = e.clientY - drag.startClientY
       if (!drag.moved && Math.abs(dy) >= dragThreshold) {
         drag.moved = true
         setDragging(true)
       }
-      if (drag.moved) setY(clamp(drag.startY + dy, boundsRef.current))
+      if (drag.moved) setY(clamp(drag.startY + dy, bounds))
     },
     onPointerUp: () => {
       const drag = dragRef.current

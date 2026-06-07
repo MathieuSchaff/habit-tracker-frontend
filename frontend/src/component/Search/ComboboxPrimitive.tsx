@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useCaptureDismiss } from '@/hooks/useCaptureDismiss'
@@ -103,8 +103,11 @@ export function ComboboxPrimitive<T>({
     }
   }, [highlightedIndex, isOpen, listboxId])
 
+  // useEffectEvent: read onLoadMore fresh without re-subscribing the observer on every
+  // parent render (caller passes an inline arrow whose identity changes each render).
+  const loadMore = useEffectEvent(() => onLoadMore?.())
   useEffect(() => {
-    if (!isOpen || !hasMore || !onLoadMore) return
+    if (!isOpen || !hasMore) return
     const sentinel = sentinelRef.current
     const root = itemsRef.current
     if (!sentinel || !root) return
@@ -112,7 +115,7 @@ export function ComboboxPrimitive<T>({
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            onLoadMore()
+            loadMore()
           }
         }
       },
@@ -120,7 +123,7 @@ export function ComboboxPrimitive<T>({
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [isOpen, hasMore, onLoadMore])
+  }, [isOpen, hasMore])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Parent runs first so it can intercept Tab.

@@ -19,6 +19,9 @@ function totalCount(counts: ArticleCategoryCounts | undefined): number | undefin
   return BLOG_CATEGORY_VALUES.reduce((sum, c) => sum + counts[c], 0)
 }
 
+const renderCount = (n: number | undefined) =>
+  n === undefined ? null : <span className="blog-category-nav__count">{n}</span>
+
 export function BlogCategoryNav({ category }: Props) {
   const { data: counts } = useQuery(articleQueries.categoryCounts())
 
@@ -27,9 +30,6 @@ export function BlogCategoryNav({ category }: Props) {
   const visibleCategories = BLOG_CATEGORY_VALUES.filter(
     (c) => !counts || counts[c] > 0 || c === category
   )
-
-  const renderCount = (n: number | undefined) =>
-    n === undefined ? null : <span className="blog-category-nav__count">{n}</span>
 
   return (
     <nav className="blog-category-nav" aria-label="Catégories">

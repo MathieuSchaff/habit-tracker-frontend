@@ -27,6 +27,23 @@ type FilterDrawerProps<T extends string> = {
   onLocalFiltersChange?: (filters: FilterValues<T>) => void
 }
 
+// Arrow keys move focus between accordion triggers; ignored elsewhere so we don't hijack arrows in inputs.
+function handleArrowNav(e: React.KeyboardEvent) {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+  const target = e.target as HTMLElement
+  if (!target.classList.contains('filter-accordion__trigger')) return
+  e.preventDefault()
+  const form = e.currentTarget as HTMLElement
+  const triggers = Array.from(form.querySelectorAll<HTMLElement>('.filter-accordion__trigger'))
+  const currentIndex = triggers.indexOf(target)
+  if (currentIndex === -1) return
+  const nextIndex =
+    e.key === 'ArrowDown'
+      ? (currentIndex + 1) % triggers.length
+      : (currentIndex - 1 + triggers.length) % triggers.length
+  triggers[nextIndex]?.focus()
+}
+
 export function FilterDrawer<T extends string>({
   open,
   onClose,
@@ -102,23 +119,6 @@ export function FilterDrawer<T extends string>({
     if (e.target === dialogRef.current) {
       handleClose()
     }
-  }
-
-  // Arrow keys move focus between accordion triggers; ignored elsewhere so we don't hijack arrows in inputs.
-  const handleArrowNav = (e: React.KeyboardEvent) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-    const target = e.target as HTMLElement
-    if (!target.classList.contains('filter-accordion__trigger')) return
-    e.preventDefault()
-    const form = e.currentTarget as HTMLElement
-    const triggers = Array.from(form.querySelectorAll<HTMLElement>('.filter-accordion__trigger'))
-    const currentIndex = triggers.indexOf(target)
-    if (currentIndex === -1) return
-    const nextIndex =
-      e.key === 'ArrowDown'
-        ? (currentIndex + 1) % triggers.length
-        : (currentIndex - 1 + triggers.length) % triggers.length
-    triggers[nextIndex]?.focus()
   }
 
   // Native <dialog> blocks focus escape but doesn't cycle Tab at the boundaries; wrap explicitly.

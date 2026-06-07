@@ -6,6 +6,11 @@ import './BackToTopButton.css'
 
 const SCROLL_THRESHOLD = 600
 
+function scrollToTop() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+}
+
 export function BackToTopButton() {
   const [visible, setVisible] = useState(() => window.scrollY > SCROLL_THRESHOLD)
 
@@ -14,11 +19,6 @@ export function BackToTopButton() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const scrollToTop = () => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
-  }
 
   return (
     <Button
