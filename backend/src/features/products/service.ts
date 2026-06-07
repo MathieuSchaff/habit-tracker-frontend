@@ -49,6 +49,7 @@ import {
 } from '../../lib/catalog'
 import { escapeLike } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
+import { nowISO } from '../../utils/dates'
 import { writeTagsForProductFailSoft } from '../auto-tagging'
 import { listTagsByProduct } from '../product-tags/service'
 import { ProductError } from './product-error'
@@ -354,7 +355,7 @@ export async function verifyProduct(
     .set({
       catalogQuality: 'verified',
       verifiedBy: actorId,
-      verifiedAt: new Date().toISOString(),
+      verifiedAt: nowISO(),
     })
     .where(and(eq(products.id, id), eq(products.moderationStatus, 'visible')))
     .returning()

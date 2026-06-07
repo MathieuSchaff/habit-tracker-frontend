@@ -132,27 +132,3 @@ dialog::backdrop {
   background-color: var(--bg-selected);
   color: var(--text-primary);
 }
-
-/* KaTeX formulas can overflow their container - clip horizontally with scroll. */
-.markdown-container .katex-display {
-  display: block;
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.markdown-container .katex-html {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: center;
-}
-
-/* KaTeX inserts unwanted newlines; hide them. */
-.markdown-container .mspace.newline {
-  display: none;
-}
-
-.katex .katex-html > .newline {
-  display: none;
-}

@@ -1,5 +1,3 @@
-@import "katex/dist/katex.min.css";
-
 .rich-text {
   font-size: var(--text-sm);
   color: var(--text-primary);
@@ -48,13 +46,6 @@
   & th {
     background: var(--bg-muted);
     font-weight: var(--font-semibold);
-  }
-
-  & .katex-display {
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: var(--space-1) 0;
   }
 
   /* Strip outer margins so content doesn't double-up spacing with the container. */

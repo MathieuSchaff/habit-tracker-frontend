@@ -78,9 +78,22 @@ describe('compareInstant', () => {
 })
 
 describe('formatRelative', () => {
-  it('returns a non-empty FR string for a valid instant', () => {
-    const recent = new Date(Date.now() - 60_000).toISOString()
-    expect(formatRelative(recent)).toMatch(/il y a/)
+  const ago = (ms: number) => new Date(Date.now() - ms).toISOString()
+  const HOUR = 3_600_000
+  const DAY = 24 * HOUR
+
+  it('picks the largest fitting unit, FR, with addSuffix', () => {
+    expect(formatRelative(ago(3 * HOUR))).toBe('il y a 3 heures')
+    expect(formatRelative(ago(5 * DAY))).toBe('il y a 5 jours')
+  })
+
+  it('uses numeric:auto wording for ±1 day', () => {
+    expect(formatRelative(ago(DAY))).toBe('hier')
+    expect(formatRelative(new Date(Date.now() + DAY).toISOString())).toBe('demain')
+  })
+
+  it('formats future instants with "dans"', () => {
+    expect(formatRelative(new Date(Date.now() + 3 * HOUR).toISOString())).toBe('dans 3 heures')
   })
 
   it('returns empty string for null/undefined', () => {

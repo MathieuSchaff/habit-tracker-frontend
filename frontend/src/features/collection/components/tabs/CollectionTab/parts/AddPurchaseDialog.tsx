@@ -1,6 +1,6 @@
 import { Calendar, Euro, X } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'

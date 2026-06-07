@@ -1,6 +1,3 @@
-import { formatDistanceToNow } from 'date-fns'
-import { fr } from 'date-fns/locale'
-
 // Wire dates are ISO 8601 UTC. Calendar dates round to midnight UTC.
 // <input type="date"> only understands "YYYY-MM-DD", so forms convert at the boundary.
 
@@ -55,7 +52,26 @@ export function compareInstant(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
 }
 
+// Native relative formatting, FR forced. Replaces date-fns (~48 kB eager) for the single
+// relative use case. numeric:'auto' yields "hier"/"la semaine dernière" where it reads better.
+const RELATIVE_FORMATTER = new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' })
+
+// Largest unit whose magnitude the duration fits under; weeks excluded (FR rarely says "il y a 2 semaines" naturally).
+const RELATIVE_DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
+  { amount: 60, unit: 'second' },
+  { amount: 60, unit: 'minute' },
+  { amount: 24, unit: 'hour' },
+  { amount: 30, unit: 'day' },
+  { amount: 12, unit: 'month' },
+  { amount: Number.POSITIVE_INFINITY, unit: 'year' },
+]
+
 export function formatRelative(iso: string | null | undefined): string {
   if (!iso) return ''
-  return formatDistanceToNow(new Date(iso), { addSuffix: true, locale: fr })
+  let duration = (new Date(iso).getTime() - Date.now()) / 1000
+  for (const { amount, unit } of RELATIVE_DIVISIONS) {
+    if (Math.abs(duration) < amount) return RELATIVE_FORMATTER.format(Math.round(duration), unit)
+    duration /= amount
+  }
+  return ''
 }

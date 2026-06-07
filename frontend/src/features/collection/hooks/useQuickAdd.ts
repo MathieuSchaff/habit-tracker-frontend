@@ -2,7 +2,7 @@ import type { ProductCategory, ProductUnit, UserProductStatus } from '@aurore/sh
 
 import type React from 'react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { fromDateInputValue, todayDateInputValue } from '@/lib/dates'
 import { reportError } from '@/lib/errorReporter'

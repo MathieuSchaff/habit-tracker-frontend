@@ -16,8 +16,6 @@ vi.mock('@/lib/queries/articles', () => ({
 // tests, so a stub keeps vitest's module graph manageable.
 vi.mock('react-markdown', () => ({ default: () => null }))
 vi.mock('remark-gfm', () => ({ default: () => null }))
-vi.mock('remark-math', () => ({ default: () => null }))
-vi.mock('rehype-katex', () => ({ default: () => null }))
 
 const mockArticle = {
   title: 'Existing Title',

@@ -19,6 +19,7 @@ import { purchases } from '../../db/schema/products/purchases'
 import { userProductStatusLog } from '../../db/schema/products/user-product-status-log'
 import { userProductReviews, userProducts } from '../../db/schema/products/user-products'
 import { subtasks, tasks } from '../../db/schema/tasks/tasks'
+import { nowISO } from '../../utils/dates'
 
 // Reads run as the RLS-scoped app_runtime role (withRlsContext sets auth.uid()
 // to the caller). Tables with tenantPolicies/fkTenantPolicies filter
@@ -126,7 +127,7 @@ export async function exportUserData(db: DB, userId: string): Promise<UserExport
   return {
     _meta: {
       schemaVersion: USER_EXPORT_SCHEMA_VERSION,
-      exportedAt: new Date().toISOString(),
+      exportedAt: nowISO(),
       userId,
     },
     user: {

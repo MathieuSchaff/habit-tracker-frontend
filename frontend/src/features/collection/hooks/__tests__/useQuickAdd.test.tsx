@@ -29,11 +29,11 @@ vi.mock('@/hooks/useScrollLock', () => ({
   useScrollLock: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
+vi.mock('react-hot-toast', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
 
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { useQuickAdd } from '../useQuickAdd'
 

@@ -152,6 +152,13 @@ See [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) for commands, tests, database
 
 ## Documentation
 
+**Engineering**
+
 - [`DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — setup, commands, tests, database workflows and troubleshooting.
+- [`TESTING.md`](./docs/TESTING.md) — backend, frontend and E2E test command map.
+- [`conventions/`](./docs/conventions/) — backend tests, dates, error handling.
+
+**Policy**
+
 - [`SECURITY.md`](./docs/SECURITY.md) — auth model, RLS, DB role separation.
 - [`PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy, data handling.

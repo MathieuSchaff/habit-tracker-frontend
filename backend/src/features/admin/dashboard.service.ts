@@ -7,9 +7,10 @@ import { contentReports, roleRequests, userBans } from '../../db/schema'
 import { profiles } from '../../db/schema/auth/users'
 import { discussionReplies, discussionThreads } from '../../db/schema/products/discussions'
 import { userProductReviews } from '../../db/schema/products/user-products'
+import { nowISO } from '../../utils/dates'
 
 export async function getAdminDashboard(db: Database): Promise<AdminDashboard> {
-  const nowIso = new Date().toISOString()
+  const nowIso = nowISO()
 
   const [
     openReportsRows,

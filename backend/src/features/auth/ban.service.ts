@@ -4,6 +4,7 @@ import { and, desc, eq, gt, isNull, or } from 'drizzle-orm'
 
 import type { Database, Transaction } from '../../db'
 import { type UserBan, userBans } from '../../db/schema'
+import { nowISO } from '../../utils/dates'
 
 // Admin-pool query bypasses RLS: identity-layer read, caller already authenticated
 // by requireJwtAuth. 30s TTL bounds window where a freshly banned user gets through
@@ -48,7 +49,7 @@ export async function isUserBanned(
     if (cached) return cached.ban
   }
 
-  const nowIso = new Date().toISOString()
+  const nowIso = nowISO()
   const rows = await db
     .select()
     .from(userBans)
@@ -74,7 +75,7 @@ export async function isUserBannedForScope(
   userId: string,
   scope: BanScope
 ): Promise<UserBan | null> {
-  const nowIso = new Date().toISOString()
+  const nowIso = nowISO()
   const rows = await db
     .select()
     .from(userBans)

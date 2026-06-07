@@ -9,6 +9,8 @@ node_modules/
 # =========================
 dist/
 build/
+# rollup-plugin-visualizer output (ANALYZE=1 vite build)
+frontend/stats.html
 *.tsbuildinfo
 *.d.ts
 *.d.ts.map

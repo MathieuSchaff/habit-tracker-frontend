@@ -1,8 +1,10 @@
 import { Image as ImageIcon, Upload } from 'lucide-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
-import { CropModal } from './CropModal'
 import { useImageUpload } from './useImageUpload'
+
+// react-easy-crop (~39 kB) loads only when the crop modal opens, not with the whole profile route.
+const CropModal = lazy(() => import('./CropModal').then((m) => ({ default: m.CropModal })))
 
 import './ImageUpload.css'
 
@@ -103,7 +105,9 @@ export const ImageUpload = ({
       </button>
 
       {state.phase === 'cropping' && (
-        <CropModal sourceUrl={state.sourceUrl} onCancel={cancel} onConfirm={handleConfirm} />
+        <Suspense fallback={null}>
+          <CropModal sourceUrl={state.sourceUrl} onCancel={cancel} onConfirm={handleConfirm} />
+        </Suspense>
       )}
     </div>
   )

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 
 import type { DB } from '../db/index'
+import { nowISO } from '../utils/dates'
 import { isUniqueViolation } from './helpers'
 
 export type CatalogRole = 'user' | 'admin' | 'contributor'
@@ -18,7 +19,7 @@ export function resolveCatalogQuality(role: CatalogRole, userId: string) {
   return {
     catalogQuality: verified ? ('verified' as const) : ('unverified' as const),
     verifiedBy: verified ? userId : null,
-    verifiedAt: verified ? new Date().toISOString() : null,
+    verifiedAt: verified ? nowISO() : null,
   }
 }
 

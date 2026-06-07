@@ -148,7 +148,7 @@ Helpers `frontend/src/lib/dates.ts` :
 | Helper | Usage |
 |--------|-------|
 | `formatInstant(iso, style)` | affichage locale FR forcée — styles `'short' \| 'medium' \| 'long' \| 'monthYear'`. **À n'utiliser que quand l'interpolation impose une string** (template literal, attribut HTML). Sinon préférer `<Time>` (cf. §2.4.1). |
-| `formatRelative(iso)` | "il y a 3 jours" / "dans 2 heures" via date-fns locale FR. Idem — préférer `<Time relative>` côté JSX. |
+| `formatRelative(iso)` | "il y a 3 jours" / "demain" / "dans 2 heures" via `Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' })` natif (zéro dépendance — date-fns retiré du frontend). `numeric: 'auto'` donne "hier"/"la semaine dernière" quand c'est plus naturel. Idem — préférer `<Time relative>` côté JSX. |
 | `compareInstant(a, b)` | tri chronologique (string compare) |
 | `toDateInputValue(iso)` | extraction `YYYY-MM-DD` pour `<input type="date">` |
 | `fromDateInputValue(yyyymmdd)` | conversion vers ISO datetime UTC avant POST |
@@ -183,10 +183,11 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 Styles : `'short' | 'medium' | 'long' | 'monthYear'` (défaut `'medium'`). En mode `relative`, le `style` contrôle le tooltip absolu (défaut `'long'`).
 
 **Interdits côté composant** (catchés par lefthook) :
-- `import ... from 'date-fns'` hors `frontend/src/lib/dates.ts`
-- `new Intl.DateTimeFormat(...)` hors `frontend/src/lib/dates.ts`
+- `import ... from 'date-fns'` hors helpers (frontend n'en dépend plus ; backend = `utils/dates.ts` + `demo-seed.ts`)
+- `new Intl.DateTimeFormat(...)` / `new Intl.RelativeTimeFormat(...)` hors `frontend/src/lib/dates.ts`
 - `value.toLocaleDateString(...)`, `value.toLocaleString(...)` partout
 - `<time dateTime={...}>...</time>` à la main — passer par `<Time>`
+- `new Date().toISOString()` hors helpers/schema/seed — utiliser `nowISO()` (backend) ou `nowInstant()` (frontend)
 
 Exceptions tolérées :
 - `formatInstant` / `formatRelative` appelés en string (template literal, attribut `title` quand `<Time>` ne convient pas).
@@ -209,6 +210,7 @@ Exceptions tolérées :
 | `instanceof Date` (Drizzle row) | rien — c'est toujours une string |
 | `value < new Date(...).toISOString()` (compare driver vs JS) | `Date.parse(value) < cutoffMs` |
 | `.set({ updatedAt: new Date() })` Drizzle | `.set({ updatedAt: nowISO() })` |
+| `new Date().toISOString()` dans un service backend | `nowISO()` (exempt : `$onUpdate` en schema, seed, scripts `audit/`) |
 | `new Date().toISOString()` dans un composant frontend | `nowInstant()` |
 | `new Date(datetimeLocalInput).toISOString()` (leak tz local) | `parseDatetimeLocalAsUTC(input)` |
 
@@ -249,6 +251,5 @@ expect(row.createdAt.getTime()).toBeGreaterThan(...)
 - Helpers backend : `backend/src/utils/dates.ts`
 - Helpers frontend : `frontend/src/lib/dates.ts`
 - Composant affichage : `frontend/src/component/DataDisplay/Time/Time.tsx`
-- Enforcement pre-commit : `lefthook.yml` (commande `dates-convention`)
 - Mappers boundary calendar dates : `backend/src/features/user-products/purchase.service.ts` (`toApiPurchase`), `backend/src/features/tasks/service.ts` (`toApiTask`)
 - Schémas Zod : `shared/src/{purchases,tasks,profile,blog,ingredients,auth}/...`
