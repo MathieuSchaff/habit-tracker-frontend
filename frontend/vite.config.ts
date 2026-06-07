@@ -3,12 +3,18 @@ import path from 'node:path'
 import babel from '@rolldown/plugin-babel'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import { bundleAnalyzerPlugin } from 'rolldown/experimental'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
+import Inspect from 'vite-plugin-inspect'
 
 // https://vitejs.dev/config/
 // https://tanstack.com/router/latest/docs/framework/react/installation/with-vite
 export default defineConfig({
   plugins: [
+    // Dev-only (apply: 'serve'). Inspect per-plugin transforms at /__inspect/ — useful to
+    // debug the custom transformIndexHtml plugins below.
+    Inspect(),
     // Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
     tanstackRouter({
       target: 'react',
@@ -55,8 +61,12 @@ export default defineConfig({
         }
       },
     },
-    // Rolldown emits a whitespace-only CSS asset for the vendor chunk and links it
-    // render-blocking in index.html. Drop the dead asset + its <link>. Build-only.
+    // Vite reserves a CSS file per chunk that imports CSS, decided early from imports.
+    // After tree-shaking some end up empty (vendor with no CSS, schema deep-imports that
+    // dropped their component CSS). An empty eager <link> still render-blocks first paint
+    // for zero bytes. No native drop, so strip empty CSS + its <link> here. Build-only.
+    // Guard: only when the <link> was eager in the HTML — lazy route-chunk CSS is injected
+    // by its JS at runtime, deleting it would 404.
     {
       name: 'strip-empty-css',
       transformIndexHtml(html, ctx) {
@@ -82,6 +92,15 @@ export default defineConfig({
         return out
       },
     },
+    // Bundle treemap with real gzip/brotli transfer sizes (nginx serves brotli). Gated behind
+    // ANALYZE so normal/prod builds don't emit stats.html. Must stay last. Run: ANALYZE=1 vite build
+    Boolean(process.env.ANALYZE) &&
+      visualizer({
+        filename: './stats.html',
+        template: 'treemap',
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ],
   resolve: {
     alias: {
@@ -100,6 +119,10 @@ export default defineConfig({
   },
   build: {
     rolldownOptions: {
+      // Native Rolldown analyzer (experimental). MD report tuned for code review of chunk
+      // splitting — complements visualizer's gzip/brotli treemap. Gated behind ANALYZE,
+      // emits dist/analyze-data.md. rolldown is Vite 8's engine: phantom dep, version-locked.
+      plugins: process.env.ANALYZE ? [bundleAnalyzerPlugin({ format: 'md' })] : [],
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/'))

@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { Button } from '../../../../component/Button/Button'
 import { useResendVerification } from '../../../../lib/queries/auth'

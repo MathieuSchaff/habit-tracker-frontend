@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('sonner', () => ({
+vi.mock('react-hot-toast', () => ({
   toast: { error: vi.fn() },
 }))
 
@@ -8,7 +8,7 @@ vi.mock('../errorReporter', () => ({
   reportError: vi.fn().mockResolvedValue(undefined),
 }))
 
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { reportError } from '../errorReporter'
 import { handleMutationError } from '../queryClient'

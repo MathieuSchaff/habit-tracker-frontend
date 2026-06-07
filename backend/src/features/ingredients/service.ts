@@ -26,7 +26,7 @@ import {
 } from '../../lib/catalog'
 import { areEqual, escapeLike } from '../../lib/helpers'
 import { buildChanges, ingredientEditConfig, logEdit } from '../../lib/logs'
-import { normalizeInstant } from '../../utils/dates'
+import { normalizeInstant, nowISO } from '../../utils/dates'
 import { IngredientError } from './ingredients-error'
 
 function normalizeIngredient<T extends { createdAt: string; updatedAt: string }>(row: T): T {
@@ -322,7 +322,7 @@ export async function verifyIngredient(database: DB, actorId: string, id: string
     .set({
       catalogQuality: 'verified',
       verifiedBy: actorId,
-      verifiedAt: new Date().toISOString(),
+      verifiedAt: nowISO(),
     })
     .where(and(eq(ingredients.id, id), eq(ingredients.moderationStatus, 'visible')))
     .returning()

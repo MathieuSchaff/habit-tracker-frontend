@@ -1,5 +1,5 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
-import { Toaster, toast } from 'sonner'
+import { Toaster, toast } from 'react-hot-toast'
 
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
@@ -52,7 +52,7 @@ export const AppLayout = () => {
       </main>
       <BottomNav />
       <BackToTopButton />
-      <Toaster position="top-center" richColors />
+      <Toaster position="top-center" />
     </div>
   )
 }

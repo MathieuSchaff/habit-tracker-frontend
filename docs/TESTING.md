@@ -39,7 +39,8 @@ Most test commands print only in the terminal. These commands also write files:
 | `just e2e` | `frontend/test-results/` on failures; `frontend/playwright-report/` when a report is opened or generated |
 | `just test-bench` | `/tmp/aurore-backend-test.log` and `/tmp/aurore-backend-test.time` |
 
-These paths are local outputs and are ignored by Git. Delete them when they are stale.
+These paths are local outputs and are ignored by Git. `just artifacts` lists them with sizes and
+`just artifacts-clean` removes them.
 
 ## Backend Tests
 

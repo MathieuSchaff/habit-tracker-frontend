@@ -10,12 +10,11 @@ import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { RichText } from '@/component/Typography/RichText/RichText'
-import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { articleQueries, useDeleteArticle } from '@/lib/queries/articles'
 import { useAuthStore } from '@/store/auth'
 import './BlogArticlePage.css'
 
-const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
+const MarkdownContent = lazy(() => import('@/component/Typography/RichText/MarkdownContent'))
 
 type BlogArticlePageProps = {
   slug: string
@@ -87,7 +86,7 @@ export function BlogArticlePage({ slug }: BlogArticlePageProps) {
 
       <RichText>
         <Suspense fallback={<p>{article.content}</p>}>
-          <MarkdownMath>{normalizeLatexMarkdown(article.content)}</MarkdownMath>
+          <MarkdownContent>{article.content}</MarkdownContent>
         </Suspense>
       </RichText>
     </article>

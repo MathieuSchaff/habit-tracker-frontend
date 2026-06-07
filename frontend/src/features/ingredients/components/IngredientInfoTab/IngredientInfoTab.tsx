@@ -16,9 +16,9 @@ import { useAuthStore } from '@/store/auth'
 import { ingredientLabels } from '../../constants'
 import './IngredientInfoTab.css'
 
-// Plain prose: react-markdown only, no KaTeX. Detail block uses MarkdownMath (math-capable).
+// Plain prose: react-markdown only. Detail block uses MarkdownContent (GFM tables/lists).
 const Markdown = lazy(() => import('react-markdown'))
-const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
+const MarkdownContent = lazy(() => import('@/component/Typography/RichText/MarkdownContent'))
 
 const MAX_VISIBLE_PRODUCTS = 5
 
@@ -102,7 +102,7 @@ export function IngredientInfoTab() {
           <SectionHeader title="Détail" variant="primary" />
           <RichText>
             <Suspense fallback={<p>{ingredient.content}</p>}>
-              <MarkdownMath>{ingredient.content}</MarkdownMath>
+              <MarkdownContent>{ingredient.content}</MarkdownContent>
             </Suspense>
           </RichText>
         </div>

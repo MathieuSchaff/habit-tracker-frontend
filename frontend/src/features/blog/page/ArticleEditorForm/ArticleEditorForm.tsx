@@ -12,13 +12,12 @@ import type { SelectOption } from '@/component/Input/Select/Select'
 import { Select } from '@/component/Input/Select/Select'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { RichText } from '@/component/Typography/RichText/RichText'
-import { normalizeLatexMarkdown } from '@/lib/markdown'
 import { useCreateArticle, useUpdateArticle } from '@/lib/queries/articles'
 import './ArticleEditorForm.css'
 
 import { ARTICLE_FORM_ERRORS } from './ArticleEditorForm.constants'
 
-const MarkdownMath = lazy(() => import('@/component/Typography/RichText/MarkdownMath'))
+const MarkdownContent = lazy(() => import('@/component/Typography/RichText/MarkdownContent'))
 
 type ArticleData = {
   title: string
@@ -229,7 +228,7 @@ export function ArticleEditorForm({ mode, article, onSuccess, onCancel }: Articl
         <div className="article-editor-form__preview">
           <RichText>
             <Suspense fallback={<p>{form.content}</p>}>
-              <MarkdownMath>{normalizeLatexMarkdown(form.content)}</MarkdownMath>
+              <MarkdownContent>{form.content}</MarkdownContent>
             </Suspense>
           </RichText>
         </div>

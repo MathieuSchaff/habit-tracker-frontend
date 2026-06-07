@@ -33,8 +33,6 @@ vi.mock('@/lib/queries/ingredients', () => ({
 // react-markdown + plugins are ESM-only — stub to avoid module-graph cost.
 vi.mock('react-markdown', () => ({ default: ({ children }: { children: string }) => children }))
 vi.mock('remark-gfm', () => ({ default: () => null }))
-vi.mock('remark-math', () => ({ default: () => null }))
-vi.mock('rehype-katex', () => ({ default: () => null }))
 
 function setIngredient(overrides: Record<string, unknown> = {}) {
   vi.mocked(useSuspenseQuery).mockReturnValue({

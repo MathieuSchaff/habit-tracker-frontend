@@ -1,5 +1,5 @@
 import { type Mutation, MutationCache, QueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 
 import { reportError } from './errorReporter'
 import { isApiError } from './helpers/apiError'
