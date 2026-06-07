@@ -15,7 +15,7 @@ function buildForm(values: Record<string, string>): HTMLFormElement {
 }
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 })
 

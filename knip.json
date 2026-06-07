@@ -9,6 +9,7 @@
     "docs/**"
   ],
   "ignoreDependencies": ["algo-derm"],
+  "tags": ["-knipignore"],
   "ignoreBinaries": ["biome", "fallow", "knip", "madge", "drizzle-kit"],
   "workspaces": {
     ".": {
@@ -51,6 +52,7 @@
         "postcss.config.js",
         "e2e/**/*.spec.ts",
         "e2e/helpers/*.ts",
+        "e2e/csp/check.ts",
         "**/*.test.{ts,tsx}"
       ],
       "project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts"],

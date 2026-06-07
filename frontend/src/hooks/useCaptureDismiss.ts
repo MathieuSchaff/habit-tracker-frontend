@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 
 type AnyRef = RefObject<HTMLElement | null>
 
@@ -34,10 +34,9 @@ export const useCaptureDismiss = (
 ) => {
   const enabled = options?.enabled ?? true
 
-  // Keep refs + handler in refs of their own so the listener stays attached
-  // across renders even when callers pass a fresh array literal each time.
-  const callbackRef = useRef(onDismiss)
-  callbackRef.current = onDismiss
+  // Keep refs in a ref of their own so the listener stays attached across
+  // renders even when callers pass a fresh array literal each time.
+  const onDismissEvent = useEffectEvent(onDismiss)
   const refsRef = useRef<AnyRef[]>([])
   refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
 
@@ -51,7 +50,7 @@ export const useCaptureDismiss = (
       }
       event.preventDefault()
       event.stopPropagation()
-      callbackRef.current(event)
+      onDismissEvent(event)
     }
 
     document.addEventListener('click', listener, true)

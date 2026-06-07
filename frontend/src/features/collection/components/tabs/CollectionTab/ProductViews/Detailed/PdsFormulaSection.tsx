@@ -3,7 +3,6 @@ import { hasFragranceComponent } from '@aurore/shared'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Check, Copy, Droplets, Sparkles } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
 
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -21,9 +20,9 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
   )
 
   const { copied: inciCopied, copy: copyInci } = useCopyToClipboard()
-  const handleCopyInci = useCallback(() => {
+  const handleCopyInci = () => {
     if (fullProduct?.inci) void copyInci(fullProduct.inci)
-  }, [fullProduct?.inci, copyInci])
+  }
 
   const user = useAuthStore((s) => s.user)
   const { data: dermoProfile } = useQuery({
@@ -37,10 +36,9 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
     fullProduct?.ingredients &&
     hasFragranceComponent(fullProduct.ingredients)
 
-  const inciCount = useMemo(
-    () => (fullProduct?.inci ? fullProduct.inci.split(',').filter((s) => s.trim()).length : 0),
-    [fullProduct?.inci]
-  )
+  const inciCount = fullProduct?.inci
+    ? fullProduct.inci.split(',').filter((s) => s.trim()).length
+    : 0
 
   return (
     <>

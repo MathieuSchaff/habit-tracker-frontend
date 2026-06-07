@@ -1,29 +1,21 @@
-import { navItems } from '@/component/Header/NavItem/navItems'
-
 type TransitionInput = {
   fromPathname: string | null
   toPathname: string
 }
 
-// Canonical pathnames in this app carry no trailing slash (navItems use '/products'),
-// but the router can surface either form; normalize so list-path matching is reliable.
+// Canonical pathnames carry no trailing slash, but the router can surface either
+// form; normalize so path matching is reliable.
 const stripSlash = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p)
 const isListPath = (p: string) => p === '/products' || p === '/ingredients'
 const isDetailPath = (p: string) => /^\/(products|ingredients)\/[^/]+\/?$/.test(p)
-const isSubPage = (p: string) => /^\/(products|ingredients)\/[^/]+\/(edit|discussions)/.test(p)
 const isDiscussionsPage = (p: string) => /^\/(products|ingredients)\/[^/]+\/discussions/.test(p)
-const isAuth = (p: string) => p.startsWith('/auth/')
 
 // Same value = same product/ingredient slug; lets us distinguish a tab swap
 // from a navigation away.
 const slugKey = (p: string) => p.split('/').slice(1, 3).join('/')
 
-function navIndex(path: string): number {
-  const base = `/${path.split('/')[1] || ''}`
-  const normalized = base === '/' ? '/' : base
-  return navItems.findIndex((item) => item.to === normalized)
-}
-
+// Only the list<->detail hero morph and the detail tab swap run a transition;
+// every other nav skips VT (the ~840ms main-thread freeze isn't worth it).
 export function resolveTransitionType(input: TransitionInput): string[] | false {
   const from = input.fromPathname === null ? null : stripSlash(input.fromPathname)
   const to = stripSlash(input.toPathname)
@@ -41,15 +33,5 @@ export function resolveTransitionType(input: TransitionInput): string[] | false 
     slugKey(from) === slugKey(to)
   if (isTabSwitch) return ['tab-switch']
 
-  if (isDetailPath(from) && isSubPage(to)) return ['slide-forward']
-  if (isSubPage(from) && isDetailPath(to)) return ['slide-back']
-  if (isAuth(from) || isAuth(to)) return ['fade-fast']
-
-  const fromIdx = navIndex(from)
-  const toIdx = navIndex(to)
-  if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
-    return toIdx > fromIdx ? ['fade-nav-down'] : ['fade-nav-up']
-  }
-
-  return ['fade-scale']
+  return false
 }

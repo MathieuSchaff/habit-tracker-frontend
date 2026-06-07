@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 
 type AnyRef = RefObject<HTMLElement | null>
 
@@ -22,11 +22,10 @@ export const useClickOutside = (
 ) => {
   const enabled = options?.enabled ?? true
 
-  // Keep refs + handler in refs of their own so the listener stays attached
-  // across renders even when callers pass a fresh array literal each time
-  // (the common case for `useClickOutside([wrapperRef, contentRef], …)`).
-  const callbackRef = useRef(handleOnClickOutside)
-  callbackRef.current = handleOnClickOutside
+  // Keep refs in a ref of their own so the listener stays attached across
+  // renders even when callers pass a fresh array literal each time (the common
+  // case for `useClickOutside([wrapperRef, contentRef], …)`).
+  const onClickOutside = useEffectEvent(handleOnClickOutside)
   const refsRef = useRef<AnyRef[]>([])
   refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
 
@@ -38,7 +37,7 @@ export const useClickOutside = (
       for (const r of refsRef.current) {
         if (r.current?.contains(target)) return
       }
-      callbackRef.current(event)
+      onClickOutside(event)
     }
 
     document.addEventListener('mousedown', listener)

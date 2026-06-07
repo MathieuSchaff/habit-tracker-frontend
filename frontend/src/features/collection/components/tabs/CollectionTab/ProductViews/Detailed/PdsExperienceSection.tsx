@@ -21,7 +21,7 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
   const [localComment, setLocalComment] = useState(p.comment || '')
   // Truncate to the current max on init — existing rows stored before the 5000→1000
   // limit change would fail the Zod validation on blur without this guard.
-  const [localPublicComment, setLocalPublicComment] = useState(
+  const [localPublicComment, setLocalPublicComment] = useState(() =>
     (p.review?.comment || '').slice(0, 1000)
   )
 

@@ -1,7 +1,5 @@
 import type { EnrichedComparisonProduct } from '@aurore/shared'
 
-import { useMemo } from 'react'
-
 import { computeCommon } from '../helpers/aggregations'
 import './IngredientsSection.css'
 
@@ -25,7 +23,7 @@ function buildAvgPositions(products: EnrichedComparisonProduct[]): Map<string, n
 
 export function CommonIngredientsSection({ products }: Props) {
   const common = computeCommon(products)
-  const avgPositions = useMemo(() => buildAvgPositions(products), [products])
+  const avgPositions = buildAvgPositions(products)
   const avgPosition = (slug: string) => avgPositions.get(slug) ?? NO_POSITION
 
   const actives = common.filter((i) => i.signals.includes('active'))

@@ -29,6 +29,32 @@ const ERROR_MESSAGES: Record<string, string> = {
 const SOURCE_MAX_BYTES = 8 * 1024 * 1024
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
+// Extracted from the hook so the compiler can optimize confirmCrop's useCallback.
+// React Compiler bails on try/finally inside a hook body; a plain async function is fine.
+async function runConfirmCrop(
+  image: HTMLImageElement,
+  sourceUrlToRevoke: string | null,
+  area: CropArea,
+  compress: (image: HTMLImageElement, area: CropArea) => Promise<Blob>,
+  uploadXhr: (blob: Blob) => Promise<{ url: string }>,
+  setState: (phase: Phase) => void
+): Promise<{ url: string }> {
+  try {
+    setState({ phase: 'compressing' })
+    const blob = await compress(image, area)
+    setState({ phase: 'uploading', progress: 0 })
+    const result = await uploadXhr(blob)
+    setState({ phase: 'idle' })
+    return result
+  } catch (e) {
+    const code = (e as { code?: string }).code ?? 'unknown'
+    setState({ phase: 'error', code, message: ERROR_MESSAGES[code] ?? ERROR_MESSAGES.unknown })
+    throw e
+  } finally {
+    if (sourceUrlToRevoke) URL.revokeObjectURL(sourceUrlToRevoke)
+  }
+}
+
 export function useImageUpload(opts: UseImageUploadOptions) {
   const maxOutputBytes = opts.maxOutputBytes ?? (opts.outputSize === 1024 ? 200_000 : 500_000)
   const [state, setState] = useState<Phase>({ phase: 'idle' })
@@ -178,21 +204,7 @@ export function useImageUpload(opts: UseImageUploadOptions) {
       }
       if (!image && testSourceImageRef.current) image = testSourceImageRef.current
       if (!image) throw new Error('no_source')
-
-      try {
-        setState({ phase: 'compressing' })
-        const blob = await compress(image, area)
-        setState({ phase: 'uploading', progress: 0 })
-        const result = await uploadXhr(blob)
-        setState({ phase: 'idle' })
-        return result
-      } catch (e) {
-        const code = (e as { code?: string }).code ?? 'unknown'
-        setState({ phase: 'error', code, message: ERROR_MESSAGES[code] ?? ERROR_MESSAGES.unknown })
-        throw e
-      } finally {
-        if (sourceUrlToRevoke) URL.revokeObjectURL(sourceUrlToRevoke)
-      }
+      return runConfirmCrop(image, sourceUrlToRevoke, area, compress, uploadXhr, setState)
     },
     [state, compress, uploadXhr]
   )
