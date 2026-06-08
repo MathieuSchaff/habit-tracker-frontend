@@ -13,7 +13,6 @@ import {
   index,
   integer,
   jsonb,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -26,8 +25,6 @@ import { moderationColumns } from '../_moderation'
 import { catalogSubmissionPolicies } from '../_policies'
 import { timestamps } from '../_timestamps'
 import { users } from '../auth/users'
-
-export const collaboratorRoleEnum = pgEnum('collaborator_role', ['editor'])
 
 export const products = pgTable(
   'products',

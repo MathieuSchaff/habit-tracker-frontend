@@ -13,14 +13,20 @@ interface Detection {
   severity: 'high' | 'low'
 }
 
-function scanBody(body: unknown, prefix = ''): Detection[] {
+export function scanBody(body: unknown, prefix = ''): Detection[] {
   if (!body || typeof body !== 'object') return []
   const detections: Detection[] = []
 
   for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
-    if (typeof value !== 'string') continue
-
     const field = prefix ? `${prefix}.${key}` : key
+
+    // Recurse into nested objects and arrays so payloads buried under a key
+    // (e.g. links[].url, profile.bio) can't slip past the top-level scan.
+    if (value && typeof value === 'object') {
+      detections.push(...scanBody(value, field))
+      continue
+    }
+    if (typeof value !== 'string') continue
 
     // HIGH: dangerous URL protocol in a URL field (javascript:, vbscript:, data:, encoded
     // variants…). sanitizeUrl returns 'about:blank' for anything it considers unsafe,

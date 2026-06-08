@@ -8,7 +8,7 @@
 - **Access Tokens**: Short-lived (15 minutes), stored in memory on the frontend, passed via `Authorization` header.
 - **Refresh Tokens**: Long-lived (7 days), stored in an **HttpOnly, Secure, SameSite=Lax** cookie. This prevents XSS-based token theft.
 - **Token Rotation**: When a refresh token is used, it is revoked and a new one is issued.
-- **Revocation**: All tokens for a user can be revoked on password change or manual logout by clearing the `jti` (JWT ID) in the database.
+- **Revocation**: On manual logout, the presented refresh token is revoked (its `jti` marked revoked in the database); other active sessions stay valid. Token-replay detection revokes *all* of a user's refresh tokens. A password change also revokes **all** of the user's refresh tokens, atomically with the hash update — the revoke runs in the same transaction, so a revoke failure rolls back the password write (a stolen session can never survive a successful change).
 
 ### Password Hashing
 **Argon2** via Bun's native `password.hash` API — currently the industry standard for password hashing, resistant to GPU-based brute-force and side-channel attacks.
@@ -33,6 +33,8 @@ All incoming data (JSON bodies, query parameters, URL parameters) is strictly va
 Two layers protect the API in production:
 - **Edge (nginx)** — `limit_req` at 10 req/s per IP on all `/api/` routes.
 - **Application (`hono-rate-limiter`)** — 100 req / 15 min per IP on auth, admin and write/submission routes; a stricter 10 req / 15 min limiter that counts failed attempts guards login against password spraying, paired with per-user DB lockout. Health and favicon endpoints are skipped. Disabled in development to avoid blocking local iteration.
+
+The per-IP key is derived from the nginx-set `X-Real-IP` (or the rightmost `X-Forwarded-For` hop), never the client-supplied leftmost value — so a caller cannot rotate the header to bypass the limiters.
 
 ### CORS
 CORS is configured to only allow requests from the trusted `FRONTEND_URL` defined in environment variables.

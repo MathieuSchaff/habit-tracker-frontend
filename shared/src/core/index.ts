@@ -23,7 +23,7 @@ export type ContentfulHttpStatus = Exclude<HttpStatus, typeof HTTP_STATUS.NO_CON
 
 // Error Mapping
 
-/* Each domain (auth, habits…) extends this with its own codes. */
+/* Each domain (auth, profile…) extends this with its own codes. */
 export const baseErrorMapping = {
   invalid_input: HTTP_STATUS.BAD_REQUEST,
   not_found: HTTP_STATUS.NOT_FOUND,

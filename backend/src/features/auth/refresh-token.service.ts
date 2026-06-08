@@ -2,7 +2,7 @@ import type { CreateRefreshTokenArgs } from '@aurore/shared'
 
 import { and, eq, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 
-import type { DB } from '../../db/index'
+import type { DB, Transaction } from '../../db/index'
 import { bindRlsContext } from '../../db/rls'
 import { refreshTokens } from '../../db/schema'
 import { logger } from '../../lib/logger'
@@ -71,14 +71,19 @@ export async function revokeRefreshToken(db: DB, jti: string, userId: string) {
 }
 
 // Full revocation on token replay detection (security incident response).
-export async function revokeAllUserRefreshTokens(db: DB, userId: string) {
-  await db.transaction(async (tx) => {
+// Pass an existing tx to revoke atomically with the caller's own writes
+// (e.g. password change must not commit while leaving stale tokens alive).
+export async function revokeAllUserRefreshTokens(db: DB, userId: string, existingTx?: Transaction) {
+  const run = async (tx: Transaction) => {
     await bindRlsContext(tx, userId)
     await tx
       .update(refreshTokens)
       .set({ revokedAt: sql`now()` })
       .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)))
-  })
+  }
+
+  if (existingTx) return run(existingTx)
+  await db.transaction(run)
 }
 
 // Fire-and-forget cleanup of expired/revoked tokens after login.

@@ -4,19 +4,11 @@ import type { Context, MiddlewareHandler, Next } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
 
 import type { AppEnv } from '../app-env'
+import { clientIp } from './clientIp'
 
 // https://honohub.dev/docs/rate-limiter/configuration
 // In-memory store (MemoryStore) by default; switch to Redis for multi-replica.
 const skipLimiter = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
-
-function clientIp(c: Context): string {
-  return (
-    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-    c.req.header('cf-connecting-ip') ||
-    c.req.header('x-real-ip') ||
-    'unknown'
-  )
-}
 
 export const rateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
   ? async (_c: Context, next: Next) => await next()

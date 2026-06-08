@@ -96,9 +96,6 @@ export const userDermoProfileUpdateSchema = z
   .strict()
 
 const profileStatsSchema = z.object({
-  totalHabits: z.number(),
-  totalChecks: z.number(),
-  bestStreak: z.number(),
   totalProducts: z.number(),
 })
 

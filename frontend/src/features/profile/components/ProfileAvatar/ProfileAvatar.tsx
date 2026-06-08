@@ -20,7 +20,7 @@ export const ProfileAvatar = ({ avatarUrl, username, size = 'lg' }: ProfileAvata
   return (
     <div className={`profile-avatar profile-avatar--${size}`} role="img" aria-label={label}>
       {avatarUrl ? (
-        <img src={avatarUrl} alt={label} className="profile-avatar__img" />
+        <img src={avatarUrl} alt="" className="profile-avatar__img" />
       ) : initials ? (
         <span className="profile-avatar__initials" aria-hidden="true">
           {initials}
