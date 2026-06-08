@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { type BrowserContext, expect, test } from '@playwright/test'
+
+import { loginAsSeed, registerFreshUser } from './helpers/auth'
 
 // Seed user is created and pre-verified by `seed-core` (see backend/src/db/seed/runners/create-user.ts).
 const SEED_EMAIL = 'seed@seed.com'
@@ -8,6 +10,12 @@ const SEED_PASSWORD = 'Azerty123!seed'
 // seed keeps prior signups in the DB.
 function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`
+}
+
+// The aurore_session boot-hint cookie (see shared SESSION_HINT_COOKIE).
+async function sessionHint(context: BrowserContext) {
+  const cookies = await context.cookies()
+  return cookies.find((c) => c.name === 'aurore_session')
 }
 
 test.describe('Auth — login', () => {
@@ -187,5 +195,124 @@ test.describe('Auth — demo', () => {
 
     await expect(page).toHaveURL(/\/collection/, { timeout: 15_000 })
     await expect(page.getByText('Mode démo')).toBeVisible()
+  })
+})
+
+// Cold-load boot optimization (feature B1): an anonymous visitor must not pay for the
+// blocking /auth/refresh probe. The non-httpOnly aurore_session cookie gates it — present
+// after login, gone after logout. These tests pin the observable contract end-to-end.
+test.describe('Auth — session hint (cold-load probe gate)', () => {
+  test('anonymous boot skips the refresh probe and sets no hint cookie', async ({
+    page,
+    context,
+  }) => {
+    const refreshCalls: string[] = []
+    page.on('request', (r) => {
+      if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
+    })
+
+    await page.goto('/products')
+    // /api/products resolves only after the root beforeLoad ran, so by here any probe
+    // would already have fired — a clean signal that boot finished.
+    await page.waitForResponse(
+      (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
+      { timeout: 15_000 }
+    )
+
+    expect(await sessionHint(context)).toBeUndefined()
+    expect(refreshCalls).toEqual([])
+  })
+
+  test('login sets a JS-readable hint cookie', async ({ page, context }) => {
+    await loginAsSeed(page)
+
+    const hint = await sessionHint(context)
+    expect(hint?.value).toBe('1')
+    expect(hint?.httpOnly).toBe(false) // must be readable by hasSessionHint() at boot
+    expect(hint?.path).toBe('/')
+  })
+
+  test('authenticated boot fires the refresh probe (hint present)', async ({ page }) => {
+    await loginAsSeed(page)
+
+    const refreshReq = page.waitForRequest(
+      (r) => r.url().includes('/api/auth/refresh') && r.method() === 'POST',
+      { timeout: 15_000 }
+    )
+    await page.goto('/products')
+    await refreshReq // throws on timeout if the gate wrongly skipped the probe
+  })
+
+  test('UI logout clears the hint cookie and the next boot is anonymous', async ({
+    page,
+    context,
+  }) => {
+    await loginAsSeed(page)
+    await page.goto('/collection')
+    await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible({
+      timeout: 15_000,
+    })
+    expect(await sessionHint(context)).toBeDefined()
+
+    await page.getByRole('button', { name: 'Menu utilisateur' }).click()
+    const menu = page.getByRole('menu', { name: 'Menu utilisateur' })
+    await expect(menu).toBeVisible()
+    await menu.getByRole('menuitem', { name: 'Déconnexion' }).click()
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 })
+
+    expect(await sessionHint(context)).toBeUndefined()
+
+    const refreshCalls: string[] = []
+    page.on('request', (r) => {
+      if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
+    })
+    await page.goto('/products')
+    await page.waitForResponse(
+      (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
+      { timeout: 15_000 }
+    )
+    expect(refreshCalls).toEqual([])
+  })
+})
+
+// Optimistic boot (levier C): the root /auth/refresh probe is fire-and-forget so the shell
+// renders without waiting for the network. The cases below pin the two things that break if the
+// gate is removed naively — protected-route self-heal and the synchronous role guards.
+test.describe('Auth — optimistic boot (cold load, logged in)', () => {
+  test('cold load on a protected route self-heals without redirect to login', async ({ page }) => {
+    // API login sets the refresh cookie + hint without populating the SPA store, so the goto is a
+    // genuine cold boot. _authenticated's requireAuth must hydrate auth via the deduped boot probe
+    // before deciding, otherwise it bounces to /auth/login.
+    await loginAsSeed(page)
+
+    await page.goto('/collection')
+
+    await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(page).toHaveURL(/\/collection/)
+  })
+
+  test('cold load on a role-gated route keeps an admin in place', async ({ page }) => {
+    // Seed user is an admin (see role-requests.spec). Role guards read `role` synchronously; with
+    // the boot refresh now un-awaited they must await it before the check, else the admin is
+    // ejected to / on a direct /admin URL. Critical regression guard for levier C.
+    await loginAsSeed(page)
+
+    await page.goto('/admin')
+
+    await expect(page).toHaveURL(/\/admin/, { timeout: 15_000 })
+  })
+
+  test('cold load on /admin rejects an authenticated non-admin to home', async ({ page }) => {
+    // A freshly registered user is role=user: authenticated but NOT authorized. Once the probe
+    // resolves the role guard must reject to / — the authorization property, complementary to the
+    // "admin not ejected" liveness test above and distinct from the anonymous → /auth/login path.
+    // Guards against a future change that lets a hint user through while pending (escalation).
+    await registerFreshUser(page)
+
+    await page.goto('/admin')
+
+    await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
   })
 })

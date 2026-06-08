@@ -14,7 +14,9 @@ import { AppErrorBoundary } from '../component/Feedback/app/AppErrorBoundary/App
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
 import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
+import { hasSessionHint } from '../lib/auth/sessionHint'
 import { useTokenRefresh } from '../lib/hooks/useTokenRefresh'
+import { convergeShelfStatus } from '../lib/queries/products'
 import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'
 import { useAuthStore } from '../store/auth'
@@ -77,7 +79,7 @@ function useBannedRedirect() {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({ context, preload }) => {
+  beforeLoad: ({ context, preload }) => {
     // Skip link hover prefetch; real navigation re-runs this with preload=false.
     if (preload) return
     if (context.auth.accessToken) return
@@ -85,8 +87,24 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // so subsequent navigations don't re-fire /auth/refresh on every click.
     const store = useAuthStore.getState()
     if (store.bootRefreshAttempted) return
+    // Anonymous visitor (no session-hint cookie) → skip the probe and its loader gate.
+    if (!hasSessionHint()) return
     store.markBootRefreshAttempted()
-    await silentRefresh(context.queryClient)
+    // Optimistic boot: render the shell now (neutral nav skeleton while pending) instead of
+    // gating the whole tree on the network.
+    store.setBootRefreshPending(true)
+    void silentRefresh(context.queryClient)
+      .then((result) => {
+        // Converge the personalized product list via the shelf-status overlay BEFORE clearing the
+        // pending flag: ProductsPage holds userKey at null until then, so it reads the seeded
+        // user-scoped cache entry instead of re-fetching the full catalog under the new key.
+        if (result !== 'ok') return
+        const userId = useAuthStore.getState().user?.id
+        if (userId) return convergeShelfStatus(context.queryClient, userId)
+      })
+      .finally(() => {
+        useAuthStore.getState().setBootRefreshPending(false)
+      })
   },
   component: RootComponent,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,

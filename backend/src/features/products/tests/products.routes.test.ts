@@ -944,6 +944,58 @@ describe('Product Routes', () => {
     })
   })
 
+  describe('GET /products/shelf-status', () => {
+    async function createProductId(name: string): Promise<string> {
+      const res = await client.products.$post(
+        { json: { ...VALID_PRODUCT, name } },
+        withAuth(contributorToken)
+      )
+      const data = await res.json()
+      if (!data.success) throw new Error('create failed')
+      return data.data.id
+    }
+
+    it("returns shelf status only for the caller's shelved products", async () => {
+      const shelvedId = await createProductId('Vitamine C')
+      const otherId = await createProductId('Magnésium')
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      await client['user-products'].$post(
+        { json: { productId: shelvedId, status: 'wishlist' } },
+        withAuth(token)
+      )
+
+      const res = await client.products['shelf-status'].$get(
+        { query: { ids: `${shelvedId},${otherId}` } },
+        withAuth(token)
+      )
+
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('shelf-status failed')
+      // Products not on the shelf are omitted; the explicit userId filter (not RLS) scopes the read.
+      expect(data.data).toEqual([{ productId: shelvedId, userStatus: 'wishlist' }])
+    })
+
+    it('returns an empty overlay for an anonymous caller', async () => {
+      const id = await createProductId('Vitamine C')
+      const res = await client.products['shelf-status'].$get({ query: { ids: id } })
+      expect(res.status as number).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      if (!data.success) throw new Error('shelf-status failed')
+      expect(data.data).toEqual([])
+    })
+
+    it('returns 400 when an id is not a uuid', async () => {
+      const res = await client.products['shelf-status'].$get({ query: { ids: 'not-a-uuid' } })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+
+    it('returns 400 when ids is missing', async () => {
+      const res = await client.products['shelf-status'].$get({ query: {} as never })
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+  })
+
   describe('PATCH /products/:id', () => {
     it('should update product fields', async () => {
       const token = contributorToken

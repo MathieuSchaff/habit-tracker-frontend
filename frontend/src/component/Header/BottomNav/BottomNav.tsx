@@ -25,6 +25,9 @@ export function BottomNav() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const navigate = useNavigate()
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
+  // Optimistic boot: while the probe is in flight, suppress the auth-specific sheet items so a
+  // hint user doesn't flash the logged-out branch if they open the sheet within the window.
+  const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
   const logout = useLogout()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // Native <dialog> (via Sheet) traps Tab, closes on Esc, and restores focus to the trigger.
@@ -47,7 +50,7 @@ export function BottomNav() {
       {sheetOpen && (
         <Sheet onClose={closeSheet} className="bottom-nav__sheet">
           <Sheet.Title className="sr-only">Menu supplémentaire</Sheet.Title>
-          {!isAuthenticated && (
+          {!isAuthenticated && !bootRefreshPending && (
             <Link to="/" className="bottom-nav__sheet-link" onClick={closeSheet}>
               <HomeIcon size={20} strokeWidth={1.5} aria-hidden="true" />
               Accueil
@@ -64,7 +67,7 @@ export function BottomNav() {
 
           <div className="bottom-nav__sheet-divider" />
 
-          {isAuthenticated ? (
+          {bootRefreshPending ? null : isAuthenticated ? (
             <>
               <Link to="/profile" className="bottom-nav__sheet-link" onClick={closeSheet}>
                 <User size={20} strokeWidth={1.5} aria-hidden="true" />

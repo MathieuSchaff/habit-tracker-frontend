@@ -1,7 +1,11 @@
 import { CryptoHasher } from 'bun'
 
 import type { AccessTokenPayload, RefreshTokenPayload } from '@aurore/shared'
-import { accessTokenPayloadSchema, refreshTokenPayloadSchema } from '@aurore/shared'
+import {
+  accessTokenPayloadSchema,
+  refreshTokenPayloadSchema,
+  SESSION_HINT_COOKIE,
+} from '@aurore/shared'
 
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
@@ -115,10 +119,20 @@ export function setRefreshTokenCookie(
     path: '/api/auth',
     maxAge: JWT_CONFIG.refreshTokenExpiry,
   })
+  // Non-httpOnly boot hint (never the token): lets the SPA skip the refresh probe when absent.
+  // Same maxAge as the refresh token so the browser expires both together.
+  setCookie(c, SESSION_HINT_COOKIE, '1', {
+    httpOnly: false,
+    secure: isProd,
+    sameSite: 'Lax',
+    path: '/',
+    maxAge: JWT_CONFIG.refreshTokenExpiry,
+  })
 }
 
 export function clearRefreshTokenCookie(c: Context<AppEnv>) {
   deleteCookie(c, 'refresh_token', { path: '/api/auth' })
+  deleteCookie(c, SESSION_HINT_COOKIE, { path: '/' })
 }
 
 export function hashJti(jti: string): string {

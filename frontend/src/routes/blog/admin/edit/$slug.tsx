@@ -9,11 +9,14 @@ import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions } from '@/component/Layout/PageLayout/PageTopActions'
 import { ArticleEditorForm } from '@/features/blog/page/ArticleEditorForm/ArticleEditorForm'
+import { awaitBootRefresh } from '@/lib/auth/awaitBootRefresh'
 import { articleQueries } from '@/lib/queries/articles'
 import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/blog/admin/edit/$slug')({
-  beforeLoad: () => {
+  // Await the boot probe so a cold-load hard nav reads the resolved role, not the default 'user'.
+  beforeLoad: async ({ context }) => {
+    await awaitBootRefresh(context.queryClient)
     if (useAuthStore.getState().role !== 'admin') throw redirect({ to: '/blog' })
   },
   loader: ({ context, params }) =>

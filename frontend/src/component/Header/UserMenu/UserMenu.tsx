@@ -3,6 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { FileText, LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
+import { Skeleton } from '@/component/Feedback/ui/Skeleton/Skeleton'
 import { profileQueries } from '@/lib/queries/profile'
 import { ProfileAvatar } from '../../../features/profile/components/ProfileAvatar/ProfileAvatar'
 import { useLogout } from '../../../lib/queries/auth'
@@ -16,8 +17,12 @@ interface UserMenuProps {
 
 export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) => {
   const navigate = useNavigate()
-  const { data: profile } = useQuery(profileQueries.me())
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
+  // During the optimistic boot probe, render a neutral skeleton instead of the logged-out branch
+  // so a hint user doesn't flash « Se connecter » / login items before the token lands.
+  const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
+  // UserMenu mounts on every page (Header in AppLayout); skip the /profile probe until a session exists.
+  const { data: profile } = useQuery({ ...profileQueries.me(), enabled: isAuthenticated })
   // « Modération » reaches admin AND contributor (« modérateur »); both land on the
   // report queue (/admin/users is admin-only).
   const isContentModerator = useAuthStore(
@@ -41,7 +46,13 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
           <ProfileAvatar avatarUrl={profile?.avatarUrl} username={profile?.username} size="sm" />
           {isSidebarOpen && (
             <span className="user-menu__username">
-              {isAuthenticated ? profile?.username || 'Utilisateur' : 'Se connecter'}
+              {bootRefreshPending ? (
+                <Skeleton width="5rem" height="0.85rem" />
+              ) : isAuthenticated ? (
+                profile?.username || 'Utilisateur'
+              ) : (
+                'Se connecter'
+              )}
             </span>
           )}
         </button>
@@ -53,7 +64,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
         ariaLabel="Menu utilisateur"
         className={`user-menu__dropdown${isSidebarOpen ? ' user-menu__dropdown--sidebar-open' : ''}`}
       >
-        {isAuthenticated ? (
+        {bootRefreshPending ? null : isAuthenticated ? (
           <>
             <DropdownMenu.Item onSelect={onItemClick}>
               <Link to="/profile">

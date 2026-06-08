@@ -5,6 +5,7 @@ import {
   ok,
   PRODUCT_DOMAIN_TABS,
   productsByIdsQuery,
+  productsShelfStatusQuery,
   searchProductsQuery,
   updateProductSchema,
   verifyQualityBodySchema,
@@ -37,6 +38,7 @@ import {
   getFilterOptions,
   getProductFullBySlug,
   getProductsByIds,
+  getShelfStatusByProductIds,
   listProducts,
   previewSlug,
   searchProducts,
@@ -109,6 +111,19 @@ export const productRoutes = productsApp
     const { ids } = c.req.valid('query')
     const items = await getProductsByIds(ids, db)
     return c.json(ok(items), HTTP_STATUS.OK)
+  })
+  // Per-product shelf-status overlay: lets the boot-converged client refresh personalized
+  // status without re-downloading the full catalog under the authenticated cache key.
+  .get('/shelf-status', zValidator('query', productsShelfStatusQuery), async (c) => {
+    const db = c.get('db')
+    const { ids } = c.req.valid('query')
+    const userId = c.get('userId') ?? null
+    // Token not yet present (anonymous boot) → nothing to read; return an empty overlay.
+    const rows = userId ? await getShelfStatusByProductIds(db, userId, ids) : []
+    return c.json(
+      ok(rows.map((r) => ({ productId: r.productId, userStatus: r.status }))),
+      HTTP_STATUS.OK
+    )
   })
   .get('/', zValidator('query', listProductsQuery), async (c) => {
     const db = c.get('db')

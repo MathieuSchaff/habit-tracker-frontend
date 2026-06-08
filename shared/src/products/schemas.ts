@@ -123,6 +123,15 @@ export const productsByIdsQuery = z.object({
     .pipe(z.array(z.uuid()).min(1).max(50)),
 })
 
+// Shelf-status overlay: per-product status for ids already on screen (the token needed to read it
+// exists only post-refresh, so it cannot ship with the anonymous list fetch). Cap matches the list limit.
+export const productsShelfStatusQuery = z.object({
+  ids: z
+    .string()
+    .transform((s) => s.split(',').filter(Boolean))
+    .pipe(z.array(z.uuid()).min(1).max(100)),
+})
+
 export const patentSchema = z.object({
   name: z.string(), // 'Rosactiv 2.0'
   description: z

@@ -19,7 +19,8 @@
       "!.audit-out/**/*",
       "!docs",
       "!vendor",
-      "!backend/src/db/seed/data/*.json"
+      "!backend/src/db/seed/data/*.json",
+      "!**/stats.html"
     ]
   },
   "formatter": {
@@ -88,7 +89,8 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "off"
+            "noExplicitAny": "off",
+            "noDocumentCookie": "off"
           }
         }
       }
