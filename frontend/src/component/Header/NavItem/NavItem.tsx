@@ -11,7 +11,11 @@ interface NavSideListProps {
 export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
-  const visibleItems = isAuthenticated ? navItems.filter((item) => item.to !== '/') : navItems
+  // During the optimistic boot probe a hint user is likely logged in; hide the anonymous-only
+  // Home link so it doesn't flash in then out once the token lands.
+  const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
+  const visibleItems =
+    isAuthenticated || bootRefreshPending ? navItems.filter((item) => item.to !== '/') : navItems
 
   return (
     <ul id="main-nav-list" className={`main-nav__list ${className}`}>

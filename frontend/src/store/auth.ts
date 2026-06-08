@@ -16,6 +16,9 @@ interface AuthStore {
   isDemo: boolean
   // Latched after the first boot-time silent-refresh probe so unauthenticated nav doesn't re-fire /auth/refresh.
   bootRefreshAttempted: boolean
+  // True only while the boot probe is in flight (hint user, cold load); drives the neutral nav
+  // skeleton and defers loader convergence (router.invalidate) until the probe settles.
+  bootRefreshPending: boolean
   // Set when 401-recovery refresh fails on a live session; RootComponent redirects to /auth/login.
   sessionExpired: boolean
   // Set when a 403 banned response is received; RootComponent redirects to /auth/banned.
@@ -25,6 +28,7 @@ interface AuthStore {
   setAuth: (token: string, user: UserPublic) => void
   clearAuth: () => void
   markBootRefreshAttempted: () => void
+  setBootRefreshPending: (pending: boolean) => void
   markSessionExpired: () => void
   clearSessionExpired: () => void
   markBanned: (details: BanDetails) => void
@@ -51,6 +55,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   role: 'user',
   isDemo: false,
   bootRefreshAttempted: false,
+  bootRefreshPending: false,
   sessionExpired: false,
   banned: false,
   bannedDetails: null,
@@ -64,6 +69,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       role: user.role,
       isDemo: user.isDemo ?? false,
       bootRefreshAttempted: true,
+      bootRefreshPending: false,
       sessionExpired: false,
     }),
 
@@ -77,9 +83,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       role: 'user',
       isDemo: false,
       bootRefreshAttempted: true,
+      bootRefreshPending: false,
     }),
 
   markBootRefreshAttempted: () => set({ bootRefreshAttempted: true }),
+  setBootRefreshPending: (pending) => set({ bootRefreshPending: pending }),
   markSessionExpired: () => set({ sessionExpired: true }),
   clearSessionExpired: () => set({ sessionExpired: false }),
   markBanned: (details) => set({ banned: true, bannedDetails: details }),

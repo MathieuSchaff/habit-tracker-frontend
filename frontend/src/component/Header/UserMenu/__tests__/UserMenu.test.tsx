@@ -29,8 +29,11 @@ vi.mock('@/store/auth', () => ({
   useAuthStore: vi.fn(),
 }))
 
+// Delegate to the selector-aware mock: the component now reads several distinct fields
+// (accessToken, role, bootRefreshPending), so a flat mockReturnValue feeds them all the
+// same boolean and breaks the bootRefreshPending branch.
 function setAuthState(isAuthenticated: boolean) {
-  vi.mocked(useAuthStore).mockReturnValue(isAuthenticated as never)
+  setAuthStore({ accessToken: isAuthenticated ? 'tok' : null, role: 'user' })
 }
 
 // Selector-aware mock: applies the component's selector to a fake auth state so
@@ -127,6 +130,13 @@ describe('UserMenu', () => {
     openMenu()
 
     expect(screen.queryByText(/Modération/i)).not.toBeInTheDocument()
+  })
+
+  it('does not probe /profile when unauthenticated (enabled gated on accessToken)', () => {
+    setAuthStore({ accessToken: null, role: 'user' })
+    render(<UserMenu />)
+
+    expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
 
   it('renders the username next to the avatar only when the sidebar is open', () => {

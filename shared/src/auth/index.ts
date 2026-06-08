@@ -188,3 +188,7 @@ export const authErrorMapping = {
   too_many_requests: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
   account_locked: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
 } as const satisfies Partial<Record<AuthErrorCode, HttpStatus>>
+
+/* Non-sensitive boot hint cookie. Presence ⇒ a refresh session may exist (never a token);
+   lets the SPA skip the /auth/refresh probe for anonymous visitors. */
+export const SESSION_HINT_COOKIE = 'aurore_session'

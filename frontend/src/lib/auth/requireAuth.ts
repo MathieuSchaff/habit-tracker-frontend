@@ -8,14 +8,12 @@ import { silentRefresh } from '../queries/silentRefresh'
 type RequireAuthOptions = {
   queryClient: QueryClient
   pathname: string
-  /** From router context: avoids reading Zustand store directly in route guards. */
+  // From router context: avoids reading Zustand store directly in route guards.
   accessToken: string | null
 }
 
-/**
- * Route guard: local token check, server verify, silent refresh fallback, then redirect.
- * During silentRefresh cooldown we don't log out - network blips recover via the 401 interceptor.
- */
+// Route guard: local token check, server verify, silent refresh fallback, then redirect.
+// During silentRefresh cooldown we don't log out - network blips recover via the 401 interceptor.
 export async function requireAuth({
   queryClient,
   pathname,

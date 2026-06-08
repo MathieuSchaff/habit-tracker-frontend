@@ -1,12 +1,16 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { AdminLayout } from '@/features/admin/components/AdminLayout'
+import { awaitBootRefresh } from '@/lib/auth/awaitBootRefresh'
 import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/admin')({
-  beforeLoad: () => {
+  beforeLoad: async ({ context }) => {
     // The /admin shell is shared by admin + contributor (« modérateur »); admin-only
     // surfaces (dashboard, users) gate themselves in their own child routes (ADR-0006 S1).
+    // Await the boot probe first so a cold-load hard nav reads the resolved role, not the
+    // default 'user' — otherwise an admin/contributor would be ejected here.
+    await awaitBootRefresh(context.queryClient)
     const role = useAuthStore.getState().role
     if (role !== 'admin' && role !== 'contributor') throw redirect({ to: '/' })
   },

@@ -530,6 +530,29 @@ describe('Auth Routes (browser)', () => {
       expect(setCookie).toContain('refresh_token=;')
     })
 
+    it('sets the JS-readable session hint on login and clears it on logout', async () => {
+      const creds = TEST_CREDENTIALS.toto
+      await createTestUser(creds.rawEmail, creds.rawPassword)
+      const {
+        res: login,
+        cookie,
+        accessToken,
+      } = await loginAndGetCookies(client, creds.rawEmail, creds.rawPassword)
+
+      const loginHint = login.headers.getSetCookie().find((c) => c.startsWith('aurore_session='))
+      expect(loginHint).toContain('aurore_session=1')
+      expect(loginHint).not.toContain('HttpOnly') // must be readable by JS at boot
+      expect(loginHint).toContain('Path=/')
+
+      const logout = await client.auth.logout.$post(
+        {},
+        { headers: { Cookie: cookie, Authorization: `Bearer ${accessToken}` } }
+      )
+      const logoutHint = logout.headers.getSetCookie().find((c) => c.startsWith('aurore_session='))
+      expect(logoutHint).toBeDefined()
+      expect(logoutHint).not.toContain('aurore_session=1') // cleared
+    })
+
     it('should reject logout without access token', async () => {
       const res = await client.auth.logout.$post({})
 

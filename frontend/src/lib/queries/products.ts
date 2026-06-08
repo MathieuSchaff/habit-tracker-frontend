@@ -5,12 +5,14 @@ import type {
   ProductDomainTab,
   ProductSort,
   UpdateProductInput,
+  UserProductStatus,
 } from '@aurore/shared'
 
 export type { ProductSort }
 
 import {
   infiniteQueryOptions,
+  type QueryClient,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -238,6 +240,55 @@ export const productQueries = {
       },
       enabled: !!id,
     }),
+}
+
+async function fetchShelfStatus(ids: string[]): Promise<Map<string, UserProductStatus>> {
+  const byId = new Map<string, UserProductStatus>()
+  // Chunk to the endpoint's id cap (100); a normal page fits in one request.
+  for (let i = 0; i < ids.length; i += 100) {
+    const res = await api.products['shelf-status'].$get({
+      query: { ids: ids.slice(i, i + 100).join(',') },
+    })
+    if (!res.ok) throw new Error('Failed to fetch shelf status')
+    const json = await res.json()
+    for (const row of json.data) byId.set(row.productId, row.userStatus)
+  }
+  return byId
+}
+
+// Seeds the user-scoped list entries from a shelf-status overlay instead of a second full catalog fetch.
+// Relies on __root holding userKey=null until this resolves (race-free cache hit); best-effort on failure.
+export async function convergeShelfStatus(qc: QueryClient, userId: string): Promise<void> {
+  try {
+    const anonLists = qc
+      .getQueryCache()
+      .findAll({ queryKey: productKeys.lists() })
+      .filter((q) => q.queryKey.at(-1) === null)
+    if (anonLists.length === 0) return
+
+    // ensureQueryData dedupes with the in-flight boot fetch (the refresh can resolve first) rather
+    // than starting a new one, so we always seed from complete list data.
+    const lists = await Promise.all(
+      anonLists.map((q) => {
+        const filters = q.queryKey.at(-2) as ListProductsFilters
+        return qc
+          .ensureQueryData(productQueries.list(filters, null))
+          .then((data) => ({ filters, data }))
+      })
+    )
+
+    const ids = [...new Set(lists.flatMap(({ data }) => data.items.map((i) => i.id)))]
+    const byId = ids.length > 0 ? await fetchShelfStatus(ids) : new Map<string, UserProductStatus>()
+
+    for (const { filters, data } of lists) {
+      qc.setQueryData(productQueries.list(filters, userId).queryKey, {
+        ...data,
+        items: data.items.map((item) => ({ ...item, userStatus: byId.get(item.id) ?? null })),
+      })
+    }
+  } catch {
+    // Best-effort: on failure the userKey flip triggers a normal authenticated list fetch.
+  }
 }
 
 export function useCreateProduct() {

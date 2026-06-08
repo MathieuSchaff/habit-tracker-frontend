@@ -515,6 +515,21 @@ type ProductMeta = {
   statusByProduct: Map<string, UserProductStatus>
 }
 
+// The explicit user_id filter is load-bearing, not test-safety: RLS is active (withRlsContext) but the
+// additive user_products_select_for_public_review policy widens SELECT to other users' public-review rows,
+// so the filter scopes the read back to the caller. Shared by the list meta and the /shelf-status overlay.
+export async function getShelfStatusByProductIds(
+  database: Database,
+  userId: string,
+  productIds: string[]
+): Promise<{ productId: string; status: UserProductStatus }[]> {
+  if (productIds.length === 0) return []
+  return database
+    .select({ productId: userProducts.productId, status: userProducts.status })
+    .from(userProducts)
+    .where(and(eq(userProducts.userId, userId), inArray(userProducts.productId, productIds)))
+}
+
 async function fetchProductMeta(
   items: { id: string }[],
   filters: ListProductsFilters,
@@ -565,12 +580,8 @@ async function fetchProductMeta(
       .where(
         and(inArray(productTagLinks.productId, itemIds), eq(productTagLinks.relevance, 'primary'))
       ),
-    // Explicit userId filter: tests run as DB owner and bypass RLS.
     userId
-      ? database
-          .select({ productId: userProducts.productId, status: userProducts.status })
-          .from(userProducts)
-          .where(and(eq(userProducts.userId, userId), inArray(userProducts.productId, itemIds)))
+      ? getShelfStatusByProductIds(database, userId, itemIds)
       : Promise.resolve([] as { productId: string; status: UserProductStatus }[]),
   ])
 

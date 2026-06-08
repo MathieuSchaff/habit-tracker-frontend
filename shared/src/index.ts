@@ -260,6 +260,7 @@ export {
   productIngredientErrorMapping,
   productSortEnum,
   productsByIdsQuery,
+  productsShelfStatusQuery,
   SKINCARE_CONCERN_SLUGS,
   SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS,
   SKINCARE_PRODUCT_CONCERN_GROUPS,
@@ -494,7 +495,7 @@ export type { TaskEnergy, TaskErrorCode, TaskStatus } from './tasks'
 
 // Helpers (error mappings, constants, utilities)
 
-export { authErrorMapping } from './auth'
+export { authErrorMapping, SESSION_HINT_COOKIE } from './auth'
 export { discussionErrorMapping } from './discussions'
 export { purchaseErrorMapping } from './purchases'
 export { tagErrorMapping } from './tags'

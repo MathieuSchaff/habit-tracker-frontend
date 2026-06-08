@@ -23,10 +23,13 @@ function setRouterState(pathname: string) {
   vi.spyOn(routerMod, 'useRouterState').mockReturnValue(pathname as never)
 }
 
+// Selector-aware: the component reads both `!!s.accessToken` and `s.bootRefreshPending`,
+// so a flat boolean mock would feed the wrong value to the second selector.
 function setAuthState(isAuthenticated: boolean) {
-  // The component reads `useAuthStore((s) => !!s.accessToken)` — return the
-  // boolean directly; the selector arg is ignored by vi.fn.mockReturnValue.
-  vi.mocked(useAuthStore).mockReturnValue(isAuthenticated as never)
+  const state = { accessToken: isAuthenticated ? 'tok' : null, bootRefreshPending: false }
+  vi.mocked(useAuthStore).mockImplementation(
+    (selector: unknown) => (selector as (s: typeof state) => unknown)(state) as never
+  )
 }
 
 describe('BottomNav', () => {

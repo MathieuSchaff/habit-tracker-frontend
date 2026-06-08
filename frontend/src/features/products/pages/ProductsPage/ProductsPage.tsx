@@ -111,9 +111,13 @@ export function ProductsPage() {
     [search, avoidFor]
   )
 
-  // Random sort: staleTime keeps order stable across back-nav (refetch reshuffles otherwise).
-  const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 0
-  const userKey = user?.id ?? null
+  // Random/filtered: long staleTime stops back-nav reshuffle. Discovery: 30s (not 0) so the
+  // loader prefetch is honored on cold load instead of triggering an immediate duplicate fetch.
+  const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 30 * 1000
+  // Hold the anonymous (null) key until boot convergence seeds the user-scoped entry, so the
+  // post-refresh switch is a cache hit instead of a second full catalog fetch.
+  const bootRefreshPending = useAuthStore((s) => s.bootRefreshPending)
+  const userKey = bootRefreshPending ? null : (user?.id ?? null)
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...productQueries.list(apiFilters, userKey),
     placeholderData: (prev) => prev,
