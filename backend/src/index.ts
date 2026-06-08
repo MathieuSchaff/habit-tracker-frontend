@@ -35,6 +35,7 @@ import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
 import { logger } from './lib/logger'
 import { globalErrorHandler } from './utils/errors/error-handler'
+import { globalRateLimiterFunc } from './utils/rateLimiter'
 
 logger.info(`API listening on ${port}`)
 const app = new Hono<AppEnv>()
@@ -73,6 +74,8 @@ app.use('*', async (c, next) => {
     ms: Date.now() - start,
   })
 })
+
+app.use('*', globalRateLimiterFunc)
 
 const routes = app
   .route('/api/auth', jwtAuthRoutes)
