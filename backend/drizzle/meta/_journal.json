@@ -659,6 +659,13 @@
       "when": 1780867826927,
       "tag": "0093_married_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1780953558569,
+      "tag": "0094_heavy_karma",
+      "breakpoints": true
     }
   ]
 }

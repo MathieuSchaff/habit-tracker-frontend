@@ -205,9 +205,6 @@ export async function getProfileStats(db: Database, userId: string): Promise<Pro
     .where(eq(userProducts.userId, userId))
 
   return {
-    totalHabits: 0,
-    totalChecks: 0,
-    bestStreak: 0,
     totalProducts: productCount?.count ?? 0,
   }
 }

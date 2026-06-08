@@ -286,10 +286,17 @@ export async function changePassword(
       PASSWORD_HASH_OPTIONS
     )) as HashedPassword
 
-    await ctx.db
-      .update(users)
-      .set({ passwordHash: newPasswordHash, updatedAt: nowISO() })
-      .where(eq(users.id, userId))
+    // Atomic: a revoke failure must roll back the password write too, otherwise
+    // the password changes while stolen sessions stay alive. /change-password has
+    // no withRlsContext wrapper, so ctx.db is the pool — open the tx explicitly.
+    await ctx.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({ passwordHash: newPasswordHash, updatedAt: nowISO() })
+        .where(eq(users.id, userId))
+
+      await revokeAllUserRefreshTokens(ctx.db, userId, tx)
+    })
 
     return ok(null)
   } catch (e) {

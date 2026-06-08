@@ -92,7 +92,8 @@ export const productQueries = {
       staleTime: 5 * 60 * 1000,
     }),
 
-  // userKey scopes cache to caller identity so login/logout flips personalized fields.
+  // userKey gives each user their own cached list, so login/logout swaps in the right
+  // personalized fields (shelf status) instead of showing the previous user's.
   list: (filters: ListProductsFilters = {}, userKey: string | null = null) =>
     queryOptions({
       queryKey: [...productKeys.list(filters), userKey] as const,
@@ -260,30 +261,40 @@ async function fetchShelfStatus(ids: string[]): Promise<Map<string, UserProductS
 // Relies on __root holding userKey=null until this resolves (race-free cache hit); best-effort on failure.
 export async function convergeShelfStatus(qc: QueryClient, userId: string): Promise<void> {
   try {
-    const anonLists = qc
+    // Last key segment is the userKey; null means the list was fetched before auth (anonymous boot).
+    // These are the only entries worth seeding: they hold the catalog we don't want to re-download.
+    const anonymousLists = qc
       .getQueryCache()
+      // https://tanstack.com/query/v4/docs/reference/QueryCache#querycachefindall
       .findAll({ queryKey: productKeys.lists() })
-      .filter((q) => q.queryKey.at(-1) === null)
-    if (anonLists.length === 0) return
+      .filter((cachedList) => cachedList.queryKey.at(-1) === null)
+    if (anonymousLists.length === 0) return
 
-    // ensureQueryData dedupes with the in-flight boot fetch (the refresh can resolve first) rather
-    // than starting a new one, so we always seed from complete list data.
-    const lists = await Promise.all(
-      anonLists.map((q) => {
-        const filters = q.queryKey.at(-2) as ListProductsFilters
-        return qc
-          .ensureQueryData(productQueries.list(filters, null))
-          .then((data) => ({ filters, data }))
+    // Wait for the boot fetch instead of firing a second one: ensureQueryData reuses the in-flight
+    // request, so we get the full list without re-downloading the catalog.
+    const listsWithData = await Promise.all(
+      anonymousLists.map(async (cachedList) => {
+        const filters = cachedList.queryKey.at(-2) as ListProductsFilters
+        const listData = await qc.ensureQueryData(productQueries.list(filters, null))
+        return { filters, listData }
       })
     )
 
-    const ids = [...new Set(lists.flatMap(({ data }) => data.items.map((i) => i.id)))]
-    const byId = ids.length > 0 ? await fetchShelfStatus(ids) : new Map<string, UserProductStatus>()
+    const productIds = [
+      ...new Set(listsWithData.flatMap(({ listData }) => listData.items.map((item) => item.id))),
+    ]
+    const statusByProductId =
+      productIds.length > 0
+        ? await fetchShelfStatus(productIds)
+        : new Map<string, UserProductStatus>()
 
-    for (const { filters, data } of lists) {
+    for (const { filters, listData } of listsWithData) {
       qc.setQueryData(productQueries.list(filters, userId).queryKey, {
-        ...data,
-        items: data.items.map((item) => ({ ...item, userStatus: byId.get(item.id) ?? null })),
+        ...listData,
+        items: listData.items.map((item) => ({
+          ...item,
+          userStatus: statusByProductId.get(item.id) ?? null,
+        })),
       })
     }
   } catch {

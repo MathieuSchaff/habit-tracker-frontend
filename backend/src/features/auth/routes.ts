@@ -22,6 +22,7 @@ import type { AppEnv } from '../../app-env'
 import { env } from '../../config/env'
 import { withAdminRls } from '../../db/rls'
 import { usersSafe } from '../../db/schema'
+import { clientIp } from '../../utils/clientIp'
 import { loginRateLimiterFunc, rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
 import { isUserBanned } from './ban.service'
@@ -46,10 +47,7 @@ function buildAuthContext(c: Context<AppEnv>): AuthContext {
     jwtSecret: c.get('jwtSecret'),
     refreshSecret: c.get('refreshSecret'),
     frontendUrl: c.get('frontendUrl'),
-    ip:
-      c.req.header('CF-Connecting-IP') ??
-      c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() ??
-      'unknown',
+    ip: clientIp(c),
     userAgent: c.req.header('User-Agent') ?? 'unknown',
   }
 }

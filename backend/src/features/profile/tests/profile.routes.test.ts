@@ -330,9 +330,6 @@ describe('Profile Routes', () => {
       const data = await res.json()
       expect(data.success).toBe(true)
       if (!data.success) throw new Error('expected ok')
-      expect(data.data.totalHabits).toBe(0)
-      expect(data.data.totalChecks).toBe(0)
-      expect(data.data.bestStreak).toBe(0)
       expect(data.data.totalProducts).toBe(0)
     })
 

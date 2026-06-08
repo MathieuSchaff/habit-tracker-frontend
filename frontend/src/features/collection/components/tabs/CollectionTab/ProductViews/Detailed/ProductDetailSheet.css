@@ -5,6 +5,15 @@
   color: var(--text-primary);
 }
 
+/* Desktop: the sheet becomes a centered rounded modal framed by a hairline ring
+   (Sheet.css @media --sm). Drop the bottom-sheet's 3px primary top accent there —
+   its square corners clash with the card radius. */
+@media (--sm) {
+  .dialog-sheet.pds-sheet {
+    border-top: none;
+  }
+}
+
 .pds-hero {
   position: sticky;
   top: 0;

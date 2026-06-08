@@ -87,6 +87,34 @@ describe('Auth Routes > POST /auth/change-password', () => {
     expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
   })
 
+  it('should revoke existing refresh tokens after a successful change', async () => {
+    const sessionEmail = unsafeEmail('change-pwd-revoke@example.com')
+    const signupRes = await client.auth.signup.$post({
+      json: { email: sessionEmail, password: oldPassword },
+    })
+    const signupData = await signupRes.json()
+    if (!signupData.success) throw new Error('signup failed')
+    const userToken = signupData.data.accessToken
+    const oldRefreshCookie =
+      signupRes.headers.getSetCookie().find((c) => c.startsWith('refresh_token=')) ?? ''
+    expect(oldRefreshCookie).toContain('refresh_token=')
+
+    const changeRes = await client.auth['change-password'].$post(
+      { json: { currentPassword: oldPassword, newPassword } },
+      { headers: { Authorization: `Bearer ${userToken}` } }
+    )
+    expect(changeRes.status).toBe(HTTP_STATUS.OK)
+
+    const refreshRes = await client.auth.refresh.$post(
+      {},
+      { headers: { Cookie: oldRefreshCookie } }
+    )
+    expect(refreshRes.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    const refreshData = await refreshRes.json()
+    expect(refreshData.success).toBe(false)
+    if (!refreshData.success) expect(refreshData.error).toBe('invalid_token')
+  })
+
   it('should reject unauthenticated request', async () => {
     const res = await client.auth['change-password'].$post({
       json: {

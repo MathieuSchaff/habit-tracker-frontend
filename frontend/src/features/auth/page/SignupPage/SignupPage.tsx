@@ -81,7 +81,7 @@ export const SignupPage = () => {
     <>
       <div className="auth-page__header">
         <h1 className="auth-page__title">Créer un compte</h1>
-        <p className="auth-page__subtitle">Commencez à suivre vos habitudes</p>
+        <p className="auth-page__subtitle">Rassemblez vos produits, comprenez leurs formules</p>
       </div>
 
       <form
