@@ -108,6 +108,10 @@ db-seed-safe: db-seed audit-db
 [group('db')]
 db-seed-merge-safe: db-backup db-seed-merge audit-db
 
+# Fix tag-domain then persist dev snapshot in one command. WRITE=1 applies (else dry no-op). Dev-only.
+[group('catalog')]
+catalog-fix-tag-domain-safe: catalog-fix-tag-domain db-snapshot
+
 # ─── Destructive (DOUBLE confirmation on prod) ──────────────────────────────
 
 # ⚠️ Destructive seed (TRUNCATE + reseed). Triple confirmation on prod.

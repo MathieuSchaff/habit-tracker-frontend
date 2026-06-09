@@ -59,19 +59,6 @@ image-patch-urls:
     $COMPOSE exec api bun run src/images/maintenance/patch-urls.ts \
         $([ -z "${APPLY:-}" ] && echo "--dry" || true)
 
-# Audit : images CDN sans produit DB matchant. Env: BRAND, TOP. Read-only.
-[group('images')]
-image-analyze-orphans:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    printf "{{CYAN}}Analyze image orphans ($TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/images/audit/analyze-orphans.ts \
-        ${BRAND:+--brand "$BRAND"} \
-        ${TOP:+--top "$TOP"}
-
 # Dump JSON des orphelins (consommable par delete-bunny.ts manuel). Read-only.
 [group('images')]
 image-dump-orphans:
@@ -82,3 +69,42 @@ image-dump-orphans:
     target_compose
     printf "{{CYAN}}Dump orphan images to output/ ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/images/audit/dump-orphans.ts
+
+# Audit autoritatif CDN⇄DB : orphelins Bunny, refs DB cassées, échantillon de reachability. Read-only.
+[group('images')]
+audit-cdn:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    printf "{{CYAN}}Audit CDN⇄DB ($TARGET) → .audit-out/db/audit-cdn.$TARGET.md{{NC}}\n"
+    $COMPOSE exec api bun run src/images/audit/bunny.ts \
+        | tee "$(audit_out audit-cdn)"
+
+# Génère output/image-mapping.json depuis l'inventaire Bunny ∩ DB (prérequis de image-fix-refs). Env: DRY (sans = écrit le fichier).
+[group('images')]
+image-build-mapping:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    MODE=$([ -n "${DRY:-}" ] && echo "dry-run" || echo "WRITE (output/)")
+    printf "{{CYAN}}Build image mapping ($MODE, $TARGET)...{{NC}}\n"
+    $COMPOSE exec api bun run src/images/maintenance/build-mapping.ts \
+        ${DRY:+--dry}
+
+# Réconcilie image_url DB ⇄ Bunny depuis image-mapping.json (rename/nullify/cleanup). Écrit DB+CDN. Env: APPLY (sans = dry-run). TARGET: dev|prod (prod+APPLY → confirm).
+[group('images')]
+image-fix-refs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE DB+CDN (image-fix-refs)"; fi
+    MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
+    printf "{{CYAN}}Fix broken image refs ($MODE, $TARGET)...{{NC}}\n"
+    $COMPOSE exec api bun run src/images/maintenance/fix-broken-refs.ts \
+        ${APPLY:+--apply}

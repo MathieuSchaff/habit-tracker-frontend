@@ -4,14 +4,24 @@ import {
   PRODUCT_CATEGORY_TO_DOMAIN_TAB,
 } from '@aurore/shared'
 
-import { eq } from 'drizzle-orm'
+import { and, count, eq, isNull, or, sql } from 'drizzle-orm'
 
 import type { DB } from '..'
 import { db } from '..'
-import { products, productTagLinks, productTagTypes } from '../schema'
+import {
+  ingredientDermoProfiles,
+  ingredients,
+  productIngredients,
+  products,
+  productTagLinks,
+  productTagTypes,
+} from '../schema'
 
-type Violation = { description: string }
-type CheckResult = { name: string; violations: Violation[] }
+// 'error' fails the run (exit 1) — genuine corruption the DB does not enforce.
+// 'info' is reported but never fails — accepted coverage gaps (missing data ≠ broken data).
+type Severity = 'error' | 'info'
+type Finding = { description: string }
+type CheckResult = { name: string; severity: Severity; findings: Finding[] }
 type Checker = (db: DB) => Promise<CheckResult>
 
 async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
@@ -26,11 +36,11 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
     .innerJoin(products, eq(productTagLinks.productId, products.id))
     .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
 
-  const violations: Violation[] = []
+  const findings: Finding[] = []
   for (const row of rows) {
     const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[row.productCategory]
     if (!domain) {
-      violations.push({
+      findings.push({
         description: `unknown product.category="${row.productCategory}" on product ${row.productSlug}`,
       })
       continue
@@ -40,45 +50,121 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
       !validTagTypes.includes(row.tagType) &&
       !DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES.includes(row.tagType)
     ) {
-      violations.push({
+      findings.push({
         description: `${row.productSlug} (${row.productCategory}/${domain}) → tag "${row.tagSlug}" type="${row.tagType}" not in [${validTagTypes.join(', ')}]`,
       })
     }
   }
-  return { name: 'tag-product-domain-consistency', violations }
+  return { name: 'tag-product-domain-consistency', severity: 'error', findings }
 }
 
-const checkers: Checker[] = [checkTagProductDomainConsistency]
+// Visible products with no image. Accepted gap (image acquisition is a separate
+// domain), so info-only — surfaced by brand to spot which brands need a fetch pass.
+async function checkImageCoverage(db: DB): Promise<CheckResult> {
+  const rows = await db
+    .select({ brand: products.brand, n: count() })
+    .from(products)
+    .where(
+      and(
+        eq(products.moderationStatus, 'visible'),
+        or(isNull(products.imageUrl), eq(products.imageUrl, ''))
+      )
+    )
+    .groupBy(products.brand)
+    .orderBy(sql`count(*) desc`)
 
-// File output wants every violation; interactive console stays capped.
+  const findings: Finding[] = rows.map((r) => ({ description: `${r.brand}: ${r.n}` }))
+  if (rows.length > 0) {
+    const total = rows.reduce((s, r) => s + Number(r.n), 0)
+    findings.unshift({
+      description: `${total} visible products without image across ${rows.length} brands`,
+    })
+  }
+  return { name: 'image-coverage', severity: 'info', findings }
+}
+
+// Visible products with zero linked ingredients (no parsed INCI → no dermo scoring).
+async function checkProductsWithoutIngredients(db: DB): Promise<CheckResult> {
+  const rows = await db
+    .select({ slug: products.slug, brand: products.brand })
+    .from(products)
+    .leftJoin(productIngredients, eq(productIngredients.productId, products.id))
+    .where(and(eq(products.moderationStatus, 'visible'), isNull(productIngredients.productId)))
+
+  const findings: Finding[] = rows.map((r) => ({ description: `${r.slug} (${r.brand})` }))
+  return { name: 'products-without-ingredients', severity: 'info', findings }
+}
+
+// Visible products with zero tag links (invisible to the catalogue filters).
+async function checkProductsWithoutTags(db: DB): Promise<CheckResult> {
+  const rows = await db
+    .select({ slug: products.slug, brand: products.brand })
+    .from(products)
+    .leftJoin(productTagLinks, eq(productTagLinks.productId, products.id))
+    .where(and(eq(products.moderationStatus, 'visible'), isNull(productTagLinks.productId)))
+
+  const findings: Finding[] = rows.map((r) => ({ description: `${r.slug} (${r.brand})` }))
+  return { name: 'products-without-tags', severity: 'info', findings }
+}
+
+// Ingredients used by ≥1 product but lacking a dermo profile — algo-derm scores
+// them as unknown, so these are the blind spots worth profiling first.
+async function checkIngredientsWithoutDermoProfile(db: DB): Promise<CheckResult> {
+  const rows = await db
+    .select({ slug: ingredients.slug })
+    .from(ingredients)
+    .innerJoin(productIngredients, eq(productIngredients.ingredientId, ingredients.id))
+    .leftJoin(ingredientDermoProfiles, eq(ingredientDermoProfiles.ingredientId, ingredients.id))
+    .where(isNull(ingredientDermoProfiles.ingredientId))
+    .groupBy(ingredients.slug)
+
+  const findings: Finding[] = rows.map((r) => ({ description: r.slug }))
+  return { name: 'ingredients-without-dermo-profile', severity: 'info', findings }
+}
+
+const checkers: Checker[] = [
+  checkTagProductDomainConsistency,
+  checkImageCoverage,
+  checkProductsWithoutIngredients,
+  checkProductsWithoutTags,
+  checkIngredientsWithoutDermoProfile,
+]
+
+// File output wants every finding; interactive console stays capped.
 const MAX_LINES_PER_CHECKER = process.env.AUDIT_DB_FULL ? Number.POSITIVE_INFINITY : 30
 
 async function main() {
   const results = await Promise.all(checkers.map((c) => c(db)))
-  let totalViolations = 0
+  let errorViolations = 0
   let failedCheckers = 0
 
   for (const r of results) {
-    if (r.violations.length === 0) {
+    if (r.findings.length === 0) {
       console.log(`✓ ${r.name}`)
       continue
     }
-    failedCheckers += 1
-    totalViolations += r.violations.length
-    console.log(`✗ ${r.name} (${r.violations.length} violations)`)
-    for (const v of r.violations.slice(0, MAX_LINES_PER_CHECKER)) {
-      console.log(`  - ${v.description}`)
+    if (r.severity === 'info') {
+      console.log(`ℹ ${r.name} (${r.findings.length})`)
+    } else {
+      failedCheckers += 1
+      errorViolations += r.findings.length
+      console.log(`✗ ${r.name} (${r.findings.length} violations)`)
     }
-    if (r.violations.length > MAX_LINES_PER_CHECKER) {
-      console.log(`  … and ${r.violations.length - MAX_LINES_PER_CHECKER} more`)
+    for (const f of r.findings.slice(0, MAX_LINES_PER_CHECKER)) {
+      console.log(`  - ${f.description}`)
+    }
+    if (r.findings.length > MAX_LINES_PER_CHECKER) {
+      console.log(`  … and ${r.findings.length - MAX_LINES_PER_CHECKER} more`)
     }
   }
 
-  if (totalViolations > 0) {
-    console.error(`\nFAILED: ${totalViolations} violation(s) across ${failedCheckers} checker(s)`)
+  if (errorViolations > 0) {
+    console.error(
+      `\nFAILED: ${errorViolations} violation(s) across ${failedCheckers} error checker(s)`
+    )
     process.exit(1)
   }
-  console.log(`\n✓ All ${checkers.length} checker(s) passed`)
+  console.log(`\n✓ All ${checkers.length} checker(s) ran; no error-level violations`)
 }
 
 main().catch((e) => {
