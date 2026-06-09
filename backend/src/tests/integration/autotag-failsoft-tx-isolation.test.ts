@@ -40,7 +40,11 @@ describe('auto-tag fail-soft tx isolation', () => {
         })
 
       // recordAutoTagSkip equivalent: must succeed iff the savepoint left the outer tx clean.
-      await trackError(outerTx, { source: 'backend', message: 'autotag-savepoint-probe', userId: user.id })
+      await trackError(outerTx, {
+        source: 'backend',
+        message: 'autotag-savepoint-probe',
+        userId: user.id,
+      })
     })
 
     // Guard against a false GREEN: the inner write must have genuinely failed (not a silent
