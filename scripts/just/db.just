@@ -12,6 +12,7 @@ import 'audit.just'
 # ─── Schema (dev-only, host-running) ────────────────────────────────────────
 
 # Apply Drizzle migrations. TARGET-aware (cd backend && export .env.<target>).
+[group('db')]
 db-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -30,16 +31,19 @@ db-migrate:
     cd backend && set -a && source "$ENV_FILE" && set +a && bun run src/db/migrate.ts
 
 # Generate migration files from schema (dev-only)
+[group('db')]
 db-generate:
     @printf "{{CYAN}}Generating migration files...{{NC}}\n"
     cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit generate
 
 # ⚠️ Bypass migrations — loses FORCE RLS + auth.* (prefer db-migrate). Dev-only.
+[group('db')]
 db-push:
     @printf "{{CYAN}}Schema sync (push)...{{NC}}\n"
     cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit push
 
 # Launch Drizzle Studio GUI (dev-only, localhost)
+[group('db')]
 db-studio:
     @printf "{{CYAN}}Launching Drizzle Studio on http://localhost:4983{{NC}}\n"
     cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit studio --port 4983
@@ -47,6 +51,7 @@ db-studio:
 # ─── Stats (read-only) ──────────────────────────────────────────────────────
 
 # DB stats (product/ingredient/tag/user counts). Read-only.
+[group('db')]
 db-stats:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -59,6 +64,7 @@ db-stats:
 # ─── Seed (write, idempotent) ───────────────────────────────────────────────
 
 # Push CORE seed deltas (idempotent, preserves user-state).
+[group('db')]
 db-seed:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -77,6 +83,7 @@ db-seed:
     printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Update existing seed entries (name/description/content/category) without touching user-data.
+[group('db')]
 db-seed-update:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -90,17 +97,21 @@ db-seed-update:
     printf "{{GREEN}}✓ CORE seed updated ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Alias — idempotent mode is default since Phase 5d
+[group('db')]
 db-seed-merge: db-seed
 
 # Seed + audit (recommended after reseed). Composite, inherits TARGET.
+[group('db')]
 db-seed-safe: db-seed audit-db
 
 # Backup + idempotent delta push + audit. Composite, inherits TARGET.
+[group('db')]
 db-seed-merge-safe: db-backup db-seed-merge audit-db
 
 # ─── Destructive (DOUBLE confirmation on prod) ──────────────────────────────
 
 # ⚠️ Destructive seed (TRUNCATE + reseed). Triple confirmation on prod.
+[group('db')]
 db-seed-reset:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -121,6 +132,7 @@ db-seed-reset:
     printf "{{GREEN}}✓ CORE seed (--reset) done ($TARGET){{NC}}\n"
 
 # Wipe DB completely (public schema). Destructive.
+[group('db')]
 db-clean:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -140,11 +152,13 @@ db-clean:
     printf "{{GREEN}}✓ Database wiped ($TARGET).{{NC}}\n"
 
 # Full reset: wipe + migrate + seed. Composite, inherits TARGET.
+[group('db')]
 db-reset: db-clean db-migrate db-seed
 
 # ─── Backup / restore ───────────────────────────────────────────────────────
 
 # Create SQL backup. Prod = gzip + GPG (recipient backup@aurore.local). Dev = .sql brut.
+[group('db')]
 db-backup:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -168,6 +182,7 @@ db-backup:
     printf "{{GREEN}}✓ Backup created ($TARGET): $BK{{NC}}\n"
 
 # Restore a backup. Usage: just db-restore ./backups/xxx.sql
+[group('db')]
 db-restore file:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -189,15 +204,18 @@ db-restore file:
     printf "{{GREEN}}✓ Restore done ($TARGET){{NC}}\n"
 
 # [PROD] Alias de `TARGET=prod just db-backup` (gardé pour rétrocompatibilité scripts cron).
+[group('db')]
 db-backup-prod:
     @TARGET=prod just db-backup
 
 # [PROD] Delete backups older than 7 days (.sql.gz.gpg + .sql.gz pour la fenêtre de transition).
+[group('db')]
 db-backup-clean:
     find ./backups \( -name "*.sql.gz.gpg" -o -name "*.sql.gz" \) -mtime +7 -delete
     @printf "{{GREEN}}✓ Old backups deleted{{NC}}\n"
 
 # [PROD] Install daily cron (3am) for backups
+[group('db')]
 backup-cron-install:
     #!/usr/bin/env bash
     printf "{{YELLOW}}Installing backup cron at /etc/cron.d/aurore-backup{{NC}}\n"
@@ -209,6 +227,7 @@ backup-cron-install:
 # ─── Snapshot (dev-only — committable file, dev source of truth) ────────────
 
 # Dump data → backend/src/db/snapshot/data.sql (committable, dev source of truth)
+[group('db')]
 db-snapshot:
     #!/usr/bin/env bash
     mkdir -p backend/src/db/snapshot
@@ -219,6 +238,7 @@ db-snapshot:
     printf "{{GREEN}}✓ Snapshot written: {{SNAPSHOT_FILE}} ($(wc -l < {{SNAPSHOT_FILE}}) lines, $(du -h {{SNAPSHOT_FILE}} | cut -f1)){{NC}}\n"
 
 # Reload snapshot/data.sql into DB — requires migrated schema. Dev-only.
+[group('db')]
 db-snapshot-load:
     #!/usr/bin/env bash
     if [ ! -f "{{SNAPSHOT_FILE}}" ]; then
@@ -234,6 +254,7 @@ db-snapshot-load:
     printf "{{GREEN}}✓ Snapshot loaded{{NC}}\n"
 
 # Clean + migrate + load snapshot (alternative to db-reset which uses seed TS). Dev-only.
+[group('db')]
 db-snapshot-reset: db-clean db-migrate
     {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 < {{SNAPSHOT_FILE}} > /dev/null
     @printf "{{GREEN}}✓ DB reset from snapshot{{NC}}\n"

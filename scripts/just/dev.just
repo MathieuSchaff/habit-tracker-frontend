@@ -14,9 +14,7 @@ dev-down:
 dev-d: ts-build
     {{COMPOSE_DEV}} up -d --build
 
-# Prod-like profiling: Caddy HTTP/2 + brotli + immutable over the prod build, /api → backend.
-# Closest local match to prod nginx (preview is h1, no immutable). Needs backend up: `just dev-d`.
-# Open https://localhost:8443 and accept the self-signed warning (h2 still negotiates).
+# Prod-like profiling: Caddy HTTP/2 + brotli + immutable over prod build, /api → backend (closest local match to prod nginx). Needs backend up (`just dev-d`); open https://localhost:8443, accept self-signed warning.
 profile-prod:
     cd frontend && bun run build
     docker run --rm -p 8443:8443 \

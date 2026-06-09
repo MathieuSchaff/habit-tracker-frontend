@@ -10,6 +10,7 @@ import '_vars.just'
 #   TARGET=prod APPLY=1 just image-patch-urls         # prod confirmation
 
 # Upload une image vers Bunny CDN + update DB. Env: SLUG, URL, FILE, BATCH, DRY, NO_DB, NO_STAGED, CONCURRENCY.
+[group('images')]
 image-upload:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -33,6 +34,7 @@ image-upload:
         ${CONCURRENCY:+--concurrency "$CONCURRENCY"}
 
 # Batch upload depuis output/images-source/ (workflow legacy).
+[group('images')]
 image-upload-batch:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -44,6 +46,7 @@ image-upload-batch:
     $COMPOSE exec api bun run src/images/upload/batch.ts
 
 # Patch imageUrl dans les *.seed.ts vers convention CDN (pas la DB — re-seed pour appliquer). Env: APPLY (sans = dry-run).
+[group('images')]
 image-patch-urls:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -57,6 +60,7 @@ image-patch-urls:
         $([ -z "${APPLY:-}" ] && echo "--dry" || true)
 
 # Audit : images CDN sans produit DB matchant. Env: BRAND, TOP. Read-only.
+[group('images')]
 image-analyze-orphans:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -69,6 +73,7 @@ image-analyze-orphans:
         ${TOP:+--top "$TOP"}
 
 # Dump JSON des orphelins (consommable par delete-bunny.ts manuel). Read-only.
+[group('images')]
 image-dump-orphans:
     #!/usr/bin/env bash
     set -euo pipefail

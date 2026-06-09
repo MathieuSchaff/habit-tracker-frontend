@@ -13,10 +13,7 @@ prod-logs:
 prod-down:
     {{COMPOSE_PROD}} down
 
-# Apply migrations on prod DB (in-container, same bun-sql migrator as dev/test/e2e).
-# Then realign the app_runtime role password: migration 0013 creates the role with a
-# placeholder via IF NOT EXISTS (never re-run), so the runtime pool can't authenticate
-# until ALTER ROLE matches APP_RUNTIME_PASSWORD. Idempotent — safe to re-run.
+# Apply prod migrations (in-container) + realign app_runtime role password (mig 0013 sets a placeholder via IF NOT EXISTS → pool can't auth until ALTER ROLE matches APP_RUNTIME_PASSWORD). Idempotent, safe to re-run.
 prod-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
