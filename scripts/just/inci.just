@@ -10,6 +10,7 @@ import '_vars.just'
 #   TARGET=prod just audit-inci-quality
 
 # Audit corpus INCI : tokens non matchés, INCI pathologiques. Env: FULL.
+[group('audit')]
 audit-inci-quality:
     #!/usr/bin/env bash
     set -euo pipefail

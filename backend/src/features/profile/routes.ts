@@ -11,6 +11,7 @@ import {
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+import { db as baseDb } from '../../db'
 import { zValidator } from '../../utils/validator'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
@@ -143,10 +144,10 @@ export const profileRoute = app
     const db = c.get('db')
     const data = await exportUserData(db, userId)
 
-    // Audit trail (RGPD traceability). Best-effort: a logging failure must not
-    // shadow the user's right of access. Same tx as the read, so it rolls
-    // back if the export itself fails.
-    await logSecurityEvent(db, {
+    // Audit trail (RGPD). Best-effort on the base pool, NOT the request tx:
+    // a swallowed insert on the tx would commit an aborted tx (RLS invariant).
+    // Runs after the read succeeds, so it only logs real exports.
+    await logSecurityEvent(baseDb, {
       userId,
       severity: 'low',
       eventType: 'data_export_requested',

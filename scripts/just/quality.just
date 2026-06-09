@@ -30,8 +30,7 @@ fallow-baseline:
     npx fallow health --save-baseline .fallow/audit-health.json --quiet
     npx fallow dupes --save-baseline .fallow/audit-dupes.json --quiet
 
-# Dead-code scan via knip (re-export aware, less false positives than fallow).
-# DATABASE_URL stub évite l'erreur de drizzle.config.ts au load (knip ne run pas le code, juste parse imports).
+# Dead-code scan via knip (re-export aware, fewer false positives than fallow). DATABASE_URL stub avoids drizzle.config.ts load error (knip only parses imports).
 knip:
     DATABASE_URL=postgres://x bunx knip --reporter compact
 
@@ -68,9 +67,7 @@ audit-code:
     cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
     printf "{{GREEN}}Done. Rapports → .audit-out/{{NC}}\n"
 
-# Test the prod CSP against the prod build, locally, no Docker. Builds dist, serves it with the
-# CSP from infra/nginx/templates/default.conf.template, drives headless chromium, fails on any
-# violation. Test-only — nothing here ships to prod.
+# Test prod CSP against prod build, locally, no Docker (builds dist, serves w/ nginx CSP, headless chromium, fails on violation). Test-only.
 test-csp:
     cd frontend && bunx vite build && bun e2e/csp/check.ts
 

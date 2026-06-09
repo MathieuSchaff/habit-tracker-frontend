@@ -1,10 +1,7 @@
 import '_vars.just'
 import 'dev.just'
 
-# Launch E2E stack (tmpfs DB + migrate + snapshot restore) and wait for frontend.
-# Seeds from committed data.sql (full catalog + personas + reviews/bans) rather than
-# seed-core: faster on tmpfs and carries the curated skincare fixtures specs depend on.
-# Ports isolés (5174/3001/5434) — tourne en parallèle avec just dev.
+# Launch E2E stack (tmpfs DB + migrate + restore data.sql: full catalog/personas/fixtures, not seed-core) on isolated ports 5174/3001/5434 — runs alongside just dev.
 e2e-up: ts-build
     {{COMPOSE_E2E}} up -d --build
     @printf "{{CYAN}}Waiting for DB...{{NC}}\n"

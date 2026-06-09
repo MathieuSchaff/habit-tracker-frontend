@@ -43,9 +43,7 @@ artifacts-clean:
     done
     printf "{{GREEN}}%d artefact(s) supprimé(s).{{NC}}\n" "$n"
 
-# Ouvre un artefact, interactif. Sans arg → menu (fzf, sinon select bash). Avec arg → match
-# (stats|analyze|coverage|audit, ou un fragment de chemin). Si l'artefact manque, le génère
-# puis l'ouvre.
+# Ouvre un artefact (interactif). Sans arg → menu fzf/select. Avec arg → match (stats|analyze|coverage|audit ou fragment de chemin); génère si absent.
 artifacts-open ARG="":
     #!/usr/bin/env bash
     set -uo pipefail
