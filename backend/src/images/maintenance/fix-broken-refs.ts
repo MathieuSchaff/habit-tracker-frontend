@@ -34,22 +34,20 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SQL } from 'bun'
 
+import { deleteBunny, getBunny, putBunny, resolveBunnyConfig } from '../lib/bunny'
+
 const APPLY = process.argv.includes('--apply')
 const SEED_ROOT = join(import.meta.dir, '..')
 const MAPPING_PATH = join(SEED_ROOT, 'output', 'image-mapping.json')
 
-const ZONE = process.env.BUNNY_STORAGE_ZONE
-const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
-const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
-const CDN_BASE = (process.env.IMAGE_CDN_BASE ?? '').replace(/\/+$/, '')
+const cfg = resolveBunnyConfig()
 const DB_URL = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL
 
 const missing = [
-  !ZONE && 'BUNNY_STORAGE_ZONE',
-  !PASSWORD && 'BUNNY_STORAGE_PASSWORD',
+  !cfg.zone && 'BUNNY_STORAGE_ZONE',
+  !cfg.password && 'BUNNY_STORAGE_PASSWORD',
   !DB_URL && 'APP_DATABASE_URL',
-  !CDN_BASE && 'IMAGE_CDN_BASE',
+  !cfg.cdnBase && 'IMAGE_CDN_BASE',
 ].filter(Boolean) as string[]
 if (missing.length > 0) {
   console.error(`missing env: ${missing.join(', ')}`)
@@ -100,38 +98,15 @@ if (!APPLY) {
 
 const sql = new SQL(DB_URL as string)
 
-async function bunnyGet(file: string): Promise<Uint8Array> {
-  const url = `https://${HOSTNAME}/${ZONE}/${PREFIX}${file}`
-  const res = await fetch(url, { headers: { AccessKey: PASSWORD as string } })
-  if (!res.ok) throw new Error(`GET ${file}: HTTP ${res.status}`)
-  return new Uint8Array(await res.arrayBuffer())
-}
-async function bunnyPut(file: string, body: Uint8Array): Promise<void> {
-  const url = `https://${HOSTNAME}/${ZONE}/${PREFIX}${file}`
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { AccessKey: PASSWORD as string, 'Content-Type': 'image/webp' },
-    body,
-  })
-  if (!res.ok) throw new Error(`PUT ${file}: HTTP ${res.status} ${await res.text()}`)
-}
-async function bunnyDelete(file: string): Promise<'deleted' | 'notFound'> {
-  const url = `https://${HOSTNAME}/${ZONE}/${PREFIX}${file}`
-  const res = await fetch(url, { method: 'DELETE', headers: { AccessKey: PASSWORD as string } })
-  if (res.status === 404) return 'notFound'
-  if (!res.ok) throw new Error(`DELETE ${file}: HTTP ${res.status}`)
-  return 'deleted'
-}
-
 let renameDone = 0
 let renameFailed = 0
 for (const r of renames) {
   try {
-    const body = await bunnyGet(r.oldFile)
-    await bunnyPut(r.newFile, body)
-    const newUrl = `${CDN_BASE}/${PREFIX}${r.newFile}`
+    const body = await getBunny(cfg, r.oldFile)
+    await putBunny(cfg, r.newFile, body)
+    const newUrl = `${cfg.cdnBase}/${cfg.prefix}${r.newFile}`
     await sql`UPDATE products SET image_url = ${newUrl} WHERE slug = ${r.slug}`
-    await bunnyDelete(r.oldFile)
+    await deleteBunny(cfg, r.oldFile)
     renameDone++
     console.log(`  ok rename ${r.oldFile} → ${r.newFile}`)
   } catch (err) {
@@ -152,7 +127,7 @@ let cleanupNotFound = 0
 let cleanupFailed = 0
 for (const s of cleanupOrphans) {
   try {
-    const result = await bunnyDelete(`${s}.webp`)
+    const result = await deleteBunny(cfg, `${s}.webp`)
     if (result === 'notFound') cleanupNotFound++
     else cleanupDone++
   } catch (err) {

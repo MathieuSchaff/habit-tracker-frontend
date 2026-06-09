@@ -1,6 +1,6 @@
 import type { SkinConcern, SkinType } from '@aurore/shared'
 
-import { analyzeINCI, type ProductAssessment, type UserProfile } from 'algo-derm'
+import { analyzeINCI, cleanInciString, type ProductAssessment, type UserProfile } from 'algo-derm'
 import { eq } from 'drizzle-orm'
 
 import { type Database, db } from '../../db'
@@ -59,7 +59,9 @@ export async function computeProductDermoScore(
 
   if (!product) throw new ProductError('product_not_found')
 
-  const inci = product.inci?.trim()
+  // Repair scraper-damaged separators/labels/prose before scoring; analyzeINCI
+  // splits internally, so a broken INCI silently mis-parsed under the old raw trim.
+  const inci = product.inci ? cleanInciString(product.inci) : undefined
   if (!inci) return { ok: false, reason: 'inci_missing' }
 
   const profile = userId ? await loadAlgoDermProfile(userId, database) : undefined

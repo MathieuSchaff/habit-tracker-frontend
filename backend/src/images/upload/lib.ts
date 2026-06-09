@@ -26,6 +26,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { randomUUIDv7, SQL } from 'bun'
 
+import { type BunnyConfig, putBunny, resolveBunnyConfig } from '../lib/bunny'
+
 const UA =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36'
 
@@ -66,14 +68,14 @@ export interface UploadServiceOptions {
   sql?: SQL
 }
 
-function resolveConfig(opts: UploadServiceOptions) {
-  const zone = opts.bunnyZone ?? process.env.BUNNY_STORAGE_ZONE
-  const hostname =
-    opts.bunnyHostname ?? process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-  const password = opts.bunnyPassword ?? process.env.BUNNY_STORAGE_PASSWORD
-  const prefix = `${(opts.bunnyPrefix ?? process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
-  const cdnBase = (opts.cdnBase ?? process.env.IMAGE_CDN_BASE ?? '').replace(/\/+$/, '')
-  return { zone, hostname, password, prefix, cdnBase }
+function resolveConfig(opts: UploadServiceOptions): BunnyConfig {
+  return resolveBunnyConfig({
+    zone: opts.bunnyZone,
+    hostname: opts.bunnyHostname,
+    password: opts.bunnyPassword,
+    prefix: opts.bunnyPrefix,
+    cdnBase: opts.cdnBase,
+  })
 }
 
 async function readSource(source: ImageSource): Promise<{ bytes: Uint8Array; ext: string }> {
@@ -132,23 +134,6 @@ function normaliseToWebp(
   return new Uint8Array(readFileSync(outPath))
 }
 
-async function bunnyPut(
-  bytes: Uint8Array,
-  zone: string,
-  hostname: string,
-  prefix: string,
-  password: string,
-  slug: string
-): Promise<void> {
-  const url = `https://${hostname}/${zone}/${prefix}${slug}.webp`
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { AccessKey: password, 'Content-Type': 'image/webp' },
-    body: bytes,
-  })
-  if (!res.ok) throw new Error(`PUT ${slug}.webp: HTTP ${res.status} ${await res.text()}`)
-}
-
 export async function uploadProductImage(
   input: UploadProductImageInput,
   opts: UploadServiceOptions = {}
@@ -159,11 +144,12 @@ export async function uploadProductImage(
   const resizeMax = input.resizeMax ?? 800
   const quality = input.quality ?? 82
 
-  const { zone, hostname, password, prefix, cdnBase } = resolveConfig(opts)
+  const cfg = resolveConfig(opts)
+  const { prefix, cdnBase } = cfg
   if (!cdnBase) throw new Error('missing IMAGE_CDN_BASE')
   if (!dry) {
-    if (!zone) throw new Error('missing BUNNY_STORAGE_ZONE')
-    if (!password) throw new Error('missing BUNNY_STORAGE_PASSWORD')
+    if (!cfg.zone) throw new Error('missing BUNNY_STORAGE_ZONE')
+    if (!cfg.password) throw new Error('missing BUNNY_STORAGE_PASSWORD')
   }
 
   const { bytes: rawBytes, ext } = await readSource(input.source)
@@ -174,7 +160,7 @@ export async function uploadProductImage(
   let dbUpdated = false
 
   if (!dry) {
-    await bunnyPut(webpBytes, zone as string, hostname, prefix, password as string, input.slug)
+    await putBunny(cfg, `${input.slug}.webp`, webpBytes)
     bunnyUploaded = true
     if (updateDb) {
       const sql =

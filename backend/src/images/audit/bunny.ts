@@ -18,31 +18,18 @@
 
 import { SQL } from 'bun'
 
-const ZONE = process.env.BUNNY_STORAGE_ZONE
-const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
-const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
-const CDN_BASE = (process.env.IMAGE_CDN_BASE ?? '').replace(/\/+$/, '')
+import { listBunny, resolveBunnyConfig } from '../lib/bunny'
+
+const cfg = resolveBunnyConfig()
 const DB_URL = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL
 
-if (!ZONE || !PASSWORD || !DB_URL) {
+if (!cfg.zone || !cfg.password || !DB_URL) {
   console.error('missing env: BUNNY_STORAGE_ZONE, BUNNY_STORAGE_PASSWORD, APP_DATABASE_URL')
   process.exit(1)
 }
 
 console.log('→ listing Bunny storage…')
-const listRes = await fetch(`https://${HOSTNAME}/${ZONE}/${PREFIX}`, {
-  headers: { AccessKey: PASSWORD },
-})
-if (!listRes.ok) {
-  console.error(`bunny list failed: HTTP ${listRes.status}`)
-  process.exit(1)
-}
-const items = (await listRes.json()) as Array<{
-  ObjectName: string
-  IsDirectory: boolean
-  Length: number
-}>
+const items = await listBunny(cfg)
 const bunnyFiles = new Set(
   items.filter((i) => !i.IsDirectory && i.ObjectName.endsWith('.webp')).map((i) => i.ObjectName)
 )
@@ -61,8 +48,8 @@ const rows = (await sql`SELECT slug, image_url FROM products`) as Array<{
 const dbCdnSlugs = new Set<string>()
 const dbExpectedFiles = new Set<string>()
 for (const r of rows) {
-  if (r.image_url && CDN_BASE && r.image_url.startsWith(CDN_BASE)) {
-    const file = r.image_url.replace(`${CDN_BASE}/${PREFIX}`, '')
+  if (r.image_url && cfg.cdnBase && r.image_url.startsWith(cfg.cdnBase)) {
+    const file = r.image_url.replace(`${cfg.cdnBase}/${cfg.prefix}`, '')
     dbExpectedFiles.add(file)
     dbCdnSlugs.add(r.slug)
   }
@@ -84,7 +71,7 @@ const sample = [...bunnyFiles].sort(() => Math.random() - 0.5).slice(0, 10)
 let ok = 0
 let fail = 0
 for (const f of sample) {
-  const url = `${CDN_BASE}/${PREFIX}${f}`
+  const url = `${cfg.cdnBase}/${cfg.prefix}${f}`
   const res = await fetch(url, { method: 'HEAD' })
   if (res.ok) {
     ok++

@@ -13,6 +13,8 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { splitINCI } from 'algo-derm'
+
 import { ingredientData } from '../data/ingredients'
 import { INGREDIENT_SLUGS } from '../data/ingredients/ingredient-slugs'
 
@@ -313,7 +315,9 @@ export function inferKeyIngredients(
 
   const allowed = getDomainAllowlist(options.candidateCategory)
 
-  const tokens = inci.split(/[,;]/).map(normalizeInciToken).filter(Boolean)
+  // splitINCI protects decimal commas (1,2-Hexanediol) that a naive /[,;]/ split
+  // would shred; `;` is folded to `,` first since splitINCI only splits on commas.
+  const tokens = splitINCI(inci.replace(/;/g, ',')).map(normalizeInciToken).filter(Boolean)
 
   const seen = new Set<string>()
   const result: string[] = []

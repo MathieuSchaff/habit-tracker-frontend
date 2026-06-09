@@ -145,6 +145,15 @@ describe('inferKeyIngredients', () => {
   it('returns empty for empty INCI', () => {
     expect(inferKeyIngredients('', index)).toEqual([])
   })
+
+  it('keeps decimal-comma tokens intact (1,2-Hexanediol) instead of shredding them', () => {
+    const idx = new Map<string, { slug: string; domain: 'skincare' }>([
+      ['1,2-HEXANEDIOL', { slug: 'hexanediol', domain: 'skincare' }],
+      ['NIACINAMIDE', { slug: 'niacinamide', domain: 'skincare' }],
+    ])
+    const inci = 'AQUA, 1,2-Hexanediol, Niacinamide'
+    expect(inferKeyIngredients(inci, idx)).toEqual(['hexanediol', 'niacinamide'])
+  })
 })
 
 describe('buildInciIndex (integration)', () => {

@@ -21,9 +21,9 @@
 import type { ProductKind } from '@aurore/shared'
 
 import { analyzeINCI, type MatchedEvidence } from 'algo-derm'
-import { and, eq, isNotNull, sql } from 'drizzle-orm'
+import { and, eq, isNotNull } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { pad, rpad } from '../fmt'
@@ -93,27 +93,28 @@ async function main() {
   console.log(`📐 Concentration solver audit`)
   if (SLUG_FILTER) console.log(`   slug filter: ${SLUG_FILTER}`)
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const rows = await db
-    .select({
-      productId: products.id,
-      productSlug: products.slug,
-      productKind: products.kind,
-      productInci: products.inci,
-      ingredientSlug: ingredients.slug,
-      ingredientName: ingredients.name,
-      knownPct: productIngredients.concentrationValue,
-    })
-    .from(productIngredients)
-    .innerJoin(products, eq(products.id, productIngredients.productId))
-    .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
-    .where(
-      and(
-        eq(productIngredients.concentrationUnit, '%'),
-        isNotNull(productIngredients.concentrationValue)
+  // Elevate in-tx so the audit reads the full catalogue (see db/rls.ts).
+  const rows = await withAdminRls(async (tx) =>
+    tx
+      .select({
+        productId: products.id,
+        productSlug: products.slug,
+        productKind: products.kind,
+        productInci: products.inci,
+        ingredientSlug: ingredients.slug,
+        ingredientName: ingredients.name,
+        knownPct: productIngredients.concentrationValue,
+      })
+      .from(productIngredients)
+      .innerJoin(products, eq(products.id, productIngredients.productId))
+      .innerJoin(ingredients, eq(ingredients.id, productIngredients.ingredientId))
+      .where(
+        and(
+          eq(productIngredients.concentrationUnit, '%'),
+          isNotNull(productIngredients.concentrationValue)
+        )
       )
-    )
+  )
 
   const claims: Claim[] = []
   for (const r of rows) {

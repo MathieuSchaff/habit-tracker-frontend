@@ -13,8 +13,9 @@
 import { db } from '../../../../db'
 import { products } from '../../../../db/schema'
 
-// Primary detergents, amphoterics, soap salts and the common French spellings — any real
-// shampoo/body-wash carries at least one. Kept broad on purpose to minimise false positives.
+// Broad "is any surfactant present?" net (detergents, amphoterics, soaps, FR spellings),
+// kept wide for low false positives; intentionally not shared with the anionic-only
+// IONIC_SURFACTANT_PATTERNS (coupling audit explains why).
 const SURFACTANT =
   /sulfate|sulfosuccinate|sarcosinate|glucoside|betaine|isethionate|taurate|sulfonate|cocoyl|cocamidopropyl|lauroyl|laureth|sultaine|sultaïne|amphodiac|amphoac|cocoate|palmate|olivate|sodium stearate|stearate de sodium|oleate|sulfoacetate|glutamate|carboxylate/i
 

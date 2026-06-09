@@ -17,7 +17,7 @@ import { PRODUCT_KIND_LABELS, type ProductKind } from '@aurore/shared'
 
 import { eq, sql } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
 import { pad, rpad } from '../fmt'
@@ -86,18 +86,19 @@ function printTrace(trace: ExplainTrace, kind: string, category: string): void {
 }
 
 async function runCounts(): Promise<void> {
-  // SET LOCAL bypasses RLS so the count covers the full catalogue.
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-  const rows = await db
-    .select({
-      slug: productTagTypes.slug,
-      cluster: productTagTypes.tagType,
-      relevance: productTagLinks.relevance,
-      n: sql<number>`count(*)::int`,
-    })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-    .groupBy(productTagTypes.slug, productTagTypes.tagType, productTagLinks.relevance)
+  // Elevate in-tx so the counts cover the full catalogue (see db/rls.ts).
+  const rows = await withAdminRls(async (tx) =>
+    tx
+      .select({
+        slug: productTagTypes.slug,
+        cluster: productTagTypes.tagType,
+        relevance: productTagLinks.relevance,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(productTagLinks)
+      .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+      .groupBy(productTagTypes.slug, productTagTypes.tagType, productTagLinks.relevance)
+  )
 
   const byLevel = new Map<string, number>()
   const byCluster = new Map<string, number>()
