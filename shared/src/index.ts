@@ -195,6 +195,7 @@ export {
   type DermoConflict,
   type DermoConflictSeverity,
   type DermoSignal,
+  DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES,
   DOMAIN_PRODUCT_FILTER_CATEGORIES,
   dentalListProductsQuery,
   dentalProductFilterCategories,

@@ -1,4 +1,8 @@
-import { DOMAIN_PRODUCT_FILTER_CATEGORIES, PRODUCT_CATEGORY_TO_DOMAIN_TAB } from '@aurore/shared'
+import {
+  DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES,
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
+} from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 
@@ -32,7 +36,10 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
       continue
     }
     const validTagTypes = DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[]
-    if (!validTagTypes.includes(row.tagType)) {
+    if (
+      !validTagTypes.includes(row.tagType) &&
+      !DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES.includes(row.tagType)
+    ) {
       violations.push({
         description: `${row.productSlug} (${row.productCategory}/${domain}) → tag "${row.tagSlug}" type="${row.tagType}" not in [${validTagTypes.join(', ')}]`,
       })

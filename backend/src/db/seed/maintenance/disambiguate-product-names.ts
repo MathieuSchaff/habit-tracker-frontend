@@ -5,14 +5,14 @@
  * suffix. Idempotent: skips entries whose name already ends with `(...)`.
  *
  * Usage:
- *   bun run backend/src/db/seed/maintenance/disambiguate-product-names.ts --dry
- *   bun run backend/src/db/seed/maintenance/disambiguate-product-names.ts
+ *   bun run backend/src/db/seed/maintenance/disambiguate-product-names.ts          # dry-run
+ *   bun run backend/src/db/seed/maintenance/disambiguate-product-names.ts --write  # apply
  */
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const DRY = process.argv.includes('--dry')
+const WRITE = process.argv.includes('--write')
 const SEED_ROOT = join(import.meta.dir, '..')
 const PRODUCTS_DIR = join(SEED_ROOT, 'data', 'products')
 
@@ -200,13 +200,13 @@ for (const file of files) {
     totalPatched++
   }
 
-  if (!DRY) {
+  if (WRITE) {
     for (const p of patches) lines[p.line] = p.to
     writeFileSync(file, lines.join('\n'))
   }
 }
 
-console.log(`\n${DRY ? '[DRY] would patch' : 'patched'}: ${totalPatched}`)
+console.log(`\n${WRITE ? 'patched' : '[DRY] would patch'}: ${totalPatched}`)
 if (skipped.length > 0) {
   console.log(`skipped: ${skipped.length}`)
   for (const s of skipped.slice(0, 10)) console.log(s)

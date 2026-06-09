@@ -11,8 +11,8 @@
  * Tie-break on equal volume: keep the first entry in source order.
  *
  * Usage:
- *   bun run backend/src/db/seed/maintenance/canonicalize-volume-variants.ts --dry
- *   bun run backend/src/db/seed/maintenance/canonicalize-volume-variants.ts
+ *   bun run backend/src/db/seed/maintenance/canonicalize-volume-variants.ts          # dry-run
+ *   bun run backend/src/db/seed/maintenance/canonicalize-volume-variants.ts --write  # apply
  *
  * Pre-req: run audit-imported-products.ts --write first.
  */
@@ -20,7 +20,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const DRY = process.argv.includes('--dry')
+const WRITE = process.argv.includes('--write')
 const SEED_ROOT = join(import.meta.dir, '..')
 const AUDIT_PATH = join(SEED_ROOT, 'output', 'imported-products-audit.json')
 const _PRODUCTS_DIR = join(SEED_ROOT, 'data', 'products')
@@ -229,12 +229,12 @@ for (const [relFile, filePairs] of byFile) {
     totalDropped += drops.length
   }
 
-  if (!DRY && toDrop.length > 0) {
+  if (WRITE && toDrop.length > 0) {
     const next = dropLines(text, toDrop)
     writeFileSync(absFile, next)
   }
 }
 
 console.log(
-  `\n${DRY ? '[DRY] would drop' : 'dropped'}: ${totalDropped} entries across ${totalGroups} groups in ${byFile.size} files`
+  `\n${WRITE ? 'dropped' : '[DRY] would drop'}: ${totalDropped} entries across ${totalGroups} groups in ${byFile.size} files`
 )

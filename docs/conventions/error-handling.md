@@ -63,8 +63,12 @@ Examples: `uploads/routes.ts`, `products/product-ingredients/routes.ts`,
 
 ## Rules
 
-1. **Pick one style per feature module and stay consistent within it.** Don't mix A and B
-   inside the same `routes.ts` / `service.ts` pair.
+1. **Pick one style per feature module and stay consistent within it.** Don't mix A and B for
+   the *same* operation. *Allowed split:* reads return `T | null` (route handles the null with
+   `err(...)`), writes throw-domain (a missing row mid-mutation is an exceptional abort). When a
+   route maps a null, derive the status via `errorToStatus(code, xxxErrorMapping)` rather than a
+   hardcoded constant, so it can't drift from the registry. `user-products` uses this split today
+   but still hardcodes the read status (`HTTP_STATUS.NOT_FOUND`).
 
 2. **Never mix styles within `withRlsContext`.** Any swallowed error breaks the rollback
    contract.
@@ -87,11 +91,10 @@ Examples: `uploads/routes.ts`, `products/product-ingredients/routes.ts`,
 
 ---
 
-## Known registry state (as of 2026-05-21)
+## Known registry state (as of 2026-06-09)
 
 | Entry | Status |
 |---|---|
-| `AuthError` in registry | Stale — no `AuthError` class in use (auth uses style B) |
 | `ReportError` | Missing from registry — safe for now (codes fall through to `baseErrorMapping`) |
 
 Update the registry when extending `ReportError` with non-base codes.

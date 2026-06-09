@@ -2,7 +2,7 @@
 /**
  * delete-bunny-images.ts — Delete product images from Bunny Storage.
  *
- * Reads slugs from output/dedupe-dropped.json (or path passed via $SLUGS_FILE)
+ * Reads slugs from the CDN-delete list (or path passed via $SLUGS_FILE)
  * and DELETEs https://${BUNNY_STORAGE_HOSTNAME}/${BUNNY_STORAGE_ZONE}/${PREFIX}<slug>.webp.
  * 404s are treated as success (idempotent).
  *
@@ -13,7 +13,7 @@
  * Optional env:
  *   BUNNY_STORAGE_HOSTNAME    default: storage.bunnycdn.com
  *   BUNNY_STORAGE_PREFIX      default: products/
- *   SLUGS_FILE                default: output/dedupe-dropped.json
+ *   SLUGS_FILE                default: ../db/seed/output/dedup-dropped-slugs.json
  *   DRY_RUN                   "1" → preview only
  *   CONCURRENCY               default: 8
  */
@@ -21,12 +21,13 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const SEED_ROOT = join(import.meta.dir, '..')
 const ZONE = process.env.BUNNY_STORAGE_ZONE
 const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
 const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
 const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
-const SLUGS_FILE = process.env.SLUGS_FILE ?? join(SEED_ROOT, 'output', 'dedupe-dropped.json')
+const SLUGS_FILE =
+  process.env.SLUGS_FILE ??
+  join(import.meta.dir, '..', '..', 'db', 'seed', 'output', 'dedup-dropped-slugs.json')
 const DRY_RUN = process.env.DRY_RUN === '1'
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 8)
 

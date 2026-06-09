@@ -57,6 +57,8 @@ const RULES: KindRule[] = [
   {
     name: 'demaquillant',
     match: /\bd[eé]maquillant|\bmicellair|\bmicellar/i,
+    // "shampoing micellaire" is a hair shampoo — let it fall through to the shampoo rule.
+    forbidden: /\bshampo+ing?\b|\bshampoo\b/i,
     expected: 'cleanser',
     okIfKindIn: new Set<ProductKind>(['cleanser']),
     confidence: 'certain',

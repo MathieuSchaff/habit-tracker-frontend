@@ -9,14 +9,14 @@
  * canonicals) are reported and skipped.
  *
  * Usage:
- *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts --dry
- *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts
+ *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts          # dry-run
+ *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts --write  # apply
  */
 
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const DRY = process.argv.includes('--dry')
+const WRITE = process.argv.includes('--write')
 const SEED_ROOT = join(import.meta.dir, '..')
 const PRODUCTS_DIR = join(SEED_ROOT, 'data', 'products')
 
@@ -167,13 +167,13 @@ for (const file of files) {
     totalDropped++
   }
 
-  if (!DRY) {
+  if (WRITE) {
     const next = dropLines(text, toDrop)
     writeFileSync(file, next)
   }
 }
 
-if (!DRY && droppedSlugs.length > 0) {
+if (WRITE && droppedSlugs.length > 0) {
   const outDir = join(SEED_ROOT, 'output')
   mkdirSync(outDir, { recursive: true })
   const outFile = join(outDir, 'dedupe-dropped.json')
@@ -181,7 +181,7 @@ if (!DRY && droppedSlugs.length > 0) {
   console.log(`\nlogged ${droppedSlugs.length} dropped slugs → output/dedupe-dropped.json`)
 }
 
-console.log(`\n${DRY ? '[DRY] would drop' : 'dropped'}: ${totalDropped}`)
+console.log(`\n${WRITE ? 'dropped' : '[DRY] would drop'}: ${totalDropped}`)
 console.log(`skipped (manual review): ${totalSkipped}`)
 if (skipped.length > 0) {
   console.log('\n--- ambiguous groups (skipped) ---')
