@@ -54,6 +54,10 @@ export const DOMAIN_PRODUCT_FILTER_CATEGORIES: Record<
   complement: supplementProductFilterCategories(), // tab "complement" → domaine supplement
 }
 
+// Free-from claims (sans-sulfates…) store one tagType `product_characteristic` but apply to every
+// domain; the integrity check accepts it everywhere (NOT a UI filter list — those stay per-domain).
+export const DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES: readonly string[] = ['product_characteristic']
+
 const PRODUCT_TAXONOMIES = {
   skincare: SKINCARE_PRODUCT_TAG_TAXONOMY,
   haircare: HAIRCARE_PRODUCT_TAG_TAXONOMY,

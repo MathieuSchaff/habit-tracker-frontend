@@ -11,7 +11,11 @@
  *   bun run src/db/seed/maintenance/fix-tag-domain-consistency.ts --write    # apply
  */
 
-import { DOMAIN_PRODUCT_FILTER_CATEGORIES, PRODUCT_CATEGORY_TO_DOMAIN_TAB } from '@aurore/shared'
+import {
+  DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES,
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  PRODUCT_CATEGORY_TO_DOMAIN_TAB,
+} from '@aurore/shared'
 
 import { and, eq } from 'drizzle-orm'
 
@@ -39,7 +43,10 @@ async function main() {
     const domain = PRODUCT_CATEGORY_TO_DOMAIN_TAB[row.productCategory]
     if (!domain) return false
     const validTagTypes = DOMAIN_PRODUCT_FILTER_CATEGORIES[domain] as readonly string[]
-    return !validTagTypes.includes(row.tagType)
+    return (
+      !validTagTypes.includes(row.tagType) &&
+      !DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES.includes(row.tagType)
+    )
   })
 
   if (violations.length === 0) {
