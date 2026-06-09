@@ -38,9 +38,10 @@ import path from 'node:path'
 
 import type { ProductKind } from '@aurore/shared'
 
-import { inArray, sql } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 
 import { db } from '../../../db'
+import { withAdminRls } from '../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../db/schema'
 import {
   GOLD_SET_FOCUS_TAGS,
@@ -118,20 +119,21 @@ function logHeader(): void {
 }
 
 async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: ProductRow[] }> {
-  // SET LOCAL bypasses RLS to read the full catalogue.
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-  const all = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      brand: products.brand,
-      kind: products.kind,
-      category: products.category,
-      inci: products.inci,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+  // Elevate in-tx so the sample reads the full catalogue (see db/rls.ts).
+  const all = await withAdminRls((tx) =>
+    tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        brand: products.brand,
+        kind: products.kind,
+        category: products.category,
+        inci: products.inci,
+      })
+      .from(products)
+      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
+  )
   const eligible = all.filter((p) => !!p.inci?.trim())
   return { all, eligible }
 }

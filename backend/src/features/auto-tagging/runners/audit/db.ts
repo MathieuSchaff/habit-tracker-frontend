@@ -27,6 +27,7 @@ export async function fetchEligibleProducts(opts?: {
         kind: products.kind,
         category: products.category,
         inci: products.inci,
+        texture: products.texture,
       })
       .from(products)
       .where(inArray(products.category, [...categories]))

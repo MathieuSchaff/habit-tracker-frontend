@@ -91,10 +91,6 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       // Catches "Vitamin C Ester (Ascorbyl Palmitate)" when normalization
       // drops the parenthetical, leaving `vitamin c ester` as the residual.
       'vitamin c ester',
-      // FR-translated INCI (Korean brands, FR market). algo-derm collapses
-      // `-ique` -> `-ic` but keeps `acide X` word order when a trailing junk
-      // sentence blocks the FR->EN swap.
-      'acide ascorbic',
     ],
     positionCap: Number.POSITIVE_INFINITY,
   },
@@ -109,7 +105,6 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
-    // `acide X` variants for FR-translated INCI (FR pharmacy, Korean brand FR listings).
     patterns: [
       'glycolic acid',
       'lactic acid',
@@ -117,9 +112,6 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'malic acid',
       'tartaric acid',
       'ammonium lactate',
-      'acide glycolique',
-      'acide lactique',
-      'acide mandelique',
     ],
     // Acids at pos > 10 are pH adjusters, not exfoliants, in leave-on products.
     // Rinse-off cap is looser because surfactant-heavy formulas push acids to pos 12-18.
@@ -128,7 +120,7 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.BHA,
-    patterns: ['salicylic acid', 'acide salicylique', 'betaine salicylate'],
+    patterns: ['salicylic acid', 'betaine salicylate'],
     // Free SA + betaine salicylate at pos > 10 leave-on = preservative, not exfoliant.
     positionCap: 10,
     positionCapRinseOff: 20,
@@ -236,8 +228,6 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'kojic acid',
       'arbutin',
       'tranexamic acid',
-      // FR-translated INCI (Korean serum lines, FR market).
-      'acide tranexamique',
       'ellagic acid',
       'morus alba',
       'undecylenoyl phenylalanine',
@@ -248,7 +238,6 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       'boldine',
       // Competitive tyrosinase inhibitor + anti-acne; specific token, low over-tag risk.
       'azelaic acid',
-      'acide azélaïque',
     ],
     positionCap: Number.POSITIVE_INFINITY,
   },

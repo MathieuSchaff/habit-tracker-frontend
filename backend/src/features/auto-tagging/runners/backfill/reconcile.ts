@@ -16,47 +16,25 @@
 // Env: LIMIT (cap product count).
 import type { ProductKind, ProductTexture } from '@aurore/shared'
 
-import { eq, inArray, ne } from 'drizzle-orm'
+import { eq, ne } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
-import {
-  brandCertifications,
-  products,
-  productTagLinks,
-  productTagTypes,
-} from '../../../../db/schema'
+import { brandCertifications, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { resolveTagRows } from '../../lib/resolve-tag-rows'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
+import { detectAllAutoTags } from '../../orchestrator'
 import { writeTagsForProduct } from '../../write'
+import { fetchEligibleProducts } from '../audit/db'
+import { parseWriteSlugArgs } from '../cli-args'
 
-const WRITE = process.argv.includes('--write')
-const SLUG_ARG = (() => {
-  const i = process.argv.indexOf('--slug')
-  return i !== -1 ? (process.argv[i + 1] ?? null) : null
-})()
+const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 
-// Admin RLS elevation: products_select_visible hides non-`visible` rows from
-// app_runtime; without it the reconcile silently skips products in moderation.
-let prods = await withAdminRls((tx) =>
-  tx
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      description: products.description,
-      brand: products.brand,
-      kind: products.kind,
-      inci: products.inci,
-      category: products.category,
-      texture: products.texture,
-    })
-    .from(products)
-    .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-)
+// fetchEligibleProducts elevates RLS in-tx (products_select_visible hides
+// non-`visible` rows from app_runtime); SLUG/LIMIT narrow the corpus after.
+let prods = await fetchEligibleProducts()
 if (SLUG_ARG) prods = prods.filter((p) => p.slug === SLUG_ARG)
 if (LIMIT) prods = prods.slice(0, LIMIT)
 

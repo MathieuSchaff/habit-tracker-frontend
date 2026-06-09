@@ -18,14 +18,9 @@ import { db } from '../../../../db'
 import type { Transaction } from '../../../../db/index'
 import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
+import { parseWriteSlugArgs } from '../cli-args'
 
-// fallow-ignore-next-line code-duplication
-const WRITE = process.argv.includes('--write')
-// fallow-ignore-next-line code-duplication
-const SLUG_ARG = (() => {
-  const i = process.argv.indexOf('--slug')
-  return i !== -1 ? process.argv[i + 1] : null
-})()
+const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 
 type Confidence = 'certain' | 'likely'
 

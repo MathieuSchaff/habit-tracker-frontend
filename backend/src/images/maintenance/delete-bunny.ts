@@ -21,10 +21,9 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const ZONE = process.env.BUNNY_STORAGE_ZONE
-const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
-const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
+import { deleteBunny, resolveBunnyConfig } from '../lib/bunny'
+
+const cfg = resolveBunnyConfig()
 const SLUGS_FILE =
   process.env.SLUGS_FILE ??
   join(import.meta.dir, '..', '..', 'db', 'seed', 'output', 'dedup-dropped-slugs.json')
@@ -45,7 +44,7 @@ console.log(`${slugs.length} slugs to delete from ${SLUGS_FILE}`)
 if (DRY_RUN) {
   console.log('--- DRY RUN ---')
   for (const s of slugs.slice(0, 5)) {
-    console.log(`  DELETE https://${HOSTNAME}/${ZONE ?? '<zone>'}/${PREFIX}${s}.webp`)
+    console.log(`  DELETE https://${cfg.hostname}/${cfg.zone ?? '<zone>'}/${cfg.prefix}${s}.webp`)
   }
   if (slugs.length > 5) console.log(`  ... and ${slugs.length - 5} more`)
   process.exit(0)
@@ -56,22 +55,10 @@ let notFound = 0
 let failed = 0
 
 async function deleteOne(slug: string) {
-  const url = `https://${HOSTNAME}/${ZONE}/${PREFIX}${slug}.webp`
   try {
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { AccessKey: PASSWORD as string },
-    })
-    if (res.status === 404) {
-      notFound++
-      return
-    }
-    if (!res.ok) {
-      failed++
-      console.error(`  fail: ${slug} — HTTP ${res.status} ${res.statusText}`)
-      return
-    }
-    deleted++
+    const result = await deleteBunny(cfg, `${slug}.webp`)
+    if (result === 'notFound') notFound++
+    else deleted++
   } catch (err) {
     failed++
     console.error(`  fail: ${slug} — ${(err as Error).message}`)

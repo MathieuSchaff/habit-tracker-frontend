@@ -8,9 +8,9 @@
 import type { ProductKind } from '@aurore/shared'
 
 import { normalize, splitINCI, stripPreamble } from 'algo-derm'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 
@@ -29,12 +29,18 @@ const DUMP_FALSE_POS = process.env.DUMP_FALSE_POS === '1'
 async function main() {
   console.log(`🔍 Classify drift products (manual_only) by root cause\n`)
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
-  const skincare = await db
-    .select({ id: products.id, slug: products.slug, kind: products.kind, inci: products.inci })
-    .from(products)
-    .where(eq(products.category, 'skincare'))
+  // Elevate in-tx so the audit reads the full catalogue (see db/rls.ts).
+  const { skincare, existingRows } = await withAdminRls(async (tx) => {
+    const skincare = await tx
+      .select({ id: products.id, slug: products.slug, kind: products.kind, inci: products.inci })
+      .from(products)
+      .where(eq(products.category, 'skincare'))
+    const existingRows = await tx
+      .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
+      .from(productTagLinks)
+      .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+    return { skincare, existingRows }
+  })
 
   const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
   // BHA has 2 defs (different position caps for free SA vs capryloyl SA): merge
@@ -45,10 +51,6 @@ async function main() {
     patternsBySlug.set(d.slug, [...existing, ...d.patterns])
   }
 
-  const existingRows = await db
-    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
   const existingByProduct = new Map<string, Set<string>>()
   for (const r of existingRows) {
     if (!clusterSlugs.has(r.slug)) continue

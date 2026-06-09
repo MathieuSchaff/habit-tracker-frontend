@@ -57,13 +57,10 @@ import {
   detectAllAutoTags,
 } from '../../orchestrator'
 import { TAG_CONFIG } from '../../passes/algo-derm-detection'
+import { parseWriteSlugArgs } from '../cli-args'
 import { type Candidate, type ClassifyResult, classifyCandidates, type Relevance } from './classify'
 
-const WRITE = process.argv.includes('--write')
-const SLUG_ARG = (() => {
-  const i = process.argv.indexOf('--slug')
-  return i !== -1 ? process.argv[i + 1] : null
-})()
+const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRIDE) : null
 const INCLUDE_DROPPED = process.env.INCLUDE_DROPPED === '1'
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null

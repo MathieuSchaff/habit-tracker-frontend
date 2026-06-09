@@ -37,26 +37,21 @@ import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
-import { detectActifClasses } from '../../passes/actif-class-detection'
+import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 import { fetchEligibleProducts } from './db'
 
 const TARGET_SLUGS = ['aha', 'bha', 'pha'] as const
 type TargetSlug = (typeof TARGET_SLUGS)[number]
 
-// Mirrors `actif-class-detection.ts` cluster patterns for the 3 acid slugs.
-// Keep in sync if the detector evolves; the audit is meaningless if the
-// pattern set drifts.
+// Derived from the detector's own ACTIF_CLASS_DEFS so the audit can never drift
+// from what the pass actually matches (BHA has 2 defs — flatMap merges them).
+const collectPatterns = (slug: TargetSlug): string[] =>
+  ACTIF_CLASS_DEFS.filter((d) => d.slug === slug).flatMap((d) => d.patterns)
+
 const PATTERNS: Record<TargetSlug, readonly string[]> = {
-  aha: [
-    'glycolic acid',
-    'lactic acid',
-    'mandelic acid',
-    'malic acid',
-    'tartaric acid',
-    'ammonium lactate',
-  ],
-  bha: ['salicylic acid', 'capryloyl salicylic acid', 'betaine salicylate'],
-  pha: ['gluconolactone', 'lactobionic acid', 'galactose'],
+  aha: collectPatterns('aha'),
+  bha: collectPatterns('bha'),
+  pha: collectPatterns('pha'),
 }
 
 const CSV_OUT = process.env.CSV_OUT

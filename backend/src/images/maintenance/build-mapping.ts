@@ -33,20 +33,19 @@ import { existsSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SQL } from 'bun'
 
+import { listBunny, resolveBunnyConfig } from '../lib/bunny'
+
 const DRY = process.argv.includes('--dry')
 const SEED_ROOT = join(import.meta.dir, '..')
 const NORMALIZED_DIR = join(SEED_ROOT, 'output', 'images-normalized')
 const MAPPING_PATH = join(SEED_ROOT, 'output', 'image-mapping.json')
 
-const ZONE = process.env.BUNNY_STORAGE_ZONE
-const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
-const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
+const cfg = resolveBunnyConfig()
 const DB_URL = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL
 
 const missing = [
-  !ZONE && 'BUNNY_STORAGE_ZONE',
-  !PASSWORD && 'BUNNY_STORAGE_PASSWORD',
+  !cfg.zone && 'BUNNY_STORAGE_ZONE',
+  !cfg.password && 'BUNNY_STORAGE_PASSWORD',
   !DB_URL && 'APP_DATABASE_URL',
 ].filter(Boolean) as string[]
 if (missing.length > 0) {
@@ -54,15 +53,8 @@ if (missing.length > 0) {
   process.exit(1)
 }
 
-console.log(`→ listing Bunny storage at ${PREFIX}…`)
-const listRes = await fetch(`https://${HOSTNAME}/${ZONE}/${PREFIX}`, {
-  headers: { AccessKey: PASSWORD as string },
-})
-if (!listRes.ok) {
-  console.error(`bunny list failed: HTTP ${listRes.status}`)
-  process.exit(1)
-}
-const items = (await listRes.json()) as Array<{ ObjectName: string; IsDirectory: boolean }>
+console.log(`→ listing Bunny storage at ${cfg.prefix}…`)
+const items = await listBunny(cfg)
 const cdnWebpFiles = items
   .filter((i) => !i.IsDirectory && i.ObjectName.endsWith('.webp'))
   .map((i) => i.ObjectName)

@@ -23,13 +23,12 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { putBunny, resolveBunnyConfig } from '../lib/bunny'
+
 const SEED_ROOT = join(import.meta.dir, '..')
 const SOURCE_DIR = join(SEED_ROOT, 'output', 'images-normalized')
 
-const ZONE = process.env.BUNNY_STORAGE_ZONE
-const HOSTNAME = process.env.BUNNY_STORAGE_HOSTNAME ?? 'storage.bunnycdn.com'
-const PASSWORD = process.env.BUNNY_STORAGE_PASSWORD
-const PREFIX = `${(process.env.BUNNY_STORAGE_PREFIX ?? 'products/').replace(/^\/+|\/+$/g, '')}/`
+const cfg = resolveBunnyConfig()
 const DRY_RUN = process.env.DRY_RUN === '1'
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 16)
 
@@ -47,7 +46,7 @@ if (DRY_RUN) {
   console.log('--- DRY RUN ---')
   for (const f of files.slice(0, 5)) {
     const size = statSync(join(SOURCE_DIR, f)).size
-    console.log(`  https://${HOSTNAME}/${ZONE ?? '<zone>'}/${PREFIX}${f}  (${size} B)`)
+    console.log(`  https://${cfg.hostname}/${cfg.zone ?? '<zone>'}/${cfg.prefix}${f}  (${size} B)`)
   }
   if (files.length > 5) console.log(`  ... and ${files.length - 5} more`)
   process.exit(0)
@@ -58,21 +57,9 @@ let failed = 0
 const start = Date.now()
 
 async function uploadOne(file: string) {
-  const key = `${PREFIX}${file}`
   const body = readFileSync(join(SOURCE_DIR, file))
-  const url = `https://${HOSTNAME}/${ZONE}/${key}`
   try {
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        AccessKey: PASSWORD as string,
-        'Content-Type': 'image/webp',
-      },
-      body,
-    })
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText} — ${await res.text()}`)
-    }
+    await putBunny(cfg, file, body)
     done++
     if (done % 100 === 0) {
       const rate = (done / ((Date.now() - start) / 1000)).toFixed(1)
