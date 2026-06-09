@@ -64,14 +64,17 @@ Examples: `uploads/routes.ts`, `products/product-ingredients/routes.ts`,
 ## Rules
 
 1. **Pick one style per feature module and stay consistent within it.** Don't mix A and B for
-   the *same* operation. *Allowed split:* reads return `T | null` (route handles the null with
-   `err(...)`), writes throw-domain (a missing row mid-mutation is an exceptional abort). When a
-   route maps a null, derive the status via `errorToStatus(code, xxxErrorMapping)` rather than a
-   hardcoded constant, so it can't drift from the registry. `user-products` uses this split today
-   but still hardcodes the read status (`HTTP_STATUS.NOT_FOUND`).
+   the *same* operation. House norm is pure throw: a single-row read that finds nothing throws
+   `XxxError('..._not_found')` just like a write, so the route stays happy-path. The
+   read-null/write-throw split (reads return `T | null`, route maps the null with `err(...)`) is
+   tolerated but non-standard — no CRUD entity feature uses it. If you ever do map a null in a
+   route, derive the status via `errorToStatus(code, xxxErrorMapping)`, never a hardcoded constant,
+   so it can't drift from the registry.
 
 2. **Never mix styles within `withRlsContext`.** Any swallowed error breaks the rollback
-   contract.
+   contract. Best-effort logs (`logSecurityEvent`, `trackError`, audit writes) must run off the
+   request tx — pass the base pool (`baseDb`), not `c.get('db')` — or be wrapped in a nested
+   `transaction()` (savepoint) so a failed log can't abort the request tx.
 
 3. **Route structure**:
    - Validate at the boundary via `zValidator`

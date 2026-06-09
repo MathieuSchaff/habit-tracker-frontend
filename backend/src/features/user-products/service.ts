@@ -52,7 +52,7 @@ export async function getUserProducts(userId: string, db: DB) {
 }
 
 export async function getUserProductById(userId: string, userProductId: string, db: DB) {
-  return await db.query.userProducts.findFirst({
+  const row = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.id, userProductId), eq(userProducts.userId, userId)),
     with: {
       review: { columns: REVIEW_PUBLIC_EXCLUDE },
@@ -73,10 +73,14 @@ export async function getUserProductById(userId: string, userProductId: string, 
       },
     },
   })
+  if (!row) {
+    throw new UserProductError('user_product_not_found')
+  }
+  return row
 }
 
 export async function getUserProductByProductId(userId: string, productId: string, db: DB) {
-  return await db.query.userProducts.findFirst({
+  const row = await db.query.userProducts.findFirst({
     where: and(eq(userProducts.productId, productId), eq(userProducts.userId, userId)),
     with: {
       review: { columns: REVIEW_PUBLIC_EXCLUDE },
@@ -97,6 +101,10 @@ export async function getUserProductByProductId(userId: string, productId: strin
       },
     },
   })
+  if (!row) {
+    throw new UserProductError('user_product_not_found')
+  }
+  return row
 }
 
 export async function createUserProduct(userId: string, input: CreateUserProductInput, db: DB) {

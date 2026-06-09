@@ -2,6 +2,8 @@ import { sanitizeUrl } from '@braintree/sanitize-url'
 import type { Context, Next } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+// Local `db` is the request RLS tx; baseDb is the pool for off-tx best-effort logging.
+import { db as baseDb } from '../../db'
 import { isUserBlocked, logSecurityEvent } from './security.service'
 
 const URL_FIELDS = new Set(['url', 'imageUrl', 'avatarUrl', 'coverImageUrl'])
@@ -75,7 +77,12 @@ export function securityScan() {
     if (detections.length === 0) return next()
 
     const route = c.req.path
-    await Promise.allSettled(detections.map((d) => logSecurityEvent(db, { userId, route, ...d })))
+    // Log off the request tx (baseDb, not db): a failed insert here must never poison the
+    // tx. allSettled would swallow the rejection, leaving withRlsContext to commit an
+    // aborted tx. Logging an attack attempt is best-effort and must not break the request.
+    await Promise.allSettled(
+      detections.map((d) => logSecurityEvent(baseDb, { userId, route, ...d }))
+    )
 
     if (detections.some((d) => d.severity === 'high')) {
       return c.json({ success: false, error: 'forbidden' }, 403)

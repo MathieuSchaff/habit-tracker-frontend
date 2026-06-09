@@ -121,13 +121,12 @@ describe('User Products Service', () => {
       expect(fetched?.id).toBe(created.id)
     })
 
-    it('should return undefined if not found', async () => {
+    it('should throw if not found', async () => {
       const fakeId = crypto.randomUUID()
-      const fetched = await getUserProductById(user.id, fakeId, testDb)
-      expect(fetched).toBeUndefined()
+      expect(getUserProductById(user.id, fakeId, testDb)).rejects.toThrow(UserProductError)
     })
 
-    it('should return undefined if the product belongs to another user', async () => {
+    it('should throw if the product belongs to another user', async () => {
       const created = await createUserProduct(
         user.id,
         { productId: product.id, status: 'in_stock' },
@@ -135,8 +134,7 @@ describe('User Products Service', () => {
       )
       const otherUser = await createTestUser('other@test.com')
 
-      const fetched = await getUserProductById(otherUser.id, created.id, testDb)
-      expect(fetched).toBeUndefined()
+      expect(getUserProductById(otherUser.id, created.id, testDb)).rejects.toThrow(UserProductError)
     })
   })
 
@@ -148,18 +146,20 @@ describe('User Products Service', () => {
       expect(fetched?.productId).toBe(product.id)
     })
 
-    it('should return undefined if not found', async () => {
+    it('should throw if not found', async () => {
       const fakeProductId = crypto.randomUUID()
-      const fetched = await getUserProductByProductId(user.id, fakeProductId, testDb)
-      expect(fetched).toBeUndefined()
+      expect(getUserProductByProductId(user.id, fakeProductId, testDb)).rejects.toThrow(
+        UserProductError
+      )
     })
 
-    it('should return undefined if the user has no association with this product', async () => {
+    it('should throw if the user has no association with this product', async () => {
       await createUserProduct(user.id, { productId: product.id, status: 'in_stock' }, testDb)
       const otherUser = await createTestUser('other@test.com')
 
-      const fetched = await getUserProductByProductId(otherUser.id, product.id, testDb)
-      expect(fetched).toBeUndefined()
+      expect(getUserProductByProductId(otherUser.id, product.id, testDb)).rejects.toThrow(
+        UserProductError
+      )
     })
   })
 
@@ -206,8 +206,7 @@ describe('User Products Service', () => {
 
       await deleteUserProduct(user.id, created.id, testDb)
 
-      const fetched = await getUserProductById(user.id, created.id, testDb)
-      expect(fetched).toBeUndefined()
+      expect(getUserProductById(user.id, created.id, testDb)).rejects.toThrow(UserProductError)
     })
 
     it('should throw if user product does not exist', async () => {
