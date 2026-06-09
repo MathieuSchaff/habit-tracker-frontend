@@ -71,7 +71,6 @@ export const userProductRoutes = app
     const userId = getAuthedUserId(c)
     const { id } = c.req.valid('param')
     const result = await getUserProductById(userId, id, db)
-    if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
@@ -80,7 +79,6 @@ export const userProductRoutes = app
     const userId = getAuthedUserId(c)
     const { productId } = c.req.valid('param')
     const result = await getUserProductByProductId(userId, productId, db)
-    if (!result) return c.json(err('user_product_not_found'), HTTP_STATUS.NOT_FOUND)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 

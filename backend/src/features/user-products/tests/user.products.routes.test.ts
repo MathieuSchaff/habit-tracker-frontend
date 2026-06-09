@@ -157,7 +157,7 @@ describe('User Products API', () => {
         { param: { id: fakeId } },
         withAuth(token)
       )
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
     })
 
     it('returns 404 for another user product', async () => {
@@ -176,7 +176,7 @@ describe('User Products API', () => {
         { param: { id: up.id } },
         withAuth(token)
       )
-      expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(res.status as number).toBe(HTTP_STATUS.NOT_FOUND)
     })
   })
 
