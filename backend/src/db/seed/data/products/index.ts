@@ -46,7 +46,6 @@ import { BIOKAP_SEED } from './haircare/biokap/biokap.seed'
 import { BIORENE_SEED } from './haircare/biorene/biorene.seed'
 import { CATTIER_SEED } from './haircare/cattier/cattier.seed'
 import { CAUDALIE_SEED } from './haircare/caudalie/caudalie.seed'
-import { CINQ_SUR_CINQ_SEED } from './haircare/cinqSurCinq/cinqSurCinq.seed'
 import { CLARIFICATION_SEED } from './haircare/clarification/clarification.seed'
 import { COSLYS_SEED } from './haircare/coslys/coslys.seed'
 import { CUT_BY_FRED_SEED } from './haircare/cutByFred/cutByFred.seed'
@@ -80,9 +79,7 @@ import { NUXE_SEED } from './haircare/nuxe/nuxe.seed'
 import { OLAPLEX_SEED } from './haircare/olaplex/olaplex.seed'
 import { PETROLE_HAHN_SEED } from './haircare/petroleHahn/petroleHahn.seed'
 import { PHYTO_SEED } from './haircare/phyto/phyto.seed'
-import { POUXIT_SEED } from './haircare/pouxit/pouxit.seed'
 import { PRANAROM_SEED } from './haircare/pranarom/pranarom.seed'
-import { PURESSENTIEL_SEED } from './haircare/puressentiel/puressentiel.seed'
 import { REDKEN_SEED } from './haircare/redken/redken.seed'
 import { RENE_FURTERER_SEED } from './haircare/reneFurterer/reneFurterer.seed'
 import { SANOFLORE_SEED } from './haircare/sanoflore/sanoflore.seed'
@@ -93,6 +90,7 @@ import { TOPPIK_SEED } from './haircare/toppik/toppik.seed'
 import { WELLA_PROFESSIONALS_SEED } from './haircare/wellaProfessionals/wellaProfessionals.seed'
 // Supplement imports
 import { NUTRIPURE_SEED } from './supplement/nutripure/nutripure.seed'
+import { PRANAROM_SUPPLEMENT_SEED } from './supplement/pranarom/pranarom.seed'
 
 // Aggregation
 
@@ -107,7 +105,6 @@ const allUnified: UnifiedProductSeed[] = [
   ...BIORENE_SEED,
   ...CATTIER_SEED,
   ...CAUDALIE_SEED,
-  ...CINQ_SUR_CINQ_SEED,
   ...CLARIFICATION_SEED,
   ...COSLYS_SEED,
   ...CUT_BY_FRED_SEED,
@@ -137,9 +134,7 @@ const allUnified: UnifiedProductSeed[] = [
   ...OLAPLEX_SEED,
   ...PETROLE_HAHN_SEED,
   ...PHYTO_SEED,
-  ...POUXIT_SEED,
   ...PRANAROM_SEED,
-  ...PURESSENTIEL_SEED,
   ...REDKEN_SEED,
   ...RENE_FURTERER_SEED,
   ...SANOFLORE_SEED,
@@ -182,6 +177,7 @@ const allUnified: UnifiedProductSeed[] = [
   ...LES_SECRETS_DE_LOLY_SKINCARE_SEED,
   ...LES_SECRETS_DE_LOLY_SOLAIRE_SEED,
   ...NUTRIPURE_SEED,
+  ...PRANAROM_SUPPLEMENT_SEED,
 ]
 
 // Derived exports (previously split across 4 files)

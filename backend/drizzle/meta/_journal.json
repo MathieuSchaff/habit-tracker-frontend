@@ -673,6 +673,20 @@
       "when": 1780960819758,
       "tag": "0095_clear_omega_flight",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1781077784487,
+      "tag": "0096_glamorous_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1781094726141,
+      "tag": "0097_overconfident_starhawk",
+      "breakpoints": true
     }
   ]
 }

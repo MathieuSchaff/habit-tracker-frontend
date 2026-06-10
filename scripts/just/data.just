@@ -132,3 +132,19 @@ catalog-scan-dups backup="src/db/snapshot/data.sql":
     target_compose
     printf "{{CYAN}}Scan DB duplicates from {{backup}} ($TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/maintenance/scan-db-duplicates.ts {{backup}}
+
+# Backfill ingredients.canonical_key from algo-derm evidence (substance identity).
+# Re-run after a fresh `db-seed`/`db-reset` (seed leaves it NULL) or an algo-derm bump.
+# Env: WRITE (sans = dry-run). Persist with `db-snapshot` after.
+[group('catalog')]
+catalog-backfill-canonical-key:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (backfill canonical_key)"; fi
+    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
+    printf "{{CYAN}}Backfill canonical_key ($MODE, $TARGET)...{{NC}}\n"
+    $COMPOSE exec api bun run src/db/seed/maintenance/backfill-canonical-key.ts \
+        ${WRITE:+--write}

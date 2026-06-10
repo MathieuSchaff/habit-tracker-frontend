@@ -16,6 +16,7 @@ import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeade
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
+import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
 import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -82,14 +83,15 @@ export function ProductInfoTab() {
     enabled: !!user,
   })
 
-  const warnings = useMemo(() => {
-    if (!user || !dermoProfile) return []
-    const profileSlugs = new Set<string>([
-      ...(dermoProfile.skinTypes ?? []),
-      ...dermoProfile.skinConcerns,
-    ])
-    return product.tags.filter((t) => t.relevance === 'avoid' && profileSlugs.has(t.tagSlug))
-  }, [user, dermoProfile, product.tags])
+  const profileSlugs = useMemo(() => {
+    if (!user || !dermoProfile) return new Set<string>()
+    return new Set<string>([...(dermoProfile.skinTypes ?? []), ...dermoProfile.skinConcerns])
+  }, [user, dermoProfile])
+
+  const warnings = useMemo(
+    () => product.tags.filter((t) => t.relevance === 'avoid' && profileSlugs.has(t.tagSlug)),
+    [profileSlugs, product.tags]
+  )
 
   const safeUrl = sanitizeUrl(product.url)
   const externalDomain = getDomain(safeUrl)
@@ -131,6 +133,10 @@ export function ProductInfoTab() {
           </summary>
           <p className="product-inci__body">{product.inci}</p>
         </details>
+      )}
+
+      {product.inci && (
+        <FormulaReading slug={slug} userKey={user?.id ?? null} profileSlugs={profileSlugs} />
       )}
 
       {hasIngredients && (

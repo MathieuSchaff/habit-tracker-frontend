@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-query'
 
 import { FILTER_KEYS } from '@/features/products/filters'
-import { api } from '../api'
+import { type ApiData, api } from '../api'
 import { ApiError, throwIfNotOk } from '../helpers/apiError'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 
@@ -137,6 +137,7 @@ export const productQueries = {
         return json.data
       },
       enabled: !!slug,
+      staleTime: 5 * 60 * 1000,
     }),
 
   publicReviews: (slug: string) =>
@@ -150,6 +151,20 @@ export const productQueries = {
       },
       enabled: !!slug,
       staleTime: 60 * 1000,
+    }),
+
+  // Personalized when authed (optional bearer), so userKey separates anon vs. per-user cache.
+  dermoScore: (slug: string, userKey: string | null = null) =>
+    queryOptions({
+      queryKey: [...productKeys.bySlug(slug), 'dermo-score', userKey] as const,
+      queryFn: async () => {
+        const res = await api.products[':slug']['dermo-score'].$get({ param: { slug } })
+        if (!res.ok) throw new Error('Failed to fetch dermo score')
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!slug,
+      staleTime: 5 * 60 * 1000,
     }),
 
   search: (q: string) =>
@@ -545,3 +560,5 @@ export type ProductListItem = ProductListData['items'][number]
 export type ProductDetail = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.bySlug>['queryFn']>>>
 >
+
+export type DermoAssessment = ApiData<(typeof api.products)[':slug']['dermo-score']['$get']>

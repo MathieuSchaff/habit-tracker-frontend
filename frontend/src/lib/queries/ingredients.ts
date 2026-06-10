@@ -104,6 +104,7 @@ export const ingredientQueries = {
         return json.data
       },
       enabled: !!slug,
+      staleTime: 5 * 60 * 1000,
     }),
 
   products: (slug: string) =>
