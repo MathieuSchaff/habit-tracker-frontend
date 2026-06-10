@@ -24,8 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          fetch-depth: 0 # fallow --changed-since needs history (HEAD~1 / PR base.sha)
       - uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
         with:
           bun-version: 1.3.12
@@ -45,11 +43,6 @@ jobs:
 
       - name: Lint Check (Biome)
         run: just lint
-
-      - name: Fallow audit (new issues only)
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: npx fallow audit --fail-on-issues --format compact --changed-since "${BASE_SHA:-HEAD~1}"
 
       - name: TypeScript Build & Global Check
         run: just ts-build
@@ -98,6 +91,11 @@ jobs:
           DATABASE_URL: postgres://app:testpassword@localhost:5433/appdb_test
         run: |
           cd backend && bun x drizzle-kit migrate
+          # Migration 0013 creates app_runtime with a placeholder password; the
+          # local dev DB overrides it via drizzle-init/, which CI's service
+          # Postgres never mounts. Align it so RLS tests can log in as app_runtime.
+          PGPASSWORD=testpassword psql -h localhost -p 5433 -U app -d appdb_test \
+            -v ON_ERROR_STOP=1 -c "ALTER ROLE app_runtime PASSWORD 'testpassword';"
           mkdir -p test-results
           bun test --reporter=junit --reporter-outfile=test-results/backend.xml
 

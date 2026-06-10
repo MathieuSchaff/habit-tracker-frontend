@@ -391,6 +391,9 @@ export type ProductsPage = {
   limit: number
 }
 
+// Flat additive filter dispatch — cyclomatic == number of optional filters; splitting relocates
+// the count without improving clarity. Behaviour covered by listProducts filter tests.
+// fallow-ignore-next-line complexity
 function buildListConditions(filters: ListProductsFilters, database: Database): SQL[] {
   const conditions: SQL[] = []
 
