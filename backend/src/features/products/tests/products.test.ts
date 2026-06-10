@@ -470,6 +470,67 @@ describe('Product Service', () => {
       })
     })
 
+    // matin/soir are universal moments: they also match products carrying no routine_moment tag
+    // (usable any time). Restrictive moments (hebdomadaire…) keep a strict EXISTS.
+    describe('routine_moment universal moments', () => {
+      it('matin matches products tagged matin AND products with no moment tag', async () => {
+        const matin = await createProductTag(testDb, {
+          name: 'Matin',
+          category: 'routine_moment',
+          slug: 'moment-matin',
+        })
+        const tagged = await makeProduct('Tagué matin', 'A')
+        await makeProduct('Sans moment', 'B')
+        await replaceProductTags(testDb, tagged.id, [matin.id])
+
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 10, routine_moment: 'moment-matin' },
+          testDb
+        )
+        expect(result.items.map((p) => p.name).sort()).toEqual(['Sans moment', 'Tagué matin'])
+      })
+
+      it('matin excludes products tagged with a different moment only', async () => {
+        const matin = await createProductTag(testDb, {
+          name: 'Matin',
+          category: 'routine_moment',
+          slug: 'moment-matin',
+        })
+        const soir = await createProductTag(testDb, {
+          name: 'Soir',
+          category: 'routine_moment',
+          slug: 'moment-soir',
+        })
+        const matinProduct = await makeProduct('Produit matin', 'A')
+        const soirProduct = await makeProduct('Produit soir', 'B')
+        await replaceProductTags(testDb, matinProduct.id, [matin.id])
+        await replaceProductTags(testDb, soirProduct.id, [soir.id])
+
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 10, routine_moment: 'moment-matin' },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Produit matin'])
+      })
+
+      it('restrictive moment (hebdomadaire) stays strict — untagged products excluded', async () => {
+        const hebdo = await createProductTag(testDb, {
+          name: 'Hebdomadaire',
+          category: 'routine_moment',
+          slug: 'moment-hebdomadaire',
+        })
+        const tagged = await makeProduct('Masque hebdo', 'A')
+        await makeProduct('Sans moment', 'B')
+        await replaceProductTags(testDb, tagged.id, [hebdo.id])
+
+        const result = await listProducts(
+          { category: 'skincare', page: 1, limit: 10, routine_moment: 'moment-hebdomadaire' },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Masque hebdo'])
+      })
+    })
+
     describe('domain tab scoping', () => {
       it('skincare tab returns skincare + solaire + bodycare products', async () => {
         await makeProduct('Sérum', 'A', 'serum', 'pump', { category: 'skincare' })
