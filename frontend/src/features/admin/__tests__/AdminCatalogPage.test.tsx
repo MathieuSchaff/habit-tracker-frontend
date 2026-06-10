@@ -32,6 +32,7 @@ type CatalogItem = {
   catalogQuality: 'unverified' | 'verified'
   moderationStatus: 'visible' | 'hidden'
   authorId: string | null
+  authorUsername: string | null
   createdAt: string
 }
 
@@ -44,6 +45,7 @@ const UNVERIFIED_PRODUCT: CatalogItem = {
   catalogQuality: 'unverified',
   moderationStatus: 'visible',
   authorId: 'usr-author',
+  authorUsername: null,
   createdAt: '2026-05-30T10:00:00Z',
 }
 
@@ -52,6 +54,13 @@ const HIDDEN_PRODUCT: CatalogItem = {
   id: 'prod-hidden-0000-0000-0000-000000000000',
   name: 'Fiche masquée',
   moderationStatus: 'hidden',
+}
+
+const AUTHORED_PRODUCT: CatalogItem = {
+  ...UNVERIFIED_PRODUCT,
+  id: 'prod-authored-0000-0000-0000-000000000000',
+  name: 'Fiche signée',
+  authorUsername: 'mathieu',
 }
 
 // The component reads `status` off the query options to branch « À vérifier » vs
@@ -111,6 +120,16 @@ describe('AdminCatalogPage', () => {
     expect(screen.getByText('Crème mystère')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Vérifier' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Masquer' })).toBeInTheDocument()
+  })
+
+  it('renders the contributor username, falling back to a truncated authorId when absent', () => {
+    setupQuery([AUTHORED_PRODUCT, UNVERIFIED_PRODUCT])
+    setupMutations()
+    renderWithProviders(<AdminCatalogPage />)
+
+    expect(screen.getByText('mathieu')).toBeInTheDocument()
+    // UNVERIFIED_PRODUCT has no username → first 8 chars of its authorId.
+    expect(screen.getByText('usr-auth')).toBeInTheDocument()
   })
 
   it('shows the empty state when the view has no fiches', () => {

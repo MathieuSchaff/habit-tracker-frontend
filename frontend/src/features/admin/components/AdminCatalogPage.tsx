@@ -186,7 +186,11 @@ export function AdminCatalogPage() {
                     </span>
                   </td>
                   <td>
-                    <code className="admin-target-code">{item.authorId?.slice(0, 8) ?? '—'}</code>
+                    {item.authorUsername ? (
+                      <span>{item.authorUsername}</span>
+                    ) : (
+                      <code className="admin-target-code">{item.authorId?.slice(0, 8) ?? '—'}</code>
+                    )}
                   </td>
                   <td>
                     <Time iso={item.createdAt} relative />

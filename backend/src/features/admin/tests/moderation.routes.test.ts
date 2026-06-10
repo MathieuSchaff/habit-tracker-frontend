@@ -482,6 +482,10 @@ describe('POST /admin/moderation/* + public read filters', () => {
       })
       .returning()
     if (!product) throw new Error('product seed failed')
+    await testDb
+      .update(profiles)
+      .set({ username: 'preview-author' })
+      .where(eq(profiles.userId, userId))
 
     const res = await client.admin.moderation.products[':id'].$get(
       { param: { id: product.id } },
@@ -494,6 +498,7 @@ describe('POST /admin/moderation/* + public read filters', () => {
     expect(body.data.name).toBe('Preview Spam')
     expect(body.data.brand).toBe('PrevBrand')
     expect(body.data.moderationStatus).toBe('hidden')
+    expect(body.data.authorUsername).toBe('preview-author')
   })
 
   it('admin GET preview ingredient (200)', async () => {

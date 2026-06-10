@@ -103,6 +103,7 @@ export const useCreateUserProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
+      queryClient.invalidateQueries({ queryKey: productKeys.shelfStatuses() })
     },
     // useQuickAdd / AddToCollectionModal drive their own toast.
   })
@@ -139,6 +140,7 @@ export const useUpdateUserProduct = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: userProductKeys.historyRoot() })
+      queryClient.invalidateQueries({ queryKey: productKeys.shelfStatuses() })
       // status/sentiment moves the empirical signal but not the product-id set the
       // compatibility query is keyed on, so it must be invalidated explicitly.
       queryClient.invalidateQueries({ queryKey: compatibilityKeys.all })
@@ -156,6 +158,7 @@ export const useDeleteUserProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
+      queryClient.invalidateQueries({ queryKey: productKeys.shelfStatuses() })
     },
     meta: { errorMessage: 'Suppression impossible — réessayez plus tard.' },
   })

@@ -263,12 +263,14 @@ export async function previewProduct(db: Database, id: string): Promise<ContentP
       moderationReason: products.moderationReason,
       createdAt: products.createdAt,
       authorId: products.createdBy,
+      authorUsername: profiles.username,
     })
     .from(products)
+    .leftJoin(profiles, eq(profiles.userId, products.createdBy))
     .where(eq(products.id, id))
     .limit(1)
   if (!row) return { success: false, error: 'not_found' }
-  return { success: true, data: { kind: 'product', authorUsername: null, ...row } }
+  return { success: true, data: { kind: 'product', ...row } }
 }
 
 export async function previewIngredient(db: Database, id: string): Promise<ContentPreviewResult> {
@@ -281,12 +283,14 @@ export async function previewIngredient(db: Database, id: string): Promise<Conte
       moderationReason: ingredients.moderationReason,
       createdAt: ingredients.createdAt,
       authorId: ingredients.createdBy,
+      authorUsername: profiles.username,
     })
     .from(ingredients)
+    .leftJoin(profiles, eq(profiles.userId, ingredients.createdBy))
     .where(eq(ingredients.id, id))
     .limit(1)
   if (!row) return { success: false, error: 'not_found' }
-  return { success: true, data: { kind: 'ingredient', authorUsername: null, ...row } }
+  return { success: true, data: { kind: 'ingredient', ...row } }
 }
 
 // withRlsContext binds the caller's role; the moderation select policy covers hidden rows, no admin bypass needed.
@@ -308,9 +312,11 @@ export async function listCatalogQueue(
         catalogQuality: products.catalogQuality,
         moderationStatus: products.moderationStatus,
         authorId: products.createdBy,
+        authorUsername: profiles.username,
         createdAt: products.createdAt,
       })
       .from(products)
+      .leftJoin(profiles, eq(profiles.userId, products.createdBy))
       .where(and(qualityClause, eq(products.moderationStatus, status)))
       .orderBy(desc(products.createdAt))
     return { items: rows.map((r) => ({ kind: 'product' as const, ...r })) }
@@ -326,9 +332,11 @@ export async function listCatalogQueue(
       catalogQuality: ingredients.catalogQuality,
       moderationStatus: ingredients.moderationStatus,
       authorId: ingredients.createdBy,
+      authorUsername: profiles.username,
       createdAt: ingredients.createdAt,
     })
     .from(ingredients)
+    .leftJoin(profiles, eq(profiles.userId, ingredients.createdBy))
     .where(and(qualityClause, eq(ingredients.moderationStatus, status)))
     .orderBy(desc(ingredients.createdAt))
   return { items: rows.map((r) => ({ kind: 'ingredient' as const, brand: null, ...r })) }

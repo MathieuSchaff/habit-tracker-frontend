@@ -16,6 +16,7 @@ import { useAuthStore } from '@/store/auth'
 export const Route = createFileRoute('/blog/admin/edit/$slug')({
   // Await the boot probe so a cold-load hard nav reads the resolved role, not the default 'user'.
   beforeLoad: async ({ context }) => {
+    // react-doctor-disable-next-line react-doctor/async-defer-await -- guard reads role resolved by this await
     await awaitBootRefresh(context.queryClient)
     if (useAuthStore.getState().role !== 'admin') throw redirect({ to: '/blog' })
   },

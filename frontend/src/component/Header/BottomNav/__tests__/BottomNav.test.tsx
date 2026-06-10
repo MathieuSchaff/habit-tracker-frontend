@@ -50,10 +50,7 @@ describe('BottomNav', () => {
     fireEvent.click(trigger)
 
     expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
-    expect(screen.getByRole('dialog', { name: 'Menu supplémentaire' })).toHaveAttribute(
-      'aria-hidden',
-      'false'
-    )
+    expect(screen.getByRole('dialog', { name: 'Menu supplémentaire' })).toHaveAttribute('open')
   })
 
   it('shows auth entry points when the user is not authenticated', () => {

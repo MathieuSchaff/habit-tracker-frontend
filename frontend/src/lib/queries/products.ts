@@ -68,10 +68,17 @@ export function buildListProductsQuery(
   return query
 }
 
+function normalizeShelfStatusIds(ids: readonly string[]): string[] {
+  return [...new Set(ids)].toSorted()
+}
+
 export const productKeys = {
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
   list: (filters: ListProductsFilters = {}) => [...productKeys.lists(), filters] as const,
+  shelfStatuses: () => [...productKeys.all, 'shelf-status'] as const,
+  shelfStatus: (userId: string | null, ids: readonly string[]) =>
+    [...productKeys.shelfStatuses(), userId, normalizeShelfStatusIds(ids).join(',')] as const,
   bySlug: (slug: string) => [...productKeys.all, slug] as const,
   ingredients: (id: string) => [...productKeys.all, id, 'ingredients'] as const,
   publicReviews: (slug: string) => [...productKeys.all, slug, 'reviews', 'public'] as const,
@@ -107,6 +114,15 @@ export const productQueries = {
         const json = await res.json()
         return json.data
       },
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+    }),
+
+  shelfStatus: (userId: string | null, ids: readonly string[]) =>
+    queryOptions({
+      queryKey: productKeys.shelfStatus(userId, ids),
+      queryFn: () => fetchShelfStatus(normalizeShelfStatusIds(ids)),
+      enabled: !!userId && ids.length > 0,
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 30,
     }),
@@ -243,62 +259,86 @@ export const productQueries = {
     }),
 }
 
+type ProductListData = NonNullable<
+  Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.list>['queryFn']>>>
+>
+
 async function fetchShelfStatus(ids: string[]): Promise<Map<string, UserProductStatus>> {
   const byId = new Map<string, UserProductStatus>()
+  const chunks: string[][] = []
   // Chunk to the endpoint's id cap (100); a normal page fits in one request.
   for (let i = 0; i < ids.length; i += 100) {
-    const res = await api.products['shelf-status'].$get({
-      query: { ids: ids.slice(i, i + 100).join(',') },
+    chunks.push(ids.slice(i, i + 100))
+  }
+  const results = await Promise.all(
+    chunks.map(async (chunk) => {
+      const res = await api.products['shelf-status'].$get({
+        query: { ids: chunk.join(',') },
+      })
+      if (!res.ok) throw new Error('Failed to fetch shelf status')
+      const json = await res.json()
+      return json.data
     })
-    if (!res.ok) throw new Error('Failed to fetch shelf status')
-    const json = await res.json()
-    for (const row of json.data) byId.set(row.productId, row.userStatus)
+  )
+  for (const rows of results) {
+    for (const row of rows) {
+      byId.set(row.productId, row.userStatus)
+    }
   }
   return byId
 }
 
-// Seeds the user-scoped list entries from a shelf-status overlay instead of a second full catalog fetch.
-// Relies on __root holding userKey=null until this resolves (race-free cache hit); best-effort on failure.
-export async function convergeShelfStatus(qc: QueryClient, userId: string): Promise<void> {
+// Only items in requestedIds are patched: the map's absence means "no status" for a
+// requested id, but says nothing about ids fetched by a concurrent list refetch.
+function applyShelfStatusOverlay(
+  listData: ProductListData,
+  requestedIds: ReadonlySet<string>,
+  statusByProductId: ReadonlyMap<string, UserProductStatus>
+): ProductListData {
+  let changed = false
+  const items = listData.items.map((item) => {
+    if (!requestedIds.has(item.id)) return item
+    const nextStatus = statusByProductId.get(item.id) ?? null
+    if (item.userStatus === nextStatus) return item
+    changed = true
+    return { ...item, userStatus: nextStatus }
+  })
+
+  return changed ? { ...listData, items } : listData
+}
+
+export function applyShelfStatusOverlayToListCache(
+  qc: QueryClient,
+  filters: ListProductsFilters,
+  userKey: string,
+  requestedIds: ReadonlySet<string>,
+  statusByProductId: ReadonlyMap<string, UserProductStatus>
+): void {
+  qc.setQueryData<ProductListData>(productQueries.list(filters, userKey).queryKey, (current) => {
+    if (!current) return current
+    return applyShelfStatusOverlay(current, requestedIds, statusByProductId)
+  })
+}
+
+// Ensures one product list has a shelf-status overlay. The list fetch is the normal
+// catalogue fetch for that navigation; the overlay only reads statuses for its ids.
+export async function convergeShelfStatusForList(
+  qc: QueryClient,
+  filters: ListProductsFilters,
+  userId: string,
+  userKey: string = userId
+): Promise<void> {
   try {
-    // Last key segment is the userKey; null means the list was fetched before auth (anonymous boot).
-    // These are the only entries worth seeding: they hold the catalog we don't want to re-download.
-    const anonymousLists = qc
-      .getQueryCache()
-      // https://tanstack.com/query/v4/docs/reference/QueryCache#querycachefindall
-      .findAll({ queryKey: productKeys.lists() })
-      .filter((cachedList) => cachedList.queryKey.at(-1) === null)
-    if (anonymousLists.length === 0) return
+    const listData = await qc.ensureQueryData(productQueries.list(filters, userKey))
+    const productIds = listData.items.map((item) => item.id)
+    if (productIds.length === 0) return
 
-    // Wait for the boot fetch instead of firing a second one: ensureQueryData reuses the in-flight
-    // request, so we get the full list without re-downloading the catalog.
-    const listsWithData = await Promise.all(
-      anonymousLists.map(async (cachedList) => {
-        const filters = cachedList.queryKey.at(-2) as ListProductsFilters
-        const listData = await qc.ensureQueryData(productQueries.list(filters, null))
-        return { filters, listData }
-      })
+    const statusByProductId = await qc.ensureQueryData(
+      productQueries.shelfStatus(userId, productIds)
     )
-
-    const productIds = [
-      ...new Set(listsWithData.flatMap(({ listData }) => listData.items.map((item) => item.id))),
-    ]
-    const statusByProductId =
-      productIds.length > 0
-        ? await fetchShelfStatus(productIds)
-        : new Map<string, UserProductStatus>()
-
-    for (const { filters, listData } of listsWithData) {
-      qc.setQueryData(productQueries.list(filters, userId).queryKey, {
-        ...listData,
-        items: listData.items.map((item) => ({
-          ...item,
-          userStatus: statusByProductId.get(item.id) ?? null,
-        })),
-      })
-    }
+    applyShelfStatusOverlayToListCache(qc, filters, userKey, new Set(productIds), statusByProductId)
   } catch {
-    // Best-effort: on failure the userKey flip triggers a normal authenticated list fetch.
+    // Best-effort: the catalogue remains usable; later navigation/refetch can retry the overlay.
   }
 }
 
@@ -499,9 +539,7 @@ export function useRemoveProductIngredient() {
   })
 }
 
-export type ProductListItem = NonNullable<
-  Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.list>['queryFn']>>>
->['items'][number]
+export type ProductListItem = ProductListData['items'][number]
 
 // Inferred from query; backend field additions surface automatically.
 export type ProductDetail = NonNullable<

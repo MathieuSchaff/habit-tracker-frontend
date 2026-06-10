@@ -198,6 +198,7 @@ export type CatalogQueueItem = {
   catalogQuality: CatalogQuality
   moderationStatus: ModerationStatus
   authorId: string | null
+  authorUsername: string | null
   createdAt: string
 }
 

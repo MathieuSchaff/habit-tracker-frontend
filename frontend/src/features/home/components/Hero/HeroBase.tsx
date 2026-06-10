@@ -30,7 +30,7 @@ export function HeroBase() {
             inci="Aqua, Niacinamide, Pentylene Glycol, Zinc PCA, Dimethyl Isosorbide, Tamarindus Indica…"
             highlight={['Niacinamide', 'Zinc PCA']}
             stats={[
-              { label: 'Dernière note', value: 'Hydratation OK, parfum léger' },
+              { label: 'Dernière note', value: 'Sans parfum, peau moins luisante' },
               { label: 'Décision', value: 'Comparer avant achat' },
             ]}
           />
@@ -42,7 +42,7 @@ export function HeroBase() {
             rating="A"
             ratingLabel="profil"
             roles={[
-              { label: 'Hydratation', variant: 'active' },
+              { label: 'Régulation du sébum', variant: 'active' },
               { label: 'À contextualiser', variant: 'warn' },
             ]}
             rows={[{ key: 'Origine', value: 'Vitamine B3' }]}
