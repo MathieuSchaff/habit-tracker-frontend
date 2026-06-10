@@ -16,7 +16,6 @@ import { NavigationProgress } from '../component/Feedback/app/NavigationProgress
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
 import { hasSessionHint } from '../lib/auth/sessionHint'
 import { useTokenRefresh } from '../lib/hooks/useTokenRefresh'
-import { convergeShelfStatus } from '../lib/queries/products'
 import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'
 import { useAuthStore } from '../store/auth'
@@ -93,18 +92,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // Optimistic boot: render the shell now (neutral nav skeleton while pending) instead of
     // gating the whole tree on the network.
     store.setBootRefreshPending(true)
-    void silentRefresh(context.queryClient)
-      .then((result) => {
-        // Converge the personalized product list via the shelf-status overlay BEFORE clearing the
-        // pending flag: ProductsPage holds userKey at null until then, so it reads the seeded
-        // user-scoped cache entry instead of re-fetching the full catalog under the new key.
-        if (result !== 'ok') return
-        const userId = useAuthStore.getState().user?.id
-        if (userId) return convergeShelfStatus(context.queryClient, userId)
-      })
-      .finally(() => {
-        useAuthStore.getState().setBootRefreshPending(false)
-      })
+    void silentRefresh(context.queryClient).finally(() => {
+      useAuthStore.getState().setBootRefreshPending(false)
+    })
   },
   component: RootComponent,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,

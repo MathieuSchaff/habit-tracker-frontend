@@ -16,6 +16,8 @@ const TAG_PARAMS = ['concern', 'skin_type', 'skin_zone', 'product_type', 'routin
 export const productsHandlers = [
   http.get('*/api/products/filter-options', () => ok(PRODUCT_FILTER_OPTIONS)),
 
+  http.get('*/api/products/shelf-status', () => ok([])),
+
   http.get('*/api/products', ({ request }) => {
     const url = new URL(request.url)
     const page = Number(url.searchParams.get('page') ?? '1')

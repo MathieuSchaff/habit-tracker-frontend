@@ -3,7 +3,7 @@ import { PRODUCT_DOMAIN_TAB_META, PRODUCT_DOMAIN_TABS, type ProductDomainTab } f
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { Package } from 'lucide-react'
-import { startTransition, useCallback, useMemo, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
@@ -32,7 +32,12 @@ import {
 import { useProductsExtraChips } from '@/features/products/hooks/useProductsExtraChips'
 import { useProductsFilterGroups } from '@/features/products/hooks/useProductsFilterGroups'
 import { useListFilters } from '@/hooks/useListFilters'
-import { type ListProductsFilters, type ProductSort, productQueries } from '@/lib/queries/products'
+import {
+  applyShelfStatusOverlayToListCache,
+  type ListProductsFilters,
+  type ProductSort,
+  productQueries,
+} from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
 import './ProductsPage.css'
@@ -114,8 +119,8 @@ export function ProductsPage() {
   // Random/filtered: long staleTime stops back-nav reshuffle. Discovery: 30s (not 0) so the
   // loader prefetch is honored on cold load instead of triggering an immediate duplicate fetch.
   const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 30 * 1000
-  // Hold the anonymous (null) key until boot convergence seeds the user-scoped entry, so the
-  // post-refresh switch is a cache hit instead of a second full catalog fetch.
+  // While the root boot refresh is in flight, keep the anonymous key. The /products
+  // loader joins that refresh before starting authenticated product work.
   const bootRefreshPending = useAuthStore((s) => s.bootRefreshPending)
   const userKey = bootRefreshPending ? null : (user?.id ?? null)
   const { data, isLoading, isPlaceholderData } = useQuery({
@@ -123,6 +128,24 @@ export function ProductsPage() {
     placeholderData: (prev) => prev,
     staleTime,
   })
+  const productIds = useMemo(() => data?.items.map((item) => item.id) ?? [], [data])
+  // Don't fetch statuses for placeholder (previous page) ids during a navigation.
+  const shelfStatusOptions = productQueries.shelfStatus(user?.id ?? null, productIds)
+  const { data: shelfStatus } = useQuery({
+    ...shelfStatusOptions,
+    enabled: shelfStatusOptions.enabled && !isPlaceholderData,
+  })
+
+  useEffect(() => {
+    if (!user?.id || !shelfStatus) return
+    applyShelfStatusOverlayToListCache(
+      queryClient,
+      apiFilters,
+      user.id,
+      new Set(productIds),
+      shelfStatus
+    )
+  }, [apiFilters, queryClient, shelfStatus, user?.id, productIds])
 
   // Live count for the drawer's in-flight selection; only runs while drawer is open.
   const previewApiFilters = useMemo<ListProductsFilters>(

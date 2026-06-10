@@ -4,7 +4,8 @@ import { zodValidator } from '@tanstack/zod-adapter'
 import { productsSearchDefaults, productsSearchSchema } from '@/features/products/filters'
 import { deriveAvoidFor, productsListApiFilters } from '@/features/products/helpers'
 import { ProductsPage } from '@/features/products/pages/ProductsPage/ProductsPage'
-import { productQueries } from '@/lib/queries/products'
+import { awaitBootRefresh } from '@/lib/auth/awaitBootRefresh'
+import { convergeShelfStatusForList, productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
 
@@ -14,20 +15,31 @@ export const Route = createFileRoute('/products/')({
     middlewares: [stripSearchParams(productsSearchDefaults)],
   },
   loaderDeps: ({ search }) => search,
-  loader: ({ context, deps }) => {
-    if (context.auth.isAuthenticated) {
-      void context.queryClient.prefetchQuery(profileQueries.dermo())
+  loader: async ({ context, deps }) => {
+    // Join the root boot probe on cold authenticated sessions. This scopes product
+    // data work to /products while still letting anonymous visitors fetch immediately.
+    await awaitBootRefresh(context.queryClient)
+
+    const userId = useAuthStore.getState().user?.id ?? null
+    let dermo = context.queryClient.getQueryData(profileQueries.dermo().queryKey)
+
+    if (userId) {
+      if (deps.profile_filter) {
+        dermo = await context.queryClient.ensureQueryData(profileQueries.dermo())
+      } else {
+        void context.queryClient.prefetchQuery(profileQueries.dermo())
+      }
     }
-    // Start the list fetch during nav so it overlaps the ProductsPage chunk download.
-    // Derive avoidFor from cached dermo (if any) so the prefetched key matches the
-    // component's first render even when profile_filter is on; cold dermo → [], also a
-    // match. userKey from the store so the prefetched key matches the authenticated query.
-    const userKey = useAuthStore.getState().user?.id ?? null
-    const dermo = context.queryClient.getQueryData(profileQueries.dermo().queryKey)
+
     const avoidFor = deriveAvoidFor(dermo, deps.profile_filter)
-    void context.queryClient.prefetchQuery(
-      productQueries.list(productsListApiFilters(deps, avoidFor), userKey)
-    )
+    const filters = productsListApiFilters(deps, avoidFor)
+
+    if (userId) {
+      void convergeShelfStatusForList(context.queryClient, filters, userId)
+      return
+    }
+
+    void context.queryClient.prefetchQuery(productQueries.list(filters, null))
   },
   component: ProductsPage,
 })

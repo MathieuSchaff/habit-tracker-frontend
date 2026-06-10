@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { eq } from 'drizzle-orm'
 
+import { profiles } from '../../db/schema/auth/users'
 import { ingredients } from '../../db/schema/ingredients/ingredients'
 import { products } from '../../db/schema/products/products'
-import { moderateIngredient, moderateProduct } from '../../features/admin/moderation.service'
+import {
+  listCatalogQueue,
+  moderateIngredient,
+  moderateProduct,
+} from '../../features/admin/moderation.service'
 import { IngredientError } from '../../features/ingredients/ingredients-error'
 import { createIngredient, verifyIngredient } from '../../features/ingredients/service'
 import { ProductError } from '../../features/products/product-error'
@@ -186,5 +191,51 @@ describe('catalog moderate — moderateProduct / moderateIngredient', () => {
       name: clone.name,
       slug: clone.slug,
     })
+  })
+})
+
+describe('catalog queue — listCatalogQueue author', () => {
+  it('resolves authorUsername from the contributor profile, null when unset', async () => {
+    const named = await createTestUser('vm-queue-named@test.local')
+    const anon = await createTestUser('vm-queue-anon@test.local')
+    await testDb.update(profiles).set({ username: 'mathieu' }).where(eq(profiles.userId, named.id))
+
+    const withName = await createProduct(named.id, 'user', baseProductInput, testDb, {
+      autoTag: false,
+    })
+    const withoutName = await createProduct(
+      anon.id,
+      'user',
+      { ...baseProductInput, name: 'VM Serum 2', slug: 'vm-serum-2' },
+      testDb,
+      { autoTag: false }
+    )
+
+    const { items } = await listCatalogQueue(testDb, {
+      kind: 'product',
+      status: 'visible',
+      quality: 'unverified',
+    })
+
+    const named_ = items.find((i) => i.id === withName.id)
+    const anon_ = items.find((i) => i.id === withoutName.id)
+    expect(named_?.authorUsername).toBe('mathieu')
+    expect(named_?.authorId).toBe(named.id)
+    expect(anon_?.authorUsername).toBeNull()
+    expect(anon_?.authorId).toBe(anon.id)
+  })
+
+  it('resolves authorUsername for ingredients via the same join', async () => {
+    const named = await createTestUser('vm-queue-ing@test.local')
+    await testDb.update(profiles).set({ username: 'chimiste' }).where(eq(profiles.userId, named.id))
+    const ingredient = await createIngredient(testDb, named.id, 'user', baseIngredientInput)
+
+    const { items } = await listCatalogQueue(testDb, {
+      kind: 'ingredient',
+      status: 'visible',
+      quality: 'unverified',
+    })
+
+    expect(items.find((i) => i.id === ingredient.id)?.authorUsername).toBe('chimiste')
   })
 })

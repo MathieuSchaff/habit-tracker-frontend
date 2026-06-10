@@ -46,26 +46,29 @@ cycles:
 choose:
     @just --summary | tr ' ' '\n' | fzf --preview 'just --show {}' | xargs -r just
 
+react-doctor:
+    cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
+
 # Audit code complet (knip + biome + tsc + cycles + fallow health/dupes + react-doctor). Rapports → .audit-out/
 audit-code:
     #!/usr/bin/env bash
     set +e
     mkdir -p .audit-out
-    printf "{{CYAN}}=== knip (dead code/exports/deps) ==={{NC}}\n"
+    printf "{{ CYAN }}=== knip (dead code/exports/deps) ==={{ NC }}\n"
     DATABASE_URL=postgres://x bunx knip --reporter compact 2>&1 | tee .audit-out/knip.txt
-    printf "{{CYAN}}=== biome (lint + unused locals) ==={{NC}}\n"
+    printf "{{ CYAN }}=== biome (lint + unused locals) ==={{ NC }}\n"
     bunx biome check . 2>&1 | tee .audit-out/biome.txt
-    printf "{{CYAN}}=== tsc -b (types) ==={{NC}}\n"
+    printf "{{ CYAN }}=== tsc -b (types) ==={{ NC }}\n"
     bunx tsc -b --pretty false 2>&1 | tee .audit-out/tsc.txt
-    printf "{{CYAN}}=== madge (cycles) ==={{NC}}\n"
+    printf "{{ CYAN }}=== madge (cycles) ==={{ NC }}\n"
     bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src 2>&1 | tee .audit-out/cycles.txt
-    printf "{{CYAN}}=== fallow health (complexity/CRAP) ==={{NC}}\n"
+    printf "{{ CYAN }}=== fallow health (complexity/CRAP) ==={{ NC }}\n"
     npx fallow health 2>&1 | tee .audit-out/health.txt
-    printf "{{CYAN}}=== fallow dupes ==={{NC}}\n"
+    printf "{{ CYAN }}=== fallow dupes ==={{ NC }}\n"
     npx fallow dupes 2>&1 | tee .audit-out/dupes.txt
-    printf "{{CYAN}}=== react-doctor (React patterns/a11y/perf) ==={{NC}}\n"
+    printf "{{ CYAN }}=== react-doctor (React patterns/a11y/perf) ==={{ NC }}\n"
     cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
-    printf "{{GREEN}}Done. Rapports → .audit-out/{{NC}}\n"
+    printf "{{ GREEN }}Done. Rapports → .audit-out/{{ NC }}\n"
 
 # Test prod CSP against prod build, locally, no Docker (builds dist, serves w/ nginx CSP, headless chromium, fails on violation). Test-only.
 test-csp:

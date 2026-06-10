@@ -42,6 +42,12 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = vi.fn()
 }
 
+// jsdom exposes window.scrollTo but reports it as "not implemented" when called.
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: vi.fn(),
+})
+
 // jsdom does not implement <dialog>.showModal()/close(). Provide minimal stubs
 // so components that toggle a modal dialog (FilterDrawer, etc.) don't throw on
 // mount/unmount.

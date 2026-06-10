@@ -39,11 +39,12 @@
   ],
 
   // workspace packages (bun symlink), pino-pretty (string reference in transport config),
-  // NB: fallow 2.77 does not resolve the @aurore/shared symlink — every export
-  // consumed via `@aurore/shared` appears unused even though it isn't.
-  // Removing the flag makes it worse (fallow then flags the dependency itself as unused).
+  // NB: fallow 2.77+ does not resolve the @aurore/shared symlink — every export
+  // consumed via `@aurore/shared` appears unused even though it isn't. New files
+  // also trigger unresolved-import for the same reason (symlink not followed).
   // Verify shared/src/* findings via grep before acting. See:
-  "ignoreDependencies": ["@aurore/shared", "pino-pretty"],
+  "ignoreDependencies": ["@aurore/shared", "pino-pretty", "react-doctor"],
+  "ignoreUnresolvedImports": ["@aurore/shared"],
 
   "ignorePatterns": ["vendor/**", ".fallow/**", "**/*.d.ts", "node_modules/**"],
 

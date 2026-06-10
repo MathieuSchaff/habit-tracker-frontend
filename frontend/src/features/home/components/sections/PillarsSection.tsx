@@ -27,7 +27,7 @@ export function PillarsSection() {
         <div className="aur-pillar__viz-tags">
           <Tag variant="active">Niacinamide</Tag>
           <div className="aur-pillar__viz-tagrow">
-            <Tag variant="outline">Hydratation</Tag>
+            <Tag variant="outline">Régulation du sébum</Tag>
             <Tag variant="warn">À contextualiser</Tag>
           </div>
         </div>
