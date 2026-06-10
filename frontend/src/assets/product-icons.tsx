@@ -191,6 +191,7 @@ const KIND_FALLBACK: Record<string, React.ElementType> = {
   'hair-serum': ProdDropperIcon,
   'hair-oil': ProdDropperIcon,
   styling: ProdSprayIcon,
+  'hair-color': ProdTubeIcon,
   'body-lotion': ProdTubeIcon,
   'body-oil': ProdDropperIcon,
   'body-scrub': ProdCreamJarIcon,

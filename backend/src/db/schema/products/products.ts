@@ -79,7 +79,7 @@ export const products = pgTable(
         (${t.category} = 'skincare'   AND ${t.kind} IN ('serum','moisturizer','cleanser','toner','exfoliant','eye-cream','mask','mist','essence','spot-treatment','lip-care','balm','oil','primer','patch')) OR
         (${t.category} = 'solaire'    AND ${t.kind} IN ('sunscreen','after-sun','self-tanner')) OR
         (${t.category} = 'complement' AND ${t.kind} IN ('gelule','capsule','ampoule','poudre','sirop','gummy','huile')) OR
-        (${t.category} = 'haircare'   AND ${t.kind} IN ('shampoo','conditioner','hair-mask','hair-serum','hair-oil','styling')) OR
+        (${t.category} = 'haircare'   AND ${t.kind} IN ('shampoo','conditioner','hair-mask','hair-serum','hair-oil','styling','hair-color')) OR
         (${t.category} = 'bodycare'   AND ${t.kind} IN ('body-lotion','body-oil','body-scrub','body-wash','deodorant','hand-cream','foot-cream')) OR
         (${t.category} = 'dental'     AND ${t.kind} IN ('toothpaste','mouthwash','teeth-whitening','floss'))
       )`

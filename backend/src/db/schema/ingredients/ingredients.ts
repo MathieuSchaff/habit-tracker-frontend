@@ -27,6 +27,12 @@ export const ingredients = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
+    // Substance identity, NOT the slug — see docs/conventions/ingredient-identity.md.
+    // Resolved from algo-derm's curated evidence DB (evidence.inci); groups every
+    // alias of one substance (English / French `huile-*` / INCI / `-hair` shadow)
+    // under one key. Best-effort, NULL when algo-derm has no match. Backfilled by
+    // seed/maintenance/backfill-canonical-key.ts (re-run after seed / algo-derm bump).
+    canonicalKey: text('canonical_key'),
     description: text('description').notNull().default(''),
     content: text('content').notNull().default(''),
     type: text('type').notNull().$type<IngredientType>(),
@@ -44,6 +50,7 @@ export const ingredients = pgTable(
       .where(sql`${t.moderationStatus} = 'visible'`),
     index('ingredients_name_idx').on(t.name),
     index('ingredients_type_idx').on(t.type),
+    index('ingredients_canonical_key_idx').on(t.canonicalKey),
     index('ingredients_category_idx').on(t.category),
     // Trigram GIN feeds `searchIngredients` (ILIKE %q% + similarity() on
     // name/slug), used by the async ingredient autocomplete in the products

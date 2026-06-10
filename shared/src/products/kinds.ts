@@ -67,6 +67,7 @@ export const PRODUCT_KINDS = {
     HAIR_SERUM: 'hair-serum',
     HAIR_OIL: 'hair-oil',
     STYLING: 'styling',
+    HAIR_COLOR: 'hair-color',
   },
   bodycare: {
     BODY_LOTION: 'body-lotion',
@@ -128,6 +129,7 @@ export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
   'hair-serum': 'Sérum capillaire',
   'hair-oil': 'Huile capillaire',
   styling: 'Coiffant',
+  'hair-color': 'Coloration',
   // bodycare
   'body-lotion': 'Lait corps',
   'body-oil': 'Huile corps',

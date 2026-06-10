@@ -15,7 +15,7 @@ interface ThemeStore {
   variant: Variant
   toggle: () => void
   resetToSystem: () => void
-  setVariant: (v: Variant) => void
+  setVariant: (v: Variant) => Promise<void>
 }
 
 const getSystemTheme = (): Theme =>
@@ -44,23 +44,27 @@ const applyVariant = (variant: Variant) => {
 
 // terracota ships statically; foret/ardoise CSS chunks are fetched on demand.
 // Both light + dark of a variant preload together so theme toggle stays instant after first pick.
-// Brief FOUC possible on first switch since Vite injects <link> asynchronously.
+// setVariant awaits this so data-variant only flips once the <link> is injected (no FOUC).
 const loadedVariants = new Set<Variant>(['terracota'])
 
-const loadVariant = (variant: Variant): void => {
+const loadVariant = async (variant: Variant): Promise<void> => {
   if (loadedVariants.has(variant)) return
-  loadedVariants.add(variant)
 
   switch (variant) {
     case 'foret':
-      void import('../styles/tokens/colors-light-foret.css')
-      void import('../styles/tokens/colors-dark-foret.css')
+      await Promise.all([
+        import('../styles/tokens/colors-light-foret.css'),
+        import('../styles/tokens/colors-dark-foret.css'),
+      ])
       break
     case 'ardoise':
-      void import('../styles/tokens/colors-light-ardoise.css')
-      void import('../styles/tokens/colors-dark-ardoise.css')
+      await Promise.all([
+        import('../styles/tokens/colors-light-ardoise.css'),
+        import('../styles/tokens/colors-dark-ardoise.css'),
+      ])
       break
   }
+  loadedVariants.add(variant)
 }
 
 const initial = getInitialTheme()
@@ -68,7 +72,7 @@ const initialVariant = getInitialVariant()
 
 applyTheme(initial.theme)
 applyVariant(initialVariant)
-loadVariant(initialVariant)
+void loadVariant(initialVariant)
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
   theme: initial.theme,
@@ -89,9 +93,9 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
     set({ theme: system, isUserChoice: false })
   },
 
-  setVariant: (v) => {
-    loadVariant(v)
+  setVariant: async (v) => {
     localStorage.setItem(VARIANT_KEY, v)
+    await loadVariant(v)
     applyVariant(v)
     set({ variant: v })
   },

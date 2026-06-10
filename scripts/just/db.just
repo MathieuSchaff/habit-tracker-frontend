@@ -80,6 +80,8 @@ db-seed:
     mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Pushing CORE seed deltas (idempotent, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts 2>&1 | tee "$LOG"
+    # seed leaves ingredients.canonical_key NULL — resolve substance identity from algo-derm
+    $COMPOSE exec api bun run src/db/seed/maintenance/backfill-canonical-key.ts --write
     printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Update existing seed entries (name/description/content/category) without touching user-data.
