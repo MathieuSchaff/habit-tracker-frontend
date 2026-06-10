@@ -16,17 +16,14 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
+import { applyAuthedGuards } from '../auth/authed-guards'
 import {
   getAuthedUserId,
   getAuthedUserRole,
   requireAdmin,
   requireContentModerator,
-  requireJwtAuth,
-  requireNotBanned,
 } from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
 import { createBan, getBanScope, liftBan, listUserBans, listUsers, updateBan } from './bans.service'
 import { getAdminDashboard } from './dashboard.service'
 import { demoteToUser } from './roles.service'
@@ -34,20 +31,14 @@ import { demoteToUser } from './roles.service'
 const userIdParam = z.object({ id: z.uuid() })
 const banIdParam = z.object({ banId: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
-// Guards are per-route, not blanket: this router mounts at '/api/admin', a prefix
-// shared with moderation/reports, so a blanket guard would leak onto those siblings
+// Blanket guards (rate limit/JWT/not-banned/RLS) via applyAuthedGuards.
+// Authz is per-route, not blanket: this router mounts at '/api/admin', a prefix
+// shared with moderation/reports, so a blanket authz guard would leak onto those siblings
 // and block contributor-reachable routes (Hono co-mount trap, ADR-0006 S1).
 // ADR-0006 S4: contributors handle content-scoped bans (scope !== 'global') via
 // requireContentModerator + an in-handler scope gate; 'global' lockout and admin
 // tools stay requireAdmin.
-// withRlsContext binds app.role inside a tx so admin_bypass RLS fires on cross-user
-// writes; without it app_runtime sees auth.role()=NULL and every DML touches 0 rows.
-app.use('*', withRlsContext)
+const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const adminBansRoutes = app
   .post(

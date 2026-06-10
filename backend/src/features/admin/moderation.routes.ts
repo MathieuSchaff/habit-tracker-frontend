@@ -14,16 +14,9 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import {
-  getAuthedUserId,
-  requireAdmin,
-  requireContentModerator,
-  requireJwtAuth,
-  requireNotBanned,
-} from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { applyAuthedGuards } from '../auth/authed-guards'
+import { getAuthedUserId, requireAdmin, requireContentModerator } from '../auth/middleware'
 import {
   listCatalogQueue,
   moderateIngredient,
@@ -42,16 +35,10 @@ import {
 const idParam = z.object({ id: z.uuid() })
 const userIdParam = z.object({ userId: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
+// Blanket guards (rate limit/JWT/not-banned/RLS) via applyAuthedGuards.
 // Authz is per-route, not blanket: content moderation opens to admin or contributor,
 // while force-private and catalog-hide stay admin-only, they share this router (ADR-0006 S1).
-// withRlsContext binds app.role inside a tx so the matching RLS policy fires;
-// without it, app_runtime sees auth.role()=NULL and every UPDATE touches 0 rows.
-app.use('*', withRlsContext)
+const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const adminModerationRoutes = app
   // Literal /catalog must be registered before /:id to avoid path shadowing.

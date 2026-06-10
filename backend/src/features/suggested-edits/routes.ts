@@ -3,18 +3,12 @@ import { createSuggestedEditBodySchema, HTTP_STATUS, ok } from '@aurore/shared'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { applyAuthedGuards } from '../auth/authed-guards'
+import { getAuthedUserId } from '../auth/middleware'
 import { createSuggestedEdit } from './service'
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
-app.use('*', withRlsContext)
+const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const suggestedEditsRoutes = app.post(
   '/',

@@ -14,20 +14,14 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { applyAuthedGuards } from '../auth/authed-guards'
+import { getAuthedUserId } from '../auth/middleware'
 import { cancelRoleRequest, getMyRoleRequest, submitRoleRequest } from './service'
 
 const requestIdParam = z.object({ id: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
-app.use('*', withRlsContext)
+const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const roleRequestsRoutes = app
   .post('/', zValidator('json', submitRoleRequestBodySchema), async (c) => {
