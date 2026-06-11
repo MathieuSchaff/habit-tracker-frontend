@@ -203,7 +203,7 @@ export const AccountSettings = () => {
           <Button
             type="button"
             variant="outline"
-            className="account-action-btn logout-btn"
+            className="account-action-btn"
             onClick={handleLogout}
           >
             <LogOut size={18} />

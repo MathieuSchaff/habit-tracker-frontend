@@ -24,10 +24,11 @@ import { Select } from '@/component/Input/Select/Select'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { BrandCombobox } from '@/features/products/components/BrandCombobox/BrandCombobox'
+import { FormulaPreview } from '@/features/products/components/FormulaPreview/FormulaPreview'
 import { ProductImageField } from '@/features/products/components/ProductForm/ProductImageField'
 import { useProductFormSubmit } from '@/features/products/hooks/useProductFormSubmit'
 import { useDebounce } from '@/hooks/useDebounce'
-import { type TagState, useFormTags } from '@/hooks/useFormTags'
+import { type TagRelevance, type TagState, useFormTags } from '@/hooks/useFormTags'
 import { productTagQueries } from '@/lib/queries/product-tags'
 import {
   type ProductDetail,
@@ -282,6 +283,15 @@ export function ProductForm({
     [mode, product, addIngredient]
   )
 
+  // addTag defaults to 'secondary'; bump only when the suggestion says otherwise.
+  const handleApplyTag = useCallback(
+    (tagId: string, relevance: TagRelevance) => {
+      addTag(tagId)
+      if (relevance !== 'secondary') updateRelevance(tagId, relevance)
+    },
+    [addTag, updateRelevance]
+  )
+
   const removingIngredientId =
     mode === 'edit' && removeIngredient.isPending
       ? removeIngredient.variables?.ingredientId
@@ -415,10 +425,26 @@ export function ProductForm({
       <Textarea
         label="INCI"
         id="edit-inci"
+        hint="Collez la liste complète, puis lancez l'analyse pour la relier au catalogue."
         value={form.inci}
         onChange={handleChange('inci')}
         placeholder="Liste INCI des ingrédients…"
         rows={4}
+      />
+
+      <FormulaPreview
+        inci={form.inci}
+        category={form.category}
+        kind={form.kind}
+        name={form.name}
+        brand={form.brand}
+        texture={form.texture}
+        description={form.description}
+        allTags={domainTags}
+        selectedTagIds={tags.map((t) => t.tagId)}
+        linkedIngredientIds={ingredientItems.map((i) => i.ingredientId)}
+        onApplyTag={handleApplyTag}
+        onAddIngredient={handleAddIngredient}
       />
 
       <Textarea

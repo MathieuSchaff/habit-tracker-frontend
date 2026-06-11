@@ -86,7 +86,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
                 </Link>
               </DropdownMenu.Item>
             )}
-            <DropdownMenu.Item variant="danger" onSelect={handleLogout}>
+            <DropdownMenu.Item onSelect={handleLogout}>
               <button type="button" disabled={logout.isPending}>
                 <LogOut size={16} aria-hidden="true" />
                 <span>{logout.isPending ? 'Déconnexion...' : 'Déconnexion'}</span>

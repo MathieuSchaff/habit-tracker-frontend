@@ -146,8 +146,8 @@
   font-size: var(--text-sm);
   font-style: italic;
   color: var(--text-secondary);
-  background: oklch(from var(--color-warning) l c h / 0.06);
-  border: 1px dashed oklch(from var(--color-warning) l c h / 0.3);
+  background: var(--bg-muted);
+  border: 1px dashed var(--border-default);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   margin: 0;

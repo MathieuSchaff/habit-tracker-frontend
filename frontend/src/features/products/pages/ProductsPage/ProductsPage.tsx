@@ -20,6 +20,7 @@ import {
 import { ProductsActiveBar } from '@/features/products/components/ProductsActiveBar/ProductsActiveBar'
 import { ProductsFilterDrawerContent } from '@/features/products/components/ProductsFilterDrawerContent/ProductsFilterDrawerContent'
 import { ProductsHeader } from '@/features/products/components/ProductsHeader/ProductsHeader'
+import { ProductsGridSkeleton } from '@/features/products/components/skeletons/ProductsGridSkeleton/ProductsGridSkeleton'
 import { FILTER_KEYS, type FilterKey, TAG_FILTER_KEYS } from '@/features/products/filters'
 import {
   buildDomainSwitchSearch,
@@ -286,7 +287,7 @@ export function ProductsPage() {
 
         <ListPageLayout.Body maxWidth="72rem" isSyncing={isPlaceholderData}>
           {isLoading && !isPlaceholderData ? (
-            <EmptyState icon={<Package size={24} />} subtitle="Chargement..." />
+            <ProductsGridSkeleton />
           ) : items.length === 0 ? (
             effectiveFilterCount > 0 ? (
               <EmptyState

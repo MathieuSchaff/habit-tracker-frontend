@@ -3,6 +3,7 @@ import type {
   CreateProductInput,
   ProductConcentrationUnit,
   ProductDomainTab,
+  ProductFormulaPreviewInput,
   ProductSort,
   UpdateProductInput,
   UserProductStatus,
@@ -441,6 +442,8 @@ export function useUpdateProductTags() {
 export function useAddProductIngredient() {
   const qc = useQueryClient()
   return useMutation({
+    // Keyed so FormulaPreview can observe in-flight adds via useMutationState.
+    mutationKey: ['add-product-ingredient'],
     mutationFn: async ({
       productId,
       ingredientId,
@@ -562,3 +565,17 @@ export type ProductDetail = NonNullable<
 >
 
 export type DermoAssessment = ApiData<(typeof api.products)[':slug']['dermo-score']['$get']>
+
+export type ProductFormulaPreview = ApiData<(typeof api.products)['formula-preview']['$post']>
+
+export function usePreviewProductFormula() {
+  return useMutation({
+    mutationFn: async (input: ProductFormulaPreviewInput) => {
+      const res = await api.products['formula-preview'].$post({ json: input })
+      await throwIfNotOk(res, 'formula_preview_failed')
+      const json = await res.json()
+      if (!json.success) throw new ApiError('formula_preview_failed', res.status)
+      return json.data
+    },
+  })
+}

@@ -53,8 +53,10 @@
   line-height: 1;
 }
 
-.badge--error {
-  background: oklch(from var(--color-error) l c h / 0.18);
-  color: var(--color-error);
-  border-color: oklch(from var(--color-error) l c h / 0.3);
+/* Avoid-tags and profile mismatches are informational, not errors -
+   the desaturated status color keeps them calm (manifesto: no verdicts). */
+.badge--avoided {
+  background: oklch(from var(--status-color-avoided) l c h / 0.15);
+  color: var(--status-color-avoided);
+  border-color: oklch(from var(--status-color-avoided) l c h / 0.3);
 }

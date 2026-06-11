@@ -1,0 +1,39 @@
+/* Wrapper needed for the sr-only live region to be a sibling of the grid. */
+.products-grid-skeleton {
+  display: contents;
+}
+
+.products-grid-skeleton__card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+/* 1:1 image block matching ProductImage fill variant. */
+.products-grid-skeleton__image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 0;
+}
+
+.products-grid-skeleton__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  flex: 1;
+}
+
+.products-grid-skeleton__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-sunken);
+  border-top: 1px solid var(--border-default);
+}

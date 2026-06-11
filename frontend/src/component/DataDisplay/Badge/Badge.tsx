@@ -9,7 +9,7 @@ export type BadgeVariant =
   | 'huile'
   | 'vitamine'
   | 'complement'
-  | 'error'
+  | 'avoided'
   | 'chip'
 
 interface BadgeProps {

@@ -151,7 +151,11 @@ function ProductsHeaderImpl({
         <div className="products-header__top-inner">
           <div className="list-page-layout__header-info">
             <h2 className="list-page-layout__title">Produits</h2>
-            <span className="list-page-layout__meta" aria-busy={isPlaceholderData || undefined}>
+            <span
+              className="list-page-layout__meta"
+              aria-live="polite"
+              aria-busy={isPlaceholderData || undefined}
+            >
               <strong>{total}</strong>{' '}
               {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
             </span>

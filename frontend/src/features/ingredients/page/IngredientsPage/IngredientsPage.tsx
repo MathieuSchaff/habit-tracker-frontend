@@ -246,7 +246,7 @@ export function IngredientsPage() {
                     <Card.Footer>
                       {ingredient.profileMatches.length > 0 && (
                         <span title={`Déconseillé pour : ${avoidLabels.join(', ')}`}>
-                          <Badge variant="error">
+                          <Badge variant="avoided">
                             <AlertTriangle size={12} aria-hidden="true" /> Éviter
                           </Badge>
                         </span>

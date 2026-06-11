@@ -22,17 +22,6 @@
   transform: translateY(1px);
 }
 
-.logout-btn {
-  color: var(--color-error);
-  border-color: var(--color-error);
-}
-
-.logout-btn:hover:not(:disabled) {
-  background-color: color-mix(in oklch, var(--color-error) 5%, transparent);
-  color: var(--color-error);
-  border-color: var(--color-error);
-}
-
 .delete-btn {
   color: var(--color-error);
   border-color: var(--color-error);

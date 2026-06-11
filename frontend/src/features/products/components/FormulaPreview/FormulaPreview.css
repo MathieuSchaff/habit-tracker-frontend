@@ -1,0 +1,156 @@
+.formula-preview {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formula-preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.formula-preview__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.formula-preview__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.formula-preview__drift {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.formula-preview__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-default);
+}
+
+.formula-preview__group-title {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.formula-preview__count {
+  font-weight: var(--font-normal);
+  color: var(--text-muted);
+}
+
+.formula-preview__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.formula-preview__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  line-height: var(--leading-tight);
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Matched = slightly tinted bg to signal active catalogue link */
+.formula-preview__chip--matched {
+  background: var(--color-primary-light);
+  border-color: oklch(from var(--color-primary) l c h / 0.25);
+}
+
+/* Known-no-record = neutral, muted tone */
+.formula-preview__chip--known {
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+}
+
+/* Unknown = same muted neutral — never alarming */
+.formula-preview__chip--unknown {
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+  border-style: dashed;
+}
+
+/* Tag chips: reuse card bg, distinguish with a slightly stronger border */
+.formula-preview__chip--tag {
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+}
+
+.formula-preview__chip-name {
+  font-weight: var(--font-medium);
+}
+
+/* Quiet "Ajouté" label replaces the action button once linked */
+.formula-preview__chip-added {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.formula-preview__badge {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+  line-height: 1.4;
+}
+
+/* "signalé" badge stays calm — uses secondary text, no red */
+.formula-preview__badge--signale {
+  color: var(--text-secondary);
+}
+
+.formula-preview__add-all {
+  align-self: flex-start;
+}
+
+.formula-preview__microcopy {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* Disable all transitions for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .formula-preview,
+  .formula-preview__chip,
+  .formula-preview__badge {
+    transition: none;
+  }
+}

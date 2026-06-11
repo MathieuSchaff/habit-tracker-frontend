@@ -85,7 +85,7 @@ export function IngredientInfoTab() {
         {avoidTags.length > 0 && (
           <div className="ingredient-tags-list ingredient-tags-list--spaced">
             {avoidTags.map((t) => (
-              <Badge key={t.ingredientTagId} variant="error">
+              <Badge key={t.ingredientTagId} variant="avoided">
                 {t.tagName}
               </Badge>
             ))}

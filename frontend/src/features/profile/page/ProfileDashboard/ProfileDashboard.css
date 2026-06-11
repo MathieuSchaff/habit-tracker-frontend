@@ -61,12 +61,7 @@
       oklch(from var(--hero-tint) calc(l + 0.06) c h / 0.55) 0%,
       transparent 100%
     ),
-    linear-gradient(
-      120deg,
-      var(--color-primary) 0%,
-      var(--color-accent) 45%,
-      var(--color-secondary, var(--color-accent)) 100%
-    );
+    linear-gradient(120deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   isolation: isolate;
 }
 

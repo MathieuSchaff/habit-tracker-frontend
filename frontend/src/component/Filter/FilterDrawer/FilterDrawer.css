@@ -90,7 +90,7 @@
   right: 0;
   bottom: -1px;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   opacity: 0.6;
 }
 
@@ -208,7 +208,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-primary) 100%);
+  background: linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
   opacity: 0.55;
 }
 
