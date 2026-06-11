@@ -27,9 +27,20 @@
   min-width: 0;
 }
 
+/* 4:3 keeps the photo zone present without dominating the card (fill is 1:1). */
 .list-card--product .list-card__icon-wrap {
   border-radius: var(--radius-md);
   overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.list-card--product .list-card__icon-wrap .product-image__img {
+  padding: var(--space-2);
+  /* Melts the photo's own white/grey backdrop into the cream tile; the slight
+     brightness lift pushes grey studio backdrops toward white first. Safe here
+     only: the list tile always keeps its light backdrop, in dark mode too. */
+  mix-blend-mode: multiply;
+  filter: brightness(1.06);
 }
 
 .list-card--product .list-card__body {
@@ -39,18 +50,26 @@
   min-width: 0;
 }
 
+/* Kind and brand share one quiet caps line: "Exfoliant · Cyla". */
+.list-card--product .list-card__kicker {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 .list-card--product .list-card__kind {
-  align-self: flex-start;
   font-size: 0.6875rem;
   font-weight: var(--font-semibold);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--text-muted);
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .list-card--product .list-card__brand {
-  font-size: var(--text-xs);
+  font-size: 0.6875rem;
   font-weight: var(--font-medium);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -60,9 +79,15 @@
   text-overflow: ellipsis;
 }
 
+.list-card--product .list-card__brand::before {
+  content: "·";
+  margin-right: var(--space-1);
+  color: var(--text-muted);
+}
+
 .list-card--product .list-card__name {
   font-family: var(--font-display);
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: var(--font-normal);
   color: var(--text-primary);
   line-height: var(--leading-tight);
@@ -77,12 +102,14 @@
   margin: var(--space-1) 0 0;
 }
 
-/* Footer is now a column: chips row + footer row (price + button). */
+/* Footer is now a column: chips row + footer row (price + button).
+   Transparent: the solid clay band cut the card in two. */
 .list-card--product .card__footer {
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
+  background: transparent;
 }
 
 .list-card--product .list-card__chips {

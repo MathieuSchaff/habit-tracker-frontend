@@ -1,14 +1,20 @@
+/* 3 lines instead of 2: ingredient descriptions are sentences, the extra
+   line lands most truncations on a clause boundary instead of mid-thought. */
+.ingredients-page .card__description {
+  --card-desc-clamp: 3;
+}
+
 .ingredients-page__card-arrow {
-  width: 15px;
-  height: 15px;
+  width: var(--space-4);
+  height: var(--space-4);
   flex-shrink: 0;
   color: var(--card-footer-color, var(--text-muted));
   transition:
-    transform 0.18s ease,
-    color 0.18s ease;
+    transform var(--transition-fast) ease,
+    color var(--transition-fast) ease;
 }
 
 .ingredients-page .card:hover .ingredients-page__card-arrow {
-  transform: translateX(3px);
-  color: var(--color-primary);
+  transform: translateX(var(--space-1));
+  color: var(--card-accent, var(--color-primary));
 }

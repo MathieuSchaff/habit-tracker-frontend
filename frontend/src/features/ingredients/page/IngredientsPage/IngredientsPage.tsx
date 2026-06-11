@@ -23,7 +23,11 @@ import { ListPageLayout } from '@/component/Layout'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { Tabs } from '@/component/Tabs/Tabs'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
-import { ingredientLabels } from '@/features/ingredients/constants'
+import {
+  CATEGORY_ACCENTS,
+  DEFAULT_CATEGORY_ACCENT,
+  ingredientLabels,
+} from '@/features/ingredients/constants'
 import {
   buildDomainSwitchSearch,
   DOMAIN_TAB_OPTIONS,
@@ -231,7 +235,10 @@ export function IngredientsPage() {
                     as={Link as React.ElementType}
                     to="/ingredients/$slug"
                     params={{ slug: ingredient.slug }}
-                    accent="var(--color-info)"
+                    accent={
+                      (ingredient.category && CATEGORY_ACCENTS[ingredient.category]) ||
+                      DEFAULT_CATEGORY_ACCENT
+                    }
                   >
                     <Card.Body>
                       <Card.Title

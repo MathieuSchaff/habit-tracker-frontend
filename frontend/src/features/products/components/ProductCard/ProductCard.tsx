@@ -86,12 +86,14 @@ function ProductCardImpl({ product, onAdd }: Props) {
             unit={product.unit}
             imageUrl={product.imageUrl}
             fill
-            className="list-card__icon-wrap product-image--flat"
+            className="list-card__icon-wrap"
           />
 
           <div className="list-card__body">
-            <span className="list-card__kind">{getProductKindLabel(product.kind)}</span>
-            <span className="list-card__brand">{product.brand}</span>
+            <span className="list-card__kicker">
+              <span className="list-card__kind">{getProductKindLabel(product.kind)}</span>
+              <span className="list-card__brand">{product.brand}</span>
+            </span>
             <Card.Title
               as="p"
               className="list-card__name"
