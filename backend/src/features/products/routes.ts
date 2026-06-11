@@ -4,6 +4,7 @@ import {
   listProductsQuery,
   ok,
   PRODUCT_DOMAIN_TABS,
+  productFormulaPreviewSchema,
   productsByIdsQuery,
   productsShelfStatusQuery,
   searchProductsQuery,
@@ -30,6 +31,7 @@ import {
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
 import { listPublicReviewsForProduct } from '../user-products/service'
+import { previewProductFormula } from './formula-preview.service'
 import {
   createProduct,
   deleteProduct,
@@ -146,6 +148,18 @@ export const productRoutes = productsApp
       const input = c.req.valid('json')
       const product = await createProduct(userId, role, input, db)
       return c.json(ok(stripAdminFields(product)), HTTP_STATUS.CREATED)
+    }
+  )
+
+  .post(
+    '/formula-preview',
+    securityScan(),
+    zValidator('json', productFormulaPreviewSchema),
+    async (c) => {
+      const db = c.get('db')
+      const input = c.req.valid('json')
+      const result = await previewProductFormula(input, db)
+      return c.json(ok(result), HTTP_STATUS.OK)
     }
   )
 

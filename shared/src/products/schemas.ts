@@ -132,6 +132,28 @@ export const productsShelfStatusQuery = z.object({
     .pipe(z.array(z.uuid()).min(1).max(100)),
 })
 
+// No comma-refine: the preview endpoint exists precisely to show parse results
+// on a raw INCI string the user may not have formatted yet.
+export const productFormulaPreviewSchema = z
+  .object({
+    inci: noHtml(z.string().trim().min(1).max(5000)),
+    category: z.enum(PRODUCT_CATEGORY_VALUES),
+    kind: z.string().min(1).max(100),
+    name: noHtml(z.string().trim().max(200)).optional(),
+    brand: noHtml(z.string().trim().max(200)).optional(),
+    texture: z.enum(PRODUCT_TEXTURE_VALUES).optional(),
+    description: noHtml(z.string().max(5000)).optional(),
+  })
+  .refine(
+    (d) => {
+      const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
+      return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
+    },
+    { message: 'kind is not valid for the given category' }
+  )
+
+export type ProductFormulaPreviewInput = z.infer<typeof productFormulaPreviewSchema>
+
 export const patentSchema = z.object({
   name: z.string(), // 'Rosactiv 2.0'
   description: z

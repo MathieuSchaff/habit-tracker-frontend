@@ -38,6 +38,7 @@ vi.mock('@/lib/queries/products', () => ({
     variables: undefined,
   })),
   useUpdateProductIngredient: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  usePreviewProductFormula: vi.fn(() => ({ mutate: vi.fn(), isPending: false, isError: false })),
 }))
 
 vi.mock('@/lib/queries/product-tags', () => ({

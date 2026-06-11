@@ -102,14 +102,6 @@
   outline-offset: -2px;
 }
 
-.user-menu__item--danger {
-  color: var(--color-error);
-}
-
-.user-menu__item--danger:hover {
-  background: var(--color-error-light, oklch(from var(--color-error) l c h / 0.1));
-}
-
 @keyframes slide-up {
   from {
     opacity: 0;

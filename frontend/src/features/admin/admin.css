@@ -377,7 +377,7 @@
 .admin-stat-card:focus-visible {
   border-color: var(--color-primary);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-hard);
+  box-shadow: var(--shadow-pop);
 }
 
 .admin-stat-card__value {
