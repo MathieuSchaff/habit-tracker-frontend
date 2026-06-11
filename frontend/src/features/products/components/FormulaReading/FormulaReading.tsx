@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import { PROFILE_RELEVANT_AXES, RISK_AXIS_PHRASE } from '@/constants/derm'
 import { productQueries } from '@/lib/queries/products'
+import { formatRegulatoryNotes } from './regulatoryNotes'
 import './FormulaReading.css'
 
 type RiskAxis = keyof typeof RISK_AXIS_PHRASE
@@ -75,12 +76,16 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
         <div className="formula-reading__group">
           <h3 className="formula-reading__subhead">
             <Scale size={13} aria-hidden="true" />
-            Restrictions réglementaires
+            Cadre réglementaire
           </h3>
+          <p className="formula-reading__explainer">
+            Limites officielles de concentration ou d'usage — courant pour les actifs réglementés.
+          </p>
           <ul className="formula-reading__list">
-            {regulatoryNotes.map((note) => (
-              <li key={note} className="formula-reading__item">
-                {note}
+            {formatRegulatoryNotes(regulatoryNotes).map((line) => (
+              <li key={line.key} className="formula-reading__item">
+                {line.label && <span className="formula-reading__label">{line.label}</span>}
+                <span className="formula-reading__phrase">{line.text}</span>
               </li>
             ))}
           </ul>

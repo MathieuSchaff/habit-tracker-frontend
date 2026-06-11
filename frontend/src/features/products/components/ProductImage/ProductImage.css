@@ -5,7 +5,9 @@
   justify-content: center;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: oklch(98% 0 0);
+  /* Photo backdrop: e-commerce shots have white backgrounds, so the tile stays
+     near-white in every theme (incl. dark) - warmed, never clinical grey. */
+  background: oklch(98% 0.012 75);
   border: 1px solid var(--border-default);
 }
 
@@ -18,7 +20,8 @@
 }
 
 .product-image--icon {
-  color: oklch(45% 0.02 250);
+  /* Mid warm brown so the icon reads on the near-white tile in every theme. */
+  color: oklch(55% 0.045 60);
 }
 
 /* Borderless variant for hero/embedded contexts where a tile border reads as noise. */

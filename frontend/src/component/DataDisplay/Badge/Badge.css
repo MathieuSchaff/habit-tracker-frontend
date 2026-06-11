@@ -43,11 +43,12 @@
    Font size/weight inherited from .badge base so chip never reads heavier
    than other badges sitting next to it. */
 .badge--chip {
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
   background: var(--bg-card);
-  color: var(--color-primary);
-  border: var(--border-width) solid var(--bg-card);
+  color: var(--card-accent, var(--color-primary));
+  border: var(--border-width) solid
+    oklch(from var(--card-accent, var(--color-primary)) l c h / 0.25);
   letter-spacing: 0.4px;
   text-transform: capitalize;
   line-height: 1;

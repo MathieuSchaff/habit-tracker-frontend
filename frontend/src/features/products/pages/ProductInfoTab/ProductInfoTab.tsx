@@ -117,6 +117,8 @@ export function ProductInfoTab() {
       {product.description && (
         <div className="product-section">
           <SectionHeader title="Description" />
+          {/* Manufacturer copy, not Aurore's voice - keep the distinction visible. */}
+          <p className="product-description__source">Selon la marque</p>
           <RichText className="product-description">
             <Suspense fallback={<p>{product.description}</p>}>
               <Markdown>{product.description}</Markdown>
