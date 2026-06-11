@@ -4,12 +4,6 @@
   margin-bottom: 1rem;
 }
 
-.pds-lifecycle-btn.finish {
-  background: oklch(from var(--color-warning) l c h / 0.08);
-  color: var(--color-warning);
-  border: 1px solid oklch(from var(--color-warning) l c h / 0.4);
-}
-
 /* Purchase history */
 
 .pds-purchases-history {

@@ -23,9 +23,11 @@
 }
 
 .kind--huile {
-  --_kind-bg: oklch(from var(--color-warning) l c h / 0.18);
-  --_kind-color: var(--color-warning-text);
-  --_kind-border: oklch(from var(--color-warning) l c h / 0.4);
+  /* Lavender, not amber: amber reads as warning. Text lightness tracks
+     --color-info so it stays readable in both light and dark themes. */
+  --_kind-bg: oklch(from var(--color-lavender) l c h / 0.18);
+  --_kind-color: oklch(from var(--color-info) l c var(--h-lavender, 305));
+  --_kind-border: oklch(from var(--color-lavender) l c h / 0.4);
 }
 
 .kind--vitamine {
