@@ -50,7 +50,7 @@
   --col-accent: var(--color-lavender, var(--color-accent-hover, var(--color-accent)));
 }
 .diff-section__col:nth-child(5) {
-  --col-accent: var(--color-coral-soft, var(--color-warning));
+  --col-accent: var(--color-coral-soft);
 }
 .diff-section__col:nth-child(n + 6) {
   --col-accent: var(--border-strong);

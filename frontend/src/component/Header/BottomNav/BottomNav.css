@@ -41,7 +41,7 @@
     border-top: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
     border-radius: 2rem 2rem 0 0;
     padding: 1rem var(--space-4) calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 2rem));
-    box-shadow: 0 -20px 50px oklch(0% 0 0 / 0.5);
+    box-shadow: var(--shadow-pop);
   }
 
   .bottom-nav__sheet::backdrop {

@@ -106,19 +106,21 @@
   color: var(--color-primary);
 }
 
+/* Energy is neutral effort info: one hue, intensity encodes the level -
+   no traffic-light valence on a routine load. */
 .task-item__energy--low {
-  background: var(--color-success-light);
-  color: var(--color-success);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  color: var(--color-primary);
 }
 
 .task-item__energy--medium {
-  background: var(--color-warning-light);
-  color: var(--color-warning);
+  background: oklch(from var(--color-primary) l c h / 0.16);
+  color: var(--color-primary);
 }
 
 .task-item__energy--high {
-  background: var(--color-error-light);
-  color: var(--color-error);
+  background: oklch(from var(--color-primary) l c h / 0.28);
+  color: var(--color-primary);
 }
 
 .task-item__energy:hover {
