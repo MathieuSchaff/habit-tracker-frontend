@@ -94,7 +94,15 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 //          rinse-off (benefit-derived effects washed off a cleanser). All four
 //          are allow:true here, so their rinse-off hit rate drops to 0;
 //          re-baselined budgets after `DUMP_BUDGETS=1 just audit-auto-tags`.
-const CALIBRATED_FOR_TAG_DEFS_VERSION = 11
+//   v12 (2026-06-12): FP/FN cleanup batch. gateActiveClaim only gates when
+//          the pH-acid carries the claim (BPO/urea keep tag at pH≥4); absence
+//          tags with detected trigger → confidence 0.95 (not coverage-capped);
+//          active-list mapped tags fall back to coverage confidence when no
+//          benefit drivers; urea patterns word-anchored (preservative duos
+//          don't fire keratolytique/deshydratation); vegan space-guarded
+//          (caramel no longer denies via mel pattern). No tag set change →
+//          budgets unchanged; re-baselined to confirm.
+const CALIBRATED_FOR_TAG_DEFS_VERSION = 12
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
   throw new Error(

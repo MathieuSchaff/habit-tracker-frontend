@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import { useAuthStore } from '@/store/auth'
 import { useImageUpload } from '../useImageUpload'
 
 function installCanvasMock(blobSize = 50_000) {
@@ -142,6 +143,99 @@ describe('useImageUpload', () => {
       result.current.cancel()
     })
     expect(result.current.state.phase).toBe('idle')
+  })
+
+  it('sets Authorization header when auth store has a token', async () => {
+    useAuthStore.setState({ accessToken: 'test-tok-abc' })
+    const capturedHeaders: Array<[string, string]> = []
+    const original = globalThis.XMLHttpRequest
+
+    class CapturingXhr {
+      upload = { onprogress: null as ((e: ProgressEvent) => void) | null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      status = 201
+      responseText = JSON.stringify({ success: true, data: { url: 'https://cdn/x.webp?v=1' } })
+      open() {}
+      setRequestHeader(name: string, value: string) {
+        capturedHeaders.push([name, value])
+      }
+      send() {
+        this.onload?.()
+      }
+    }
+    Object.defineProperty(globalThis, 'XMLHttpRequest', {
+      value: CapturingXhr,
+      writable: true,
+      configurable: true,
+    })
+
+    try {
+      const { result } = renderHook(() =>
+        useImageUpload({ endpoint: '/api/uploads/product/test-slug', outputSize: 1200 })
+      )
+      await act(async () => {
+        ;(
+          result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+        ).__setSourceForTest(new Image())
+        await result.current.confirmCrop({ x: 0, y: 0, size: 1200 })
+      })
+      await waitFor(() => expect(result.current.state.phase).toBe('idle'))
+      expect(capturedHeaders).toContainEqual(['Authorization', 'Bearer test-tok-abc'])
+    } finally {
+      Object.defineProperty(globalThis, 'XMLHttpRequest', {
+        value: original,
+        writable: true,
+        configurable: true,
+      })
+      useAuthStore.setState({ accessToken: null })
+    }
+  })
+
+  it('omits Authorization header when auth store has no token', async () => {
+    // accessToken is null by default — must not send Authorization at all
+    const capturedHeaders: Array<[string, string]> = []
+    const original = globalThis.XMLHttpRequest
+
+    class CapturingXhr {
+      upload = { onprogress: null as ((e: ProgressEvent) => void) | null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      status = 201
+      responseText = JSON.stringify({ success: true, data: { url: 'https://cdn/x.webp?v=1' } })
+      open() {}
+      setRequestHeader(name: string, value: string) {
+        capturedHeaders.push([name, value])
+      }
+      send() {
+        this.onload?.()
+      }
+    }
+    Object.defineProperty(globalThis, 'XMLHttpRequest', {
+      value: CapturingXhr,
+      writable: true,
+      configurable: true,
+    })
+
+    try {
+      const { result } = renderHook(() =>
+        useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
+      )
+      await act(async () => {
+        ;(
+          result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+        ).__setSourceForTest(new Image())
+        await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
+      })
+      await waitFor(() => expect(result.current.state.phase).toBe('idle'))
+      expect(capturedHeaders.find(([name]) => name === 'Authorization')).toBeUndefined()
+    } finally {
+      Object.defineProperty(globalThis, 'XMLHttpRequest', {
+        value: original,
+        writable: true,
+        configurable: true,
+      })
+    }
   })
 
   it('retries compression quality when first blob exceeds maxOutputBytes', async () => {
