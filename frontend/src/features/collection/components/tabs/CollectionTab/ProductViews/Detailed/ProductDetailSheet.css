@@ -472,6 +472,8 @@
 .pds-sentiment-btn--grail {
   background: oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.1);
   border-color: oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.2);
+  /* Gem inks gold everywhere — the one precious touch of the scale. */
+  color: var(--status-color-holy-grail, var(--color-primary));
 }
 
 .pds-sentiment-btn--grail.active {

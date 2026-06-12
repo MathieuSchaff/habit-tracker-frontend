@@ -1,10 +1,11 @@
-import type { UserProductStatus } from '@aurore/shared'
+import { getProductKindLabel, type UserProductStatus } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Check, ChevronDown, SmilePlus, Sparkles } from 'lucide-react'
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from 'react'
 
+import { SentimentIcon } from '@/assets/sentiment-icons'
 import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
@@ -20,7 +21,6 @@ import { calculateWeightedScore } from '@/lib/helpers/reviews'
 import { userPreferenceQueries } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { useUpdateUserProduct } from '@/lib/queries/user-products'
-import { sentimentEmojis } from '@/utils/sentimentMap'
 import { StatusPicker } from '../../ShelfView/StatusPicker'
 
 import './ProductCardCondensed.css'
@@ -161,13 +161,18 @@ export function ProductCardCondensed({
     >
       <button
         type="button"
-        className={clsx('prod-sentiment-badge', isPopping && 'popping', !p.sentiment && 'empty')}
+        className={clsx(
+          'prod-sentiment-badge',
+          isPopping && 'popping',
+          !p.sentiment && 'empty',
+          p.sentiment === 6 && 'grail'
+        )}
         onClick={handleNextSentiment}
         aria-label={`Changer le ressenti pour ${p.product.name}`}
         data-stop-long-press
       >
         {p.sentiment ? (
-          sentimentEmojis[p.sentiment as 1 | 2 | 3 | 4 | 5 | 6]
+          <SentimentIcon value={p.sentiment} size={18} />
         ) : (
           <SmilePlus size={16} aria-hidden="true" />
         )}
@@ -228,7 +233,7 @@ export function ProductCardCondensed({
                 </DropdownMenu.Content>
               </DropdownMenu>
             </span>
-            {p.product.kind && <Badge variant="chip">{p.product.kind}</Badge>}
+            {p.product.kind && <Badge variant="chip">{getProductKindLabel(p.product.kind)}</Badge>}
             {compatTone && (
               <span className={clsx('pcc-compat', `pcc-compat--${compatTone}`)}>
                 {compatTone === 'favorite' && <Sparkles size={11} aria-hidden="true" />}

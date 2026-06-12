@@ -9,10 +9,32 @@
     color: var(--text-secondary);
   }
 
-  .shelf-empty-emoji {
-    font-size: 3rem;
+  .shelf-empty-art {
     margin-bottom: var(--space-3);
-    filter: grayscale(0.1);
+    /* Each shelf greets you in its own status colour (theme tokens). */
+    color: oklch(from var(--color-primary) l c h / 0.9);
+  }
+
+  .shelf-empty[data-kind="in_stock"] .shelf-empty-art {
+    color: var(--status-color-in-stock);
+  }
+  .shelf-empty[data-kind="wishlist"] .shelf-empty-art {
+    color: var(--status-color-wishlist);
+  }
+  .shelf-empty[data-kind="watched"] .shelf-empty-art {
+    color: var(--status-color-watched);
+  }
+  .shelf-empty[data-kind="archived"] .shelf-empty-art {
+    color: var(--status-color-archived);
+  }
+  .shelf-empty[data-kind="avoided"] .shelf-empty-art {
+    color: var(--status-color-avoided);
+  }
+  .shelf-empty[data-kind="holy_grail"] .shelf-empty-art {
+    color: var(--status-color-holy-grail);
+  }
+  .shelf-empty[data-kind="repurchase"] .shelf-empty-art {
+    color: var(--status-color-repurchase);
   }
 
   .shelf-empty-title {

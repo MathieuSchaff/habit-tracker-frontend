@@ -1,0 +1,13 @@
+.product-summary__text {
+  margin: 0;
+  max-width: 65ch;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+.product-summary__kind {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}

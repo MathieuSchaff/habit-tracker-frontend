@@ -2,8 +2,8 @@ import type { UserProductStatus } from '@aurore/shared'
 
 import clsx from 'clsx'
 
+import { SentimentIcon } from '@/assets/sentiment-icons'
 import { pdsLabels } from '@/features/collection/constants'
-import { sentimentEmojis } from '@/utils/sentimentMap'
 
 type SentimentValue = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -30,7 +30,9 @@ export function SentimentPicker({ value, onChange, status }: SentimentPickerProp
           aria-pressed={value === val}
           onClick={() => onChange(val)}
         >
-          <span className="pds-emoji">{sentimentEmojis[val]}</span>
+          <span className="pds-emoji">
+            <SentimentIcon value={val} size={24} />
+          </span>
         </button>
       ))}
       {holyGrailAllowed && (
@@ -41,7 +43,9 @@ export function SentimentPicker({ value, onChange, status }: SentimentPickerProp
           aria-pressed={value === 6}
           onClick={() => onChange(6)}
         >
-          <span className="pds-emoji">{sentimentEmojis[6]}</span>
+          <span className="pds-emoji">
+            <SentimentIcon value={6} size={24} />
+          </span>
         </button>
       )}
     </fieldset>

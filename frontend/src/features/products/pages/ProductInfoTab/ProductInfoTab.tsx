@@ -17,6 +17,7 @@ import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
 import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
+import { ProductSummary } from '@/features/products/components/ProductSummary/ProductSummary'
 import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -114,31 +115,23 @@ export function ProductInfoTab() {
         </FormMessage>
       )}
 
-      {product.description && (
-        <div className="product-section">
-          <SectionHeader title="Description" />
-          {/* Manufacturer copy, not Aurore's voice - keep the distinction visible. */}
-          <p className="product-description__source">Selon la marque</p>
-          <RichText className="product-description">
-            <Suspense fallback={<p>{product.description}</p>}>
-              <Markdown>{product.description}</Markdown>
-            </Suspense>
-          </RichText>
-        </div>
+      <ProductSummary
+        kind={product.kind}
+        categories={product.ingredients?.map((i) => i.ingredientCategory) ?? []}
+      />
+
+      {product.inci && (
+        <FormulaReading slug={slug} userKey={user?.id ?? null} profileSlugs={profileSlugs} />
       )}
 
       {product.inci && (
-        <details className="product-section product-inci" open>
+        <details className="product-section product-inci">
           <summary className="product-inci__summary">
             <span>Composition INCI complète</span>
             <ChevronDown size={14} className="product-inci__chevron" aria-hidden="true" />
           </summary>
           <p className="product-inci__body">{product.inci}</p>
         </details>
-      )}
-
-      {product.inci && (
-        <FormulaReading slug={slug} userKey={user?.id ?? null} profileSlugs={profileSlugs} />
       )}
 
       {hasIngredients && (
@@ -241,6 +234,24 @@ export function ProductInfoTab() {
             <span className="sr-only"> (nouvel onglet)</span>
           </a>
         </div>
+      )}
+
+      {product.description && (
+        <details className="product-section product-inci product-brand-copy">
+          <summary className="product-inci__summary">
+            <span>Texte de la marque</span>
+            <ChevronDown size={14} className="product-inci__chevron" aria-hidden="true" />
+          </summary>
+          {/* Manufacturer copy: commercial voice, not vetted by Aurore - keep it boxed off. */}
+          <div className="product-brand-copy__body">
+            <p className="product-brand-copy__note">Voix commerciale, non vérifiée par Aurore.</p>
+            <RichText className="product-description">
+              <Suspense fallback={<p>{product.description}</p>}>
+                <Markdown>{product.description}</Markdown>
+              </Suspense>
+            </RichText>
+          </div>
+        </details>
       )}
 
       {user && (

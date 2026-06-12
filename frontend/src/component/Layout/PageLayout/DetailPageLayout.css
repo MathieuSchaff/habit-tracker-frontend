@@ -13,7 +13,7 @@
     var(--color-primary) 40%,
     var(--color-accent) 100%
   );
-  opacity: 0.35;
+  opacity: 0.28;
 }
 
 .detail-page-layout__content {
