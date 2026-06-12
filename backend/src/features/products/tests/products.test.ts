@@ -240,6 +240,37 @@ describe('Product Service', () => {
         expect(result.items.map((p) => p.name)).toEqual(['Crème jour'])
       })
 
+      it('should match products whose name contains q without accents', async () => {
+        await makeProduct('Sérum réparateur', 'BrandA')
+        await makeProduct('Crème hydratante', 'BrandB')
+        const result = await listProducts(
+          { category: 'skincare', q: 'serum', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Sérum réparateur'])
+      })
+
+      // ?q= must recall what the search dropdown recalls, otherwise
+      // "Voir tous les résultats" loses the typo matches the user just saw.
+      it('should match typo queries via trigram like the dropdown', async () => {
+        await makeProduct('Niacinamide 10%', 'The Ordinary')
+        const result = await listProducts(
+          { category: 'skincare', q: 'niacynamid', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Niacinamide 10%'])
+      })
+
+      it('should order by relevance when q is set without explicit sort', async () => {
+        await makeProduct('Le Sérum', 'BrandA')
+        await makeProduct('Sérum', 'BrandC')
+        const result = await listProducts(
+          { category: 'skincare', q: 'serum', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Sérum', 'Le Sérum'])
+      })
+
       it('should return empty when q matches nothing', async () => {
         await makeProduct('Sérum', 'Brand')
         const result = await listProducts(
@@ -811,6 +842,13 @@ describe('Product Service', () => {
       expect(result.hasMore).toBe(false)
     })
 
+    it('should return products matching by brand without accents', async () => {
+      await makeProduct('Tolérance Control', 'Avène')
+      const result = await searchProducts({ q: 'avene' }, testDb)
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0]?.brand).toBe('Avène')
+    })
+
     it('should prioritize exact match over prefix (pg_trgm)', async () => {
       await makeProduct('Zinc PCA Sérum', 'Brand')
       await makeProduct('Zinc', 'Solgar')
@@ -820,6 +858,29 @@ describe('Product Service', () => {
       expect(result.items[0]?.name).toBe('Zinc')
       expect(result.items[1]?.name).toBe('Zinc PCA Sérum')
       expect(result.items[2]?.name).toBe('Zinc Bisglycinate')
+    })
+
+    // Similarity alone would rank the short contains-match above the long
+    // prefix-match; the explicit rank must win for a predictable dropdown.
+    it('should rank exact > prefix > contains even when similarity disagrees', async () => {
+      await makeProduct('Le Sérum', 'BrandA')
+      await makeProduct('Sérum Niacinamide Concentré Apaisant', 'BrandB')
+      await makeProduct('Sérum', 'BrandC')
+
+      const result = await searchProducts({ q: 'serum' }, testDb)
+      expect(result.items.map((p) => p.name)).toEqual([
+        'Sérum',
+        'Sérum Niacinamide Concentré Apaisant',
+        'Le Sérum',
+      ])
+    })
+
+    it('should rank brand exact match above name contains match', async () => {
+      await makeProduct('Crème Avène Réparatrice', 'Other')
+      await makeProduct('Tolérance Control', 'Avène')
+
+      const result = await searchProducts({ q: 'avene' }, testDb)
+      expect(result.items[0]?.brand).toBe('Avène')
     })
 
     it('should expose hasMore + nextOffset for pagination', async () => {

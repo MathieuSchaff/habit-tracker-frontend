@@ -687,6 +687,20 @@
       "when": 1781094726141,
       "tag": "0097_overconfident_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1781299515664,
+      "tag": "0098_many_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1781304761017,
+      "tag": "0099_flat_impossible_man",
+      "breakpoints": true
     }
   ]
 }

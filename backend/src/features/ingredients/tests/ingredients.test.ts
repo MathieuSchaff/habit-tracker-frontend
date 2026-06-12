@@ -287,6 +287,28 @@ describe('Ingredient Service', () => {
       expect(results).toHaveLength(1)
     })
 
+    it('should match names without accents', async () => {
+      await makeIngredient('Sélénium', { slug: 'trace-mineral' })
+      const results = await searchIngredients(testDb, 'se')
+      expect(results).toHaveLength(1)
+      expect(results[0]?.name).toBe('Sélénium')
+    })
+
+    // Similarity alone would rank the short contains-match above the long
+    // prefix-match; the explicit rank must win for a predictable dropdown.
+    it('should rank exact > prefix > contains even when similarity disagrees', async () => {
+      await makeIngredient('Pro-Rétinol')
+      await makeIngredient('Rétinol Palmitate Complexe Stabilisé')
+      await makeIngredient('Rétinol')
+
+      const results = await searchIngredients(testDb, 'retinol')
+      expect(results.map((r) => r.name)).toEqual([
+        'Rétinol',
+        'Rétinol Palmitate Complexe Stabilisé',
+        'Pro-Rétinol',
+      ])
+    })
+
     // pg_trgm similarity catches typos that ILIKE %q% would miss.
     it('should match typos via trigram similarity', async () => {
       await makeIngredient('Niacinamide')
