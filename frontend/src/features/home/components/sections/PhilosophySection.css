@@ -58,7 +58,7 @@
 .aur-philo__title-em {
   color: var(--color-tertiary);
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--font-normal);
 }
 .aur-philo__desc {
   font-size: var(--text-sm);

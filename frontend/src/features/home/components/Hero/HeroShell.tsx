@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 
+import { Button } from '../../../../component/Button/Button'
 import { AuroreBrandMark } from '../primitives/AuroreBrandMark'
 import './Hero.css'
 
@@ -24,7 +24,7 @@ export type HeroShellProps = {
 }
 
 function renderAction(a: HeroAction, primaryStyle: boolean) {
-  const cls = `aur-btn aur-btn--lg aur-btn--${primaryStyle ? 'primary' : 'ghost'}`
+  const variant = primaryStyle ? 'primary' : 'outline'
   const content = (
     <>
       {a.label}
@@ -33,22 +33,22 @@ function renderAction(a: HeroAction, primaryStyle: boolean) {
   )
   if (a.to) {
     return (
-      <Link to={a.to as never} className={cls}>
+      <Button variant={variant} size="lg" to={a.to}>
         {content}
-      </Link>
+      </Button>
     )
   }
   if (a.href) {
     return (
-      <a href={a.href} className={cls}>
+      <Button variant={variant} size="lg" href={a.href}>
         {content}
-      </a>
+      </Button>
     )
   }
   return (
-    <button type="button" className={cls} onClick={a.onClick}>
+    <Button variant={variant} size="lg" onClick={a.onClick}>
       {content}
-    </button>
+    </Button>
   )
 }
 

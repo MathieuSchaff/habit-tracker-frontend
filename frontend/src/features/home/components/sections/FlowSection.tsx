@@ -17,7 +17,7 @@ const STEPS: Step[] = [
     viz: (
       <div className="aur-flow__viz">
         <div className="aur-flow__viz-row">
-          <span style={{ color: 'var(--color-accent)' }}>+</span>
+          <span className="aur-flow__viz-plus">+</span>
           <span>The Ordinary — Niacinamide 10 % + Zinc 1 %</span>
         </div>
         <div className="aur-flow__viz-row">
@@ -76,9 +76,9 @@ const STEPS: Step[] = [
       <div className="aur-flow__viz">
         <div className="aur-flow__viz-row">
           <span className="aur-flow__viz-tag aur-flow__viz-tag--holy">Rejected</span>
-          <span style={{ color: 'var(--text-muted)' }}>— 21 juin 2026</span>
+          <span className="aur-flow__viz-date">— 21 juin 2026</span>
         </div>
-        <span style={{ color: 'var(--text-primary)' }}>
+        <span className="aur-flow__viz-quote">
           « Bonne texture, mais rougeurs après 4 jours. Pause et réévaluation plus tard. »
         </span>
       </div>

@@ -10,7 +10,7 @@ export function PillarsSection() {
       titleEm: 'er',
       desc: 'Tous vos produits au même endroit, avec un état clair : Wishlist, En cours, Saint Graal, À éviter.',
       viz: (
-        <div className="aur-objs-row" style={{ gap: 'var(--space-3)' }}>
+        <div className="aur-objs-row">
           <CosmeticObject kind="jar" />
           <CosmeticObject kind="bottle" />
           <CosmeticObject kind="dropper" />

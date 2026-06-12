@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 
+import { Button } from '../../../../component/Button/Button'
 import { AuroreBrandMark } from '../primitives/AuroreBrandMark'
 import { Container } from './Section'
 import './FinalCTASection.css'
@@ -19,12 +19,12 @@ export function FinalCTASection() {
             (Considering, Wishlist, Owned, Rejected), puis gardez la raison de ce choix.
           </p>
           <div className="aur-final__actions">
-            <Link to="/collection" className="aur-btn aur-btn--primary aur-btn--lg">
+            <Button variant="primary" size="lg" to="/collection">
               Commencer ma collection <ArrowRight size={16} />
-            </Link>
-            <Link to="/products" className="aur-btn aur-btn--ghost aur-btn--lg">
+            </Button>
+            <Button variant="outline" size="lg" to="/products">
               Explorer sans compte
-            </Link>
+            </Button>
           </div>
         </div>
       </Container>

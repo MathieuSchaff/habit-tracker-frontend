@@ -33,7 +33,11 @@ type ButtonAsLinkProps = BaseProps & {
   search?: LinkProps['search']
 }
 
-type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps
+type ButtonAsAnchorProps = BaseProps & {
+  href: string
+} & Omit<React.ComponentProps<'a'>, 'href' | 'children' | 'className'>
+
+type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps | ButtonAsAnchorProps
 
 export const Button = (props: ButtonProps) => {
   const {
@@ -87,6 +91,31 @@ export const Button = (props: ButtonProps) => {
       >
         {content}
       </Link>
+    )
+  }
+
+  if ('href' in props) {
+    const {
+      href,
+      variant: _,
+      size: _s,
+      loading: _l,
+      fullWidth: _fw,
+      className: _cn,
+      children: _ch,
+      ...anchorRest
+    } = props as ButtonAsAnchorProps
+
+    return (
+      <a
+        href={href}
+        className={classes}
+        aria-busy={loading || undefined}
+        aria-disabled={loading || undefined}
+        {...anchorRest}
+      >
+        {content}
+      </a>
     )
   }
 
