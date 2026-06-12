@@ -64,8 +64,12 @@ vendor-algo-derm:
     cd {{ALGO_DERM_DIR}} && npm pack --pack-destination {{justfile_directory()}}/vendor >/dev/null
     mv vendor/algo-derm-*.tgz vendor/algo-derm.tgz
     @printf "{{GREEN}}✓ vendor/algo-derm.tgz updated{{NC}}\n"
+    # bun keys the file: tarball extraction once and reuses it on --force; purge the cache
+    # entry + its @T@ target so host node_modules (and host `tsc -b`) get the rebuild.
+    -for l in "${BUN_INSTALL:-$HOME/.bun}"/install/cache/algo-derm/*; do rm -rf "$(readlink -f "$l")"; done
+    rm -rf "${BUN_INSTALL:-$HOME/.bun}/install/cache/algo-derm" node_modules/algo-derm
     bun install --force
-    @printf "{{GREEN}}✓ Deps reinstalled (algo-derm from tarball){{NC}}\n"
+    @printf "{{GREEN}}✓ Deps reinstalled (algo-derm from tarball, host cache purged){{NC}}\n"
 
 # Full backend rebuild (volumes + image)
 reinstall-backend:

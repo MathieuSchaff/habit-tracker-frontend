@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
+import { useAuthStore } from '@/store/auth'
+
 type Phase =
   | { phase: 'idle' }
   | { phase: 'cropping'; sourceUrl: string; sourceFile: File; sourceImage: HTMLImageElement }
@@ -188,6 +190,8 @@ export function useImageUpload(opts: UseImageUploadOptions) {
             Object.assign(new Error('upload_storage_failed'), { code: 'upload_storage_failed' })
           )
         xhr.open('POST', opts.endpoint)
+        const token = useAuthStore.getState().accessToken
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
         xhr.send(form)
       })
     },

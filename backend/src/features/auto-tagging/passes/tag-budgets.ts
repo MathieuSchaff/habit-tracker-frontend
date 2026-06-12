@@ -45,18 +45,15 @@ export type TagBudgetTable = Partial<
   Record<BudgetCategory, Partial<Record<SkincareProductTagSlug, TagBudget>>>
 >
 
-// Seeded 2026-05-13, re-baselined 2026-05-26 from DUMP_BUDGETS=1 against a
-// corpus of 3601 products with INCI (2808 skincare / 415 solaire / 378
-// bodycare) on algo-derm TAG_DEFS v11. The v7→v10 adoption shifted several
-// tags: tolerance signals rose as v8's low-risk confidence fallback lets clean
-// formulas clear the floor (peau-sensible 37→46 %, hypoallergenique 8.5→13 %,
-// non-comedogene 4.2→6.5 %); grossesse-compatible fell (72→59 %) under v9's
-// strict negation + coverage ≥ 0.8; anti-age / acne-imperfections fell as v10
-// gates active claims on rinse-off. v11 extends that gate to benefit-derived
-// effect tags: bodycare sebo-regulateur 16.4→9.0 %, apaisant 3.4→1.9 %,
-// protection / anti-oxydant drop out; skincare sebo-regulateur 26.9→24.9 %;
-// solaire unchanged (all leave-on). Auto baseline = ceil(hit_rate × 1.5, 0.05);
-// sensitives hand-tightened below that (see markers).
+// Seeded 2026-05-13, re-baselined 2026-05-26 on v11, re-baselined 2026-06-12
+// from DUMP_BUDGETS=1 against a corpus of 3684 products (3623 with INCI: 2820
+// skincare / 422 solaire / 381 bodycare) on algo-derm TAG_DEFS v12. v12 FP/FN cleanup:
+// active-list mapped tags fall back to coverage confidence when no benefit drivers
+// → non-comedogene 6.5→9.4 % skincare, 5.8→8.3 % solaire (genuine improvement,
+// not noise); hypoallergenique 12.9→16.3 % skincare; vegan caramel/mel fix and
+// urea word-anchor have no net visible effect here (disallowed tags). Auto
+// baseline = ceil(hit_rate × 1.5, 0.05); sensitives hand-tightened below that
+// (see markers).
 //
 // Sensitives:
 //   - `comedogene`: leave-on only, safety-relevant. Tight cap.
@@ -81,11 +78,11 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'acne-imperfections': { max: 0.35 }, // hit_rate=22.5%
     'non-irritant': { max: 0.35 }, // hit_rate=20.7%
     deshydratation: { max: 0.3 }, // hit_rate=19.6%
-    hypoallergenique: { max: 0.16 }, // hit_rate=12.9% · tightened (sensitive)
+    hypoallergenique: { max: 0.18 }, // hit_rate=16.3% · tightened (sensitive)
     'barriere-cutanee': { max: 0.15 }, // hit_rate=7.2%
     reparateur: { max: 0.15 }, // hit_rate=7.2%
     'eclat-teint-uniforme': { max: 0.15 }, // hit_rate=6.7%
-    'non-comedogene': { max: 0.09 }, // hit_rate=6.5% · tightened (sensitive)
+    'non-comedogene': { max: 0.11 }, // hit_rate=9.4% · tightened (sensitive)
     apaisant: { max: 0.1 }, // hit_rate=5.4%
     protection: { max: 0.1 }, // hit_rate=5.2%
     'anti-oxydant': { max: 0.1 }, // hit_rate=5.2%
@@ -106,13 +103,13 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'peau-sensible': { max: 0.45 }, // hit_rate=33.7% · tightened (sensitive)
     deshydratation: { max: 0.3 }, // hit_rate=19.0%
     'non-irritant': { max: 0.2 }, // hit_rate=12.8%
-    hypoallergenique: { max: 0.13 }, // hit_rate=9.4% · tightened (sensitive)
+    hypoallergenique: { max: 0.14 }, // hit_rate=13.0% · tightened (sensitive)
     'acne-imperfections': { max: 0.15 }, // hit_rate=7.7%
     'pores-sebum': { max: 0.15 }, // hit_rate=7.7%
     'sebo-regulateur': { max: 0.15 }, // hit_rate=7.7%
     hyperpigmentation: { max: 0.15 }, // hit_rate=7.2%
     'rougeurs-vasculaires': { max: 0.1 }, // hit_rate=6.3%
-    'non-comedogene': { max: 0.08 }, // hit_rate=5.8% · tightened (sensitive)
+    'non-comedogene': { max: 0.1 }, // hit_rate=8.3% · tightened (sensitive)
     apaisant: { max: 0.1 }, // hit_rate=4.1%
     comedogene: { max: 0.08 }, // hit_rate=3.6% · tightened (sensitive)
     protection: { max: 0.05 }, // hit_rate=2.9%
@@ -148,6 +145,8 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'non-comedogene': { max: 0.08 }, // hit_rate=4.0% · tightened (sensitive)
     'eclat-teint-uniforme': { max: 0.05 }, // hit_rate=2.4%
     apaisant: { max: 0.05 }, // hit_rate=1.9%
+    protection: { max: 0.05 }, // hit_rate=0.5%
+    'anti-oxydant': { max: 0.05 }, // hit_rate=0.5%
     'peau-grasse': { max: 0.05 }, // hit_rate=0.3%
   },
 }
