@@ -34,9 +34,15 @@
     border-top: 3px solid var(--pcc-accent);
     /* corner-*-shape is a valid CSS Shapes property */
     corner-top-right-shape: scoop;
+    /* Resting elevation: card sits on the surface, pressed flat on tap. */
+    box-shadow: var(--shadow-card);
     transition:
       box-shadow var(--transition-fast) ease,
       border-color var(--transition-fast) ease;
+  }
+
+  .prod-card-wrapper:active .prod-card {
+    box-shadow: none;
   }
 
   .prod-card-wrapper.pcc--selected .prod-card {
@@ -85,6 +91,8 @@
     height: 26px;
     border-radius: 50%;
     background: var(--bg-card);
+    /* Explicit ink: SVG currentColor must never fall back to UA button color. */
+    color: var(--text-primary);
     z-index: 100;
     border: 1px solid var(--border-default);
     box-shadow: var(--shadow-card);
@@ -100,6 +108,10 @@
 
   .prod-sentiment-badge.empty {
     opacity: 0.4;
+  }
+
+  .prod-sentiment-badge.grail {
+    color: var(--status-color-holy-grail, var(--color-primary));
   }
 
   .prod-sentiment-badge:hover {

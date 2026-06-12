@@ -20,7 +20,10 @@
 }
 
 .product-image--icon {
-  /* Mid warm brown so the icon reads on the near-white tile in every theme. */
+  /* No photo here, so the white-backdrop rule (above) does not apply: use a
+     theme-aware surface so empty placeholders stay calm in dark instead of glaring. */
+  background: var(--bg-elevated);
+  /* Mid warm brown so the icon reads on the surface in every theme. */
   color: oklch(55% 0.045 60);
 }
 

@@ -1,6 +1,7 @@
 import { ChevronDown, Star } from 'lucide-react'
 import { useState } from 'react'
 
+import { SentimentIcon } from '@/assets/sentiment-icons'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { pdsLabels } from '@/features/collection/constants'
 import type { UpdateUserProductVariables, UserProduct } from '@/lib/queries/user-products'
@@ -48,13 +49,7 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
       title={pdsLabels.experience}
       defaultOpen
       accent
-      badge={
-        p.sentiment ? (
-          <span role="img" aria-label={`Ressenti ${p.sentiment} sur 6`}>
-            {['🤢', '😕', '😐', '🙂', '😍', '💎'][p.sentiment - 1]}
-          </span>
-        ) : null
-      }
+      badge={p.sentiment ? <SentimentIcon value={p.sentiment} size={16} /> : null}
     >
       <div className="pds-sub">
         <h4 className="pds-subtitle">{pdsLabels.sentimentQuick}</h4>

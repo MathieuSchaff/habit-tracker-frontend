@@ -121,6 +121,18 @@
   background: var(--bg-muted);
 }
 
+.product-brand-copy__body {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: var(--bg-muted);
+}
+
+.product-brand-copy__note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 .product-notes-block {
   display: grid;
   grid-template-columns: auto 1fr;

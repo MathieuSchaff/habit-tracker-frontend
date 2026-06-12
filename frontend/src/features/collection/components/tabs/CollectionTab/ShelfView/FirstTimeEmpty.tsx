@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 
+import { HintHolyGrail, HintInStock, HintWishlist, SparkleIcon } from '@/assets/empty-icons'
 import { ProdCreamJarIcon, ProdPumpIcon, ProdTubeIcon } from '@/assets/product-icons'
 import { Button } from '@/component/Button/Button'
 
@@ -23,8 +24,12 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
         <div className="first-empty-bottle first-empty-bottle--b3">
           <ProdCreamJarIcon size={30} />
         </div>
-        <div className="first-empty-sparkle first-empty-sparkle--s1">✦</div>
-        <div className="first-empty-sparkle first-empty-sparkle--s2">✦</div>
+        <div className="first-empty-sparkle first-empty-sparkle--s1">
+          <SparkleIcon size={16} />
+        </div>
+        <div className="first-empty-sparkle first-empty-sparkle--s2">
+          <SparkleIcon size={16} />
+        </div>
       </div>
       <h2 className="first-empty-title">Votre étagère est vide</h2>
       <p className="first-empty-sub">
@@ -38,7 +43,7 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
       <div className="first-empty-hints">
         <div className="first-empty-hint">
           <span className="first-empty-hint-icon" aria-hidden="true">
-            📦
+            <HintInStock size={18} />
           </span>
           <span>
             <b>En stock</b> — ce que vous utilisez
@@ -46,7 +51,7 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
         </div>
         <div className="first-empty-hint">
           <span className="first-empty-hint-icon" aria-hidden="true">
-            🛍️
+            <HintWishlist size={18} />
           </span>
           <span>
             <b>Wishlist</b> — vos envies
@@ -54,7 +59,7 @@ export function FirstTimeEmpty({ onAdd }: FirstTimeEmptyProps) {
         </div>
         <div className="first-empty-hint">
           <span className="first-empty-hint-icon" aria-hidden="true">
-            💎
+            <HintHolyGrail size={18} />
           </span>
           <span>
             <b>Saint Graal</b> — un ressenti à part, sur n'importe quel produit

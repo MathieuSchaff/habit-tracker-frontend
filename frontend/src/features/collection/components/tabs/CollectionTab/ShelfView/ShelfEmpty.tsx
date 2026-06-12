@@ -1,21 +1,12 @@
 import type { UserProductStatus } from '@aurore/shared'
 
+import { EmptyIllustration } from '@/assets/empty-icons'
 import { statusLabels } from '@/features/collection/constants'
 
 import './ShelfEmpty.css'
 
 // Virtual tabs share this empty component so ShelfView only needs one.
 type ShelfEmptyKind = UserProductStatus | 'holy_grail' | 'repurchase'
-
-const EMOJIS: Record<ShelfEmptyKind, string> = {
-  in_stock: '🪞',
-  wishlist: '✨',
-  watched: '👀',
-  archived: '🗂️',
-  avoided: '🚫',
-  holy_grail: '💎',
-  repurchase: '🔁',
-}
 
 const TITLES: Record<ShelfEmptyKind, string> = {
   in_stock: 'Rien en stock',
@@ -34,7 +25,7 @@ const HINTS: Record<ShelfEmptyKind, string> = {
   archived: 'Les produits finis apparaîtront ici.',
   avoided: 'Les produits qui n’ont pas fonctionné viendront ici.',
   holy_grail:
-    'Marquez un produit avec le ressenti 💎 pour le retrouver ici, peu importe sa place sur l’étagère.',
+    'Marquez un produit avec le ressenti « Saint Graal » pour le retrouver ici, peu importe sa place sur l’étagère.',
   repurchase:
     'Marquez « Je rachèterais » sur un produit pour le retrouver ici quand il sera temps.',
 }
@@ -59,9 +50,9 @@ export function ShelfEmpty({ status }: ShelfEmptyProps) {
       ? FALLBACK_LABEL[status]
       : (statusLabels[status]?.label ?? FALLBACK_LABEL[status])
   return (
-    <div className="shelf-empty">
-      <div className="shelf-empty-emoji" aria-hidden="true">
-        {EMOJIS[status]}
+    <div className="shelf-empty" data-kind={status}>
+      <div className="shelf-empty-art" aria-hidden="true">
+        <EmptyIllustration kind={status} size={96} />
       </div>
       <h3 className="shelf-empty-title">{TITLES[status]}</h3>
       <p className="shelf-empty-hint">{HINTS[status]}</p>

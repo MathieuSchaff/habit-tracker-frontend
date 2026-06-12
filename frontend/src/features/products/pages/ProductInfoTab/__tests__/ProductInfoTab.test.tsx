@@ -64,6 +64,7 @@ function setProduct(overrides: Record<string, unknown> = {}) {
       id: 'p1',
       slug: 'product-x',
       name: 'Product X',
+      kind: 'moisturizer',
       description: 'A nice description',
       inci: null,
       notes: null,
@@ -123,6 +124,33 @@ describe('ProductInfoTab', () => {
     expect(screen.getByText('Glow serum.')).toBeInTheDocument()
     expect(screen.getByText('Niacinamide')).toBeInTheDocument()
     expect(screen.getByText('10 %')).toBeInTheDocument()
+  })
+
+  it('renders a neutral At a Glance summary from kind and ingredient groups', () => {
+    setProduct({
+      kind: 'moisturizer',
+      ingredients: [
+        {
+          ingredientSlug: 'niacinamide',
+          ingredientName: 'Niacinamide',
+          ingredientCategory: 'actif',
+        },
+        { ingredientSlug: 'glycerin', ingredientName: 'Glycerin', ingredientCategory: 'humectant' },
+      ],
+    })
+    render(<ProductInfoTab />)
+
+    expect(screen.getByText('En bref')).toBeInTheDocument()
+    expect(screen.getByText(/Composition : actifs et agents hydratants\./)).toBeInTheDocument()
+  })
+
+  it('boxes the manufacturer copy behind a disclosure with an unverified-voice note', () => {
+    setProduct({ description: 'Buy now at a discount price!' })
+    render(<ProductInfoTab />)
+
+    expect(screen.getByText('Texte de la marque')).toBeInTheDocument()
+    expect(screen.getByText('Voix commerciale, non vérifiée par Aurore.')).toBeInTheDocument()
+    expect(screen.getByText('Buy now at a discount price!')).toBeInTheDocument()
   })
 
   it('copies the ingredient list as comma-joined string with concentrations', () => {

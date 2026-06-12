@@ -34,8 +34,8 @@
   --color-primary-light: oklch(92% 0.08 154.09);
   --color-primary-subtle: oklch(97% 0.012 154.09);
 
-  --color-sidebar-bg: oklch(73.19% 0.1858 52.98);
-  --color-sidebar-item-hover: oklch(65% 0.2 52.98);
+  --color-sidebar-bg: oklch(73.19% 0.155 52.98);
+  --color-sidebar-item-hover: oklch(65% 0.165 52.98);
   --color-sidebar-item-active: oklch(from var(--text-inverse-warm) l c h / 0.2);
   --color-sidebar-icon: oklch(100% 0 0);
   --color-sidebar-icon-active: oklch(100% 0 0);

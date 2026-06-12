@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { FilterX, X } from 'lucide-react'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
+import { SentimentIcon } from '@/assets/sentiment-icons'
 import { Button } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { Select, type SelectOption } from '@/component/Input/Select/Select'
@@ -13,7 +14,6 @@ import {
   DEFAULT_FILTERS,
   useCollectionFilter,
 } from '@/features/collection/context/CollectionFilterContext'
-import { sentimentEmojis } from '@/utils/sentimentMap'
 
 import './CollectionFiltersSheet.css'
 
@@ -162,7 +162,7 @@ export function CollectionFiltersSheet({ onClose }: CollectionFiltersSheetProps)
                   aria-label={s === 'all' ? 'Tous les ressentis' : `Ressenti ${s} sur 6`}
                   onClick={() => update('sentiment', s === 'all' ? 'all' : (s as number))}
                 >
-                  {s === 'all' ? 'Tous' : sentimentEmojis[s]}
+                  {s === 'all' ? 'Tous' : <SentimentIcon value={s} size={18} />}
                 </button>
               ))}
             </div>

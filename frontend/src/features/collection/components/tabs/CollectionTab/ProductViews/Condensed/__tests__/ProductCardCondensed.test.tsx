@@ -76,9 +76,9 @@ describe('ProductCardCondensed', () => {
     expect(screen.getByText('The Ordinary')).toBeInTheDocument()
   })
 
-  it('renders sentiment emoji', () => {
+  it('renders sentiment icon', () => {
     render(<ProductCardCondensed p={makeProduct({ sentiment: 5 })} onToggleExpand={vi.fn()} />)
-    expect(screen.getByText('😍')).toBeInTheDocument()
+    expect(screen.getByTitle("J'adore")).toBeInTheDocument()
   })
 
   it('calls onToggleExpand when clicked', () => {
