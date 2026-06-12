@@ -13,7 +13,7 @@ import {
 } from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
-import { and, count, eq, ilike, inArray, or, type SQL, sql } from 'drizzle-orm'
+import { and, count, eq, inArray, or, type SQL, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { ingredientEdits, ingredients } from '../../db/schema/ingredients/ingredients'
@@ -354,13 +354,23 @@ export async function listIngredientEdits(database: DB, ingredientId: string) {
   return rows.map(normalizeEdit)
 }
 
-// Fuzzy search aligned with `searchProducts`: pg_trgm `similarity()` plus
-// ILIKE substring fallback (catches short queries below the trigram floor),
-// ordered by best similarity. Trigram GIN on name/slug feeds both branches.
+// Fuzzy search aligned with `searchProducts`: accent-folded substring fallback
+// catches short queries below the trigram floor, with similarity for typos.
 export async function searchIngredients(database: DB, query: string, limit = 10) {
   const q = query.trim()
   if (!q) return []
-  const pattern = `%${escapeLike(q)}%`
+  const escaped = escapeLike(q)
+  // Explicit rank: similarity alone over-rewards short contains-matches
+  // against long prefix-matches, making the dropdown order feel random.
+  const rank = sql`CASE
+        WHEN search_norm(${ingredients.name}) = search_norm(${q})
+          OR search_norm(${ingredients.slug}) = search_norm(${q}) THEN 0
+        WHEN search_norm(${ingredients.name}) LIKE search_norm(${escaped}) || '%' ESCAPE '\\'
+          OR search_norm(${ingredients.slug}) LIKE search_norm(${escaped}) || '%' ESCAPE '\\' THEN 1
+        WHEN search_norm(${ingredients.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'
+          OR search_norm(${ingredients.slug}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\' THEN 2
+        ELSE 3
+      END`
   return database
     .select({
       id: ingredients.id,
@@ -372,16 +382,18 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     .from(ingredients)
     .where(
       or(
-        ilike(ingredients.name, pattern),
-        ilike(ingredients.slug, pattern),
-        sql`similarity(lower(${ingredients.name}), lower(${q})) > 0.3`,
-        sql`similarity(lower(${ingredients.slug}), lower(${q})) > 0.3`
+        sql`search_norm(${ingredients.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+        sql`search_norm(${ingredients.slug}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+        // % is the indexable form of similarity() > threshold (GIN trgm).
+        sql`search_norm(${ingredients.name}) % search_norm(${q})`,
+        sql`search_norm(${ingredients.slug}) % search_norm(${q})`
       )
     )
     .orderBy(
+      rank,
       sql`GREATEST(
-            similarity(lower(${ingredients.name}), lower(${q})),
-            similarity(lower(${ingredients.slug}), lower(${q}))
+            similarity(search_norm(${ingredients.name}), search_norm(${q})),
+            similarity(search_norm(${ingredients.slug}), search_norm(${q}))
           ) DESC`,
       ingredients.name
     )

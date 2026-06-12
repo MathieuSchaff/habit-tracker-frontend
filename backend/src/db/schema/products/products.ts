@@ -64,9 +64,15 @@ export const products = pgTable(
       .on(sql`norm(${t.name})`, sql`norm(${t.brand})`)
       .where(sql`${t.moderationStatus} = 'visible'`),
     uniqueIndex('products_slug_unique').on(t.slug),
-    // `searchProducts`/`findSimilarProducts` use `similarity()` + `ILIKE %q%`, which seq-scan without these.
-    index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
-    index('products_brand_trgm_idx').using('gin', sql`${t.brand} gin_trgm_ops`),
+    // Accent-folded search path for autocomplete/list free-text search.
+    index('products_name_search_norm_trgm_idx').using(
+      'gin',
+      sql`search_norm(${t.name}) gin_trgm_ops`
+    ),
+    index('products_brand_search_norm_trgm_idx').using(
+      'gin',
+      sql`search_norm(${t.brand}) gin_trgm_ops`
+    ),
     check(
       'products_category_check',
       sql`${t.category} IN ('skincare','solaire','complement','haircare','bodycare','dental')`

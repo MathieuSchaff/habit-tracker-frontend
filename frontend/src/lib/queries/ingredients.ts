@@ -136,8 +136,8 @@ export const ingredientQueries = {
   search: (query: string) =>
     queryOptions({
       queryKey: [...ingredientKeys.all, 'search', query] as const,
-      queryFn: async () => {
-        const res = await api.ingredients.search.$get({ query: { q: query } })
+      queryFn: async ({ signal }) => {
+        const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
         if (!res.ok) throw new Error('Search failed')
         const json = await res.json()
         return json.data
@@ -149,8 +149,8 @@ export const ingredientQueries = {
   searchInfinite: (query: string) =>
     infiniteQueryOptions({
       queryKey: [...ingredientKeys.all, 'search-infinite', query] as const,
-      queryFn: async () => {
-        const res = await api.ingredients.search.$get({ query: { q: query } })
+      queryFn: async ({ signal }) => {
+        const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
         if (!res.ok) throw new Error('Search failed')
         const json = await res.json()
         return { items: json.data, hasMore: false, nextOffset: 0 }

@@ -26,7 +26,6 @@ import {
   eq,
   exists,
   gte,
-  ilike,
   inArray,
   lte,
   notExists,
@@ -391,6 +390,36 @@ export type ProductsPage = {
   limit: number
 }
 
+// Shared by the autocomplete (`searchProducts`) and the list (`?q=`) so
+// "Voir tous les résultats" recalls and ranks exactly like the dropdown.
+function productSearchMatch(q: string) {
+  const escaped = escapeLike(q)
+  return {
+    condition: or(
+      sql`search_norm(${products.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+      sql`search_norm(${products.brand}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+      // % is the indexable form of similarity() > threshold (GIN trgm).
+      sql`search_norm(${products.name}) % search_norm(${q})`,
+      sql`search_norm(${products.brand}) % search_norm(${q})`
+    ) as SQL,
+    // Explicit rank: similarity alone over-rewards short contains-matches
+    // against long prefix-matches, making the order feel random.
+    rank: sql`CASE
+        WHEN search_norm(${products.name}) = search_norm(${q})
+          OR search_norm(${products.brand}) = search_norm(${q}) THEN 0
+        WHEN search_norm(${products.name}) LIKE search_norm(${escaped}) || '%' ESCAPE '\\'
+          OR search_norm(${products.brand}) LIKE search_norm(${escaped}) || '%' ESCAPE '\\' THEN 1
+        WHEN search_norm(${products.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'
+          OR search_norm(${products.brand}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\' THEN 2
+        ELSE 3
+      END`,
+    similarityDesc: sql`GREATEST(
+        similarity(search_norm(${products.name}), search_norm(${q})),
+        similarity(search_norm(${products.brand}), search_norm(${q}))
+      ) DESC`,
+  }
+}
+
 // Flat additive filter dispatch — cyclomatic == number of optional filters; splitting relocates
 // the count without improving clarity. Behaviour covered by listProducts filter tests.
 // fallow-ignore-next-line complexity
@@ -496,10 +525,7 @@ function buildListConditions(filters: ListProductsFilters, database: Database): 
   }
 
   if (filters.q) {
-    const escaped = escapeLike(filters.q)
-    conditions.push(
-      or(ilike(products.name, `%${escaped}%`), ilike(products.brand, `%${escaped}%`)) as SQL
-    )
+    conditions.push(productSearchMatch(filters.q).condition)
   }
 
   if (filters.quality) {
@@ -626,15 +652,18 @@ export async function listProducts(
   const orderBy = (() => {
     switch (filters.sort) {
       case 'random':
-        return sql`random()`
+        return [sql`random()`]
       case 'price_asc':
-        return sql`${products.priceCents} ASC NULLS LAST`
+        return [sql`${products.priceCents} ASC NULLS LAST`]
       case 'price_desc':
-        return sql`${products.priceCents} DESC NULLS LAST`
+        return [sql`${products.priceCents} DESC NULLS LAST`]
       case 'newest':
-        return sql`${products.createdAt} DESC NULLS LAST`
-      default:
-        return products.name
+        return [sql`${products.createdAt} DESC NULLS LAST`]
+      default: {
+        if (!filters.q) return [products.name]
+        const match = productSearchMatch(filters.q)
+        return [match.rank, match.similarityDesc, products.name]
+      }
     }
   })()
 
@@ -654,7 +683,7 @@ export async function listProducts(
       })
       .from(products)
       .where(where)
-      .orderBy(orderBy)
+      .orderBy(...orderBy)
       .limit(limit)
       .offset(offset),
     database.select({ total: count() }).from(products).where(where),
@@ -753,6 +782,7 @@ export async function findSimilarProducts(
   const trimmedName = name.trim()
   const trimmedBrand = brand.trim()
   if (!trimmedName || !trimmedBrand) return []
+  const escapedName = escapeLike(trimmedName)
 
   return database
     .select({
@@ -766,17 +796,23 @@ export async function findSimilarProducts(
     .where(
       and(
         or(
-          sql`lower(${products.brand}) = lower(${trimmedBrand})`,
-          sql`similarity(lower(${products.brand}), lower(${trimmedBrand})) > 0.5`
+          sql`search_norm(${products.brand}) = search_norm(${trimmedBrand})`,
+          // % pre-filter makes the branch indexable; 0.5 stays the real cutoff.
+          sql`(search_norm(${products.brand}) % search_norm(${trimmedBrand})
+            AND similarity(search_norm(${products.brand}), search_norm(${trimmedBrand})) > 0.5)`
         ),
         or(
-          sql`similarity(lower(${products.name}), lower(${trimmedName})) > 0.3`,
-          ilike(products.name, `%${escapeLike(trimmedName)}%`)
+          // % is the indexable form of similarity() > threshold (GIN trgm).
+          sql`search_norm(${products.name}) % search_norm(${trimmedName})`,
+          sql`search_norm(${products.name}) LIKE '%' || search_norm(${escapedName}) || '%' ESCAPE '\\'`
         )
       )
     )
     .limit(5)
-    .orderBy(sql`similarity(lower(${products.name}), lower(${trimmedName})) DESC`, products.name)
+    .orderBy(
+      sql`similarity(search_norm(${products.name}), search_norm(${trimmedName})) DESC`,
+      products.name
+    )
 }
 
 export async function getProductsByIds(
@@ -796,7 +832,7 @@ export async function searchProducts(
 ): Promise<ProductSearchPage> {
   const limit = filters.limit ?? 8
   const offset = filters.offset ?? 0
-  const q = filters.q.trim()
+  const match = productSearchMatch(filters.q.trim())
   const rows = await database
     .select({
       id: products.id,
@@ -806,23 +842,10 @@ export async function searchProducts(
       slug: products.slug,
     })
     .from(products)
-    .where(
-      or(
-        ilike(products.name, `%${escapeLike(q)}%`),
-        ilike(products.brand, `%${escapeLike(q)}%`),
-        sql`similarity(lower(${products.name}), lower(${q})) > 0.3`,
-        sql`similarity(lower(${products.brand}), lower(${q})) > 0.3`
-      )
-    )
+    .where(match.condition)
     .limit(limit + 1)
     .offset(offset)
-    .orderBy(
-      sql`GREATEST(
-              similarity(lower(${products.name}), lower(${q})),
-              similarity(lower(${products.brand}), lower(${q}))
-            ) DESC`,
-      products.name
-    )
+    .orderBy(match.rank, match.similarityDesc, products.name)
   const hasMore = rows.length > limit
   const items = hasMore ? rows.slice(0, limit) : rows
   return { items, hasMore, nextOffset: offset + limit }

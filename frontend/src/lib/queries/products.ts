@@ -171,10 +171,11 @@ export const productQueries = {
   search: (q: string) =>
     infiniteQueryOptions({
       queryKey: [...productKeys.all, 'search', q] as const,
-      queryFn: async ({ pageParam }: { pageParam: number }) => {
-        const res = await api.products.search.$get({
-          query: { q, limit: '20', offset: String(pageParam) },
-        })
+      queryFn: async ({ pageParam, signal }: { pageParam: number; signal: AbortSignal }) => {
+        const res = await api.products.search.$get(
+          { query: { q, limit: '20', offset: String(pageParam) } },
+          { init: { signal } }
+        )
         if (!res.ok) throw new Error('Failed to search products')
         const json = await res.json()
         return json.data
@@ -190,8 +191,11 @@ export const productQueries = {
   searchFlat: (q: string) =>
     queryOptions({
       queryKey: [...productKeys.all, 'search-flat', q] as const,
-      queryFn: async () => {
-        const res = await api.products.search.$get({ query: { q, limit: '20', offset: '0' } })
+      queryFn: async ({ signal }) => {
+        const res = await api.products.search.$get(
+          { query: { q, limit: '20', offset: '0' } },
+          { init: { signal } }
+        )
         if (!res.ok) throw new Error('Failed to search products')
         const json = await res.json()
         return json.data.items
