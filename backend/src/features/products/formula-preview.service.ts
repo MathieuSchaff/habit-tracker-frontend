@@ -18,7 +18,7 @@ function getAliasIndex() {
 
 const AUTO_TAG_ELIGIBLE_SET: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
-export type FormulaPreviewToken = {
+type FormulaPreviewToken = {
   raw: string
   normalized: string
   canonicalKey: string | null

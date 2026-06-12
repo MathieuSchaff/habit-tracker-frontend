@@ -28,7 +28,7 @@
 }
 @media (--sm) {
   .aur-pillar {
-    padding: 1.75rem;
+    padding: var(--space-7);
     gap: var(--space-5);
   }
 }
@@ -109,6 +109,10 @@
   .aur-pillar__viz {
     min-height: 96px;
   }
+}
+
+.aur-pillar__viz .aur-objs-row {
+  gap: var(--space-3);
 }
 
 .aur-pillar__viz-tags {

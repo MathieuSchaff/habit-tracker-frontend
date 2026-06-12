@@ -93,7 +93,9 @@
 
   --page-title-color: var(--mist);
 
-  --card-footer-bg: oklch(19% 0.018 var(--h-smoke));
+  /* Sibling dark themes separate footer from card via chroma (0.05+);
+     at 0.018 the band was indistinguishable from the 20% cocoa card body. */
+  --card-footer-bg: oklch(17.5% 0.032 var(--h-smoke));
   --card-footer-border: oklch(36% 0.03 var(--h-smoke));
   --card-footer-color: oklch(84% 0.035 var(--h-sky));
   --card-footer-color-muted: oklch(68% 0.018 78);

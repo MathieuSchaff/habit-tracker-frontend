@@ -86,7 +86,7 @@
 .aur-hero__title em {
   font-style: italic;
   color: var(--color-accent);
-  font-weight: 400;
+  font-weight: var(--font-normal);
 }
 .aur-hero__title-line {
   display: block;
@@ -191,6 +191,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+.aur-hero-chaos__col--tilt {
+  transform: rotate(-1deg);
 }
 .aur-hero-chaos__cols {
   display: grid;

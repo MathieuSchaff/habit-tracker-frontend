@@ -564,8 +564,6 @@ export type ProductDetail = NonNullable<
   Awaited<ReturnType<NonNullable<ReturnType<typeof productQueries.bySlug>['queryFn']>>>
 >
 
-export type DermoAssessment = ApiData<(typeof api.products)[':slug']['dermo-score']['$get']>
-
 export type ProductFormulaPreview = ApiData<(typeof api.products)['formula-preview']['$post']>
 
 export function usePreviewProductFormula() {

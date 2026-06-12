@@ -101,6 +101,15 @@
   gap: var(--space-3);
   flex-wrap: wrap;
 }
+.aur-flow__viz-plus {
+  color: var(--color-accent);
+}
+.aur-flow__viz-date {
+  color: var(--text-muted);
+}
+.aur-flow__viz-quote {
+  color: var(--text-primary);
+}
 .aur-flow__viz-tag {
   display: inline-flex;
   align-items: center;

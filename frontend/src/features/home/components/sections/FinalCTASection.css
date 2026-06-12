@@ -18,7 +18,7 @@
 .aur-final__title em {
   font-style: italic;
   color: var(--color-accent);
-  font-weight: 400;
+  font-weight: var(--font-normal);
 }
 .aur-final__lede {
   font-size: var(--text-lg);

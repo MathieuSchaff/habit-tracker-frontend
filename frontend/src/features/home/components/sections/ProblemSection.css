@@ -20,7 +20,7 @@
 .aur-problem__quote em {
   color: var(--color-accent);
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--font-normal);
 }
 .aur-problem__attribution {
   font-size: var(--text-sm);
