@@ -1,15 +1,17 @@
 // One-shot: targeted fixes for worst-match products carrying marketing prose
 // instead of real INCI content.
 //
-// Covers five cases that slipped through existing cleanup scripts:
+// Covers cases that slipped through existing cleanup scripts:
 //   1. LED device (Medicube) — no INCI, only product description → NULL.
-//   2. Pure marketing prose (Mary&May) — no recoverable INCI → NULL.
-//   3. Marketing preamble with unlisted claims (Eucerin Aquaphor) — strip
+//   2. Marketing preamble with unlisted claims (Eucerin Aquaphor) — strip
 //      "SANS CONSERVATEUR, SANS COLORANT, NON COMÉDOGÈNE, CLINIQUEMENT PROUVÉ"
 //      prefix; the INCI body starts at CERA MICROCRISTALLINA.
-//   4–5. Korean-beauty usage-instruction prefix (Mixsoon × 2) — "Ingrédients :"
+//   3–4. Korean-beauty usage-instruction prefix (Mixsoon × 2) — "Ingrédients :"
 //      marker exists but post-strip INCI has <5 commas, so prose.ts quality
 //      gate excluded them. Strip prefix and keep the short collagen-film INCI.
+//
+// Mary&May (mary-may-blackberry) was dropped: it once carried pure marketing
+// prose, but the row now holds a valid INCI — NULLing it would destroy data.
 //
 // Dry-run by default. Pass --apply to UPDATE.
 import { SQL } from 'bun'
@@ -26,9 +28,6 @@ type Fix =
 const FIXES: Fix[] = [
   // LED device — no cosmetic INCI exists.
   { slug: 'medicube-age-r-booster-pro-mini', action: 'null' },
-
-  // Pure marketing text; no "Ingrédients :" marker, no recoverable INCI.
-  { slug: 'mary-may-blackberry-complex-glow-wash-off-pack', action: 'null' },
 
   // Marketing preamble uses "SANS CONSERVATEUR / SANS COLORANT" which are not
   // in separators.ts MARKETING_PREFIX_RX. Real INCI starts at CERA MICROCRISTALLINA.

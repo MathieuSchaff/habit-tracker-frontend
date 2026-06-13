@@ -41,8 +41,17 @@ services:
     expose:
       - "3000"
 
+    # The bun-debian image ships neither wget nor curl, so probe with bun itself;
+    # a wget-based check stays unhealthy forever and nginx (depends_on
+    # service_healthy) would never start.
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

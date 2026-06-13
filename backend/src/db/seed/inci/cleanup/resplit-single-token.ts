@@ -103,11 +103,21 @@ function longestMatchSplit(inci: string): string[] | null {
   return out
 }
 
+// A glued blob is a "token" carrying this many space-separated words — well
+// past the longest real INCI name (~6 words), so it cannot be a single
+// ingredient.
+const BLOB_WORDS = 8
+const wordCount = (s: string): number => s.trim().split(/\s+/).length
+
 const candidates = rows.filter((r) => {
-  if (splitINCI(r.inci).length !== 1) return false
   if (r.inci.length <= 80) return false
   if (NON_INCI_RX.test(r.inci)) return false
-  return true
+  const tokens = splitINCI(r.inci)
+  if (tokens.length === 1) return true
+  // Under-tokenized: a few comma-tokens but one is a long space-glued blob
+  // (slash-prefixed synonyms + comma-less body, e.g. "AQUA / WATER / EAU
+  // AZELAIC ACID C15-19 ALKANE ...").
+  return tokens.length <= 3 && tokens.some((t) => wordCount(t) >= BLOB_WORDS)
 })
 console.log(`Candidates: ${candidates.length}`)
 
@@ -122,7 +132,13 @@ for (const row of candidates) {
 
   let tokens: string[] | null = trivialSplit(row.inci)
   let strategy = 'trivial'
-  if (tokens === null) {
+  if (tokens !== null) {
+    // A trivial split can still leave a space-glued blob in one chunk; expand
+    // those via longest-match so the comma-less tail is re-tokenized too.
+    tokens = tokens.flatMap((p) =>
+      wordCount(p) >= BLOB_WORDS ? (longestMatchSplit(p) ?? [p]) : [p]
+    )
+  } else {
     tokens = longestMatchSplit(row.inci)
     strategy = 'longest-match'
   }
