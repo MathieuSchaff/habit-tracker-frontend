@@ -155,7 +155,9 @@ describe('ShelfView', () => {
       />
     )
     fireEvent.click(screen.getByRole('tab', { name: /wishlist/i }))
-    expect(screen.getByText(/Wishlist vide/i)).toBeInTheDocument()
+    // Target the heading: the decorative (aria-hidden) illustration carries the
+    // same "Wishlist vide" text in an SVG <title>, so a plain getByText matches twice.
+    expect(screen.getByRole('heading', { name: /Wishlist vide/i })).toBeInTheDocument()
   })
 
   it('persists the active tab in localStorage', () => {

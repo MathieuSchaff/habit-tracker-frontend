@@ -55,6 +55,14 @@ export type TagBudgetTable = Partial<
 // baseline = ceil(hit_rate × 1.5, 0.05); sensitives hand-tightened below that
 // (see markers).
 //
+// 2026-06-13 (v17): `peau-grasse`/`peau-seche` moved off algo-derm to name
+// positioning passes (their benefit-axis confidence was inflated corpus-wide,
+// 25-26% of skincare — see ADR-0004); their budgets now bound the explicit
+// marketed-for emission (<1%). The four residual risk-tolerance drifts
+// (non-irritant, hypoallergenique, non-comedogene, comedogene) are genuine
+// algo-derm improvement (ADR-0010 worst-axis, ADR-0011 dryness floor), not
+// noise — rebaselined with minimal headroom, sensitives still hand-tightened.
+//
 // Sensitives:
 //   - `comedogene`: leave-on only, safety-relevant. Tight cap.
 //   - `non-comedogene`: high-stake claim, must not creep on noisy INCI.
@@ -102,14 +110,14 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'sans-parfum': { max: 0.55 }, // hit_rate=34.5%
     'peau-sensible': { max: 0.45 }, // hit_rate=33.7% · tightened (sensitive)
     deshydratation: { max: 0.3 }, // hit_rate=19.0%
-    'non-irritant': { max: 0.2 }, // hit_rate=12.8%
-    hypoallergenique: { max: 0.14 }, // hit_rate=13.0% · tightened (sensitive)
+    'non-irritant': { max: 0.22 }, // hit_rate=21.6% · rebaselined v17 (ADR-0010/11 risk)
+    hypoallergenique: { max: 0.15 }, // hit_rate=14.7% · tightened (sensitive), rebaselined v17
     'acne-imperfections': { max: 0.15 }, // hit_rate=7.7%
     'pores-sebum': { max: 0.15 }, // hit_rate=7.7%
     'sebo-regulateur': { max: 0.15 }, // hit_rate=7.7%
     hyperpigmentation: { max: 0.15 }, // hit_rate=7.2%
     'rougeurs-vasculaires': { max: 0.1 }, // hit_rate=6.3%
-    'non-comedogene': { max: 0.1 }, // hit_rate=8.3% · tightened (sensitive)
+    'non-comedogene': { max: 0.12 }, // hit_rate=11.1% · tightened (sensitive), rebaselined v17
     apaisant: { max: 0.1 }, // hit_rate=4.1%
     comedogene: { max: 0.08 }, // hit_rate=3.6% · tightened (sensitive)
     protection: { max: 0.05 }, // hit_rate=2.9%
@@ -138,7 +146,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     hypoallergenique: { max: 0.15 }, // hit_rate=11.4% · tightened (sensitive)
     'sebo-regulateur': { max: 0.15 }, // hit_rate=9.0%
     'acne-imperfections': { max: 0.15 }, // hit_rate=7.4%
-    comedogene: { max: 0.09 }, // hit_rate=6.6% · tightened (sensitive)
+    comedogene: { max: 0.1 }, // hit_rate=9.2% · tightened (sensitive), rebaselined v17
     'barriere-cutanee': { max: 0.1 }, // hit_rate=5.0%
     reparateur: { max: 0.1 }, // hit_rate=5.0%
     'peau-seche': { max: 0.1 }, // hit_rate=4.0%

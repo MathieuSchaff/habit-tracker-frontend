@@ -129,11 +129,23 @@ describe('algo-derm-detection', () => {
     // Net: allow 28→24, drop 5→9. Then the 4 remaining concerns (acne-imperfections,
     // anti-age, barriere-cutanee, apaisant) flipped the same way (sized + adversarially
     // verified, re-emitted by formula name passes). Net: allow 24→20, drop 9→13.
+    // 2026-06-13: protection / anti-oxydant / reparateur flipped allow:true→false
+    // (benefit-confidence 0.5 floor was a coverage proxy, not a precision gate;
+    // algo-derm fires the antioxidant/barrier axes on ~1300 products regardless of
+    // positioning). protection folded into anti-oxydant (genuine UV meaning stays
+    // on formula:protection); anti-oxydant + reparateur re-emitted by formula name
+    // passes. Net: allow 20→17, drop 13→16.
+    // 2026-06-13: peau-grasse / peau-seche flipped allow:true→false. Their 0.85
+    // confidence floor read a benefit-axis confidence inflated corpus-wide by the
+    // v13-v17 scoring evolution (26% / 25% of skincare, two opposites both firing
+    // on half the catalogue = noise, no gold set to calibrate). Re-emitted by
+    // formula:peau-grasse-name / formula:peau-seche-name on the explicit
+    // marketed-for phrase. Net: allow 17→15, drop 16→18.
     // Hard-counted to flag any accidental flip in TAG_CONFIG.
     const allow = Object.values(TAG_CONFIG).filter((r) => r.allow)
     const drop = Object.values(TAG_CONFIG).filter((r) => !r.allow)
-    expect(allow.length).toBe(20)
-    expect(drop.length).toBe(13)
+    expect(allow.length).toBe(15)
+    expect(drop.length).toBe(18)
   })
 
   test('T2 non_irritant: recognized gentle INCI emits non-irritant', () => {

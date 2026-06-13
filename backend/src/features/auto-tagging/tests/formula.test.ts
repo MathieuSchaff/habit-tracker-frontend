@@ -6,6 +6,7 @@ import {
   detectAbsenceClaimsFromText,
   detectAcneImperfectionsFromName,
   detectAntiAgeFromName,
+  detectAntiOxydantFromName,
   detectApaisantFromName,
   detectBarriereCutaneeFromName,
   detectCernesPoches,
@@ -17,11 +18,14 @@ import {
   detectKeratosePilaire,
   detectNonGras,
   detectOcclusifTags,
+  detectPeauGrasseFromName,
   detectPeauNormale,
+  detectPeauSecheFromName,
   detectPigmentsVerts,
   detectPoresSebumFromName,
   detectPrebiotique,
   detectProtection,
+  detectReparateurFromName,
   detectReparationCutanee,
   detectRepulpant,
   detectRougeursVasculairesFromName,
@@ -507,6 +511,43 @@ describe('detectDeshydratationFromName', () => {
   })
 })
 
+describe('detectPeauGrasseFromName', () => {
+  const PG = [S.PEAU_GRASSE]
+  test('fires on "Peaux Grasses" in the name', () => {
+    expect(detectPeauGrasseFromName('Mousse Nettoyante Pour Peaux Grasses', null)).toEqual(PG)
+  })
+  test('fires on "Peau Mixte à Grasse"', () => {
+    expect(detectPeauGrasseFromName('Gel Hydratant Peau Mixte à Grasse', null)).toEqual(PG)
+  })
+  // Name-only gate (no gold set): a description claim must not fire it.
+  test('does not fire on a description-only claim', () => {
+    expect(detectPeauGrasseFromName('Fluide Matifiant', 'idéal pour peaux grasses')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectPeauGrasseFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectPeauSecheFromName', () => {
+  const PSe = [S.PEAU_SECHE]
+  test('fires on "Peaux Sèches" in the name', () => {
+    expect(detectPeauSecheFromName('Crème pour Peaux Sèches et Sensibles', null)).toEqual(PSe)
+  })
+  test('fires on "dry skin"', () => {
+    expect(detectPeauSecheFromName('Rich Cream for Dry Skin', null)).toEqual(PSe)
+  })
+  // `\b` anchor keeps the verb "dessèche" (does not dry out) out.
+  test('does not fire on the verb "dessèche"', () => {
+    expect(detectPeauSecheFromName('Lait Corps Nourrissant', 'ne dessèche pas la peau')).toEqual([])
+  })
+  test('does not fire on a description-only claim', () => {
+    expect(detectPeauSecheFromName('Baume Réparateur', 'convient aux peaux sèches')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectPeauSecheFromName(null, null)).toEqual([])
+  })
+})
+
 describe('detectAcneImperfectionsFromName', () => {
   const AI = [S.ACNE_IMPERFECTIONS]
   test('fires on "acné"', () => {
@@ -565,6 +606,29 @@ describe('detectAntiAgeFromName', () => {
   })
 })
 
+describe('detectAntiOxydantFromName', () => {
+  const AO = [S.ANTI_OXYDANT]
+  test('fires on the explicit "anti-oxydant" claim', () => {
+    expect(detectAntiOxydantFromName('Sérum Anti-Oxydant', null)).toEqual(AO)
+  })
+  test('fires on English "antioxidant"', () => {
+    expect(detectAntiOxydantFromName('Antioxidant Defense Serum', null)).toEqual(AO)
+  })
+  test('fires on an unambiguous hero (ferulic acid)', () => {
+    expect(detectAntiOxydantFromName('CE Ferulic Serum', null)).toEqual(AO)
+  })
+  test('fires on CoQ10', () => {
+    expect(detectAntiOxydantFromName('Crème Coenzyme Q10', null)).toEqual(AO)
+  })
+  // Bare vitamine C belongs to anti-age/eclat; not an antioxidant claim here.
+  test('does not fire on a bare vitamine C name', () => {
+    expect(detectAntiOxydantFromName('Sérum Vitamine C 15%', null)).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectAntiOxydantFromName(null, null)).toEqual([])
+  })
+})
+
 describe('detectBarriereCutaneeFromName', () => {
   const BC = [S.BARRIERE_CUTANEE]
   test('fires on "réparateur" (French dermo category name)', () => {
@@ -583,6 +647,24 @@ describe('detectBarriereCutaneeFromName', () => {
   })
   test('does not fire on empty name/desc', () => {
     expect(detectBarriereCutaneeFromName(null, null)).toEqual([])
+  })
+})
+
+// reparateur ≡ barriere-cutanee (algo-derm): same positioning vocab, distinct slug.
+describe('detectReparateurFromName', () => {
+  const RP = [S.REPARATEUR]
+  test('fires on "réparateur" (shares the barriere vocab)', () => {
+    expect(detectReparateurFromName('Baume Réparateur', null)).toEqual(RP)
+  })
+  test('fires on English "skin barrier repair"', () => {
+    expect(detectReparateurFromName('Skin Barrier Repair Cream', null)).toEqual(RP)
+  })
+  // Same exclusions as barriere-cutanee (acne lines, anti-age "repair").
+  test('excludes an acne-line "soin réparateur" (effaclar)', () => {
+    expect(detectReparateurFromName('Effaclar H Soin Réparateur', null)).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectReparateurFromName(null, null)).toEqual([])
   })
 })
 
