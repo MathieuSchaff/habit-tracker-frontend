@@ -2,8 +2,10 @@
 FROM oven/bun:1.3.12-alpine AS builder
 WORKDIR /app
 
-# Manifests workspace
-COPY package.json bun.lock ./
+# Manifests workspace. bunfig.toml pins linker = "hoisted"; without it bun's
+# default install layout leaves vite's phantom dep `rolldown` unhoisted, so
+# vite.config.ts's `import 'rolldown/experimental'` fails to resolve.
+COPY package.json bun.lock bunfig.toml ./
 COPY frontend/package.json frontend/
 COPY shared/package.json shared/
 COPY backend/package.json backend/
@@ -15,9 +17,10 @@ COPY frontend/ frontend/
 COPY shared/ shared/
 COPY backend/ backend/
 
-# Build declarations consumed by frontend/package.json `tsc -b`
-RUN cd /app/shared && bun run build
-RUN cd /app/backend && bun run build
+# Emit shared/dist + backend/dist declarations for the frontend `tsc -b`. Build from the
+# backend build project (references ../shared), not the solution tsconfig - that pulls
+# tsconfig.test.json whose *.test.ts inputs are stripped by .dockerignore (TS18003 "no inputs found").
+RUN bun x tsc -b backend/tsconfig.build.json --force
 
 # Typecheck + Vite build
 WORKDIR /app/frontend
