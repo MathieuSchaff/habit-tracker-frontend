@@ -18,6 +18,7 @@ import {
   detectAbsenceClaimsFromText,
   detectAcneImperfectionsFromName,
   detectAntiAgeFromName,
+  detectAntiOxydantFromName,
   detectApaisantFromName,
   detectBarriereCutaneeFromName,
   detectCernesPoches,
@@ -29,10 +30,13 @@ import {
   detectKeratosePilaire,
   detectNonGras,
   detectOcclusifTags,
+  detectPeauGrasseFromName,
+  detectPeauSecheFromName,
   detectPigmentsVerts,
   detectPoresSebumFromName,
   detectPrebiotique,
   detectProtection,
+  detectReparateurFromName,
   detectReparationCutanee,
   detectRepulpant,
   detectRougeursVasculairesFromName,
@@ -82,6 +86,8 @@ export const FORMULA_PASSES: readonly Pass[] = [
   ),
   formulaPass('formula:eclat-teint-name', (c) => detectEclatTeintFromName(c.name, c.description)),
   formulaPass('formula:pores-sebum-name', (c) => detectPoresSebumFromName(c.name, c.description)),
+  formulaPass('formula:peau-grasse-name', (c) => detectPeauGrasseFromName(c.name, c.description)),
+  formulaPass('formula:peau-seche-name', (c) => detectPeauSecheFromName(c.name, c.description)),
   formulaPass('formula:deshydratation-name', (c) =>
     detectDeshydratationFromName(c.name, c.description)
   ),
@@ -89,9 +95,11 @@ export const FORMULA_PASSES: readonly Pass[] = [
     detectAcneImperfectionsFromName(c.name, c.description)
   ),
   formulaPass('formula:anti-age-name', (c) => detectAntiAgeFromName(c.name, c.description)),
+  formulaPass('formula:anti-oxydant-name', (c) => detectAntiOxydantFromName(c.name, c.description)),
   formulaPass('formula:barriere-cutanee-name', (c) =>
     detectBarriereCutaneeFromName(c.name, c.description)
   ),
+  formulaPass('formula:reparateur-name', (c) => detectReparateurFromName(c.name, c.description)),
   formulaPass('formula:apaisant-name', (c) => detectApaisantFromName(c.name, c.description)),
   formulaPass('formula:repulpant', (c) => detectRepulpant(c.inci, c.kind, c.normalizedIngredients)),
   formulaPass('formula:keratose-pilaire', (c) =>

@@ -102,7 +102,29 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 //          don't fire keratolytique/deshydratation); vegan space-guarded
 //          (caramel no longer denies via mel pattern). No tag set change →
 //          budgets unchanged; re-baselined to confirm.
-const CALIBRATED_FOR_TAG_DEFS_VERSION = 12
+//   v13-v14 (2026-06-13): functional-role tags (`role:humectant` / `emollient`
+//          / `surfactant` / `filmForming` / `occlusive`) emitted as
+//          display/filter metadata, non-scoring. Unmapped in Aurore's
+//          TAG_CONFIG → no-op for the consumer.
+//   v15 (2026-06-13): tolerance tags `peaux_sensibles` / `peaux_atopiques` /
+//          `peau-sensible` gate on the now-discriminant `dryness` axis
+//          (< 0.5, post-ADR-0011). A defatting formula (alcohol/BPO/retinoid)
+//          that slipped under irritation/allergenicity now turns the tolerance
+//          claim absent. One-way conservative (only removes claims). Hit-rate
+//          dip on those three expected; re-baseline TAG_HIT_RATE_BUDGET.
+//   v16 (2026-06-13): dry-skin-suitability tags `peau-seche` (skin-type) and
+//          `deshydratation` (concerns) also gate `dryness < 0.5`. Strong
+//          defatting actives (retinoid/alcohol/AHA) drop the tag even when a
+//          weak hydration benefit fired it; resolves lactic acid humectant-vs-
+//          AHA dual role. `check`-only change (confidence untouched). Larger
+//          flip count than v15; re-baseline both slugs.
+//   v17 (2026-06-13): fix — reverts v15's `dryness` addition to
+//          `lowRiskConfidence` for the three tolerance tags (back to
+//          [irritation, allergenicity]). The dryness axis had zero per-axis
+//          confidence when undriven, collapsing the min and masking gentle
+//          partial-coverage formulas to insufficient_data. v15/v16 `check`
+//          gates stay; tolerance tags wrongly masked report `present` again.
+const CALIBRATED_FOR_TAG_DEFS_VERSION = 17
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
   throw new Error(
@@ -179,7 +201,13 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // by `formula:anti-age-name` (retinoid family + anti-âge/anti-rides claims) → P=0.933, R=0.944.
   'anti-age': { auroreSlug: S.ANTI_AGE, confidenceFloor: 0.5, allow: false },
   'pores-sebum': { auroreSlug: S.PORES_SEBUM, confidenceFloor: 0.5, allow: false },
-  protection: { auroreSlug: S.PROTECTION, confidenceFloor: 0.5, allow: true },
+  // Unwired + folded into `anti-oxydant` (2026-06-13): algo-derm fires `protection`
+  // on the antioxidant axis — the identical lockstep signal as `anti-oxydant` — so
+  // it double-tagged and pushed antioxidant-INCI false positives into gold
+  // `protection` (P=0.513, 77 FP). The genuine UV meaning of S.PROTECTION is owned
+  // by `formula:protection` (sunscreen kind / stated SPF); the antioxidant meaning
+  // is now `anti-oxydant`'s alone. No re-emit here — this is a pure drop.
+  protection: { auroreSlug: S.PROTECTION, confidenceFloor: 0.5, allow: false },
   deshydratation: { auroreSlug: S.DESHYDRATATION, confidenceFloor: 0.85, allow: false },
 
   // Skin effects
@@ -188,8 +216,19 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // a proximity gate (soothing vocab next to a product-type word) → P=1.000, R=0.871.
   apaisant: { auroreSlug: S.APAISANT, confidenceFloor: 0.5, allow: false },
   'sebo-regulateur': { auroreSlug: S.SEBO_REGULATEUR, confidenceFloor: 0.5, allow: true },
-  'anti-oxydant': { auroreSlug: S.ANTI_OXYDANT, confidenceFloor: 0.5, allow: true },
-  reparateur: { auroreSlug: S.REPARATEUR, confidenceFloor: 0.5, allow: true },
+  // Unwired (2026-06-13, ADR-0004): algo-derm fires on antioxidant actives
+  // (tocopherol, ascorbic, ferulic) present in nearly every emulsion regardless
+  // of positioning — ~1348/4058 products. Its 0.5 confidence floor was a coverage
+  // proxy, not a precision gate (algo-derm benefit confidence is the driver
+  // evidence weight; a single A-evidence tocopherol clears it). Re-emitted by
+  // `formula:anti-oxydant-name` (explicit antioxidant claim + unambiguous heroes).
+  // Also absorbs `protection` (same antioxidant axis), folded above.
+  'anti-oxydant': { auroreSlug: S.ANTI_OXYDANT, confidenceFloor: 0.5, allow: false },
+  // Unwired (2026-06-13, ADR-0004): algo-derm fires on ubiquitous barrier actives
+  // (ceramides, panthenol) regardless of positioning — the same barrierSupport
+  // signal as `barriere-cutanee` (≡). Re-emitted by `formula:reparateur-name`,
+  // which reuses the barriere-cutanee réparateur/repair positioning vocabulary.
+  reparateur: { auroreSlug: S.REPARATEUR, confidenceFloor: 0.5, allow: false },
   // Strict subset of sebo-regulateur trigger (same minus niacinamide): any
   // purifiant product also fires sebo-regulateur. pores-sebum + sebo-regulateur
   // axes cover the ground without redundancy.
@@ -202,8 +241,15 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // peaux_sensibles: strict computed variant, excludes sulfate/formaldehyde_donor/
   // isothiazolinone (the mapped peau-sensible tolerates them; axis gate only).
   peaux_sensibles: { auroreSlug: S.PEAU_SENSIBLE, confidenceFloor: 0.5, allow: true },
-  'peau-grasse': { auroreSlug: S.PEAU_GRASSE, confidenceFloor: 0.85, allow: true },
-  'peau-seche': { auroreSlug: S.PEAU_SECHE, confidenceFloor: 0.85, allow: true },
+  // Unwired (2026-06-13, ADR-0004): the skin-type tags fired off a benefit-axis
+  // confidence inflated corpus-wide by the v13-v17 scoring evolution (dryness floor,
+  // inert-coverage recognition) — peau-grasse 26% / peau-seche 25% of skincare, the
+  // two opposites both firing on half the catalogue = noise, not an audience claim.
+  // No gold set exists for them to calibrate a confidence floor (0 / 1 annotations).
+  // Re-emitted by `formula:peau-grasse-name` / `formula:peau-seche-name` on the
+  // explicit marketed-for phrase in the name (precision ~1.0, conservative recall).
+  'peau-grasse': { auroreSlug: S.PEAU_GRASSE, confidenceFloor: 0.85, allow: false },
+  'peau-seche': { auroreSlug: S.PEAU_SECHE, confidenceFloor: 0.85, allow: false },
 
   // Absence tags (detected_absence): algo-derm sets confidence = min(coverage, 0.95).
   // Gate on coverageFloor only; confidenceFloor is redundant for absence tags.

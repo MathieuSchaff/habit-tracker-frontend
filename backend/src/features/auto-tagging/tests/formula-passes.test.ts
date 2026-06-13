@@ -117,8 +117,8 @@ describe('formula pass table contract', () => {
 
   // Tripwire: a dropped/duplicated entry shifts the dedup order the parity test
   // pins. Bump this deliberately when adding a formula pass.
-  test('the family has 33 passes', () => {
-    expect(FORMULA_PASSES.length).toBe(33)
+  test('the family has 37 passes', () => {
+    expect(FORMULA_PASSES.length).toBe(37)
   })
 
   test('formulaPass stamps source=formula, relevance=secondary on every proposal', () => {
