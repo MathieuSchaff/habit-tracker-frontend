@@ -85,21 +85,42 @@ install-deps:
     bun install
     @printf "{{GREEN}}✓ Dependencies installed{{NC}}\n"
 
-# Rebuild algo-derm tarball in vendor/ + bun install --force
+# Rebuild algo-derm tarball in vendor/ from a pinned ref + bun install --force.
+# Aurore is calibrated for a fixed TAG_DEFS_VERSION (passes/algo-derm-detection.ts);
+# algo-derm main has moved ahead, so we build from a pinned ref in a throwaway
+# worktree (never the working checkout) and refuse a version mismatch. Migrate with
+# ALGO_DERM_REF=main once CALIBRATED_FOR_TAG_DEFS_VERSION is bumped.
 vendor-algo-derm:
-    @printf "{{CYAN}}Build algo-derm...{{NC}}\n"
-    cd {{ALGO_DERM_DIR}} && npm run build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    REF="${ALGO_DERM_REF:-v17-aurore}"
+    printf "{{CYAN}}Build algo-derm @ %s...{{NC}}\n" "$REF"
+    WT="$(mktemp -d)"
+    trap 'git -C {{ALGO_DERM_DIR}} worktree remove --force "$WT" >/dev/null 2>&1 || true' EXIT
+    git -C {{ALGO_DERM_DIR}} worktree add --quiet "$WT" "$REF"
+    ( cd "$WT" && npm ci --silent && npm run build:inci-aliases && npm run build )
     mkdir -p vendor
     rm -f vendor/algo-derm.tgz vendor/algo-derm-*.tgz
-    cd {{ALGO_DERM_DIR}} && npm pack --pack-destination {{justfile_directory()}}/vendor >/dev/null
+    ( cd "$WT" && npm pack --pack-destination {{justfile_directory()}}/vendor >/dev/null )
     mv vendor/algo-derm-*.tgz vendor/algo-derm.tgz
-    @printf "{{GREEN}}✓ vendor/algo-derm.tgz updated{{NC}}\n"
-    # bun keys the file: tarball extraction once and reuses it on --force; purge the cache
-    # entry + its @T@ target so host node_modules (and host `tsc -b`) get the rebuild.
-    -for l in "${BUN_INSTALL:-$HOME/.bun}"/install/cache/algo-derm/*; do rm -rf "$(readlink -f "$l")"; done
+    # Refuse a build whose TAG_DEFS_VERSION differs from what Aurore is calibrated for.
+    want="$(grep -oE 'CALIBRATED_FOR_TAG_DEFS_VERSION = [0-9]+' backend/src/features/auto-tagging/passes/algo-derm-detection.ts | grep -oE '[0-9]+$')"
+    got="$(tar -xzOf vendor/algo-derm.tgz package/dist/engine/tags/index.js | grep -oE 'TAG_DEFS_VERSION = [0-9]+' | grep -oE '[0-9]+$' | head -1)"
+    if [ "$got" != "$want" ]; then
+        printf "{{RED}}refusing: built TAG_DEFS_VERSION=%s but Aurore is calibrated for %s — re-run audits + bump CALIBRATED_FOR first.{{NC}}\n" "$got" "$want"
+        exit 1
+    fi
+    printf "{{GREEN}}✓ vendor/algo-derm.tgz updated (TAG_DEFS v%s, ref %s){{NC}}\n" "$got" "$REF"
+    # Regen bun.lock integrity for the rebuilt tarball; else `bun install --force`
+    # fails the integrity check (the hash is keyed to the tarball bytes).
+    export newint="sha512-$(openssl dgst -sha512 -binary vendor/algo-derm.tgz | openssl base64 -A)"
+    perl -i -pe 's{(\Q"algo-derm": ["algo-derm@../vendor/algo-derm.tgz", {}, "\E)sha512-[^"]+}{$1 . $ENV{newint}}e' bun.lock
+    # bun keys the file: tarball extraction once and reuses it on --force; purge the
+    # cache entry + its @T@ target so host node_modules (and host tsc -b) get the rebuild.
+    for l in "${BUN_INSTALL:-$HOME/.bun}"/install/cache/algo-derm/*; do rm -rf "$(readlink -f "$l")"; done
     rm -rf "${BUN_INSTALL:-$HOME/.bun}/install/cache/algo-derm" node_modules/algo-derm
     bun install --force
-    @printf "{{GREEN}}✓ Deps reinstalled (algo-derm from tarball, host cache purged){{NC}}\n"
+    printf "{{GREEN}}✓ Deps reinstalled (algo-derm@%s from tarball, host cache purged){{NC}}\n" "$REF"
 
 # Full backend rebuild (volumes + image)
 reinstall-backend:
