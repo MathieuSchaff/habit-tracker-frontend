@@ -34,6 +34,7 @@ backups/
 *.sql
 !backend/drizzle/**/*.sql
 !backend/src/db/snapshot/data.sql
+!backend/src/db/snapshot/catalogue.sql
 !backend/drizzle-init/**/*.sql
 !backend/src/db/seed/scripts/*.sql
 backend/src/db/seed/products/otherData.csv

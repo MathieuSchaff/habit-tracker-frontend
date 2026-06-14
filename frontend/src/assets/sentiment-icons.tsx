@@ -44,7 +44,7 @@ function Face({
   )
 }
 
-export function Sentiment1({ size = 24 }: IconProps) {
+function Sentiment1({ size = 24 }: IconProps) {
   return (
     <Face size={size} value={1}>
       <Eye cx={8.7} cy={10.3} />
@@ -54,7 +54,7 @@ export function Sentiment1({ size = 24 }: IconProps) {
   )
 }
 
-export function Sentiment2({ size = 24 }: IconProps) {
+function Sentiment2({ size = 24 }: IconProps) {
   return (
     <Face size={size} value={2}>
       <Eye cx={8.7} cy={10.3} />
@@ -64,7 +64,7 @@ export function Sentiment2({ size = 24 }: IconProps) {
   )
 }
 
-export function Sentiment3({ size = 24 }: IconProps) {
+function Sentiment3({ size = 24 }: IconProps) {
   return (
     <Face size={size} value={3}>
       <Eye cx={8.7} cy={10.3} />
@@ -74,7 +74,7 @@ export function Sentiment3({ size = 24 }: IconProps) {
   )
 }
 
-export function Sentiment4({ size = 24 }: IconProps) {
+function Sentiment4({ size = 24 }: IconProps) {
   return (
     <Face size={size} value={4}>
       <Eye cx={8.7} cy={10.3} />
@@ -84,7 +84,7 @@ export function Sentiment4({ size = 24 }: IconProps) {
   )
 }
 
-export function Sentiment5({ size = 24 }: IconProps) {
+function Sentiment5({ size = 24 }: IconProps) {
   return (
     <Face size={size} value={5}>
       <path d="M7.6 10.7Q8.7 9.4 9.8 10.7" />

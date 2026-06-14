@@ -14,3 +14,7 @@ COMPOSE_E2E  := "docker compose -f infra/docker/compose/docker-compose.yml -f in
 
 # Committed seed snapshot, restored by db-* and e2e-up.
 SNAPSHOT_FILE := "backend/src/db/snapshot/data.sql"
+
+# Catalogue-only snapshot (no users/reviews/runtime) for prod seeding. Owner FK
+# rewritten to __OWNER_ID__, resolved at load to the db-prod-admin user.
+CATALOGUE_FILE := "backend/src/db/snapshot/catalogue.sql"

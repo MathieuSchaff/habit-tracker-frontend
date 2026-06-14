@@ -264,3 +264,59 @@ db-snapshot-load:
 db-snapshot-reset: db-clean db-migrate
     {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 < {{SNAPSHOT_FILE}} > /dev/null
     @printf "{{GREEN}}✓ DB reset from snapshot{{NC}}\n"
+
+# Catalogue-only snapshot for prod seeding (no users/reviews/runtime). Owner FK
+# rewritten to __OWNER_ID__. Dev-only (reads dev DB); run after a reconcile.
+[group('db')]
+db-catalogue-snapshot:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p backend/src/db/snapshot
+    OWNER=$({{COMPOSE_DEV}} exec -T db psql -U app -d appdb -tAc \
+        "SELECT created_by FROM products GROUP BY created_by ORDER BY count(*) DESC LIMIT 1")
+    [ -n "$OWNER" ] || { printf "{{RED}}❌ no catalogue owner found{{NC}}\n"; exit 1; }
+    {{COMPOSE_DEV}} exec -T db pg_dump -U app -d appdb \
+        --data-only --inserts --no-owner --no-privileges \
+        -t public.products -t public.ingredients -t public.product_ingredients \
+        -t public.product_tag_links -t public.ingredient_tag_links \
+        -t public.product_tag_types -t public.ingredient_tag_types \
+        -t public.ingredient_dermo_profiles -t public.articles \
+        -t public.brand_certifications \
+        | sed "s/$OWNER/__OWNER_ID__/g" > {{CATALOGUE_FILE}}
+    LEAK=$(grep -c "@seed.local\|@seed.com" {{CATALOGUE_FILE}} || true)
+    printf "{{GREEN}}✓ Catalogue snapshot: {{CATALOGUE_FILE}} ($(wc -l < {{CATALOGUE_FILE}}) lines, $(du -h {{CATALOGUE_FILE}} | cut -f1)); seed-email lines: $LEAK{{NC}}\n"
+
+# Create the prod catalogue owner from ADMIN_EMAIL/ADMIN_PASSWORD (idempotent).
+[group('db')]
+db-prod-admin:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    $COMPOSE exec api bun run src/db/seed/seeders/seed-prod-admin.ts
+
+# Load catalogue.sql into a freshly-migrated DB, owned by the db-prod-admin user.
+# Refuses if products already populated. Run db-prod-admin first.
+[group('db')]
+db-catalogue-load:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    [ -f "{{CATALOGUE_FILE}}" ] || { printf "{{RED}}❌ No {{CATALOGUE_FILE}} — run just db-catalogue-snapshot{{NC}}\n"; exit 1; }
+    OWNER_EMAIL=$($COMPOSE exec -T api printenv ADMIN_EMAIL || true)
+    [ -n "$OWNER_EMAIL" ] || { printf "{{RED}}❌ ADMIN_EMAIL not set in env{{NC}}\n"; exit 1; }
+    OWNER_ID=$($COMPOSE exec -T db psql -U app -d appdb -tAc "SELECT id FROM users WHERE email='$OWNER_EMAIL'")
+    [ -n "$OWNER_ID" ] || { printf "{{RED}}❌ admin %s not found — run TARGET=%s just db-prod-admin first{{NC}}\n" "$OWNER_EMAIL" "$TARGET"; exit 1; }
+    N=$($COMPOSE exec -T db psql -U app -d appdb -tAc "SELECT count(*) FROM products")
+    [ "$N" = "0" ] || { printf "{{RED}}❌ products already has %s rows — refusing to clobber{{NC}}\n" "$N"; exit 1; }
+    if [ "$TARGET" = "prod" ]; then
+        printf "{{RED}}⚠ PROD CATALOGUE LOAD — tape 'PROD' pour confirmer{{NC}}\n"
+        read -r -p "> " C
+        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    fi
+    sed "s/__OWNER_ID__/$OWNER_ID/g" {{CATALOGUE_FILE}} \
+        | $COMPOSE exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 > /dev/null
+    printf "{{GREEN}}✓ Catalogue loaded (%s), owner=%s{{NC}}\n" "$TARGET" "$OWNER_EMAIL"

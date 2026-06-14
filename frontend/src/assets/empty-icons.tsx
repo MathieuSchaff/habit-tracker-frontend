@@ -47,7 +47,7 @@ function Spark({ cx, cy, r = 3.4 }: { cx: number; cy: number; r?: number }) {
   return <path d={d} fill="currentColor" stroke="none" />
 }
 
-export function EmptyInStock({ size = 64 }: IconProps) {
+function EmptyInStock({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Étagère vide">
       <path d="M12 47L52 47" />
@@ -62,7 +62,7 @@ export function EmptyInStock({ size = 64 }: IconProps) {
 
 // Wishlist = a notebook page with a small heart: "notez vos envies".
 // Distinct base from the bottles so it can't be read as stock.
-export function EmptyWishlist({ size = 64 }: IconProps) {
+function EmptyWishlist({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Wishlist vide">
       <rect x="18" y="13" width="28" height="38" rx="4" />
@@ -74,7 +74,7 @@ export function EmptyWishlist({ size = 64 }: IconProps) {
   )
 }
 
-export function EmptyWatched({ size = 64 }: IconProps) {
+function EmptyWatched({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Rien sous le coude">
       <path d="M14 32Q32 19 50 32 32 45 14 32Z" />
@@ -84,7 +84,7 @@ export function EmptyWatched({ size = 64 }: IconProps) {
   )
 }
 
-export function EmptyArchived({ size = 64 }: IconProps) {
+function EmptyArchived({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Rien d'archivé">
       <rect x="16" y="26" width="32" height="22" rx="3" />
@@ -98,7 +98,7 @@ export function EmptyArchived({ size = 64 }: IconProps) {
 // Avoided = the bottle crossed out by one big hand stroke: "rayé".
 // A single soft curved diagonal — the user's own decision, not a ban
 // sign (no circle, no X, the bottle stays intact and friendly).
-export function EmptyAvoided({ size = 64 }: IconProps) {
+function EmptyAvoided({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Rien à éviter">
       <rect x="25" y="27" width="14" height="20" rx="4" />
@@ -108,7 +108,7 @@ export function EmptyAvoided({ size = 64 }: IconProps) {
   )
 }
 
-export function EmptyHolyGrail({ size = 64 }: IconProps) {
+function EmptyHolyGrail({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Pas encore de Saint Graal">
       <path d="M24 22L40 22 46 30 32 50 18 30Z" />
@@ -127,7 +127,7 @@ export function EmptyHolyGrail({ size = 64 }: IconProps) {
 // Repurchase = the bottle itself inside a renewal loop with a solid
 // arrowhead — the object in the cycle is what keeps it from reading
 // as a generic refresh button.
-export function EmptyRepurchase({ size = 64 }: IconProps) {
+function EmptyRepurchase({ size = 64 }: IconProps) {
   return (
     <Frame size={size} label="Rien à racheter">
       <rect x="27" y="28" width="10" height="14" rx="3" />

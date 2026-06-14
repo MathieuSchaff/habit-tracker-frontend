@@ -183,7 +183,10 @@ test.describe('Auth — demo', () => {
 
     await page.getByRole('button', { name: 'Essayer la demo' }).click()
 
-    await expect(page).toHaveURL(/\/collection/, { timeout: 15_000 })
+    // /demo seeds tasks + a full collection + reviews in one awaited transaction
+    // before returning the session; under parallel workers on the tmpfs DB this
+    // can run ~20s, so the nav wait needs headroom above 15s.
+    await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
     await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible()
     await expect(page.getByText('Mode démo')).toBeVisible()
   })
@@ -193,7 +196,8 @@ test.describe('Auth — demo', () => {
 
     await page.getByRole('button', { name: 'Essayer la demo' }).click()
 
-    await expect(page).toHaveURL(/\/collection/, { timeout: 15_000 })
+    // Same heavy demo seed as above — allow headroom over the 15s default.
+    await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
     await expect(page.getByText('Mode démo')).toBeVisible()
   })
 })

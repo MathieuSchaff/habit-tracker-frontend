@@ -5,7 +5,7 @@ import { createProductSchema } from '@aurore/shared'
 
 import { eq } from 'drizzle-orm'
 
-import { productEdits } from '../../../db/schema/products'
+import { productEdits, products } from '../../../db/schema/products'
 import { productTagLinks, productTagTypes } from '../../../db/schema/tags/tags'
 import { createIngredient } from '../../../features/ingredients/service'
 import { createProductTag, replaceProductTags } from '../../../features/product-tags/service'
@@ -179,6 +179,44 @@ describe('Product Service', () => {
         testDb
       )
       expect(updated.slug).toBe('magnesium-bisglycinate')
+    })
+
+    // Legacy rows predate the comma-or-short inci write rule and carry a long
+    // space-separated inci that inciBase now rejects. A notes-only edit must
+    // leave that untouched field alone: updateProduct only normalizes/validates
+    // inci when it is present in the payload, so the stored value survives verbatim.
+    it('preserves a non-conforming stored inci on a notes-only edit', async () => {
+      const legacyInci =
+        'AQUA GLYCERIN CETEARYL ALCOHOL DIMETHICONE PHENOXYETHANOL TOCOPHEROL BUTYROSPERMUM PARKII BUTTER CAPRYLIC CAPRIC TRIGLYCERIDE SODIUM HYALURONATE'
+      // Fixture must be the shape the current rule rejects: long and comma-free.
+      expect(legacyInci.length).toBeGreaterThan(100)
+      expect(legacyInci).not.toContain(',')
+
+      const [row] = await testDb
+        .insert(products)
+        .values({
+          createdBy: user.id,
+          name: 'Legacy Cream',
+          brand: 'Generic',
+          category: 'skincare',
+          kind: 'serum',
+          unit: 'pump',
+          slug: 'legacy-noncomforming-inci',
+          inci: legacyInci,
+        })
+        .returning()
+      if (!row) throw new Error('insert failed')
+
+      const updated = await updateProduct(
+        user.id,
+        row.id,
+        { notes: 'safe edit' },
+        undefined,
+        testDb
+      )
+
+      expect(updated.notes).toBe('safe edit')
+      expect(updated.inci).toBe(legacyInci)
     })
   })
 
@@ -1034,6 +1072,35 @@ describe('createProductSchema validation', () => {
       category: 'skincare',
       kind: 'serum',
       unit: 'pump',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  const baseInciInput = {
+    name: 'Test',
+    brand: 'Brand',
+    category: 'skincare',
+    kind: 'serum',
+    unit: 'pump',
+  } as const
+
+  it('rejects a long inci with no commas (bare prose)', () => {
+    const longNoComma =
+      'AQUA GLYCERIN CETEARYL ALCOHOL DIMETHICONE PHENOXYETHANOL TOCOPHEROL BUTYROSPERMUM PARKII BUTTER CAPRYLIC CAPRIC TRIGLYCERIDE SODIUM HYALURONATE'
+    expect(longNoComma.length).toBeGreaterThan(100)
+    const result = createProductSchema.safeParse({ ...baseInciInput, inci: longNoComma })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts a short inci with no commas (single ingredient)', () => {
+    const result = createProductSchema.safeParse({ ...baseInciInput, inci: 'AQUA' })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts a long inci that is comma-separated', () => {
+    const result = createProductSchema.safeParse({
+      ...baseInciInput,
+      inci: 'Aqua, Glycerin, Cetearyl Alcohol, Dimethicone, Phenoxyethanol, Tocopherol, Butyrospermum Parkii Butter',
     })
     expect(result.success).toBe(true)
   })

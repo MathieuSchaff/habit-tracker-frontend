@@ -134,6 +134,8 @@ export const productsShelfStatusQuery = z.object({
 
 // No comma-refine: the preview endpoint exists precisely to show parse results
 // on a raw INCI string the user may not have formatted yet.
+// consumed via @aurore/shared; fallow cannot resolve the workspace symlink
+// fallow-ignore-next-line unused-export
 export const productFormulaPreviewSchema = z
   .object({
     inci: noHtml(z.string().trim().min(1).max(5000)),
@@ -152,6 +154,8 @@ export const productFormulaPreviewSchema = z
     { message: 'kind is not valid for the given category' }
   )
 
+// consumed via @aurore/shared; fallow cannot resolve the workspace symlink
+// fallow-ignore-next-line unused-type
 export type ProductFormulaPreviewInput = z.infer<typeof productFormulaPreviewSchema>
 
 export const patentSchema = z.object({

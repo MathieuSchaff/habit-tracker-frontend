@@ -354,7 +354,6 @@ export function detectTextureCremeInci(
   const top8 = inciWindow(ingredients, 8)
   const firstIng = ingredients[0]
 
-  // fallow-ignore-next-line code-duplication
   // Veto 1: ionic surfactant top 5 → cleanser mistag
   if (top5.some((ing) => IONIC_SURFACTANT_PATTERNS.some((p) => ing.includes(p)))) return []
 
@@ -460,7 +459,6 @@ export function detectTextureCremeEyeInci(
   const top5 = inciWindow(ingredients, 5)
   const top8 = inciWindow(ingredients, 8)
 
-  // fallow-ignore-next-line code-duplication
   // Veto 1: ionic surfactant top 5 → cleanser mistag
   if (top5.some((ing) => IONIC_SURFACTANT_PATTERNS.some((p) => ing.includes(p)))) return []
 

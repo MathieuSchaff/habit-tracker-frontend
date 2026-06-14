@@ -74,18 +74,13 @@ test.describe('Product detail — Modifier', () => {
     await expect(page.getByText(newNote)).toBeVisible()
   })
 
-  // Legacy products carry a long space-separated inci that predates the
-  // comma-or-short write rule. Editing notes must not re-validate (and 400 on)
-  // that untouched field — the form omits unchanged values.
-  test('editing notes on a product with legacy long inci does not 400', async ({ page }) => {
-    const slug = 'avene-dermabsolu-creme-jour'
-    const detail = await page.request.get(`/api/products/${slug}`)
-    const inci = (await detail.json()).data.inci as string
-    // Guard: this fixture must still be the legacy shape, else the test is moot.
-    expect(inci.length).toBeGreaterThan(100)
-    expect(inci).not.toContain(',')
-
-    await page.goto(`/products/${slug}/edit`)
+  // Editing notes must omit unchanged fields from the PATCH body. Re-sending an
+  // untouched inci would re-validate it, which 400s legacy data that predates the
+  // comma-or-short write rule (long space-separated inci). The omission is the
+  // guard — asserted directly here; the backend tests cover the rule + preservation.
+  test('editing notes omits the unchanged inci field and does not 400', async ({ page }) => {
+    const slug = await gotoFirstProductDetail(page)
+    await page.getByRole('link', { name: /Modifier/ }).click()
     await expect(page).toHaveURL(new RegExp(`/products/${slug}/edit$`))
 
     const newNote = `e2e legacy-inci ${Date.now()}`
