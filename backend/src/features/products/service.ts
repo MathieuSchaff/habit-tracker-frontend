@@ -48,6 +48,7 @@ import {
 } from '../../lib/catalog'
 import { escapeLike } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
+import { normalizeInci } from '../../lib/normalize-inci'
 import { nowISO } from '../../utils/dates'
 import { writeTagsForProductFailSoft } from '../auto-tagging'
 import { listTagsByProduct } from '../product-tags/service'
@@ -116,6 +117,7 @@ export async function createProduct(
         createdBy: userId,
         name,
         brand,
+        inci: input.inci != null ? normalizeInci(input.inci).value : input.inci,
         kind: normalizeString(input.kind) as ProductKind,
         unit: normalizeString(input.unit) as ProductUnit,
         amountUnit: input.amountUnit ? normalizeString(input.amountUnit) : input.amountUnit,
@@ -257,6 +259,12 @@ export async function updateProduct(
     if (typeof v === 'string') {
       ;(data as Record<string, unknown>)[field] = normalizeString(v)
     }
+  }
+
+  // Canonicalize the INCI list on edit so it stays consistent with create.
+  // Skip null (clearing the field) and empty strings.
+  if (typeof data.inci === 'string' && data.inci.trim().length > 0) {
+    data.inci = normalizeInci(data.inci).value
   }
 
   // Slug is not regenerated from name: silent changes break bookmarks, SEO, and CDN image filenames.

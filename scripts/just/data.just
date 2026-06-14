@@ -148,3 +148,19 @@ catalog-backfill-canonical-key:
     printf "{{CYAN}}Backfill canonical_key ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec api bun run src/db/seed/maintenance/backfill-canonical-key.ts \
         ${WRITE:+--write}
+
+# Rewrite products.inci to governed canonical form (algo-derm cleanInci → canonical).
+# Shares normalizeInci with the create/update write path. Env: WRITE (sans = dry-run).
+# Persist with `db-snapshot` after a WRITE.
+[group('catalog')]
+catalog-normalize-inci:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (normalize inci)"; fi
+    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
+    printf "{{CYAN}}Normalize products.inci ($MODE, $TARGET)...{{NC}}\n"
+    $COMPOSE exec api bun run src/db/seed/maintenance/normalize-product-inci.ts \
+        ${WRITE:+--write}
