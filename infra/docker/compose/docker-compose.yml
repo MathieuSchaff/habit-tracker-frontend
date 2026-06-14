@@ -63,6 +63,9 @@ services:
       BUNNY_STORAGE_HOSTNAME: ${BUNNY_STORAGE_HOSTNAME}
       BUNNY_STORAGE_PASSWORD: ${BUNNY_STORAGE_PASSWORD}
       IMAGE_CDN_BASE: ${IMAGE_CDN_BASE}
+      # Prod catalogue owner, read by the db-prod-admin seeder. Empty in dev.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
 
     networks:
       - appnet

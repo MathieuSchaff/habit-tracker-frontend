@@ -1129,6 +1129,27 @@ describe('Product Routes', () => {
 
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
+
+    // The inci write rule (comma-or-short) is enforced at the schema layer when
+    // inci is present in the body. A notes-only edit omits inci, so it never
+    // re-validates an untouched legacy value (see service test for preservation).
+    it('rejects a non-conforming inci sent in the patch body', async () => {
+      const token = contributorToken
+
+      const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(token))
+      const createData = await createRes.json()
+      if (!createData.success) throw new Error('create failed')
+      const created = createData.data
+
+      const longNoComma =
+        'AQUA GLYCERIN CETEARYL ALCOHOL DIMETHICONE PHENOXYETHANOL TOCOPHEROL BUTYROSPERMUM PARKII BUTTER CAPRYLIC CAPRIC TRIGLYCERIDE SODIUM HYALURONATE'
+      const res = await client.products[':id'].$patch(
+        { param: { id: created.id }, json: { inci: longNoComma } },
+        withAuth(token)
+      )
+
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
   })
 
   describe('DELETE /products/:id', () => {

@@ -14,7 +14,7 @@
   "workspaces": {
     ".": {
       "entry": ["scripts/**/*.{ts,js,mjs}"],
-      "ignoreDependencies": ["@biomejs/biome", "madge"]
+      "ignoreDependencies": ["@biomejs/biome", "madge", "fallow"]
     },
     "backend": {
       "entry": [
