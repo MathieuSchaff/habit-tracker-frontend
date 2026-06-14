@@ -3,7 +3,7 @@ import '_vars.just'
 ALGO_DERM_DIR := "../algo-derm"
 
 # Launch dev environment after host-side TypeScript preflight
-dev: ts-build
+dev: ts-build _db-guard
     {{COMPOSE_DEV}} up --build
 
 # Stop dev environment
@@ -11,8 +11,36 @@ dev-down:
     {{COMPOSE_DEV}} down
 
 # Launch dev in background after host-side TypeScript preflight
-dev-d: ts-build
+dev-d: ts-build _db-guard
     {{COMPOSE_DEV}} up -d --build
+
+# Fail-safe: bring db up first and offer a snapshot restore if the dev DB is
+# empty. A volume wipe (just clean / down -v / prune) otherwise leaves the stack
+# silently 500ing — `just dev` boots fine but every query hits a schemaless DB.
+_db-guard:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{COMPOSE_DEV}} up -d db
+    for _ in $(seq 1 30); do
+        {{COMPOSE_DEV}} exec -T db pg_isready -U app -d appdb >/dev/null 2>&1 && break
+        sleep 1
+    done
+    COUNT=$({{COMPOSE_DEV}} exec -T db psql -U app -d appdb -tAc "SELECT count(*) FROM products" 2>/dev/null | tr -dc '0-9')
+    if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then exit 0; fi
+    printf "{{RED}}⚠ DB dev vide (products absente ou 0 ligne) — volume wipé ?{{NC}}\n"
+    printf "{{YELLOW}}  Restore manuel : just db-migrate && just db-snapshot-load{{NC}}\n"
+    if [ ! -t 0 ]; then
+        printf "{{YELLOW}}  (non-interactif → boot continue avec une DB vide){{NC}}\n"
+        exit 0
+    fi
+    read -r -p "Restaurer depuis snapshot/data.sql maintenant ? [y/N] " C
+    [ "$C" = "y" ] || exit 0
+    just db-migrate
+    just db-snapshot-load
+    # mig 0013 creates app_runtime with a placeholder password; realign with .env.dev so the pool can auth
+    set -a; source .env.dev; set +a
+    {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '${APP_RUNTIME_PASSWORD}'" >/dev/null
+    printf "{{GREEN}}✓ DB restaurée depuis snapshot{{NC}}\n"
 
 # Prod-like profiling: Caddy HTTP/2 + brotli + immutable over prod build, /api → backend (closest local match to prod nginx). Needs backend up (`just dev-d`); open https://localhost:8443, accept self-signed warning.
 profile-prod:
@@ -26,12 +54,14 @@ profile-prod:
 # Full clean + install + types + docker (preserves pgdata)
 dev-fresh: ts-clean install-deps ts-build
     {{COMPOSE_DEV}} down 2>/dev/null || true
+    just _db-guard
     {{COMPOSE_DEV}} up --build
 
 # Full rebuild without cache (after adding dependencies)
 dev-rebuild: ts-build
     {{COMPOSE_DEV}} down
     {{COMPOSE_DEV}} build --no-cache
+    just _db-guard
     {{COMPOSE_DEV}} up
 
 # First-time setup: deps + hooks + env template
