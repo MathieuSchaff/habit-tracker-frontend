@@ -35,7 +35,7 @@ nginx-reload:
 
 # Prod container health snapshot (mirrors `health`, prod stack).
 prod-health:
-    {{COMPOSE_PROD}} ps --format "table {{{{.Name}}}}\t{{{{.Status}}}}\t{{{{.Health}}}}"
+    {{COMPOSE_PROD}} ps --format "table {{{{.Name}}\t{{{{.Status}}\t{{{{.Health}}"
 
 # One-shot prod deploy (run ON the VPS): pull → build/up → migrate → health.
 deploy: env-prod-check
@@ -75,6 +75,10 @@ prod-deploy:
 
 # ─── Prod observability (laptop → VPS over ssh; raw docker, no local stack) ───
 
+# Readiness probe end-to-end (nginx → api → DB SELECT 1). 200 = ready, 503 = DB down.
+prod-ready:
+    @curl -sS -o /dev/null -w "GET /api/ready → HTTP %{http_code}\n" https://aurore-app.fr/api/ready
+
 # Prod container status + health at a glance.
 prod-ps:
     ssh aurore 'docker ps --filter name=app_ --format "table {{{{.Names}}\t{{{{.Status}}"'
@@ -90,6 +94,14 @@ prod-tail svc="api" n="200":
 # Interactive psql on prod (read/write — careful). Read-only browse: SET ROLE dev_readonly.
 prod-psql:
     ssh -t aurore 'docker exec -it app_db psql -U app -d appdb'
+
+# Read-only prod psql: opens as dev_readonly (SELECT-only). RESET ROLE to regain write.
+prod-psql-ro:
+    ssh -t aurore 'docker exec -it -e PGOPTIONS="-c role=dev_readonly" app_db psql -U app -d appdb'
+
+# Recent security events (input-guard injection/XSS hits), last 30 days. Read-only via dev_readonly.
+prod-security:
+    ssh aurore 'docker exec -e PGOPTIONS="-c role=dev_readonly" app_db psql -U app -d appdb -P pager=off -c "SELECT created_at, severity, event_type, field, route, left(payload,60) AS payload FROM security_events WHERE created_at > current_date - 30 ORDER BY created_at DESC LIMIT 20;"'
 
 # Stop all containers
 stop:
@@ -196,7 +208,7 @@ clean-images:
 # Check service health
 health:
     @printf "{{GREEN}}Service status:{{NC}}\n"
-    {{COMPOSE_DEV}} ps --format "table {{{{.Name}}}}\t{{{{.Status}}}}\t{{{{.Health}}}}"
+    {{COMPOSE_DEV}} ps --format "table {{{{.Name}}\t{{{{.Status}}\t{{{{.Health}}"
 
 # Show container resource stats
 stats:
