@@ -83,9 +83,9 @@ prod-ps:
 prod-errors:
     ssh aurore 'docker exec app_db psql -U app -d appdb -P pager=off -c "SELECT source, count, last_seen_at, left(message,100) AS msg FROM error_groups WHERE resolved_at IS NULL ORDER BY last_seen_at DESC LIMIT 20;"'
 
-# Tail a prod service log. Usage: just prod-tail [api|db|nginx|frontend] [lines]
+# Tail a prod service log, pino-pretty-formatted. Usage: just prod-tail [api|db|nginx|frontend] [lines]
 prod-tail svc="api" n="200":
-    ssh aurore 'docker logs app_{{svc}} --tail {{n}} 2>&1'
+    ssh aurore 'docker logs app_{{svc}} --tail {{n}} 2>&1' | node_modules/.bin/pino-pretty -c -t -i pid,hostname
 
 # Interactive psql on prod (read/write — careful). Read-only browse: SET ROLE dev_readonly.
 prod-psql:
