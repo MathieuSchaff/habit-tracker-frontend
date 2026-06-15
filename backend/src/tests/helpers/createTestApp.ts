@@ -12,7 +12,7 @@ export async function createTestApp() {
 
   // Dynamically import routes to avoid circular dependencies during test initialization
   const { jwtAuthRoutes } = await import('../../features/auth/routes')
-  const { healthRoute } = await import('../../features/health/routes')
+  const { healthRoute, readyRoute } = await import('../../features/health/routes')
   const { ingredientTagRoutes } = await import('../../features/ingredients/ingredient-tags/routes')
   const { ingredientRoutes } = await import('../../features/ingredients/routes')
   const { productsFeature } = await import('../../features/products')
@@ -54,6 +54,7 @@ export async function createTestApp() {
   const routedApp = app
     .route('/api/auth', jwtAuthRoutes)
     .route('/api/health', healthRoute)
+    .route('/api/ready', readyRoute)
     .route('/api/profile', profileRoute)
     .route('/api/profiles', publicProfileRoutes)
     .route('/api', productsFeature)

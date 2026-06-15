@@ -30,4 +30,14 @@ describe('Health Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
     })
   })
+
+  describe('GET /ready', () => {
+    it('should return 200 when the DB is reachable', async () => {
+      const res = await client.ready.$get()
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.success).toBe(true)
+    })
+  })
 })

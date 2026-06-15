@@ -19,7 +19,7 @@ import { meRoutes } from './features/catalog-submissions/routes'
 import { collectionRoutes } from './features/collection/routes'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
 import { errorsRoute } from './features/errors'
-import { healthRoute } from './features/health/routes'
+import { healthRoute, readyRoute } from './features/health/routes'
 import { ingredientTagDefRoutes } from './features/ingredient-tags/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
 import { ingredientRoutes } from './features/ingredients/routes'
@@ -80,6 +80,7 @@ app.use('*', globalRateLimiterFunc)
 const routes = app
   .route('/api/auth', jwtAuthRoutes)
   .route('/api/health', healthRoute)
+  .route('/api/ready', readyRoute)
   .route('/api/profile', profileRoute)
   .route('/api/profiles', publicProfileRoutes)
   .route('/api', productsFeature)

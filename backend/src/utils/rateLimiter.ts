@@ -33,8 +33,8 @@ export const rateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
 // Defense-in-depth blanket limiter mounted at the root app, covering read
 // routes too (per-feature limiters only guard auth/admin/write). Distinct
 // instance from rateLimiterFunc so the shared per-feature store isn't counted
-// twice for routes that hit both. Skips /api/health so uptime probes aren't
-// throttled (paths are absolute at the root, unlike sub-router mounts).
+// twice for routes that hit both. Skips /api/health + /api/ready so uptime probes
+// aren't throttled (paths are absolute at the root, unlike sub-router mounts).
 export const globalRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
   ? async (_c: Context, next: Next) => await next()
   : rateLimiter<AppEnv>({
@@ -49,7 +49,7 @@ export const globalRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
           }),
           HTTP_STATUS.RATE_LIMIT_EXCEEDED
         ),
-      skip: (c) => c.req.path.startsWith('/api/health'),
+      skip: (c) => c.req.path.startsWith('/api/health') || c.req.path.startsWith('/api/ready'),
       skipFailedRequests: true,
     })
 

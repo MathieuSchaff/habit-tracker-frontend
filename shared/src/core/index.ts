@@ -14,6 +14,7 @@ export const HTTP_STATUS = {
   CONFLICT: 409,
   RATE_LIMIT_EXCEEDED: 429,
   INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
 } as const
 
 export type HttpStatus = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS]
