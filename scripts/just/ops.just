@@ -17,9 +17,12 @@ prod-down:
 prod-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
-    printf "{{RED}}⚠ PROD MIGRATE — tape 'PROD' pour confirmer{{NC}}\n"
-    read -r -p "> " C
-    [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    # SKIP_CONFIRM=1 lets `deploy` gate once instead of prompting twice.
+    if [ "${SKIP_CONFIRM:-}" != "1" ]; then
+        printf "{{RED}}⚠ PROD MIGRATE — tape 'PROD' pour confirmer{{NC}}\n"
+        read -r -p "> " C
+        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    fi
     {{COMPOSE_PROD}} exec -T api sh -c "cd backend && bun run src/db/migrate.ts"
     APP_PW=$(grep -E '^APP_RUNTIME_PASSWORD=' .env.prod 2>/dev/null | cut -d= -f2- || true)
     [ -n "$APP_PW" ] || { printf "{{RED}}APP_RUNTIME_PASSWORD absent de .env.prod — ALTER ROLE non appliqué{{NC}}\n"; exit 1; }
@@ -29,6 +32,64 @@ prod-migrate:
 # Reload Nginx config without downtime
 nginx-reload:
     {{COMPOSE_PROD}} exec nginx nginx -s reload
+
+# Prod container health snapshot (mirrors `health`, prod stack).
+prod-health:
+    {{COMPOSE_PROD}} ps --format "table {{{{.Name}}}}\t{{{{.Status}}}}\t{{{{.Health}}}}"
+
+# One-shot prod deploy (run ON the VPS): pull → build/up → migrate → health.
+deploy: env-prod-check
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Single 'DEPLOY' gate skips prod-migrate's own prompt. Migrate execs inside the
+    # api container so it runs after `up`; additive migrations boot fine on the old
+    # schema — a breaking one needs `just prod-migrate` once the new image is up.
+    printf "{{RED}}⚠ PROD DEPLOY — tape 'DEPLOY' pour confirmer{{NC}}\n"
+    read -r -p "> " C
+    [ "$C" = "DEPLOY" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    printf "{{CYAN}}▸ sync to origin/main{{NC}}\n"
+    # Mirror, not pull: GitHub rewrites main's history on each PR merge, so a deploy
+    # target is never fast-forwardable. reset --hard keeps untracked .env.prod/backups.
+    git fetch origin
+    git reset --hard origin/main
+    printf "{{CYAN}}▸ build + up (prod){{NC}}\n"
+    {{COMPOSE_PROD}} up -d --build
+    printf "{{CYAN}}▸ wait api{{NC}}\n"
+    for _ in $(seq 1 20); do
+        {{COMPOSE_PROD}} exec -T api true 2>/dev/null && break
+        sleep 2
+    done
+    printf "{{CYAN}}▸ migrate (prod){{NC}}\n"
+    SKIP_CONFIRM=1 just prod-migrate
+    printf "{{CYAN}}▸ health{{NC}}\n"
+    just prod-health
+    printf "{{GREEN}}✓ Deploy done{{NC}}\n"
+
+# Run any cmd on the VPS in the repo (bash -lc loads login PATH). Usage: just prod-ssh 'just ps'
+prod-ssh +CMD:
+    ssh -t aurore "bash -lc 'cd ~/aurore && {{CMD}}'"
+
+# Trigger a full prod deploy on the VPS from the laptop.
+prod-deploy:
+    ssh -t aurore "bash -lc 'cd ~/aurore && just deploy'"
+
+# ─── Prod observability (laptop → VPS over ssh; raw docker, no local stack) ───
+
+# Prod container status + health at a glance.
+prod-ps:
+    ssh aurore 'docker ps --filter name=app_ --format "table {{{{.Names}}\t{{{{.Status}}"'
+
+# Persisted deduped errors (error_groups; frontend only — backend 500s need B1).
+prod-errors:
+    ssh aurore 'docker exec app_db psql -U app -d appdb -P pager=off -c "SELECT source, count, last_seen_at, left(message,100) AS msg FROM error_groups WHERE resolved_at IS NULL ORDER BY last_seen_at DESC LIMIT 20;"'
+
+# Tail a prod service log. Usage: just prod-tail [api|db|nginx|frontend] [lines]
+prod-tail svc="api" n="200":
+    ssh aurore 'docker logs app_{{svc}} --tail {{n}} 2>&1'
+
+# Interactive psql on prod (read/write — careful). Read-only browse: SET ROLE dev_readonly.
+prod-psql:
+    ssh -t aurore 'docker exec -it app_db psql -U app -d appdb'
 
 # Stop all containers
 stop:
