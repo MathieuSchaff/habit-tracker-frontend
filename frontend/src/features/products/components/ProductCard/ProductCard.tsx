@@ -2,7 +2,7 @@ import { getProductKindLabel, PRODUCT_KINDS, PRODUCT_UNITS } from '@aurore/share
 
 import { Link } from '@tanstack/react-router'
 import { Check, Plus } from 'lucide-react'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
@@ -52,6 +52,7 @@ type Props = {
 }
 
 function ProductCardImpl({ product, onAdd }: Props) {
+  const [flagTipOpen, setFlagTipOpen] = useState(false)
   const handleAdd = useCallback(() => {
     onAdd({
       id: product.id,
@@ -124,13 +125,30 @@ function ProductCardImpl({ product, onAdd }: Props) {
           )}
           <div className="list-card__footer-row">
             {product.profileMatches.length > 0 && (
-              <span
-                className="list-card__preference-flag"
-                role="note"
-                aria-label={`Pour vous. Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
-                title={`Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
-              >
-                Pour vous
+              <span className="list-card__preference-flag-wrap">
+                <button
+                  type="button"
+                  className="list-card__preference-flag"
+                  onMouseEnter={() => setFlagTipOpen(true)}
+                  onMouseLeave={() => setFlagTipOpen(false)}
+                  onFocus={() => setFlagTipOpen(true)}
+                  onBlur={() => setFlagTipOpen(false)}
+                  onClick={() => setFlagTipOpen((v) => !v)}
+                  aria-label={`Pour vous. Contient des ingrédients liés à : ${avoidLabels.join(', ')}. Note personnelle, pas un avertissement.`}
+                  aria-describedby={flagTipOpen ? `preference-flag-tip-${product.id}` : undefined}
+                >
+                  Pour vous
+                </button>
+                {flagTipOpen && (
+                  <span
+                    className="list-card__preference-tip"
+                    role="tooltip"
+                    id={`preference-flag-tip-${product.id}`}
+                  >
+                    Contient des ingrédients liés à : {avoidLabels.join(', ')}. Note personnelle,
+                    pas un avertissement.
+                  </span>
+                )}
               </span>
             )}
             <div className="list-card__price-wrap">

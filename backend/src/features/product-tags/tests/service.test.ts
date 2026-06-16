@@ -39,7 +39,7 @@ describe('Product Tags Service', () => {
 
   describe('createProductTag', () => {
     it('should create a tag with a name only', async () => {
-      const tag = await createProductTag(testDb, { name: 'Anti-âge' })
+      const tag = await createProductTag(testDb, { label: 'Anti-âge' })
 
       expect(tag.id).toBeDefined()
       expect(tag.label).toBe('Anti-âge')
@@ -48,35 +48,35 @@ describe('Product Tags Service', () => {
     })
 
     it('should create a tag with a category', async () => {
-      const tag = await createProductTag(testDb, { name: 'Peau grasse', category: 'skin_type' })
+      const tag = await createProductTag(testDb, { label: 'Peau grasse', tagType: 'skin_type' })
 
       expect(tag.label).toBe('Peau grasse')
       expect(tag.tagType).toBe('skin_type')
     })
 
     it('should use custom slug when provided', async () => {
-      const tag = await createProductTag(testDb, { name: 'Éclat', slug: 'eclat-custom' })
+      const tag = await createProductTag(testDb, { label: 'Éclat', slug: 'eclat-custom' })
 
       expect(tag.slug).toBe('eclat-custom')
     })
 
     it('should auto-generate slug from name', async () => {
-      const tag = await createProductTag(testDb, { name: 'Rides et Ridules' })
+      const tag = await createProductTag(testDb, { label: 'Rides et Ridules' })
 
       expect(tag.slug).toBe('rides-et-ridules')
     })
 
     it('should store createdAt timestamp', async () => {
-      const tag = await createProductTag(testDb, { name: 'Hydratation' })
+      const tag = await createProductTag(testDb, { label: 'Hydratation' })
 
       expect(typeof tag.createdAt).toBe('string')
     })
 
     it('should throw tag_already_exists for duplicate slug', async () => {
-      await createProductTag(testDb, { name: 'Acné', slug: 'acne' })
+      await createProductTag(testDb, { label: 'Acné', slug: 'acne' })
 
       try {
-        await createProductTag(testDb, { name: 'Acné Bis', slug: 'acne' })
+        await createProductTag(testDb, { label: 'Acné Bis', slug: 'acne' })
         throw new Error('should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(TagError)
@@ -87,7 +87,7 @@ describe('Product Tags Service', () => {
 
   describe('getProductTagById', () => {
     it('should return the tag for a valid id', async () => {
-      const created = await createProductTag(testDb, { name: 'Cicatrisant' })
+      const created = await createProductTag(testDb, { label: 'Cicatrisant' })
 
       const fetched = await getProductTagById(testDb, created.id)
 
@@ -105,7 +105,7 @@ describe('Product Tags Service', () => {
 
   describe('getProductTagBySlug', () => {
     it('should return the tag for a valid slug', async () => {
-      const created = await createProductTag(testDb, { name: 'Sérum' })
+      const created = await createProductTag(testDb, { label: 'Sérum' })
 
       const fetched = await getProductTagBySlug(testDb, created.slug)
 
@@ -122,11 +122,11 @@ describe('Product Tags Service', () => {
 
   describe('updateProductTag', () => {
     it('should update tag fields', async () => {
-      const created = await createProductTag(testDb, { name: 'Rides' })
+      const created = await createProductTag(testDb, { label: 'Rides' })
 
       const updated = await updateProductTag(testDb, created.id, {
-        name: 'Rides et Ridules',
-        category: 'concern',
+        label: 'Rides et Ridules',
+        tagType: 'concern',
       })
 
       expect(updated.label).toBe('Rides et Ridules')
@@ -135,7 +135,7 @@ describe('Product Tags Service', () => {
 
     it('should throw tag_not_found for unknown id', async () => {
       try {
-        await updateProductTag(testDb, crypto.randomUUID(), { name: 'X' })
+        await updateProductTag(testDb, crypto.randomUUID(), { label: 'X' })
         throw new Error('should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(TagError)
@@ -144,11 +144,11 @@ describe('Product Tags Service', () => {
     })
 
     it('should throw tag_already_exists when slug conflicts', async () => {
-      await createProductTag(testDb, { name: 'Éclat', slug: 'eclat' })
-      const t2 = await createProductTag(testDb, { name: 'Luminosité' })
+      await createProductTag(testDb, { label: 'Éclat', slug: 'eclat' })
+      const t2 = await createProductTag(testDb, { label: 'Luminosité' })
 
       try {
-        await updateProductTag(testDb, t2.id, { name: 'Éclat', slug: 'eclat' })
+        await updateProductTag(testDb, t2.id, { label: 'Éclat', slug: 'eclat' })
         throw new Error('should have thrown')
       } catch (e) {
         expect(e).toBeInstanceOf(TagError)
@@ -159,7 +159,7 @@ describe('Product Tags Service', () => {
 
   describe('deleteProductTag', () => {
     it('should delete an existing tag and return true', async () => {
-      const created = await createProductTag(testDb, { name: 'Pores' })
+      const created = await createProductTag(testDb, { label: 'Pores' })
 
       const result = await deleteProductTag(testDb, created.id)
 
@@ -177,7 +177,7 @@ describe('Product Tags Service', () => {
   describe('addTagToProduct', () => {
     it('should link a tag to a product', async () => {
       const product = await makeProduct(user.id)
-      const tag = await createProductTag(testDb, { name: 'Hydratation' })
+      const tag = await createProductTag(testDb, { label: 'Hydratation' })
 
       const link = await addTagToProduct(testDb, product.id, tag.id)
 
@@ -198,9 +198,9 @@ describe('Product Tags Service', () => {
 
     it('should link multiple tags to a product at once', async () => {
       const product = await makeProduct(user.id)
-      const t1 = await createProductTag(testDb, { name: 'Acné' })
-      const t2 = await createProductTag(testDb, { name: 'Pores' })
-      const t3 = await createProductTag(testDb, { name: 'Sébum' })
+      const t1 = await createProductTag(testDb, { label: 'Acné' })
+      const t2 = await createProductTag(testDb, { label: 'Pores' })
+      const t3 = await createProductTag(testDb, { label: 'Sébum' })
 
       const links = await addManyTagsToProduct(testDb, product.id, [t1.id, t2.id, t3.id])
 
@@ -223,7 +223,7 @@ describe('Product Tags Service', () => {
 
     it('should return tags with joined tag information', async () => {
       const product = await makeProduct(user.id)
-      const tag = await createProductTag(testDb, { name: 'Anti-âge', category: 'concern' })
+      const tag = await createProductTag(testDb, { label: 'Anti-âge', tagType: 'concern' })
 
       await addTagToProduct(testDb, product.id, tag.id)
 
@@ -240,7 +240,7 @@ describe('Product Tags Service', () => {
     it('should not return tags from other products', async () => {
       const p1 = await makeProduct(user.id, 'Produit A')
       const p2 = await makeProduct(user.id, 'Produit B')
-      const tag = await createProductTag(testDb, { name: 'Test' })
+      const tag = await createProductTag(testDb, { label: 'Test' })
 
       await addTagToProduct(testDb, p1.id, tag.id)
 
@@ -252,7 +252,7 @@ describe('Product Tags Service', () => {
 
   describe('listProductsByTag', () => {
     it('should return an empty list when no products have the tag', async () => {
-      const tag = await createProductTag(testDb, { name: 'Orphan Tag' })
+      const tag = await createProductTag(testDb, { label: 'Orphan Tag' })
 
       const result = await listProductsByTag(testDb, tag.id)
 
@@ -262,7 +262,7 @@ describe('Product Tags Service', () => {
     it('should return product links for a given tag', async () => {
       const p1 = await makeProduct(user.id, 'Produit A')
       const p2 = await makeProduct(user.id, 'Produit B')
-      const tag = await createProductTag(testDb, { name: 'Commun' })
+      const tag = await createProductTag(testDb, { label: 'Commun' })
 
       await addTagToProduct(testDb, p1.id, tag.id)
       await addTagToProduct(testDb, p2.id, tag.id)
@@ -279,7 +279,7 @@ describe('Product Tags Service', () => {
   describe('removeTagFromProduct', () => {
     it('should remove a tag from a product and return true', async () => {
       const product = await makeProduct(user.id)
-      const tag = await createProductTag(testDb, { name: 'À retirer' })
+      const tag = await createProductTag(testDb, { label: 'À retirer' })
 
       await addTagToProduct(testDb, product.id, tag.id)
       const removed = await removeTagFromProduct(testDb, product.id, tag.id)
@@ -292,7 +292,7 @@ describe('Product Tags Service', () => {
 
     it('should return false when the link does not exist', async () => {
       const product = await makeProduct(user.id)
-      const tag = await createProductTag(testDb, { name: 'Inexistant' })
+      const tag = await createProductTag(testDb, { label: 'Inexistant' })
 
       const result = await removeTagFromProduct(testDb, product.id, tag.id)
 
@@ -301,8 +301,8 @@ describe('Product Tags Service', () => {
 
     it('should only remove the specified tag, not others', async () => {
       const product = await makeProduct(user.id)
-      const t1 = await createProductTag(testDb, { name: 'Garder' })
-      const t2 = await createProductTag(testDb, { name: 'Retirer' })
+      const t1 = await createProductTag(testDb, { label: 'Garder' })
+      const t2 = await createProductTag(testDb, { label: 'Retirer' })
 
       await addManyTagsToProduct(testDb, product.id, [t1.id, t2.id])
       await removeTagFromProduct(testDb, product.id, t2.id)
@@ -316,8 +316,8 @@ describe('Product Tags Service', () => {
   describe('replaceProductTags', () => {
     it('should replace existing tags with new ones', async () => {
       const product = await makeProduct(user.id)
-      const t1 = await createProductTag(testDb, { name: 'Ancien' })
-      const t2 = await createProductTag(testDb, { name: 'Nouveau' })
+      const t1 = await createProductTag(testDb, { label: 'Ancien' })
+      const t2 = await createProductTag(testDb, { label: 'Nouveau' })
 
       await addTagToProduct(testDb, product.id, t1.id)
       await replaceProductTags(testDb, product.id, [t2.id])
@@ -329,7 +329,7 @@ describe('Product Tags Service', () => {
 
     it('should clear all tags when given an empty array', async () => {
       const product = await makeProduct(user.id)
-      const tag = await createProductTag(testDb, { name: 'À effacer' })
+      const tag = await createProductTag(testDb, { label: 'À effacer' })
 
       await addTagToProduct(testDb, product.id, tag.id)
       const result = await replaceProductTags(testDb, product.id, [])
@@ -341,8 +341,8 @@ describe('Product Tags Service', () => {
 
     it('should handle replacing when no tags existed', async () => {
       const product = await makeProduct(user.id)
-      const t1 = await createProductTag(testDb, { name: 'Premier' })
-      const t2 = await createProductTag(testDb, { name: 'Deuxième' })
+      const t1 = await createProductTag(testDb, { label: 'Premier' })
+      const t2 = await createProductTag(testDb, { label: 'Deuxième' })
 
       const result = await replaceProductTags(testDb, product.id, [t1.id, t2.id])
 

@@ -47,7 +47,7 @@ async function makeIngredient(name: string) {
 }
 
 async function _makeTag(name: string, category?: string) {
-  return createProductTag(testDb, { name, category })
+  return createProductTag(testDb, { label: name, tagType: category })
 }
 
 describe('Product Service', () => {
@@ -490,8 +490,8 @@ describe('Product Service', () => {
       for (const tagType of TAG_CATEGORIES) {
         it(`should filter by ${tagType} tag`, async () => {
           const tag = await createProductTag(testDb, {
-            name: `Test ${tagType}`,
-            category: tagType,
+            label: `Test ${tagType}`,
+            tagType: tagType,
           })
           const matched = await makeProduct('Match', 'A')
           await makeProduct('Non-match', 'B')
@@ -506,8 +506,8 @@ describe('Product Service', () => {
       }
 
       it('should apply OR within a tag category (multiple slugs of same category)', async () => {
-        const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
-        const aging = await createProductTag(testDb, { name: 'Anti-âge', category: 'concern' })
+        const acne = await createProductTag(testDb, { label: 'Anti-acné', tagType: 'concern' })
+        const aging = await createProductTag(testDb, { label: 'Anti-âge', tagType: 'concern' })
         const p1 = await makeProduct('Produit acné', 'A')
         const p2 = await makeProduct('Produit âge', 'B')
         await makeProduct('Produit neutre', 'C')
@@ -522,8 +522,8 @@ describe('Product Service', () => {
       })
 
       it('should apply AND across tag categories (intersection)', async () => {
-        const oily = await createProductTag(testDb, { name: 'Grasse', category: 'skin_type' })
-        const acne = await createProductTag(testDb, { name: 'Acné', category: 'concern' })
+        const oily = await createProductTag(testDb, { label: 'Grasse', tagType: 'skin_type' })
+        const acne = await createProductTag(testDb, { label: 'Acné', tagType: 'concern' })
         const both = await makeProduct('Pour peau grasse acnéique', 'A')
         const onlyOily = await makeProduct('Juste grasse', 'B')
         const onlyAcne = await makeProduct('Juste acné', 'C')
@@ -544,8 +544,8 @@ describe('Product Service', () => {
     describe('routine_moment universal moments', () => {
       it('matin matches products tagged matin AND products with no moment tag', async () => {
         const matin = await createProductTag(testDb, {
-          name: 'Matin',
-          category: 'routine_moment',
+          label: 'Matin',
+          tagType: 'routine_moment',
           slug: 'moment-matin',
         })
         const tagged = await makeProduct('Tagué matin', 'A')
@@ -561,13 +561,13 @@ describe('Product Service', () => {
 
       it('matin excludes products tagged with a different moment only', async () => {
         const matin = await createProductTag(testDb, {
-          name: 'Matin',
-          category: 'routine_moment',
+          label: 'Matin',
+          tagType: 'routine_moment',
           slug: 'moment-matin',
         })
         const soir = await createProductTag(testDb, {
-          name: 'Soir',
-          category: 'routine_moment',
+          label: 'Soir',
+          tagType: 'routine_moment',
           slug: 'moment-soir',
         })
         const matinProduct = await makeProduct('Produit matin', 'A')
@@ -584,8 +584,8 @@ describe('Product Service', () => {
 
       it('restrictive moment (hebdomadaire) stays strict — untagged products excluded', async () => {
         const hebdo = await createProductTag(testDb, {
-          name: 'Hebdomadaire',
-          category: 'routine_moment',
+          label: 'Hebdomadaire',
+          tagType: 'routine_moment',
           slug: 'moment-hebdomadaire',
         })
         const tagged = await makeProduct('Masque hebdo', 'A')
@@ -645,9 +645,9 @@ describe('Product Service', () => {
         })
         await makeProduct('Shampoing', 'B', 'shampoo', 'bottle', { category: 'haircare' })
         const tag = await createProductTag(testDb, {
-          name: 'Acné',
+          label: 'Acné',
           slug: 'acne',
-          category: 'concern',
+          tagType: 'concern',
         })
         await replaceProductTags(testDb, product.id, [{ tagId: tag.id, relevance: 'primary' }])
 
@@ -663,8 +663,8 @@ describe('Product Service', () => {
     describe('avoid_for filter', () => {
       it('flags matching products via profileMatches but does not exclude them', async () => {
         const reactive = await createProductTag(testDb, {
-          name: 'Peau réactive',
-          category: 'skin_type',
+          label: 'Peau réactive',
+          tagType: 'skin_type',
         })
         const retinol = await makeProduct('Rétinol fort', 'A')
         const gentle = await makeProduct('Hydratant doux', 'B')
@@ -683,8 +683,8 @@ describe('Product Service', () => {
 
       it('does not flag products where the tag relevance is primary or secondary', async () => {
         const reactive = await createProductTag(testDb, {
-          name: 'Peau réactive',
-          category: 'skin_type',
+          label: 'Peau réactive',
+          tagType: 'skin_type',
         })
         const dedicated = await makeProduct('Produit pour peau réactive', 'A')
         await replaceProductTags(testDb, dedicated.id, [
@@ -710,8 +710,8 @@ describe('Product Service', () => {
       // even when relevant `avoid` tags exist.
       it('translates user concern slugs to product tag slugs before matching', async () => {
         const acne = await createProductTag(testDb, {
-          name: 'Acné / Imperfections',
-          category: 'concern',
+          label: 'Acné / Imperfections',
+          tagType: 'concern',
           slug: 'acne-imperfections',
         })
         const risky = await makeProduct('Sérum risqué pour acné', 'A')
@@ -729,8 +729,8 @@ describe('Product Service', () => {
       // one slug in profileMatches (deduped by SQL inArray + resolver Set).
       it('dedupes when multiple user concerns map to the same product tag', async () => {
         const redness = await createProductTag(testDb, {
-          name: 'Rougeurs vasculaires',
-          category: 'concern',
+          label: 'Rougeurs vasculaires',
+          tagType: 'concern',
           slug: 'rougeurs-vasculaires',
         })
         const risky = await makeProduct('Tonique alcool', 'A')
@@ -791,11 +791,11 @@ describe('Product Service', () => {
 
     describe('tags aggregation', () => {
       it('exposes primary tags only as { slug, tagType, relevance } entries', async () => {
-        const acne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
-        const oily = await createProductTag(testDb, { name: 'Grasse', category: 'skin_type' })
+        const acne = await createProductTag(testDb, { label: 'Anti-acné', tagType: 'concern' })
+        const oily = await createProductTag(testDb, { label: 'Grasse', tagType: 'skin_type' })
         const vegan = await createProductTag(testDb, {
-          name: 'Vegan',
-          category: 'product_characteristic',
+          label: 'Vegan',
+          tagType: 'product_characteristic',
         })
         const product = await makeProduct('Sérum complet', 'A')
         await replaceProductTags(testDb, product.id, [
@@ -822,8 +822,8 @@ describe('Product Service', () => {
 
       it('excludes avoid-relevance tags from the tags array', async () => {
         const reactive = await createProductTag(testDb, {
-          name: 'Réactive',
-          category: 'skin_type',
+          label: 'Réactive',
+          tagType: 'skin_type',
         })
         const product = await makeProduct('Rétinol', 'A')
         await replaceProductTags(testDb, product.id, [{ tagId: reactive.id, relevance: 'avoid' }])
@@ -956,8 +956,8 @@ describe('Product Service', () => {
     })
 
     it('should include product counts per tag in tagCounts map', async () => {
-      const tagAcne = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
-      const tagAging = await createProductTag(testDb, { name: 'Anti-âge', category: 'concern' })
+      const tagAcne = await createProductTag(testDb, { label: 'Anti-acné', tagType: 'concern' })
+      const tagAging = await createProductTag(testDb, { label: 'Anti-âge', tagType: 'concern' })
 
       const p1 = await makeProduct('P1', 'A')
       const p2 = await makeProduct('P2', 'B')
@@ -973,8 +973,8 @@ describe('Product Service', () => {
     })
 
     it('omits orphan tags (defined but not linked to any product) from tagCounts', async () => {
-      const linked = await createProductTag(testDb, { name: 'Lié', category: 'concern' })
-      const orphan = await createProductTag(testDb, { name: 'Orphelin', category: 'concern' })
+      const linked = await createProductTag(testDb, { label: 'Lié', tagType: 'concern' })
+      const orphan = await createProductTag(testDb, { label: 'Orphelin', tagType: 'concern' })
       const p = await makeProduct('P', 'B')
       await replaceProductTags(testDb, p.id, [linked.id])
 
@@ -997,8 +997,8 @@ describe('Product Service', () => {
       })
 
       it('scopes tagCounts to the requested domain tab', async () => {
-        const skinTag = await createProductTag(testDb, { name: 'Anti-acné', category: 'concern' })
-        const hairTag = await createProductTag(testDb, { name: 'Pellicules', category: 'concern' })
+        const skinTag = await createProductTag(testDb, { label: 'Anti-acné', tagType: 'concern' })
+        const hairTag = await createProductTag(testDb, { label: 'Pellicules', tagType: 'concern' })
 
         const skinProduct = await makeProduct('Sérum', 'A', 'serum', 'pump', {
           category: 'skincare',

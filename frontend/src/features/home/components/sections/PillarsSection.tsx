@@ -46,7 +46,7 @@ export function PillarsSection() {
           <CosmeticObject kind="bottle" />
         </div>
       ),
-      items: ['Comparatif côte à côte', 'Décision documentée', 'Historique retrouvable'],
+      items: ['Comparatif côte à côte', 'Décision documentée', "Historique d'achats"],
     },
   ]
 

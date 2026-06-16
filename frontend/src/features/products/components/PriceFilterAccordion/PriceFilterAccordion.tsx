@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import { PriceRangeFilter } from '@/features/products/components/PriceRangeFilter/PriceRangeFilter'
 
@@ -9,14 +9,23 @@ type Props = {
   onChange: (next: { min?: number; max?: number }) => void
 }
 
-// Mirrors FilterAccordion's <details> shape. Open by default only if a price is already set.
+// Mirrors FilterAccordion's <details> shape. Open by default if a price is set; reopen when
+// one gets applied externally (URL, chip), while leaving manual toggles untouched.
 export function PriceFilterAccordion({ min, max, onChange }: Props) {
   const hasValue = min !== undefined || max !== undefined
-  const [initialOpen] = useState(() => hasValue)
+  const [open, setOpen] = useState(hasValue)
   const contentId = useId()
 
+  useEffect(() => {
+    if (hasValue) setOpen(true)
+  }, [hasValue])
+
   return (
-    <details className="filter-accordion filter-accordion--essential" open={initialOpen}>
+    <details
+      className="filter-accordion filter-accordion--essential"
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+    >
       <summary className="filter-accordion__trigger" aria-controls={contentId}>
         <h3 className="filter-accordion__label">Prix</h3>
         <div className="filter-accordion__meta">

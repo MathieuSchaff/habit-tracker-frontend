@@ -10,7 +10,7 @@ export type TagState = {
 
 interface UseFormTagsProps {
   initialTags: TagState[]
-  allTags: Array<{ id: string; name: string; category?: string | null }> | undefined
+  allTags: Array<{ id: string; label: string; tagType?: string | null }> | undefined
 }
 
 export function useFormTags({ initialTags, allTags }: UseFormTagsProps) {
@@ -20,7 +20,7 @@ export function useFormTags({ initialTags, allTags }: UseFormTagsProps) {
     (tagId: string) => {
       const tag = allTags?.find((t) => t.id === tagId)
       if (tag && !tags.find((t) => t.tagId === tagId)) {
-        setTags((prev) => [...prev, { tagId, tagName: tag.name, relevance: 'secondary' }])
+        setTags((prev) => [...prev, { tagId, tagName: tag.label, relevance: 'secondary' }])
       }
     },
     [allTags, tags]

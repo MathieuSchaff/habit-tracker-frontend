@@ -1,5 +1,5 @@
 import { Moon, Sun } from 'lucide-react'
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 
 import type { Variant } from '../../store/theme'
 import { useThemeStore } from '../../store/theme'
@@ -15,25 +15,28 @@ export const ThemeToggle = () => {
   const { theme, variant, toggle, setVariant } = useThemeStore()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
+  const popoverId = useId()
   const isDark = theme === 'dark'
   const currentVariant = VARIANTS.find((v) => v.value === variant)
 
-  const handleTrigger = () => {
+  // The button's popovertarget owns open/close. A manual onClick toggle races
+  // the auto-popover light-dismiss: dismiss hides on pointerdown, then the
+  // handler re-reads :popover-open as false and re-opens. Position from the
+  // toggle events so the browser stays the single source of truth.
+  const position = () => {
     const el = popoverRef.current
     const btn = triggerRef.current
     if (!el || !btn) return
-
-    if (el.matches(':popover-open')) {
-      el.hidePopover()
-      return
-    }
-
-    // Viewport-relative positioning so overflow parents don't clip the popover.
+    // Viewport-relative so overflow parents don't clip the popover.
     const rect = btn.getBoundingClientRect()
     el.style.left = `${rect.left}px`
     el.style.bottom = `${window.innerHeight - rect.top + 8}px`
-    el.showPopover()
-    // Clamp into the viewport once the popover is measurable.
+  }
+
+  // Clamp into the viewport once the popover is measurable (after it opens).
+  const clampX = () => {
+    const el = popoverRef.current
+    if (!el) return
     const margin = 8
     const popRect = el.getBoundingClientRect()
     if (popRect.right > window.innerWidth - margin) {
@@ -52,7 +55,7 @@ export const ThemeToggle = () => {
         type="button"
         className="theme-toggle-trigger"
         aria-label="Changer le thème"
-        onClick={handleTrigger}
+        popoverTarget={popoverId}
       >
         {isDark ? (
           <Moon size={16} strokeWidth={2} aria-hidden="true" />
@@ -66,8 +69,21 @@ export const ThemeToggle = () => {
         />
       </button>
 
-      {/* popover="auto" handles outside-click + Escape natively. */}
-      <div ref={popoverRef} className="theme-dropdown" popover="auto">
+      {/* popover="auto" handles outside-click + Escape; the button's
+          popoverTarget handles toggle. beforetoggle pre-positions to avoid a
+          flash, toggle clamps once the popover is measurable. */}
+      <div
+        ref={popoverRef}
+        id={popoverId}
+        className="theme-dropdown"
+        popover="auto"
+        onBeforeToggle={(e) => {
+          if (e.newState === 'open') position()
+        }}
+        onToggle={(e) => {
+          if (e.newState === 'open') clampX()
+        }}
+      >
         <button
           type="button"
           className="theme-dropdown__btn"

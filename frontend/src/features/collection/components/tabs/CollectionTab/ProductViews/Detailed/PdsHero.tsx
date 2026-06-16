@@ -30,7 +30,7 @@ export function PdsHero({ p, closeBtnRef, onClose, onStatusChange }: PdsHeroProp
           onClick={onClose}
           aria-label="Fermer"
         >
-          <X size={15} aria-hidden="true" />
+          <X size={18} aria-hidden="true" />
         </button>
         <DropdownMenu className="pds-header-status">
           <DropdownMenu.Trigger>

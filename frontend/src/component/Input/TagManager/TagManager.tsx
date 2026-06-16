@@ -5,7 +5,7 @@ import './TagManager.css'
 
 type TagManagerProps = {
   tags: TagState[]
-  availableTags: { id: string; name: string; category?: string | null }[]
+  availableTags: { id: string; label: string; tagType?: string | null }[]
   onAddTag: (tagId: string) => void
   onRemoveTag: (tagId: string) => void
   onUpdateRelevance: (tagId: string, relevance: 'primary' | 'secondary' | 'avoid') => void
@@ -67,7 +67,7 @@ export function TagManager({
           </option>
           {availableTags.map((tag) => (
             <option key={tag.id} value={tag.id}>
-              {tag.name} ({tag.category ?? 'Sans catégorie'})
+              {tag.label} ({tag.tagType ?? 'Sans catégorie'})
             </option>
           ))}
         </select>

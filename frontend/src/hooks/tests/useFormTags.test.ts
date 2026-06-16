@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest'
 import { type TagState, useFormTags } from '../useFormTags'
 
 const ALL_TAGS = [
-  { id: 't1', name: 'Hydratant', category: 'type' },
-  { id: 't2', name: 'Anti-âge', category: 'type' },
-  { id: 't3', name: 'Apaisant', category: 'type' },
+  { id: 't1', label: 'Hydratant', tagType: 'type' },
+  { id: 't2', label: 'Anti-âge', tagType: 'type' },
+  { id: 't3', label: 'Apaisant', tagType: 'type' },
 ]
 
 const INITIAL_TAGS: TagState[] = [{ tagId: 't1', tagName: 'Hydratant', relevance: 'primary' }]
@@ -85,13 +85,13 @@ describe('useFormTags', () => {
     )
 
     expect(result.current.availableTags).toEqual([
-      { id: 't2', name: 'Anti-âge', category: 'type' },
-      { id: 't3', name: 'Apaisant', category: 'type' },
+      { id: 't2', label: 'Anti-âge', tagType: 'type' },
+      { id: 't3', label: 'Apaisant', tagType: 'type' },
     ])
 
     act(() => result.current.addTag('t2'))
 
-    expect(result.current.availableTags).toEqual([{ id: 't3', name: 'Apaisant', category: 'type' }])
+    expect(result.current.availableTags).toEqual([{ id: 't3', label: 'Apaisant', tagType: 'type' }])
   })
 
   it('isTagsDirty is order-independent', () => {
