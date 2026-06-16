@@ -12,6 +12,8 @@ import { PdsAccordion } from './PdsAccordion'
 import { RepurchasePicker } from './RepurchasePicker'
 import { SentimentPicker } from './SentimentPicker'
 
+import './PdsExperienceSection.css'
+
 interface PdsExperienceSectionProps {
   p: UserProduct
   updateMutation: { mutate: (vars: UpdateUserProductVariables) => void }

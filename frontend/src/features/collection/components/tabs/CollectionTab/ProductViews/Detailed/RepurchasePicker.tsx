@@ -2,6 +2,8 @@ import clsx from 'clsx'
 
 import type { UserProduct } from '@/lib/queries/user-products'
 
+import './RepurchasePicker.css'
+
 type RepurchaseValue = NonNullable<UserProduct['wouldRepurchase']>
 
 const options: { value: RepurchaseValue; label: string }[] = [

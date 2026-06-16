@@ -85,3 +85,9 @@
 .pds-acc-body[hidden] {
   display: none;
 }
+
+/* Trim the leading padding of the first sub-block nested in an accordion body. */
+.pds-acc-body > .pds-sub:first-child,
+.pds-acc-body > .pds-decision-body > *:first-child {
+  padding-top: var(--space-2);
+}

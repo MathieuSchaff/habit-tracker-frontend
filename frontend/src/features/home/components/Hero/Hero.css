@@ -150,8 +150,9 @@
   padding: var(--space-3);
   min-width: 0;
 }
-/* 2-up collage only when this column is genuinely wide; in the 880–~1115px hero-split band it stays 1-up so the cards never cram. */
-@container hero-visual (min-width: 430px) {
+/* 2-up only once each card clears ~300px; below 640px the split-hero column (which keeps
+   growing past 430px on wide screens) crams them to ~255px and their values wrap. */
+@container hero-visual (min-width: 640px) {
   .aur-hero-stack {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-4);

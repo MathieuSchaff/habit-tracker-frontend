@@ -103,6 +103,25 @@ prod-psql-ro:
 prod-security:
     ssh aurore 'docker exec -e PGOPTIONS="-c role=dev_readonly" app_db psql -U app -d appdb -P pager=off -c "SELECT created_at, severity, event_type, field, route, left(payload,60) AS payload FROM security_events WHERE created_at > current_date - 30 ORDER BY created_at DESC LIMIT 20;"'
 
+# Send the daily error-digest email (cron entrypoint). TARGET: dev|prod.
+send-error-digest:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    printf "{{CYAN}}Sending error digest ($TARGET)...{{NC}}\n"
+    $COMPOSE exec -w /app/backend api bun run src/features/errors/send-error-digest.cli.ts
+
+# [PROD] Install daily cron (8am) for the error digest. Shares backup-cron's PATH assumption (just on root PATH).
+digest-cron-install:
+    #!/usr/bin/env bash
+    printf "{{YELLOW}}Installing digest cron at /etc/cron.d/aurore-digest{{NC}}\n"
+    echo "0 8 * * * root cd $(pwd) && TARGET=prod just send-error-digest >> /var/log/aurore-digest.log 2>&1" \
+        | sudo tee /etc/cron.d/aurore-digest > /dev/null
+    sudo chmod 644 /etc/cron.d/aurore-digest
+    printf "{{GREEN}}✓ Cron installed — daily error digest at 8am{{NC}}\n"
+
 # Stop all containers
 stop:
     {{COMPOSE_DEV}} down 2>/dev/null || true

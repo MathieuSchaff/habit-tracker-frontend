@@ -10,6 +10,8 @@ import { profileQueries } from '@/lib/queries/profile'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { useAuthStore } from '@/store/auth'
 
+import './PdsFormulaSection.css'
+
 interface PdsFormulaSectionProps {
   p: UserProduct
 }

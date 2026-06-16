@@ -5,6 +5,8 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 import { statusLabels } from '@/features/collection/constants'
 import { userProductQueries } from '@/lib/queries/user-products'
 
+import './StatusHistory.css'
+
 interface StatusHistoryProps {
   userProductId: string
 }

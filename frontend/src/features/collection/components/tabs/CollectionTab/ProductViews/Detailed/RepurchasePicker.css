@@ -1,0 +1,46 @@
+.pds-repurchase-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.pds-repurchase-btns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pds-repurchase-btn {
+  min-height: var(--space-10);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: var(--font-semibold);
+  background: var(--bg-sunken, var(--bg-muted));
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.pds-repurchase-btn:hover {
+  background: var(--border-default);
+  color: var(--text-primary);
+}
+
+.pds-repurchase-btn.active.yes {
+  background: oklch(from var(--color-success) l c h / 0.1);
+  color: var(--color-success);
+  border-color: oklch(from var(--color-success) l c h / 0.35);
+}
+
+/* "Unsure" and "no" are neutral answers - only "yes" earns a tint. */
+.pds-repurchase-btn.active.unsure,
+.pds-repurchase-btn.active.no {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}

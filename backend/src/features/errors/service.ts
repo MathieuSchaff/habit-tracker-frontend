@@ -1,6 +1,6 @@
 import type { ErrorGroupStatus, ErrorSource, ListErrorGroupsResponse } from '@aurore/shared'
 
-import { and, countDistinct, desc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, countDistinct, desc, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import type { ErrorGroup } from '../../db/schema'
@@ -83,6 +83,34 @@ export async function listErrorGroups(
     .orderBy(desc(errorGroups.lastSeenAt))
 
   return { items }
+}
+
+export interface NewErrorGroup {
+  id: string
+  source: ErrorSource
+  message: string
+  count: number
+  affectedUsers: number
+  firstSeenAt: string
+}
+
+// Window filters FIRST occurrence: newly surfaced problems, not renewed
+// activity on known groups. Resolved excluded so a triaged spike never re-alerts.
+export async function getNewErrorGroupsSince(db: DB, sinceISO: string): Promise<NewErrorGroup[]> {
+  return db
+    .select({
+      id: errorGroups.id,
+      source: errorGroups.source,
+      message: errorGroups.message,
+      count: errorGroups.count,
+      affectedUsers: countDistinct(errorOccurrences.userId),
+      firstSeenAt: errorGroups.firstSeenAt,
+    })
+    .from(errorGroups)
+    .leftJoin(errorOccurrences, eq(errorOccurrences.groupId, errorGroups.id))
+    .where(and(gte(errorGroups.firstSeenAt, sinceISO), isNull(errorGroups.resolvedAt)))
+    .groupBy(errorGroups.id)
+    .orderBy(desc(errorGroups.count))
 }
 
 export async function resolveErrorGroup(
