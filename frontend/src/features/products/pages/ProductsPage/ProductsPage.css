@@ -42,15 +42,6 @@
   width: auto;
 }
 
-/* Desktop: roomier pill tabs to match toolbar density. */
-@media (--md) {
-  .products-header__toolbar-inner .icon-tab {
-    padding: var(--space-2) var(--space-4);
-    font-size: var(--text-sm);
-    min-height: 44px;
-  }
-}
-
 .products-header__search {
   flex: 0 0 auto;
   width: clamp(220px, 28vw, 320px);
@@ -263,7 +254,7 @@
     width: 100%;
   }
 
-  .products-header__toolbar-inner .icon-tabs {
+  .products-header__toolbar-inner .underline-tabs {
     width: 100%;
   }
 

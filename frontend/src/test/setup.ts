@@ -62,6 +62,13 @@ if (!HTMLDialogElement.prototype.close) {
   }
 }
 
+// jsdom does not implement the Pointer Capture API; useDragScroll calls it on pointer up/move.
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false
+  Element.prototype.setPointerCapture = () => {}
+  Element.prototype.releasePointerCapture = () => {}
+}
+
 // jsdom does not implement window.matchMedia - provide a minimal stub
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

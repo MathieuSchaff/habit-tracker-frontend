@@ -34,9 +34,9 @@ describe('PriceFilterAccordion — initial open state', () => {
   })
 })
 
-// `hasValue` is read only at mount via lazy useState; without this lock, a parent reset would
-// close the panel under the user's cursor.
-describe('PriceFilterAccordion — initialOpen lock', () => {
+// An external apply (hasValue false->true, e.g. URL or chip) reopens the panel; clearing the
+// price never auto-closes it under the user's cursor.
+describe('PriceFilterAccordion — external value reaction', () => {
   it('does not close itself when the price is cleared by the parent', () => {
     const { rerender } = render(<PriceFilterAccordion min={1000} onChange={vi.fn()} />)
     expect(getDetails().open).toBe(true)
@@ -46,13 +46,13 @@ describe('PriceFilterAccordion — initialOpen lock', () => {
     expect(getDetails().open).toBe(true)
   })
 
-  it('does not open itself when the parent later sets a price', () => {
+  it('reopens when the parent applies a price externally', () => {
     const { rerender } = render(<PriceFilterAccordion onChange={vi.fn()} />)
     expect(getDetails().open).toBe(false)
 
     rerender(<PriceFilterAccordion min={1000} onChange={vi.fn()} />)
 
-    expect(getDetails().open).toBe(false)
+    expect(getDetails().open).toBe(true)
   })
 })
 

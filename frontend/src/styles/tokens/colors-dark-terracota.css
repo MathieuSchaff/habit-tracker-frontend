@@ -1,127 +1,123 @@
 [data-theme="dark"][data-variant="terracota"] {
   color-scheme: dark;
 
-  /* Cocoa charcoal: warm neutral surfaces, cool actions, restrained color. */
-  --h-cocoa: 58;
-  --h-smoke: 232;
-  --h-sky: 224;
-  --h-teal: 184;
-  --h-sage: 154;
-  --h-amber: 86;
-  --h-rose: 18;
+  /* Mirrors the light terracota identity: green CTA, warm orange/mango accents.
+     Surfaces stay near-neutral warm (hue ~50, low chroma) to read as warm
+     graphite, not the muddy brown the old hue-58 / chroma-0.018 surfaces gave. */
+  --h-green: 154;
+  --h-mango: 65;
+  --h-orange: 53;
+  --h-warm: 50;
+  --h-coral: 18;
+  --h-amber: 80;
 
-  --c-muted: 0.022;
+  --c-muted: 0.03;
   --c-soft: 0.012;
 
-  --l-page: 12%;
-  --l-card: 20%;
-  --l-elevated: 25%;
-  --l-sunken: 16%;
-  --l-muted: 31%;
+  --l-page: 13%;
+  --l-card: 21%;
+  --l-elevated: 26%;
+  --l-sunken: 17%;
+  --l-muted: 32%;
 
-  --charcoal-950: oklch(12% 0.012 var(--h-cocoa));
-  --charcoal-900: oklch(16% 0.014 var(--h-cocoa));
-  --charcoal-850: oklch(20% 0.016 var(--h-cocoa));
-  --charcoal-800: oklch(25% 0.018 var(--h-cocoa));
-  --frost-blue: oklch(76% 0.095 var(--h-sky));
-  --frost-blue-strong: oklch(82% 0.1 var(--h-sky));
-  --frost-blue-deep: oklch(50% 0.095 var(--h-sky));
-  --teal-mist: oklch(74% 0.08 var(--h-teal));
-  --sage-mist: oklch(72% 0.07 var(--h-sage));
-  --champagne: oklch(82% 0.055 var(--h-amber));
-  --mist: oklch(94% 0.018 82);
-  --mist-muted: oklch(76% 0.02 78);
-  --text-inverse-warm: oklch(13% 0.014 var(--h-cocoa));
+  --green-bright: oklch(72% 0.16 var(--h-green));
+  --green-strong: oklch(78% 0.17 var(--h-green));
+  --green-deep: oklch(52% 0.15 var(--h-green));
+  --mango: oklch(75% 0.17 var(--h-mango));
+  --mango-strong: oklch(80% 0.18 var(--h-mango));
+  --cream: oklch(94% 0.02 70);
+  --cream-muted: oklch(78% 0.03 var(--h-mango));
+  --text-inverse-warm: oklch(18% 0.03 var(--h-warm));
 
-  /* Compatibility aliases for older page-level CSS. */
-  --h-mango: var(--h-sky);
-  --h-papaya: var(--h-cocoa);
-  --h-forest: var(--h-sage);
-  --mango-bright: var(--frost-blue);
-  --forest-green: var(--sage-mist);
+  /* Compatibility aliases for older page-level CSS (AboutPage uses mango-bright). */
+  --h-papaya: 32;
+  --h-forest: var(--h-green);
+  --mango-bright: var(--mango-strong);
+  --forest-green: var(--green-bright);
 
-  --color-primary: var(--frost-blue);
-  --color-primary-hover: var(--frost-blue-strong);
-  --color-primary-text: oklch(12% 0.02 var(--h-sky));
-  --color-primary-dark: var(--frost-blue-deep);
-  --color-focus: var(--frost-blue);
-  --color-primary-deeper: oklch(36% 0.08 var(--h-sky));
-  --color-primary-light: oklch(29% 0.045 var(--h-sky));
-  --color-primary-subtle: oklch(20% 0.03 var(--h-sky));
+  --color-primary: var(--green-bright);
+  --color-primary-hover: var(--green-strong);
+  --color-primary-text: oklch(18% 0.04 var(--h-green));
+  --color-primary-dark: var(--green-deep);
+  --color-focus: var(--green-bright);
+  --color-primary-deeper: oklch(40% 0.12 var(--h-green));
+  --color-primary-light: oklch(28% 0.06 var(--h-green));
+  --color-primary-subtle: oklch(22% 0.04 var(--h-green));
 
-  --color-sidebar-bg: oklch(13.5% 0.014 var(--h-cocoa));
-  --color-sidebar-item-hover: oklch(22% 0.018 var(--h-cocoa));
-  --color-sidebar-item-active: oklch(from var(--frost-blue) l c h / 0.16);
-  --color-sidebar-icon: oklch(74% 0.018 78);
-  --color-sidebar-icon-active: var(--frost-blue);
-  --color-sidebar-text: oklch(82% 0.016 78);
-  --color-sidebar-text-active: var(--mist);
-  --color-sidebar-accent: var(--frost-blue);
+  /* Sidebar: dark clay band (warm orange hue), mango accents. */
+  --color-sidebar-bg: oklch(20% 0.05 var(--h-orange));
+  --color-sidebar-item-hover: oklch(28% 0.07 var(--h-orange));
+  --color-sidebar-item-active: oklch(from var(--mango) l c h / 0.22);
+  --color-sidebar-icon: oklch(82% 0.06 var(--h-mango));
+  --color-sidebar-icon-active: var(--mango-strong);
+  --color-sidebar-text: oklch(85% 0.04 60);
+  --color-sidebar-text-active: oklch(92% 0.05 var(--h-mango));
+  --color-sidebar-accent: var(--mango);
 
-  --color-secondary: var(--teal-mist);
-  --color-tertiary: var(--sage-mist);
+  --color-secondary: var(--mango);
+  --color-tertiary: var(--green-bright);
 
-  --color-header-bg: oklch(17% 0.014 var(--h-cocoa));
-  --color-header-action: var(--mist);
-  --color-header-action-bg-hover: oklch(from var(--frost-blue) l c h / 0.13);
+  --color-header-bg: oklch(22% 0.05 var(--h-orange));
+  --color-header-action: oklch(86% 0.06 var(--h-mango));
+  --color-header-action-bg-hover: oklch(from var(--mango) l c h / 0.15);
 
   --text-inverse: var(--text-inverse-warm);
-  --text-primary: var(--mist);
-  --text-secondary: var(--mist-muted);
-  --text-muted: oklch(62% var(--c-muted) 78);
+  --text-primary: var(--cream);
+  --text-secondary: var(--cream-muted);
+  --text-muted: oklch(62% var(--c-muted) 60);
 
-  --color-accent: var(--frost-blue);
-  --color-accent-light: oklch(28% 0.045 var(--h-sky));
-  --color-accent-hover: var(--frost-blue-strong);
+  --color-accent: var(--mango);
+  --color-accent-light: oklch(28% 0.08 var(--h-mango));
+  --color-accent-hover: var(--mango-strong);
   --section-accent: var(--color-accent);
-  --bg-deep: oklch(9% 0.01 var(--h-cocoa));
+  --bg-deep: oklch(10% 0.01 var(--h-warm));
 
-  --color-success: var(--sage-mist);
-  --color-success-light: oklch(26% 0.045 var(--h-sage));
-  --color-error: oklch(68% 0.16 var(--h-rose));
-  --color-error-light: oklch(26% 0.065 var(--h-rose));
-  --color-info: var(--teal-mist);
-  --color-warning: var(--champagne);
-  --color-warning-light: oklch(27% 0.04 var(--h-amber));
-  --color-warning-text: oklch(84% 0.07 var(--h-amber));
+  --color-success: var(--green-bright);
+  --color-success-light: oklch(26% 0.07 var(--h-green));
+  --color-error: oklch(70% 0.2 var(--h-coral));
+  --color-error-light: oklch(26% 0.08 var(--h-coral));
+  --color-info: oklch(72% 0.1 195);
+  --color-warning: oklch(80% 0.15 var(--h-amber));
+  --color-warning-light: oklch(26% 0.07 var(--h-amber));
+  --color-warning-text: oklch(85% 0.13 var(--h-amber));
 
-  --bg-page: oklch(var(--l-page) 0.012 var(--h-cocoa));
-  --bg-card: oklch(var(--l-card) 0.015 var(--h-cocoa));
-  --bg-elevated: oklch(var(--l-elevated) 0.017 var(--h-cocoa));
-  --bg-sunken: oklch(var(--l-sunken) 0.014 var(--h-cocoa));
-  --bg-muted: oklch(var(--l-muted) 0.014 var(--h-cocoa));
+  /* Warm-neutral surfaces (hue ~50, collapsed chroma) — kills the brown mud. */
+  --bg-page: oklch(var(--l-page) 0.009 var(--h-warm));
+  --bg-card: oklch(var(--l-card) 0.011 var(--h-warm));
+  --bg-elevated: oklch(var(--l-elevated) 0.012 var(--h-warm));
+  --bg-sunken: oklch(var(--l-sunken) 0.01 var(--h-warm));
+  --bg-muted: oklch(var(--l-muted) 0.012 var(--h-warm));
 
-  --page-title-color: var(--mist);
+  --page-title-color: var(--mango);
 
-  /* Sibling dark themes separate footer from card via chroma (0.05+);
-     at 0.018 the band was indistinguishable from the 20% cocoa card body. */
-  --card-footer-bg: oklch(17.5% 0.032 var(--h-smoke));
-  --card-footer-border: oklch(36% 0.03 var(--h-smoke));
-  --card-footer-color: oklch(84% 0.035 var(--h-sky));
-  --card-footer-color-muted: oklch(68% 0.018 78);
+  /* Card footer: warm clay haze separated from card by chroma. */
+  --card-footer-bg: oklch(20% 0.045 var(--h-orange));
+  --card-footer-border: oklch(35% 0.06 var(--h-orange));
+  --card-footer-color: oklch(90% 0.05 var(--h-mango));
+  --card-footer-color-muted: oklch(65% 0.04 60);
 
-  --product-unit-chip-bg: oklch(from var(--frost-blue) l c h / 0.12);
-  --product-unit-chip-text: oklch(83% 0.075 var(--h-sky));
-  --product-unit-chip-border: oklch(from var(--frost-blue) l c h / 0.28);
+  --product-unit-chip-bg: oklch(from var(--mango) l c h / 0.12);
+  --product-unit-chip-text: oklch(82% 0.12 var(--h-mango));
+  --product-unit-chip-border: oklch(from var(--mango) l c h / 0.3);
 
-  --bg-hover: oklch(from var(--frost-blue) l c h / 0.09);
-  --bg-active: oklch(from var(--frost-blue) l c h / 0.16);
-  --bg-selected: oklch(30% 0.05 var(--h-sky));
+  --bg-hover: oklch(from var(--green-bright) l c h / 0.1);
+  --bg-active: oklch(from var(--green-bright) l c h / 0.18);
+  --bg-selected: oklch(30% 0.1 var(--h-green));
 
-  --border-default: oklch(35% 0.018 var(--h-cocoa));
-  --border-strong: oklch(48% 0.024 var(--h-cocoa));
+  --border-default: oklch(38% 0.02 var(--h-warm));
+  --border-strong: oklch(50% 0.03 var(--h-warm));
 
-  --shadow-color: oklch(0% 0 0 / 0.52);
-  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.4), 0 1px 4px oklch(0% 0 0 / 0.28);
+  --shadow-color: oklch(0% 0 0 / 0.55);
+  --shadow-card: 0 4px 16px oklch(0% 0 0 / 0.45), 0 1px 4px oklch(0% 0 0 / 0.3);
 
-  --tag-active-bg: oklch(from var(--frost-blue-deep) l c h / 0.88);
-  --tag-active-text: var(--mist);
-  --tag-default-bg: oklch(24% 0.014 var(--h-cocoa));
-  --tag-default-text: oklch(73% 0.022 78);
+  --tag-active-bg: oklch(48% 0.14 var(--h-green));
+  --tag-active-text: var(--cream);
+  --tag-default-bg: oklch(25% 0.03 var(--h-warm));
+  --tag-default-text: oklch(72% 0.05 60);
 
-  --overlay: oklch(7% 0.01 var(--h-cocoa) / 0.78);
+  --overlay: oklch(8% 0.02 var(--h-warm) / 0.78);
   --surface-bright: oklch(99% 0.002 0deg);
-  --hero-glow: oklch(25% 0.04 var(--h-sky));
+  --hero-glow: oklch(32% 0.1 var(--h-green));
 
   --toggle-track-bg: oklch(from var(--color-header-action) l c h / 0.15);
   --toggle-track-hover-bg: var(--color-header-action-bg-hover);

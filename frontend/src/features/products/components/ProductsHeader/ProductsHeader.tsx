@@ -205,6 +205,8 @@ function ProductsHeaderImpl({
             options={tabOptions}
             activeTab={activeTab}
             onTabChange={onTabChange}
+            variant="underline"
+            scrollable
             ariaLabel="Catégorie de produits"
             hasPanels={false}
           />

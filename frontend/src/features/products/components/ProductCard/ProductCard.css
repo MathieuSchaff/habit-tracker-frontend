@@ -5,6 +5,8 @@
   padding: 0;
   gap: 0;
   overflow: hidden;
+  /* Rest border: shadow alone barely separates cards from the page (1.5% L gap in light). */
+  border: var(--border-width) solid var(--border-default);
 }
 
 .list-card--product .list-card__inner {
@@ -59,6 +61,9 @@
 }
 
 .list-card--product .list-card__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: 0.6875rem;
   font-weight: var(--font-semibold);
   text-transform: uppercase;
@@ -66,6 +71,17 @@
   color: var(--text-muted);
   line-height: 1.4;
   white-space: nowrap;
+}
+
+/* Category dot: a filled mark reads at any lightness, so it carries the color
+   safely where accent-tinted caps text would fail contrast on light surfaces. */
+.list-card--product .list-card__kind::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--card-accent);
+  flex-shrink: 0;
 }
 
 .list-card--product .list-card__brand {
@@ -126,9 +142,10 @@
 .list-card--product .list-card__chip {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
+  /* Neutral text on an accent-tinted pill: keeps readable across all 6 themes. */
   color: var(--text-secondary);
-  background: oklch(from var(--bg-card) l c h / 0.7);
-  border: 1px solid oklch(from var(--text-muted) l c h / 0.22);
+  background: oklch(from var(--card-accent) l c h / 0.12);
+  border: 1px solid oklch(from var(--card-accent) l c h / 0.3);
   border-radius: var(--radius-full);
   padding: 2px 8px;
   line-height: 1.4;
