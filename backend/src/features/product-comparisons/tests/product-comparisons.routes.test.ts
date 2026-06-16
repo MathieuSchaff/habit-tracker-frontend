@@ -118,6 +118,34 @@ describe('Product Comparison Routes', () => {
     expect(res.status).toBe(HTTP_STATUS.OK)
   })
 
+  // Oracle: PATCH response reflects the written input — updated name and the
+  // new productIds in order. Regression guard on the update/enrich path.
+  it('PATCH response reflects the written input', async () => {
+    const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+    const a = await createProduct(client, contributorToken, PRODUCT_A)
+    const b = await createProduct(client, contributorToken, PRODUCT_B)
+    const c = await createProduct(client, contributorToken, {
+      ...PRODUCT_A,
+      name: 'Sérum C',
+    })
+    const createdRes = await client['product-comparisons'].$post(
+      { json: { productIds: [a.id, b.id] } },
+      withAuth(token)
+    )
+    const createdData = await createdRes.json()
+    if (!createdData.success) throw new Error('comparison creation failed')
+
+    const res = await client['product-comparisons'][':id'].$patch(
+      { json: { name: 'Renamed', productIds: [b.id, c.id] }, param: { id: createdData.data.id } },
+      withAuth(token)
+    )
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const data = await res.json()
+    if (!data.success) throw new Error('expected ok')
+    expect(data.data.name).toBe('Renamed')
+    expect(data.data.products.map((p) => p.id)).toEqual([b.id, c.id])
+  })
+
   it('DELETE removes a comparison', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
     const a = await createProduct(client, contributorToken, PRODUCT_A)
