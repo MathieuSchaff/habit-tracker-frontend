@@ -105,6 +105,18 @@ export {
   createThreadSchema,
 } from './discussions'
 export {
+  type ErrorGroupStatus,
+  type ErrorGroupView,
+  type ErrorSource,
+  errorGroupStatusSchema,
+  errorSourceSchema,
+  type ListErrorGroupsQuery,
+  type ListErrorGroupsResponse,
+  listErrorGroupsQuerySchema,
+  type ResolveErrorGroupInput,
+  resolveErrorGroupBodySchema,
+} from './errors'
+export {
   type AllIngredientTagCategory,
   type CreateIngredientInput,
   createIngredientSchema,
@@ -384,6 +396,14 @@ export {
   submitRoleRequestBodySchema,
   submitRoleRequestErrorMapping,
 } from './role-request'
+export {
+  type ListSecurityEventsQuery,
+  type ListSecurityEventsResponse,
+  listSecurityEventsQuerySchema,
+  type SecurityEventView,
+  type SecuritySeverity,
+  securitySeveritySchema,
+} from './security-events'
 export {
   type CreateSuggestedEditInput,
   createSuggestedEditBodySchema,

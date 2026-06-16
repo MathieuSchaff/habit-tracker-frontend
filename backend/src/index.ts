@@ -9,9 +9,11 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { adminBansRoutes } from './features/admin/bans.routes'
+import { adminErrorsRoutes } from './features/admin/errors.routes'
 import { adminModerationRoutes } from './features/admin/moderation.routes'
 import { adminReportsRoutes } from './features/admin/reports.routes'
 import { adminRoleRequestsRoutes } from './features/admin/role-requests.routes'
+import { adminSecurityEventsRoutes } from './features/admin/security-events.routes'
 import { adminSuggestedEditsRoutes } from './features/admin/suggested-edits.routes'
 import { jwtAuthRoutes } from './features/auth'
 import { articleRoutes } from './features/blog'
@@ -100,6 +102,8 @@ const routes = app
   .route('/api/admin', adminBansRoutes)
   .route('/api/admin/moderation', adminModerationRoutes)
   .route('/api/admin/reports', adminReportsRoutes)
+  .route('/api/admin/errors', adminErrorsRoutes)
+  .route('/api/admin/security-events', adminSecurityEventsRoutes)
   .route('/api/reports', reportsRoutes)
   .route('/api/admin/role-requests', adminRoleRequestsRoutes)
   .route('/api/role-requests', roleRequestsRoutes)

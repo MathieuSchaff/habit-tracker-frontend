@@ -18,6 +18,8 @@ services:
     # digest-pinned for reproducibility; bump consciously (Postgres on-disk format).
     image: postgres:18@sha256:52e6ffd11fddd081ae63880b635b2a61c14008c17fc98cdc7ce5472265516dd0
     container_name: app_db
+    # Default CMD is "postgres"; keep it first or the container won't boot.
+    command: ["postgres", "-c", "log_min_duration_statement=500"]
     # Au final : DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
     environment:
       POSTGRES_USER: app

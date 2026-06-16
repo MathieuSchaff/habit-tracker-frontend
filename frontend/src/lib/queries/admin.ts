@@ -2,15 +2,19 @@ import type {
   CatalogKind,
   CatalogQuality,
   CreateBanInput,
+  ErrorGroupStatus,
+  ErrorSource,
   ModerateContentInput,
   ModerateProfileInput,
   ModerationStatus,
   ModerationTarget,
   ReportStatus,
+  ResolveErrorGroupInput,
   ResolveReportInput,
   ReviewRoleRequestInput,
   ReviewSuggestedEditInput,
   RoleRequestStatus,
+  SecuritySeverity,
   SuggestedEditStatus,
   UpdateRoleInput,
 } from '@aurore/shared'
@@ -33,6 +37,10 @@ const adminKeys = {
     [...adminKeys.all, 'preview', target, id] as const,
   catalogQueue: (kind: CatalogKind, quality?: CatalogQuality, status?: ModerationStatus) =>
     [...adminKeys.all, 'catalog-queue', { kind, quality, status }] as const,
+  errors: (status?: ErrorGroupStatus, source?: ErrorSource) =>
+    [...adminKeys.all, 'errors', { status, source }] as const,
+  securityEvents: (severity?: SecuritySeverity) =>
+    [...adminKeys.all, 'security-events', { severity }] as const,
   dashboard: () => [...adminKeys.all, 'dashboard'] as const,
 }
 
@@ -101,6 +109,35 @@ export const adminQueries = {
         if (!res.ok) throw new Error('Failed to fetch role requests')
         const json = await res.json()
         if (!json.success) throw new Error('Role requests error')
+        return json.data
+      },
+    }),
+
+  errors: (status?: ErrorGroupStatus, source?: ErrorSource) =>
+    queryOptions({
+      queryKey: adminKeys.errors(status, source),
+      queryFn: async () => {
+        const query: Record<string, string> = {}
+        if (status) query.status = status
+        if (source) query.source = source
+        const res = await api.admin.errors.$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch error groups')
+        const json = await res.json()
+        if (!json.success) throw new Error('Error groups error')
+        return json.data
+      },
+    }),
+
+  securityEvents: (severity?: SecuritySeverity) =>
+    queryOptions({
+      queryKey: adminKeys.securityEvents(severity),
+      queryFn: async () => {
+        const query: Record<string, string> = {}
+        if (severity) query.severity = severity
+        const res = await api.admin['security-events'].$get({ query })
+        if (!res.ok) throw new Error('Failed to fetch security events')
+        const json = await res.json()
+        if (!json.success) throw new Error('Security events error')
         return json.data
       },
     }),
@@ -247,6 +284,23 @@ export function useResolveReport() {
     // Broad prefix: resolving from the escalated tab must also refresh that view; a status-only key would miss it.
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [...adminKeys.all, 'reports'] })
+    },
+  })
+}
+
+export function useResolveErrorGroup() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: ResolveErrorGroupInput }) => {
+      const res = await api.admin.errors[':id'].$patch({ param: { id }, json: body })
+      if (!res.ok) throw new Error('Failed to resolve error group')
+      const json = await res.json()
+      if (!json.success) throw new Error('Resolve error group error')
+      return json.data
+    },
+    // Broad prefix: resolving from the open tab must also refresh the resolved tab (2-element partial key).
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...adminKeys.all, 'errors'] })
     },
   })
 }

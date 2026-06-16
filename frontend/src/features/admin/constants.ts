@@ -21,6 +21,10 @@ export const adminLabels = {
   navRoleRequests: 'Demandes modérateur',
   statPendingRoleRequests: 'Demande(s) modérateur en attente',
   emptyRoleRequests: 'Aucune demande dans cette vue.',
+  navErrors: 'Erreurs',
+  emptyErrors: 'Aucune erreur dans cette vue.',
+  navSecurity: 'Sécurité',
+  emptySecurityEvents: 'Aucun événement dans cette vue.',
 } as const
 
 type UserRole = 'user' | 'admin' | 'contributor'
