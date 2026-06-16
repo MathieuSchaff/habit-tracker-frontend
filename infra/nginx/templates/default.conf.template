@@ -36,6 +36,23 @@ server {
 }
 
 # ----------------------------------------------------------
+# Loopback health for the Docker healthcheck. The probe sends Host: 127.0.0.1,
+# which never matches server_name ${DOMAIN} — without its own block it hits the
+# default_server (444) and nginx reports unhealthy.
+# ----------------------------------------------------------
+server {
+    listen 80;
+    server_name 127.0.0.1 localhost;
+    server_tokens off;
+
+    location /nginx-health {
+        access_log off;
+        return 200 "ok";
+        add_header Content-Type text/plain;
+    }
+}
+
+# ----------------------------------------------------------
 # Bloc HTTPS (port 443) — production traffic.
 # ----------------------------------------------------------
 server {

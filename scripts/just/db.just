@@ -59,7 +59,7 @@ db-stats:
     TARGET="${TARGET:-dev}"
     target_compose
     printf "{{CYAN}}DB stats ($TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/audit/stats-db.ts
+    $COMPOSE exec -w /app/backend api bun run src/db/audit/stats-db.ts
 
 # ─── Seed (write, idempotent) ───────────────────────────────────────────────
 
@@ -79,9 +79,9 @@ db-seed:
     LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
     mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Pushing CORE seed deltas (idempotent, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts 2>&1 | tee "$LOG"
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/seeders/seed-core.ts 2>&1 | tee "$LOG"
     # seed leaves ingredients.canonical_key NULL — resolve substance identity from algo-derm
-    $COMPOSE exec api bun run src/db/seed/maintenance/backfill-canonical-key.ts --write
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/backfill-canonical-key.ts --write
     printf "{{GREEN}}✓ CORE seed deltas pushed ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Update existing seed entries (name/description/content/category) without touching user-data.
@@ -95,7 +95,7 @@ db-seed-update:
     LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
     mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Updating existing CORE seed entries ($TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts --update 2>&1 | tee "$LOG"
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/seeders/seed-core.ts --update 2>&1 | tee "$LOG"
     printf "{{GREEN}}✓ CORE seed updated ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
 # Alias — idempotent mode is default since Phase 5d
@@ -134,7 +134,7 @@ db-seed-reset:
         read -r -p "Confirm full DB reset? [y/N] " C
         [ "$C" = "y" ] || exit 1
     fi
-    $COMPOSE exec api bun run src/db/seed/seeders/seed-core.ts --reset
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/seeders/seed-core.ts --reset
     printf "{{GREEN}}✓ CORE seed (--reset) done ($TARGET){{NC}}\n"
 
 # Wipe DB completely (public schema). Destructive.
@@ -294,7 +294,7 @@ db-prod-admin:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
-    $COMPOSE exec api bun run src/db/seed/seeders/seed-prod-admin.ts
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/seeders/seed-prod-admin.ts
 
 # Load catalogue.sql into a freshly-migrated DB, owned by the db-prod-admin user.
 # Refuses if products already populated. Run db-prod-admin first.
@@ -317,6 +317,11 @@ db-catalogue-load:
         read -r -p "> " C
         [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
     fi
-    sed "s/__OWNER_ID__/$OWNER_ID/g" {{CATALOGUE_FILE}} \
-        | $COMPOSE exec -T db psql -U app -d appdb -v ON_ERROR_STOP=1 > /dev/null
+    # Dump owns the full catalogue: truncate every dump-written table safe from
+    # user-data cascade (NOT products/ingredients — guard proves them empty, their
+    # CASCADE wipes user rows) so a pre-seed/ingest write can't dup-abort the load.
+    # public.-qualified: runs before the dump resets search_path to ''.
+    { echo "TRUNCATE public.articles, public.brand_certifications, public.ingredient_dermo_profiles, public.ingredient_tag_types, public.ingredient_tag_links, public.product_ingredients, public.product_tag_types, public.product_tag_links CASCADE;"
+      sed "s/__OWNER_ID__/$OWNER_ID/g" {{CATALOGUE_FILE}}
+    } | $COMPOSE exec -T db psql -U app -d appdb -1 -v ON_ERROR_STOP=1 > /dev/null
     printf "{{GREEN}}✓ Catalogue loaded (%s), owner=%s{{NC}}\n" "$TARGET" "$OWNER_EMAIL"
