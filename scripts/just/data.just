@@ -22,7 +22,7 @@ ingest-peta:
     if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-peta)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Ingest PETA cruelty-free ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/ingest/peta-cruelty-free/main.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/peta-cruelty-free/main.ts \
         ${REFRESH:+--refresh} \
         ${WRITE:+--write} \
         ${STRICT_PRUNE:+--strict-prune}
@@ -38,7 +38,7 @@ ingest-obf:
     if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-obf)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Ingest OBF brand labels ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/ingest/obf-brand-labels/main.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/obf-brand-labels/main.ts \
         ${DOWNLOAD:+--download} \
         ${WRITE:+--write} \
         ${THRESHOLD:+--threshold "$THRESHOLD"} \
@@ -60,7 +60,7 @@ ingest-incidecoder phase:
     target_compose
     if [ "$TARGET" = prod ] && [ "{{phase}}" = "apply" ]; then confirm_prod "WRITE (incidecoder apply)"; fi
     printf "{{CYAN}}Ingest INCIDecoder phase {{phase}} ($TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/ingest/incidecoder/main.ts --{{phase}}
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/incidecoder/main.ts --{{phase}}
 
 # ─── Maintenance produits ───────────────────────────────────────────────────
 # audit = rapport seul · dedupe = édite les fichiers seed · scan = lit un dump DB. Aucun n'écrit la DB live.
@@ -75,7 +75,7 @@ audit-imported-products:
     target_compose
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE (output/)" || echo "console")
     printf "{{CYAN}}Audit imported products ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/audit-imported-products.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/audit-imported-products.ts \
         ${WRITE:+--write}
 
 # Repère le même produit en plusieurs tailles dans les .seed.ts (-400ml, -recharge…) → garde la canonique, supprime les variantes. Édite les seed. Env: APPLY (sans = dry-run).
@@ -89,7 +89,7 @@ catalog-dedupe:
     if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (dedupe variants)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Dedupe product variants ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/dedupe-product-variants.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/dedupe-product-variants.ts \
         ${APPLY:+--write}
 
 # Drop intra-file volume-variant dups in seed (keep largest volume). Pre-req: audit-imported-products. Env: APPLY (sans = dry-run).
@@ -103,7 +103,7 @@ catalog-canonicalize:
     if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (canonicalize volume variants)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Canonicalize volume variants ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/canonicalize-volume-variants.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/canonicalize-volume-variants.ts \
         ${APPLY:+--write}
 
 # Append slug-tail to colliding (name,brand) seed entries w/o volume suffix. Env: APPLY (sans = dry-run).
@@ -117,7 +117,7 @@ catalog-disambiguate:
     if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (disambiguate product names)"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}Disambiguate product names ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/disambiguate-product-names.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/disambiguate-product-names.ts \
         ${APPLY:+--write}
 
 # Scanne un dump SQL (COPY ou INSERT/--inserts) → 4 signaux de doublons:
@@ -131,7 +131,7 @@ catalog-scan-dups backup="src/db/snapshot/data.sql":
     TARGET="${TARGET:-dev}"
     target_compose
     printf "{{CYAN}}Scan DB duplicates from {{backup}} ($TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/scan-db-duplicates.ts {{backup}}
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/scan-db-duplicates.ts {{backup}}
 
 # Backfill ingredients.canonical_key from algo-derm evidence (substance identity).
 # Re-run after a fresh `db-seed`/`db-reset` (seed leaves it NULL) or an algo-derm bump.
@@ -146,7 +146,7 @@ catalog-backfill-canonical-key:
     if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (backfill canonical_key)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Backfill canonical_key ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/backfill-canonical-key.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/backfill-canonical-key.ts \
         ${WRITE:+--write}
 
 # Rewrite products.inci to governed canonical form (algo-derm cleanInci → canonical).
@@ -162,5 +162,5 @@ catalog-normalize-inci:
     if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (normalize inci)"; fi
     MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
     printf "{{CYAN}}Normalize products.inci ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/maintenance/normalize-product-inci.ts \
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/normalize-product-inci.ts \
         ${WRITE:+--write}

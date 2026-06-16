@@ -21,7 +21,7 @@ audit-inci-quality:
     printf "{{CYAN}}Audit INCI quality ($TARGET)...{{NC}}\n"
     $COMPOSE exec \
         ${FULL:+-e INCI_AUDIT_FULL=1} \
-        api bun run src/db/seed/inci/audit-quality.ts
+        -w /app/backend api bun run src/db/seed/inci/audit-quality.ts
 
 # Cleanup INCI one-shot. SCRIPT ∈ clean-inci | resplit-single-token | worst-match-prose.
 # Dry-run par défaut; APPLY=1 commit. Env: TARGET, APPLY, LIMIT (resplit).
@@ -35,7 +35,7 @@ inci-cleanup script:
     if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "APPLY (inci-cleanup {{script}})"; fi
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     printf "{{CYAN}}INCI cleanup {{script}} ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec api bun run src/db/seed/inci/cleanup/{{script}}.ts ${APPLY:+--apply} ${LIMIT:+--limit="$LIMIT"}
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/inci/cleanup/{{script}}.ts ${APPLY:+--apply} ${LIMIT:+--limit="$LIMIT"}
 
 # Tous les cleanups INCI en séquence : clean-inci → resplit-single-token → worst-match-prose.
 # Dry-run par défaut; APPLY=1 commit. Lance `just db-snapshot` après un APPLY.
@@ -50,5 +50,5 @@ inci-cleanup-all:
     MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
     for s in clean-inci resplit-single-token worst-match-prose; do
         printf "{{CYAN}}── $s ($MODE, $TARGET) ──{{NC}}\n"
-        $COMPOSE exec api bun run src/db/seed/inci/cleanup/$s.ts ${APPLY:+--apply}
+        $COMPOSE exec -w /app/backend api bun run src/db/seed/inci/cleanup/$s.ts ${APPLY:+--apply}
     done

@@ -65,9 +65,9 @@ export default defineConfig({
     // Vite reserves a CSS file per chunk that imports CSS, decided early from imports.
     // After tree-shaking some end up empty (vendor with no CSS, schema deep-imports that
     // dropped their component CSS). An empty eager <link> still render-blocks first paint
-    // for zero bytes. No native drop, so strip empty CSS + its <link> here. Build-only.
-    // Guard: only when the <link> was eager in the HTML — lazy route-chunk CSS is injected
-    // by its JS at runtime, deleting it would 404.
+    // for zero bytes, so strip the <link> from the HTML. Build-only.
+    // Keep the (empty) asset though: the same CSS can be a lazy chunk's __vitePreload dep,
+    // so deleting it 404s that preload at runtime. A served 0-byte 200 is harmless.
     {
       name: 'strip-empty-css',
       transformIndexHtml(html, ctx) {
@@ -77,18 +77,12 @@ export default defineConfig({
           if (!name.endsWith('.css')) continue
           const source = 'source' in asset && typeof asset.source === 'string' ? asset.source : ''
           if (source.trim() !== '') continue
-          const next = out.replace(
+          out = out.replace(
             new RegExp(
               `\\s*<link[^>]*href="/${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`
             ),
             ''
           )
-          // Only drop the asset when it was an eager <link> in the HTML. Lazy route-chunk
-          // CSS is injected by its JS chunk at runtime — deleting it would 404 on load.
-          if (next !== out) {
-            out = next
-            delete ctx.bundle[name]
-          }
         }
         return out
       },

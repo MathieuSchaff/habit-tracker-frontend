@@ -23,7 +23,7 @@ prod-migrate:
         read -r -p "> " C
         [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
     fi
-    {{COMPOSE_PROD}} exec -T api sh -c "cd backend && bun run src/db/migrate.ts"
+    {{COMPOSE_PROD}} exec -T -w /app/backend api bun run src/db/migrate.ts
     APP_PW=$(grep -E '^APP_RUNTIME_PASSWORD=' .env.prod 2>/dev/null | cut -d= -f2- || true)
     [ -n "$APP_PW" ] || { printf "{{RED}}APP_RUNTIME_PASSWORD absent de .env.prod — ALTER ROLE non appliqué{{NC}}\n"; exit 1; }
     {{COMPOSE_PROD}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '$APP_PW';"
