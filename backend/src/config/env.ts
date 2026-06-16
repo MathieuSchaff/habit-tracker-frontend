@@ -28,9 +28,9 @@ export const envSchema = z
     BUNNY_STORAGE_HOSTNAME: z.string().default('storage.bunnycdn.com'),
     BUNNY_STORAGE_PASSWORD: z.string(),
     IMAGE_CDN_BASE: z.url(),
-    // Prod catalogue owner — consumed only by the db-prod-admin seeder, optional
-    // elsewhere. Compose injects "" when unset, so coerce empty → undefined
-    // before validating, else dev/test boot fails the email/min checks.
+    // Prod catalogue owner (db-prod-admin seeder) + error-digest recipient.
+    // Compose injects "" when unset, so coerce empty to undefined before
+    // validating, else dev/test boot fails the email/min checks.
     ADMIN_EMAIL: z.preprocess((v) => v || undefined, z.email().optional()),
     ADMIN_PASSWORD: z.preprocess((v) => v || undefined, z.string().min(12).optional()),
   })

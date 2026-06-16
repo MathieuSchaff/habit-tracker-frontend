@@ -5,6 +5,8 @@ import clsx from 'clsx'
 import { SentimentIcon } from '@/assets/sentiment-icons'
 import { pdsLabels } from '@/features/collection/constants'
 
+import './SentimentPicker.css'
+
 type SentimentValue = 1 | 2 | 3 | 4 | 5 | 6
 
 interface SentimentPickerProps {

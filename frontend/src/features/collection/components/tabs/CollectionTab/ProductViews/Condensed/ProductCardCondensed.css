@@ -261,6 +261,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    min-height: var(--space-10);
     padding: 4px 10px;
     background: color-mix(in oklch, var(--pcc-accent) 12%, transparent);
     color: var(--pcc-accent);

@@ -65,7 +65,9 @@ const router = createRouter({
     queryClient,
     auth: { isAuthenticated: false, accessToken: null },
   } satisfies RouterContext,
-  defaultPreload: 'intent',
+  // Vite injects route CSS as <style> on dev hover-preload → repaint flash on the current
+  // page. Prod ships one bundled chunk per route, so keep intent prefetch there only.
+  defaultPreload: import.meta.env.PROD ? 'intent' : false,
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
   // Delay pending UI so fast nav doesn't flash a loader.

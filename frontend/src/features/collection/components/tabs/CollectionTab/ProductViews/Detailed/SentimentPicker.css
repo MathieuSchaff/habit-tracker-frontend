@@ -1,0 +1,49 @@
+.pds-sentiment-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-1);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pds-sentiment-btn {
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-sunken, var(--bg-muted));
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pds-sentiment-btn:hover {
+  background: var(--border-default);
+}
+
+.pds-sentiment-btn.active {
+  background: oklch(from var(--color-primary) l c h / 0.12);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px oklch(from var(--color-primary) l c h / 0.2);
+}
+
+.pds-sentiment-btn--grail {
+  background: oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.1);
+  border-color: oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.2);
+  /* Gem inks gold everywhere — the one precious touch of the scale. */
+  color: var(--status-color-holy-grail, var(--color-primary));
+}
+
+.pds-sentiment-btn--grail.active {
+  background: oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.18);
+  border-color: var(--status-color-holy-grail, var(--color-primary));
+  box-shadow: 0 3px 10px
+    oklch(from var(--status-color-holy-grail, var(--color-primary)) l c h / 0.3);
+}
+
+.pds-emoji {
+  font-size: var(--text-xl);
+}

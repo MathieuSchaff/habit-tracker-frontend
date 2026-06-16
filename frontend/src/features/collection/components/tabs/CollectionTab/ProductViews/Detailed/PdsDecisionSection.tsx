@@ -8,6 +8,8 @@ import { StatusChips } from './StatusChips'
 import { StatusHistory } from './StatusHistory'
 import type { StatusDecision } from './useStatusDecision'
 
+import './PdsDecisionSection.css'
+
 interface PdsDecisionSectionProps {
   p: UserProduct
   decision: StatusDecision

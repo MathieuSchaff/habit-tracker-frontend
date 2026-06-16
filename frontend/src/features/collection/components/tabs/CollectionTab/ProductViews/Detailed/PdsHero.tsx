@@ -8,6 +8,8 @@ import { statusLabels } from '@/features/collection/constants'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import type { UserProduct } from '@/lib/queries/user-products'
 
+import './PdsHero.css'
+
 interface PdsHeroProps {
   p: UserProduct
   closeBtnRef: React.RefObject<HTMLButtonElement | null>
