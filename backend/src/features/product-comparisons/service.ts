@@ -67,7 +67,7 @@ export async function createComparison(
 export async function getEnrichedComparison(
   userId: string,
   id: string,
-  database: Database = db
+  database: DB = db
 ): Promise<EnrichedComparison> {
   const comparison = await database
     .select()
@@ -205,7 +205,7 @@ export async function updateComparison(
   userId: string,
   id: string,
   input: UpdateComparisonInput,
-  database: Database = db
+  database: DB = db
 ) {
   const existing = await database.query.productComparisons.findFirst({
     where: and(eq(productComparisons.id, id), eq(productComparisons.userId, userId)),

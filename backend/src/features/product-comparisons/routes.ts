@@ -52,8 +52,12 @@ export const productComparisonRoutes = app
       const db = c.get('db')
       const { id } = c.req.valid('param')
       const input = c.req.valid('json')
-      await updateComparison(userId, id, input, db)
-      const enriched = await getEnrichedComparison(userId, id, db)
+      // Build the response from one snapshot: keep write + read-back in a
+      // single (sub)tx locally, rather than leaning on the request-level RLS tx.
+      const enriched = await db.transaction(async (tx) => {
+        await updateComparison(userId, id, input, tx)
+        return getEnrichedComparison(userId, id, tx)
+      })
       return c.json(ok(enriched), HTTP_STATUS.OK)
     }
   )
