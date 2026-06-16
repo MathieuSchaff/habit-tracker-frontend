@@ -33,21 +33,22 @@
 }
 
 .pds-hero-close {
-  width: var(--space-8);
-  height: var(--space-8);
+  width: var(--space-10);
+  height: var(--space-10);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
   background: var(--bg-sunken, var(--bg-muted));
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .pds-hero-close:hover {
   background: var(--border-default);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 

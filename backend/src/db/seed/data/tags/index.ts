@@ -474,8 +474,8 @@ function labelForProduct(slug: string): string {
   return getProductTagLabel(slug) ?? slug
 }
 
-// Seed rows consumed by createIngredientTag / createProductTag. Category
-// (`tagType`) is derived from the shared taxonomy, so it cannot drift.
+// Seed rows inserted raw via tx.insert (bulk seed), not through the tag
+// service. tagType is derived from the shared taxonomy, so it cannot drift.
 //
 // Ingredient tag rows come from every domain taxonomy. De-dup by slug when
 // the same slug exists in multiple taxonomies with the same category (e.g.

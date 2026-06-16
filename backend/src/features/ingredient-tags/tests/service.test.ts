@@ -30,7 +30,7 @@ describe('Ingredient Tags Service', () => {
   describe('addTagToIngredient', () => {
     it('should link a tag to an ingredient', async () => {
       const ingredient = await makeIngredient(user.id)
-      const tag = await createIngredientTag(testDb, { name: 'Hydratant' })
+      const tag = await createIngredientTag(testDb, { label: 'Hydratant' })
 
       const link = await addTagToIngredient(testDb, ingredient.id, tag.id)
 
@@ -43,8 +43,8 @@ describe('Ingredient Tags Service', () => {
   describe('addManyTagsToIngredient', () => {
     it('should link multiple tags to an ingredient at once', async () => {
       const ingredient = await makeIngredient(user.id)
-      const t1 = await createIngredientTag(testDb, { name: 'Peeling' })
-      const t2 = await createIngredientTag(testDb, { name: 'Exfoliant' })
+      const t1 = await createIngredientTag(testDb, { label: 'Peeling' })
+      const t2 = await createIngredientTag(testDb, { label: 'Exfoliant' })
 
       const links = await addManyTagsToIngredient(testDb, ingredient.id, [t1.id, t2.id])
 
@@ -58,7 +58,7 @@ describe('Ingredient Tags Service', () => {
   describe('listTagsByIngredient', () => {
     it('should return tags for a given ingredient', async () => {
       const ingredient = await makeIngredient(user.id)
-      const tag = await createIngredientTag(testDb, { name: 'Actif', category: 'type' })
+      const tag = await createIngredientTag(testDb, { label: 'Actif', tagType: 'type' })
 
       await addTagToIngredient(testDb, ingredient.id, tag.id)
 
@@ -74,7 +74,7 @@ describe('Ingredient Tags Service', () => {
     it('should return ingredients for a given tag', async () => {
       const i1 = await makeIngredient(user.id, 'Ingrédient 1')
       const i2 = await makeIngredient(user.id, 'Ingrédient 2')
-      const tag = await createIngredientTag(testDb, { name: 'Apaisant' })
+      const tag = await createIngredientTag(testDb, { label: 'Apaisant' })
 
       await addTagToIngredient(testDb, i1.id, tag.id)
       await addTagToIngredient(testDb, i2.id, tag.id)
@@ -91,7 +91,7 @@ describe('Ingredient Tags Service', () => {
   describe('removeTagFromIngredient', () => {
     it('should remove a tag from an ingredient', async () => {
       const ingredient = await makeIngredient(user.id)
-      const tag = await createIngredientTag(testDb, { name: 'Temporaire' })
+      const tag = await createIngredientTag(testDb, { label: 'Temporaire' })
 
       await addTagToIngredient(testDb, ingredient.id, tag.id)
       const removed = await removeTagFromIngredient(testDb, ingredient.id, tag.id)
@@ -105,8 +105,8 @@ describe('Ingredient Tags Service', () => {
   describe('replaceIngredientTags', () => {
     it('should replace ingredient tags', async () => {
       const ingredient = await makeIngredient(user.id)
-      const t1 = await createIngredientTag(testDb, { name: 'Vieux' })
-      const t2 = await createIngredientTag(testDb, { name: 'Neuf' })
+      const t1 = await createIngredientTag(testDb, { label: 'Vieux' })
+      const t2 = await createIngredientTag(testDb, { label: 'Neuf' })
 
       await addTagToIngredient(testDb, ingredient.id, t1.id)
       await replaceIngredientTags(testDb, ingredient.id, [t2.id])

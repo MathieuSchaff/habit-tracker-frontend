@@ -15,7 +15,7 @@ import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 type ApiErrorBody = { success: false; error: string }
 type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 
-const VALID_TAG = { name: 'Anti-âge' }
+const VALID_TAG = { label: 'Anti-âge' }
 
 setupDbTests()
 
@@ -46,7 +46,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'].$post(
-        { json: { name: 'Peau grasse', category: 'skin_type' } },
+        { json: { label: 'Peau grasse', tagType: 'skin_type' } },
         withAuth(token)
       )
 
@@ -61,7 +61,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'].$post(
-        { json: { name: 'Rides et Ridules' } },
+        { json: { label: 'Rides et Ridules' } },
         withAuth(token)
       )
       const data = await res.json()
@@ -74,7 +74,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'].$post(
-        { json: { name: 'Éclat', slug: 'eclat-custom' } },
+        { json: { label: 'Éclat', slug: 'eclat-custom' } },
         withAuth(token)
       )
       const data = await res.json()
@@ -96,9 +96,9 @@ describe('Product Tag Routes', () => {
     it('should return 409 for duplicate slug', async () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
-      await client['product-tags'].$post({ json: { name: 'Acné', slug: 'acne' } }, withAuth(token))
+      await client['product-tags'].$post({ json: { label: 'Acné', slug: 'acne' } }, withAuth(token))
       const res = await client['product-tags'].$post(
-        { json: { name: 'Acné Bis', slug: 'acne' } },
+        { json: { label: 'Acné Bis', slug: 'acne' } },
         withAuth(token)
       )
 
@@ -108,12 +108,12 @@ describe('Product Tag Routes', () => {
       expect(body.error).toBe('tag_already_exists')
     })
 
-    it('should reject missing name', async () => {
+    it('should reject missing label', async () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'].$post(
-        // @ts-expect-error — missing required name; testing schema rejection
-        { json: { category: 'skin_type' } },
+        // @ts-expect-error — missing required label; testing schema rejection
+        { json: { tagType: 'skin_type' } },
         withAuth(token)
       )
 
@@ -143,7 +143,7 @@ describe('Product Tag Routes', () => {
       it('403 for a plain user', async () => {
         const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
         const res = await client['product-tags'].$post(
-          { json: { name: 'X', category: 'concern' } },
+          { json: { label: 'X', tagType: 'concern' } },
           withAuth(userToken)
         )
         expectStatus(res, HTTP_STATUS.FORBIDDEN)
@@ -152,7 +152,7 @@ describe('Product Tag Routes', () => {
       it('403 for a contributor', async () => {
         const contribToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
         const res = await client['product-tags'].$post(
-          { json: { name: 'X', category: 'concern' } },
+          { json: { label: 'X', tagType: 'concern' } },
           withAuth(contribToken)
         )
         expectStatus(res, HTTP_STATUS.FORBIDDEN)
@@ -161,7 +161,7 @@ describe('Product Tag Routes', () => {
       it('201 for an admin', async () => {
         const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
         const res = await client['product-tags'].$post(
-          { json: { name: 'X', category: 'concern' } },
+          { json: { label: 'X', tagType: 'concern' } },
           withAuth(adminToken)
         )
         expectStatus(res, HTTP_STATUS.CREATED)
@@ -229,7 +229,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const createRes = await client['product-tags'].$post(
-        { json: { name: 'Rides' } },
+        { json: { label: 'Rides' } },
         withAuth(token)
       )
       const createData = await createRes.json()
@@ -237,7 +237,7 @@ describe('Product Tag Routes', () => {
       const created = createData.data
 
       const res = await client['product-tags'][':id'].$patch(
-        { param: { id: created.id }, json: { name: 'Rides et Ridules', category: 'concern' } },
+        { param: { id: created.id }, json: { label: 'Rides et Ridules', tagType: 'concern' } },
         withAuth(token)
       )
 
@@ -257,7 +257,7 @@ describe('Product Tag Routes', () => {
       const created = createData.data
 
       await client['product-tags'][':id'].$patch(
-        { param: { id: created.id }, json: { name: 'Anti-âge Pro' } },
+        { param: { id: created.id }, json: { label: 'Anti-âge Pro' } },
         withAuth(token)
       )
 
@@ -271,7 +271,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'][':id'].$patch(
-        { param: { id: crypto.randomUUID() }, json: { name: 'X' } },
+        { param: { id: crypto.randomUUID() }, json: { label: 'X' } },
         withAuth(token)
       )
 
@@ -284,11 +284,11 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       await client['product-tags'].$post(
-        { json: { name: 'Éclat', slug: 'eclat' } },
+        { json: { label: 'Éclat', slug: 'eclat' } },
         withAuth(token)
       )
       const r2 = await client['product-tags'].$post(
-        { json: { name: 'Luminosité' } },
+        { json: { label: 'Luminosité' } },
         withAuth(token)
       )
       const r2Data = await r2.json()
@@ -296,7 +296,7 @@ describe('Product Tag Routes', () => {
       const t2 = r2Data.data
 
       const res = await client['product-tags'][':id'].$patch(
-        { param: { id: t2.id }, json: { name: 'Éclat', slug: 'eclat' } },
+        { param: { id: t2.id }, json: { label: 'Éclat', slug: 'eclat' } },
         withAuth(token)
       )
 
@@ -356,7 +356,7 @@ describe('Product Tag Routes', () => {
 
       const r1 = await client['product-tags'].$post({ json: VALID_TAG }, withAuth(token))
       const r2 = await client['product-tags'].$post(
-        { json: { name: 'Hydratation' } },
+        { json: { label: 'Hydratation' } },
         withAuth(token)
       )
 

@@ -32,7 +32,7 @@ async function createTag(_client: TestClient, _token: string, name = 'Anti-âge'
   // Ingredient↔tag links FK to `ingredient_tags`, not `product_tags_defs`.
   // Insert directly via service since the HTTP route requires admin and tests
   // need the tag as a fixture, not to assert creation behaviour.
-  const tag = await createIngredientTag(testDb, { name })
+  const tag = await createIngredientTag(testDb, { label: name })
   return { id: tag.id, slug: tag.slug }
 }
 

@@ -46,12 +46,12 @@ export interface TagServiceConfig {
 export function createTagService<TDef, TOwnerRow, TProjectionRow, TLinkRow>(cfg: TagServiceConfig) {
   async function create(db: DB, data: CreateTagInput): Promise<TDef> {
     createTagSchema.parse(data)
-    const slug = data.slug ?? slugify(data.name)
+    const slug = data.slug ?? slugify(data.label)
     try {
       const inserted = await db
         // biome-ignore lint/suspicious/noExplicitAny: Drizzle insert requires literal table for typed values; generics here are by design.
         .insert(cfg.defs as any)
-        .values({ slug, label: data.name, tagType: data.category ?? '' })
+        .values({ slug, label: data.label, tagType: data.tagType ?? '' })
         .returning()
       const tag = inserted[0] as TDef | undefined
       if (!tag) throw new TagError('tag_creation_failed')
@@ -92,8 +92,8 @@ export function createTagService<TDef, TOwnerRow, TProjectionRow, TLinkRow>(cfg:
   async function update(db: DB, id: string, data: UpdateTagInput): Promise<TDef> {
     updateTagSchema.parse(data)
     const patch: Partial<{ label: string; tagType: string; slug: string }> = {}
-    if (data.name !== undefined) patch.label = data.name
-    if (data.category !== undefined) patch.tagType = data.category
+    if (data.label !== undefined) patch.label = data.label
+    if (data.tagType !== undefined) patch.tagType = data.tagType
     if (data.slug !== undefined) patch.slug = data.slug
     try {
       const updated = await db

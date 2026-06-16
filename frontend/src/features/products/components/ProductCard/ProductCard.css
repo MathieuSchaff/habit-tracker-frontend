@@ -155,9 +155,17 @@
   min-width: 0;
 }
 
+.list-card--product .list-card__preference-flag-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-right: var(--space-2);
+}
+
 .list-card--product .list-card__preference-flag {
   display: inline-flex;
   align-items: center;
+  font: inherit;
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   color: var(--text-muted);
@@ -168,8 +176,31 @@
   line-height: 1.4;
   cursor: help;
   white-space: nowrap;
-  flex-shrink: 0;
-  margin-right: var(--space-2);
+}
+
+.list-card--product .list-card__preference-flag:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Opens upward and stays inside the card box so overflow:hidden doesn't clip it. */
+.list-card--product .list-card__preference-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: var(--z-elevated);
+  width: max-content;
+  max-width: 220px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-relaxed);
+  white-space: normal;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .list-card--product .list-card__price-wrap {

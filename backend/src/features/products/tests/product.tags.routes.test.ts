@@ -40,7 +40,7 @@ async function createProduct(
 async function createProductTag(
   client: TestClient,
   token: string,
-  body: { name: string; category?: string; slug?: string }
+  body: { label: string; tagType?: string; slug?: string }
 ) {
   const res = await client['product-tags'].$post({ json: body }, withAuth(token))
   const data = await res.json()
@@ -79,8 +79,8 @@ describe('Product Tags Routes', () => {
     it('should return linked tags with the correct shape', async () => {
       const product = await createProduct(client, contributorToken)
       const tag = await createProductTag(client, adminToken, {
-        name: 'Anti-acné',
-        category: 'concern',
+        label: 'Anti-acné',
+        tagType: 'concern',
         slug: 'acne',
       })
 
@@ -113,8 +113,8 @@ describe('Product Tags Routes', () => {
       const p2 = await createProduct(client, contributorToken, { name: 'Autre Sérum' })
 
       const tag = await createProductTag(client, adminToken, {
-        name: 'Hydratant',
-        category: 'concern',
+        label: 'Hydratant',
+        tagType: 'concern',
       })
 
       await client.products[':productId'].tags.$put(
@@ -145,12 +145,12 @@ describe('Product Tags Routes', () => {
       const product = await createProduct(client, contributorToken)
 
       const t1 = await createProductTag(client, adminToken, {
-        name: 'Anti-âge',
-        category: 'concern',
+        label: 'Anti-âge',
+        tagType: 'concern',
       })
       const t2 = await createProductTag(client, adminToken, {
-        name: 'Peau grasse',
-        category: 'skin_type',
+        label: 'Peau grasse',
+        tagType: 'skin_type',
       })
 
       const res = await client.products[':productId'].tags.$put(
@@ -171,8 +171,8 @@ describe('Product Tags Routes', () => {
     it('should replace existing tags (not append)', async () => {
       const product = await createProduct(client, contributorToken)
 
-      const t1 = await createProductTag(client, adminToken, { name: 'Tag A', category: 'concern' })
-      const t2 = await createProductTag(client, adminToken, { name: 'Tag B', category: 'concern' })
+      const t1 = await createProductTag(client, adminToken, { label: 'Tag A', tagType: 'concern' })
+      const t2 = await createProductTag(client, adminToken, { label: 'Tag B', tagType: 'concern' })
 
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: t1.id }] } },
@@ -197,8 +197,8 @@ describe('Product Tags Routes', () => {
       const product = await createProduct(client, contributorToken)
 
       const tag = await createProductTag(client, adminToken, {
-        name: 'Rides',
-        category: 'concern',
+        label: 'Rides',
+        tagType: 'concern',
       })
 
       await client.products[':productId'].tags.$put(
@@ -228,8 +228,8 @@ describe('Product Tags Routes', () => {
       const p2 = await createProduct(client, contributorToken, { name: 'Autre' })
 
       const tag = await createProductTag(client, adminToken, {
-        name: 'Hydratant',
-        category: 'concern',
+        label: 'Hydratant',
+        tagType: 'concern',
       })
 
       await client.products[':productId'].tags.$put(
@@ -287,8 +287,8 @@ describe('Product Tags Routes', () => {
       const product = await createProduct(client, contributorToken)
 
       const tag = await createProductTag(client, adminToken, {
-        name: 'Cheveux bouclés',
-        category: 'hair_type',
+        label: 'Cheveux bouclés',
+        tagType: 'hair_type',
       })
 
       const res = await client.products[':productId'].tags.$put(
@@ -310,8 +310,8 @@ describe('Product Tags Routes', () => {
       const product = await createProduct(client, contributorToken)
 
       const seedTag = await createProductTag(client, adminToken, {
-        name: 'Hydratation',
-        category: 'concern',
+        label: 'Hydratation',
+        tagType: 'concern',
       })
       await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: seedTag.id }] } },
@@ -319,12 +319,12 @@ describe('Product Tags Routes', () => {
       )
 
       const validTag = await createProductTag(client, adminToken, {
-        name: 'Anti-âge',
-        category: 'concern',
+        label: 'Anti-âge',
+        tagType: 'concern',
       })
       const invalidTag = await createProductTag(client, adminToken, {
-        name: 'Cheveux fins',
-        category: 'hair_type',
+        label: 'Cheveux fins',
+        tagType: 'hair_type',
       })
 
       const res = await client.products[':productId'].tags.$put(
@@ -351,8 +351,8 @@ describe('Product Tags Routes', () => {
       const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const product = await createProduct(client, contributorToken)
       const tag = await createProductTag(client, adminToken, {
-        name: 'Hydratant',
-        category: 'concern',
+        label: 'Hydratant',
+        tagType: 'concern',
       })
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
@@ -364,8 +364,8 @@ describe('Product Tags Routes', () => {
     it('200 for a contributor', async () => {
       const product = await createProduct(client, contributorToken)
       const tag = await createProductTag(client, adminToken, {
-        name: 'Hydratant',
-        category: 'concern',
+        label: 'Hydratant',
+        tagType: 'concern',
       })
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
@@ -377,8 +377,8 @@ describe('Product Tags Routes', () => {
     it('200 for an admin', async () => {
       const product = await createProduct(client, contributorToken)
       const tag = await createProductTag(client, adminToken, {
-        name: 'Hydratant',
-        category: 'concern',
+        label: 'Hydratant',
+        tagType: 'concern',
       })
       const res = await client.products[':productId'].tags.$put(
         { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },

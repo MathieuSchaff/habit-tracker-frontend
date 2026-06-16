@@ -41,7 +41,7 @@ async function makeIngredient(
 }
 
 async function makeTag(name: string, category?: string) {
-  return createIngredientTag(testDb, { name, category })
+  return createIngredientTag(testDb, { label: name, tagType: category })
 }
 
 setupDbTests()
