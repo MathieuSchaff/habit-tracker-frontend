@@ -186,6 +186,26 @@
   color: var(--text-muted);
 }
 
+.admin-pill--backend {
+  background: oklch(from var(--color-info) l c h / 0.15);
+  color: var(--color-info);
+}
+
+.admin-pill--frontend {
+  background: oklch(from var(--color-accent) l c h / 0.15);
+  color: var(--color-accent);
+}
+
+.admin-pill--high {
+  background: oklch(from var(--color-warning) l c h / 0.15);
+  color: var(--color-warning);
+}
+
+.admin-pill--low {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
 .admin-card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
@@ -311,6 +331,33 @@
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border-default);
   white-space: pre-wrap;
+}
+
+.admin-error-message {
+  display: inline-block;
+  max-inline-size: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+}
+
+.admin-error-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.admin-error-trace {
+  margin: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-block-size: 320px;
 }
 
 .admin-preview__body strong {

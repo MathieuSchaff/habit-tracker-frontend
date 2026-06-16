@@ -1,12 +1,14 @@
-import { and, count, eq, gt, sql } from 'drizzle-orm'
+import type { ListSecurityEventsResponse, SecuritySeverity } from '@aurore/shared'
+
+import { and, count, desc, eq, gt, sql } from 'drizzle-orm'
 
 import type { Database } from '../../db'
 import { securityEvents } from '../../db/schema'
 
 const HIGH_SEVERITY_BLOCK_THRESHOLD = 3
 const BLOCK_WINDOW_DAYS = 7
-
-type SecuritySeverity = 'high' | 'low'
+// Bound the admin feed; recent-first, the older tail is the CLI's job (prod-security).
+const SECURITY_EVENTS_LIST_LIMIT = 200
 
 export interface SecurityEventInput {
   userId: string
@@ -22,6 +24,20 @@ export async function logSecurityEvent(db: Database, event: SecurityEventInput):
     ...event,
     payload: event.payload.slice(0, 200),
   })
+}
+
+export async function listSecurityEvents(
+  db: Database,
+  filters: { severity?: SecuritySeverity }
+): Promise<ListSecurityEventsResponse> {
+  const items = await db
+    .select()
+    .from(securityEvents)
+    .where(filters.severity ? eq(securityEvents.severity, filters.severity) : undefined)
+    .orderBy(desc(securityEvents.createdAt))
+    .limit(SECURITY_EVENTS_LIST_LIMIT)
+
+  return { items }
 }
 
 export async function isUserBlocked(db: Database, userId: string): Promise<boolean> {
