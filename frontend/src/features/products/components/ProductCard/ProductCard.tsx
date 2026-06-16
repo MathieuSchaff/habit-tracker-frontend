@@ -8,6 +8,7 @@ import { Button } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
+import { DEFAULT_KIND_ACCENT, KIND_ACCENTS } from '@/features/products/constants'
 import { tagLabel } from '@/features/products/filters'
 import type { ProductListItem } from '@/lib/queries/products'
 
@@ -77,7 +78,7 @@ function ProductCardImpl({ product, onAdd }: Props) {
     <Card
       as="li"
       interactive
-      accent="var(--_kind-color)"
+      accent={KIND_ACCENTS[product.kind] ?? DEFAULT_KIND_ACCENT}
       className={`list-card list-card--product ${kindClass(product.kind)} ${unitClass(product.unit)}`}
     >
       <div className="list-card__inner">
