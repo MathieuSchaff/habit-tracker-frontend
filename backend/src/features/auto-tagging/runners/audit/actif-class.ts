@@ -1,9 +1,10 @@
 // Dry-run audit for the pharmacological-cluster pass (audit O3).
 //
 // Read-only. Audit-auto-tags covers passe 1 (algo-derm tagProduct) only.
-// This runner targets passe 2 (`detectActifClasses`): the 12 cluster slugs
-// (RETINOIDS, VITAMIN_C, AHA, BHA, PHA, CERAMIDES, HYALURONIC_ACID, PEPTIDES,
-// POLYPHENOLS, TYROSINASE_INHIBITORS, ENZYMES, VITAMIN_E).
+// This runner targets passe 2 (`detectActifClasses`): 12 distinct cluster slugs
+// (RETINOIDS, VITAMIN_C, VITAMIN_E, AHA, BHA, PHA, CERAMIDES, HYALURONIC_ACID,
+// PEPTIDES, POLYPHENOLS, TYROSINASE_INHIBITORS, ENZYMES_EXFOLIANTS).
+// BHA has two ACTIF_CLASS_DEFS entries (different positionCap), same slug.
 //
 // Per cluster reports:
 //   hit:   products that would receive the cluster slug
@@ -36,6 +37,7 @@ import { fetchEligibleProducts } from './db'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 const DUMP_DRIFT = process.env.DUMP_DRIFT === '1'
+const DUMP_NEW = process.env.DUMP_NEW === '1'
 
 interface ClusterStat {
   hit: number
@@ -44,11 +46,13 @@ interface ClusterStat {
   manualOnly: number
   byKind: Map<ProductKind, number>
   driftProducts: Array<{ slug: string; kind: string; inci: string | null }>
+  newProducts: Array<{ slug: string; kind: string; inci: string | null }>
 }
 
 async function main() {
+  const uniqueClusterSlugs = new Set(ACTIF_CLASS_DEFS.map((d) => d.slug))
   console.log(`🧪 Audit actif-class (passe 2)`)
-  console.log(`   ${ACTIF_CLASS_DEFS.length} clusters${LIMIT ? ` · limit=${LIMIT}` : ''}\n`)
+  console.log(`   ${uniqueClusterSlugs.size} clusters${LIMIT ? ` · limit=${LIMIT}` : ''}\n`)
 
   const subset = await fetchEligibleProducts({
     categories: ['skincare'],
@@ -80,6 +84,7 @@ async function main() {
       manualOnly: 0,
       byKind: new Map(),
       driftProducts: [],
+      newProducts: [],
     })
   }
 
@@ -99,7 +104,11 @@ async function main() {
       stat.hit++
       totalEmitted++
       if (existing.has(slug)) stat.agree++
-      else stat.new++
+      else {
+        stat.new++
+        if (DUMP_NEW)
+          stat.newProducts.push({ slug: p.slug, kind: p.kind ?? 'unknown', inci: p.inci })
+      }
       const kind = p.kind as ProductKind
       stat.byKind.set(kind, (stat.byKind.get(kind) ?? 0) + 1)
     }
@@ -166,6 +175,19 @@ async function main() {
       if (stat.driftProducts.length === 0) continue
       console.log(`\n── ${slug} (${stat.driftProducts.length}) ──`)
       for (const p of stat.driftProducts) {
+        const inciTrunc = p.inci ? p.inci.slice(0, 200) : '(no inci)'
+        console.log(`  [${p.kind}] ${p.slug}`)
+        console.log(`     ${inciTrunc}${(p.inci?.length ?? 0) > 200 ? '…' : ''}`)
+      }
+    }
+  }
+
+  if (DUMP_NEW) {
+    console.log(`\n🆕 Dump new proposals (DUMP_NEW=1)`)
+    for (const [slug, stat] of sorted) {
+      if (stat.newProducts.length === 0) continue
+      console.log(`\n── ${slug} (${stat.newProducts.length}) ──`)
+      for (const p of stat.newProducts) {
         const inciTrunc = p.inci ? p.inci.slice(0, 200) : '(no inci)'
         console.log(`  [${p.kind}] ${p.slug}`)
         console.log(`     ${inciTrunc}${(p.inci?.length ?? 0) > 200 ? '…' : ''}`)

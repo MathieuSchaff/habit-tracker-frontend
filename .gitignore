@@ -116,3 +116,4 @@ backend/src/images/fetchers/*.ts
 
 # Audit outputs (knip + biome + tsc + cycles + fallow)
 .audit-out/
+reports/
