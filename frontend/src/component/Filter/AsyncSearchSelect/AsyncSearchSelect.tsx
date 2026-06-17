@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
+import { rateLimitMessage } from '@/lib/helpers/apiError'
 import type { AsyncSearchQueryFactory, FilterOption } from '../types'
 import { DismissButton } from './DismissButton'
 import { DropdownStatus } from './DropdownStatus'
@@ -86,6 +87,7 @@ export function AsyncSearchSelect({
   const showDropdown = isOpen && debouncedQuery.length >= minChars
   const isLoading = optionsQuery.isFetching && debouncedQuery.length >= minChars
   const isError = optionsQuery.isError && debouncedQuery.length >= minChars
+  const errorMessage = rateLimitMessage(optionsQuery.error) ?? undefined
 
   const dismiss = useCallback(() => {
     setIsOpen(false)
@@ -187,6 +189,7 @@ export function AsyncSearchSelect({
           showDropdown={showDropdown}
           isLoading={isLoading}
           isError={isError}
+          errorMessage={errorMessage}
           onRetry={() => {
             optionsQuery.refetch()
           }}

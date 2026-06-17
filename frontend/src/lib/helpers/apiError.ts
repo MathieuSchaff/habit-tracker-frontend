@@ -34,6 +34,37 @@ export async function throwIfNotOk(res: Response, fallbackCode = 'http_error'): 
   throw new ApiError(code, res.status, details)
 }
 
+// Retry-after seconds off a 429 `rate_limit_exceeded` ApiError (backend envelope
+// `details.retryAfter`), for "réessayez dans Ns" UI. null when the error isn't a rate-limit.
+export function isRateLimitError(err: unknown): boolean {
+  return isApiError(err) && err.code === 'rate_limit_exceeded'
+}
+
+// Backend puts Retry-After (an HTTP header) under details.retryAfter, so it's a string — or
+// null when the header is absent. Coerce; return null when no usable delay is available.
+export function rateLimitRetryAfter(err: unknown): number | null {
+  if (!isRateLimitError(err)) return null
+  const raw = ((err as ApiError).details as { retryAfter?: number | string | null } | undefined)
+    ?.retryAfter
+  const sec = typeof raw === 'string' ? Number(raw) : raw
+  return typeof sec === 'number' && Number.isFinite(sec) ? sec : null
+}
+
+// "5 min" for ≥60s, "30 s" otherwise — avoids ugly "300 secondes" in retry copy.
+export function formatRetryDelay(seconds: number): string {
+  return seconds >= 60 ? `${Math.ceil(seconds / 60)} min` : `${seconds} s`
+}
+
+// Inline rate-limit message for search dropdowns; null when the error isn't a 429. The delay
+// is best-effort: the Retry-After header can be absent, so fall back to a vague reassurance.
+export function rateLimitMessage(err: unknown): string | null {
+  if (!isRateLimitError(err)) return null
+  const sec = rateLimitRetryAfter(err)
+  return sec === null
+    ? 'Trop de requêtes — réessayez dans un instant.'
+    : `Trop de requêtes — réessayez dans ${formatRetryDelay(sec)}.`
+}
+
 // Maps backend error codes to user-facing messages, optionally targeting a form field.
 export type FormErrorMap<F extends string = string> = Record<string, { field?: F; message: string }>
 

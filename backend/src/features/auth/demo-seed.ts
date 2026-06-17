@@ -1,4 +1,4 @@
-import { addDays, subDays, subMonths } from 'date-fns'
+import { addDays, subMonths } from 'date-fns'
 
 import type { Database } from '../../db/index'
 import { listProducts } from '../products/service'
@@ -226,22 +226,22 @@ async function seedDemoPurchases(
   }
 
   const hasOpen = Math.random() > 0.5
+  const purchasedAt = subMonths(new Date(), Math.floor(Math.random() * 4) + 1)
   const p = await addPurchase(
     userId,
     userProductId,
     {
-      purchasedAt: d(subMonths(new Date(), Math.floor(Math.random() * 4) + 1)),
+      purchasedAt: d(purchasedAt),
       pricePaidCents: Math.floor(Math.random() * 3000) + 800,
     },
     db
   )
 
   if (hasOpen) {
-    await openPurchase(
-      userId,
-      p.id,
-      { openedAt: d(subDays(new Date(), Math.floor(Math.random() * 60) + 7)) },
-      db
-    )
+    // opened_at must be >= purchased_at (constraint purchases_opened_after_purchased): pick a
+    // day inside the elapsed window, not an independent random date that could precede purchase.
+    const daysSincePurchase = Math.floor((Date.now() - purchasedAt.getTime()) / 86_400_000)
+    const openedAt = addDays(purchasedAt, Math.floor(Math.random() * daysSincePurchase))
+    await openPurchase(userId, p.id, { openedAt: d(openedAt) }, db)
   }
 }

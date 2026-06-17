@@ -26,7 +26,12 @@ test.describe('Auth — login', () => {
     await page.getByLabel('Mot de passe', { exact: true }).fill('Wrongpass1!')
     await page.getByRole('button', { name: 'Se connecter', exact: true }).click()
 
-    await expect(page.getByText('Email ou mot de passe incorrect')).toBeVisible()
+    // Mirrors LOGIN_ERRORS.invalid_credentials: account_locked was collapsed into this
+    // neutral wording (anti-enumeration, commit dd9130d0) so a locked account is
+    // indistinguishable from a wrong password.
+    await expect(
+      page.getByText('Identifiants incorrects ou compte temporairement indisponible')
+    ).toBeVisible()
     await expect(page).toHaveURL(/\/auth\/login/)
   })
 

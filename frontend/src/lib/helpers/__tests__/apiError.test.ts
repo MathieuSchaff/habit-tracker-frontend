@@ -4,7 +4,11 @@ import {
   ApiError,
   extractFormError,
   type FormErrorMap,
+  formatRetryDelay,
   isApiError,
+  isRateLimitError,
+  rateLimitMessage,
+  rateLimitRetryAfter,
   throwIfNotOk,
 } from '../apiError'
 
@@ -51,6 +55,42 @@ describe('throwIfNotOk', () => {
         expect(err.details).toEqual({ conflicting: ['vegan'] })
       }
     }
+  })
+})
+
+describe('rate-limit helpers', () => {
+  // Backend forwards Retry-After (an HTTP header) verbatim, so details.retryAfter is a string.
+  const limited = (retryAfter?: unknown) =>
+    new ApiError('rate_limit_exceeded', 429, retryAfter === undefined ? undefined : { retryAfter })
+
+  it('isRateLimitError only matches a 429 ApiError', () => {
+    expect(isRateLimitError(limited('42'))).toBe(true)
+    expect(isRateLimitError(new ApiError('http_error', 500))).toBe(false)
+    expect(isRateLimitError(new Error('rate_limit_exceeded'))).toBe(false)
+  })
+
+  it('rateLimitRetryAfter coerces the header string to a number', () => {
+    expect(rateLimitRetryAfter(limited('42'))).toBe(42)
+    expect(rateLimitRetryAfter(limited(30))).toBe(30)
+  })
+
+  it('rateLimitRetryAfter returns null when the delay is absent or unusable', () => {
+    expect(rateLimitRetryAfter(limited(null))).toBeNull()
+    expect(rateLimitRetryAfter(limited())).toBeNull()
+    expect(rateLimitRetryAfter(limited('not-a-number'))).toBeNull()
+    expect(rateLimitRetryAfter(new ApiError('http_error', 500))).toBeNull()
+  })
+
+  it('formatRetryDelay collapses ≥60s to minutes', () => {
+    expect(formatRetryDelay(42)).toBe('42 s')
+    expect(formatRetryDelay(60)).toBe('1 min')
+    expect(formatRetryDelay(120)).toBe('2 min')
+  })
+
+  it('rateLimitMessage falls back to a vague delay when Retry-After is missing', () => {
+    expect(rateLimitMessage(limited('42'))).toBe('Trop de requêtes — réessayez dans 42 s.')
+    expect(rateLimitMessage(limited(null))).toBe('Trop de requêtes — réessayez dans un instant.')
+    expect(rateLimitMessage(new ApiError('http_error', 500))).toBeNull()
   })
 })
 

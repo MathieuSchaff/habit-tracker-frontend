@@ -8,6 +8,7 @@ import { startTransition, useCallback, useEffect, useMemo, useState } from 'reac
 import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
+import { RateLimitEmptyState } from '@/component/Feedback/ui/EmptyState/RateLimitEmptyState'
 import { emptyFilters, type FilterValues } from '@/component/Filter'
 import { ListPageLayout } from '@/component/Layout'
 import type { TabOption } from '@/component/Tabs/Tabs'
@@ -33,6 +34,7 @@ import {
 import { useProductsExtraChips } from '@/features/products/hooks/useProductsExtraChips'
 import { useProductsFilterGroups } from '@/features/products/hooks/useProductsFilterGroups'
 import { useListFilters } from '@/hooks/useListFilters'
+import { isRateLimitError } from '@/lib/helpers/apiError'
 import {
   applyShelfStatusOverlayToListCache,
   type ListProductsFilters,
@@ -124,7 +126,7 @@ export function ProductsPage() {
   // loader joins that refresh before starting authenticated product work.
   const bootRefreshPending = useAuthStore((s) => s.bootRefreshPending)
   const userKey = bootRefreshPending ? null : (user?.id ?? null)
-  const { data, isLoading, isPlaceholderData } = useQuery({
+  const { data, isLoading, isPlaceholderData, error } = useQuery({
     ...productQueries.list(apiFilters, userKey),
     placeholderData: (prev) => prev,
     staleTime,
@@ -184,6 +186,8 @@ export function ProductsPage() {
   const items = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / 20)
+  // 429 on the list read: distinguish "throttled" from "empty catalogue" (placeholder kept on paginate).
+  const showRateLimit = isRateLimitError(error)
 
   const handleSortChange = useCallback(
     (next: ProductSort) => {
@@ -289,7 +293,9 @@ export function ProductsPage() {
           {isLoading && !isPlaceholderData ? (
             <ProductsGridSkeleton />
           ) : items.length === 0 ? (
-            effectiveFilterCount > 0 ? (
+            showRateLimit ? (
+              <RateLimitEmptyState error={error} />
+            ) : effectiveFilterCount > 0 ? (
               <EmptyState
                 icon={<Package size={24} />}
                 title="Aucun produit ne correspond à vos filtres"

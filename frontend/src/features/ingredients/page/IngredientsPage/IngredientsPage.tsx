@@ -11,6 +11,7 @@ import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
+import { RateLimitEmptyState } from '@/component/Feedback/ui/EmptyState/RateLimitEmptyState'
 import {
   ActiveFiltersBar,
   emptyFilters,
@@ -37,6 +38,7 @@ import {
 } from '@/features/ingredients/filters'
 import { useIngredientTagFilterGroups } from '@/hooks/useIngredientTagFilterGroups'
 import { useListFilters } from '@/hooks/useListFilters'
+import { isRateLimitError } from '@/lib/helpers/apiError'
 import { ingredientQueries, type ListIngredientsFilters } from '@/lib/queries/ingredients'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
@@ -99,7 +101,7 @@ export function IngredientsPage() {
       }
     : { type, sort: 'random', limit: 12, avoid_for: avoidForParam }
 
-  const { data, isLoading, isPlaceholderData } = useQuery({
+  const { data, isLoading, isPlaceholderData, error } = useQuery({
     ...ingredientQueries.list(apiFilters),
     placeholderData: (prev) => prev,
     staleTime: 5 * 60 * 1000,
@@ -110,6 +112,7 @@ export function IngredientsPage() {
   const items = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE)
+  const showRateLimit = isRateLimitError(error)
 
   const filterGroups = useIngredientTagFilterGroups(type, filterOptions?.tags)
 
@@ -214,11 +217,15 @@ export function IngredientsPage() {
         {isLoading && !isPlaceholderData ? (
           <EmptyState icon={<FlaskConical size={24} />} subtitle="Chargement..." />
         ) : items.length === 0 ? (
-          <EmptyState
-            icon={<FlaskConical size={24} />}
-            title={ingredientLabels.noResultsTitle}
-            subtitle="Essayez de modifier vos filtres."
-          />
+          showRateLimit ? (
+            <RateLimitEmptyState error={error} />
+          ) : (
+            <EmptyState
+              icon={<FlaskConical size={24} />}
+              title={ingredientLabels.noResultsTitle}
+              subtitle="Essayez de modifier vos filtres."
+            />
+          )
         ) : (
           <>
             <div className="list-grid">

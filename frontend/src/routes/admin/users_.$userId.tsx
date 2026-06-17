@@ -7,14 +7,15 @@ import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/admin/users_/$userId')({
   beforeLoad: requireModeratorOrRedirect,
-  // users() is admin-only (403 for a contributor); a moderator only prefetches the
-  // target's bans for the content-only slice (ADR-0006 S4).
+  // userBans is the mandatory entity (content-only slice). users() is admin-only PII
+  // enrichment (403 for a contributor); prefetchQuery, not ensureQueryData, so a failed
+  // enrichment degrades in-page (page reads it via useQuery, `!user` fallback), not fatal (ADR-0006 S4).
   loader: ({ context, params }) => {
     const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(adminQueries.userBans(params.userId)),
     ]
     if (useAuthStore.getState().role === 'admin') {
-      tasks.push(context.queryClient.ensureQueryData(adminQueries.users()))
+      tasks.push(context.queryClient.prefetchQuery(adminQueries.users()))
     }
     return Promise.all(tasks)
   },
