@@ -2,6 +2,7 @@ type Props = {
   showDropdown: boolean
   isLoading: boolean
   isError: boolean
+  errorMessage?: string
   onRetry?: () => void
   filteredCount: number
   query: string
@@ -15,10 +16,11 @@ function liveMessage(
   showDropdown: boolean,
   filteredCount: number,
   isLoading: boolean,
-  isError: boolean
+  isError: boolean,
+  errorMessage: string
 ): string {
   if (!showDropdown) return ''
-  if (isError) return 'Erreur de recherche'
+  if (isError) return errorMessage
   if (filteredCount > 0) {
     const plural = filteredCount > 1 ? 's' : ''
     return `${filteredCount} résultat${plural} disponible${plural}`
@@ -31,6 +33,7 @@ export function DropdownStatus({
   showDropdown,
   isLoading,
   isError,
+  errorMessage = 'Erreur de recherche',
   onRetry,
   filteredCount,
   query,
@@ -48,7 +51,7 @@ export function DropdownStatus({
     <>
       {showError && (
         <p className="search-select__empty search-select__empty--error" role="alert">
-          <span>Erreur de recherche</span>
+          <span>{errorMessage}</span>
           {onRetry && (
             <button type="button" className="search-select__retry" onClick={onRetry}>
               Réessayer
@@ -64,7 +67,7 @@ export function DropdownStatus({
         {announcement}
       </div>
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {liveMessage(showDropdown, filteredCount, isLoading, isError)}
+        {liveMessage(showDropdown, filteredCount, isLoading, isError, errorMessage)}
       </div>
     </>
   )

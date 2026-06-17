@@ -144,16 +144,38 @@ it warms the cache without throwing, so a failed fetch falls through to the in-p
 instead of replacing the whole page. Use `ensureQueryData` only when the data is mandatory for
 the route to render at all.
 
+**Coverage (not audited).** 28 route loaders use `ensureQueryData`, 3 use `prefetchQuery`. Many
+`ensureQueryData` uses are correct — the route can't render without the data (a missing product →
+full-page 404 is the right outcome). The risk is a **secondary, degradable** fetch wrongly making
+the page fatal: the `/blog` P0 (a failed category-counts fetch killed the whole page) was exactly
+this, and only `/blog` has been triaged. Any loader fetching more than its one mandatory entity is
+a candidate for `prefetchQuery` + in-page degradation.
+
 ### Known gap — code collapsed to `http_error`
 
 Read failures throw `ApiError('http_error', res.status)`: **status kept, the backend's specific
 `error` code discarded**. Fine for reads (generic `EmptyState`). To surface a code — e.g.
 "rate-limited, retry in Ns" from `rate_limit_exceeded` + `retry-after` — route that read through
-`throwIfNotOk(res)` (parses the envelope) and re-narrow with `if (!json.success)`. Deferred UX,
-not wired.
+`throwIfNotOk(res)` (parses the envelope) and re-narrow with `if (!json.success)`.
+
+**P1 wired 2026-06-17.** The 6 highest-traffic reads (`products`/`ingredients` × `search` +
+`searchInfinite`/`searchFlat` + `list`) now route through `throwIfNotOk`. `frontend/src/lib/
+helpers/apiError.ts` exposes `isRateLimitError` / `rateLimitRetryAfter` / `rateLimitMessage`;
+list pages render `RateLimitEmptyState`, search dropdowns pass `rateLimitMessage` as their
+`errorMessage`. Note `details.retryAfter` is a **string** (the backend forwards the `Retry-After`
+header verbatim) and can be absent — the helper coerces and falls back to a vague delay. P2/P3
+reads deferred.
 
 Established 2026-06-17 — commits `120f06f3` (rate-limit ceiling 100→1000), `0b2f396c` (blog
 degradation), `dc24466d` (read-queryFn sweep, all domains).
+
+### Open items (frontend errors)
+
+| Item | Status | Pointer |
+|---|---|---|
+| **Loader resilience** — triage the `ensureQueryData` loaders; move secondary/degradable fetches to `prefetchQuery`/`.catch` so one failed call can't kill the page. | audited + P1 done 2026-06-17: 3 secondary fetches migrated (`admin/reports` + `admin/users_.$userId` `users()` → `prefetchQuery`, `products/` dermo → `.catch`). Discussions twins **kept** — `useSuspenseQuery` can't degrade via a loader `.catch` (re-throws at render), and their `errorComponent` is already outlet-scoped. | § Loaders above · `loader-resilience.spec.ts` |
+| **Surface specific read codes** — the `http_error` collapse hides codes like `rate_limit_exceeded` + `retry-after`; route the relevant reads through `throwIfNotOk` to show "retry in Ns". | P1 wired 2026-06-17 (6 search/list reads). P2/P3 deferred. | § Known gap above · `read-code-surfacing.spec.ts` |
+| **Demo logout** — user report "can't log out in demo mode", not reproduced. | needs user clarification | `bugs.md` |
 
 ---
 

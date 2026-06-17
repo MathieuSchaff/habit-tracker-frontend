@@ -111,8 +111,11 @@ export const productQueries = {
           typeof api.products.$get
         >[0]['query']
         const res = await api.products.$get({ query })
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        // throwIfNotOk (not `if (!res.ok)`) to keep the backend code+retryAfter on the
+        // ApiError so a 429 surfaces "retry in Ns"; re-narrow the union after.
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return json.data
       },
       staleTime: 1000 * 60 * 5,
@@ -176,8 +179,9 @@ export const productQueries = {
           { query: { q, limit: '20', offset: String(pageParam) } },
           { init: { signal } }
         )
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return json.data
       },
       initialPageParam: 0 as number,
@@ -196,8 +200,9 @@ export const productQueries = {
           { query: { q, limit: '20', offset: '0' } },
           { init: { signal } }
         )
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return json.data.items
       },
       enabled: q.length >= 2,

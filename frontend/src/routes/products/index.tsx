@@ -25,7 +25,10 @@ export const Route = createFileRoute('/products/')({
 
     if (userId) {
       if (deps.profile_filter) {
-        dermo = await context.queryClient.ensureQueryData(profileQueries.dermo())
+        // A failed dermo fetch must not blank the whole catalogue for a personalization
+        // filter: fall back to the cached profile (or none) and let the list render.
+        // deriveAvoidFor tolerates null/undefined → no exclusions.
+        dermo = await context.queryClient.ensureQueryData(profileQueries.dermo()).catch(() => dermo)
       } else {
         void context.queryClient.prefetchQuery(profileQueries.dermo())
       }

@@ -88,8 +88,11 @@ export const ingredientQueries = {
       queryKey: ingredientKeys.list(filters),
       queryFn: async () => {
         const res = await api.ingredients.$get({ query: buildListIngredientsQuery(filters) })
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        // throwIfNotOk (not `if (!res.ok)`) to keep the backend code+retryAfter on the
+        // ApiError so a 429 surfaces "retry in Ns"; re-narrow the union after.
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return json.data
       },
     }),
@@ -138,8 +141,9 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'search', query] as const,
       queryFn: async ({ signal }) => {
         const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return json.data
       },
       enabled: query.length >= 2,
@@ -151,8 +155,9 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'search-infinite', query] as const,
       queryFn: async ({ signal }) => {
         const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
-        if (!res.ok) throw new ApiError('http_error', res.status)
+        await throwIfNotOk(res)
         const json = await res.json()
+        if (!json.success) throw new ApiError('http_error', res.status)
         return { items: json.data, hasMore: false, nextOffset: 0 }
       },
       initialPageParam: 0 as number,

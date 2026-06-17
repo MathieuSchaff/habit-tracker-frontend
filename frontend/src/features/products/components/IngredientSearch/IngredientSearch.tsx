@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Input } from '@/component/Input/Input'
 import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
 import { useDebounce } from '@/hooks/useDebounce'
+import { rateLimitMessage } from '@/lib/helpers/apiError'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import './IngredientSearch.css'
 
@@ -16,7 +17,7 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const debouncedQuery = useDebounce(query, 200)
-  const { data: results } = useQuery(ingredientQueries.search(debouncedQuery))
+  const { data: results, error, refetch } = useQuery(ingredientQueries.search(debouncedQuery))
 
   const available = useMemo(() => {
     if (!results) return []
@@ -30,12 +31,19 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
     setHighlightedIndex(-1)
   }
 
-  const isOpen = query.length > 0 && available.length > 0
+  // Surface a 429 even when there are no results (dropdown would otherwise stay closed).
+  const rateLimitMsg = rateLimitMessage(error)
+  const isOpen = query.length > 0 && (available.length > 0 || rateLimitMsg !== null)
 
   return (
     <ComboboxPrimitive
       items={available}
       isOpen={isOpen}
+      isError={rateLimitMsg !== null}
+      errorMessage={rateLimitMsg ?? undefined}
+      onRetry={() => {
+        refetch()
+      }}
       onClose={() => {
         setQuery('')
         setHighlightedIndex(-1)
