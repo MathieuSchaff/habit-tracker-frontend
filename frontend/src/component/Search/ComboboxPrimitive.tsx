@@ -276,11 +276,10 @@ export function ComboboxPrimitive<T>({
           portalTarget
         )}
 
+      {/* role="alert" on the error block already announces; stay silent here on error to avoid a double read. */}
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {isOpen
-          ? isError
-            ? errorMessage
-            : `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.`
+        {isOpen && !isError
+          ? `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.`
           : ''}
       </span>
     </div>

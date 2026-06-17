@@ -76,3 +76,23 @@ export const loginRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
         ),
       skipFailedRequests: false,
     })
+
+// Throttles /auth/forgot-password per IP. Mail-spam surface: every request can send
+// an email, so this COUNTS all requests (own bucket, distinct from login) to blunt
+// inbox bombing. A legit user rarely needs more than a handful of resets per window.
+export const forgotPasswordRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
+  ? async (_c: Context, next: Next) => await next()
+  : rateLimiter<AppEnv>({
+      windowMs: 15 * 60 * 1000,
+      limit: 5,
+      standardHeaders: 'draft-7',
+      keyGenerator: (c) => `forgot:${clientIp(c)}`,
+      handler: (c) =>
+        c.json(
+          err('too_many_requests', {
+            retryAfter: c.res.headers.get('Retry-After'),
+          }),
+          HTTP_STATUS.RATE_LIMIT_EXCEEDED
+        ),
+      skipFailedRequests: false,
+    })

@@ -25,7 +25,9 @@ import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
 import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthBannedRouteImport } from './routes/auth/banned'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
@@ -140,9 +142,19 @@ const AuthSignupRoute = AuthSignupRouteImport.update({
   path: '/auth/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthBannedRoute = AuthBannedRouteImport.update({
@@ -347,7 +359,9 @@ export interface FileRoutesByFullPath {
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
@@ -397,7 +411,9 @@ export interface FileRoutesByTo {
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
@@ -449,7 +465,9 @@ export interface FileRoutesById {
   '/admin/suggested-edits': typeof AdminSuggestedEditsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/banned': typeof AuthBannedRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/auth/verify-pending': typeof AuthVerifyPendingRoute
@@ -503,7 +521,9 @@ export interface FileRouteTypes {
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
+    | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
@@ -553,7 +573,9 @@ export interface FileRouteTypes {
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
+    | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
@@ -604,7 +626,9 @@ export interface FileRouteTypes {
     | '/admin/suggested-edits'
     | '/admin/users'
     | '/auth/banned'
+    | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/reset-password'
     | '/auth/signup'
     | '/auth/verify-email'
     | '/auth/verify-pending'
@@ -647,7 +671,9 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
   AuthBannedRoute: typeof AuthBannedRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
   AuthVerifyPendingRoute: typeof AuthVerifyPendingRoute
@@ -780,11 +806,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/login': {
       id: '/auth/login'
       path: '/auth/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/banned': {
@@ -1143,7 +1183,9 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
   AuthBannedRoute: AuthBannedRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
   AuthVerifyPendingRoute: AuthVerifyPendingRoute,

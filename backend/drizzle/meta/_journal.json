@@ -701,6 +701,20 @@
       "when": 1781304761017,
       "tag": "0099_flat_impossible_man",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1781714041011,
+      "tag": "0100_square_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1781718156837,
+      "tag": "0101_dazzling_klaw",
+      "breakpoints": true
     }
   ]
 }

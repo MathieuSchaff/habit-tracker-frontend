@@ -50,11 +50,17 @@ export {
   changePasswordSchema,
   type Email,
   emailSchema,
+  type ForgotPasswordInput,
+  forgotPasswordSchema,
   type HashedPassword,
   passwordSchema,
   type RawPassword,
+  type ResetPasswordFormInput,
+  type ResetPasswordInput,
   refreshTokenBodySchema,
   refreshTokenPayloadSchema,
+  resetPasswordFormSchema,
+  resetPasswordSchema,
   type SignupFormInput,
   signupSchema,
   verifyEmailBodySchema,
@@ -495,13 +501,17 @@ export type {
   AuthenticatedResult,
   ChangePasswordResult,
   CreateRefreshTokenArgs,
+  ForgotPasswordResult,
   GoogleCallbackResult,
   LoginErrorCode,
   LoginResult,
   LogoutResult,
   MobileAuthResult,
+  PasswordResetPending,
   RefreshResult,
   RefreshTokenPayload,
+  ResetPasswordErrorCode,
+  ResetPasswordResult,
   SignupErrorCode,
   SignupPending,
   SignupResult,
@@ -520,7 +530,7 @@ export type { TaskEnergy, TaskErrorCode, TaskStatus } from './tasks'
 
 // Helpers (error mappings, constants, utilities)
 
-export { authErrorMapping, SESSION_HINT_COOKIE } from './auth'
+export { authErrorMapping, resetPasswordErrorMapping, SESSION_HINT_COOKIE } from './auth'
 export { discussionErrorMapping } from './discussions'
 export { profileErrorMapping } from './profile'
 export { purchaseErrorMapping } from './purchases'

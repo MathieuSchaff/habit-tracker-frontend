@@ -22,4 +22,5 @@ mock.module('../features/auth/email.service', () => ({
   sendVerificationEmail: mock(async () => {}),
   sendAccountLockedEmail: mock(async () => {}),
   sendAlreadyRegisteredEmail: mock(async () => {}),
+  sendPasswordResetEmail: mock(async () => {}),
 }))

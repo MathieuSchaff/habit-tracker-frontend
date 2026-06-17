@@ -1,7 +1,7 @@
 import { type AuthInput, authSchema, type LoginErrorCode } from '@aurore/shared'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
 
@@ -100,6 +100,12 @@ export const LoginPage = () => {
           autoComplete="current-password"
           passwordToggle
         />
+
+        <div className="auth-form__forgot">
+          <Link to="/auth/forgot-password" className="auth-form__forgot-link">
+            Mot de passe oublié ?
+          </Link>
+        </div>
 
         <Button
           type="submit"

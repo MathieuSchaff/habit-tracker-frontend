@@ -206,6 +206,15 @@ about another user's account or data, collapse it. Otherwise show it.
   Implemented 2026-06-17, [ADR 0009](../adr/0009-signup-enumeration-safe.md). `email_exists` removed
   from the contract; `/auth/signup` + `/auth/mobile/signup` return 200, no cookie; frontend lands on
   verify-pending. The 24 h unverified-login grace was kept (back-compat), so login was left untouched.
+- **Forgot/reset-password** — identical neutral `ok({ pending: true })` whether the email exists or
+  not, no session, timing equalized (dummy token hash on the unknown branch) + fire-and-forget reset
+  mail so neither branch awaits the send. Implemented 2026-06-17 (greenfield),
+  [ADR 0010](../adr/0010-forgot-password-enumeration-safe.md). OAuth-only accounts (null
+  `passwordHash`) take the same neutral branch — no token, no mail — so a reset can't reveal the
+  account or graft a password onto a Google login. The reset *confirmation* is
+  deliberately not neutral — distinct `invalid_token` vs `token_expired` (token-holder-only on a
+  2²⁵⁶ space, no enum gain, same as verify-email); a successful reset is treated as proof of inbox
+  control (marks email verified, clears lockout) and rotates credentials (revokes all sessions).
 - **Discussions delete (thread + reply)** — was `403 unauthorized_access` (owned by another)
   vs `404 not_found` (missing) = existence oracle, and those tables have no RLS. Collapsed by
   moving the owner check into the DELETE `WHERE id AND author_id` → uniform `..._not_found`; the
@@ -227,5 +236,6 @@ uniqueness oracles; each finding adversarially verified.
 - *Ruled out*: verify-email `invalid_token` vs `token_expired` — only the token holder (2²⁵⁶
   space) reaches the branch, no cross-user gain; product-create slug collision on a hidden row —
   LOW, leaks catalog-item existence not user PII, deferred.
-- *Remaining*: forgot/reset-password doesn't exist yet → build it always-neutral from day one.
-  (Signup — the one *unauthenticated* leak — was closed 2026-06-17; see the Signup worked instance.)
+- *Closed*: forgot/reset-password built always-neutral from day one, 2026-06-17 (ADR 0010; see the
+  Forgot/reset-password worked instance). **All known account-enumeration surfaces are now closed** —
+  the unauthenticated set (login, signup, forgot-password) and the authenticated user-data sweep.

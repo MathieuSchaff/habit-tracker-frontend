@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "password_resets_active_per_user_ux" ON "password_resets" USING btree ("user_id") WHERE used_at IS NULL;
