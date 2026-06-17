@@ -8,7 +8,7 @@
 - **Access Tokens**: Short-lived (15 minutes), stored in memory on the frontend, passed via `Authorization` header.
 - **Refresh Tokens**: Long-lived (7 days), stored in an **HttpOnly, Secure, SameSite=Lax** cookie. This prevents XSS-based token theft.
 - **Token Rotation**: When a refresh token is used, it is revoked and a new one is issued.
-- **Revocation**: On manual logout, the presented refresh token is revoked (its `jti` marked revoked in the database); other active sessions stay valid. Token-replay detection revokes *all* of a user's refresh tokens. A password change also revokes **all** of the user's refresh tokens, atomically with the hash update — the revoke runs in the same transaction, so a revoke failure rolls back the password write (a stolen session can never survive a successful change).
+- **Revocation**: On manual logout, the presented refresh token is revoked (its `jti` marked revoked in the database); other active sessions stay valid. Token-replay detection revokes *all* of a user's refresh tokens. A password change **or reset** also revokes **all** of the user's refresh tokens, atomically with the hash update — the revoke runs in the same transaction, so a revoke failure rolls back the password write (a stolen session can never survive a successful change or reset).
 
 ### Password Hashing
 **Argon2** via Bun's native `password.hash` API — currently the industry standard for password hashing, resistant to GPU-based brute-force and side-channel attacks.
@@ -20,6 +20,7 @@
 Neither login nor signup ever reveals whether an email is registered:
 - **Login** returns a single `invalid_credentials` for unknown-email, wrong-password, and locked-account alike; the dummy hash above keeps timing uniform.
 - **Signup** returns an identical neutral response (`{ pending: true }`, HTTP 200, **no session**) whether the email is new or already registered, runs a dummy password hash on the existing-email branch to equalize timing, and conveys the new-vs-existing truth only by email to the address owner (a verification link for a new account, an "account already exists" notice otherwise). The cross-cutting policy lives in [`conventions/error-handling.md` § Security](conventions/error-handling.md).
+- **Forgot-password** returns the same neutral response (`{ pending: true }`, no session) whether or not the email exists; the unknown-email branch spends the same token crypto and the reset mail is fire-and-forget, so timing matches. OAuth-only accounts take the neutral branch too — no reset token is minted, so a Google login can't have a password silently grafted onto it. The reset link reaches only the address owner; a successful reset is single-use, rotates the password, marks the email verified, clears any lockout, and revokes every session — all in one transaction.
 
 ### Email Verification
 Signup issues a single-use token (stored hashed in `email_verifications`) and the account stays unverified until the user confirms via email. Expired or consumed tokens are rejected. Because signup establishes no session, the user activates the account from the email link, then logs in. A 24-hour back-compat grace still admits logins from a freshly created account before verification; past that window login returns `email_not_verified` until the user confirms.
@@ -37,7 +38,7 @@ All incoming data (JSON bodies, query parameters, URL parameters) is strictly va
 ### Rate Limiting
 Two layers protect the API in production:
 - **Edge (nginx)** — `limit_req` at 10 req/s per IP on all `/api/` routes.
-- **Application (`hono-rate-limiter`)** — 100 req / 15 min per IP on auth, admin and write/submission routes; a stricter 10 req / 15 min limiter that counts failed attempts guards login against password spraying, paired with per-user DB lockout. Health and favicon endpoints are skipped. Disabled in development to avoid blocking local iteration.
+- **Application (`hono-rate-limiter`)** — 100 req / 15 min per IP on auth, admin and write/submission routes; a stricter 10 req / 15 min limiter that counts failed attempts guards login against password spraying, paired with per-user DB lockout. A dedicated 5 req / 15 min limiter that counts every request throttles `/auth/forgot-password` (a mail-spam surface); `/auth/reset-password` validates the token before computing the Argon2 hash, so a bogus token on this unauthenticated route costs no CPU. Health and favicon endpoints are skipped. Disabled in development to avoid blocking local iteration.
 
 The per-IP key is derived from the nginx-set `X-Real-IP` (or the rightmost `X-Forwarded-For` hop), never the client-supplied leftmost value — so a caller cannot rotate the header to bypass the limiters.
 
@@ -104,7 +105,7 @@ The environment validator rejects known-weak or previously-committed development
 
 ## Security Testing
 
-- Auth flows (login, refresh, logout, password change) are covered by integration tests in `backend/src/features/auth/tests`.
+- Auth flows (login, refresh, logout, password change, forgot/reset-password) are covered by integration tests in `backend/src/features/auth/tests`; the forgot/reset suite includes byte-identical enumeration guards, a concurrency test for the single-use token lock, and a guard that a bogus token never runs the password hash.
 - Invalid inputs are tested to verify they're rejected with `400 Bad Request`.
 
 ---

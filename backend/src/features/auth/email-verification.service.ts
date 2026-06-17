@@ -1,27 +1,12 @@
-import { CryptoHasher } from 'bun'
-
 import { err, ok } from '@aurore/shared'
 
 import { and, eq, isNull, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { emailVerifications, users, usersSafe } from '../../db/schema'
+import { generateRawToken, hashToken } from './token.utils'
 
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000
-
-function generateRawToken(): string {
-  const bytes = new Uint8Array(32)
-  crypto.getRandomValues(bytes)
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-function hashToken(rawToken: string): string {
-  const hasher = new CryptoHasher('sha256')
-  hasher.update(rawToken)
-  return hasher.digest('hex')
-}
 
 export async function createVerificationToken(db: DB, userId: string): Promise<string> {
   const rawToken = generateRawToken()

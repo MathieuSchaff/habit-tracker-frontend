@@ -4,11 +4,14 @@ import {
   changePasswordSchema,
   err,
   errorToStatus,
+  forgotPasswordSchema,
   HTTP_STATUS,
   isApiSuccess,
   ok,
   type RawPassword,
   refreshTokenBodySchema,
+  resetPasswordErrorMapping,
+  resetPasswordSchema,
   verifyEmailBodySchema,
 } from '@aurore/shared'
 
@@ -23,7 +26,11 @@ import { env } from '../../config/env'
 import { withAdminRls } from '../../db/rls'
 import { usersSafe } from '../../db/schema'
 import { clientIp } from '../../utils/clientIp'
-import { loginRateLimiterFunc, rateLimiterFunc } from '../../utils/rateLimiter'
+import {
+  forgotPasswordRateLimiterFunc,
+  loginRateLimiterFunc,
+  rateLimiterFunc,
+} from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
 import { isUserBanned } from './ban.service'
 import { sendVerificationEmail } from './email.service'
@@ -31,6 +38,7 @@ import { createVerificationToken, verifyEmailToken } from './email-verification.
 import { getGoogleAuthUrl, handleGoogleCallback } from './google.service'
 import { clearRefreshTokenCookie, extractRefreshToken, setRefreshTokenCookie } from './jwt.utils'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from './middleware'
+import { requestPasswordReset, resetPassword } from './password-reset.service'
 import {
   type AuthContext,
   changePassword,
@@ -268,6 +276,41 @@ export const jwtAuthRoutes = app
     const rawToken = await createVerificationToken(ctx.db, userId)
     const verificationUrl = `${ctx.frontendUrl}/auth/verify-email?token=${rawToken}`
     await sendVerificationEmail(user.email, verificationUrl)
+
+    return c.json(ok(null), HTTP_STATUS.OK)
+  })
+
+  .post(
+    '/forgot-password',
+    forgotPasswordRateLimiterFunc,
+    zValidator('json', forgotPasswordSchema),
+    async (c) => {
+      const ctx = buildAuthContext(c)
+      const { email } = c.req.valid('json')
+
+      const result = await requestPasswordReset(ctx, email)
+
+      if (!isApiSuccess(result)) {
+        return c.json(err(result.error), HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      }
+
+      // Enumeration-safe (ADR 0010): identical neutral response whether or not the
+      // email exists. No session, no cookie. The user proceeds via the reset email.
+      return c.json(ok(result.data), HTTP_STATUS.OK)
+    }
+  )
+
+  .post('/reset-password', zValidator('json', resetPasswordSchema), async (c) => {
+    const ctx = buildAuthContext(c)
+    const { token, password } = c.req.valid('json')
+
+    const result = await resetPassword(ctx, token, password as RawPassword)
+
+    if (!isApiSuccess(result)) {
+      // invalid/expired token → 400 (mirror /verify-email); server_error → 500. A distinct
+      // invalid-vs-expired code is safe: token-holder-only, no enum oracle.
+      return c.json(err(result.error), errorToStatus(result.error, resetPasswordErrorMapping))
+    }
 
     return c.json(ok(null), HTTP_STATUS.OK)
   })

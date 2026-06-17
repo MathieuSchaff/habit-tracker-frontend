@@ -112,6 +112,17 @@ Helpers backend (`backend/src/utils/dates.ts`) :
 | `calendarToInstant(yyyymmdd)` | promotion à minuit UTC |
 | `normalizeInstant(value)` | force un timestamptz Drizzle vers ISO 8601 UTC |
 
+**DB `now()` (le tag `sql` de Drizzle) vs `nowISO()` (horloge JS).** `nowISO()` rend une string JS —
+à utiliser dès qu'on a besoin de l'instant comme *valeur* : calcul d'expiry/cutoff, retour dans une
+réponse ou un export, comparaison, réutilisation sur plusieurs colonnes/branches. Un `now()` SQL nu
+(le tag `sql`) est un fragment utilisable seulement dans une requête (`.set()` / `.values()` /
+`where`) ; il ne se matérialise jamais en JS. Le préférer pour une simple estampille de colonne quand la valeur
+n'est pas réutilisée — surtout quand le même statement (ou la même transaction) écrit déjà d'autres
+colonnes en `now()`, pour que tous les timestamps d'un même événement partagent l'unique instant de
+début de transaction (PG `now()` = horloge de début de tx). Ce n'est **pas** l'anti-pattern
+`new Date().toISOString()` du §3 : celui-ci bannit la forme JS côté app, alors que `now()` DB est la
+même source que le `.defaultNow()` béni en §2.1.
+
 > ⚠️ **Bun.sql gotcha** : pour les colonnes `timestamptz`, Bun.sql renvoie le
 > format PG (`"2026-05-07 06:42:48.729+00"`, espace + `+00` au lieu de `T...Z`).
 > Drizzle en `mode: 'string'` passe la valeur telle quelle. `new Date(...)` JS
@@ -210,7 +221,7 @@ Exceptions tolérées :
 | `instanceof Date` (Drizzle row) | rien — c'est toujours une string |
 | `value < new Date(...).toISOString()` (compare driver vs JS) | `Date.parse(value) < cutoffMs` |
 | `.set({ updatedAt: new Date() })` Drizzle | `.set({ updatedAt: nowISO() })` |
-| `new Date().toISOString()` dans un service backend | `nowISO()` (exempt : `$onUpdate` en schema, seed, scripts `audit/`) |
+| `new Date().toISOString()` dans un service backend | `nowISO()` — ou un `now()` SQL pour estampiller une colonne (cf §2.3) ; (exempt : `$onUpdate` en schema, seed, scripts `audit/`) |
 | `new Date().toISOString()` dans un composant frontend | `nowInstant()` |
 | `new Date(datetimeLocalInput).toISOString()` (leak tz local) | `parseDatetimeLocalAsUTC(input)` |
 

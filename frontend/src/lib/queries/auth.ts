@@ -119,6 +119,30 @@ export function useResendVerification() {
   })
 }
 
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (data: { email: string }) => {
+      const res = await api.auth['forgot-password'].$post({ json: data })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error)
+      // Neutral response (ADR 0010): { pending: true }, no session. A reset link is
+      // sent only if the account exists.
+      return json.data
+    },
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (data: { token: string; password: string }) => {
+      const res = await api.auth['reset-password'].$post({ json: data })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error ?? 'server_error')
+      return json.data
+    },
+  })
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: async (data: ChangePasswordInput) => {

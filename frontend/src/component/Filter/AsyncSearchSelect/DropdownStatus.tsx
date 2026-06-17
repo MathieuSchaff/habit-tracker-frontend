@@ -16,11 +16,11 @@ function liveMessage(
   showDropdown: boolean,
   filteredCount: number,
   isLoading: boolean,
-  isError: boolean,
-  errorMessage: string
+  isError: boolean
 ): string {
   if (!showDropdown) return ''
-  if (isError) return errorMessage
+  // role="alert" on the visible error <p> already announces; stay silent here to avoid a double read.
+  if (isError) return ''
   if (filteredCount > 0) {
     const plural = filteredCount > 1 ? 's' : ''
     return `${filteredCount} résultat${plural} disponible${plural}`
@@ -67,7 +67,7 @@ export function DropdownStatus({
         {announcement}
       </div>
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {liveMessage(showDropdown, filteredCount, isLoading, isError, errorMessage)}
+        {liveMessage(showDropdown, filteredCount, isLoading, isError)}
       </div>
     </>
   )

@@ -58,8 +58,9 @@ export const signupSchema = z
     path: ['confirmPassword'],
   })
 
+// token is always 64 hex chars (generateRawToken); reject malformed input before the service.
 export const verifyEmailBodySchema = z.object({
-  token: z.string().min(1),
+  token: z.string().length(64),
 })
 
 export const refreshTokenBodySchema = z.object({
@@ -71,6 +72,27 @@ export const changePasswordSchema = z.object({
   newPassword: passwordSchema,
 })
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+})
+
+export const resetPasswordSchema = z.object({
+  token: z.string().length(64),
+  password: passwordSchema,
+})
+
+/* UI-side schema: backend only validates resetPasswordSchema (token + password).
+   confirmPassword stays client-only. */
+export const resetPasswordFormSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
+
 // TYPES
 
 export type AuthInput = z.infer<typeof authSchema>
@@ -78,6 +100,12 @@ export type AuthInput = z.infer<typeof authSchema>
 export type SignupFormInput = z.infer<typeof signupSchema>
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+
+export type ResetPasswordFormInput = z.infer<typeof resetPasswordFormSchema>
 
 /* Branded: you can't pass a raw string where an Email is expected. */
 export type Email = string & z.BRAND<'Email'>
@@ -127,6 +155,20 @@ export type LoginErrorCode = 'invalid_credentials' | 'email_not_verified' | 'ser
 export type SignupPending = { pending: true }
 
 export type SignupResult = ApiResponse<SignupPending, SignupErrorCode>
+
+/* Enumeration-safe: forgot-password returns this identical neutral shape whether
+   the email exists or not, with no session. A reset link reaches only the address
+   owner, by email. See ADR 0010. */
+export type PasswordResetPending = { pending: true }
+
+export type ForgotPasswordResult = ApiResponse<PasswordResetPending, 'server_error'>
+
+/* Distinct invalid-vs-expired is tolerated here: it's a token-holder-only path on a
+   2^256 space, so it leaks nothing about other accounts. The always-neutral rule
+   applies to the forgot-password *request*, not the reset confirmation. */
+export type ResetPasswordErrorCode = 'invalid_token' | 'token_expired' | 'server_error'
+
+export type ResetPasswordResult = ApiResponse<null, ResetPasswordErrorCode>
 
 export type LoginResult = ApiResponse<AuthenticatedResult, LoginErrorCode>
 
@@ -185,6 +227,14 @@ export const authErrorMapping = {
   token_expired: HTTP_STATUS.BAD_REQUEST,
   too_many_requests: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
 } as const satisfies Partial<Record<AuthErrorCode, HttpStatus>>
+
+/* Reset-password maps invalid_token to 400 (mirror /verify-email), NOT auth's 401:
+   the codes overlap but the status differs, so it needs its own mapping. server_error
+   falls back to 500 via baseErrorMapping. */
+export const resetPasswordErrorMapping = {
+  invalid_token: HTTP_STATUS.BAD_REQUEST,
+  token_expired: HTTP_STATUS.BAD_REQUEST,
+} as const satisfies Partial<Record<ResetPasswordErrorCode, HttpStatus>>
 
 /* Non-sensitive boot hint cookie. Presence ⇒ a refresh session may exist (never a token);
    lets the SPA skip the /auth/refresh probe for anonymous visitors. */

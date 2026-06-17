@@ -17,7 +17,12 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const debouncedQuery = useDebounce(query, 200)
-  const { data: results, error, refetch } = useQuery(ingredientQueries.search(debouncedQuery))
+  const {
+    data: results,
+    error,
+    refetch,
+    isError,
+  } = useQuery(ingredientQueries.search(debouncedQuery))
 
   const available = useMemo(() => {
     if (!results) return []
@@ -31,15 +36,15 @@ export function IngredientSearch({ existingIds, onAdd }: IngredientSearchProps) 
     setHighlightedIndex(-1)
   }
 
-  // Surface a 429 even when there are no results (dropdown would otherwise stay closed).
+  // Surface any failed search even with no results (429 gets a specific message, else the default).
   const rateLimitMsg = rateLimitMessage(error)
-  const isOpen = query.length > 0 && (available.length > 0 || rateLimitMsg !== null)
+  const isOpen = query.length > 0 && (available.length > 0 || isError)
 
   return (
     <ComboboxPrimitive
       items={available}
       isOpen={isOpen}
-      isError={rateLimitMsg !== null}
+      isError={isError}
       errorMessage={rateLimitMsg ?? undefined}
       onRetry={() => {
         refetch()
