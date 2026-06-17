@@ -3,6 +3,7 @@ import type { UpdateUserPreferencesInput } from '@aurore/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { type ApiData, api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 export type UserPreferences = ApiData<typeof api.profile.preferences.$get>
 
@@ -15,7 +16,7 @@ export const userPreferenceQueries = {
     queryKey: userPreferenceKeys.all,
     queryFn: async () => {
       const res = await api.profile.preferences.$get()
-      if (!res.ok) throw new Error('Failed to fetch preferences')
+      if (!res.ok) throw new ApiError('http_error', res.status)
       const data = await res.json()
       return data.data
     },

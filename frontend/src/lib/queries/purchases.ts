@@ -8,6 +8,7 @@ import type {
 import { type QueryClient, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 import { userProductKeys } from './user-products'
 
 const purchaseKeys = {
@@ -29,7 +30,7 @@ export const purchaseQueries = {
         const res = await api['user-products'][':id'].purchases.$get({
           param: { id: userProductId },
         })
-        if (!res.ok) throw new Error('Failed to fetch purchases')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const data = await res.json()
         return data.data
       },

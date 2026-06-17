@@ -10,11 +10,14 @@ import { clientIp } from './clientIp'
 // In-memory store (MemoryStore) by default; switch to Redis for multi-replica.
 const skipLimiter = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
 
+// SPA fans out many GETs per page (loaders + React Query retries), so a low cap bricks normal browsing; 1000 still blunts scraping/DoS. Login limited separately.
+const BROWSE_LIMIT = 1000
+
 export const rateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
   ? async (_c: Context, next: Next) => await next()
   : rateLimiter<AppEnv>({
       windowMs: 15 * 60 * 1000,
-      limit: 100,
+      limit: BROWSE_LIMIT,
       standardHeaders: 'draft-7',
       keyGenerator: (c) => `rate:${clientIp(c)}`,
       handler: (c) =>
@@ -39,7 +42,7 @@ export const globalRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
   ? async (_c: Context, next: Next) => await next()
   : rateLimiter<AppEnv>({
       windowMs: 15 * 60 * 1000,
-      limit: 100,
+      limit: BROWSE_LIMIT,
       standardHeaders: 'draft-7',
       keyGenerator: (c) => `rate-global:${clientIp(c)}`,
       handler: (c) =>

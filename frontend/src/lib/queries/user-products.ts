@@ -7,6 +7,7 @@ import type {
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { type ApiData, api } from '../api'
+import { ApiError } from '../helpers/apiError'
 import { compatibilityKeys } from './compatibility'
 import { applyOptimisticUpdates, optimisticCacheUpdate } from './optimistic'
 import { productKeys } from './products'
@@ -54,7 +55,7 @@ export const userProductQueries = {
       queryKey: userProductKeys.list(),
       queryFn: async () => {
         const res = await api['user-products'].$get()
-        if (!res.ok) throw new Error('Failed to fetch user products')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const data = await res.json()
         return data.data
       },
@@ -65,7 +66,7 @@ export const userProductQueries = {
     queryKey: userProductKeys.detail(id),
     queryFn: async () => {
       const res = await api['user-products'][':id'].$get({ param: { id } })
-      if (!res.ok) throw new Error('User product not found')
+      if (!res.ok) throw new ApiError('http_error', res.status)
       const data = await res.json()
       return data.data
     },
@@ -74,7 +75,7 @@ export const userProductQueries = {
     queryKey: userProductKeys.byProduct(productId),
     queryFn: async () => {
       const res = await api['user-products'].product[':productId'].$get({ param: { productId } })
-      if (!res.ok) throw new Error('User product not found')
+      if (!res.ok) throw new ApiError('http_error', res.status)
       const data = await res.json()
       return data.data
     },
@@ -84,7 +85,7 @@ export const userProductQueries = {
     queryKey: userProductKeys.history(id),
     queryFn: async () => {
       const res = await api['user-products'][':id'].history.$get({ param: { id } })
-      if (!res.ok) throw new Error('Failed to fetch status history')
+      if (!res.ok) throw new ApiError('http_error', res.status)
       const data = await res.json()
       return data.data
     },

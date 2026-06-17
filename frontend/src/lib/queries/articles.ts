@@ -3,6 +3,7 @@ import type { BlogCategory, CreateArticleInput, UpdateArticleInput } from '@auro
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 type ListArticlesFilters = {
   category?: BlogCategory
@@ -34,7 +35,7 @@ export const articleQueries = {
         if (filters.q) query.q = filters.q
 
         const res = await api.articles.$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch articles')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -45,7 +46,7 @@ export const articleQueries = {
       queryKey: articleKeys.bySlug(slug),
       queryFn: async () => {
         const res = await api.articles[':slug'].$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch article')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -57,7 +58,7 @@ export const articleQueries = {
       queryKey: articleKeys.categoryCounts(),
       queryFn: async () => {
         const res = await api.articles.categories.$get()
-        if (!res.ok) throw new Error('Failed to fetch category counts')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },

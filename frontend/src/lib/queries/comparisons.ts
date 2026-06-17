@@ -3,6 +3,7 @@ import type { CreateComparisonInput, UpdateComparisonInput } from '@aurore/share
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 const comparisonKeys = {
   all: ['product-comparisons'] as const,
@@ -16,7 +17,7 @@ export const comparisonQueries = {
       queryKey: comparisonKeys.list(),
       queryFn: async () => {
         const res = await api['product-comparisons'].$get()
-        if (!res.ok) throw new Error('Failed to list comparisons')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const data = await res.json()
         return data.data
       },
@@ -26,7 +27,7 @@ export const comparisonQueries = {
       queryKey: comparisonKeys.detail(id),
       queryFn: async () => {
         const res = await api['product-comparisons'][':id'].$get({ param: { id } })
-        if (!res.ok) throw new Error('Failed to fetch comparison')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const data = await res.json()
         return data.data
       },

@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 export const catalogSubmissionQueries = {
   mine: () =>
@@ -8,7 +9,7 @@ export const catalogSubmissionQueries = {
       queryKey: ['catalog-submissions', 'mine'] as const,
       queryFn: async () => {
         const res = await api.me.submissions.$get()
-        if (!res.ok) throw new Error('Failed to fetch submissions')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Submissions error')
         return json.data

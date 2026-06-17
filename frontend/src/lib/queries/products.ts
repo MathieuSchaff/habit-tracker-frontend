@@ -93,7 +93,7 @@ export const productQueries = {
         const query: Record<string, string> = {}
         if (category) query.category = category
         const res = await api.products['filter-options'].$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch filter options')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -111,7 +111,7 @@ export const productQueries = {
           typeof api.products.$get
         >[0]['query']
         const res = await api.products.$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch products')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -133,7 +133,7 @@ export const productQueries = {
       queryKey: productKeys.bySlug(slug),
       queryFn: async () => {
         const res = await api.products[':slug'].$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch product')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -146,7 +146,7 @@ export const productQueries = {
       queryKey: productKeys.publicReviews(slug),
       queryFn: async () => {
         const res = await api.products[':slug'].reviews.public.$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch public reviews')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -160,7 +160,7 @@ export const productQueries = {
       queryKey: [...productKeys.bySlug(slug), 'dermo-score', userKey] as const,
       queryFn: async () => {
         const res = await api.products[':slug']['dermo-score'].$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch dermo score')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -176,7 +176,7 @@ export const productQueries = {
           { query: { q, limit: '20', offset: String(pageParam) } },
           { init: { signal } }
         )
-        if (!res.ok) throw new Error('Failed to search products')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -196,7 +196,7 @@ export const productQueries = {
           { query: { q, limit: '20', offset: '0' } },
           { init: { signal } }
         )
-        if (!res.ok) throw new Error('Failed to search products')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data.items
       },
@@ -209,7 +209,7 @@ export const productQueries = {
       queryKey: [...productKeys.all, 'by-ids', ids.toSorted().join(',')] as const,
       queryFn: async () => {
         const res = await api.products['by-ids'].$get({ query: { ids: ids.join(',') } })
-        if (!res.ok) throw new Error('Failed to fetch products by ids')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -227,7 +227,7 @@ export const productQueries = {
         const res = await api.products['check-duplicate'].$get({
           query: { name: n, brand: b },
         })
-        if (!res.ok) throw new Error('Failed to check duplicate')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -243,7 +243,7 @@ export const productQueries = {
       queryKey: [...productKeys.all, 'slug-preview', n, b] as const,
       queryFn: async () => {
         const res = await api.products['slug-preview'].$get({ query: { name: n, brand: b } })
-        if (!res.ok) throw new Error('slug preview failed')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('slug preview failed')
         return json.data.slug
@@ -257,7 +257,7 @@ export const productQueries = {
       queryKey: [...productKeys.all, 'brands'] as const,
       queryFn: async () => {
         const res = await api.products.brands.$get()
-        if (!res.ok) throw new Error('Failed to fetch brands')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data as string[]
       },
@@ -271,7 +271,7 @@ export const productQueries = {
         const res = await api.products[':productId'].ingredients.$get({
           param: { productId: id },
         })
-        if (!res.ok) throw new Error('Failed to fetch product ingredients')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -295,7 +295,7 @@ async function fetchShelfStatus(ids: string[]): Promise<Map<string, UserProductS
       const res = await api.products['shelf-status'].$get({
         query: { ids: chunk.join(',') },
       })
-      if (!res.ok) throw new Error('Failed to fetch shelf status')
+      if (!res.ok) throw new ApiError('http_error', res.status)
       const json = await res.json()
       return json.data
     })

@@ -1,4 +1,5 @@
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 export const compatibilityKeys = {
   all: ['compatibility-scores'] as const,
@@ -12,7 +13,7 @@ export const compatibilityScoresQuery = (productIds: string[]) => ({
   queryKey: compatibilityKeys.forProducts(productIds),
   queryFn: async () => {
     const res = await api.collection['compatibility-scores'].$post({ json: { productIds } })
-    if (!res.ok) throw new Error('Failed to fetch compatibility scores')
+    if (!res.ok) throw new ApiError('http_error', res.status)
     const data = await res.json()
     return data.data.scores
   },

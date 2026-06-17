@@ -76,7 +76,7 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'all'] as const,
       queryFn: async () => {
         const res = await api.ingredients.$get({ query: {} })
-        if (!res.ok) throw new Error('Failed to fetch ingredients')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -88,7 +88,7 @@ export const ingredientQueries = {
       queryKey: ingredientKeys.list(filters),
       queryFn: async () => {
         const res = await api.ingredients.$get({ query: buildListIngredientsQuery(filters) })
-        if (!res.ok) throw new Error('Failed to fetch ingredients')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -99,7 +99,7 @@ export const ingredientQueries = {
       queryKey: ingredientKeys.bySlug(slug),
       queryFn: async () => {
         const res = await api.ingredients[':slug'].$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch ingredient')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -112,7 +112,7 @@ export const ingredientQueries = {
       queryKey: ingredientKeys.products(slug),
       queryFn: async () => {
         const res = await api.ingredients[':slug'].products.$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch ingredient products')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -126,7 +126,7 @@ export const ingredientQueries = {
         const res = await api.ingredients[':ingredientId'].tags.$get({
           param: { ingredientId: id },
         })
-        if (!res.ok) throw new Error('Failed to fetch ingredient tags')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -138,7 +138,7 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'search', query] as const,
       queryFn: async ({ signal }) => {
         const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
-        if (!res.ok) throw new Error('Search failed')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -151,7 +151,7 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'search-infinite', query] as const,
       queryFn: async ({ signal }) => {
         const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
-        if (!res.ok) throw new Error('Search failed')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return { items: json.data, hasMore: false, nextOffset: 0 }
       },
@@ -168,7 +168,7 @@ export const ingredientQueries = {
         const res = await api.ingredients['by-slugs'].$get({
           query: { slugs: slugs.join(',') },
         })
-        if (!res.ok) throw new Error('Failed to resolve ingredient slugs')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -180,7 +180,7 @@ export const ingredientQueries = {
       queryKey: [...ingredientKeys.all, 'options'] as const,
       queryFn: async () => {
         const res = await api.ingredients.options.$get()
-        if (!res.ok) throw new Error('Failed to fetch ingredient options')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -194,7 +194,7 @@ export const ingredientQueries = {
         const res = await api.ingredients['filter-options'].$get({
           query: type ? { type } : {},
         })
-        if (!res.ok) throw new Error('Failed to fetch ingredient filter options')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },

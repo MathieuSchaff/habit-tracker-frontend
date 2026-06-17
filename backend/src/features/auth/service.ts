@@ -21,7 +21,7 @@ import { isUniqueViolation } from '../../lib/helpers'
 import { logger } from '../../lib/logger'
 import { nowISO } from '../../utils/dates'
 import { seedDemoData } from './demo-seed'
-import { sendVerificationEmail } from './email.service'
+import { sendAccountLockedEmail, sendVerificationEmail } from './email.service'
 import { createVerificationToken } from './email-verification.service'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
 import {
@@ -62,7 +62,11 @@ const DUMMY_HASH = await Bun.password.hash('timing-safe-dummy', PASSWORD_HASH_OP
 const LOGIN_LOCKOUT_THRESHOLD = 5
 const LOGIN_LOCKOUT_DURATION_MS = 15 * 60 * 1000
 
-async function registerFailedLogin(db: DB, userId: string, currentAttempts: number): Promise<void> {
+async function registerFailedLogin(
+  db: DB,
+  userId: string,
+  currentAttempts: number
+): Promise<{ justLocked: boolean }> {
   const nextAttempts = currentAttempts + 1
   const lockedUntil =
     nextAttempts >= LOGIN_LOCKOUT_THRESHOLD
@@ -72,6 +76,8 @@ async function registerFailedLogin(db: DB, userId: string, currentAttempts: numb
     .update(users)
     .set({ failedLoginAttempts: nextAttempts, lockedUntil })
     .where(eq(users.id, userId))
+  // justLocked = this attempt crossed the threshold (not a repeat once already past it post-expiry).
+  return { justLocked: lockedUntil !== null && currentAttempts < LOGIN_LOCKOUT_THRESHOLD }
 }
 
 async function resetFailedLogins(db: DB, userId: string): Promise<void> {
@@ -170,12 +176,20 @@ export async function login(
     const isValid = await Bun.password.verify(password, user?.passwordHash ?? DUMMY_HASH)
 
     // Lockout check runs after hash verify to keep timing uniform across locked vs unknown-email paths.
+    // Return invalid_credentials, not a lockout-specific code: a distinct code lets an attacker confirm an email exists.
     if (user?.lockedUntil && Date.parse(user.lockedUntil) > Date.now()) {
-      return err('account_locked')
+      return err('invalid_credentials')
     }
 
     if (!user || !isValid) {
-      if (user) await registerFailedLogin(ctx.db, user.id, user.failedLoginAttempts)
+      if (user) {
+        const { justLocked } = await registerFailedLogin(ctx.db, user.id, user.failedLoginAttempts)
+        // Notify the real owner off the response path (fire-and-forget keeps timing uniform); a wrong-inbox attacker sees nothing.
+        if (justLocked) {
+          logger.warn({ userId: user.id }, 'Account locked after repeated failed logins')
+          void sendAccountLockedEmail(user.email)
+        }
+      }
       return err('invalid_credentials')
     }
 

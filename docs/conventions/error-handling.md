@@ -101,3 +101,56 @@ Examples: `uploads/routes.ts`, `products/product-ingredients/routes.ts`,
 | `ReportError` | Missing from registry — safe for now (codes fall through to `baseErrorMapping`) |
 
 Update the registry when extending `ReportError` with non-base codes.
+
+---
+
+## Frontend consumption (TanStack Query)
+
+The backend envelope (`{ success: false, error: <code> }` + HTTP status) is consumed in
+`frontend/src/lib/queries/<domain>.ts`. Two rules keep failures recoverable instead of fatal.
+
+### Read queryFns throw `ApiError`, never bare `Error`
+
+The global query retry guard (`frontend/src/lib/queryClient.ts`) skips retries on 4xx:
+`if (isApiError(err) && err.status >= 400 && err.status < 500) return false`. A bare
+`new Error()` carries no `status`, so the guard can't recognise a 429/4xx → React Query
+retries once, doubling failed calls and holding skeletons through the retry cycle.
+
+Read queryFns (inside `queryOptions` / `useQuery`) must therefore:
+
+```ts
+const res = await api.<resource>.$get(...)
+if (!res.ok) throw new ApiError('http_error', res.status)   // status feeds the retry guard
+const json = await res.json()
+return json.data
+```
+
+Keep the `if (!res.ok) throw` form — TS uses it to narrow `res.json()` to the success variant
+of the Hono RPC union. (`throwIfNotOk` returns `Promise<void>`, so it does NOT narrow; using it
+forces an extra `if (!json.success) throw` to re-narrow.)
+
+Exempt — leave as-is, don't churn:
+- **Mutations** (`useMutation`/`mutationFn`) — not retried (guard is `defaultOptions.queries`
+  only).
+- **Auth probes** `session` / `me` / `health` — already `retry: false`, immune by design.
+- `if (!json.success)` throws — fire on 2xx, not the retry concern.
+
+### Loaders: `prefetchQuery` when components own their error UI
+
+A route `loader` calling `ensureQueryData` **throws** on fetch failure → loader rejects →
+TanStack Router renders the route `errorComponent` (full-page `GlobalError`). When the page's
+components already degrade (own `isError` → `EmptyState`, undefined guards), use `prefetchQuery`:
+it warms the cache without throwing, so a failed fetch falls through to the in-page error UI
+instead of replacing the whole page. Use `ensureQueryData` only when the data is mandatory for
+the route to render at all.
+
+### Known gap — code collapsed to `http_error`
+
+Read failures throw `ApiError('http_error', res.status)`: **status kept, the backend's specific
+`error` code discarded**. Fine for reads (generic `EmptyState`). To surface a code — e.g.
+"rate-limited, retry in Ns" from `rate_limit_exceeded` + `retry-after` — route that read through
+`throwIfNotOk(res)` (parses the envelope) and re-narrow with `if (!json.success)`. Deferred UX,
+not wired.
+
+Established 2026-06-17 — commits `120f06f3` (rate-limit ceiling 100→1000), `0b2f396c` (blog
+degradation), `dc24466d` (read-queryFn sweep, all domains).

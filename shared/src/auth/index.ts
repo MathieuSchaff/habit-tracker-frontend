@@ -117,15 +117,10 @@ export type AuthErrorCode =
   | 'email_not_verified'
   | 'token_expired'
   | 'too_many_requests'
-  | 'account_locked'
 
 export type SignupErrorCode = 'email_exists' | 'server_error'
 
-export type LoginErrorCode =
-  | 'invalid_credentials'
-  | 'email_not_verified'
-  | 'account_locked'
-  | 'server_error'
+export type LoginErrorCode = 'invalid_credentials' | 'email_not_verified' | 'server_error'
 
 export type SignupResult = ApiResponse<AuthenticatedResult, SignupErrorCode>
 
@@ -186,7 +181,6 @@ export const authErrorMapping = {
   email_not_verified: HTTP_STATUS.FORBIDDEN,
   token_expired: HTTP_STATUS.BAD_REQUEST,
   too_many_requests: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
-  account_locked: HTTP_STATUS.RATE_LIMIT_EXCEEDED,
 } as const satisfies Partial<Record<AuthErrorCode, HttpStatus>>
 
 /* Non-sensitive boot hint cookie. Presence ⇒ a refresh session may exist (never a token);
