@@ -2,8 +2,10 @@ import { toast } from 'react-hot-toast'
 
 import { Button } from '../../../../component/Button/Button'
 import { useResendVerification } from '../../../../lib/queries/auth'
+import { useAuthStore } from '../../../../store/auth'
 
 export const VerifyPendingPage = () => {
+  const isAuthed = useAuthStore((s) => s.accessToken !== null)
   const resend = useResendVerification()
 
   const handleResend = () => {
@@ -17,18 +19,24 @@ export const VerifyPendingPage = () => {
     <div className="auth-page__header">
       <h1 className="auth-page__title">Vérifiez votre email</h1>
       <p className="auth-page__subtitle">
-        Un lien de vérification vous a été envoyé. Cliquez dessus pour activer votre compte.
+        {isAuthed
+          ? 'Un lien de vérification vous a été envoyé. Cliquez dessus pour activer votre compte.'
+          : 'Si un compte peut être créé avec cette adresse, vous recevrez un lien de vérification. Cliquez dessus pour activer votre compte.'}
       </p>
       <p className="auth-page__subtitle">Le lien expire dans 1 heure.</p>
-      <Button
-        type="button"
-        variant="primary"
-        fullWidth
-        loading={resend.isPending}
-        onClick={handleResend}
-      >
-        Renvoyer l'email
-      </Button>
+      {/* Resend derives the user from the JWT, so it needs a session. After a
+          neutral signup there is none; only show it to an authenticated user. */}
+      {isAuthed && (
+        <Button
+          type="button"
+          variant="primary"
+          fullWidth
+          loading={resend.isPending}
+          onClick={handleResend}
+        >
+          Renvoyer l'email
+        </Button>
+      )}
     </div>
   )
 }

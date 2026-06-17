@@ -113,7 +113,7 @@ Critère par **symbole**, pas par chemin. Couvre les re-exports locaux (`auth-te
 
 ## 6. Note `createTestUser` (depuis commit `f26e9d02`)
 
-`createTestUser` coûte ~1 ms en test (bcrypt cost=4 sous `NODE_ENV=test`), pas 71 ms (argon2id prod). Ne pas optimiser en bypassant `signup()` — la perf est déjà là, garder le flow réel `signup → hash → store → JWT`.
+`createTestUser` coûte ~1 ms en test (bcrypt cost=4 sous `NODE_ENV=test`), pas 71 ms (argon2id prod). Ne pas optimiser en bypassant `signup()` — la perf est déjà là, garder le flow réel `signup → hash → store` (le signup n'émet plus de JWT, ADR 0009).
 
 Production reste sur argon2id default, gate par `process.env.NODE_ENV === 'test'` dans `backend/src/features/auth/service.ts`.
 

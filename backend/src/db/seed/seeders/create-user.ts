@@ -31,27 +31,33 @@ export async function getOrCreateSeedUser(
   const user = await getUser(ctx.db, email as Email)
 
   if (user) {
-    console.log(`Utilisateur seed existant réutilisé : ${email}`)
+    console.log(`Reusing existing seed user: ${email}`)
     if (user.role !== 'admin') {
       await ctx.db.update(users).set({ role: 'admin' }).where(eq(users.id, user.id))
     }
     return user
   }
 
-  console.log(`Création de l'utilisateur seed : ${email}`)
+  console.log(`Creating seed user: ${email}`)
   const result = await signup(ctx, email as Email, password as RawPassword)
 
   if (result.success === false) {
     // TypeScript now knows 'error' exists because success is specifically false
-    throw new Error(`Échec création utilisateur seed : ${result.error}`)
+    throw new Error(`Failed to create seed user: ${result.error}`)
+  }
+
+  // Signup is enumeration-safe and returns no user (ADR 0009); fetch the created row.
+  const created = await getUser(ctx.db, email as Email)
+  if (!created) {
+    throw new Error(`Seed user not found after creation: ${email}`)
   }
 
   // Mark as verified and admin so slug is used as-is during ingredient creation
   await ctx.db
     .update(users)
     .set({ emailVerifiedAt: new Date().toISOString(), role: 'admin' })
-    .where(eq(users.id, result.data.user.id))
+    .where(eq(users.id, created.id))
 
-  console.log(`Utilisateur seed créé et vérifié : ${email}`)
-  return result.data.user
+  console.log(`Seed user created and verified: ${email}`)
+  return created
 }

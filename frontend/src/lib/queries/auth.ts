@@ -62,18 +62,14 @@ export function useLogin() {
 }
 
 export function useSignup() {
-  const qc = useQueryClient()
-
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await api.auth.signup.$post({ json: data })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
+      // Neutral response (ADR 0009): { pending: true }, no session. The user
+      // activates the account from the verification email.
       return json.data
-    },
-    onSuccess: (data) => {
-      useAuthStore.getState().setAuth(data.accessToken, data.user)
-      qc.setQueryData(['session'], { authenticated: true, userId: data.user.id })
     },
   })
 }

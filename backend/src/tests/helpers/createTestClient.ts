@@ -26,8 +26,14 @@ export async function signupAndGetToken(
   email: string,
   password: string
 ): Promise<{ token: string; userId: string }> {
-  const res = await client.auth.signup.$post({ json: { email, password } })
-  const data = await res.json()
-  if (!data.success) throw new Error(`signup failed: ${JSON.stringify(data)}`)
-  return { token: data.data.accessToken, userId: data.data.user.id }
+  // Signup no longer establishes a session (ADR 0009): create the account, then
+  // log in to obtain a token. Login works pre-verification via the grace window.
+  const signupRes = await client.auth.signup.$post({ json: { email, password } })
+  const signupData = await signupRes.json()
+  if (!signupData.success) throw new Error(`signup failed: ${JSON.stringify(signupData)}`)
+
+  const loginRes = await client.auth.login.$post({ json: { email, password } })
+  const loginData = await loginRes.json()
+  if (!loginData.success) throw new Error(`login failed: ${JSON.stringify(loginData)}`)
+  return { token: loginData.data.accessToken, userId: loginData.data.user.id }
 }

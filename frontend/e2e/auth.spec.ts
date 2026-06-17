@@ -116,21 +116,22 @@ test.describe('Auth — signup', () => {
     await expect(page).toHaveURL(/\/auth\/signup/)
   })
 
-  test('shows mapped FR error when email already in use (email_exists)', async ({ page }) => {
+  test('existing email lands on the neutral verify screen (no enumeration)', async ({ page }) => {
     await page.goto('/auth/signup')
 
-    // SEED_EMAIL is already registered by seed-core → backend returns email_exists,
-    // which the front maps to "Un compte existe déjà avec cet email".
+    // SEED_EMAIL is already registered. Signup must NOT reveal that (ADR 0009): it
+    // returns the same neutral response as a new email and lands on the same
+    // check-your-email screen, no "compte existe déjà" leak.
     await page.getByLabel('Email', { exact: true }).fill(SEED_EMAIL)
     await page.getByLabel('Mot de passe', { exact: true }).fill('Abcdef12!')
     await page.getByLabel('Confirmer le mot de passe').fill('Abcdef12!')
     await page.getByRole('button', { name: 'Créer mon compte' }).click()
 
-    await expect(page.getByText('Un compte existe déjà avec cet email')).toBeVisible()
-    await expect(page).toHaveURL(/\/auth\/signup/)
+    await expect(page).toHaveURL(/\/auth\/verify-pending/, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Vérifiez votre email' })).toBeVisible()
   })
 
-  test('creates account with unique email and lands on /collection', async ({ page }) => {
+  test('creates account with unique email and lands on the verify screen', async ({ page }) => {
     await page.goto('/auth/signup')
 
     const password = 'Abcdef12!'
@@ -140,8 +141,9 @@ test.describe('Auth — signup', () => {
 
     await page.getByRole('button', { name: 'Créer mon compte' }).click()
 
-    await expect(page).toHaveURL(/\/collection/, { timeout: 15_000 })
-    await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible()
+    // No auto-login (ADR 0009): land on the check-your-email screen, not /collection.
+    await expect(page).toHaveURL(/\/auth\/verify-pending/, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { name: 'Vérifiez votre email' })).toBeVisible()
   })
 })
 

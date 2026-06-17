@@ -204,7 +204,7 @@ describe('Product Discussion Routes', () => {
       expect(res.status).toBe(204)
     })
 
-    it("should return 403 when trying to delete another user's thread", async () => {
+    it("returns the same 404 for another user's thread as for a missing one", async () => {
       const token1 = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const token2 = await setupAndLogin(app, TEST_CREDENTIALS.alice)
       const slug = await createProductAndGetSlug()
@@ -216,13 +216,21 @@ describe('Product Discussion Routes', () => {
       if (!threadJson.success) throw new Error('thread creation failed')
       const thread = threadJson.data
 
-      // Cross-user delete → 403 from service via errorHandler, not in typed response.
-      const res = await app.request(`/api/products/${slug}/discussions/${thread.id}`, {
+      // Enumeration guard: cross-user delete must be indistinguishable from
+      // deleting a thread that never existed. Both → 404 thread_not_found, so the
+      // response cannot be used to probe whether a thread id exists.
+      const crossUser = await app.request(`/api/products/${slug}/discussions/${thread.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token2}` },
       })
+      const missing = await app.request(
+        `/api/products/${slug}/discussions/00000000-0000-0000-0000-000000000000`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${token2}` } }
+      )
 
-      expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
+      expect(crossUser.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(missing.status).toBe(HTTP_STATUS.NOT_FOUND)
+      expect(await crossUser.json()).toEqual(await missing.json())
     })
   })
 })

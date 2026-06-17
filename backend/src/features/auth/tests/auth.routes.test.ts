@@ -36,55 +36,57 @@ describe('Auth Routes (browser)', () => {
   })
 
   describe('POST /auth/signup', () => {
-    it('should create a new user and set refresh token cookie', async () => {
+    it('returns a neutral pending response with no session cookie', async () => {
       const creds = TEST_CREDENTIALS.toto
 
       const res = await client.auth.signup.$post({
         json: { email: creds.rawEmail, password: creds.rawPassword },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
-
+      expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
       if (!data.success) throw new Error('signup failed')
-      expect(data.data.user.email).toBe(creds.rawEmail)
-      expect(data.data.accessToken).toBeDefined()
+      expect(data.data).toEqual({ pending: true })
 
-      // Mobile-only `refreshToken` field is absent on browser endpoint.
-      expect((data.data as { refreshToken?: string }).refreshToken).toBeUndefined()
-
-      const cookie = extractCookie(res)
-      expect(cookie).toContain('refresh_token=')
-      expect(cookie).toContain('HttpOnly')
+      // No session: no tokens in the body, no refresh-token cookie (ADR 0009).
+      expect((data.data as { accessToken?: string }).accessToken).toBeUndefined()
+      expect(extractCookie(res)).toBe('')
     })
 
-    it('should signup Alice successfully', async () => {
-      const creds = TEST_CREDENTIALS.alice
+    it('returns the same neutral response for an existing email', async () => {
+      const creds = TEST_CREDENTIALS.toto
+      await createTestUser(creds.rawEmail, creds.rawPassword)
 
       const res = await client.auth.signup.$post({
         json: { email: creds.rawEmail, password: creds.rawPassword },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       expect(data.success).toBe(true)
-      if (!data.success) throw new Error('signup failed')
-      expect(data.data.user.email).toBe(creds.rawEmail)
+      if (!data.success) throw new Error('expected neutral pending')
+      expect(data.data).toEqual({ pending: true })
+      expect(extractCookie(res)).toBe('')
     })
 
-    it('should signup Jean-Michel (hyphenated email)', async () => {
-      const creds = TEST_CREDENTIALS.jeanmichel
+    it('is byte-identical for new vs existing email (status, body, cookie)', async () => {
+      const fresh = await client.auth.signup.$post({
+        json: {
+          email: TEST_CREDENTIALS.alice.rawEmail,
+          password: TEST_CREDENTIALS.alice.rawPassword,
+        },
+      })
 
-      const res = await client.auth.signup.$post({
+      const creds = TEST_CREDENTIALS.toto
+      await createTestUser(creds.rawEmail, creds.rawPassword)
+      const existing = await client.auth.signup.$post({
         json: { email: creds.rawEmail, password: creds.rawPassword },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
-      const data = await res.json()
-      expect(data.success).toBe(true)
-      if (!data.success) throw new Error('signup failed')
-      expect(data.data.user.email).toBe(creds.rawEmail)
+      expect(existing.status).toBe(fresh.status)
+      expect(await existing.json()).toEqual(await fresh.json())
+      expect(extractCookie(existing)).toBe(extractCookie(fresh))
     })
 
     it('should reject invalid email format', async () => {
@@ -169,32 +171,21 @@ describe('Auth Routes (browser)', () => {
       expect(data.success).toBe(false)
     })
 
-    it('should reject duplicate email', async () => {
+    it('accepts an already-registered email with the same neutral 200', async () => {
       const creds = TEST_CREDENTIALS.toto
       await createTestUser(creds.rawEmail, creds.rawPassword)
 
-      const res = await client.auth.signup.$post({
-        json: { email: creds.rawEmail, password: creds.rawPassword },
-      })
-
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
-      const data = await res.json()
-      expect(data.success).toBe(false)
-      if (!data.success) expect(data.error).toBe('email_exists')
-    })
-
-    it('should reject duplicate email with different casing', async () => {
-      const creds = TEST_CREDENTIALS.toto
-      await createTestUser(creds.rawEmail, creds.rawPassword)
-
+      // Different casing still resolves to the existing account: neutral pending,
+      // never a CONFLICT/email_exists that would confirm the address.
       const res = await client.auth.signup.$post({
         json: { email: 'TOTO@EXEMPLE.FR', password: creds.rawPassword },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
+      expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
-      expect(data.success).toBe(false)
-      if (!data.success) expect(data.error).toBe('email_exists')
+      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected neutral pending')
+      expect(data.data).toEqual({ pending: true })
     })
 
     it('should normalize email on signup', async () => {
@@ -202,10 +193,11 @@ describe('Auth Routes (browser)', () => {
         json: { email: '  TOTO@EXEMPLE.FR  ', password: TEST_CREDENTIALS.toto.rawPassword },
       })
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
+      expect(data.success).toBe(true)
       if (!data.success) throw new Error('signup failed')
-      expect(data.data.user.email).toBe(TEST_CREDENTIALS.toto.rawEmail)
+      expect(data.data).toEqual({ pending: true })
     })
 
     it('should reject empty body', async () => {
@@ -217,31 +209,6 @@ describe('Auth Routes (browser)', () => {
       })
 
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
-    })
-
-    it('should not expose refreshToken in response body', async () => {
-      const creds = TEST_CREDENTIALS.alice
-
-      const res = await client.auth.signup.$post({
-        json: { email: creds.rawEmail, password: creds.rawPassword },
-      })
-
-      const data = await res.json()
-      if (!data.success) throw new Error('signup failed')
-      expect((data.data as { refreshToken?: string }).refreshToken).toBeUndefined()
-    })
-
-    it('should not expose passwordHash in response body', async () => {
-      const creds = TEST_CREDENTIALS.toto
-
-      const res = await client.auth.signup.$post({
-        json: { email: creds.rawEmail, password: creds.rawPassword },
-      })
-
-      const data = await res.json()
-      if (!data.success) throw new Error('signup failed')
-      expect((data.data.user as { passwordHash?: string }).passwordHash).toBeUndefined()
-      expect((data.data.user as { password?: string }).password).toBeUndefined()
     })
   })
 
@@ -877,7 +844,8 @@ describe('Auth Routes (browser)', () => {
       const signupRes = await client.auth.signup.$post({
         json: { email: creds.rawEmail, password: creds.rawPassword },
       })
-      expect(signupRes.status).toBe(HTTP_STATUS.CREATED)
+      // Signup is neutral now (ADR 0009): 200, no session. The flow logs in next.
+      expect(signupRes.status).toBe(HTTP_STATUS.OK)
 
       const { cookie, accessToken } = await loginAndGetCookies(
         client,

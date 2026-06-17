@@ -18,11 +18,19 @@ export async function loginAsSeed(page: Page): Promise<void> {
 
 // Register a throwaway account so the profile starts empty — needed by tests
 // that assert onboarding state (the seeded personas all have complete profiles).
-// Signup sets the refreshToken cookie on the context, same as login.
+// Signup is enumeration-safe and no longer establishes a session (ADR 0009), so
+// log in afterwards to set the refreshToken cookie on the context. Login works
+// pre-verification via the grace window.
 export async function registerFreshUser(page: Page): Promise<void> {
   const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`
-  const res = await page.request.post('/api/auth/signup', {
-    data: { email, password: 'Abcdef12!' },
+  const password = 'Abcdef12!'
+  const signupRes = await page.request.post('/api/auth/signup', {
+    data: { email, password },
   })
-  expect(res.ok(), `signup failed (${res.status()})`).toBe(true)
+  expect(signupRes.ok(), `signup failed (${signupRes.status()})`).toBe(true)
+
+  const loginRes = await page.request.post('/api/auth/login', {
+    data: { email, password },
+  })
+  expect(loginRes.ok(), `login failed (${loginRes.status()})`).toBe(true)
 }

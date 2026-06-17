@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { safeUrl } from '../core'
+import { HTTP_STATUS, type HttpStatus, safeUrl } from '../core'
 
 // SCHEMAS
 
@@ -205,6 +205,17 @@ export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSch
 // profile entity types
 
 export type ProfilePublic = z.infer<typeof profilePublicSchema>
+
+// ERROR HANDLING
+
+// `username` is unique. A collision must surface as a clean 409, never an
+// unhandled 500: a 500-vs-200 split lets an authenticated peer probe username
+// existence (including private profiles, hidden from the public lookup).
+export type ProfileErrorCode = 'username_taken'
+
+export const profileErrorMapping = {
+  username_taken: HTTP_STATUS.CONFLICT,
+} as const satisfies Record<ProfileErrorCode, HttpStatus>
 
 // concern → product tag translation
 

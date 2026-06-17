@@ -32,18 +32,16 @@ describe('Auth Routes (mobile)', () => {
   })
 
   describe('POST /auth/mobile/signup', () => {
-    it('should create a new user and return tokens in body', async () => {
+    it('returns a neutral pending response with no tokens', async () => {
       const { res, data } = await mobileSignup(client, 'newuser@test.com', 'TestPass123!')
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status).toBe(HTTP_STATUS.OK)
       expect(data.success).toBe(true)
       if (!data.success) throw new Error('mobile signup failed')
-      expect(data.data.user.email).toBe('newuser@test.com')
-      expect(data.data.accessToken).toBeDefined()
-      expect(data.data.refreshToken).toBeDefined()
-
-      const cookie = res.headers.get('Set-Cookie')
-      expect(cookie).toBeNull()
+      expect(data.data).toEqual({ pending: true })
+      expect((data.data as { accessToken?: string }).accessToken).toBeUndefined()
+      expect((data.data as { refreshToken?: string }).refreshToken).toBeUndefined()
+      expect(res.headers.get('Set-Cookie')).toBeNull()
     })
 
     it('should reject invalid email', async () => {
@@ -60,22 +58,24 @@ describe('Auth Routes (mobile)', () => {
       expect(data.success).toBe(false)
     })
 
-    it('should reject duplicate email', async () => {
+    it('returns the same neutral response for an existing email', async () => {
       await createTestUser('existing@test.com', 'TestPass123!')
 
       const { res, data } = await mobileSignup(client, 'existing@test.com', 'TestPass123!')
 
-      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
-      expect(data.success).toBe(false)
-      if (!data.success) expect(data.error).toBe('email_exists')
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('expected neutral pending')
+      expect(data.data).toEqual({ pending: true })
     })
 
     it('should normalize email on signup', async () => {
       const { res, data } = await mobileSignup(client, '  NewUser@TEST.COM  ', 'TestPass123!')
 
-      expect(res.status).toBe(HTTP_STATUS.CREATED)
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      expect(data.success).toBe(true)
       if (!data.success) throw new Error('mobile signup failed')
-      expect(data.data.user.email).toBe('newuser@test.com')
+      expect(data.data).toEqual({ pending: true })
     })
   })
 

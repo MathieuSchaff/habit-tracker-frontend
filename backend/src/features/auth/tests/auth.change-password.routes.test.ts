@@ -19,14 +19,21 @@ describe('Auth Routes > POST /auth/change-password', () => {
     client = await createTestClient()
   })
 
-  it('should change password successfully with valid current password', async () => {
-    const signupRes = await client.auth.signup.$post({
-      json: { email, password: oldPassword },
-    })
+  // Signup no longer establishes a session (ADR 0009): sign up, then log in to get
+  // a token + refresh cookie for the authenticated change-password calls.
+  async function signupThenLogin(emailArg: string, password: string) {
+    const signupRes = await client.auth.signup.$post({ json: { email: emailArg, password } })
     const signupData = await signupRes.json()
     if (!signupData.success) throw new Error('signup failed')
-    const userToken = signupData.data.accessToken
-    const _userId = signupData.data.user.id
+
+    const loginRes = await client.auth.login.$post({ json: { email: emailArg, password } })
+    const loginData = await loginRes.json()
+    if (!loginData.success) throw new Error('login failed')
+    return { loginRes, token: loginData.data.accessToken }
+  }
+
+  it('should change password successfully with valid current password', async () => {
+    const { token: userToken } = await signupThenLogin(email, oldPassword)
 
     const res = await client.auth['change-password'].$post(
       {
@@ -46,12 +53,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
   })
 
   it('should reject with invalid current password', async () => {
-    const signupRes = await client.auth.signup.$post({
-      json: { email: 'another-user@example.com', password: oldPassword },
-    })
-    const signupData = await signupRes.json()
-    if (!signupData.success) throw new Error('signup failed')
-    const userToken = signupData.data.accessToken
+    const { token: userToken } = await signupThenLogin('another-user@example.com', oldPassword)
 
     const res = await client.auth['change-password'].$post(
       {
@@ -70,12 +72,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
   })
 
   it('should reject weak new password', async () => {
-    const signupRes = await client.auth.signup.$post({
-      json: { email: 'weak-pwd@example.com', password: oldPassword },
-    })
-    const signupData = await signupRes.json()
-    if (!signupData.success) throw new Error('signup failed')
-    const userToken = signupData.data.accessToken
+    const { token: userToken } = await signupThenLogin('weak-pwd@example.com', oldPassword)
 
     const res = await client.auth['change-password'].$post(
       {
@@ -89,14 +86,9 @@ describe('Auth Routes > POST /auth/change-password', () => {
 
   it('should revoke existing refresh tokens after a successful change', async () => {
     const sessionEmail = unsafeEmail('change-pwd-revoke@example.com')
-    const signupRes = await client.auth.signup.$post({
-      json: { email: sessionEmail, password: oldPassword },
-    })
-    const signupData = await signupRes.json()
-    if (!signupData.success) throw new Error('signup failed')
-    const userToken = signupData.data.accessToken
+    const { loginRes, token: userToken } = await signupThenLogin(sessionEmail, oldPassword)
     const oldRefreshCookie =
-      signupRes.headers.getSetCookie().find((c) => c.startsWith('refresh_token=')) ?? ''
+      loginRes.headers.getSetCookie().find((c) => c.startsWith('refresh_token=')) ?? ''
     expect(oldRefreshCookie).toContain('refresh_token=')
 
     const changeRes = await client.auth['change-password'].$post(

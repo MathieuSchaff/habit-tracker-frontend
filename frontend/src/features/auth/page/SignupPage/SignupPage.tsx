@@ -1,6 +1,5 @@
 import { type SignupErrorCode, type SignupFormInput, signupSchema } from '@aurore/shared'
 
-import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { Check, Lock, Mail, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -21,7 +20,6 @@ type FieldErrors = Partial<Record<keyof SignupFormInput | 'form', string>>
 /* Exhaustive map: TS errors if a SignupErrorCode is added without a label here.
    Exported so tests assert the same string the user sees. */
 export const SIGNUP_ERRORS: Record<SignupErrorCode, string> = {
-  email_exists: 'Un compte existe déjà avec cet email',
   server_error: 'Une erreur est survenue, réessayez plus tard',
 }
 
@@ -41,7 +39,6 @@ export const SignupPage = () => {
 
   const navigate = useNavigate()
   const signup = useSignup()
-  const queryClient = useQueryClient()
 
   const passwordChecks = useMemo(
     () => PASSWORD_RULES.map((rule) => ({ ...rule, valid: rule.test(password) })),
@@ -67,8 +64,10 @@ export const SignupPage = () => {
     const { confirmPassword: _confirm, ...payload } = parsed.data
     signup.mutate(payload, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['session'] })
-        navigate({ to: '/collection' })
+        // Neutral flow (ADR 0009): signup creates no session and the response is
+        // identical whether or not the email already exists. Send the user to the
+        // "check your email" screen instead of into the app.
+        navigate({ to: '/auth/verify-pending' })
       },
       onError: (error) => {
         const code = error.message as SignupErrorCode

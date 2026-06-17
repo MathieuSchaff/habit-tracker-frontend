@@ -110,6 +110,26 @@ describe('Profile Routes', () => {
       expect(data.data.username).toBe('newname')
     })
 
+    it('returns 409 username_taken on collision, not an unhandled 500', async () => {
+      const tokenAlice = await setupAndLogin(app, TEST_CREDENTIALS.alice)
+      const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+      await client.profile.$patch({ json: { username: 'shared_name' } }, withAuth(tokenAlice))
+
+      // Collision must surface as a clean 409 (handled), not a 500. The 500-vs-200
+      // split was a username-existence oracle (incl. private profiles). The 409
+      // goes through the global error handler, so it's not in the typed RPC
+      // response; use a raw request to read the untyped status.
+      const res = await app.request('/api/profile', {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${tokenToto}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'shared_name' }),
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.CONFLICT)
+      const body = (await res.json()) as { error?: string }
+      expect(body.error).toBe('username_taken')
+    })
+
     it('should update bio', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
