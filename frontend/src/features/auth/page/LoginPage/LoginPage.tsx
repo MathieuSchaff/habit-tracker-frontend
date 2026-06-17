@@ -19,9 +19,8 @@ type FieldErrors = Partial<Record<keyof AuthInput | 'form', string>>
 /* Exhaustive map: TS errors if a LoginErrorCode is added without a label here.
    Exported so tests assert the same string the user sees. */
 export const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
-  invalid_credentials: 'Email ou mot de passe incorrect',
+  invalid_credentials: 'Identifiants incorrects ou compte temporairement indisponible',
   email_not_verified: "Votre adresse email n'est pas vérifiée",
-  account_locked: 'Trop de tentatives. Réessayez dans 15 minutes.',
   server_error: 'Une erreur est survenue, réessayez plus tard',
 }
 

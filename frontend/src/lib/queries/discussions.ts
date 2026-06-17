@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 type EntityType = 'product' | 'ingredient'
 
@@ -19,7 +20,7 @@ export const discussionQueries = {
           entityType === 'product'
             ? await api.products[':slug'].discussions.$get({ param: { slug } })
             : await api.ingredients[':slug'].discussions.$get({ param: { slug } })
-        if (!res.ok) throw new Error('Failed to fetch threads')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },
@@ -37,7 +38,7 @@ export const discussionQueries = {
             : await api.ingredients[':slug'].discussions[':threadId'].$get({
                 param: { slug, threadId },
               })
-        if (!res.ok) throw new Error('Failed to fetch thread')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data
       },

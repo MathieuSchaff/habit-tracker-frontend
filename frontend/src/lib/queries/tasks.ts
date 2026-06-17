@@ -10,6 +10,7 @@ import type {
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 const taskKeys = {
   all: ['tasks'] as const,
@@ -24,7 +25,7 @@ export const taskQueries = {
       queryKey: taskKeys.list(),
       queryFn: async () => {
         const res = await api.tasks.$get()
-        if (!res.ok) throw new Error('Failed to fetch tasks')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data as Task[]
       },
@@ -35,7 +36,7 @@ export const taskQueries = {
       queryKey: taskKeys.today(),
       queryFn: async () => {
         const res = await api.tasks.today.$get()
-        if (!res.ok) throw new Error('Failed to fetch today tasks')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data as Task[]
       },
@@ -46,7 +47,7 @@ export const taskQueries = {
       queryKey: taskKeys.subtasks(taskId),
       queryFn: async () => {
         const res = await api.tasks[':id'].subtasks.$get({ param: { id: taskId } })
-        if (!res.ok) throw new Error('Failed to fetch subtasks')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data as Subtask[]
       },

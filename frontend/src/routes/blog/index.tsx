@@ -20,12 +20,13 @@ export const Route = createFileRoute('/blog/')({
     middlewares: [stripSearchParams(defaultValues)],
   },
   loaderDeps: ({ search: { page, q } }) => ({ page, q }),
+  // prefetchQuery warms cache without throwing; ensureQueryData would reject the loader and swap the page for GlobalError. Components own their loading/error UI.
   loader: ({ context, deps }) =>
     Promise.all([
-      context.queryClient.ensureQueryData(
+      context.queryClient.prefetchQuery(
         articleQueries.list({ page: deps.page, q: deps.q, limit: 20 })
       ),
-      context.queryClient.ensureQueryData(articleQueries.categoryCounts()),
+      context.queryClient.prefetchQuery(articleQueries.categoryCounts()),
     ]),
   component: BlogIndexRoute,
   pendingComponent: BlogListSkeleton,

@@ -22,6 +22,7 @@ import type {
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '../api'
+import { ApiError } from '../helpers/apiError'
 
 const adminKeys = {
   all: ['admin'] as const,
@@ -50,7 +51,7 @@ export const adminQueries = {
       queryKey: adminKeys.users(),
       queryFn: async () => {
         const res = await api.admin.users.$get()
-        if (!res.ok) throw new Error('Failed to fetch admin users list')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Admin users list error')
         return json.data
@@ -62,7 +63,7 @@ export const adminQueries = {
       queryKey: adminKeys.userBans(userId),
       queryFn: async () => {
         const res = await api.admin.users[':id'].bans.$get({ param: { id: userId } })
-        if (!res.ok) throw new Error('Failed to fetch user bans')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('User bans error')
         return json.data
@@ -78,7 +79,7 @@ export const adminQueries = {
         if (status) query.status = status
         if (escalated) query.escalated = 'true'
         const res = await api.admin.reports.$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch admin reports')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Admin reports error')
         return json.data
@@ -92,7 +93,7 @@ export const adminQueries = {
         const query: Record<string, string> = {}
         if (status) query.status = status
         const res = await api.admin['suggested-edits'].$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch suggested edits')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Suggested edits error')
         return json.data
@@ -106,7 +107,7 @@ export const adminQueries = {
         const query: Record<string, string> = {}
         if (status) query.status = status
         const res = await api.admin['role-requests'].$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch role requests')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Role requests error')
         return json.data
@@ -121,7 +122,7 @@ export const adminQueries = {
         if (status) query.status = status
         if (source) query.source = source
         const res = await api.admin.errors.$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch error groups')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Error groups error')
         return json.data
@@ -135,7 +136,7 @@ export const adminQueries = {
         const query: Record<string, string> = {}
         if (severity) query.severity = severity
         const res = await api.admin['security-events'].$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch security events')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Security events error')
         return json.data
@@ -147,7 +148,7 @@ export const adminQueries = {
       queryKey: adminKeys.dashboard(),
       queryFn: async () => {
         const res = await api.admin.dashboard.$get()
-        if (!res.ok) throw new Error('Failed to fetch admin dashboard')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Admin dashboard error')
         return json.data
@@ -165,7 +166,7 @@ export const adminQueries = {
         if (quality) query.quality = quality
         if (status) query.status = status
         const res = await api.admin.moderation.catalog.$get({ query })
-        if (!res.ok) throw new Error('Failed to fetch catalog queue')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Catalog queue error')
         return json.data
@@ -180,7 +181,7 @@ export const adminQueries = {
       queryKey: adminKeys.preview(target, id),
       queryFn: async () => {
         const res = await api.admin.moderation[target][':id'].$get({ param: { id } })
-        if (!res.ok) throw new Error('Failed to fetch content preview')
+        if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         if (!json.success) throw new Error('Content preview error')
         return json.data

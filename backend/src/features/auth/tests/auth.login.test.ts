@@ -349,7 +349,7 @@ describe('login', () => {
 describe('login lockout', () => {
   it('devrait verrouiller le compte après 5 tentatives consécutives ratées', async () => {
     const creds = TEST_CREDENTIALS.toto
-    await createTestUser(creds.rawEmail, creds.rawPassword)
+    const created = await createTestUser(creds.rawEmail, creds.rawPassword)
 
     for (let i = 0; i < 5; i++) {
       const result = await login(
@@ -363,7 +363,15 @@ describe('login lockout', () => {
 
     const sixth = await login(createCtx(), creds.email, TEST_CREDENTIALS.invalide.mauvaisMotDePasse)
     expect(sixth.success).toBe(false)
-    if (!sixth.success) expect(sixth.error).toBe('account_locked')
+    // Lockout no longer surfaces a distinct code (anti-enumeration); assert the DB state instead.
+    if (!sixth.success) expect(sixth.error).toBe('invalid_credentials')
+
+    const { users: usersTable } = await import('../../../db/schema')
+    const [row] = await testDb
+      .select({ lockedUntil: usersTable.lockedUntil })
+      .from(usersTable)
+      .where(eq(usersTable.id, created.id))
+    expect(row?.lockedUntil).not.toBeNull()
   })
 
   it('devrait bloquer même un bon mot de passe pendant la fenêtre de lockout', async () => {
@@ -376,7 +384,7 @@ describe('login lockout', () => {
 
     const result = await login(createCtx(), creds.email, creds.password)
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('account_locked')
+    if (!result.success) expect(result.error).toBe('invalid_credentials')
   })
 
   it('devrait autoriser le login après expiration du lockout et réinitialiser le compteur', async () => {

@@ -27,9 +27,10 @@ export const Route = createFileRoute('/blog/$category/')({
     if (!categorySet.has(params.category)) throw notFound()
   },
   loaderDeps: ({ search: { page, q } }) => ({ page, q }),
+  // prefetchQuery warms cache without throwing; a failed fetch degrades to the in-page error UI instead of GlobalError.
   loader: ({ context, params, deps }) =>
     Promise.all([
-      context.queryClient.ensureQueryData(
+      context.queryClient.prefetchQuery(
         articleQueries.list({
           category: params.category as BlogCategory,
           page: deps.page,
@@ -37,7 +38,7 @@ export const Route = createFileRoute('/blog/$category/')({
           limit: 20,
         })
       ),
-      context.queryClient.ensureQueryData(articleQueries.categoryCounts()),
+      context.queryClient.prefetchQuery(articleQueries.categoryCounts()),
     ]),
   component: BlogCategoryRoute,
   pendingComponent: BlogListSkeleton,
