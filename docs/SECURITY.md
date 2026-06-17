@@ -16,8 +16,13 @@
 ### Session Security
 **Timing Attack Protection**: A dummy hash verification runs during login when a user is not found, keeping response time consistent regardless of whether the email exists.
 
+### Account Enumeration Protection
+Neither login nor signup ever reveals whether an email is registered:
+- **Login** returns a single `invalid_credentials` for unknown-email, wrong-password, and locked-account alike; the dummy hash above keeps timing uniform.
+- **Signup** returns an identical neutral response (`{ pending: true }`, HTTP 200, **no session**) whether the email is new or already registered, runs a dummy password hash on the existing-email branch to equalize timing, and conveys the new-vs-existing truth only by email to the address owner (a verification link for a new account, an "account already exists" notice otherwise). The cross-cutting policy lives in [`conventions/error-handling.md` § Security](conventions/error-handling.md).
+
 ### Email Verification
-Signup issues a single-use token (stored hashed in `email_verifications`) and the account stays unverified until the user confirms via email. Expired or consumed tokens are rejected.
+Signup issues a single-use token (stored hashed in `email_verifications`) and the account stays unverified until the user confirms via email. Expired or consumed tokens are rejected. Because signup establishes no session, the user activates the account from the email link, then logs in. A 24-hour back-compat grace still admits logins from a freshly created account before verification; past that window login returns `email_not_verified` until the user confirms.
 
 ### Google OAuth
 OAuth login is delegated to Google (`backend/src/features/auth/google.service.ts`). The callback exchanges the authorization code server-side; no Google tokens are exposed to the browser. A local `accessToken` is issued exactly like for password login.

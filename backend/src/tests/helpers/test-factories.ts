@@ -17,17 +17,17 @@ export async function createTestUser(
   const result = await signup(ctx, email as Email, password as RawPassword)
 
   if (result.success === false) {
-    if (result.error === 'email_exists') {
-      const user = await getUser(ctx.db, email as Email)
-      if (!user) {
-        throw new Error(`User claimed to exist but not found: ${email}`)
-      }
-      return user
-    }
     throw new Error(`Failed to create test user: ${result.error}`)
   }
 
-  return result.data.user
+  // Signup is enumeration-safe and returns no user (ADR 0009). It always reports
+  // success (new or existing email), so fetch the row; this also makes the
+  // factory idempotent across re-use of the same email.
+  const user = await getUser(ctx.db, email as Email)
+  if (!user) {
+    throw new Error(`User not found after signup: ${email}`)
+  }
+  return user
 }
 
 export async function createTestAdminUser(

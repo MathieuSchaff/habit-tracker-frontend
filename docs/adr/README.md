@@ -14,8 +14,9 @@ Canonical ADRs for Aurore. This directory is tracked in git.
 | [0006](./0006-contributor-gains-content-moderation.md) | Contributor gains content moderation | accepted | 2026-05-30 |
 | [0007](./0007-error-handling-strategy.md) | Hybrid error handling strategy | accepted | 2026-06-02 |
 | [0008](./0008-role-demotion-enforced-fresh-at-gates.md) | Role demotion enforced fresh at gates | accepted | 2026-06-02 |
+| [0009](./0009-signup-enumeration-safe.md) | Signup is enumeration-safe — neutral response, truth only by email | accepted | 2026-06-17 |
 
-Next available: **0009**. Name: `NNNN-short-imperative-verb-phrase.md`.
+Next available: **0010**. Name: `NNNN-short-imperative-verb-phrase.md`.
 
 ## Template
 

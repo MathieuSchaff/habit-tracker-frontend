@@ -126,18 +126,6 @@ describe('SignupPage', () => {
     expect(payload).not.toHaveProperty('confirmPassword')
   })
 
-  it('maps email_exists → mapped FR message', async () => {
-    setMutationResult({
-      onMutate: (_d, opts) => opts.onError?.(new Error('email_exists')),
-    })
-
-    renderWithProviders(<SignupPage />)
-    await fillForm()
-    await submit()
-
-    expect(await screen.findByText(SIGNUP_ERRORS.email_exists)).toBeVisible()
-  })
-
   it('falls back to server_error label for unknown server codes', async () => {
     setMutationResult({
       onMutate: (_d, opts) => opts.onError?.(new Error('totally_unknown_code')),
@@ -150,7 +138,7 @@ describe('SignupPage', () => {
     expect(await screen.findByText(SIGNUP_ERRORS.server_error)).toBeVisible()
   })
 
-  it('navigates to /collection on success', async () => {
+  it('navigates to the verify-pending screen on success (no session)', async () => {
     setMutationResult({
       onMutate: (_d, opts) => opts.onSuccess?.(),
     })
@@ -160,7 +148,7 @@ describe('SignupPage', () => {
     await submit()
 
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith({ to: '/collection' })
+      expect(navigateMock).toHaveBeenCalledWith({ to: '/auth/verify-pending' })
     })
   })
 

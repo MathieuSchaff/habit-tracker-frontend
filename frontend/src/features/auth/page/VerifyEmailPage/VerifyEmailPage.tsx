@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast'
 
 import { Button } from '../../../../component/Button/Button'
 import { useResendVerification, useVerifyEmail } from '../../../../lib/queries/auth'
+import { useAuthStore } from '../../../../store/auth'
 
 export const VerifyEmailPage = () => {
   const search = useSearch({ from: '/auth/verify-email' })
@@ -15,7 +16,17 @@ export const VerifyEmailPage = () => {
   useEffect(() => {
     if (!token) return
     verify.mutate(token, {
-      onSuccess: () => navigate({ to: '/collection' }),
+      onSuccess: () => {
+        // Neutral signup leaves no session, so verifying just activates the account.
+        // Send the user to login, unless they're already authenticated (verifying
+        // during the legacy grace period), in which case go straight to the app.
+        if (useAuthStore.getState().accessToken !== null) {
+          navigate({ to: '/collection' })
+        } else {
+          toast.success('Email vérifié. Connectez-vous pour continuer.')
+          navigate({ to: '/auth/login', search: { redirect: undefined } })
+        }
+      },
     })
   }, [token, navigate, verify.mutate])
 

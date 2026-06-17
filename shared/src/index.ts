@@ -325,6 +325,7 @@ export {
   type ExportUserProductReview,
   type ExportUserProductStatusLog,
   type PrivacySettings,
+  type ProfileErrorCode,
   type ProfileLink,
   type ProfilePublic,
   type ProfileStats,
@@ -502,6 +503,7 @@ export type {
   RefreshResult,
   RefreshTokenPayload,
   SignupErrorCode,
+  SignupPending,
   SignupResult,
   UserPublic,
 } from './auth'
@@ -520,6 +522,7 @@ export type { TaskEnergy, TaskErrorCode, TaskStatus } from './tasks'
 
 export { authErrorMapping, SESSION_HINT_COOKIE } from './auth'
 export { discussionErrorMapping } from './discussions'
+export { profileErrorMapping } from './profile'
 export { purchaseErrorMapping } from './purchases'
 export { tagErrorMapping } from './tags'
 export { taskErrorMapping } from './tasks'

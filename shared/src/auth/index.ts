@@ -79,10 +79,10 @@ export type SignupFormInput = z.infer<typeof signupSchema>
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 
-/* Branded — you can't pass a raw string where an Email is expected. */
+/* Branded: you can't pass a raw string where an Email is expected. */
 export type Email = string & z.BRAND<'Email'>
 
-/* Must be hashed before storing — never persist raw. */
+/* Must be hashed before storing; never persist raw. */
 export type RawPassword = string & z.BRAND<'RawPassword'>
 
 /* Branded manually (not via Zod) because hashing happens server-side, not in a schema. */
@@ -97,7 +97,7 @@ export type UserPublic = {
   isDemo: boolean
 }
 
-/* The service always returns this full shape — the handler picks what to expose (body vs cookie). */
+/* The service always returns this full shape; the handler picks what to expose (body vs cookie). */
 export type AuthenticatedResult = {
   accessToken: string
   refreshToken: string
@@ -109,7 +109,6 @@ export type MobileAuthResult = AuthenticatedResult
 export type AuthErrorCode =
   | CommonErrorCode
   | 'invalid_credentials'
-  | 'email_exists'
   | 'invalid_token'
   | 'missing_refresh_token'
   | 'session_expired'
@@ -118,11 +117,16 @@ export type AuthErrorCode =
   | 'token_expired'
   | 'too_many_requests'
 
-export type SignupErrorCode = 'email_exists' | 'server_error'
+export type SignupErrorCode = 'server_error'
 
 export type LoginErrorCode = 'invalid_credentials' | 'email_not_verified' | 'server_error'
 
-export type SignupResult = ApiResponse<AuthenticatedResult, SignupErrorCode>
+/* Enumeration-safe: signup returns this identical neutral shape whether the email
+   is new or already registered, with no session. Truth is delivered only by email.
+   See ADR 0009. */
+export type SignupPending = { pending: true }
+
+export type SignupResult = ApiResponse<SignupPending, SignupErrorCode>
 
 export type LoginResult = ApiResponse<AuthenticatedResult, LoginErrorCode>
 
@@ -137,7 +141,7 @@ export type RefreshResult = ApiResponse<
 
 export type GoogleCallbackResult = ApiResponse<AuthenticatedResult, 'server_error'>
 
-/* Always succeeds client-side — server errors are logged but not surfaced. */
+/* Always succeeds client-side; server errors are logged but not surfaced. */
 export type LogoutResult = ApiResponse<null>
 
 export type ChangePasswordResult = ApiResponse<null, 'invalid_credentials' | 'server_error'>
@@ -173,7 +177,6 @@ export interface CreateRefreshTokenArgs {
 
 export const authErrorMapping = {
   invalid_credentials: HTTP_STATUS.UNAUTHORIZED,
-  email_exists: HTTP_STATUS.CONFLICT,
   invalid_token: HTTP_STATUS.UNAUTHORIZED,
   missing_refresh_token: HTTP_STATUS.BAD_REQUEST,
   session_expired: HTTP_STATUS.UNAUTHORIZED,

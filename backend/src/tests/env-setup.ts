@@ -21,4 +21,5 @@ process.env.IMAGE_CDN_BASE ??= 'https://test-cdn.example.com'
 mock.module('../features/auth/email.service', () => ({
   sendVerificationEmail: mock(async () => {}),
   sendAccountLockedEmail: mock(async () => {}),
+  sendAlreadyRegisteredEmail: mock(async () => {}),
 }))

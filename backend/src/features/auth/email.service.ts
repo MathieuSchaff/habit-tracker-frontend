@@ -24,6 +24,28 @@ export async function sendVerificationEmail(to: string, verificationUrl: string)
   }
 }
 
+// Sent on the existing-email signup branch so the truth (an account already
+// exists) reaches the owner by email instead of the HTTP response; the response
+// stays identical to the new-email branch. See ADR 0009.
+export async function sendAlreadyRegisteredEmail(to: string): Promise<void> {
+  try {
+    const client = new BrevoClient({ apiKey: env.BREVO_API_KEY })
+    await client.transactionalEmails.sendTransacEmail({
+      sender: { name: env.MAIL_FROM_NAME, email: env.MAIL_FROM_EMAIL },
+      to: [{ email: to }],
+      subject: 'Tentative de création de compte — Aurore',
+      htmlContent: `
+        <p>Bonjour,</p>
+        <p>Une inscription vient d'être tentée avec cette adresse, mais un compte Aurore existe déjà.</p>
+        <p>Si c'était vous, connectez-vous directement. En cas de mot de passe oublié, vous pourrez bientôt le réinitialiser.</p>
+        <p>Si ce n'était pas vous, ignorez cet email : aucun nouveau compte n'a été créé.</p>
+      `,
+    })
+  } catch (e) {
+    logger.error({ err: e }, 'Failed to send already-registered email')
+  }
+}
+
 export async function sendAccountLockedEmail(to: string): Promise<void> {
   try {
     const client = new BrevoClient({ apiKey: env.BREVO_API_KEY })

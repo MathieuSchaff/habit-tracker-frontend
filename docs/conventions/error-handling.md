@@ -154,3 +154,56 @@ not wired.
 
 Established 2026-06-17 — commits `120f06f3` (rate-limit ceiling 100→1000), `0b2f396c` (blog
 degradation), `dc24466d` (read-queryFn sweep, all domains).
+
+---
+
+## Security — what's safe to surface (applies to every error, not just auth)
+
+The set of error codes a route emits **is a security boundary**. The HTTP response is public
+(DevTools, `curl`, proxy): filtering an error on the frontend hides nothing — it already crossed
+the wire. So **the backend decides the public code; sensitive distinctions are collapsed
+server-side**, and the real reason stays in logs.
+
+Decide per code — is it an oracle?
+
+- **Existence / ownership oracle** (does this email/user/resource exist? is it mine?) → collapse
+  to a generic code, **equalize timing**, never let the branch be distinguishable (code, status,
+  *or* latency). The asymmetry is the leak, not the message string — and a session-vs-no-session
+  or fast-vs-slow difference leaks just as much as a distinct code.
+- **Not an oracle** (validation 400, not-found on a public resource, generic 500, rate-limit 429)
+  → safe; surface the code.
+
+Rule of thumb: if knowing *which* error occurred tells an unauthenticated attacker something
+about another user's account or data, collapse it. Otherwise show it.
+
+**Worked instances**
+- **Login** — `invalid_credentials` for unknown-email, wrong-password, *and* locked-account;
+  `DUMMY_HASH` keeps timing uniform. `account_locked` removed as a public code (commit `dd9130d0`).
+- **Signup** — identical neutral `ok({ pending: true })` either way, no session, timing equalized
+  (dummy hash on the existing-email branch), truth delivered by email (`sendAlreadyRegisteredEmail`).
+  Implemented 2026-06-17, [ADR 0009](../adr/0009-signup-enumeration-safe.md). `email_exists` removed
+  from the contract; `/auth/signup` + `/auth/mobile/signup` return 200, no cookie; frontend lands on
+  verify-pending. The 24 h unverified-login grace was kept (back-compat), so login was left untouched.
+- **Discussions delete (thread + reply)** — was `403 unauthorized_access` (owned by another)
+  vs `404 not_found` (missing) = existence oracle, and those tables have no RLS. Collapsed by
+  moving the owner check into the DELETE `WHERE id AND author_id` → uniform `..._not_found`; the
+  dead `unauthorized_access` code was dropped. Regression test asserts cross-user ≡ missing.
+- **Profile username** — a unique-username collision propagated as an unhandled `500 server_error`
+  vs `200` = username-existence oracle (leaks even private-profile usernames that the public
+  lookup hides). Now a handled `409 username_taken` (`ProfileError`, caught via `isUniqueViolation`
+  then rethrown so `withRlsContext` still rolls back). Unique usernames inherently reveal
+  taken-ness; usernames are display-public (shown on profiles + discussion authors), so a clean
+  409 is the right resolution, not concealment.
+
+**Cross-cutting audit (2026-06-17)** — every user-data surface swept for existence / ownership /
+uniqueness oracles; each finding adversarially verified.
+
+- *Clean* (ownership folded into the query `WHERE id AND user_id` → uniform 404):
+  collection / user-products / purchases; product-comparisons; reports / suggested-edits /
+  catalog-submissions / role-requests (submit-only or self-scoped).
+- *Fixed this pass*: discussions delete, profile username (above).
+- *Ruled out*: verify-email `invalid_token` vs `token_expired` — only the token holder (2²⁵⁶
+  space) reaches the branch, no cross-user gain; product-create slug collision on a hidden row —
+  LOW, leaks catalog-item existence not user PII, deferred.
+- *Remaining*: forgot/reset-password doesn't exist yet → build it always-neutral from day one.
+  (Signup — the one *unauthenticated* leak — was closed 2026-06-17; see the Signup worked instance.)

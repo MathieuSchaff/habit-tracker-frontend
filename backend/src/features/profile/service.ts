@@ -24,7 +24,9 @@ import {
   userDermoProfiles,
   users,
 } from '../../db/schema/users'
+import { isUniqueViolation } from '../../lib/helpers'
 import { nowISO } from '../../utils/dates'
+import { ProfileError } from './profile-error'
 
 const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
@@ -76,11 +78,19 @@ export async function updateProfile(
     return current ? toProfilePublic(current) : null
   }
 
-  const [profile] = await db
-    .update(profiles)
-    .set({ ...updates, updatedAt: nowISO() })
-    .where(eq(profiles.userId, userId))
-    .returning()
+  let profile: Profile | undefined
+  try {
+    ;[profile] = await db
+      .update(profiles)
+      .set({ ...updates, updatedAt: nowISO() })
+      .where(eq(profiles.userId, userId))
+      .returning()
+  } catch (e) {
+    // Translate the username unique-violation to a domain error; rethrow so the
+    // global handler maps it (409) and withRlsContext rolls back the aborted tx.
+    if (isUniqueViolation(e)) throw new ProfileError('username_taken')
+    throw e
+  }
   return profile ? toProfilePublic(profile) : null
 }
 

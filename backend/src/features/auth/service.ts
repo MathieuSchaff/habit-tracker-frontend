@@ -21,7 +21,11 @@ import { isUniqueViolation } from '../../lib/helpers'
 import { logger } from '../../lib/logger'
 import { nowISO } from '../../utils/dates'
 import { seedDemoData } from './demo-seed'
-import { sendAccountLockedEmail, sendVerificationEmail } from './email.service'
+import {
+  sendAccountLockedEmail,
+  sendAlreadyRegisteredEmail,
+  sendVerificationEmail,
+} from './email.service'
 import { createVerificationToken } from './email-verification.service'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from './jwt.utils'
 import {
@@ -110,6 +114,9 @@ export async function createTokenPair(
   return { accessToken, refreshToken }
 }
 
+// Enumeration-safe (ADR 0009): new-email and existing-email branches return the
+// SAME neutral `ok({ pending: true })`, no session, equal timing; only an email to
+// the owner reveals existence. Any divergence (code, status, session, latency) re-leaks.
 export async function signup(
   ctx: AuthContext,
   email: Email,
@@ -117,7 +124,16 @@ export async function signup(
 ): Promise<SignupResult> {
   try {
     const existingUser = await getUser(ctx.db, email)
-    if (existingUser) return err('email_exists')
+
+    if (existingUser) {
+      // The new-email branch hashes (~70 ms); this one must too, or fast-vs-slow
+      // re-leaks existence. Mirror login's DUMMY_HASH discipline. Result discarded.
+      await Bun.password.hash(password, PASSWORD_HASH_OPTIONS)
+      // Truth delivered off the response path: the HTTP reply is byte-identical
+      // to the new-email branch.
+      void sendAlreadyRegisteredEmail(existingUser.email)
+      return ok({ pending: true })
+    }
 
     const passwordHash = (await Bun.password.hash(
       password,
@@ -125,18 +141,16 @@ export async function signup(
     )) as HashedPassword
 
     const user = await ctx.db.transaction(async (tx) => {
-      const user = await createUser(tx, {
+      const created = await createUser(tx, {
         email,
         passwordHash,
         emailVerifiedAt: null,
       })
       // profiles insert requires app_runtime user_id set for WITH CHECK to pass.
-      await bindRlsContext(tx, user.id)
-      await createProfile(tx, user.id)
-      return user
+      await bindRlsContext(tx, created.id)
+      await createProfile(tx, created.id)
+      return created
     })
-
-    const tokens = await createTokenPair(ctx, user.id, user.role)
 
     let rawToken: string | null = null
     try {
@@ -154,12 +168,12 @@ export async function signup(
       }
     }
 
-    return ok({
-      user: toPublicUser(user),
-      ...tokens,
-    })
+    return ok({ pending: true })
   } catch (e) {
-    if (isUniqueViolation(e)) return err('email_exists')
+    // A concurrent signup with the same email loses the unique-index race. Return
+    // the same neutral response as the existing-email branch so the race can't be
+    // probed as an oracle.
+    if (isUniqueViolation(e)) return ok({ pending: true })
     logger.error({ err: e }, 'Signup failed')
     return err('server_error')
   }

@@ -434,13 +434,19 @@ async function getOrCreateTestUser(persona: Persona) {
     throw new Error(`Seed test user signup failed for ${persona.email}: ${result.error}`)
   }
 
+  // Signup returns no user (ADR 0009); fetch the created row.
+  const created = await getUser(ctx.db, persona.email as Email)
+  if (!created) {
+    throw new Error(`Seed test user not found after signup: ${persona.email}`)
+  }
+
   // Skip email verification flow — these are seed users, no real inbox.
   await ctx.db
     .update(users)
     .set({ emailVerifiedAt: new Date().toISOString() })
-    .where(eq(users.id, result.data.user.id))
+    .where(eq(users.id, created.id))
 
-  return result.data.user
+  return created
 }
 
 export async function seedTestUsers(tx: DB, productSlugToId: Map<string, string>) {

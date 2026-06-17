@@ -131,15 +131,15 @@ export async function getThreadWithReplies(threadId: string, database: DB = db) 
 }
 
 export async function deleteThread(userId: string, threadId: string, database: DB = db) {
-  const [thread] = await database
-    .select({ authorId: discussionThreads.authorId })
-    .from(discussionThreads)
-    .where(eq(discussionThreads.id, threadId))
+  // Owner filter in the WHERE clause, not a post-fetch 403: a non-existent thread
+  // and another user's thread both delete zero rows → uniform thread_not_found.
+  // A 403-vs-404 split would let any authenticated user probe thread existence.
+  const deleted = await database
+    .delete(discussionThreads)
+    .where(and(eq(discussionThreads.id, threadId), eq(discussionThreads.authorId, userId)))
+    .returning({ id: discussionThreads.id })
 
-  if (!thread) throw new DiscussionError('thread_not_found')
-  if (thread.authorId !== userId) throw new DiscussionError('unauthorized_access')
-
-  await database.delete(discussionThreads).where(eq(discussionThreads.id, threadId))
+  if (deleted.length === 0) throw new DiscussionError('thread_not_found')
 }
 
 export async function createReply(
@@ -169,13 +169,12 @@ export async function createReply(
 }
 
 export async function deleteReply(userId: string, replyId: string, database: DB = db) {
-  const [reply] = await database
-    .select({ authorId: discussionReplies.authorId })
-    .from(discussionReplies)
-    .where(eq(discussionReplies.id, replyId))
+  // Same collapse as deleteThread: owner filter folds cross-user and missing into
+  // a single reply_not_found, so the response can't leak reply existence.
+  const deleted = await database
+    .delete(discussionReplies)
+    .where(and(eq(discussionReplies.id, replyId), eq(discussionReplies.authorId, userId)))
+    .returning({ id: discussionReplies.id })
 
-  if (!reply) throw new DiscussionError('reply_not_found')
-  if (reply.authorId !== userId) throw new DiscussionError('unauthorized_access')
-
-  await database.delete(discussionReplies).where(eq(discussionReplies.id, replyId))
+  if (deleted.length === 0) throw new DiscussionError('reply_not_found')
 }

@@ -122,7 +122,6 @@ export const jwtAuthRoutes = app
   })
 
   .post('/signup', zValidator('json', authBodySchema), async (c) => {
-    const env = c.get('env')
     const ctx = buildAuthContext(c)
     const { email, password } = c.req.valid('json')
 
@@ -132,12 +131,9 @@ export const jwtAuthRoutes = app
       return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
-    setRefreshTokenCookie(c, result.data.refreshToken, env)
-
-    return c.json(
-      ok({ user: result.data.user, accessToken: result.data.accessToken }),
-      HTTP_STATUS.CREATED
-    )
+    // Enumeration-safe (ADR 0009): identical neutral response for new and existing
+    // emails: no session, no tokens, no Set-Cookie. The user proceeds via email.
+    return c.json(ok(result.data), HTTP_STATUS.OK)
   })
 
   .post('/demo', async (c) => {
@@ -306,14 +302,9 @@ export const jwtAuthRoutes = app
       return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
-    return c.json(
-      ok({
-        user: result.data.user,
-        accessToken: result.data.accessToken,
-        refreshToken: result.data.refreshToken,
-      }),
-      HTTP_STATUS.CREATED
-    )
+    // Same neutral response as the browser endpoint: no tokens (ADR 0009). The
+    // mobile client moves to a "check your email" screen and verifies via the link.
+    return c.json(ok(result.data), HTTP_STATUS.OK)
   })
 
   .post('/mobile/refresh', zValidator('json', refreshTokenBodySchema), async (c) => {
