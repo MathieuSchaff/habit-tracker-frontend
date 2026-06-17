@@ -105,24 +105,23 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
-    patterns: [
-      'glycolic acid',
-      'lactic acid',
-      'mandelic acid',
-      'malic acid',
-      'tartaric acid',
-      'ammonium lactate',
-    ],
-    // Acids at pos > 10 are pH adjusters, not exfoliants, in leave-on products.
-    // Rinse-off cap is looser because surfactant-heavy formulas push acids to pos 12-18.
+    patterns: ['glycolic acid', 'lactic acid', 'malic acid', 'tartaric acid', 'ammonium lactate'],
+    // Common pH adjusters at pos > 10 in leave-on; rinse-off cap looser (surfactant-heavy formulas).
     positionCap: 10,
+    positionCapRinseOff: 20,
+  },
+  {
+    slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
+    patterns: ['mandelic acid'],
+    // Mandelic acid is never used as a pH adjuster — always an exfoliant actif.
+    positionCap: 15,
     positionCapRinseOff: 20,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.BHA,
     patterns: ['salicylic acid', 'betaine salicylate'],
-    // Free SA + betaine salicylate at pos > 10 leave-on = preservative, not exfoliant.
-    positionCap: 10,
+    // SA as preservative sits at pos 20+; pos 11-15 = actif exfoliant (e.g. bi-acid formulas).
+    positionCap: 15,
     positionCapRinseOff: 20,
   },
   {
@@ -135,7 +134,8 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.PHA,
     patterns: ['gluconolactone', 'lactobionic acid', 'galactose'],
-    positionCap: 10,
+    // Chelating use starts at pos 12+; pos 11 = exfoliant actif.
+    positionCap: 11,
     positionCapRinseOff: 20,
   },
   {
