@@ -1,49 +1,28 @@
-import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
-import { resolveIngredients } from '../../lib/ingredient-resolver'
+import { matchesNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// KP-specific signal for body leave-on products. Two triggers:
-//   A) Urea in top 8 INCI: at functional keratolytic concentration (>=10%)
-//      urea sits early. Tail urea is humectant trace (<5%) and won't help KP.
-//   B) Lactic acid + ammonium lactate both in top 10: the AmLactin / Lac-Hydrin
-//      buffered-lactate format used clinically for KP. Either alone is just a
-//      pH adjuster, but the combo signals the buffered formulation.
-//
-// Eligible kinds: body-lotion, body-oil. Exclude rinse-off (wash, scrub):
-// contact time too short for keratolysis. Exclude hand/foot cream: different
-// concern domain (cracked skin, not the perifollicular bumps of KP).
+// Positioning gate for `keratose-pilaire`. Was an INCI detector (urea top-8 OR
+// lactic+ammonium-lactate, body-lotion/body-oil) → fired on 13 catalogue rows, P=0.154
+// on the gold set. Urea is a ubiquitous dry-skin humectant: urea-repair / xerosis /
+// callus / psoriasis lotions share the actant but are not positioned for KP. Doctrine
+// (ADR-0004, R5): a concern reports the marketed positioning, not actant presence.
+// Gate now keys on products that NAME KP — the clinical term (FR/EN) plus the lay
+// "chicken skin" / "peau de poulet" and "body bumps". Gold P 0.154→1.0, R 1.0; corpus
+// fire 13→5. The 11 dropped name dryness/xerosis/calluses/psoriasis, never KP; 3 are
+// recovered (AmLactin, Paula's Choice AHA, Lipikar Urea 10) — they name KP but the INCI
+// gate missed them (wrong kind / lactate unpaired). No kind gate: KP is named on body and
+// face products alike, and naming alone is precise (the 5 corpus hits are all true KP).
+const KERATOSE_PILAIRE_POSITION_RE =
+  /k[ée]ratose\s+pilaire|keratosis\s+pilaris|peau\s+de\s+poulet|chicken\s+skin|\bbody\s+bumps?\b|\bbumpy\s+skin\b/i
 
-const KP_ELIGIBLE_KINDS = new Set<ProductKind>(['body-lotion', 'body-oil'])
-const KP_UREA_POSITION_CAP = 8
-const KP_LACTATE_POSITION_CAP = 10
-
-export function detectKeratosePilaire(
-  inci: string | null | undefined,
-  kind: ProductKind,
-  hoistedIngredients?: readonly string[]
+export function detectKeratosePilaireFromName(
+  name: string | null | undefined,
+  description: string | null | undefined
 ): SkincareProductTagSlug[] {
-  if (!KP_ELIGIBLE_KINDS.has(kind)) return []
-  const ingredients = resolveIngredients(inci, hoistedIngredients)
-  if (ingredients.length === 0) return []
-
-  // Trigger A: urea at functional concentration (top 8)
-  const ureaCap = Math.min(ingredients.length, KP_UREA_POSITION_CAP)
-  for (let i = 0; i < ureaCap; i++) {
-    if (ingredients[i].includes('urea')) return [S.KERATOSE_PILAIRE]
-  }
-
-  // Trigger B: lactic acid + ammonium lactate combo (top 10 each)
-  const lactateCap = Math.min(ingredients.length, KP_LACTATE_POSITION_CAP)
-  let hasLactic = false
-  let hasAmmoniumLactate = false
-  for (let i = 0; i < lactateCap; i++) {
-    if (ingredients[i].includes('lactic acid')) hasLactic = true
-    if (ingredients[i].includes('ammonium lactate')) hasAmmoniumLactate = true
-    if (hasLactic && hasAmmoniumLactate) return [S.KERATOSE_PILAIRE]
-  }
-
-  return []
+  return matchesNamePositioning(name, description, KERATOSE_PILAIRE_POSITION_RE)
+    ? [S.KERATOSE_PILAIRE]
+    : []
 }

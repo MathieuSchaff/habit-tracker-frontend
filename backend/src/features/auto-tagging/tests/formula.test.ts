@@ -15,7 +15,7 @@ import {
   detectEczemaAtopieFromName,
   detectFiniMat,
   detectHyperpigmentationFromName,
-  detectKeratosePilaire,
+  detectKeratosePilaireFromName,
   detectNonGras,
   detectOcclusifTags,
   detectPeauGrasseFromName,
@@ -26,7 +26,7 @@ import {
   detectPrebiotique,
   detectProtection,
   detectReparateurFromName,
-  detectReparationCutanee,
+  detectReparationCutaneeFromName,
   detectRepulpant,
   detectRougeursVasculairesFromName,
   detectSansSavon,
@@ -267,89 +267,69 @@ describe('detectCernesPoches', () => {
   })
 })
 
-describe('detectKeratosePilaire', () => {
-  test('urea in top 8 + body-lotion → keratose-pilaire', () => {
-    expect(detectKeratosePilaire('Aqua, Urea, Glycerin, Petrolatum', 'body-lotion')).toContain(
-      S.KERATOSE_PILAIRE
-    )
+describe('detectKeratosePilaireFromName', () => {
+  const fire = (name: string, description = '') => detectKeratosePilaireFromName(name, description)
+
+  test('clinical KP term FR/EN (name or description) → keratose-pilaire', () => {
+    expect(fire('Crème SA', 'sujette à la kératose pilaire')).toContain(S.KERATOSE_PILAIRE)
+    expect(fire('Body Lotion', 'helps improve keratosis pilaris')).toContain(S.KERATOSE_PILAIRE)
   })
 
-  test('urea + body-oil → keratose-pilaire', () => {
-    expect(detectKeratosePilaire('Caprylic/Capric Triglyceride, Urea', 'body-oil')).toContain(
-      S.KERATOSE_PILAIRE
-    )
+  test('lay KP positioning (chicken skin / peau de poulet / body bumps) → keratose-pilaire', () => {
+    expect(fire('REMEDY for body bumps')).toContain(S.KERATOSE_PILAIRE)
+    expect(fire('Smoothing lotion', 'targets chicken skin')).toContain(S.KERATOSE_PILAIRE)
+    expect(fire('Lait corps', 'lisse la peau de poulet')).toContain(S.KERATOSE_PILAIRE)
   })
 
-  test('urea past position 8 (humectant trace) → not flagged', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectKeratosePilaire(`Aqua, ${filler}, Urea`, 'body-lotion')).toEqual([])
-  })
-
-  test('lactic acid + ammonium lactate combo → keratose-pilaire (AmLactin pattern)', () => {
-    expect(
-      detectKeratosePilaire('Aqua, Ammonium Lactate, Lactic Acid, Glycerin', 'body-lotion')
-    ).toContain(S.KERATOSE_PILAIRE)
-  })
-
-  test('lactic acid alone (no ammonium lactate) → not flagged (pH adjuster vs buffered)', () => {
-    expect(detectKeratosePilaire('Aqua, Glycerin, Lactic Acid, Petrolatum', 'body-lotion')).toEqual(
+  // The fix: urea is a ubiquitous dry-skin humectant. A urea / xerosis / repair lotion that
+  // never names KP must NOT fire the concern — only KP positioning does (ADR-0004). The
+  // detector reads name+description, never the INCI.
+  test('urea / xerosis / repair lotion without KP naming → not flagged', () => {
+    expect(fire('UreaRepair 30 Crème Corps', 'peaux très sèches, rugueuses et squameuses')).toEqual(
       []
     )
+    expect(fire('Xerial 10 Lait', "10% d'urée, peau de croco, exfolie squames")).toEqual([])
+    expect(fire('Kératosane 30 Gel Crème Anti-Callosités', 'pouvoir kératolytique')).toEqual([])
   })
 
-  test('urea in non-eligible kind (body-wash) → not flagged (rinse-off)', () => {
-    expect(detectKeratosePilaire('Aqua, Urea, Sodium Laureth Sulfate', 'body-wash')).toEqual([])
-  })
-
-  test('urea in hand-cream → not flagged (different concern domain)', () => {
-    expect(detectKeratosePilaire('Aqua, Urea, Glycerin', 'hand-cream')).toEqual([])
-  })
-
-  test('urea in face moisturizer → not flagged (not body kind)', () => {
-    expect(detectKeratosePilaire('Aqua, Urea, Glycerin', 'moisturizer')).toEqual([])
-  })
-
-  test('null/empty INCI → []', () => {
-    expect(detectKeratosePilaire(null, 'body-lotion')).toEqual([])
-    expect(detectKeratosePilaire('', 'body-lotion')).toEqual([])
+  test('null/empty → []', () => {
+    expect(detectKeratosePilaireFromName(null, null)).toEqual([])
+    expect(detectKeratosePilaireFromName('', '')).toEqual([])
   })
 })
 
-describe('detectReparationCutanee', () => {
-  test('panthenol in top 12 → reparation-cutanee', () => {
-    expect(detectReparationCutanee('Aqua, Glycerin, Panthenol')).toContain(S.REPARATION)
+describe('detectReparationCutaneeFromName', () => {
+  const fire = (name: string, description = '') =>
+    detectReparationCutaneeFromName(name, description)
+
+  test('named FR cica-repair line (name) → reparation-cutanee', () => {
+    expect(fire('Cicaplast Baume B5+ Ultra Réparateur')).toContain(S.REPARATION)
+    expect(fire('Cicalfate+ Crème Réparatrice')).toContain(S.REPARATION)
+    expect(fire('Cicabiafine Baume Multi-Réparation')).toContain(S.REPARATION)
   })
 
-  test('allantoin → reparation-cutanee', () => {
-    expect(detectReparationCutanee('Aqua, Allantoin, Glycerin')).toContain(S.REPARATION)
+  test('cicatris root / skin-damage words (description) → reparation-cutanee', () => {
+    expect(fire('Baume mains', 'soin cicatrisant pour peaux abîmées')).toContain(S.REPARATION)
+    expect(fire('Crème mains', 'répare les gerçures et crevasses')).toContain(S.REPARATION)
   })
 
-  test('centella asiatica extract → reparation-cutanee', () => {
-    expect(detectReparationCutanee('Aqua, Glycerin, Centella Asiatica Leaf Extract')).toContain(
-      S.REPARATION
-    )
+  // The fix: ubiquitous soothing actives in the INCI must NOT fire the concern — only
+  // name/claim positioning does (ADR-0004). The detector reads name+description, never INCI.
+  test('soothing actives without repair positioning → not flagged', () => {
+    expect(fire('Sérum hydratant niacinamide', 'à la centella et au panthénol')).toEqual([])
+    expect(fire('Crème apaisante', 'allantoïne, bisabolol')).toEqual([])
   })
 
-  test('madecassoside (centella isolate) → reparation-cutanee', () => {
-    expect(detectReparationCutanee('Aqua, Madecassoside, Glycerin')).toContain(S.REPARATION)
+  // Bare repair / réparateur / snail are the gold-set fork FP (barrier-repair, soothing
+  // lead, cell-renewal). Excluded by omission — they need a lesion/cica signal to fire.
+  test('bare repair/réparateur/snail lead without lesion signal → not flagged', () => {
+    expect(fire('Snail Mucin 95 Essence')).toEqual([])
+    expect(fire('Beta Panthenol Repair Serum', 'répare la barrière')).toEqual([])
   })
 
-  test('bisabolol → reparation-cutanee', () => {
-    expect(detectReparationCutanee('Aqua, Glycerin, Bisabolol')).toContain(S.REPARATION)
-  })
-
-  test('actif past position 12 (texture polish trace) → not flagged', () => {
-    const filler = Array.from({ length: 12 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectReparationCutanee(`Aqua, ${filler}, Panthenol`)).toEqual([])
-  })
-
-  test('clean INCI without repair actifs → not flagged', () => {
-    expect(detectReparationCutanee('Aqua, Glycerin, Niacinamide, Hyaluronic Acid')).toEqual([])
-  })
-
-  test('null/empty INCI → []', () => {
-    expect(detectReparationCutanee(null)).toEqual([])
-    expect(detectReparationCutanee('')).toEqual([])
+  test('null/empty → []', () => {
+    expect(detectReparationCutaneeFromName(null, null)).toEqual([])
+    expect(detectReparationCutaneeFromName('', '')).toEqual([])
   })
 })
 

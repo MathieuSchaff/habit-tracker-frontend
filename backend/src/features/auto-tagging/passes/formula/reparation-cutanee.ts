@@ -1,38 +1,29 @@
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
-import { resolveIngredients } from '../../lib/ingredient-resolver'
+import { matchesNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Cicatrisation / anti-inflammation actifs. Distinct from `barriere-cutanee`
-// (algo-derm, keys on ceramide + cholesterol lipid composition). Position
-// cap 12: these actifs are typically dosed 0.1-2 % and stay early enough in
-// INCI when functional; past that, they're texture polish / preservative
-// boosters.
+// Positioning gate for `reparation-cutanee` (lesion / post-procedure repair concern).
+// Was an INCI top-12 detector on ubiquitous soothing actives (panthenol ~24%, allantoin
+// ~17%, centella) → fired on 40% of the catalogue, P=0.053 on the gold set. Doctrine
+// (ADR-0004, R5): a concern reports the marketed positioning, not actant presence. The
+// gold set forks near-identical products on the *lead* claim — barrier-repair → barriere-
+// cutanee, cica/soothing lead → apaisant, cell-renewal → anti-age — so a bare repair /
+// réparateur / snail token floods FP (P=0.125). This gate keys only on lesion-repair lead:
+// the named FR pharmacy cica lines (Cicalfate/Cicaplast/Cicabiafine/Cicaderma), the
+// `cicatris` root, and skin-damage words (gerçures/crevasses/escarres). Gold P 0.053→0.571,
+// R→0.800, F1→0.667; corpus fire-rate 40%→2.5%. The 3 residual FP (incidental "cicatris" in
+// an after-sun, "gerçures" in a lip balm, the non-repair SKU of a named line) are the
+// incidental-claim-vs-lead boundary, left uncut like the sibling R5 gates; 1 FN is a snail
+// repair cream with no lesion word. Bare repair/snail/"peaux abîmées" stay out — each
+// re-introduces the fork FP the gold set excludes.
+const REPARATION_POSITION_RE =
+  /cicatris|cicalfate|cicaplast|cicabiafine|cicaderma|\bgerç|\bgerc|crevass|escarre/i
 
-const REPARATION_CUTANEE_PATTERNS = [
-  'panthenol', // provitamin B5: covers d-panthenol, dl-panthenol
-  'allantoin',
-  'centella asiatica', // catches "centella asiatica extract", "leaf extract", etc.
-  'asiaticoside', // centella-derived isolate
-  'madecassoside',
-  'bisabolol', // alpha-bisabolol
-]
-
-const REPARATION_POSITION_CAP = 12
-
-export function detectReparationCutanee(
-  inci: string | null | undefined,
-  hoistedIngredients?: readonly string[]
+export function detectReparationCutaneeFromName(
+  name: string | null | undefined,
+  description: string | null | undefined
 ): SkincareProductTagSlug[] {
-  const ingredients = resolveIngredients(inci, hoistedIngredients)
-  if (ingredients.length === 0) return []
-  const limit = Math.min(ingredients.length, REPARATION_POSITION_CAP)
-
-  for (let i = 0; i < limit; i++) {
-    if (REPARATION_CUTANEE_PATTERNS.some((pattern) => ingredients[i].includes(pattern))) {
-      return [S.REPARATION]
-    }
-  }
-  return []
+  return matchesNamePositioning(name, description, REPARATION_POSITION_RE) ? [S.REPARATION] : []
 }
