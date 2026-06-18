@@ -12,18 +12,25 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // cutanee, cica/soothing lead → apaisant, cell-renewal → anti-age — so a bare repair /
 // réparateur / snail token floods FP (P=0.125). This gate keys only on lesion-repair lead:
 // the named FR pharmacy cica lines (Cicalfate/Cicaplast/Cicabiafine/Cicaderma), the
-// `cicatris` root, and skin-damage words (gerçures/crevasses/escarres). Gold P 0.053→0.571,
-// R→0.800, F1→0.667; corpus fire-rate 40%→2.5%. The 3 residual FP (incidental "cicatris" in
-// an after-sun, "gerçures" in a lip balm, the non-repair SKU of a named line) are the
-// incidental-claim-vs-lead boundary, left uncut like the sibling R5 gates; 1 FN is a snail
-// repair cream with no lesion word. Bare repair/snail/"peaux abîmées" stay out — each
-// re-introduces the fork FP the gold set excludes.
+// `cicatris` root, and skin-damage words (gerçures/crevasses/escarres). An EXCLUSION_RE drops
+// two domains where those tokens are incidental rather than the lead — dry-feet xérose ("pieds
+// secs", a non-repair Cicabiafine SKU) and after-sun ("cicatris" incidental) — both verified
+// 0 TP loss on gold + corpus. Gold P 0.053→0.571→0.800, R 0.800, F1 0.727; fire-rate 40%→2.5%.
+// 1 residual FP (incidental "gerçures" in a lip-SPF stick) left uncut: excluding `lèvres` would
+// kill the atrix hand-repair TP. 1 FN: a snail repair cream with no lesion word. Bare
+// repair/snail/"peaux abîmées" stay out — each re-introduces the fork FP the gold set excludes.
 const REPARATION_POSITION_RE =
   /cicatris|cicalfate|cicaplast|cicabiafine|cicaderma|\bgerç|\bgerc|crevass|escarre/i
+
+// Distinct domains where the lesion-repair tokens above are incidental, not the lead.
+// `lèvres` is NOT excluded — it would cut the atrix hand-repair TP.
+const REPARATION_EXCLUSION_RE = /pieds\s+secs|apr[èe]s[- ]?soleil|after[- ]?sun/i
 
 export function detectReparationCutaneeFromName(
   name: string | null | undefined,
   description: string | null | undefined
 ): SkincareProductTagSlug[] {
-  return matchesNamePositioning(name, description, REPARATION_POSITION_RE) ? [S.REPARATION] : []
+  return matchesNamePositioning(name, description, REPARATION_POSITION_RE, REPARATION_EXCLUSION_RE)
+    ? [S.REPARATION]
+    : []
 }
