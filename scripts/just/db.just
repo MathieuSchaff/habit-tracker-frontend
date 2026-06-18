@@ -1,5 +1,5 @@
 import '_vars.just'
-import 'audit.just'
+import 'audit/main.just'
 
 # Database recipes.
 # TARGET=dev (default) | prod. Confirmation interactive sur prod :
@@ -98,17 +98,9 @@ db-seed-update:
     $COMPOSE exec -w /app/backend api bun run src/db/seed/seeders/seed-core.ts --update 2>&1 | tee "$LOG"
     printf "{{GREEN}}✓ CORE seed updated ($TARGET) — log: .audit-out/db/seed.log{{NC}}\n"
 
-# Alias — idempotent mode is default since Phase 5d
-[group('db')]
-db-seed-merge: db-seed
-
 # Seed + audit (recommended after reseed). Composite, inherits TARGET.
 [group('db')]
 db-seed-safe: db-seed audit-db
-
-# Backup + idempotent delta push + audit. Composite, inherits TARGET.
-[group('db')]
-db-seed-merge-safe: db-backup db-seed-merge audit-db
 
 # Fix tag-domain then persist dev snapshot in one command. WRITE=1 applies (else dry no-op). Dev-only.
 [group('catalog')]

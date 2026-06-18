@@ -65,19 +65,6 @@ ingest-incidecoder phase:
 # ─── Maintenance produits ───────────────────────────────────────────────────
 # audit = rapport seul · dedupe = édite les fichiers seed · scan = lit un dump DB. Aucun n'écrit la DB live.
 
-# Scanne les produits → doublons, descriptions vides, INCI manquante, casse douteuse. Lecture seule. Env: WRITE → output/imported-products-audit.{json,md} (sinon console).
-[group('audit')]
-audit-imported-products:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE (output/)" || echo "console")
-    printf "{{CYAN}}Audit imported products ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/audit-imported-products.ts \
-        ${WRITE:+--write}
-
 # Repère le même produit en plusieurs tailles dans les .seed.ts (-400ml, -recharge…) → garde la canonique, supprime les variantes. Édite les seed. Env: APPLY (sans = dry-run).
 [group('catalog')]
 catalog-dedupe:

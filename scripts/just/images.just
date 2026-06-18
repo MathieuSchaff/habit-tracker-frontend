@@ -70,18 +70,6 @@ image-dump-orphans:
     printf "{{CYAN}}Dump orphan images to output/ ($TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/images/audit/dump-orphans.ts
 
-# Audit autoritatif CDN⇄DB : orphelins Bunny, refs DB cassées, échantillon de reachability. Read-only.
-[group('images')]
-audit-cdn:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    printf "{{CYAN}}Audit CDN⇄DB ($TARGET) → .audit-out/db/audit-cdn.$TARGET.md{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/images/audit/bunny.ts \
-        | tee "$(audit_out audit-cdn)"
-
 # Génère output/image-mapping.json depuis l'inventaire Bunny ∩ DB (prérequis de image-fix-refs). Env: DRY (sans = écrit le fichier).
 [group('images')]
 image-build-mapping:

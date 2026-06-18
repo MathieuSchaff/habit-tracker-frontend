@@ -10,19 +10,6 @@ import '_vars.just'
 #   APPLY=1 just inci-cleanup-all             # écrit les 3 cleanups
 #   APPLY=1 LIMIT=20 just inci-cleanup resplit-single-token
 
-# Audit corpus INCI : tokens non matchés, INCI pathologiques. Env: FULL.
-[group('audit')]
-audit-inci-quality:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    printf "{{CYAN}}Audit INCI quality ($TARGET)...{{NC}}\n"
-    $COMPOSE exec \
-        ${FULL:+-e INCI_AUDIT_FULL=1} \
-        -w /app/backend api bun run src/db/seed/inci/audit-quality.ts
-
 # Cleanup INCI one-shot. SCRIPT ∈ clean-inci | resplit-single-token | worst-match-prose.
 # Dry-run par défaut; APPLY=1 commit. Env: TARGET, APPLY, LIMIT (resplit).
 [group('inci')]
