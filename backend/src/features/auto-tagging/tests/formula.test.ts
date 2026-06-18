@@ -265,6 +265,30 @@ describe('detectCernesPoches', () => {
     expect(detectCernesPoches(null, 'eye-cream')).toEqual([])
     expect(detectCernesPoches('', 'eye-cream')).toEqual([])
   })
+
+  // Name gate (union): a product that names the concern fires regardless of kind or INCI —
+  // recovers FN eye serums/moisturizers that lack caffeine/peptides but lead on cernes/poches.
+  test('name positions cernes/poches → fires without INCI actives', () => {
+    expect(
+      detectCernesPoches('Aqua, Glycerin', 'serum', undefined, 'Sérum Anti-Cernes', 'défatigue')
+    ).toContain(S.CERNES_POCHES)
+    expect(
+      detectCernesPoches(
+        'Aqua, Glycerin',
+        'moisturizer',
+        undefined,
+        'Soin Yeux',
+        'réduit les poches'
+      )
+    ).toContain(S.CERNES_POCHES)
+  })
+
+  // Makeup names "anti-cernes" but covers rather than treats → excluded by name-gate exclusion.
+  test('concealer / tinted naming anti-cernes → excluded', () => {
+    expect(
+      detectCernesPoches('Aqua', 'primer', undefined, 'Correcteur Anti-Cernes Teinté', 'couvrance')
+    ).toEqual([])
+  })
 })
 
 describe('detectKeratosePilaireFromName', () => {
@@ -325,6 +349,13 @@ describe('detectReparationCutaneeFromName', () => {
   test('bare repair/réparateur/snail lead without lesion signal → not flagged', () => {
     expect(fire('Snail Mucin 95 Essence')).toEqual([])
     expect(fire('Beta Panthenol Repair Serum', 'répare la barrière')).toEqual([])
+  })
+
+  // EXCLUSION_RE: a lesion/cica token incidental to a distinct domain (dry-feet xérose,
+  // after-sun) must not fire — the lead is not lesion repair.
+  test('lesion token incidental to dry-feet / after-sun domain → excluded', () => {
+    expect(fire('Cicabiafine Crème Pieds Secs', 'réparatrice pour les pieds secs')).toEqual([])
+    expect(fire('Fluide Après-Soleil', 'favorise la cicatrisation')).toEqual([])
   })
 
   test('null/empty → []', () => {

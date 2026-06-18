@@ -1,6 +1,7 @@
 import globalData from '@csstools/postcss-global-data'
 import purgecss from '@fullhuman/postcss-purgecss'
 import customMedia from 'postcss-custom-media'
+import nesting from 'postcss-nesting'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -8,6 +9,9 @@ export default {
   plugins: [
     globalData({ files: ['src/styles/tokens/breakpoints.css'] }),
     customMedia(),
+    // Flatten nesting before PurgeCSS sees the CSS. Vite only flattens `&` via esbuild
+    // after PostCSS, so PurgeCSS would otherwise get raw `&` selectors and drop them.
+    nesting(),
     isProd &&
       purgecss({
         content: ['./index.html', './src/**/*.{ts,tsx,html}'],
@@ -15,6 +19,8 @@ export default {
         safelist: {
           standard: [/^is-/, /^has-/, /^data-/, /^aria-/],
           deep: [/^katex/, /^ProseMirror/],
+          // BEM modifiers are built dynamically (`badge--${variant}`), so the extractor
+          // only sees the `badge--` prefix. Keep any selector ending in `--modifier`.
           greedy: [/--[a-z][a-z0-9-]*$/],
         },
         keyframes: true,

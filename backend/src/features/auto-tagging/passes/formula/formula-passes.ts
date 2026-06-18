@@ -112,7 +112,7 @@ export const FORMULA_PASSES: readonly Pass[] = [
     detectStepNettoyage1(c.inci, c.kind, c.normalizedIngredients)
   ),
   formulaPass('formula:cernes-poches', (c) =>
-    detectCernesPoches(c.inci, c.kind, c.normalizedIngredients)
+    detectCernesPoches(c.inci, c.kind, c.normalizedIngredients, c.name, c.description)
   ),
   formulaPass('formula:fini-mat', (c) => detectFiniMat(c.inci, c.normalizedIngredients)),
   formulaPass('formula:texture-riche', (c) => detectTextureRiche(c.inci, c.normalizedIngredients)),

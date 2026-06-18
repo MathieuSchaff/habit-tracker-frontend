@@ -16,7 +16,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // gate missed them (wrong kind / lactate unpaired). No kind gate: KP is named on body and
 // face products alike, and naming alone is precise (the 5 corpus hits are all true KP).
 const KERATOSE_PILAIRE_POSITION_RE =
-  /k[ée]ratose\s+pilaire|keratosis\s+pilaris|peau\s+de\s+poulet|chicken\s+skin|\bbody\s+bumps?\b|\bbumpy\s+skin\b/i
+  /k[ée]ratose\s+(?:pilaire|folliculaire)|keratosis\s+pilaris|follicular\s+keratosis|peau\s+de\s+poulet|chicken\s+skin|\bbody\s+bumps?\b|\bbumpy\s+skin\b/i
 
 export function detectKeratosePilaireFromName(
   name: string | null | undefined,
