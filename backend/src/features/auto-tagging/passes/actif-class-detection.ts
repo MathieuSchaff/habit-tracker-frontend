@@ -17,6 +17,7 @@ import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { isAlphabeticalINCI, resolveIngredients } from '../lib/ingredient-resolver'
+import type { TagEvidence } from '../lib/pass-types'
 
 const DEFAULT_POSITION_CAP = 12
 
@@ -257,43 +258,82 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   },
 ]
 
+// Slug-only view, kept as the stable API for the 6 callers + safety-net tests that
+// only need membership. Insertion order mirrors the evidence map, so output is
+// byte-identical to the pre-evidence implementation.
 export function detectActifClasses(
   inci: string | null | undefined,
   hoistedIngredients?: readonly string[],
   kind?: ProductKind
 ): SkincareProductTagSlug[] {
+  return [...detectActifClassesWithEvidence(inci, hoistedIngredients, kind).keys()]
+}
+
+// Same matching as detectActifClasses, but records the triggering token, its INCI
+// position, and the cap rule that admitted it — so audits can explain (and second-
+// guess) each hit. First def that fires for a slug wins, mirroring the old Set
+// dedup; within a def the earliest in-window token is the evidence.
+export function detectActifClassesWithEvidence(
+  inci: string | null | undefined,
+  hoistedIngredients?: readonly string[],
+  kind?: ProductKind
+): Map<SkincareProductTagSlug, TagEvidence> {
+  const evidence = new Map<SkincareProductTagSlug, TagEvidence>()
   const resolved = resolveIngredients(inci, hoistedIngredients)
   // Guard against empty tokens from hoisted callers.
   const ingredients = resolved.filter(Boolean)
-  if (ingredients.length === 0) return []
+  if (ingredients.length === 0) return evidence
 
   // Korean brands often list INCI alphabetically; position caps are meaningless then.
   const isAlpha = isAlphabeticalINCI(ingredients)
   const isRinseOffLike = kind !== undefined && RINSE_OFF_LIKE_KINDS.has(kind)
 
-  const found = new Set<SkincareProductTagSlug>()
   for (const def of ACTIF_CLASS_DEFS) {
+    if (evidence.has(def.slug)) continue
     const baseCap =
       isRinseOffLike && def.positionCapRinseOff !== undefined
         ? def.positionCapRinseOff
         : (def.positionCap ?? DEFAULT_POSITION_CAP)
     const cap = isAlpha ? ingredients.length : Math.min(ingredients.length, baseCap)
-    const cappedIngredients = ingredients.slice(0, cap)
-    const hit = def.exact
-      ? cappedIngredients.some((ing) => def.patterns.includes(ing))
-      : def.patterns.some((p) => cappedIngredients.some((ing) => ing.includes(p)))
-    if (hit) {
-      found.add(def.slug)
+    for (let i = 0; i < cap; i++) {
+      const ing = ingredients[i]
+      const hit = def.exact ? def.patterns.includes(ing) : def.patterns.some((p) => ing.includes(p))
+      if (hit) {
+        evidence.set(def.slug, {
+          matchedToken: ing,
+          position: i,
+          sourceField: 'inci',
+          rule: ruleLabel(def, isAlpha, isRinseOffLike, baseCap),
+        })
+        break
+      }
     }
   }
 
   const rawLower = inci?.toLowerCase() ?? ''
   if (rawLower) {
     for (const def of ACTIF_CLASS_DEFS) {
-      if (!RAW_SCAN_SLUGS.has(def.slug) || found.has(def.slug)) continue
-      if (def.patterns.some((p) => rawLower.includes(p))) found.add(def.slug)
+      if (!RAW_SCAN_SLUGS.has(def.slug) || evidence.has(def.slug)) continue
+      const matched = def.patterns.find((p) => rawLower.includes(p))
+      if (matched !== undefined) {
+        // Raw string is unsplit, so no position; the pattern is the only token we have.
+        evidence.set(def.slug, { matchedToken: matched, sourceField: 'inci', rule: 'raw-scan' })
+      }
     }
   }
 
-  return [...found]
+  return evidence
+}
+
+function ruleLabel(
+  def: ActifClassDef,
+  isAlpha: boolean,
+  isRinseOffLike: boolean,
+  baseCap: number
+): string {
+  if (isAlpha) return 'alphabetical'
+  const cap = Number.isFinite(baseCap) ? String(baseCap) : 'inf'
+  if (isRinseOffLike && def.positionCapRinseOff !== undefined) return `positionCapRinseOff:${cap}`
+  if (def.positionCap === undefined) return `positionCap:${DEFAULT_POSITION_CAP}(default)`
+  return `positionCap:${cap}`
 }

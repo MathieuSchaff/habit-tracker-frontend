@@ -93,10 +93,11 @@ export function detectAllAutoTags(
   sink?.onMerged?.(byTag)
   primaryPromote(byTag, product.kind)
 
-  // Strip `confidence`: downstream consumers use only (tagSlug, relevance, source).
-  return [...byTag.values()].map(({ tagSlug, relevance, source }) => ({
+  // Strip `confidence` (internal to promotion); forward `evidence` for audits.
+  return [...byTag.values()].map(({ tagSlug, relevance, source, evidence }) => ({
     tagSlug,
     relevance,
     source,
+    ...(evidence ? { evidence } : {}),
   }))
 }

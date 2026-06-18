@@ -14,7 +14,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // NAME only — precision ~1.0 by construction, the Aurore marketed-for doctrine. Recall
 // is deliberately conservative (description claims are too noisy to trust without a
 // gold set); the oily-skin FUNCTION stays covered by pores-sebum / sebo-regulateur.
-const PEAU_GRASSE_POSITION_RE = /peaux? grasses?\b|oily skin|for oily|mixtes? (a|à) grasse/i
+export const PEAU_GRASSE_POSITION_RE = /peaux? grasses?\b|oily skin|for oily|mixtes? (a|à) grasse/i
 
 export function detectPeauGrasseFromName(
   name: string | null | undefined,

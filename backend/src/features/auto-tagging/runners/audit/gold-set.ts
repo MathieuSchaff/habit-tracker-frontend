@@ -39,6 +39,7 @@ import {
   type PerTagMetrics,
 } from '../../gold-set/metrics'
 import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
+import type { TagEvidence } from '../../lib/pass-types'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
 import { pad, rpad } from '../fmt'
@@ -48,6 +49,17 @@ const GOLD_SET_PATH =
   path.resolve(import.meta.dir, '..', '..', 'data', 'gold-set', 'annotations.json')
 const CSV_OUT = process.env.CSV_OUT
 const STRICT = process.env.STRICT === '1'
+
+// Per-tag cap on the FP/FN sample so a noisy tag cannot flood the report; the
+// dropped count is always printed (no silent truncation).
+const SAMPLE = 12
+
+interface GoldFinding {
+  productSlug: string
+  kind: string
+  evidence?: TagEvidence
+  inci: string | null
+}
 
 async function main() {
   console.log(`📐 Gold-set benchmark`)
@@ -123,7 +135,10 @@ async function main() {
     )
   }
 
-  const rowsPerProduct = new Map<string, Map<GoldSetFocusTag, { emitted: boolean; conf: number }>>()
+  const rowsPerProduct = new Map<
+    string,
+    Map<GoldSetFocusTag, { emitted: boolean; conf: number; evidence?: TagEvidence }>
+  >()
   let withInci = 0
 
   for (const p of dbProducts) {
@@ -159,15 +174,22 @@ async function main() {
       knownConcentrations: concentrationsByProduct.get(p.id),
     })
     const emittedSlugs = new Set<string>()
-    for (const pair of orchPairs) emittedSlugs.add(pair.tagSlug)
+    const evidenceBySlug = new Map<string, TagEvidence>()
+    for (const pair of orchPairs) {
+      emittedSlugs.add(pair.tagSlug)
+      if (pair.evidence) evidenceBySlug.set(pair.tagSlug, pair.evidence)
+    }
 
-    const predByTag = new Map<GoldSetFocusTag, { emitted: boolean; conf: number }>()
+    const predByTag = new Map<
+      GoldSetFocusTag,
+      { emitted: boolean; conf: number; evidence?: TagEvidence }
+    >()
     for (const t of GOLD_SET_FOCUS_TAGS) {
       const emitted = emittedSlugs.has(t)
       // Use algo-derm confidence when available; deterministic passes get p=1.0/p=0.0.
       const algoConf = algoConfBySlug.get(t)
       const conf = emitted ? (algoConf !== undefined ? algoConf : 1) : 0
-      predByTag.set(t, { emitted, conf })
+      predByTag.set(t, { emitted, conf, evidence: evidenceBySlug.get(t) })
     }
     rowsPerProduct.set(p.slug, predByTag)
   }
@@ -183,6 +205,10 @@ async function main() {
   if (CSV_OUT) {
     csvRows.push('product_slug,tag_slug,predicted,confidence,gold_label,present,absent')
   }
+
+  // FP = predicted yet gold-absent, FN = gold-present yet not predicted. Carried with
+  // the trigger evidence + INCI so the bench points at WHY each miss happened.
+  const fpFnByTag = new Map<GoldSetFocusTag, { fp: GoldFinding[]; fn: GoldFinding[] }>()
 
   for (const tag of GOLD_SET_FOCUS_TAGS) {
     const samples: { p: number; y: 0 | 1; predicted: boolean }[] = []
@@ -209,6 +235,23 @@ async function main() {
 
       if (y === null) continue
       samples.push({ p: tagPred.conf, y, predicted: tagPred.emitted })
+
+      if ((y === 0 && tagPred.emitted) || (y === 1 && !tagPred.emitted)) {
+        const dbp = dbBySlug.get(a.productSlug)
+        const finding: GoldFinding = {
+          productSlug: a.productSlug,
+          kind: dbp?.kind ?? a.kind,
+          evidence: tagPred.evidence,
+          inci: dbp?.inci ?? null,
+        }
+        let bucket = fpFnByTag.get(tag)
+        if (!bucket) {
+          bucket = { fp: [], fn: [] }
+          fpFnByTag.set(tag, bucket)
+        }
+        if (y === 0) bucket.fp.push(finding)
+        else bucket.fn.push(finding)
+      }
     }
     perTag.push(computePerTagMetrics(tag, samples))
   }
@@ -258,6 +301,27 @@ async function main() {
     )
   }
 
+  // Actionable detail behind the aggregate P/R: which products miss, with the
+  // trigger that fired (FP) and the INCI to eyeball (FP + FN). Printed by default.
+  const withFindings = GOLD_SET_FOCUS_TAGS.map((t) => [t, fpFnByTag.get(t)] as const).filter(
+    ([, b]) => b && (b.fp.length > 0 || b.fn.length > 0)
+  )
+  if (withFindings.length > 0) {
+    console.log(`\n🔎 FP/FN par tag (trigger + INCI pour revue)`)
+    for (const [tag, bucket] of withFindings) {
+      if (!bucket) continue
+      console.log(`\n── ${tag} · FP=${bucket.fp.length} FN=${bucket.fn.length} ──`)
+      if (bucket.fp.length > 0) {
+        console.log(`  FP (gold=absent mais prédit) :`)
+        printGoldFindings(bucket.fp, true)
+      }
+      if (bucket.fn.length > 0) {
+        console.log(`  FN (gold=present mais non prédit) :`)
+        printGoldFindings(bucket.fn, false)
+      }
+    }
+  }
+
   if (CSV_OUT) {
     await Bun.write(CSV_OUT, `${csvRows.join('\n')}\n`)
     console.log(`\n📄 CSV écrit : ${CSV_OUT} (${csvRows.length - 1} lignes)`)
@@ -269,6 +333,23 @@ async function main() {
 function fmt(x: number): string {
   if (Number.isNaN(x)) return '—'
   return x.toFixed(3)
+}
+
+function printGoldFindings(findings: GoldFinding[], showTrigger: boolean): void {
+  for (const f of findings.slice(0, SAMPLE)) {
+    console.log(`    [${f.kind}] ${f.productSlug}`)
+    if (showTrigger) {
+      const ev = f.evidence
+      // position is 0-based internally; display 1-based to match how INCI reads.
+      const trigger = ev?.matchedToken
+        ? `${ev.matchedToken}${ev.position !== undefined ? ` · pos ${ev.position + 1}` : ''}${ev.rule ? ` · ${ev.rule}` : ''}`
+        : '(pas de trigger — pass sans évidence)'
+      console.log(`       ${trigger}`)
+    }
+    const snip = f.inci ? f.inci.slice(0, 160) : '(no inci)'
+    console.log(`       ${snip}${(f.inci?.length ?? 0) > 160 ? '…' : ''}`)
+  }
+  if (findings.length > SAMPLE) console.log(`    … +${findings.length - SAMPLE} de plus`)
 }
 
 if (import.meta.main || process.argv[1]?.endsWith('audit-gold-set.ts')) {

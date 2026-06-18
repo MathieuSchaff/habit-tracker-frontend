@@ -11,7 +11,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // No exclusion: unlike rougeurs (camouflage makeup), every candidate exclusion token here
 // (brightening, sunscreen, makeup-remover, non-comedogenic) hit gold-positives. The 17
 // residual FP are gold-set-strict boundary cases. Gold set: P 0.170→0.807, R 0.211→1.000.
-const PORES_SEBUM_POSITION_RE =
+export const PORES_SEBUM_POSITION_RE =
   /\bpor[eo]s?\b|s[eé]b(um|[uo]m|orr)|matif|brillan[ct]|\bblackhead|\bpoints?\s+noirs?\b|oil[\s-]control|\bpeau[sx]?\s+grasse\b|grain\s+de\s+peau|\bargile\b|\bcom[eé]don|mixtes?\s+[aà]\s+grasse|nettoyant\b.{0,30}r[eé]gulat|r[eé]gulat\w*.{0,30}nettoyant/i
 
 export function detectPoresSebumFromName(

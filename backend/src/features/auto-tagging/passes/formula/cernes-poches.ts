@@ -2,7 +2,8 @@ import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { resolveIngredients } from '../../lib/ingredient-resolver'
-import { matchesNamePositioning } from './pass-helpers'
+import type { TagEvidence } from '../../lib/pass-types'
+import { matchNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
@@ -28,6 +29,13 @@ const CERNES_INCI_PATTERNS = [
 
 const CERNES_POSITION_CAP = 12
 
+export interface CernesHit {
+  slug: SkincareProductTagSlug
+  evidence: TagEvidence
+}
+
+// Slug-only view (tested directly in formula.test.ts). Mirrors the evidence
+// variant's order: name branch wins, INCI fallback second.
 export function detectCernesPoches(
   inci: string | null | undefined,
   kind: ProductKind,
@@ -35,16 +43,37 @@ export function detectCernesPoches(
   name?: string | null,
   description?: string | null
 ): SkincareProductTagSlug[] {
-  if (matchesNamePositioning(name, description, CERNES_POSITION_RE, CERNES_EXCLUSION_RE)) {
-    return [S.CERNES_POCHES]
-  }
+  return detectCernesPochesWithEvidence(inci, kind, hoistedIngredients, name, description).map(
+    (h) => h.slug
+  )
+}
+
+export function detectCernesPochesWithEvidence(
+  inci: string | null | undefined,
+  kind: ProductKind,
+  hoistedIngredients?: readonly string[],
+  name?: string | null,
+  description?: string | null
+): CernesHit[] {
+  const nameEv = matchNamePositioning(name, description, CERNES_POSITION_RE, CERNES_EXCLUSION_RE)
+  if (nameEv) return [{ slug: S.CERNES_POCHES, evidence: nameEv }]
   if (kind !== 'eye-cream') return []
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
   const cap = Math.min(ingredients.length, CERNES_POSITION_CAP)
   for (let i = 0; i < cap; i++) {
     if (CERNES_INCI_PATTERNS.some((p) => ingredients[i].includes(p))) {
-      return [S.CERNES_POCHES]
+      return [
+        {
+          slug: S.CERNES_POCHES,
+          evidence: {
+            matchedToken: ingredients[i],
+            position: i,
+            sourceField: 'inci',
+            rule: `cernes-inci-cap:${CERNES_POSITION_CAP}`,
+          },
+        },
+      ]
     }
   }
   return []

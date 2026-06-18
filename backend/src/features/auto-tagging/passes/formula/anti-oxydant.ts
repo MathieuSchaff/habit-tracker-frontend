@@ -16,7 +16,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // vitamine E (ubiquitous stabilizer) — those overlap other claims and would
 // re-introduce the broad firing this unwire removes. Absorbs the former
 // `protection` antioxidant double-tag (folded 2026-06-13).
-const ANTI_OXYDANT_POSITION_RE =
+export const ANTI_OXYDANT_POSITION_RE =
   /anti[-\s]?oxyd|antioxid|f[eé]rulique|ferulic|resv[eé]ratrol|id[eé]b[eé]none|ubiquinone|coenzyme\s?q.?10|\bq10\b|ergothion[eé]ine|polyph[eé]nol/i
 
 export function detectAntiOxydantFromName(

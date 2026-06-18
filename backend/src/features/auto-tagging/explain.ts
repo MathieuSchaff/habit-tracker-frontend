@@ -13,6 +13,7 @@ import type {
   AutoTagProposal,
   AutoTagRelevance,
   AutoTagSource,
+  TagEvidence,
 } from './lib/pass-types'
 import {
   AUTO_TAG_ELIGIBLE_CATEGORIES,
@@ -29,6 +30,9 @@ interface ExplainProposal {
   relevance: AutoTagRelevance
   source: AutoTagSource
   confidence?: number
+  // Why this proposal fired: trigger token + INCI position + cap rule. Present
+  // only for passes that emit it (actif-class today).
+  evidence?: TagEvidence
   // mergeProposal outcome: did this proposal win or get displaced?
   outcome: 'won' | 'superseded'
   // Present when superseded: the winning proposal's identity.
@@ -108,6 +112,7 @@ export function explainInci(
         relevance: p.relevance,
         source: p.source,
         ...(p.confidence !== undefined ? { confidence: p.confidence } : {}),
+        ...(p.evidence ? { evidence: p.evidence } : {}),
         outcome: proposalWon ? ('won' as const) : ('superseded' as const),
         ...(proposalWon || !winner
           ? {}

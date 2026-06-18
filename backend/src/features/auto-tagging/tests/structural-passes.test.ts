@@ -13,7 +13,7 @@ import { normalizeBrand } from '../../../db/schema/products/brand-certifications
 import { buildPassContext } from '../lib/build-pass-context'
 import { asProposals } from '../lib/pass-helpers'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
-import { detectActifClasses } from '../passes/actif-class-detection'
+import { detectActifClassesWithEvidence } from '../passes/actif-class-detection'
 import { actifClassPass } from '../passes/actif-class-pass'
 import { computeAvoidCandidates } from '../passes/auto-tag-avoid'
 import { avoidPass } from '../passes/auto-tag-avoid-pass'
@@ -51,12 +51,16 @@ function makeCtx(
 const ACTIF_INCI = 'Aqua, Niacinamide, Ascorbic Acid, Tocopherol, Glycerin, Squalane'
 
 describe('actifClassPass', () => {
-  test('wraps detectActifClasses output with source=actif-class', () => {
+  test('wraps detectActifClassesWithEvidence output with source=actif-class + evidence', () => {
     const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'skincare' })
-    const expected = asProposals(
-      detectActifClasses(ctx.inci, ctx.normalizedIngredients, ctx.kind),
-      'actif-class'
-    )
+    const expected = [
+      ...detectActifClassesWithEvidence(ctx.inci, ctx.normalizedIngredients, ctx.kind),
+    ].map(([tagSlug, evidence]) => ({
+      tagSlug,
+      relevance: 'secondary' as const,
+      source: 'actif-class' as const,
+      evidence,
+    }))
     expect(actifClassPass.run(ctx, [])).toEqual(expected)
   })
 

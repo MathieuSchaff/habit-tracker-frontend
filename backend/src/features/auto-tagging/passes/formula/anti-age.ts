@@ -12,7 +12,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // No exclusion: the residual FP are vitamin-C products that genuinely co-claim anti-age
 // (gold-strict boundary), and every candidate exclusion killed real positives. Gold set:
 // P 0.310→0.933, R 0.292→0.944. `\baging\b` (not bare `aging`) avoids matching "packaging".
-const ANTI_AGE_POSITION_RE =
+export const ANTI_AGE_POSITION_RE =
   /anti.?[âa]ge|anti.?ride|r[eé]tin(o|al)|bakuchiol|wrinkle|\baging\b|ridule/i
 
 export function detectAntiAgeFromName(

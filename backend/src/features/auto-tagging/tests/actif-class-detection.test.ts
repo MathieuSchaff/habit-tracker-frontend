@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 
-import { detectActifClasses } from '../passes/actif-class-detection'
+import { detectActifClasses, detectActifClassesWithEvidence } from '../passes/actif-class-detection'
 
 describe('actif-class-detection', () => {
   test('empty/null/whitespace INCI returns []', () => {
@@ -340,5 +340,49 @@ describe('actif-class-detection', () => {
     const filler = Array.from({ length: 9 }, (_, i) => `Filler${i + 1}`).join(', ')
     const inci = `Aqua, ${filler}, Urea`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
+  })
+})
+
+describe('detectActifClassesWithEvidence', () => {
+  test('empty INCI returns empty map', () => {
+    expect(detectActifClassesWithEvidence(null).size).toBe(0)
+    expect(detectActifClassesWithEvidence('   ').size).toBe(0)
+  })
+
+  test('keys() matches detectActifClasses output (wrapper parity)', () => {
+    const inci = 'Aqua, Glycolic Acid, Salicylic Acid, Hyaluronic Acid, Ceramide NP'
+    expect([...detectActifClassesWithEvidence(inci).keys()]).toEqual(detectActifClasses(inci))
+  })
+
+  test('Tabula-Rasa case: rinse-off cleanser AHA from deep lactic acid, admitted by looser rinse-off cap', () => {
+    // Lactic acid at pos 11 (0-based 10) would fail the leave-on cap (10) but passes
+    // the rinse-off cap (20) — the pH-adjuster false-positive flagged in audit obs 1.
+    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Lactic Acid, Hydroxyacetophenone`
+    const ev = detectActifClassesWithEvidence(inci, undefined, 'cleanser').get(
+      SKINCARE_PRODUCT_TAG_SLUGS.AHA
+    )
+    expect(ev).toBeDefined()
+    expect(ev?.matchedToken).toBe('lactic acid')
+    expect(ev?.position).toBe(11)
+    expect(ev?.sourceField).toBe('inci')
+    expect(ev?.rule).toBe('positionCapRinseOff:20')
+  })
+
+  test('same deep lactic acid in a leave-on is NOT AHA (leave-on cap 10)', () => {
+    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Lactic Acid`
+    expect(
+      detectActifClassesWithEvidence(inci, undefined, 'serum').has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+
+  test('retinol at top of leave-on: position 1, uncapped rule', () => {
+    const ev = detectActifClassesWithEvidence('Aqua, Retinol, Glycerin').get(
+      SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS
+    )
+    expect(ev?.matchedToken).toBe('retinol')
+    expect(ev?.position).toBe(1)
+    expect(ev?.rule).toBe('positionCap:inf')
   })
 })
