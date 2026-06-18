@@ -99,6 +99,30 @@ prod-psql:
 prod-psql-ro:
     ssh -t aurore 'docker exec -it -e PGOPTIONS="-c role=dev_readonly" app_db psql -U app -d appdb'
 
+# Apply a staged one-shot SQL fix from .db-fixes/ (gitignored). Atomic: -1 + ON_ERROR_STOP.
+# Dev keeps the file so you can review, then re-run with TARGET=prod. Prod runs over ssh
+# then archives the file to .db-fixes/applied/ so it can never be replayed by accident.
+# Usage: just db-fix .db-fixes/xxx.sql   →   TARGET=prod just db-fix .db-fixes/xxx.sql
+db-fix file:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [ -f "{{file}}" ] || { printf "{{RED}}❌ no file: {{file}}{{NC}}\n"; exit 1; }
+    TARGET="${TARGET:-dev}"
+    if [ "$TARGET" = "prod" ]; then
+        printf "{{RED}}⚠ PROD DATA FIX from {{file}} — tape 'PROD' pour confirmer{{NC}}\n"
+        read -r -p "> " C
+        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+        ssh aurore 'docker exec -i app_db psql -U app -d appdb -1 -v ON_ERROR_STOP=1' < "{{file}}"
+        DIR="$(dirname "{{file}}")/applied"
+        mkdir -p "$DIR"
+        DEST="$DIR/$(basename "{{file}}" .sql).$(date +%Y%m%d_%H%M%S).sql"
+        mv "{{file}}" "$DEST"
+        printf "{{GREEN}}✓ Applied on prod + archived → $DEST{{NC}}\n"
+    else
+        {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -1 -v ON_ERROR_STOP=1 < "{{file}}"
+        printf "{{GREEN}}✓ Applied on dev (file kept). Review, then: TARGET=prod just db-fix {{file}}{{NC}}\n"
+    fi
+
 # Recent security events (input-guard injection/XSS hits), last 30 days. Read-only via dev_readonly.
 prod-security:
     ssh aurore 'docker exec -e PGOPTIONS="-c role=dev_readonly" app_db psql -U app -d appdb -P pager=off -c "SELECT created_at, severity, event_type, field, route, left(payload,60) AS payload FROM security_events WHERE created_at > current_date - 30 ORDER BY created_at DESC LIMIT 20;"'

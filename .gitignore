@@ -117,3 +117,9 @@ backend/src/images/fetchers/*.ts
 # Audit outputs (knip + biome + tsc + cycles + fallow)
 .audit-out/
 reports/
+
+# =========================
+# Staged one-shot DB fixes (just db-fix) — never committed; README documents the convention
+# =========================
+.db-fixes/*
+!.db-fixes/README.md
