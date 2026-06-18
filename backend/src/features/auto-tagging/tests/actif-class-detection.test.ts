@@ -301,4 +301,44 @@ describe('actif-class-detection', () => {
       SKINCARE_PRODUCT_TAG_SLUGS.POLYPHENOLS
     )
   })
+
+  test('urea: exact-match detects pure urea', () => {
+    expect(detectActifClasses('Aqua, Urea, Glycerin')).toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
+  })
+
+  test('urea: exact-match excludes hydroxyethyl urea (humectant, not keratolytic)', () => {
+    expect(detectActifClasses('Aqua, Hydroxyethyl Urea, Glycerin')).not.toContain(
+      SKINCARE_PRODUCT_TAG_SLUGS.UREA
+    )
+  })
+
+  test('urea: exact-match excludes formaldehyde-releaser preservatives', () => {
+    expect(detectActifClasses('Aqua, Glycerin, Diazolidinyl Urea')).not.toContain(
+      SKINCARE_PRODUCT_TAG_SLUGS.UREA
+    )
+    expect(detectActifClasses('Aqua, Glycerin, Imidazolidinyl Urea')).not.toContain(
+      SKINCARE_PRODUCT_TAG_SLUGS.UREA
+    )
+  })
+
+  test('urea: exact-match excludes botanicals with `urea` substring (centaurea, purpurea)', () => {
+    expect(detectActifClasses('Aqua, Centaurea Cyanus Flower Extract')).not.toContain(
+      SKINCARE_PRODUCT_TAG_SLUGS.UREA
+    )
+    expect(detectActifClasses('Aqua, Echinacea Purpurea Extract')).not.toContain(
+      SKINCARE_PRODUCT_TAG_SLUGS.UREA
+    )
+  })
+
+  test('urea: position cap 12 — urea past pos 12 = trace humectant, not detected', () => {
+    const filler = Array.from({ length: 13 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Urea`
+    expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
+  })
+
+  test('urea: within top 12 detected', () => {
+    const filler = Array.from({ length: 9 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Urea`
+    expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
+  })
 })

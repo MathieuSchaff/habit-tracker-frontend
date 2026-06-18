@@ -227,18 +227,25 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     expect(slugs).toContain(S.NON_GRAS)
   })
 
-  test('urea body lotion (bodycare): keratose-pilaire fires', () => {
+  // keratose-pilaire moved to a name/claim gate (formula:keratose-pilaire-name); urea in
+  // the INCI no longer fires the concern — only KP positioning does. See
+  // passes/formula/keratose-pilaire.ts.
+  test('KP-named body lotion (bodycare): keratose-pilaire fires from name', () => {
     const slugs = slugsOf(
       detectAllAutoTags({
         inci: 'Aqua, Urea, Glycerin, Petrolatum',
         kind: 'body-lotion',
         category: 'bodycare',
+        name: 'Crème SA Anti-Rugosités',
+        description: 'pour peaux sujettes à la kératose pilaire',
       })
     )
     expect(slugs).toContain(S.KERATOSE_PILAIRE)
   })
 
-  test('plumping repair serum: repulpant + reparation-cutanee both fire', () => {
+  // reparation-cutanee moved to a name/claim gate (formula:reparation-cutanee-name);
+  // INCI actives alone no longer fire the concern — see passes/formula/reparation-cutanee.ts.
+  test('plumping serum: repulpant fires from INCI', () => {
     const slugs = slugsOf(
       detectAllAutoTags({
         inci: 'Aqua, Sodium Hyaluronate, Glycerin, Panthenol, Acetyl Hexapeptide-8',
@@ -247,7 +254,7 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
       })
     )
     expect(slugs).toContain(S.REPULPANT)
-    expect(slugs).toContain(S.REPARATION)
+    expect(slugs).not.toContain(S.REPARATION)
   })
 
   test('mattifying tinted prebiotic serum: prebiotique + fini-mat + pigments-verts fire', () => {

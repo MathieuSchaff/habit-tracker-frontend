@@ -40,6 +40,9 @@ const RINSE_OFF_LIKE_KINDS = new Set<ProductKind>([
 export interface ActifClassDef {
   slug: SkincareProductTagSlug
   patterns: string[]
+  // Match the whole INCI token instead of substring. Needed when the bare name
+  // is a substring of unrelated ingredients (urea vs hydroxyethyl urea / botanicals).
+  exact?: boolean
   // Tighter than default when the actif must be at functional concentration (acids).
   positionCap?: number
   // Looser cap for cleansers/exfoliants where actives sit deeper.
@@ -241,6 +244,17 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
     ],
     positionCap: Number.POSITIVE_INFINITY,
   },
+  {
+    slug: SKINCARE_PRODUCT_TAG_SLUGS.UREA,
+    // Exact match (mirrors algo-derm `^urea$`): substring `urea` would tag
+    // diazolidinyl/imidazolidinyl urea (preservatives), hydroxyethyl urea
+    // (humectant), and botanicals (centaurea, echinacea purpurea, sureau).
+    patterns: ['urea'],
+    exact: true,
+    // Cap 12 = algo-derm ACTIVE_POS_CAP for keratolytique. Not Infinity: trace
+    // urea is a humectant, only top-of-list urea is the keratolytic actif.
+    positionCap: 12,
+  },
 ]
 
 export function detectActifClasses(
@@ -265,7 +279,10 @@ export function detectActifClasses(
         : (def.positionCap ?? DEFAULT_POSITION_CAP)
     const cap = isAlpha ? ingredients.length : Math.min(ingredients.length, baseCap)
     const cappedIngredients = ingredients.slice(0, cap)
-    if (def.patterns.some((p) => cappedIngredients.some((ing) => ing.includes(p)))) {
+    const hit = def.exact
+      ? cappedIngredients.some((ing) => def.patterns.includes(ing))
+      : def.patterns.some((p) => cappedIngredients.some((ing) => ing.includes(p)))
+    if (hit) {
       found.add(def.slug)
     }
   }

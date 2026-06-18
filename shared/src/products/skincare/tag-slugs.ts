@@ -135,6 +135,7 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   PEPTIDES: 'peptides',
   POLYPHENOLS: 'polyphenols',
   TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+  UREA: 'urea',
 } as const
 
 export type SkincareProductTagSlug =

@@ -9,6 +9,7 @@ import { sanitizeUrl } from '../../../../lib/url'
 const Markdown = lazy(() => import('react-markdown'))
 
 import { Button } from '@/component/Button/Button'
+import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { RichText } from '@/component/Typography/RichText/RichText'
@@ -19,6 +20,7 @@ import { SuggestEditButton } from '@/features/discussions/components/SuggestEdit
 import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
 import { ProductSummary } from '@/features/products/components/ProductSummary/ProductSummary'
 import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
+import { deriveKpChips } from '@/features/products/kp-chips'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
@@ -94,6 +96,13 @@ export function ProductInfoTab() {
     [profileSlugs, product.tags]
   )
 
+  // KP bridge — positive mirror of `warnings`: surfaced live for a declared-KP
+  // profile only, derived from neutral signals, never stored as a product tag.
+  const kpChips = useMemo(
+    () => deriveKpChips({ profileSlugs, tags: product.tags, inci: product.inci }),
+    [profileSlugs, product.tags, product.inci]
+  )
+
   const safeUrl = sanitizeUrl(product.url)
   const externalDomain = getDomain(safeUrl)
 
@@ -113,6 +122,16 @@ export function ProductInfoTab() {
             .
           </span>
         </FormMessage>
+      )}
+
+      {(kpChips.bumps || kpChips.red) && (
+        <div className="product-kp-bridge">
+          <span className="product-kp-bridge__intro">
+            Pour votre profil {profileLabel('keratose-pilaire').toLowerCase()}, peut aider :
+          </span>
+          {kpChips.bumps && <Badge variant="chip">texture</Badge>}
+          {kpChips.red && <Badge variant="chip">rougeurs</Badge>}
+        </div>
       )}
 
       <ProductSummary

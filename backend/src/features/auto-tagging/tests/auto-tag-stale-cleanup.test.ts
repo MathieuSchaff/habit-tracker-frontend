@@ -63,10 +63,9 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     // for this product, otherwise the test confuses "preserved manual" with
     // "re-emitted auto"). `eczema` is a concern slug not derivable from this
     // INCI in the test fixture.
-    // `keratose-pilaire` is emitted by `formula/keratose-pilaire.ts` only when
-    // INCI contains urea or ammonium-lactate + lactic. RICH_INCI has neither,
-    // so the orchestrator never emits it — safe marker for "row the
-    // orchestrator does not own".
+    // `keratose-pilaire` is emitted by `formula/keratose-pilaire.ts` only when the
+    // name/description names KP. This fixture names neither, so the orchestrator never
+    // emits it — safe marker for "row the orchestrator does not own".
     const [manualDef] = await testDb
       .select()
       .from(productTagTypes)

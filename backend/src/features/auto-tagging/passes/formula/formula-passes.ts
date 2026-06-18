@@ -27,7 +27,7 @@ import {
   detectEczemaAtopieFromName,
   detectFiniMat,
   detectHyperpigmentationFromName,
-  detectKeratosePilaire,
+  detectKeratosePilaireFromName,
   detectNonGras,
   detectOcclusifTags,
   detectPeauGrasseFromName,
@@ -37,7 +37,7 @@ import {
   detectPrebiotique,
   detectProtection,
   detectReparateurFromName,
-  detectReparationCutanee,
+  detectReparationCutaneeFromName,
   detectRepulpant,
   detectRougeursVasculairesFromName,
   detectSansSavon,
@@ -72,8 +72,8 @@ export const FORMULA_PASSES: readonly Pass[] = [
   ),
   formulaPass('formula:prebiotique', (c) => detectPrebiotique(c.inci, c.normalizedIngredients)),
   formulaPass('formula:protection', (c) => detectProtection(c.kind, c.name, c.description)),
-  formulaPass('formula:reparation-cutanee', (c) =>
-    detectReparationCutanee(c.inci, c.normalizedIngredients)
+  formulaPass('formula:reparation-cutanee-name', (c) =>
+    detectReparationCutaneeFromName(c.name, c.description)
   ),
   formulaPass('formula:eczema-atopie-name', (c) =>
     detectEczemaAtopieFromName(c.name, c.description)
@@ -102,8 +102,8 @@ export const FORMULA_PASSES: readonly Pass[] = [
   formulaPass('formula:reparateur-name', (c) => detectReparateurFromName(c.name, c.description)),
   formulaPass('formula:apaisant-name', (c) => detectApaisantFromName(c.name, c.description)),
   formulaPass('formula:repulpant', (c) => detectRepulpant(c.inci, c.kind, c.normalizedIngredients)),
-  formulaPass('formula:keratose-pilaire', (c) =>
-    detectKeratosePilaire(c.inci, c.kind, c.normalizedIngredients)
+  formulaPass('formula:keratose-pilaire-name', (c) =>
+    detectKeratosePilaireFromName(c.name, c.description)
   ),
   formulaPass('formula:sans-savon', (c) =>
     detectSansSavon(c.inci, c.kind, c.normalizedIngredients)
