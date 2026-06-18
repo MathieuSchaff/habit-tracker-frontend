@@ -12,7 +12,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // marketed-for doctrine). `\b` anchor keeps the verb forms sécher/dessécher/assécher
 // out (those need a preceding "peau" anyway). Recall conservative on purpose; the
 // dryness/hydration FUNCTION stays covered by deshydratation.
-const PEAU_SECHE_POSITION_RE = /peaux? s[eè]ches?\b|dry skin|for dry/i
+export const PEAU_SECHE_POSITION_RE = /peaux? s[eè]ches?\b|dry skin|for dry/i
 
 export function detectPeauSecheFromName(
   name: string | null | undefined,

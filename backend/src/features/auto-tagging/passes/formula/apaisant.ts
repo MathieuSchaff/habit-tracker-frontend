@@ -18,7 +18,7 @@ const SOOTHE = 'apais|soothing|calming|calmant'
 
 // `\S+` (not `\w+`) for the filler tokens: JS regex has no `u` flag here, so `\w`
 // excludes accented chars and would break proximity across a French filler word.
-const APAISANT_POSITION_RE = new RegExp(
+export const APAISANT_POSITION_RE = new RegExp(
   `(?:${PRODUCT_TYPE})\\s+(?:\\S+\\s+){0,3}(?:${SOOTHE})` +
     `|(?:${SOOTHE})\\w*\\s+(?:\\S+\\s+){0,3}(?:${PRODUCT_TYPE})` +
     '|anti[-\\s]?rougeurs',
@@ -27,7 +27,7 @@ const APAISANT_POSITION_RE = new RegExp(
 
 // Foaming cleansers and brightening/moisture-hero products mention soothing as a
 // secondary effect. Each token verified recall-safe (0 gold-positive hits).
-const APAISANT_EXCLUSION_RE = /gel moussant|brightening|deep moisture/i
+export const APAISANT_EXCLUSION_RE = /gel moussant|brightening|deep moisture/i
 
 export function detectApaisantFromName(
   name: string | null | undefined,

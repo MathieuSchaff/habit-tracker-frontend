@@ -22,8 +22,20 @@
 // orchestrator's avoid precedence (relevant only for grossesse / cross-
 // signal-avoid, not for clusters).
 //
+// Measures three things, kept distinct:
+//   - couverture: how many products each cluster fires on (hit / new / agree / only_db).
+//   - agreement: hit vs the DB tag set (a backfilled false positive reads as `agree`).
+//   - justesse: hit vs the gold set (human truth) — the only signal that catches a
+//     wrong tag the DB already agrees with. Plus cap-marginal acid hits (admitted
+//     ONLY by the looser rinse-off cap = pH-adjuster suspects, audit obs 1).
+// Evidence (matched token @ INCI position + the cap rule) is shown by default for
+// the actionable findings, not hidden behind DUMP_* flags.
+//
 // Tunables via env:
-//   LIMIT       optional: cap product count (debug)
+//   LIMIT          optional: cap product count (debug)
+//   GOLD_SET_PATH  optional: alternative annotations.json (else default path)
+
+import path from 'node:path'
 
 import type { ProductKind } from '@aurore/shared'
 
@@ -31,22 +43,81 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { productTagLinks, productTagTypes } from '../../../../db/schema'
-import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
+import { loadGoldSet } from '../../gold-set/fixtures'
+import type { TagEvidence } from '../../lib/pass-types'
+import {
+  ACTIF_CLASS_DEFS,
+  detectActifClassesWithEvidence,
+} from '../../passes/actif-class-detection'
 import { pad, rpad } from '../fmt'
 import { fetchEligibleProducts } from './db'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 const DUMP_DRIFT = process.env.DUMP_DRIFT === '1'
 const DUMP_NEW = process.env.DUMP_NEW === '1'
+const GOLD_SET_PATH =
+  process.env.GOLD_SET_PATH ??
+  path.resolve(import.meta.dir, '..', '..', 'data', 'gold-set', 'annotations.json')
+
+// Cap on per-cluster finding lists so a noisy cluster cannot flood the report;
+// the dropped count is always printed (no silent truncation).
+const SAMPLE = 20
+
+interface Finding {
+  slug: string
+  kind: string
+  token: string
+  position: number
+  rule: string
+  inci: string | null
+}
 
 interface ClusterStat {
   hit: number
   agree: number
   new: number
   manualOnly: number
+  goldTP: number
+  goldFP: number
   byKind: Map<ProductKind, number>
   driftProducts: Array<{ slug: string; kind: string; inci: string | null }>
   newProducts: Array<{ slug: string; kind: string; inci: string | null }>
+  // Acid hit that cleared the rinse-off cap but would fail the leave-on cap.
+  capMarginal: Finding[]
+  // Hit the gold set explicitly marks absent for this cluster (confirmed FP).
+  goldFalsePos: Finding[]
+}
+
+// Leave-on positionCap of the def whose pattern matched `token` for `slug`.
+// Used to decide whether a rinse-off hit is cap-marginal (would fail leave-on).
+function leaveOnCap(slug: string, token: string): number | undefined {
+  for (const def of ACTIF_CLASS_DEFS) {
+    if (def.slug !== slug) continue
+    const matched = def.exact
+      ? def.patterns.includes(token)
+      : def.patterns.some((p) => token.includes(p))
+    if (matched) return def.positionCap
+  }
+  return undefined
+}
+
+// A hit is cap-marginal when it was admitted only because the rinse-off cap is
+// looser than the leave-on cap (position would be excluded under leave-on).
+function isCapMarginal(ev: TagEvidence, slug: string): boolean {
+  if (!ev.rule?.startsWith('positionCapRinseOff') || ev.position === undefined) return false
+  const loc = leaveOnCap(slug, ev.matchedToken ?? '')
+  return loc !== undefined && Number.isFinite(loc) && ev.position >= loc
+}
+
+function printFindings(findings: Finding[]): void {
+  for (const f of findings.slice(0, SAMPLE)) {
+    console.log(`   [${f.kind}] ${f.slug}`)
+    // position is 0-based internally; display 1-based to match how INCI reads.
+    console.log(`      ${f.token} · pos ${f.position + 1} · ${f.rule}`)
+    const snip = f.inci ? f.inci.slice(0, 160) : '(no inci)'
+    console.log(`      ${snip}${(f.inci?.length ?? 0) > 160 ? '…' : ''}`)
+  }
+  if (findings.length > SAMPLE) console.log(`   … +${findings.length - SAMPLE} de plus`)
 }
 
 async function main() {
@@ -75,6 +146,19 @@ async function main() {
     set.add(r.slug)
   }
 
+  // Gold set is optional: justesse columns degrade to omitted if it can't load.
+  let goldBySlug: Map<string, { present: Set<string>; absent: Set<string> }> | null = null
+  try {
+    const gold = await loadGoldSet(GOLD_SET_PATH)
+    goldBySlug = new Map()
+    for (const a of gold.annotations) {
+      goldBySlug.set(a.productSlug, { present: new Set(a.present), absent: new Set(a.absent) })
+    }
+    console.log(`   gold-set : ${goldBySlug.size} produits annotés\n`)
+  } catch (e) {
+    console.log(`   ⚠  gold-set indisponible (${e instanceof Error ? e.message : e})\n`)
+  }
+
   const stats = new Map<string, ClusterStat>()
   for (const def of ACTIF_CLASS_DEFS) {
     stats.set(def.slug, {
@@ -82,9 +166,13 @@ async function main() {
       agree: 0,
       new: 0,
       manualOnly: 0,
+      goldTP: 0,
+      goldFP: 0,
       byKind: new Map(),
       driftProducts: [],
       newProducts: [],
+      capMarginal: [],
+      goldFalsePos: [],
     })
   }
 
@@ -95,10 +183,12 @@ async function main() {
     if (!p.inci?.trim()) continue
     withInci++
 
-    const detected = new Set<string>(detectActifClasses(p.inci, undefined, p.kind as ProductKind))
+    const detected = detectActifClassesWithEvidence(p.inci, undefined, p.kind as ProductKind)
     const existing = existingByProduct.get(p.id) ?? new Set<string>()
+    const gold = goldBySlug?.get(p.slug)
+    const kindLabel = p.kind ?? 'unknown'
 
-    for (const slug of detected) {
+    for (const [slug, ev] of detected) {
       const stat = stats.get(slug)
       if (!stat) continue
       stat.hit++
@@ -106,16 +196,32 @@ async function main() {
       if (existing.has(slug)) stat.agree++
       else {
         stat.new++
-        if (DUMP_NEW)
-          stat.newProducts.push({ slug: p.slug, kind: p.kind ?? 'unknown', inci: p.inci })
+        if (DUMP_NEW) stat.newProducts.push({ slug: p.slug, kind: kindLabel, inci: p.inci })
       }
       const kind = p.kind as ProductKind
       stat.byKind.set(kind, (stat.byKind.get(kind) ?? 0) + 1)
+
+      const finding: Finding = {
+        slug: p.slug,
+        kind: kindLabel,
+        token: ev.matchedToken ?? '?',
+        position: ev.position ?? -1,
+        rule: ev.rule ?? '?',
+        inci: p.inci,
+      }
+      if (isCapMarginal(ev, slug)) stat.capMarginal.push(finding)
+      // Justesse: only gold-rated products count; absent = confirmed false positive.
+      if (gold?.present.has(slug)) stat.goldTP++
+      else if (gold?.absent.has(slug)) {
+        stat.goldFP++
+        stat.goldFalsePos.push(finding)
+      }
     }
 
     // manual_only: detector miss on a manually-tagged cluster slug, signals rule drift.
+    const detectedSlugs = new Set<string>(detected.keys())
     for (const slug of existing) {
-      if (!detected.has(slug)) {
+      if (!detectedSlugs.has(slug)) {
         const stat = stats.get(slug)
         if (!stat) continue
         stat.manualOnly++
@@ -166,6 +272,48 @@ async function main() {
       console.log(
         `   ${pad(slug, 24)} only_db=${stat.manualOnly}${stat.hit > 0 ? ` (vs hit=${stat.hit})` : ' (no detector hit)'}`
       )
+    }
+  }
+
+  if (goldBySlug) {
+    const justesse = sorted.filter(([_, s]) => s.goldTP + s.goldFP > 0)
+    console.log(`\n🎯 Justesse vs gold-set (hits annotés — attrape les FP que la DB valide)`)
+    if (justesse.length === 0) {
+      console.log(`   (aucun hit sur un produit annoté)`)
+    } else {
+      console.log(`   ${pad('cluster', 24)} ${rpad('TP', 5)} ${rpad('FP', 5)} ${rpad('P', 6)}`)
+      console.log(`   ${'─'.repeat(24)} ${'─'.repeat(5)} ${'─'.repeat(5)} ${'─'.repeat(6)}`)
+      for (const [slug, s] of justesse) {
+        const rated = s.goldTP + s.goldFP
+        const prec = rated === 0 ? '—' : (s.goldTP / rated).toFixed(2)
+        console.log(
+          `   ${pad(slug, 24)} ${rpad(String(s.goldTP), 5)} ${rpad(String(s.goldFP), 5)} ${rpad(prec, 6)}`
+        )
+      }
+    }
+  }
+
+  const marginal = sorted.filter(([_, s]) => s.capMarginal.length > 0)
+  if (marginal.length > 0) {
+    const total = marginal.reduce((n, [_, s]) => n + s.capMarginal.length, 0)
+    console.log(
+      `\n⚠️  Acid hits cap-marginaux (${total}) — admis seulement par le cap rinse-off plus large = suspects pH-adjuster (obs 1)`
+    )
+    for (const [slug, s] of marginal) {
+      console.log(`\n── ${slug} (${s.capMarginal.length}) ──`)
+      printFindings(s.capMarginal)
+    }
+  }
+
+  if (goldBySlug) {
+    const fp = sorted.filter(([_, s]) => s.goldFalsePos.length > 0)
+    if (fp.length > 0) {
+      const total = fp.reduce((n, [_, s]) => n + s.goldFalsePos.length, 0)
+      console.log(`\n❌ Faux positifs confirmés par le gold-set (${total})`)
+      for (const [slug, s] of fp) {
+        console.log(`\n── ${slug} (${s.goldFalsePos.length}) ──`)
+        printFindings(s.goldFalsePos)
+      }
     }
   }
 

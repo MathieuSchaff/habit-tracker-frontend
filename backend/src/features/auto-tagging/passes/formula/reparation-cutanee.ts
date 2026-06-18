@@ -19,12 +19,12 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // 1 residual FP (incidental "gerçures" in a lip-SPF stick) left uncut: excluding `lèvres` would
 // kill the atrix hand-repair TP. 1 FN: a snail repair cream with no lesion word. Bare
 // repair/snail/"peaux abîmées" stay out — each re-introduces the fork FP the gold set excludes.
-const REPARATION_POSITION_RE =
+export const REPARATION_POSITION_RE =
   /cicatris|cicalfate|cicaplast|cicabiafine|cicaderma|\bgerç|\bgerc|crevass|escarre/i
 
 // Distinct domains where the lesion-repair tokens above are incidental, not the lead.
 // `lèvres` is NOT excluded — it would cut the atrix hand-repair TP.
-const REPARATION_EXCLUSION_RE = /pieds\s+secs|apr[èe]s[- ]?soleil|after[- ]?sun/i
+export const REPARATION_EXCLUSION_RE = /pieds\s+secs|apr[èe]s[- ]?soleil|after[- ]?sun/i
 
 export function detectReparationCutaneeFromName(
   name: string | null | undefined,
