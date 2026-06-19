@@ -42,6 +42,7 @@ import {
   brandToObfSlug,
   mergeObfSourcesIntoExisting,
   parseObfCsvLine,
+  resolveObfColumns,
 } from './lib'
 
 const OBF_DUMP_URL =
@@ -112,9 +113,14 @@ async function main() {
 
   // Whitelist : OBF slugs of brands actually in our corpus
   let whitelist: Set<string> | undefined
+  let corpusSlugToDisplay: Map<string, string> | undefined
   if (!NO_WHITELIST) {
     const corpusBrands = await db.selectDistinct({ brand: products.brand }).from(products)
-    whitelist = new Set(corpusBrands.map((r) => brandToObfSlug(r.brand)))
+    corpusSlugToDisplay = new Map()
+    for (const r of corpusBrands) {
+      if (r.brand) corpusSlugToDisplay.set(brandToObfSlug(r.brand), r.brand)
+    }
+    whitelist = new Set(corpusSlugToDisplay.keys())
     console.log(`🎯 Whitelist : ${whitelist.size} marques uniques du corpus produits`)
   }
 
@@ -125,12 +131,16 @@ async function main() {
   const text = new TextDecoder().decode(raw)
   console.log(`   ${(text.length / 1024 / 1024).toFixed(1)} MB décompressés\n`)
 
+  const headerEnd = text.indexOf('\n')
+  if (headerEnd === -1) throw new Error('OBF dump has no header row — empty or truncated download.')
+  const columns = resolveObfColumns(text.slice(0, headerEnd))
+
   let rowCount = 0
   let parsedCount = 0
   const rows: { brandTags: string[]; labelTags: string[] }[] = []
   for (const line of csvLines(text)) {
     rowCount++
-    const row = parseObfCsvLine(line)
+    const row = parseObfCsvLine(line, columns)
     if (row) {
       parsedCount++
       rows.push(row)
@@ -145,6 +155,23 @@ async function main() {
     ...(whitelist ? { brandWhitelist: whitelist } : {}),
   })
   console.log(`   ${rollups.size} marques agrégées (post-whitelist)\n`)
+
+  // Unmatched corpus brands
+  // Corpus brands that produced zero OBF rows are usually a slug mismatch
+  // between brandToObfSlug and OBF's canonical id (apostrophes, ampersands,
+  // numbers) — a silent miss the ratio rule can never surface. List them so
+  // the gap is auditable instead of invisible.
+  if (whitelist && corpusSlugToDisplay) {
+    const unmatched = [...whitelist].filter((slug) => !rollups.has(slug))
+    console.log(`🔍 Corpus sans produit OBF : ${unmatched.length}/${whitelist.size}`)
+    if (unmatched.length > 0) {
+      const names = unmatched.map((slug) => corpusSlugToDisplay?.get(slug) ?? slug).sort()
+      const shown = names.slice(0, 30)
+      console.log(
+        `   ${shown.join(', ')}${names.length > 30 ? ` … (+${names.length - 30})` : ''}\n`
+      )
+    }
+  }
 
   // Per-claim summary
   let veganClaim = 0

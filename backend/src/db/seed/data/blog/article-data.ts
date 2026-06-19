@@ -1,15 +1,5 @@
 import type { BlogCategory } from '@aurore/shared'
 
-import { dentalArticles } from './dental'
-import { haircareArticles } from './haircare'
-import { lifestyleArticles } from './lifestyle'
-import { nutritionArticles } from './nutrition'
-import { phytotherapieArticles } from './phytotherapie'
-import { routinesArticles } from './routines'
-import { scienceArticles } from './science'
-import { skincareArticles } from './skincare'
-import { supplementsArticles } from './supplements'
-
 export type ArticleInput = {
   title: string
   slug: string
@@ -20,14 +10,16 @@ export type ArticleInput = {
   publishedAt?: string | null
 }
 
+// Skeleton: the ~70 blog articles were removed (they live in the SQL snapshot).
+// One inline article is kept as a shape example. To seed the blog from TS again,
+// re-add category folders under blog/ and spread their arrays here.
 export const articleData: ArticleInput[] = [
-  ...skincareArticles,
-  ...haircareArticles,
-  ...dentalArticles,
-  ...nutritionArticles,
-  ...supplementsArticles,
-  ...phytotherapieArticles,
-  ...routinesArticles,
-  ...scienceArticles,
-  ...lifestyleArticles,
+  {
+    title: 'Exemple d’article',
+    slug: 'exemple-article',
+    excerpt: 'Gabarit minimal pour ré-ajouter des articles de blog.',
+    content: '# Exemple\n\nContenu markdown de l’article.',
+    category: 'skincare',
+    publishedAt: null,
+  },
 ]

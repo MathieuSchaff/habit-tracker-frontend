@@ -29,6 +29,9 @@ services:
       - ../../../backend/src:/app/backend/src
       - ../../../backend/drizzle:/app/backend/drizzle:ro
       - ../../../backend/tsconfig.json:/app/backend/tsconfig.json:ro
+      # Writable scratch (ingest scrapers cache here). /app/backend is image-owned (root),
+      # so without a host-backed mount the runtime user (1000) can't mkdir tmp → EACCES.
+      - ../../../backend/tmp:/app/backend/tmp
 
       - ../../../shared/package.json:/app/shared/package.json:ro
       - ../../../shared/src:/app/shared/src:ro

@@ -8,6 +8,7 @@ import {
   mergeObfSourcesIntoExisting,
   type ObfRow,
   parseObfCsvLine,
+  resolveObfColumns,
   stripObfPrefix,
 } from './lib'
 
@@ -60,6 +61,11 @@ describe('classifyLabel', () => {
   test('returns null for unrelated labels', () => {
     expect(classifyLabel('en:made-in-france')).toBeNull()
     expect(classifyLabel('en:gluten-free')).toBeNull()
+  })
+
+  test('self-declared `naturel` is not treated as a certification', () => {
+    expect(classifyLabel('fr:naturel')).toBeNull()
+    expect(classifyLabel('fr:bio')).toBe('naturalCertified')
   })
 })
 
@@ -215,18 +221,30 @@ describe('mergeObfSourcesIntoExisting', () => {
   })
 })
 
+describe('resolveObfColumns', () => {
+  test('finds brands_tags / labels_tags positions in the header', () => {
+    const header = ['code', 'brands_tags', 'foo', 'labels_tags', 'bar'].join('\t')
+    expect(resolveObfColumns(header)).toEqual({ brands: 1, labels: 3 })
+  })
+
+  test('throws when a required column is missing (format drift)', () => {
+    expect(() => resolveObfColumns('code\tbrands\tlabels')).toThrow(/missing expected columns/)
+  })
+})
+
 describe('parseObfCsvLine', () => {
   // Stub line with the columns OBF actually places at indices 19 (brands_tags)
   // and 30 (labels_tags). Other columns can be empty.
+  const COLS = { brands: 19, labels: 30 }
   function buildLine(brandTags: string, labelTags: string): string {
     const cols = Array(50).fill('')
-    cols[19] = brandTags
-    cols[30] = labelTags
+    cols[COLS.brands] = brandTags
+    cols[COLS.labels] = labelTags
     return cols.join('\t')
   }
 
   test('parses brand and label tag arrays', () => {
-    const row = parseObfCsvLine(buildLine('xx:foo,xx:bar', 'en:vegan,en:cruelty-free'))
+    const row = parseObfCsvLine(buildLine('xx:foo,xx:bar', 'en:vegan,en:cruelty-free'), COLS)
     expect(row).toEqual({
       brandTags: ['xx:foo', 'xx:bar'],
       labelTags: ['en:vegan', 'en:cruelty-free'],
@@ -234,14 +252,14 @@ describe('parseObfCsvLine', () => {
   })
 
   test('returns null on empty line', () => {
-    expect(parseObfCsvLine('')).toBeNull()
+    expect(parseObfCsvLine('', COLS)).toBeNull()
   })
 
   test('returns null when both fields are empty', () => {
-    expect(parseObfCsvLine(buildLine('', ''))).toBeNull()
+    expect(parseObfCsvLine(buildLine('', ''), COLS)).toBeNull()
   })
 
   test('returns null on truncated lines (fewer cols than label index)', () => {
-    expect(parseObfCsvLine('a\tb\tc')).toBeNull()
+    expect(parseObfCsvLine('a\tb\tc', COLS)).toBeNull()
   })
 })
