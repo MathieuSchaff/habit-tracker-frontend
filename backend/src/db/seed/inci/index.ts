@@ -136,7 +136,7 @@ export interface InciIndexEntry {
 
 export type InciIndex = Map<string, InciIndexEntry>
 
-const INGREDIENTS_ROOT = join(import.meta.dir, '..', '..', 'data', 'ingredients')
+const INGREDIENTS_ROOT = join(import.meta.dir, '..', 'data', 'ingredients')
 
 const SLUG_FILES: Array<{ rel: string; domain: IngredientDomain }> = [
   { rel: 'skincare/ingredient-slugs.ts', domain: 'skincare' },

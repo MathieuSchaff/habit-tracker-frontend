@@ -10,7 +10,7 @@ artifacts:
     set -uo pipefail
     cd {{justfile_directory()}}
     entries=(
-        ".audit-out:audits (code + db + seed)"
+        ".audit-out:audits code/db/products (recipes audit-*)"
         "backend/coverage:coverage backend (lcov)"
         "frontend/coverage:coverage frontend (vitest)"
         "frontend/test-results:e2e playwright (fails)"
@@ -18,6 +18,7 @@ artifacts:
         "frontend/blob-report:e2e blob"
         "frontend/stats.html:bundle treemap (visualizer)"
         "frontend/dist/analyze-data.md:bundle md (rolldown)"
+        "backend/src/db/seed/output:data pipeline + images (consommé — voir artifacts-clean)"
     )
     printf "{{CYAN}}%-32s %7s  %s{{NC}}\n" "PATH" "SIZE" "QUOI"
     for e in "${entries[@]}"; do
@@ -29,7 +30,8 @@ artifacts:
         fi
     done
 
-# Supprime tous les artefacts générés. Ne touche ni la DB ni les types (dist/*.d.ts).
+# Supprime tous les artefacts générés. Ne touche ni la DB ni les types (dist/*.d.ts),
+# ni backend/src/db/seed/output (état consommé par catalog-canonicalize + working set images).
 artifacts-clean:
     #!/usr/bin/env bash
     set -uo pipefail
