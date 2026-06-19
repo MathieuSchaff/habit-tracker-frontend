@@ -1840,7 +1840,7 @@
       "kind": "mask",
       "category": "skincare",
       "present": ["pores-sebum"],
-      "absent": [],
+      "absent": ["aha"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté)"
@@ -2238,7 +2238,7 @@
       "kind": "cleanser",
       "category": "skincare",
       "present": ["pores-sebum"],
-      "absent": [],
+      "absent": ["aha"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté)"
@@ -10020,7 +10020,7 @@
       "kind": "mask",
       "category": "skincare",
       "present": [],
-      "absent": ["reparation-cutanee"],
+      "absent": ["reparation-cutanee", "aha"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["reparation-cutanee"],
       "notes": "reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
@@ -12090,7 +12090,7 @@
       "kind": "cleanser",
       "category": "skincare",
       "present": [],
-      "absent": [],
+      "absent": ["aha"],
       "annotatedAt": "",
       "notes": "Added from Regimen Lab product with structured % concentration claim(s)."
     },
@@ -14804,7 +14804,7 @@
       "kind": "cleanser",
       "category": "skincare",
       "present": ["pores-sebum"],
-      "absent": [],
+      "absent": ["aha"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté)"
@@ -15313,6 +15313,206 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — taches brunes/blemish/arbutine = hyperpig+acné"
+    },
+    {
+      "productSlug": "a-derma-dermalibour-cica-gel-moussant-assainissant-200ml-275256",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-500ml-275113",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-lot-de-2-x-500ml-248023",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "aderma-exomega-control-gel-moussant-anti-grattage",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "dexyane-protective-cleansing-oil",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "embryolisse-les-nettoyants-lait-creme-moussant-200ml-259245",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "isdin-acniben-mousse-nettoyante-purifiante-pour-peaux-grasses-150-ml-236208",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "jumiso-pore-purifying-salicylic-acid-foaming-cleanser",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "kreme-gelee-fraiche-nettoyante-demaquillante",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "respire-gel-nettoyant-purifiant",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "svr-gel-moussant-sebiaclear-recharge",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "vichy-normaderm-phytosolution-gel-purifiant-intense",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "isdin-ureadin-ultra-40-gel-huile-exfoliant-intense-40-d-uree-30-ml-235644",
+      "kind": "exfoliant",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "missha-amazon-red-clay-pore-mask",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "respire-masque-stick-peau-nette",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "isispharma-neotone-gel-nettoyant-exfoliant-taches-pigmentaires-40ml-302129",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "medik8-surface-radiance-cleanse",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "medik8-surface-radiance-cleanse-gel",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "dermalogica-daily-superfoliant",
+      "kind": "exfoliant",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     }
   ]
 }

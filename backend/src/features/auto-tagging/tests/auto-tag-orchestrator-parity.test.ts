@@ -161,11 +161,16 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     expect(slugRelevance(got, S.GROSSESSE_COMPATIBLE)).toBe('avoid')
   })
 
-  test('eye cream with caffeine + peptide: cernes-poches fires (formula pass)', () => {
+  // cernes-poches moved to a name/claim gate (formula:cernes-poches-name); caffeine/peptide
+  // in the INCI no longer fires the concern — only cernes/poches positioning does. zone-yeux
+  // still fires from the eye-cream kind. See passes/formula/cernes-poches.ts.
+  test('eye cream naming anti-poches: cernes-poches fires from name', () => {
     const got = detectAllAutoTags({
       inci: 'Aqua, Glycerin, Caffeine, Palmitoyl Tripeptide-1, Phenoxyethanol',
       kind: 'eye-cream',
       category: 'skincare',
+      name: 'Contour des Yeux Anti-Poches',
+      description: 'dégonfle et défatigue le regard',
     })
     const slugs = slugsOf(got)
     expect(slugs).toContain(S.CERNES_POCHES)

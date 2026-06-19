@@ -48,7 +48,16 @@ export interface ActifClassDef {
   positionCap?: number
   // Looser cap for cleansers/exfoliants where actives sit deeper.
   positionCapRinseOff?: number
+  // For pH-active acids: a rinse-off hit admitted only by the looser cap is a
+  // pH-adjuster false positive (audit obs 1) UNLESS the product name positions it
+  // as an exfoliant. Requires the caller to pass `productName`; absent name = legacy keep.
+  rinseOffNameGate?: boolean
 }
+
+// Names that legitimately position a deep rinse-off acid as an exfoliant actif
+// (rescues the cap-marginal gate). Matches exfoliant/exfoliation, (super)foliant,
+// peel/peeling, gommage, resurfacing.
+const EXFOLIATION_NAME_RE = /exfolia|foliant|peel|gommage|resurfa/
 
 export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
@@ -111,8 +120,10 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
     slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
     patterns: ['glycolic acid', 'lactic acid', 'malic acid', 'tartaric acid', 'ammonium lactate'],
     // Common pH adjusters at pos > 10 in leave-on; rinse-off cap looser (surfactant-heavy formulas).
+    // Cap-marginal rinse-off hits are pH adjusters unless the name says exfoliant (obs 1).
     positionCap: 10,
     positionCapRinseOff: 20,
+    rinseOffNameGate: true,
   },
   {
     slug: SKINCARE_PRODUCT_TAG_SLUGS.AHA,
@@ -264,9 +275,10 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
 export function detectActifClasses(
   inci: string | null | undefined,
   hoistedIngredients?: readonly string[],
-  kind?: ProductKind
+  kind?: ProductKind,
+  productName?: string | null
 ): SkincareProductTagSlug[] {
-  return [...detectActifClassesWithEvidence(inci, hoistedIngredients, kind).keys()]
+  return [...detectActifClassesWithEvidence(inci, hoistedIngredients, kind, productName).keys()]
 }
 
 // Same matching as detectActifClasses, but records the triggering token, its INCI
@@ -276,7 +288,8 @@ export function detectActifClasses(
 export function detectActifClassesWithEvidence(
   inci: string | null | undefined,
   hoistedIngredients?: readonly string[],
-  kind?: ProductKind
+  kind?: ProductKind,
+  productName?: string | null
 ): Map<SkincareProductTagSlug, TagEvidence> {
   const evidence = new Map<SkincareProductTagSlug, TagEvidence>()
   const resolved = resolveIngredients(inci, hoistedIngredients)
@@ -287,6 +300,8 @@ export function detectActifClassesWithEvidence(
   // Korean brands often list INCI alphabetically; position caps are meaningless then.
   const isAlpha = isAlphabeticalINCI(ingredients)
   const isRinseOffLike = kind !== undefined && RINSE_OFF_LIKE_KINDS.has(kind)
+  // Empty/absent name disables the cap-marginal gate (legacy keep — see rinseOffNameGate).
+  const gateName = productName?.trim().toLowerCase()
 
   for (const def of ACTIF_CLASS_DEFS) {
     if (evidence.has(def.slug)) continue
@@ -299,6 +314,22 @@ export function detectActifClassesWithEvidence(
       const ing = ingredients[i]
       const hit = def.exact ? def.patterns.includes(ing) : def.patterns.some((p) => ing.includes(p))
       if (hit) {
+        // obs 1: a pH-active acid admitted only by the looser rinse-off cap (position
+        // past the leave-on cap) is a pH adjuster, not an exfoliant — unless the name
+        // positions the product as one. Skip lets a later def (e.g. mandelic) still fire.
+        const capMarginal =
+          !isAlpha &&
+          isRinseOffLike &&
+          def.positionCapRinseOff !== undefined &&
+          i >= (def.positionCap ?? DEFAULT_POSITION_CAP)
+        if (
+          def.rinseOffNameGate &&
+          capMarginal &&
+          gateName &&
+          !EXFOLIATION_NAME_RE.test(gateName)
+        ) {
+          continue
+        }
         evidence.set(def.slug, {
           matchedToken: ing,
           position: i,

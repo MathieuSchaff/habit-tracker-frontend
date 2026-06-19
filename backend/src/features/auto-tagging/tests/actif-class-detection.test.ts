@@ -354,9 +354,10 @@ describe('detectActifClassesWithEvidence', () => {
     expect([...detectActifClassesWithEvidence(inci).keys()]).toEqual(detectActifClasses(inci))
   })
 
-  test('Tabula-Rasa case: rinse-off cleanser AHA from deep lactic acid, admitted by looser rinse-off cap', () => {
-    // Lactic acid at pos 11 (0-based 10) would fail the leave-on cap (10) but passes
-    // the rinse-off cap (20) — the pH-adjuster false-positive flagged in audit obs 1.
+  test('Tabula-Rasa case: cap-marginal lactic acid kept without a name (legacy INCI-only path)', () => {
+    // Lactic acid at pos 11 (0-based 10) clears the rinse-off cap (20) but fails the
+    // leave-on cap (10). With no productName the obs-1 gate is off, so the hit stays.
+    // Production passes the name, which gates this pH-adjuster out (see tests below).
     const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
     const inci = `Aqua, ${filler}, Lactic Acid, Hydroxyacetophenone`
     const ev = detectActifClassesWithEvidence(inci, undefined, 'cleanser').get(
@@ -367,6 +368,53 @@ describe('detectActifClassesWithEvidence', () => {
     expect(ev?.position).toBe(11)
     expect(ev?.sourceField).toBe('inci')
     expect(ev?.rule).toBe('positionCapRinseOff:20')
+  })
+
+  test('obs-1 gate: cap-marginal AHA dropped when the name is not exfoliation-positioned', () => {
+    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Lactic Acid, Hydroxyacetophenone`
+    expect(
+      detectActifClassesWithEvidence(inci, undefined, 'cleanser', 'Gel Nettoyant Purifiant').has(
+        SKINCARE_PRODUCT_TAG_SLUGS.AHA
+      )
+    ).toBe(false)
+  })
+
+  test('obs-1 gate: cap-marginal AHA kept when the name positions it as an exfoliant', () => {
+    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Lactic Acid`
+    const ev = detectActifClassesWithEvidence(
+      inci,
+      undefined,
+      'cleanser',
+      'Gel Exfoliant Éclat'
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('lactic acid')
+  })
+
+  test('obs-1 gate: acid within the leave-on cap is spared (real actif, neutral name)', () => {
+    // Glycolic at pos 3 is a functional actif; the gate only touches cap-marginal hits.
+    const ev = detectActifClassesWithEvidence(
+      'Aqua, Glycerin, Glycolic Acid, Butylene Glycol',
+      undefined,
+      'cleanser',
+      'Gel Nettoyant Doux'
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('glycolic acid')
+  })
+
+  test('obs-1 gate: cap-marginal lactic dropped but mandelic rescues AHA (medik8 case)', () => {
+    // Lactic past the leave-on cap is gated out, but mandelic (never a pH adjuster) fires
+    // on its own ungated def, so AHA survives even with a non-exfoliation name.
+    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const inci = `Aqua, ${filler}, Lactic Acid, Mandelic Acid`
+    const ev = detectActifClassesWithEvidence(
+      inci,
+      undefined,
+      'cleanser',
+      'Surface Radiance Cleanse'
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('mandelic acid')
   })
 
   test('same deep lactic acid in a leave-on is NOT AHA (leave-on cap 10)', () => {

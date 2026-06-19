@@ -11,7 +11,8 @@ export const actifClassPass: Pass = {
     for (const [tagSlug, evidence] of detectActifClassesWithEvidence(
       ctx.inci,
       ctx.normalizedIngredients,
-      ctx.kind
+      ctx.kind,
+      ctx.name
     )) {
       out.push({ tagSlug, relevance: 'secondary', source: 'actif-class', evidence })
     }
