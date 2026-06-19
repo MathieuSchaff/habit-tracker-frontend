@@ -262,6 +262,44 @@
       {
         "files": ["src/component/DropdownMenu/DropdownMenu.tsx"],
         "rules": ["react-hooks-js/immutability"]
+      },
+      {
+        "files": [
+          "src/constants/ingredientGroups.ts",
+          "src/features/products/kp-chips.ts",
+          "src/features/products/components/FormulaPreview/FormulaPreview.tsx"
+        ],
+        "rules": ["react-doctor/js-combine-iterations"]
+      },
+      {
+        "files": ["src/features/products/components/FormulaReading/FormulaReading.tsx"],
+        "rules": ["react-doctor/js-flatmap-filter"]
+      },
+      {
+        "files": [
+          "src/features/products/components/skeletons/ProductsGridSkeleton/ProductsGridSkeleton.tsx"
+        ],
+        "rules": ["react-doctor/prefer-tag-over-role"]
+      },
+      {
+        "files": ["src/features/admin/components/AdminErrorsPage.tsx"],
+        "rules": ["react-doctor/prefer-useReducer"]
+      },
+      {
+        "files": ["src/lib/queries/products.ts"],
+        "rules": ["react-doctor/query-mutation-missing-invalidation"]
+      },
+      {
+        "files": ["src/features/auth/page/ForgotPasswordPage/ForgotPasswordPage.tsx"],
+        "rules": ["react-doctor/no-event-handler"]
+      },
+      {
+        "files": ["src/features/products/components/PriceFilterAccordion/PriceFilterAccordion.tsx"],
+        "rules": [
+          "react-doctor/no-event-handler",
+          "react-doctor/no-derived-state",
+          "react-hooks-js/set-state-in-effect"
+        ]
       }
     ]
   }

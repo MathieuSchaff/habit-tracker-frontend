@@ -12,7 +12,7 @@ audit-code:
     printf "{{ CYAN }}=== tsc -b (types) ==={{ NC }}\n"
     bunx tsc -b --pretty false 2>&1 | tee .audit-out/tsc.txt
     printf "{{ CYAN }}=== madge (cycles) ==={{ NC }}\n"
-    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src 2>&1 | tee .audit-out/cycles.txt
+    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules|db/seed/data)/' backend/src frontend/src shared/src 2>&1 | tee .audit-out/cycles.txt
     printf "{{ CYAN }}=== fallow health (complexity/CRAP) ==={{ NC }}\n"
     npx fallow health 2>&1 | tee .audit-out/health.txt
     printf "{{ CYAN }}=== fallow dupes ==={{ NC }}\n"

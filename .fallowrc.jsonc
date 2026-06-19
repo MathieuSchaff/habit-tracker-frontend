@@ -56,8 +56,10 @@
 
   // mild mode avoids flagging structurally similar seed data objects
   // ignoreImports drops false positives from Biome-sorted import blocks
+  // minLines 25: sub-25-line clones are boilerplate noise (679→21); threshold caps the printed list
   "duplicates": {
     "mode": "mild",
+    "minLines": 25,
     "threshold": 8,
     "ignoreImports": true
   }

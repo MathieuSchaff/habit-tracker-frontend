@@ -256,6 +256,18 @@ describe('detectCernesPochesFromName', () => {
     expect(fire('Correcteur Anti-Cernes Teinté', 'couvrance modulable')).toEqual([])
   })
 
+  // "poche" is polysemous (eye bag vs garment pocket): packaging copy on non-eye products
+  // over-fired (lip balms, sunscreen sticks). The poche token needs an eye anchor.
+  test('poche meaning pocket (no eye anchor) → not flagged', () => {
+    expect(fire('Lip Glowy Balm', 'son tube de poche se glisse partout')).toEqual([])
+    expect(fire('Sunscreen Stick', 'se glisse facilement dans les poches ou les sacs')).toEqual([])
+  })
+
+  test('poche with an eye anchor → cernes-poches', () => {
+    expect(fire('Soin Yeux', 'réduit les poches du contour')).toContain(S.CERNES_POCHES)
+    expect(fire('Crème Regard', 'atténue poches et ridules')).toContain(S.CERNES_POCHES)
+  })
+
   test('null/empty → []', () => {
     expect(detectCernesPochesFromName(null, null)).toEqual([])
     expect(detectCernesPochesFromName('', '')).toEqual([])

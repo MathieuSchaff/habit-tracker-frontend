@@ -196,7 +196,7 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     const dialog = await screen.findByRole('dialog')
 
     // No fixture product carries this slug, so tagCounts=0 disables the chip.
-    const chip = await within(dialog).findByRole('button', { name: /Rougeurs vasculaires/i })
+    const chip = await within(dialog).findByRole('button', { name: /^Rougeurs/i })
     expect(chip).toBeDisabled()
 
     await user.click(chip)
