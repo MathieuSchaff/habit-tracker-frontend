@@ -23,6 +23,8 @@ import {
   APAISANT_POSITION_RE,
   BARRIERE_EXCLUSION_RE,
   BARRIERE_POSITION_RE,
+  CERNES_EXCLUSION_RE,
+  CERNES_POSITION_RE,
   DESHYDRATATION_EXCLUSION_RE,
   DESHYDRATATION_POSITION_RE,
   detectAbsenceClaimsFromText,
@@ -31,7 +33,7 @@ import {
   detectAntiOxydantFromName,
   detectApaisantFromName,
   detectBarriereCutaneeFromName,
-  detectCernesPochesWithEvidence,
+  detectCernesPochesFromName,
   detectDeshydratationFromName,
   detectEclatTeintFromName,
   detectEczemaAtopieFromName,
@@ -213,24 +215,12 @@ export const FORMULA_PASSES: readonly Pass[] = [
   formulaPass('formula:step-nettoyage-1', (c) =>
     detectStepNettoyage1(c.inci, c.kind, c.normalizedIngredients)
   ),
-  {
-    name: 'formula:cernes-poches',
-    run: (c) =>
-      detectCernesPochesWithEvidence(
-        c.inci,
-        c.kind,
-        c.normalizedIngredients,
-        c.name,
-        c.description
-      ).map(
-        ({ slug, evidence }): AutoTagProposal => ({
-          tagSlug: slug,
-          relevance: 'secondary',
-          source: 'formula',
-          evidence,
-        })
-      ),
-  },
+  namePass(
+    'formula:cernes-poches-name',
+    (c) => detectCernesPochesFromName(c.name, c.description),
+    CERNES_POSITION_RE,
+    CERNES_EXCLUSION_RE
+  ),
   formulaPass('formula:fini-mat', (c) => detectFiniMat(c.inci, c.normalizedIngredients)),
   formulaPass('formula:texture-riche', (c) => detectTextureRiche(c.inci, c.normalizedIngredients)),
   formulaPass('formula:texture-legere', (c) =>

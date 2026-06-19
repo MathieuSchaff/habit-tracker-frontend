@@ -9,7 +9,7 @@ import {
   detectAntiOxydantFromName,
   detectApaisantFromName,
   detectBarriereCutaneeFromName,
-  detectCernesPoches,
+  detectCernesPochesFromName,
   detectDeshydratationFromName,
   detectEclatTeintFromName,
   detectEczemaAtopieFromName,
@@ -227,67 +227,38 @@ describe('detectStepNettoyage1', () => {
   })
 })
 
-describe('detectCernesPoches', () => {
-  test('eye-cream + caffeine → cernes-poches', () => {
-    expect(detectCernesPoches('Aqua, Glycerin, Caffeine, Niacinamide', 'eye-cream')).toContain(
-      S.CERNES_POCHES
-    )
+describe('detectCernesPochesFromName', () => {
+  const fire = (name: string, description = '') => detectCernesPochesFromName(name, description)
+
+  test('FR cernes/poches positioning (name or description) → cernes-poches', () => {
+    expect(fire('Sérum Anti-Cernes', 'défatigue le regard')).toContain(S.CERNES_POCHES)
+    expect(fire('Soin Yeux', 'réduit les poches')).toContain(S.CERNES_POCHES)
+    expect(fire('Soin Dégonflant Yeux')).toContain(S.CERNES_POCHES)
+    expect(fire('Dépoche Contour Yeux')).toContain(S.CERNES_POCHES)
   })
 
-  test('eye-cream + peptide pattern → cernes-poches', () => {
-    expect(
-      detectCernesPoches('Aqua, Glycerin, Acetyl Hexapeptide-8, Tocopherol', 'eye-cream')
-    ).toContain(S.CERNES_POCHES)
+  test('EN puffiness / dark circles / depuff positioning → cernes-poches', () => {
+    expect(fire('Anti-Puffiness Eye Gel')).toContain(S.CERNES_POCHES)
+    expect(fire('Dark Circle Corrector')).toContain(S.CERNES_POCHES)
+    expect(fire('Depuffer Eye Serum')).toContain(S.CERNES_POCHES)
   })
 
-  test('eye-cream + matrixyl → cernes-poches', () => {
-    expect(detectCernesPoches('Aqua, Glycerin, Matrixyl 3000', 'eye-cream')).toContain(
-      S.CERNES_POCHES
-    )
+  // The fix: caffeine/peptides are incidental actives in many eye-creams (snail, ceramide,
+  // anti-rides) that don't position for cernes/poches. An eye-cream with those actives but no
+  // cernes/poches naming must NOT fire — the detector reads name+description, never the INCI.
+  test('eye-cream with caffeine/peptides but no cernes naming → not flagged', () => {
+    expect(fire('COSRX Snail Peptide Eye Cream', 'apaise et hydrate le contour')).toEqual([])
+    expect(fire('Crème Yeux Anti-Rides', 'caféine et matrixyl')).toEqual([])
   })
 
-  test('caffeine in serum (not eye-cream) → not flagged', () => {
-    expect(detectCernesPoches('Aqua, Glycerin, Caffeine, Niacinamide', 'serum')).toEqual([])
-  })
-
-  test('caffeine past position 12 → not flagged', () => {
-    const filler = Array.from({ length: 12 }, (_, i) => `Filler${i + 1}`).join(', ')
-    expect(detectCernesPoches(`Aqua, ${filler}, Caffeine`, 'eye-cream')).toEqual([])
-  })
-
-  test('eye-cream without caffeine/peptides → not flagged', () => {
-    expect(detectCernesPoches('Aqua, Glycerin, Niacinamide, Hyaluronic Acid', 'eye-cream')).toEqual(
-      []
-    )
-  })
-
-  test('null/empty INCI → []', () => {
-    expect(detectCernesPoches(null, 'eye-cream')).toEqual([])
-    expect(detectCernesPoches('', 'eye-cream')).toEqual([])
-  })
-
-  // Name gate (union): a product that names the concern fires regardless of kind or INCI —
-  // recovers FN eye serums/moisturizers that lack caffeine/peptides but lead on cernes/poches.
-  test('name positions cernes/poches → fires without INCI actives', () => {
-    expect(
-      detectCernesPoches('Aqua, Glycerin', 'serum', undefined, 'Sérum Anti-Cernes', 'défatigue')
-    ).toContain(S.CERNES_POCHES)
-    expect(
-      detectCernesPoches(
-        'Aqua, Glycerin',
-        'moisturizer',
-        undefined,
-        'Soin Yeux',
-        'réduit les poches'
-      )
-    ).toContain(S.CERNES_POCHES)
-  })
-
-  // Makeup names "anti-cernes" but covers rather than treats → excluded by name-gate exclusion.
+  // Makeup names "anti-cernes" but covers rather than treats → excluded.
   test('concealer / tinted naming anti-cernes → excluded', () => {
-    expect(
-      detectCernesPoches('Aqua', 'primer', undefined, 'Correcteur Anti-Cernes Teinté', 'couvrance')
-    ).toEqual([])
+    expect(fire('Correcteur Anti-Cernes Teinté', 'couvrance modulable')).toEqual([])
+  })
+
+  test('null/empty → []', () => {
+    expect(detectCernesPochesFromName(null, null)).toEqual([])
+    expect(detectCernesPochesFromName('', '')).toEqual([])
   })
 })
 

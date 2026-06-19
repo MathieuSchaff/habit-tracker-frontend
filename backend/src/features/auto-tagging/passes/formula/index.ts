@@ -12,7 +12,11 @@ export {
   BARRIERE_POSITION_RE,
   detectBarriereCutaneeFromName,
 } from './barriere-cutanee'
-export { detectCernesPoches, detectCernesPochesWithEvidence } from './cernes-poches'
+export {
+  CERNES_EXCLUSION_RE,
+  CERNES_POSITION_RE,
+  detectCernesPochesFromName,
+} from './cernes-poches'
 export {
   DESHYDRATATION_EXCLUSION_RE,
   DESHYDRATATION_POSITION_RE,

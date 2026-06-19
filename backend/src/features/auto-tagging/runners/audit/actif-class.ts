@@ -183,7 +183,12 @@ async function main() {
     if (!p.inci?.trim()) continue
     withInci++
 
-    const detected = detectActifClassesWithEvidence(p.inci, undefined, p.kind as ProductKind)
+    const detected = detectActifClassesWithEvidence(
+      p.inci,
+      undefined,
+      p.kind as ProductKind,
+      p.name
+    )
     const existing = existingByProduct.get(p.id) ?? new Set<string>()
     const gold = goldBySlug?.get(p.slug)
     const kindLabel = p.kind ?? 'unknown'
