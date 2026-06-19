@@ -38,9 +38,9 @@ knip:
 knip-strict:
     DATABASE_URL=postgres://x bunx knip --strict --reporter compact
 
-# Cycles d'imports
+# Cycles d'imports. Seed blog data excluded: index↔article-data barrels are static-data cycles, not real coupling.
 cycles:
-    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules)/' backend/src frontend/src shared/src
+    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules|db/seed/data)/' backend/src frontend/src shared/src
 
 # Fuzzy-pick a recipe and run it (needs fzf)
 choose:
