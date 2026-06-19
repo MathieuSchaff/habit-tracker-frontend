@@ -70,13 +70,15 @@ const CRUELTY_FREE_LABELS = new Set([
   'leaping-bunny',
   'one-voice',
 ])
+// `naturel` is excluded on purpose: it is a self-declared marketing tag, not
+// a certification, and the flag it feeds is named isNaturalCertified. We keep
+// regulated `organic`/`bio` (EU-governed terms) plus the named schemes.
 const NATURAL_LABELS = new Set([
   'organic',
   'cosmos-organic',
   'cosmos-natural',
   'ecocert',
   'bio',
-  'naturel',
   'nature-progres',
   'cosmetique-bio-charte-cosmebio',
   'cosmebio',
@@ -207,18 +209,37 @@ export function mergeObfSourcesIntoExisting(
 // fields stay empty strings; trailing newline is dropped. Streaming-safe
 // (one line at a time) so we don't keep the full 120 MB decompressed CSV
 // in memory simultaneously while building rollups.
-const COL_BRANDS_TAGS = 19 // 0-indexed; OBF column 20 = `brands_tags`
-const COL_LABELS_TAGS = 30 // OBF column 31 = `labels_tags`
+export interface ObfColumns {
+  brands: number
+  labels: number
+}
 
-export function parseObfCsvLine(line: string): ObfRow | null {
+// Resolve the brands_tags / labels_tags column positions from the dump's
+// header row instead of hardcoding them. OBF occasionally reorders columns;
+// a hardcoded index would then silently read the wrong field. Throwing here
+// turns that into a loud failure at ingest start.
+export function resolveObfColumns(headerLine: string): ObfColumns {
+  const cols = headerLine.split('\t')
+  const brands = cols.indexOf('brands_tags')
+  const labels = cols.indexOf('labels_tags')
+  if (brands === -1 || labels === -1) {
+    throw new Error(
+      `OBF header missing expected columns (brands_tags=${brands}, labels_tags=${labels}). ` +
+        'Dump format changed — update the ingest mapping.'
+    )
+  }
+  return { brands, labels }
+}
+
+export function parseObfCsvLine(line: string, columns: ObfColumns): ObfRow | null {
   if (line.length === 0) return null
   const cols = line.split('\t')
-  if (cols.length <= COL_LABELS_TAGS) return null
-  const brandTags = cols[COL_BRANDS_TAGS]
-    ? cols[COL_BRANDS_TAGS].split(',').filter((t) => t.length > 0)
+  if (cols.length <= Math.max(columns.brands, columns.labels)) return null
+  const brandTags = cols[columns.brands]
+    ? cols[columns.brands].split(',').filter((t) => t.length > 0)
     : []
-  const labelTags = cols[COL_LABELS_TAGS]
-    ? cols[COL_LABELS_TAGS].split(',').filter((t) => t.length > 0)
+  const labelTags = cols[columns.labels]
+    ? cols[columns.labels].split(',').filter((t) => t.length > 0)
     : []
   if (brandTags.length === 0 && labelTags.length === 0) return null
   return { brandTags, labelTags }
