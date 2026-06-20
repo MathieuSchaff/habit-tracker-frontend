@@ -434,3 +434,91 @@ describe('detectActifClassesWithEvidence', () => {
     expect(ev?.rule).toBe('positionCap:inf')
   })
 })
+
+describe('actif-class %-rescue (cap-marginal AHA, Mathieu directive: solver ≥ 2%)', () => {
+  const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+  const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
+
+  // Lookup that reports a solver % for the lactic-acid pattern; undefined otherwise.
+  const lookup = (pct: number) => (pattern: string) => (pattern === 'lactic acid' ? pct : undefined)
+
+  test('neutral name RESCUED when solver ≥ 2% (acid-named actif the keyword list misses)', () => {
+    const ev = detectActifClassesWithEvidence(
+      capMarginalInci,
+      undefined,
+      'cleanser',
+      'Chestnut AHA Clear Essence',
+      lookup(3.54)
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('lactic acid')
+  })
+
+  test('neutral name still dropped when solver < 2% (borderline pH adjuster, not rescued)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'cleanser',
+        'Gel Nettoyant Purifiant',
+        lookup(1.2)
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+
+  test('neutral name dropped when solver has no estimate (no rescue, name-gate stands)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'cleanser',
+        'Gel Nettoyant Purifiant',
+        () => undefined
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+
+  test('exfoliant name keeps the hit regardless of solver (name primary)', () => {
+    const ev = detectActifClassesWithEvidence(
+      capMarginalInci,
+      undefined,
+      'cleanser',
+      'Gel Exfoliant Éclat',
+      lookup(0.3)
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('lactic acid')
+  })
+
+  test('rescue does NOT touch a leave-on (not rinse-off → not cap-marginal)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'serum',
+        'Acid Serum',
+        lookup(5)
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+
+  test('functional-position AHA within the leave-on cap is untouched by the rescue path', () => {
+    const ev = detectActifClassesWithEvidence(
+      'Aqua, Glycerin, Glycolic Acid, Butylene Glycol',
+      undefined,
+      'cleanser',
+      'Gel Nettoyant Doux',
+      (p: string) => (p === 'glycolic acid' ? 0.2 : undefined)
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('glycolic acid')
+  })
+
+  test('no lookup → behavior byte-identical to the name-gate (neutral name drops)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'cleanser',
+        'Gel Nettoyant Purifiant'
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+})

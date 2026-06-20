@@ -8,10 +8,12 @@
 // pH-dependent acids (AHA/BHA/PHA) use a tight cap; antioxidants/humectants/
 // ceramides use Infinity because the gold-set tags them regardless of INCI position.
 //
-// An earlier attempt gated on `concentrationEstimate.belowBreakpoint` (EU <1% zone)
-// to replace position caps. Gold-set audit (2026-05-14) rejected it: macro F1 dropped
-// 0.995 -> 0.930 (vitamin-e/HA/ceramides are functional below 1%; AHA/BHA/PHA
-// breakpoint reads also disagreed with gold).
+// An earlier attempt gated ALL clusters on `concentrationEstimate.belowBreakpoint`
+// (EU <1% zone) to replace position caps. Gold-set audit (2026-05-14) rejected it:
+// macro F1 dropped 0.995 -> 0.930 (vitamin-e/HA/ceramides are functional below 1%).
+// The narrow version survives: a solver `%` tiebreaker scoped to cap-marginal AHA hits
+// only (lactic/glycolic et al. are pH adjusters below ~1%, exfoliants above) — see
+// `concentrationLookup` below. AHA dosing matches the breakpoint, unlike HA/vit-E.
 
 import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
@@ -58,6 +60,19 @@ export interface ActifClassDef {
 // (rescues the cap-marginal gate). Matches exfoliant/exfoliation, (super)foliant,
 // peel/peeling, gommage, resurfacing.
 const EXFOLIATION_NAME_RE = /exfolia|foliant|peel|gommage|resurfa/
+
+// Resolves the algo-derm solver-estimated concentration (% w/w) for a matched acid
+// pattern, or undefined when the solver has no estimate. Built once per product from
+// the shared assessment (see actif-class-pass). Only consulted for cap-marginal AHA.
+export type ConcentrationLookup = (matchedPattern: string) => number | undefined
+
+// The name-gate keyword list (exfolia|peel|...) misses acid-named products (e.g. "Chestnut
+// AHA Essence"), wrongly dropping real exfoliant actives sitting deep in rinse-off INCI.
+// The solver % rescues them: a cap-marginal AHA the name doesn't vouch for is kept when the
+// solver puts it at a confidently functional dose. Threshold 2% (not 1%) so solver noise
+// (MAE 4pts) near the pH-adjuster boundary can't rescue a true pH adjuster — only the
+// unambiguous actives (audit 2026-06-19: rescues anua 4.7% / isntree 3.5%, not 1% cleansers).
+const AHA_RESCUE_PCT_MIN = 2
 
 export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
@@ -276,9 +291,18 @@ export function detectActifClasses(
   inci: string | null | undefined,
   hoistedIngredients?: readonly string[],
   kind?: ProductKind,
-  productName?: string | null
+  productName?: string | null,
+  concentrationLookup?: ConcentrationLookup
 ): SkincareProductTagSlug[] {
-  return [...detectActifClassesWithEvidence(inci, hoistedIngredients, kind, productName).keys()]
+  return [
+    ...detectActifClassesWithEvidence(
+      inci,
+      hoistedIngredients,
+      kind,
+      productName,
+      concentrationLookup
+    ).keys(),
+  ]
 }
 
 // Same matching as detectActifClasses, but records the triggering token, its INCI
@@ -289,7 +313,8 @@ export function detectActifClassesWithEvidence(
   inci: string | null | undefined,
   hoistedIngredients?: readonly string[],
   kind?: ProductKind,
-  productName?: string | null
+  productName?: string | null,
+  concentrationLookup?: ConcentrationLookup
 ): Map<SkincareProductTagSlug, TagEvidence> {
   const evidence = new Map<SkincareProductTagSlug, TagEvidence>()
   const resolved = resolveIngredients(inci, hoistedIngredients)
@@ -312,8 +337,12 @@ export function detectActifClassesWithEvidence(
     const cap = isAlpha ? ingredients.length : Math.min(ingredients.length, baseCap)
     for (let i = 0; i < cap; i++) {
       const ing = ingredients[i]
-      const hit = def.exact ? def.patterns.includes(ing) : def.patterns.some((p) => ing.includes(p))
-      if (hit) {
+      const matchedPattern = def.exact
+        ? def.patterns.includes(ing)
+          ? ing
+          : undefined
+        : def.patterns.find((p) => ing.includes(p))
+      if (matchedPattern !== undefined) {
         // obs 1: a pH-active acid admitted only by the looser rinse-off cap (position
         // past the leave-on cap) is a pH adjuster, not an exfoliant — unless the name
         // positions the product as one. Skip lets a later def (e.g. mandelic) still fire.
@@ -322,13 +351,20 @@ export function detectActifClassesWithEvidence(
           isRinseOffLike &&
           def.positionCapRinseOff !== undefined &&
           i >= (def.positionCap ?? DEFAULT_POSITION_CAP)
-        if (
-          def.rinseOffNameGate &&
-          capMarginal &&
-          gateName &&
-          !EXFOLIATION_NAME_RE.test(gateName)
-        ) {
-          continue
+        if (def.rinseOffNameGate && capMarginal) {
+          const nameExfoliant = !!gateName && EXFOLIATION_NAME_RE.test(gateName)
+          // A positive name keeps the hit (brand positioning). Otherwise the name-gate drops
+          // a present-but-neutral name — unless the solver rescues it at a confidently
+          // functional dose (the name keyword list misses acid-named actives). Absent name +
+          // no rescue stays the legacy keep (INCI-only callers). No lookup ⇒ no rescue ⇒
+          // behavior is byte-identical to the pre-% name-gate.
+          if (!nameExfoliant) {
+            const pct = concentrationLookup?.(matchedPattern)
+            const rescued = pct !== undefined && pct >= AHA_RESCUE_PCT_MIN
+            if (!rescued && gateName) {
+              continue
+            }
+          }
         }
         evidence.set(def.slug, {
           matchedToken: ing,
