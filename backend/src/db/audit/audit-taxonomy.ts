@@ -74,6 +74,7 @@ async function checkAbsenceClaimImplausibleKind(): Promise<CheckResult> {
 }
 
 // 2. type-exfoliation (an action) co-occurring with a real product_type_v2 format.
+//    No category scope: product_type_v2 spans skincare/bodycare/solaire — the leak too.
 async function checkProductTypeAxisLeak(): Promise<CheckResult> {
   const rows = await db.execute(sql`
     WITH exf AS (
@@ -81,7 +82,7 @@ async function checkProductTypeAxisLeak(): Promise<CheckResult> {
       FROM product_tag_links ptl
       JOIN product_tag_types t ON t.id = ptl.product_tag_id AND t.slug = 'type-exfoliation'
       JOIN products p ON p.id = ptl.product_id
-        AND p.moderation_status = 'visible' AND p.category = 'skincare'
+        AND p.moderation_status = 'visible'
     )
     SELECT t2.slug AS other, count(*) AS n
     FROM exf

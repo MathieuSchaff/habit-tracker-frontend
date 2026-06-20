@@ -6,14 +6,16 @@
   background: var(--bg-page);
 }
 
+/* scope gutter overrides to the layout, not :root — global :root leaks onto
+   the homepage when this route's CSS chunk loads (e.g. nav hover preload) */
 @media (--xs) {
-  :root {
+  .list-page-layout {
     --page-gutter: var(--space-5);
   }
 }
 
 @media (--md) {
-  :root {
+  .list-page-layout {
     --page-gutter: var(--space-6);
   }
 }
