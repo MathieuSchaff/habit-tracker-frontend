@@ -34,5 +34,3 @@ export interface UnifiedProductSeed {
   tags: ProductTagGroups
   keyIngredients?: Ingredient[]
 }
-
-export { INGREDIENT_SLUGS } from '../ingredients/ingredient-slugs'

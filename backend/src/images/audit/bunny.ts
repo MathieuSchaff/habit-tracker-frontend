@@ -49,7 +49,8 @@ const dbCdnSlugs = new Set<string>()
 const dbExpectedFiles = new Set<string>()
 for (const r of rows) {
   if (r.image_url && cfg.cdnBase && r.image_url.startsWith(cfg.cdnBase)) {
-    const file = r.image_url.replace(`${cfg.cdnBase}/${cfg.prefix}`, '')
+    // strip cache-bust query/hash (?v=…) so it matches the bare storage key
+    const file = r.image_url.replace(`${cfg.cdnBase}/${cfg.prefix}`, '').replace(/[?#].*$/, '')
     dbExpectedFiles.add(file)
     dbCdnSlugs.add(r.slug)
   }
