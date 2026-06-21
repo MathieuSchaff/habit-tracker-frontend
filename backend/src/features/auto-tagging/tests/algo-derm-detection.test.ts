@@ -141,11 +141,15 @@ describe('algo-derm-detection', () => {
     // on half the catalogue = noise, no gold set to calibrate). Re-emitted by
     // formula:peau-grasse-name / formula:peau-seche-name on the explicit
     // marketed-for phrase. Net: allow 17→15, drop 16→18.
+    // 2026-06-21 (v17→v21 re-vendor): algo-derm dropped the `protection` (v19) and
+    // `reparateur` (v20) duplicate candidates upstream; their now-dead allow:false
+    // mappings removed from TAG_CONFIG. The UV/antioxidant and barrier signals stay
+    // on formula:protection / anti-oxydant / formula:reparateur-name. Net: drop 18→16.
     // Hard-counted to flag any accidental flip in TAG_CONFIG.
     const allow = Object.values(TAG_CONFIG).filter((r) => r.allow)
     const drop = Object.values(TAG_CONFIG).filter((r) => !r.allow)
     expect(allow.length).toBe(15)
-    expect(drop.length).toBe(18)
+    expect(drop.length).toBe(16)
   })
 
   test('T2 non_irritant: recognized gentle INCI emits non-irritant', () => {

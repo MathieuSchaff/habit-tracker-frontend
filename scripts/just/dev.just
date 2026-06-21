@@ -88,12 +88,14 @@ install-deps:
 # Rebuild algo-derm tarball in vendor/ from a pinned ref + bun install --force.
 # Aurore is calibrated for a fixed TAG_DEFS_VERSION (passes/algo-derm-detection.ts);
 # algo-derm main has moved ahead, so we build from a pinned ref in a throwaway
-# worktree (never the working checkout) and refuse a version mismatch. Migrate with
-# ALGO_DERM_REF=main once CALIBRATED_FOR_TAG_DEFS_VERSION is bumped.
+# worktree (never the working checkout) and refuse a version mismatch. To migrate:
+# bump CALIBRATED_FOR_TAG_DEFS_VERSION, cut a fresh `vNN-aurore` pin branch in
+# algo-derm at the target commit, then point the default below at it (a named pin,
+# not `main`, since `main` is usually the active algo-derm checkout → worktree clash).
 vendor-algo-derm:
     #!/usr/bin/env bash
     set -euo pipefail
-    REF="${ALGO_DERM_REF:-v17-aurore}"
+    REF="${ALGO_DERM_REF:-v21-aurore}"
     printf "{{CYAN}}Build algo-derm @ %s...{{NC}}\n" "$REF"
     WT="$(mktemp -d)"
     trap 'git -C {{ALGO_DERM_DIR}} worktree remove --force "$WT" >/dev/null 2>&1 || true' EXIT
