@@ -217,16 +217,28 @@ describe('algo-derm-detection', () => {
     expect(hasNotPresent).toBe(true)
   })
 
-  test('T1 absence family: clean INCI emits sans-sulfates/silicones/HE/min-oil/allergens', () => {
+  test('T1 absence family: clean INCI emits silicones/HE/min-oil/allergens on leave-on', () => {
     // No SLS, no dimethicone, no essential oils, no petrolatum, no EU 26 allergens.
-    // Coverage ≥ 0.7 → coverageFloor 0.7 gate passes for all 5 absence tags.
+    // Coverage ≥ 0.7 → coverageFloor 0.7 gate passes for the four ungated absence
+    // tags. sans-sulfates is formulaType-gated on leave-on (see next test).
     const inci = 'Aqua, Glycerin, Niacinamide, Sodium Hyaluronate, Tocopherol, Panthenol'
     const slugs = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
-    expect(slugs.has(S.SANS_SULFATES)).toBe(true)
     expect(slugs.has(S.SANS_SILICONES)).toBe(true)
     expect(slugs.has(S.SANS_HUILES_ESSENTIELLES)).toBe(true)
     expect(slugs.has(S.SANS_HUILES_MINERALES)).toBe(true)
     expect(slugs.has(S.SANS_ALLERGENES_PARFUMANTS)).toBe(true)
+  })
+
+  test('T1 sans-sulfates formulaType gate (TAG_DEFS v22): leave-on dropped, cleanser kept', () => {
+    // A sulfate-free serum carries no signal (a serum is never sulfate-based), so
+    // algo-derm downgrades the trivially-true claim to insufficient_data and it
+    // drops here as not_present; on a cleanser, where a sulfate surfactant is a
+    // real cleansing-system choice, the absence claim survives.
+    const inci = 'Aqua, Glycerin, Niacinamide, Sodium Hyaluronate, Tocopherol, Panthenol'
+    const leaveOn = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
+    const rinseOff = new Set(detectAutoTags(inci, 'cleanser').map((t) => t.slug))
+    expect(leaveOn.has(S.SANS_SULFATES)).toBe(false)
+    expect(rinseOff.has(S.SANS_SULFATES)).toBe(true)
   })
 
   test('T1 sans-sulfates: SLS in INCI suppresses tag', () => {

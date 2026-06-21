@@ -124,7 +124,19 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 //          confidence when undriven, collapsing the min and masking gentle
 //          partial-coverage formulas to insufficient_data. v15/v16 `check`
 //          gates stay; tolerance tags wrongly masked report `present` again.
-const CALIBRATED_FOR_TAG_DEFS_VERSION = 21
+//   v18-v21 (2026-06-21): re-vendor — scoring decouple (v18) only moves
+//          allow:false tags, duplicate drops (v19 protection, v20 reparateur)
+//          re-emitted by formula passes. No emission change here; documented in
+//          tag-budgets.ts (coverage-gain rebaseline of three minimal-headroom caps).
+//   v22 (2026-06-21): absence tags `sans_sulfates` / `sans_savon` gate on
+//          `context.formulaType` (relevantKinds = cleanser/gentle_cleanser).
+//          On a known leave-on kind the trivially-true `present` claim downgrades
+//          to insufficient_data → dropped here as `not_present`. sans_savon is
+//          allow:false (no-op). sans_sulfates falls on leave-on skincare/solaire
+//          (~2485 emissions), survives on cleanser + undefined-formulaType kinds
+//          (body/lip/deodorant). Re-baseline sans-sulfates caps; CHECK stays
+//          green (max-only caps, no min → a drop never breaches).
+const CALIBRATED_FOR_TAG_DEFS_VERSION = 22
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
   throw new Error(
