@@ -41,4 +41,8 @@ export const productsHandlers = [
 
     return ok({ items: filtered, total: filtered.length, page, limit })
   }),
+
+  // Detail-by-slug: consumers read it through optional chaining, so an empty
+  // payload is enough to keep the request handled (no fixture needed here).
+  http.get('*/api/products/:slug', () => ok(null)),
 ]

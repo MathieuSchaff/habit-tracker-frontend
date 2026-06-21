@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" aria-hidden="true">
   <rect width="120" height="120" rx="24" fill="#FFF6ED" />
   <g transform="translate(60 20)">
     <path d="M -40 60 A 40 40 0 0 1 40 60 Z" fill="#F2A09A" opacity="0.7" />
