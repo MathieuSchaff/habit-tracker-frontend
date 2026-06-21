@@ -2,7 +2,11 @@ import { describe, expect, test } from 'bun:test'
 
 import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 
-import { detectActifClasses, detectActifClassesWithEvidence } from '../passes/actif-class-detection'
+import {
+  detectActifClasses,
+  detectActifClassesWithEvidence,
+  type RoleAtDoseLookup,
+} from '../passes/actif-class-detection'
 
 describe('actif-class-detection', () => {
   test('empty/null/whitespace INCI returns []', () => {
@@ -518,6 +522,63 @@ describe('actif-class %-rescue (cap-marginal AHA, Mathieu directive: solver ≥ 
         undefined,
         'cleanser',
         'Gel Nettoyant Purifiant'
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+})
+
+describe('actif-class roleAtDose gate (cap-marginal AHA, ADR-0014)', () => {
+  const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+  const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
+
+  // Stubs algo-derm's roleAtDose for the cap-marginal lactic-acid hit; undefined elsewhere.
+  const role =
+    (doseFactor: number, confidence: number): RoleAtDoseLookup =>
+    (pattern) =>
+      pattern === 'lactic acid'
+        ? { activeRole: 'exfoliant', doseFactor, confidence, basis: 'concentration' }
+        : undefined
+
+  // isdin-ureadin-ultra-40: 40 % urea peel, lactic sub-1 % pH adjuster under an exfoliant
+  // name. A confident sub-c50 dose overrides the name-gate that would otherwise keep it —
+  // the lone gold AHA FP this gate exists to kill (AHA P 0.955→1.000).
+  test('confident sub-c50 dose drops AHA even under an exfoliant name (isdin case)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'cleanser',
+        'Gel Huile Exfoliant Intense 40% Urée',
+        undefined,
+        role(0.2, 0.9)
+      ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    ).toBe(false)
+  })
+
+  // Symmetric branch: a confident active dose keeps the hit under a neutral name the
+  // keyword list and the %-rescue would both miss.
+  test('confident active dose keeps AHA under a neutral name', () => {
+    const ev = detectActifClassesWithEvidence(
+      capMarginalInci,
+      undefined,
+      'cleanser',
+      'Gel Nettoyant Purifiant',
+      undefined,
+      role(0.85, 0.9)
+    ).get(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
+    expect(ev?.matchedToken).toBe('lactic acid')
+  })
+
+  // Near the knee confidence collapses → ignore the dose, fall back to the name-gate.
+  test('low-confidence role falls back to the name-gate (neutral name drops)', () => {
+    expect(
+      detectActifClassesWithEvidence(
+        capMarginalInci,
+        undefined,
+        'cleanser',
+        'Gel Nettoyant Purifiant',
+        undefined,
+        role(0.2, 0.3)
       ).has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
     ).toBe(false)
   })
