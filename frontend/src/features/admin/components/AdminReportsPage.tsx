@@ -2,7 +2,7 @@ import type { ReportStatus, ReportTargetType } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -16,6 +16,7 @@ import {
 } from '@/lib/queries/admin'
 import { useAuthStore } from '@/store/auth'
 import { adminLabels, roleLabels, rolePillClass } from '../constants'
+import { useSuccessFeedback } from '../useSuccessFeedback'
 
 type ReportTab = ReportStatus | 'escalated'
 
@@ -26,8 +27,6 @@ const TABS: ReadonlyArray<{ value: ReportTab; label: string; adminOnly?: boolean
   { value: 'dismissed', label: 'Rejetés' },
   { value: 'escalated', label: 'Escaladés', adminOnly: true },
 ]
-
-const SUCCESS_FEEDBACK_MS = 3500
 
 const TARGET_TO_MODERATE: Record<
   Exclude<ReportTargetType, 'profile'>,
@@ -55,15 +54,9 @@ export function AdminReportsPage() {
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [escalatingId, setEscalatingId] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { success, setSuccess } = useSuccessFeedback()
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin)
-
-  useEffect(() => {
-    if (!success) return
-    const t = setTimeout(() => setSuccess(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [success])
 
   const reporterEmailById = useMemo(() => {
     const map = new Map<string, string>()
@@ -292,13 +285,7 @@ function ContentPreviewPanel({
   const preview = useQuery(adminQueries.contentPreview(moderateTarget, targetId))
   const moderate = useModerateContent()
   const { confirm, dialog } = useConfirm()
-  const [feedback, setFeedback] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!feedback) return
-    const t = setTimeout(() => setFeedback(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [feedback])
+  const { success: feedback, setSuccess: setFeedback } = useSuccessFeedback()
 
   if (preview.isLoading) return <p className="admin-reports-meta">Chargement…</p>
   if (preview.isError || !preview.data) {

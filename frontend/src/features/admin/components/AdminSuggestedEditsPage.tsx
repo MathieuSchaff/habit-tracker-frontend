@@ -1,15 +1,15 @@
 import type { SuggestedEditStatus } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { adminQueries, useReviewSuggestedEdit } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
 import { useConfirm } from '../useConfirm'
-
-const SUCCESS_FEEDBACK_MS = 3500
+import { useSuccessFeedback } from '../useSuccessFeedback'
+import { AdminFilterTabs } from './AdminFilterTabs'
 
 const STATUSES: { value: SuggestedEditStatus; label: string }[] = [
   { value: 'pending', label: 'En attente' },
@@ -23,13 +23,7 @@ export function AdminSuggestedEditsPage() {
   const review = useReviewSuggestedEdit(status)
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!success) return
-    const t = setTimeout(() => setSuccess(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [success])
+  const { success, setSuccess } = useSuccessFeedback()
 
   async function handleReview(id: string, next: 'accepted' | 'rejected') {
     const ok = await confirm({
@@ -61,20 +55,7 @@ export function AdminSuggestedEditsPage() {
         </div>
       </header>
 
-      <div className="admin-filter-bar" role="tablist">
-        {STATUSES.map((s) => (
-          <button
-            type="button"
-            key={s.value}
-            role="tab"
-            aria-selected={status === s.value}
-            className={`admin-filter-bar__btn ${status === s.value ? 'is-active' : ''}`}
-            onClick={() => setStatus(s.value)}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <AdminFilterTabs tabs={STATUSES} value={status} onChange={setStatus} />
 
       <div aria-live="polite" aria-atomic="true">
         {success && <FormMessage variant="success">{success}</FormMessage>}

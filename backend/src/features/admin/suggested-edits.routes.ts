@@ -7,35 +7,19 @@ import {
   reviewSuggestedEditBodySchema,
 } from '@aurore/shared'
 
-import { Hono } from 'hono'
 import { z } from 'zod'
 
-import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import {
-  getAuthedUserId,
-  requireContentModerator,
-  requireJwtAuth,
-  requireNotBanned,
-} from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { getAuthedUserId, requireContentModerator } from '../auth/middleware'
 import { listSuggestedEdits, reviewSuggestedEdit } from '../suggested-edits/service'
 import { SuggestedEditError } from '../suggested-edits/suggested-edit-error'
+import { createAdminGuardedRouter } from './_guarded-router'
 
 const editIdParam = z.object({ id: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
 // All routes are moderator-reachable (list + review); no admin-only verb mixed in, blanket guard is safe.
-app.use('*', requireContentModerator)
-app.use('*', withRlsContext)
-
-export const adminSuggestedEditsRoutes = app
+export const adminSuggestedEditsRoutes = createAdminGuardedRouter(requireContentModerator)
   .get('/', zValidator('query', listSuggestedEditsQuerySchema), async (c) => {
     const filters = c.req.valid('query')
     const result = await listSuggestedEdits(c.get('db'), filters)
