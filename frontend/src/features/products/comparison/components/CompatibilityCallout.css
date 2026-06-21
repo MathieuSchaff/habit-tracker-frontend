@@ -80,9 +80,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-.cmp-callout__meta-sep,
 .cmp-callout__meta-total {
-  display: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .cmp-callout__meta-label {

@@ -120,11 +120,11 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
         }}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
         onAddClick={onAddClick}
-        onCompare={([upA, upB]) => {
-          const productIds = [upA, upB]
+        onCompare={(ids) => {
+          const productIds = ids
             .map((id) => filteredProducts.find((p) => p.id === id)?.productId)
             .filter((pid): pid is string => Boolean(pid))
-          if (productIds.length !== 2 || createComparison.isPending) return
+          if (productIds.length !== ids.length || createComparison.isPending) return
           createComparison.mutate(
             { productIds },
             {

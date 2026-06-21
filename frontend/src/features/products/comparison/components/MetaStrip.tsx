@@ -1,5 +1,7 @@
 import type { EnrichedComparisonProduct, SkincareProductTagCategory } from '@aurore/shared'
 
+import { Link } from '@tanstack/react-router'
+
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 import { tagLabel } from '@/features/products/filters'
 
@@ -43,15 +45,31 @@ export function MetaStrip({ products }: Props) {
           return (
             <li key={p.id} className="cmp-shelf__item">
               <span className="cmp-shelf__num">N° {String(i + 1).padStart(2, '0')}</span>
-              <ProductImage
-                kind={p.kind}
-                unit={p.amountUnit}
-                imageUrl={p.imageUrl}
-                size={96}
-                className="cmp-shelf__photo"
-              />
+              <Link
+                to="/products/$slug"
+                params={{ slug: p.slug }}
+                className="cmp-shelf__photo-link"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <ProductImage
+                  kind={p.kind}
+                  unit={p.amountUnit}
+                  imageUrl={p.imageUrl}
+                  size={96}
+                  className="cmp-shelf__photo"
+                />
+              </Link>
               <p className="cmp-shelf__brand">{p.brand}</p>
-              <h3 className="cmp-shelf__name">{p.name}</h3>
+              <h3 className="cmp-shelf__name">
+                <Link
+                  to="/products/$slug"
+                  params={{ slug: p.slug }}
+                  className="cmp-shelf__name-link"
+                >
+                  {p.name}
+                </Link>
+              </h3>
               <p className="cmp-shelf__meta">
                 {p.totalAmount && p.amountUnit ? (
                   <span className="cmp-shelf__amount">

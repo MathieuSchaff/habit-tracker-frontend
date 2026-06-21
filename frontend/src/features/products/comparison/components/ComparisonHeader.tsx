@@ -9,10 +9,11 @@ type Props = {
   onNameChange: (s: string) => void
   count: number
   onSave?: () => void
+  onCancel?: () => void
   canSave: boolean
 }
 
-export function ComparisonHeader({ name, onNameChange, count, onSave, canSave }: Props) {
+export function ComparisonHeader({ name, onNameChange, count, onSave, onCancel, canSave }: Props) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     onSave?.()
@@ -31,7 +32,9 @@ export function ComparisonHeader({ name, onNameChange, count, onSave, canSave }:
         <span className="comparison-header__count">
           {count} produit{count > 1 ? 's' : ''}
         </span>
-        {onSave && <FormActions submitLabel="Enregistrer" disabled={!canSave} />}
+        {onSave && (
+          <FormActions submitLabel="Enregistrer" disabled={!canSave} onCancel={onCancel} />
+        )}
       </form>
     </header>
   )

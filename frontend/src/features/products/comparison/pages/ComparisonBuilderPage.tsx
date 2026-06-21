@@ -2,7 +2,7 @@ import { COMPARISON_MAX_PRODUCTS, COMPARISON_MIN_PRODUCTS } from '@aurore/shared
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import {
@@ -31,6 +31,16 @@ function NewComparisonBuilder({ seedProductId }: { seedProductId?: string }) {
   const [productIds, setProductIds] = useState<string[]>(seedProductId ? [seedProductId] : [])
   const [name, setName] = useState<string>('')
 
+  const isDirty = productIds.length > 0 || name.trim().length > 0
+
+  // Guard the native back/close path; in-app cancel is the FormActions button below.
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
   const onSave = async () => {
     if (productIds.length < COMPARISON_MIN_PRODUCTS) return
     const created = await create.mutateAsync({
@@ -47,6 +57,7 @@ function NewComparisonBuilder({ seedProductId }: { seedProductId?: string }) {
         onNameChange={setName}
         count={productIds.length}
         onSave={onSave}
+        onCancel={isDirty ? () => void navigate({ to: '/products/compare' }) : undefined}
         canSave={productIds.length >= COMPARISON_MIN_PRODUCTS}
       />
       {create.error && (

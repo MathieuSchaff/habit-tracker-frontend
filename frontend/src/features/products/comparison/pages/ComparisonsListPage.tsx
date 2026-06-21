@@ -3,12 +3,14 @@ import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
+import { useConfirm } from '@/features/admin/useConfirm'
 import { comparisonQueries, useDeleteComparison } from '@/lib/queries/comparisons'
 import './ComparisonsListPage.css'
 
 export function ComparisonsListPage() {
   const { data: comparisons } = useSuspenseQuery(comparisonQueries.list())
   const del = useDeleteComparison()
+  const { confirm, dialog } = useConfirm()
 
   return (
     <section className="comparisons-list-page">
@@ -47,11 +49,13 @@ export function ComparisonsListPage() {
               </Link>
               <div className="comparison-card__footer">
                 <Button
-                  onClick={() => {
+                  onClick={async () => {
                     if (
-                      window.confirm(
-                        `Supprimer la comparaison « ${c.name ?? 'Sans nom'} » ? Cette action est irréversible.`
-                      )
+                      await confirm({
+                        title: `Supprimer la comparaison « ${c.name ?? 'Sans nom'} » ?`,
+                        confirmLabel: 'Supprimer',
+                        variant: 'danger',
+                      })
                     ) {
                       del.mutate(c.id)
                     }
@@ -66,6 +70,7 @@ export function ComparisonsListPage() {
           ))}
         </ul>
       )}
+      {dialog}
     </section>
   )
 }

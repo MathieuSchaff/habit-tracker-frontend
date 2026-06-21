@@ -715,6 +715,13 @@
       "when": 1781718156837,
       "tag": "0101_dazzling_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1782075172910,
+      "tag": "0102_dev-readonly-login",
+      "breakpoints": true
     }
   ]
 }

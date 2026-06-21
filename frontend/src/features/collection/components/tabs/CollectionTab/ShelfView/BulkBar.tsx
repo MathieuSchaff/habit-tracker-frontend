@@ -1,4 +1,8 @@
-import type { UserProductStatus } from '@aurore/shared'
+import {
+  COMPARISON_MAX_PRODUCTS,
+  COMPARISON_MIN_PRODUCTS,
+  type UserProductStatus,
+} from '@aurore/shared'
 
 import { ArrowRight, GitCompare, X } from 'lucide-react'
 
@@ -17,7 +21,10 @@ interface BulkBarProps {
 export function BulkBar({ selectedCount, onMove, onClear, onCompare }: BulkBarProps) {
   if (selectedCount === 0) return null
 
-  const canCompare = selectedCount === 2 && Boolean(onCompare)
+  const canCompare =
+    selectedCount >= COMPARISON_MIN_PRODUCTS &&
+    selectedCount <= COMPARISON_MAX_PRODUCTS &&
+    Boolean(onCompare)
 
   return (
     <section className="bulk-bar-wrap" aria-label="Actions groupées">
