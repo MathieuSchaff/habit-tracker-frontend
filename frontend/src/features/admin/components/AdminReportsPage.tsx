@@ -2,7 +2,7 @@ import type { ReportStatus, ReportTargetType } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -160,8 +160,8 @@ export function AdminReportsPage() {
               const targetUser =
                 isAdmin && r.targetType === 'profile' ? userById.get(r.targetId) : null
               return (
-                <>
-                  <tr key={r.id}>
+                <Fragment key={r.id}>
+                  <tr>
                     <td>
                       {targetUser ? (
                         <div className="admin-target-snapshot">
@@ -254,7 +254,7 @@ export function AdminReportsPage() {
                     </td>
                   </tr>
                   {isExpanded && canPreview && (
-                    <tr key={`${r.id}-preview`}>
+                    <tr>
                       <td colSpan={6} className="admin-preview-cell">
                         <ContentPreviewPanel
                           targetType={r.targetType as Exclude<ReportTargetType, 'profile'>}
@@ -263,7 +263,7 @@ export function AdminReportsPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               )
             })}
           </tbody>

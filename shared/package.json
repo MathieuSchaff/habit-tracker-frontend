@@ -18,6 +18,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "fallow": "^2.101.0",
+    "knip": "^6.17.1",
     "zod": "^4.3.5"
   }
 }

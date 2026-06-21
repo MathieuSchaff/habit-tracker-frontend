@@ -4,6 +4,8 @@ import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 
+import './useConfirm.css'
+
 type ReasonField = {
   label: string
   placeholder?: string
