@@ -18,6 +18,8 @@
 import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
+import type { RoleAtDose } from 'algo-derm'
+
 import { isAlphabeticalINCI, resolveIngredients } from '../lib/ingredient-resolver'
 import type { TagEvidence } from '../lib/pass-types'
 
@@ -73,6 +75,19 @@ export type ConcentrationLookup = (matchedPattern: string) => number | undefined
 // (MAE 4pts) near the pH-adjuster boundary can't rescue a true pH adjuster — only the
 // unambiguous actives (audit 2026-06-19: rescues anua 4.7% / isntree 3.5%, not 1% cleansers).
 const AHA_RESCUE_PCT_MIN = 2
+
+// roleAtDose (algo-derm v21+): a dose-conditioned exfoliant-vs-pH-adjuster signal on
+// each matched AHA. When confident it is authoritative over the name-gate — a sub-c50
+// dose is a pH adjuster even under an exfoliant-positioned name (e.g. a 40% urea peel
+// whose lactic acid sits sub-1%), and an active dose is kept even when the name keyword
+// list misses it. Near the curve knee confidence collapses → fall back to the name-gate
+// + %-rescue. c50 is the curve midpoint; τ (confidence floor) calibrated on the gold set.
+const AHA_ROLE_DOSE_C50 = 0.5
+const AHA_ROLE_CONFIDENCE_MIN = 0.5
+
+// Resolves the algo-derm roleAtDose signal for a matched acid pattern, built once per
+// product from the shared assessment. Only consulted for cap-marginal AHA hits.
+export type RoleAtDoseLookup = (matchedPattern: string) => RoleAtDose | undefined
 
 export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
@@ -292,7 +307,8 @@ export function detectActifClasses(
   hoistedIngredients?: readonly string[],
   kind?: ProductKind,
   productName?: string | null,
-  concentrationLookup?: ConcentrationLookup
+  concentrationLookup?: ConcentrationLookup,
+  roleAtDoseLookup?: RoleAtDoseLookup
 ): SkincareProductTagSlug[] {
   return [
     ...detectActifClassesWithEvidence(
@@ -300,7 +316,8 @@ export function detectActifClasses(
       hoistedIngredients,
       kind,
       productName,
-      concentrationLookup
+      concentrationLookup,
+      roleAtDoseLookup
     ).keys(),
   ]
 }
@@ -314,7 +331,8 @@ export function detectActifClassesWithEvidence(
   hoistedIngredients?: readonly string[],
   kind?: ProductKind,
   productName?: string | null,
-  concentrationLookup?: ConcentrationLookup
+  concentrationLookup?: ConcentrationLookup,
+  roleAtDoseLookup?: RoleAtDoseLookup
 ): Map<SkincareProductTagSlug, TagEvidence> {
   const evidence = new Map<SkincareProductTagSlug, TagEvidence>()
   const resolved = resolveIngredients(inci, hoistedIngredients)
@@ -352,17 +370,26 @@ export function detectActifClassesWithEvidence(
           def.positionCapRinseOff !== undefined &&
           i >= (def.positionCap ?? DEFAULT_POSITION_CAP)
         if (def.rinseOffNameGate && capMarginal) {
-          const nameExfoliant = !!gateName && EXFOLIATION_NAME_RE.test(gateName)
-          // A positive name keeps the hit (brand positioning). Otherwise the name-gate drops
-          // a present-but-neutral name — unless the solver rescues it at a confidently
-          // functional dose (the name keyword list misses acid-named actives). Absent name +
-          // no rescue stays the legacy keep (INCI-only callers). No lookup ⇒ no rescue ⇒
-          // behavior is byte-identical to the pre-% name-gate.
-          if (!nameExfoliant) {
-            const pct = concentrationLookup?.(matchedPattern)
-            const rescued = pct !== undefined && pct >= AHA_RESCUE_PCT_MIN
-            if (!rescued && gateName) {
+          const role = roleAtDoseLookup?.(matchedPattern)
+          if (role && role.confidence >= AHA_ROLE_CONFIDENCE_MIN) {
+            // Confident dose verdict overrides the name-gate: sub-c50 = pH adjuster (drop),
+            // active dose = keep (fall through). This is the precision lever — it drops a
+            // pH-adjuster AHA the exfoliant-named-product gate would otherwise keep.
+            if (role.doseFactor < AHA_ROLE_DOSE_C50) {
               continue
+            }
+          } else {
+            // No confident dose signal (near the knee, no curve, or INCI-only caller) ⇒
+            // legacy name-gate + %-rescue. A positive name keeps the hit; otherwise drop a
+            // present-but-neutral name unless the solver puts it at a functional dose (the
+            // keyword list misses acid-named actives). No lookups ⇒ byte-identical name-gate.
+            const nameExfoliant = !!gateName && EXFOLIATION_NAME_RE.test(gateName)
+            if (!nameExfoliant) {
+              const pct = concentrationLookup?.(matchedPattern)
+              const rescued = pct !== undefined && pct >= AHA_RESCUE_PCT_MIN
+              if (!rescued && gateName) {
+                continue
+              }
             }
           }
         }
