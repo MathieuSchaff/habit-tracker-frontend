@@ -2,7 +2,7 @@ import type { BanScope, CreateBanInput, UpdateRoleInput } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -22,6 +22,7 @@ import {
 } from '@/lib/queries/admin'
 import { useAuthStore } from '@/store/auth'
 import { adminLabels, getAdminErrorMessage, roleLabels } from '../constants'
+import { useSuccessFeedback } from '../useSuccessFeedback'
 
 const routeApi = getRouteApi('/admin/users_/$userId')
 
@@ -36,18 +37,6 @@ const SCOPE_OPTIONS: ReadonlyArray<{ value: BanScope; label: string }> = [
 
 // Falls back to the raw value so the confirm dialog never shows a bare enum.
 const scopeLabel = (s: BanScope) => SCOPE_OPTIONS.find((o) => o.value === s)?.label ?? s
-
-const SUCCESS_FEEDBACK_MS = 3500
-
-function useTransientMessage(): [string | null, (msg: string | null) => void] {
-  const [msg, setMsg] = useState<string | null>(null)
-  useEffect(() => {
-    if (!msg) return
-    const t = setTimeout(() => setMsg(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [msg])
-  return [msg, setMsg]
-}
 
 export function AdminUserDetailPage() {
   const { userId } = routeApi.useParams()
@@ -175,7 +164,7 @@ function CreateBanCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }
   const [reason, setReason] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useTransientMessage()
+  const { success, setSuccess } = useSuccessFeedback()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -265,7 +254,7 @@ function BansListCard({
   const liftBan = useLiftBan(userId)
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const [success, setSuccess] = useTransientMessage()
+  const { success, setSuccess } = useSuccessFeedback()
 
   async function handleLift(banId: string, scope: BanScope) {
     const ok = await confirm({
@@ -348,7 +337,7 @@ function ProfileVisibilityCard({
   const { confirm, dialog } = useConfirm()
   const [forced, setForced] = useState(initialForced)
   const [reason, setReason] = useState('')
-  const [success, setSuccess] = useTransientMessage()
+  const { success, setSuccess } = useSuccessFeedback()
 
   async function apply(next: boolean) {
     const ok = await confirm({

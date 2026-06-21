@@ -1,7 +1,7 @@
 import type { CatalogKind } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -9,8 +9,8 @@ import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
 import { adminQueries, useModerateContent, useVerifyCatalogItem } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
+import { useSuccessFeedback } from '../useSuccessFeedback'
 
-const SUCCESS_FEEDBACK_MS = 3500
 const ACTION_FAILED = 'L’action a échoué. Réessayez.'
 
 type View = 'to-verify' | 'hidden'
@@ -33,14 +33,8 @@ export function AdminCatalogPage() {
   const verify = useVerifyCatalogItem()
   const moderate = useModerateContent()
   const { confirm, dialog } = useConfirm()
-  const [success, setSuccess] = useState<string | null>(null)
+  const { success, setSuccess } = useSuccessFeedback()
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!success) return
-    const t = setTimeout(() => setSuccess(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [success])
 
   const moderateTarget = kind === 'product' ? 'products' : 'ingredients'
 

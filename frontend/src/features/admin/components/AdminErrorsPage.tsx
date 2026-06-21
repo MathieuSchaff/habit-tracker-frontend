@@ -1,7 +1,7 @@
 import type { ErrorGroupStatus, ErrorSource } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -9,6 +9,8 @@ import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { useConfirm } from '@/features/admin/useConfirm'
 import { adminQueries, useResolveErrorGroup } from '@/lib/queries/admin'
 import { adminLabels } from '../constants'
+import { useSuccessFeedback } from '../useSuccessFeedback'
+import { AdminFilterTabs } from './AdminFilterTabs'
 
 const STATUS_TABS: ReadonlyArray<{ value: ErrorGroupStatus; label: string }> = [
   { value: 'open', label: 'Ouvertes' },
@@ -26,8 +28,6 @@ const SOURCE_FILTERS: ReadonlyArray<{ value: ErrorSource | 'all'; label: string 
   { value: 'frontend', label: SOURCE_LABELS.frontend },
 ]
 
-const SUCCESS_FEEDBACK_MS = 3500
-
 export function AdminErrorsPage() {
   const [status, setStatus] = useState<ErrorGroupStatus>('open')
   const [sourceFilter, setSourceFilter] = useState<ErrorSource | 'all'>('all')
@@ -36,14 +36,8 @@ export function AdminErrorsPage() {
   const resolve = useResolveErrorGroup()
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const { success, setSuccess } = useSuccessFeedback()
   const [expandedId, setExpandedId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!success) return
-    const t = setTimeout(() => setSuccess(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [success])
 
   async function handleToggleResolved(id: string, resolved: boolean) {
     const ok = await confirm({
@@ -75,20 +69,12 @@ export function AdminErrorsPage() {
         </div>
       </header>
 
-      <div className="admin-filter-bar" role="tablist" aria-label="Filtrer par statut">
-        {STATUS_TABS.map((t) => (
-          <button
-            type="button"
-            key={t.value}
-            role="tab"
-            aria-selected={status === t.value}
-            className={`admin-filter-bar__btn ${status === t.value ? 'is-active' : ''}`}
-            onClick={() => setStatus(t.value)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <AdminFilterTabs
+        tabs={STATUS_TABS}
+        value={status}
+        onChange={setStatus}
+        label="Filtrer par statut"
+      />
 
       {/* Source is a filter group, not a tab interface (no tabpanel) → toggle buttons, not tablist. */}
       <div className="admin-filter-bar" role="toolbar" aria-label="Filtrer par source">

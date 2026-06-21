@@ -6,32 +6,19 @@ import {
   resolveErrorGroupBodySchema,
 } from '@aurore/shared'
 
-import { Hono } from 'hono'
 import { z } from 'zod'
 
-import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import { getAuthedUserId, requireAdmin, requireJwtAuth, requireNotBanned } from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { getAuthedUserId, requireAdmin } from '../auth/middleware'
 import { listErrorGroups, resolveErrorGroup } from '../errors/service'
+import { createAdminGuardedRouter } from './_guarded-router'
 
 const errorIdParam = z.object({ id: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
 // Prod error tracker is an ops surface, not content moderation → admin-only. The
-// '/api/admin/errors' prefix has no contributor-reachable siblings, so a blanket guard
-// is safe (same posture as role-requests, unlike the shared '/api/admin' bans router).
-app.use('*', requireAdmin)
-// error_groups has no RLS today; chain kept consistent so enableRLS() needs no route change.
-app.use('*', withRlsContext)
-
-export const adminErrorsRoutes = app
+// '/api/admin/errors' prefix has no contributor-reachable siblings, so a blanket guard is safe.
+export const adminErrorsRoutes = createAdminGuardedRouter(requireAdmin)
   .get('/', zValidator('query', listErrorGroupsQuerySchema), async (c) => {
     const filters = c.req.valid('query')
     const result = await listErrorGroups(c.get('db'), filters)

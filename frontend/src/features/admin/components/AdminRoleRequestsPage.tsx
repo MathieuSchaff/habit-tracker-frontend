@@ -1,7 +1,7 @@
 import type { RoleRequestStatus } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -9,8 +9,8 @@ import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { adminQueries, useReviewRoleRequest } from '@/lib/queries/admin'
 import { adminLabels, getAdminErrorMessage, roleRequestStatusLabels } from '../constants'
 import { useConfirm } from '../useConfirm'
-
-const SUCCESS_FEEDBACK_MS = 3500
+import { useSuccessFeedback } from '../useSuccessFeedback'
+import { AdminFilterTabs } from './AdminFilterTabs'
 
 const STATUSES: { value: RoleRequestStatus; label: string }[] = [
   { value: 'pending', label: roleRequestStatusLabels.pending },
@@ -25,13 +25,7 @@ export function AdminRoleRequestsPage() {
   const review = useReviewRoleRequest()
   const { confirm, dialog } = useConfirm()
   const [pendingId, setPendingId] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!success) return
-    const t = setTimeout(() => setSuccess(null), SUCCESS_FEEDBACK_MS)
-    return () => clearTimeout(t)
-  }, [success])
+  const { success, setSuccess } = useSuccessFeedback()
 
   async function handleApprove(id: string) {
     const ok = await confirm({
@@ -83,25 +77,16 @@ export function AdminRoleRequestsPage() {
         </div>
       </header>
 
-      <div className="admin-filter-bar" role="tablist">
-        {STATUSES.map((s) => (
-          <button
-            type="button"
-            key={s.value}
-            role="tab"
-            aria-selected={status === s.value}
-            className={`admin-filter-bar__btn ${status === s.value ? 'is-active' : ''}`}
-            onClick={() => {
-              // Drop any feedback from the previous tab so it doesn't linger over a fresh view.
-              setStatus(s.value)
-              setSuccess(null)
-              review.reset()
-            }}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <AdminFilterTabs
+        tabs={STATUSES}
+        value={status}
+        onChange={(s) => {
+          // Drop any feedback from the previous tab so it doesn't linger over a fresh view.
+          setStatus(s)
+          setSuccess(null)
+          review.reset()
+        }}
+      />
 
       <div aria-live="polite" aria-atomic="true">
         {success && <FormMessage variant="success">{success}</FormMessage>}

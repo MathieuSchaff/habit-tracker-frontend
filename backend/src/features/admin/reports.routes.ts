@@ -1,35 +1,18 @@
 import { HTTP_STATUS, listReportsQuerySchema, ok, resolveReportBodySchema } from '@aurore/shared'
 
-import { Hono } from 'hono'
 import { z } from 'zod'
 
-import type { AppEnv } from '../../app-env'
 import { logger } from '../../lib/logger'
-import { rateLimiterFunc } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
-import {
-  getAuthedUserId,
-  requireContentModerator,
-  requireJwtAuth,
-  requireNotBanned,
-} from '../auth/middleware'
-import { withRlsContext } from '../auth/rls-context.middleware'
+import { getAuthedUserId, requireContentModerator } from '../auth/middleware'
 import { escalateReport, listReports, resolveReport } from '../reports/service'
+import { createAdminGuardedRouter } from './_guarded-router'
 
 const reportIdParam = z.object({ id: z.uuid() })
 
-const app = new Hono<AppEnv>()
-
-app.use('*', rateLimiterFunc)
-app.use('*', requireJwtAuth)
-app.use('*', requireNotBanned)
 // Report queue is moderator-reachable, not admin-only (ADR-0006 S1); all routes are
 // list/resolve/dismiss, so blanket guard is safe.
-app.use('*', requireContentModerator)
-// content_reports has no RLS today; chain kept consistent so enableRLS() on the table needs no route change.
-app.use('*', withRlsContext)
-
-export const adminReportsRoutes = app
+export const adminReportsRoutes = createAdminGuardedRouter(requireContentModerator)
   .get('/', zValidator('query', listReportsQuerySchema), async (c) => {
     const filters = c.req.valid('query')
     const result = await listReports(c.get('db'), filters)
