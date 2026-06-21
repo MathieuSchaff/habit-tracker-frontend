@@ -124,7 +124,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 //          confidence when undriven, collapsing the min and masking gentle
 //          partial-coverage formulas to insufficient_data. v15/v16 `check`
 //          gates stay; tolerance tags wrongly masked report `present` again.
-const CALIBRATED_FOR_TAG_DEFS_VERSION = 17
+const CALIBRATED_FOR_TAG_DEFS_VERSION = 21
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
   throw new Error(
@@ -201,13 +201,6 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // by `formula:anti-age-name` (retinoid family + anti-âge/anti-rides claims) → P=0.933, R=0.944.
   'anti-age': { auroreSlug: S.ANTI_AGE, confidenceFloor: 0.5, allow: false },
   'pores-sebum': { auroreSlug: S.PORES_SEBUM, confidenceFloor: 0.5, allow: false },
-  // Unwired + folded into `anti-oxydant` (2026-06-13): algo-derm fires `protection`
-  // on the antioxidant axis — the identical lockstep signal as `anti-oxydant` — so
-  // it double-tagged and pushed antioxidant-INCI false positives into gold
-  // `protection` (P=0.513, 77 FP). The genuine UV meaning of S.PROTECTION is owned
-  // by `formula:protection` (sunscreen kind / stated SPF); the antioxidant meaning
-  // is now `anti-oxydant`'s alone. No re-emit here — this is a pure drop.
-  protection: { auroreSlug: S.PROTECTION, confidenceFloor: 0.5, allow: false },
   deshydratation: { auroreSlug: S.DESHYDRATATION, confidenceFloor: 0.85, allow: false },
 
   // Skin effects
@@ -222,13 +215,11 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // proxy, not a precision gate (algo-derm benefit confidence is the driver
   // evidence weight; a single A-evidence tocopherol clears it). Re-emitted by
   // `formula:anti-oxydant-name` (explicit antioxidant claim + unambiguous heroes).
-  // Also absorbs `protection` (same antioxidant axis), folded above.
+  // Also absorbs the antioxidant meaning of the former `protection` candidate
+  // (algo-derm dropped it as a duplicate in TAG_DEFS v19; UV meaning stays on
+  // `formula:protection`). `reparateur` likewise dropped as a `barriere-cutanee`
+  // duplicate in v20 — re-emitted by `formula:reparateur-name`.
   'anti-oxydant': { auroreSlug: S.ANTI_OXYDANT, confidenceFloor: 0.5, allow: false },
-  // Unwired (2026-06-13, ADR-0004): algo-derm fires on ubiquitous barrier actives
-  // (ceramides, panthenol) regardless of positioning — the same barrierSupport
-  // signal as `barriere-cutanee` (≡). Re-emitted by `formula:reparateur-name`,
-  // which reuses the barriere-cutanee réparateur/repair positioning vocabulary.
-  reparateur: { auroreSlug: S.REPARATEUR, confidenceFloor: 0.5, allow: false },
   // Strict subset of sebo-regulateur trigger (same minus niacinamide): any
   // purifiant product also fires sebo-regulateur. pores-sebum + sebo-regulateur
   // axes cover the ground without redundancy.
