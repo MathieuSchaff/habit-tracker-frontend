@@ -31,7 +31,7 @@ describe('BulkBar', () => {
     expect(onMove).toHaveBeenCalledWith('archived')
   })
 
-  it('shows the Comparer button only when exactly 2 items are selected and onCompare is set', () => {
+  it('shows the Comparer button when 2–8 items are selected and onCompare is set', () => {
     const onCompare = vi.fn()
     const { rerender } = render(
       <BulkBar selectedCount={1} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
@@ -39,7 +39,22 @@ describe('BulkBar', () => {
     expect(screen.queryByRole('button', { name: /comparer/i })).not.toBeInTheDocument()
 
     rerender(
+      <BulkBar selectedCount={2} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    expect(screen.getByRole('button', { name: /comparer/i })).toBeInTheDocument()
+
+    rerender(
       <BulkBar selectedCount={3} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    expect(screen.getByRole('button', { name: /comparer/i })).toBeInTheDocument()
+
+    rerender(
+      <BulkBar selectedCount={8} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
+    )
+    expect(screen.getByRole('button', { name: /comparer/i })).toBeInTheDocument()
+
+    rerender(
+      <BulkBar selectedCount={9} onMove={() => {}} onClear={() => {}} onCompare={onCompare} />
     )
     expect(screen.queryByRole('button', { name: /comparer/i })).not.toBeInTheDocument()
 

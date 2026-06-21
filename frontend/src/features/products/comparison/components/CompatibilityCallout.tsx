@@ -26,8 +26,7 @@ export function CompatibilityCallout({ products }: Props) {
       </div>
       <p className="cmp-callout__meta">
         <span className="cmp-callout__meta-num">{commonCount}</span>
-        <span className="cmp-callout__meta-sep">/</span>
-        <span className="cmp-callout__meta-total">{totalUnique}</span>
+        <span className="cmp-callout__meta-total">sur {totalUnique}</span>
         <span className="cmp-callout__meta-label">ingrédients en commun</span>
       </p>
     </aside>

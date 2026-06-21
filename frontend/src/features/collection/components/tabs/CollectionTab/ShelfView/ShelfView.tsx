@@ -1,4 +1,9 @@
-import { HOLY_GRAIL_SENTIMENT, type UserProductStatus } from '@aurore/shared'
+import {
+  COMPARISON_MAX_PRODUCTS,
+  COMPARISON_MIN_PRODUCTS,
+  HOLY_GRAIL_SENTIMENT,
+  type UserProductStatus,
+} from '@aurore/shared'
 
 import { useCallback, useMemo, useState } from 'react'
 
@@ -19,7 +24,7 @@ interface ShelfViewProps {
   onStatusChangeMany: (productIds: string[], newStatus: UserProductStatus) => void
   onToggleExpand: (id: string) => void
   onAddClick: () => void
-  onCompare?: (ids: [string, string]) => void
+  onCompare?: (ids: string[]) => void
 }
 
 const ACTIVE_SHELF_KEY = 'collection:activeShelf'
@@ -106,9 +111,14 @@ export function ShelfView({
   )
 
   const handleCompare = useCallback(() => {
-    if (!onCompare || selected.size !== 2) return
-    const [a, b] = Array.from(selected) as [string, string]
-    onCompare([a, b])
+    if (
+      !onCompare ||
+      selected.size < COMPARISON_MIN_PRODUCTS ||
+      selected.size > COMPARISON_MAX_PRODUCTS
+    ) {
+      return
+    }
+    onCompare(Array.from(selected))
     setSelected(new Set())
   }, [selected, onCompare])
 
