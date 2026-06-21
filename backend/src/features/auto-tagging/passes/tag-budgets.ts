@@ -73,6 +73,13 @@ export type TagBudgetTable = Partial<
 // axis scoring decouple (TAG_DEFS v18) only touches allow:false tags, so it
 // moves nothing here. Rebaselined the three with minimal headroom.
 //
+// 2026-06-21 (v22): `sans_sulfates` gated by formulaType (relevantKinds =
+// cleanser). Leave-on skincare/solaire emissions vanish (skincare 89.0→14.6 %,
+// solaire 91.9→0 %); only cleanser + undefined-formulaType kinds (body/lip/
+// deodorant) keep the claim. bodycare unchanged (all undefined formulaType).
+// Tightened the two impacted caps so they detect a gate regression again (a 1.0
+// cap on a 14.6 % tag is blind); CHECK was already green (max-only, no min).
+//
 // Sensitives:
 //   - `comedogene`: leave-on only, safety-relevant. Tight cap.
 //   - `non-comedogene`: high-stake claim, must not creep on noisy INCI.
@@ -80,7 +87,7 @@ export type TagBudgetTable = Partial<
 //   - `hypoallergenique`: regulatory-adjacent claim.
 export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   skincare: {
-    'sans-sulfates': { max: 1.0 }, // hit_rate=80.9%
+    'sans-sulfates': { max: 0.25 }, // hit_rate=14.6% · rebaselined v22 (formulaType gate drops leave-on; only cleanser + undefined-formulaType kinds survive)
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=80.2%
     'sans-alcool-denature': { max: 1.0 }, // hit_rate=79.3%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=73.1%
@@ -110,7 +117,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'peau-seche': { max: 0.05 }, // hit_rate=1.4%
   },
   solaire: {
-    'sans-sulfates': { max: 1.0 }, // hit_rate=85.8%
+    'sans-sulfates': { max: 0.05 }, // hit_rate=0.0% · rebaselined v22 (all sunscreen kinds leave-on → gated; tripwire for a mislabeled cleanser-in-solaire)
     'sans-huiles-essentielles': { max: 1.0 }, // hit_rate=84.8%
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=84.3%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=81.9%
@@ -145,7 +152,7 @@ export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=71.2%
     'sans-silicones': { max: 1.0 }, // hit_rate=66.1%
     'grossesse-compatible': { max: 1.0 }, // hit_rate=63.5%
-    'sans-sulfates': { max: 0.95 }, // hit_rate=61.4%
+    'sans-sulfates': { max: 0.95 }, // hit_rate=66.4% (unchanged by v22 — bodycare kinds have undefined formulaType)
     deshydratation: { max: 0.45 }, // hit_rate=29.1%
     'sans-parfum': { max: 0.45 }, // hit_rate=28.8%
     'non-irritant': { max: 0.45 }, // hit_rate=28.0%

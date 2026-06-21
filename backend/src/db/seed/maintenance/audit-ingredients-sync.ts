@@ -42,15 +42,12 @@ function auditIngredientsSystem() {
 
   console.log('\n⚖️  VÉRIFICATION DE LA COHÉRENCE')
 
-  // Rapport : Manquants (Priorité 1)
-  if (missingInData.length > 0) {
-    console.error(
-      `❌ MANQUANTS : ${missingInData.length} slugs de la config n'ont pas de contenu :`
-    )
-    console.log(missingInData)
-  } else {
-    console.log('✅ COMPLET : Tous les slugs de la config ont une fiche associée.')
-  }
+  // Editorial fiches live in the DB, not TS (only a handful are kept as shape
+  // examples). Config slugs without a TS fiche is the expected default post
+  // DB-as-truth, not a defect — report as info, never gate the audit on it.
+  console.log(
+    `ℹ️  ${missingInData.length}/${configSlugs.length} config slugs sans fiche TS (DB-only by design)`
+  )
 
   // Rapport : Doublons
   if (duplicates.length > 0) {
@@ -76,10 +73,7 @@ function auditIngredientsSystem() {
 
   // CONCLUSION FINALE
   const isPerfect =
-    missingInData.length === 0 &&
-    duplicates.length === 0 &&
-    ghostSlugs.length === 0 &&
-    incompleteEntries.length === 0
+    duplicates.length === 0 && ghostSlugs.length === 0 && incompleteEntries.length === 0
 
   if (isPerfect) {
     console.log('\n✨  AUDIT PARFAIT : La base ingrédients est saine et synchronisée !')
