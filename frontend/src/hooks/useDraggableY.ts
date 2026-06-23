@@ -22,14 +22,15 @@ export function useDraggableY({
   // Latest computeBounds without forcing the caller to memoise it.
   const recomputeBounds = useEffectEvent(computeBounds)
 
-  const boundsRef = useRef<DraggableBounds | null>(null)
-  if (boundsRef.current === null) boundsRef.current = computeBounds()
+  // useState's initializer runs once; writing the ref during render bailed the
+  // React Compiler.
+  const [initialBounds] = useState(computeBounds)
+  const boundsRef = useRef<DraggableBounds>(initialBounds)
   const [y, setY] = useState(() => {
     if (typeof window === 'undefined') return 0
     const raw = window.localStorage.getItem(storageKey)
     const parsed = raw === null ? 0 : Number(raw)
-    const bounds = boundsRef.current
-    return bounds && Number.isFinite(parsed) ? clamp(parsed, bounds) : 0
+    return Number.isFinite(parsed) ? clamp(parsed, initialBounds) : 0
   })
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ startClientY: number; startY: number; moved: boolean } | null>(null)
@@ -54,7 +55,7 @@ export function useDraggableY({
     onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
       const drag = dragRef.current
       const bounds = boundsRef.current
-      if (!drag || !bounds) return
+      if (!drag) return
       const dy = e.clientY - drag.startClientY
       if (!drag.moved && Math.abs(dy) >= dragThreshold) {
         drag.moved = true

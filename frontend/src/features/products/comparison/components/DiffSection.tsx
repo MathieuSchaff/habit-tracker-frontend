@@ -6,6 +6,8 @@ import { Button } from '@/component/Button/Button'
 import { computeSpecifics } from '../helpers/aggregations'
 import './DiffSection.css'
 
+import { productTone } from './productTones'
+
 type Props = { products: EnrichedComparisonProduct[] }
 
 const VISIBLE_DEFAULT = 8
@@ -45,7 +47,7 @@ export function DiffSection({ products }: Props) {
           const colId = `${baseId}-${p.id}`
 
           return (
-            <div key={p.id} className="diff-section__col">
+            <div key={p.id} className="diff-section__col" style={productTone(i)}>
               <p className="diff-section__col-header">
                 <span className="diff-section__col-num">N° {String(i + 1).padStart(2, '0')}</span>
                 <span className="diff-section__col-brand">{p.brand}</span>
@@ -57,10 +59,7 @@ export function DiffSection({ products }: Props) {
               ) : (
                 <ul id={colId} className="diff-section__pills">
                   {visible.map((i) => (
-                    <li
-                      key={i.slug}
-                      className={`diff-pill${i.signals.includes('active') ? ' diff-pill--active' : ''}`}
-                    >
+                    <li key={i.slug} className="diff-pill">
                       <span
                         className="diff-pill__pos"
                         role="img"
@@ -69,6 +68,9 @@ export function DiffSection({ products }: Props) {
                         #{i.position}
                       </span>
                       {i.inciName}
+                      {i.signals.includes('active') && (
+                        <span className="diff-pill__active" role="img" aria-label="actif" />
+                      )}
                     </li>
                   ))}
                 </ul>

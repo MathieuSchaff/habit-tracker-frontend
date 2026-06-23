@@ -37,7 +37,7 @@ nginx-reload:
 prod-health:
     {{COMPOSE_PROD}} ps --format "table {{{{.Name}}\t{{{{.Status}}\t{{{{.Health}}"
 
-# One-shot prod deploy (run ON the VPS): pull → build/up → migrate → health.
+# One-shot prod deploy (run ON the VPS): sync config → pull images → up → migrate → health.
 deploy: env-prod-check
     #!/usr/bin/env bash
     set -euo pipefail
@@ -47,13 +47,19 @@ deploy: env-prod-check
     printf "{{RED}}⚠ PROD DEPLOY — tape 'DEPLOY' pour confirmer{{NC}}\n"
     read -r -p "> " C
     [ "$C" = "DEPLOY" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    printf "{{CYAN}}▸ sync to origin/main{{NC}}\n"
+    # Config only (compose, nginx, migration SQL) — code now ships as a pre-built image.
     # Mirror, not pull: GitHub rewrites main's history on each PR merge, so a deploy
     # target is never fast-forwardable. reset --hard keeps untracked .env.prod/backups.
+    printf "{{CYAN}}▸ sync config to origin/main{{NC}}\n"
     git fetch origin
     git reset --hard origin/main
-    printf "{{CYAN}}▸ build + up (prod){{NC}}\n"
-    {{COMPOSE_PROD}} up -d --build
+    # Pull images CI built for THIS commit. 'manifest unknown' = build-push not done yet;
+    # wait for the Actions run to go green before deploying.
+    export IMAGE_TAG=$(git rev-parse HEAD)
+    printf "{{CYAN}}▸ pull images %s{{NC}}\n" "$IMAGE_TAG"
+    {{COMPOSE_PROD}} pull api frontend
+    printf "{{CYAN}}▸ up (no build){{NC}}\n"
+    {{COMPOSE_PROD}} up -d
     printf "{{CYAN}}▸ wait api{{NC}}\n"
     for _ in $(seq 1 20); do
         {{COMPOSE_PROD}} exec -T api true 2>/dev/null && break

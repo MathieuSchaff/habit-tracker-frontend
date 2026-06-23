@@ -8,7 +8,6 @@ type CompatibilityBand = 'close' | 'mixed' | 'distinct'
 export type CompatibilitySummary = {
   band: CompatibilityBand
   commonCount: number
-  totalUnique: number
   /** Short verdict — calm tone, no score, no winner. */
   verdict: string
   /** Short headline tag, e.g. "Compositions proches". */
@@ -44,7 +43,6 @@ export function computeCompatibility(products: EnrichedComparisonProduct[]): Com
   return {
     band,
     commonCount: common.length,
-    totalUnique,
     headline: BAND_HEADLINES[band],
     verdict: BAND_VERDICTS[band],
   }

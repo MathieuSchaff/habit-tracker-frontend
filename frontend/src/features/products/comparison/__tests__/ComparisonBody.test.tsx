@@ -46,8 +46,8 @@ describe('ComparisonBody', () => {
     const a = make('a', [ing('parfum', ['alert'])])
     const b = make('b', [ing('water')])
     render(<ComparisonBody products={[a, b]} />)
-    // Alert count "(1/2)" is split across two spans; match the parenthetical only.
-    expect(screen.getByText(/\(1\/2\)/)).toBeDefined()
+    // Alert ratio renders as "1/2" in the pill's detail span.
+    expect(screen.getByText(/1\/2/)).toBeDefined()
   })
 
   it('flags mixed-unit prices as not comparable', () => {

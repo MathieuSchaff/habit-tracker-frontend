@@ -8,6 +8,7 @@ import { tagLabel } from '@/features/products/filters'
 import './MetaStrip.css'
 
 import { META_STRIP_LABELS } from './MetaStrip.constants'
+import { productTone } from './productTones'
 
 type Props = { products: EnrichedComparisonProduct[] }
 
@@ -43,7 +44,7 @@ export function MetaStrip({ products }: Props) {
           const activeCount = p.ingredients.filter((x) => x.signals.includes('active')).length
 
           return (
-            <li key={p.id} className="cmp-shelf__item">
+            <li key={p.id} className="cmp-shelf__item" style={productTone(i)}>
               <span className="cmp-shelf__num">N° {String(i + 1).padStart(2, '0')}</span>
               <Link
                 to="/products/$slug"

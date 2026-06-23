@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 
 import { PriceRangeFilter } from '@/features/products/components/PriceRangeFilter/PriceRangeFilter'
 
@@ -16,9 +16,14 @@ export function PriceFilterAccordion({ min, max, onChange }: Props) {
   const [open, setOpen] = useState(hasValue)
   const contentId = useId()
 
-  useEffect(() => {
+  // Reopen on the false->true transition (external apply: URL, chip), leaving manual
+  // toggles untouched. setState-during-render replaces a setState-in-effect the
+  // React Compiler bailed on; same semantics, no extra post-paint render.
+  const [prevHasValue, setPrevHasValue] = useState(hasValue)
+  if (prevHasValue !== hasValue) {
+    setPrevHasValue(hasValue)
     if (hasValue) setOpen(true)
-  }, [hasValue])
+  }
 
   return (
     <details

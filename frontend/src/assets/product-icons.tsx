@@ -132,90 +132,96 @@ function ProdSpfIcon({ size = 24 }: { size?: number }) {
 // Specific unit shapes only - generic containers (bottle, stick, bar, pack,
 // sachet, cartridge) fall through to the kind map so the icon reflects what
 // the product *is*, not just its outer container.
-const UNIT_TO_ICON: Record<string, React.ElementType> = {
-  pump: ProdPumpIcon,
-  pompe: ProdPumpIcon,
-  dropper: ProdDropperIcon,
-  pipette: ProdDropperIcon,
-  'compte-gouttes': ProdDropperIcon,
-  ampoule: ProdDropperIcon,
-  jar: ProdCreamJarIcon,
-  pot: ProdCreamJarIcon,
-  crème: ProdCreamJarIcon,
-  creme: ProdCreamJarIcon,
-  cream: ProdCreamJarIcon,
-  tube: ProdTubeIcon,
-  spray: ProdSprayIcon,
-  brume: ProdSprayIcon,
-  brumisateur: ProdSprayIcon,
-  aerosol: ProdSprayIcon,
-  spf: ProdSpfIcon,
-  sunscreen: ProdSpfIcon,
-  solaire: ProdSpfIcon,
-  capsule: Pill,
-  tablet: Pill,
-  gummy: Pill,
-  powder: FlaskConical,
-  roller: ProdDropperIcon,
+// Render functions, not component refs: a dynamic JSX element type
+// (`const Icon = …; <Icon />`) bails the whole component out of the
+// React Compiler. Returning ReactNode from a static-typed map keeps it
+// optimizable.
+type IconRender = (size: number) => React.ReactNode
+
+const UNIT_TO_ICON: Record<string, IconRender> = {
+  pump: (size) => <ProdPumpIcon size={size} />,
+  pompe: (size) => <ProdPumpIcon size={size} />,
+  dropper: (size) => <ProdDropperIcon size={size} />,
+  pipette: (size) => <ProdDropperIcon size={size} />,
+  'compte-gouttes': (size) => <ProdDropperIcon size={size} />,
+  ampoule: (size) => <ProdDropperIcon size={size} />,
+  jar: (size) => <ProdCreamJarIcon size={size} />,
+  pot: (size) => <ProdCreamJarIcon size={size} />,
+  crème: (size) => <ProdCreamJarIcon size={size} />,
+  creme: (size) => <ProdCreamJarIcon size={size} />,
+  cream: (size) => <ProdCreamJarIcon size={size} />,
+  tube: (size) => <ProdTubeIcon size={size} />,
+  spray: (size) => <ProdSprayIcon size={size} />,
+  brume: (size) => <ProdSprayIcon size={size} />,
+  brumisateur: (size) => <ProdSprayIcon size={size} />,
+  aerosol: (size) => <ProdSprayIcon size={size} />,
+  spf: (size) => <ProdSpfIcon size={size} />,
+  sunscreen: (size) => <ProdSpfIcon size={size} />,
+  solaire: (size) => <ProdSpfIcon size={size} />,
+  capsule: (size) => <Pill size={size} />,
+  tablet: (size) => <Pill size={size} />,
+  gummy: (size) => <Pill size={size} />,
+  powder: (size) => <FlaskConical size={size} />,
+  roller: (size) => <ProdDropperIcon size={size} />,
 }
 
-const KIND_FALLBACK: Record<string, React.ElementType> = {
-  serum: ProdDropperIcon,
-  moisturizer: ProdCreamJarIcon,
-  cleanser: ProdTubeIcon,
-  toner: ProdSprayIcon,
-  exfoliant: ProdTubeIcon,
-  'eye-cream': ProdDropperIcon,
-  mask: ProdCreamJarIcon,
-  mist: ProdSprayIcon,
-  essence: ProdSprayIcon,
-  'spot-treatment': ProdDropperIcon,
-  'lip-care': ProdTubeIcon,
-  balm: ProdCreamJarIcon,
-  oil: ProdDropperIcon,
-  primer: ProdPumpIcon,
-  patch: Package,
-  sunscreen: ProdSpfIcon,
-  'after-sun': ProdSpfIcon,
-  'self-tanner': ProdSpfIcon,
-  gelule: Pill,
-  capsule: Pill,
-  ampoule: ProdDropperIcon,
-  poudre: FlaskConical,
-  sirop: FlaskConical,
-  gummy: Pill,
-  huile: ProdDropperIcon,
-  shampoo: ProdTubeIcon,
-  conditioner: ProdTubeIcon,
-  'hair-mask': ProdCreamJarIcon,
-  'hair-serum': ProdDropperIcon,
-  'hair-oil': ProdDropperIcon,
-  styling: ProdSprayIcon,
-  'hair-color': ProdTubeIcon,
-  'body-lotion': ProdTubeIcon,
-  'body-oil': ProdDropperIcon,
-  'body-scrub': ProdCreamJarIcon,
-  'body-wash': ProdTubeIcon,
-  deodorant: ProdSprayIcon,
-  'hand-cream': ProdTubeIcon,
-  'foot-cream': ProdTubeIcon,
-  toothpaste: ProdTubeIcon,
-  mouthwash: ProdSprayIcon,
-  'teeth-whitening': ProdTubeIcon,
-  floss: Package,
-  skincare: FlaskConical,
-  complément: Pill,
-  complement: Pill,
-  vitamine: Sun,
+const KIND_FALLBACK: Record<string, IconRender> = {
+  serum: (size) => <ProdDropperIcon size={size} />,
+  moisturizer: (size) => <ProdCreamJarIcon size={size} />,
+  cleanser: (size) => <ProdTubeIcon size={size} />,
+  toner: (size) => <ProdSprayIcon size={size} />,
+  exfoliant: (size) => <ProdTubeIcon size={size} />,
+  'eye-cream': (size) => <ProdDropperIcon size={size} />,
+  mask: (size) => <ProdCreamJarIcon size={size} />,
+  mist: (size) => <ProdSprayIcon size={size} />,
+  essence: (size) => <ProdSprayIcon size={size} />,
+  'spot-treatment': (size) => <ProdDropperIcon size={size} />,
+  'lip-care': (size) => <ProdTubeIcon size={size} />,
+  balm: (size) => <ProdCreamJarIcon size={size} />,
+  oil: (size) => <ProdDropperIcon size={size} />,
+  primer: (size) => <ProdPumpIcon size={size} />,
+  patch: (size) => <Package size={size} />,
+  sunscreen: (size) => <ProdSpfIcon size={size} />,
+  'after-sun': (size) => <ProdSpfIcon size={size} />,
+  'self-tanner': (size) => <ProdSpfIcon size={size} />,
+  gelule: (size) => <Pill size={size} />,
+  capsule: (size) => <Pill size={size} />,
+  ampoule: (size) => <ProdDropperIcon size={size} />,
+  poudre: (size) => <FlaskConical size={size} />,
+  sirop: (size) => <FlaskConical size={size} />,
+  gummy: (size) => <Pill size={size} />,
+  huile: (size) => <ProdDropperIcon size={size} />,
+  shampoo: (size) => <ProdTubeIcon size={size} />,
+  conditioner: (size) => <ProdTubeIcon size={size} />,
+  'hair-mask': (size) => <ProdCreamJarIcon size={size} />,
+  'hair-serum': (size) => <ProdDropperIcon size={size} />,
+  'hair-oil': (size) => <ProdDropperIcon size={size} />,
+  styling: (size) => <ProdSprayIcon size={size} />,
+  'hair-color': (size) => <ProdTubeIcon size={size} />,
+  'body-lotion': (size) => <ProdTubeIcon size={size} />,
+  'body-oil': (size) => <ProdDropperIcon size={size} />,
+  'body-scrub': (size) => <ProdCreamJarIcon size={size} />,
+  'body-wash': (size) => <ProdTubeIcon size={size} />,
+  deodorant: (size) => <ProdSprayIcon size={size} />,
+  'hand-cream': (size) => <ProdTubeIcon size={size} />,
+  'foot-cream': (size) => <ProdTubeIcon size={size} />,
+  toothpaste: (size) => <ProdTubeIcon size={size} />,
+  mouthwash: (size) => <ProdSprayIcon size={size} />,
+  'teeth-whitening': (size) => <ProdTubeIcon size={size} />,
+  floss: (size) => <Package size={size} />,
+  skincare: (size) => <FlaskConical size={size} />,
+  complément: (size) => <Pill size={size} />,
+  complement: (size) => <Pill size={size} />,
+  vitamine: (size) => <Sun size={size} />,
 }
 
 // priority: specific unit shape → kind archetype → Package
-function getProductIcon(unit: string | null | undefined, kind: string): React.ElementType {
+function getProductIcon(unit: string | null | undefined, kind: string): IconRender {
   const normalizedUnit = unit?.toLowerCase().trim()
   if (normalizedUnit && UNIT_TO_ICON[normalizedUnit]) {
     return UNIT_TO_ICON[normalizedUnit]
   }
-  return KIND_FALLBACK[kind] ?? Package
+  return KIND_FALLBACK[kind] ?? ((size) => <Package size={size} />)
 }
 
 export function ProductIcon({
@@ -227,6 +233,5 @@ export function ProductIcon({
   kind: string
   size?: number
 }) {
-  const Icon = getProductIcon(unit, kind)
-  return <Icon size={size} />
+  return getProductIcon(unit, kind)(size)
 }

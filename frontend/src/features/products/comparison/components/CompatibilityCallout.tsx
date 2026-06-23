@@ -1,15 +1,13 @@
 import type { EnrichedComparisonProduct } from '@aurore/shared'
 
-import { Sparkles } from 'lucide-react'
-
-import { IconBox } from '@/component/Layout/IconBox/IconBox'
 import { computeCompatibility } from '../helpers/compatibility'
 import './CompatibilityCallout.css'
 
 type Props = { products: EnrichedComparisonProduct[] }
 
 export function CompatibilityCallout({ products }: Props) {
-  const { band, commonCount, totalUnique, headline, verdict } = computeCompatibility(products)
+  const { band, commonCount, headline, verdict } = computeCompatibility(products)
+  const commonLabel = `${commonCount} ingrédient${commonCount > 1 ? 's' : ''} en commun`
 
   return (
     <aside
@@ -17,17 +15,15 @@ export function CompatibilityCallout({ products }: Props) {
       role="note"
       aria-label="Lecture qualitative de la comparaison"
     >
-      <IconBox className="cmp-callout__seal">
-        <Sparkles size={18} aria-hidden="true" />
-      </IconBox>
-      <div className="cmp-callout__body">
-        <p className="cmp-callout__headline">{headline}</p>
-        <p className="cmp-callout__verdict">{verdict}</p>
-      </div>
-      <p className="cmp-callout__meta">
-        <span className="cmp-callout__meta-num">{commonCount}</span>
-        <span className="cmp-callout__meta-total">sur {totalUnique}</span>
-        <span className="cmp-callout__meta-label">ingrédients en commun</span>
+      <p className="cmp-callout__eyebrow">
+        <span className="cmp-callout__eyebrow-dot" aria-hidden="true" />
+        Lecture d'ensemble
+      </p>
+      <p className="cmp-callout__headline">{headline}</p>
+      <p className="cmp-callout__verdict">{verdict}</p>
+      <p className="cmp-callout__common">
+        <span className="cmp-callout__common-dot" aria-hidden="true" />
+        {commonLabel}
       </p>
     </aside>
   )

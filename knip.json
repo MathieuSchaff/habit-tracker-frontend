@@ -10,7 +10,7 @@
   ],
   "ignoreDependencies": ["algo-derm"],
   "tags": ["-knipignore"],
-  "ignoreBinaries": ["biome", "fallow", "knip", "madge", "drizzle-kit"],
+  "ignoreBinaries": ["biome", "fallow", "knip", "madge", "drizzle-kit", "magick"],
   "workspaces": {
     ".": {
       "entry": ["scripts/**/*.{ts,js,mjs}"],
@@ -21,6 +21,7 @@
         "src/index.ts",
         "src/db/migrate.ts",
         "src/**/main.ts",
+        "src/**/*.cli.ts",
         "src/db/seed/seeders/*.ts",
         "src/db/seed/maintenance/*.ts",
         "src/db/seed/inci/**/*.ts",
