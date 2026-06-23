@@ -42,8 +42,8 @@ export function CommonIngredientsSection({ products }: Props) {
           </h2>
         </div>
         <span className="terroir__count">
-          {common.length} ingrédient{common.length > 1 ? 's' : ''} · {products.length}/
-          {products.length} formules
+          {common.length} ingrédient{common.length > 1 ? 's' : ''} en commun · trié par
+          concentration
         </span>
       </header>
 
@@ -69,7 +69,7 @@ export function CommonIngredientsSection({ products }: Props) {
           )}
           {sortedOthers.length > 0 && (
             <div className="terroir__group">
-              <p className="terroir__group-label">Autres communs</p>
+              <p className="terroir__group-label terroir__group-label--muted">Autres communs</p>
               <ul className="terroir__pills">
                 {sortedOthers.map((i) => (
                   <li key={i.slug} className="terroir-pill">

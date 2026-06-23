@@ -1,7 +1,7 @@
 .cmp-shelf {
   position: relative;
-  margin: 0 0 var(--space-8);
-  padding: var(--space-4) var(--space-2) 0;
+  margin: 0;
+  padding: var(--space-5) var(--cmp-pad-x) var(--space-5);
 }
 
 .cmp-shelf__row {
@@ -28,6 +28,7 @@
 }
 
 .cmp-shelf__item {
+  --tone: var(--border-strong);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,30 +37,25 @@
   padding: var(--space-4);
   background: var(--bg-card);
   border: 1px solid var(--border-default);
+  border-top: 3px solid var(--tone);
   border-radius: var(--radius-lg);
   scroll-snap-align: start;
   min-width: 0;
   position: relative;
-  box-shadow:
-    var(--shadow-card),
-    0 8px 16px -8px oklch(from var(--color-primary) l c h / 0.18);
+  box-shadow: var(--shadow-card);
 }
 
 .cmp-shelf__num {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-feature-settings: "tnum" 1;
   font-size: 0.625rem;
-  font-weight: var(--font-bold);
-  letter-spacing: var(--tracking-widest);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--color-accent);
-  background: var(--bg-page);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  border: 1px solid oklch(from var(--color-accent) l c h / 0.3);
+  color: var(--tone);
 }
 
 .cmp-shelf__photo-link {
@@ -71,7 +67,8 @@
   width: 6rem;
   aspect-ratio: 1;
   border-radius: var(--radius-md);
-  background: var(--bg-page);
+  background: oklch(from var(--tone) l c h / 0.08);
+  border: 1px solid oklch(from var(--tone) l c h / 0.22);
 }
 
 .cmp-shelf__name-link {

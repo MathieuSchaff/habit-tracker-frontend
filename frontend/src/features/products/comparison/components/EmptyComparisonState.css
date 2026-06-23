@@ -68,6 +68,14 @@
   margin: 0;
 }
 
+.empty-comparison__foot {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+  margin: 0;
+}
+
 @media (--sm) {
   .empty-comparison {
     padding: var(--space-12) var(--space-8);

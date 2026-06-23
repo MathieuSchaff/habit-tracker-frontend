@@ -27,7 +27,12 @@ export const useClickOutside = (
   // case for `useClickOutside([wrapperRef, contentRef], …)`).
   const onClickOutside = useEffectEvent(handleOnClickOutside)
   const refsRef = useRef<AnyRef[]>([])
-  refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
+  // Sync in an effect, not during render: the listener only reads refsRef.current
+  // on a user gesture (post-paint), so the commit-phase write is always in place
+  // first. Writing during render bailed the React Compiler on the whole hook.
+  useEffect(() => {
+    refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
+  }, [refOrRefs])
 
   useEffect(() => {
     if (!enabled) return

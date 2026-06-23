@@ -33,6 +33,7 @@ export function EmptyComparisonState({ count }: Props) {
           ? 'Recherche un produit ci-dessus pour commencer.'
           : 'Ajoute au moins un produit supplémentaire pour comparer.'}
       </p>
+      <p className="empty-comparison__foot">de 2 à 8 produits · aucun classement, aucune note</p>
     </div>
   )
 }

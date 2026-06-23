@@ -38,7 +38,12 @@ export const useCaptureDismiss = (
   // renders even when callers pass a fresh array literal each time.
   const onDismissEvent = useEffectEvent(onDismiss)
   const refsRef = useRef<AnyRef[]>([])
-  refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
+  // Sync in an effect, not during render: writing during render bailed the React
+  // Compiler. The listener reads refsRef.current only on a user gesture, after
+  // this commit-phase write has landed.
+  useEffect(() => {
+    refsRef.current = Array.isArray(refOrRefs) ? refOrRefs : [refOrRefs]
+  }, [refOrRefs])
 
   useEffect(() => {
     if (!enabled) return

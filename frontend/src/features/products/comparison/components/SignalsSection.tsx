@@ -45,6 +45,7 @@ export function SignalsSection({ products }: Props) {
   if (actives.length === 0 && alerts.length === 0 && conflicts.length === 0) {
     return (
       <section className="signals-section">
+        <p className="signals-section__eyebrow">Repères</p>
         <h2 className="signals-section__title">Signaux</h2>
         <p className="signals-section__none">Aucun signal à signaler.</p>
       </section>
@@ -53,6 +54,7 @@ export function SignalsSection({ products }: Props) {
 
   return (
     <section className="signals-section">
+      <p className="signals-section__eyebrow">Repères</p>
       <h2 className="signals-section__title">Signaux</h2>
       <div className="signals-section__groups">
         {actives.length > 0 && (
@@ -65,7 +67,7 @@ export function SignalsSection({ products }: Props) {
           >
             <ul className="signals-card__items">
               {actives.map((i) => (
-                <li key={i.slug} className="signals-pill signals-pill--active">
+                <li key={i.slug} className="signals-pill">
                   {i.inciName}
                 </li>
               ))}
@@ -83,11 +85,11 @@ export function SignalsSection({ products }: Props) {
           >
             <ul className="signals-card__items">
               {alerts.map((a) => (
-                <li key={a.slug} className="signals-pill signals-pill--alert">
+                <li key={a.slug} className="signals-pill">
                   {a.inciName}
                   <span className="signals-pill__detail">
                     {' '}
-                    ({a.presentIn.length}/{total})
+                    {a.presentIn.length}/{total}
                   </span>
                 </li>
               ))}
@@ -99,15 +101,17 @@ export function SignalsSection({ products }: Props) {
           <SignalCard
             tone="conflicts"
             title="Conflits d'usage"
-            hint="À ne pas appliquer simultanément"
+            hint="Informatif — à espacer dans la journée"
             count={conflicts.length}
             icon={<Zap size={16} aria-hidden="true" />}
           >
-            <ul className="signals-card__items">
+            <ul className="signals-card__conflicts">
               {conflicts.map((c) => (
-                <li key={`${c.a}-${c.b}`} className="signals-pill signals-pill--conflict">
-                  {c.a} <span aria-hidden="true">↔</span> {c.b}
-                  {c.note && <span className="signals-pill__detail"> — {c.note}</span>}
+                <li key={`${c.a}-${c.b}`} className="signals-conflict">
+                  <p className="signals-conflict__pair">
+                    {c.a} <span aria-hidden="true">↔</span> {c.b}
+                  </p>
+                  {c.note && <p className="signals-conflict__note">{c.note}</p>}
                 </li>
               ))}
             </ul>

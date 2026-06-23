@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   BookOpen,
   CircleCheckBig,
+  Columns2,
   FileText,
   FlaskConical,
   LogIn,
@@ -63,6 +64,10 @@ export function BottomNav() {
           <Link to="/blog" className="bottom-nav__sheet-link" onClick={closeSheet}>
             <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />
             Blog
+          </Link>
+          <Link to="/products/compare" className="bottom-nav__sheet-link" onClick={closeSheet}>
+            <Columns2 size={20} strokeWidth={1.5} aria-hidden="true" />
+            Comparaisons
           </Link>
 
           <div className="bottom-nav__sheet-divider" />

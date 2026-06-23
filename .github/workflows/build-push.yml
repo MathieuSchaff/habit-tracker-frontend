@@ -1,0 +1,49 @@
+name: build-push
+
+# Build api + frontend once on merge to main, push to GHCR. The VPS then pulls
+# these pre-built images instead of building on-server. Separate from ci.yml.
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: mathieuschaff # GHCR requires lowercase owner
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+    strategy:
+      matrix:
+        include:
+          - name: api
+            dockerfile: infra/docker/images/backend/Dockerfile
+            target: prod
+          - name: frontend
+            dockerfile: infra/docker/images/frontend/Dockerfile
+            target: "" # empty = last stage (nginx serving the Vite build)
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+      - uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # auto-injected, no setup
+
+      - uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/aurore-${{ matrix.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/aurore-${{ matrix.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

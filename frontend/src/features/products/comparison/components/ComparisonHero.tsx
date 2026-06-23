@@ -13,7 +13,7 @@ export function ComparisonHero({ reference, count, name }: Props) {
     <header className="cmp-hero">
       <p className="cmp-hero__rule">
         <span>Cabinet d'analyse</span>
-        <span aria-hidden="true">·</span>
+        <span className="cmp-hero__dot" aria-hidden="true" />
         <span>Comparaison {ref}</span>
       </p>
       <h1 className="cmp-hero__title">
@@ -26,8 +26,8 @@ export function ComparisonHero({ reference, count, name }: Props) {
         )}
       </h1>
       <p className="cmp-hero__sub">
-        Examen croisé des compositions INCI et de vos notes. Une lecture côte à côte — pour
-        comprendre les nuances, pas pour désigner un gagnant.
+        Examen croisé des compositions INCI. Une lecture côte à côte — pour comprendre les nuances,
+        pas pour désigner un gagnant.
       </p>
     </header>
   )
