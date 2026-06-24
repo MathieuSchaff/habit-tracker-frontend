@@ -11,7 +11,7 @@ export function ConflictBanner({
 }) {
   if (!conflict) return null
   return (
-    <div className="ingredient-edit-form__conflict-banner">
+    <div className="ingredient-edit-form__conflict-banner" role="alert">
       <div className="ingredient-edit-form__conflict-banner-header">
         <AlertTriangle size={16} />
         <span>

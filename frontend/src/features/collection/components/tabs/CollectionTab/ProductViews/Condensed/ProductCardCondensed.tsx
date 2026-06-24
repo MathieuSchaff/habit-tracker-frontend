@@ -17,6 +17,7 @@ import {
 } from '@/features/collection/constants'
 import { useCompatScore } from '@/features/collection/context/CollectionFilterContext'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { calculateWeightedScore } from '@/lib/helpers/reviews'
 import { userPreferenceQueries } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
@@ -59,6 +60,7 @@ export function ProductCardCondensed({
   onMoveStatus,
 }: ProductCardCondensedProps) {
   const updateMutation = useUpdateUserProduct()
+  const announce = useAnnounce()
   const { data: prefs } = useQuery(userPreferenceQueries.get())
   const [isPopping, setIsPopping] = useState(false)
 
@@ -127,7 +129,10 @@ export function ProductCardCondensed({
     // Cycle 1 → 6 (HG) → null. Avoided caps at 5 (HG on rejected is self-contradictory).
     const max = p.status === 'avoided' ? 5 : 6
     const next = current >= max ? null : current + 1
-    updateMutation.mutate({ id: p.id, input: { sentiment: next } })
+    updateMutation.mutate(
+      { id: p.id, input: { sentiment: next } },
+      { onSuccess: () => announce(next === null ? 'Ressenti retiré' : 'Ressenti enregistré') }
+    )
 
     setIsPopping(true)
     setTimeout(() => setIsPopping(false), 350)

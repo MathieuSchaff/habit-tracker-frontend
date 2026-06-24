@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'react-hot-toast'
 
 interface UseCopyToClipboardResult {
   copied: boolean
@@ -21,6 +22,9 @@ export function useCopyToClipboard(resetMs = 2000): UseCopyToClipboardResult {
       try {
         await navigator.clipboard.writeText(text)
         setCopied(true)
+        // The button's label swap (Copier → Copié) is not re-announced once focused;
+        // the toast (aria-live polite) carries the confirmation to screen readers.
+        toast.success('Copié', { id: 'clipboard-copy' })
         if (timerRef.current) clearTimeout(timerRef.current)
         timerRef.current = setTimeout(() => setCopied(false), resetMs)
         return true

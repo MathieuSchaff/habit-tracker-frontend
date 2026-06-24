@@ -1,6 +1,7 @@
 import { Image as ImageIcon, Upload } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { useImageUpload } from './useImageUpload'
 
 // react-easy-crop (~39 kB) loads only when the crop modal opens, not with the whole profile route.
@@ -32,6 +33,7 @@ export const ImageUpload = ({
     outputSize,
   })
   const [dragging, setDragging] = useState(false)
+  const announce = useAnnounce()
   // 'error' is droppable too, so a rejected drop can be retried without the native picker.
   const canDrop = state.phase === 'idle' || state.phase === 'error'
 
@@ -41,6 +43,9 @@ export const ImageUpload = ({
     try {
       const result = await confirmCrop(area)
       onSuccess(result.url)
+      // Success returns the phase to 'idle', so the phase-derived region below stays
+      // silent; announce here covers every parent (avatar, product image).
+      announce('Image enregistrée')
     } catch (e) {
       const code = (e as { code?: string }).code ?? 'unknown'
       onError?.(code)
@@ -109,6 +114,18 @@ export const ImageUpload = ({
           <CropModal sourceUrl={state.sourceUrl} onCancel={cancel} onConfirm={handleConfirm} />
         </Suspense>
       )}
+
+      {/* Phase-derived, not the live %: text changes only on phase boundaries, so the
+          polite region announces compress/upload/error without flooding on each tick. */}
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {state.phase === 'compressing'
+          ? "Compression de l'image…"
+          : state.phase === 'uploading'
+            ? 'Téléversement en cours…'
+            : state.phase === 'error'
+              ? state.message
+              : ''}
+      </span>
     </div>
   )
 }

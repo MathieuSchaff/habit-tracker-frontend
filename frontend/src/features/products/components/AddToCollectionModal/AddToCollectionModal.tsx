@@ -7,6 +7,7 @@ import { Button } from '@/component/Button/Button'
 import { Modal } from '@/component/Dialog/Modal'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { Input } from '@/component/Input/Input'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { fromDateInputValue, todayDateInputValue } from '@/lib/dates'
 import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
@@ -48,6 +49,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
 
   const addUserProduct = useCreateUserProduct()
   const addPurchase = useAddPurchase()
+  const announce = useAnnounce()
 
   const isPending = addUserProduct.isPending || addPurchase.isPending
   const isError = addUserProduct.isError || addPurchase.isError
@@ -60,6 +62,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
     }
     try {
       await addUserProduct.mutateAsync({ productId: product.id, status })
+      announce('Produit ajouté à votre collection')
       onSuccess?.()
       onClose()
     } catch {
@@ -72,6 +75,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
     if (!status) return
     try {
       await addUserProduct.mutateAsync({ productId: product.id, status })
+      announce('Produit ajouté à votre collection')
       onSuccess?.()
       onClose()
     } catch {
@@ -97,6 +101,7 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
         userProductId,
         input: { purchasedAt: fromDateInputValue(purchasedAt), pricePaidCents },
       })
+      announce('Produit ajouté à votre collection')
       onSuccess?.()
       onClose()
     } catch {

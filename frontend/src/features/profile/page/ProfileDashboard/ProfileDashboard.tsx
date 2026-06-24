@@ -8,6 +8,7 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
 import {
   type CompletionStep,
@@ -27,6 +28,7 @@ export const ProfileDashboard = () => {
   const { data: profile } = useSuspenseQuery(profileQueries.me())
   const { data: dermo } = useQuery(profileQueries.dermo())
   const updateProfile = useUpdateProfile()
+  const announce = useAnnounce()
   const [activeTab, setActiveTab] = useState<TabType>('profile')
   const [editingSection, setEditingSection] = useState<CompletionStep | null>(null)
 
@@ -34,7 +36,10 @@ export const ProfileDashboard = () => {
 
   const handleProfileUpdate = (data: ProfileUpdateInput) => {
     updateProfile.mutate(data, {
-      onSuccess: () => setEditingSection(null),
+      onSuccess: () => {
+        setEditingSection(null)
+        announce('Profil enregistré')
+      },
     })
   }
 

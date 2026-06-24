@@ -4,12 +4,14 @@ import { Link } from '@tanstack/react-router'
 import { Button, ButtonLink } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { useConfirm } from '@/features/admin/useConfirm'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { comparisonQueries, useDeleteComparison } from '@/lib/queries/comparisons'
 import './ComparisonsListPage.css'
 
 export function ComparisonsListPage() {
   const { data: comparisons } = useSuspenseQuery(comparisonQueries.list())
   const del = useDeleteComparison()
+  const announce = useAnnounce()
   const { confirm, dialog } = useConfirm()
 
   return (
@@ -57,7 +59,7 @@ export function ComparisonsListPage() {
                         variant: 'danger',
                       })
                     ) {
-                      del.mutate(c.id)
+                      del.mutate(c.id, { onSuccess: () => announce('Comparaison supprimée') })
                     }
                   }}
                   variant="ghost"

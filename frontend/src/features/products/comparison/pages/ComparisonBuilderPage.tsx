@@ -5,6 +5,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import {
   comparisonQueries,
   useCreateComparison,
@@ -76,7 +77,10 @@ function NewComparisonBuilder({ seedProductId }: { seedProductId?: string }) {
 function EditComparisonBuilder({ id }: { id: string }) {
   const { data: comparison } = useSuspenseQuery(comparisonQueries.detail(id))
   const update = useUpdateComparison()
+  const announce = useAnnounce()
 
+  // Name autosaves on every keystroke; announcing it would flood, so only the
+  // discrete product add/remove (content changes away from the picker) is announced.
   const setName = (name: string) => update.mutate({ id, input: { name } })
 
   // Schema rejects out-of-bounds counts; useMutation swallows the 400 and desyncs the picker.
@@ -87,7 +91,10 @@ function EditComparisonBuilder({ id }: { id: string }) {
     ) {
       return
     }
-    update.mutate({ id, input: { productIds } })
+    update.mutate(
+      { id, input: { productIds } },
+      { onSuccess: () => announce('Comparaison mise à jour') }
+    )
   }
 
   return (

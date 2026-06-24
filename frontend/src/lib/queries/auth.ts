@@ -78,6 +78,7 @@ export function useLogout() {
   const qc = useQueryClient()
 
   return useMutation({
+    meta: { errorMessage: 'Déconnexion impossible. Réessayez.' },
     mutationFn: async () => {
       const res = await api.auth.logout.$post()
       if (!res.ok) throw new Error('Logout failed')
@@ -157,6 +158,7 @@ export function useChangePassword() {
 export function useDemo() {
   const qc = useQueryClient()
   return useMutation({
+    meta: { errorMessage: 'Connexion à la démo impossible. Réessayez.' },
     mutationFn: async () => {
       const res = await api.auth.demo.$post()
       if (!res.ok) throw new Error('server_error')

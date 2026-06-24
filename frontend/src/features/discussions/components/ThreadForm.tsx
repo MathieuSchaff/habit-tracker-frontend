@@ -5,6 +5,7 @@ import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Input } from '@/component/Input/Input'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { useCreateThread } from '@/lib/queries/discussions'
 
 interface ThreadFormProps {
@@ -17,6 +18,7 @@ export function ThreadForm({ entityType, slug }: ThreadFormProps) {
   const [content, setContent] = useState('')
   const [open, setOpen] = useState(false)
   const { mutate, isPending } = useCreateThread(entityType, slug)
+  const announce = useAnnounce()
 
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault()
@@ -28,6 +30,7 @@ export function ThreadForm({ entityType, slug }: ThreadFormProps) {
           setTitle('')
           setContent('')
           setOpen(false)
+          announce('Discussion publiée')
         },
       }
     )

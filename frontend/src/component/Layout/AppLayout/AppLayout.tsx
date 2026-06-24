@@ -1,6 +1,8 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
+import { useEffect, useRef } from 'react'
 import { Toaster, toast } from 'react-hot-toast'
 
+import { setLiveRegion } from '../../../lib/announce'
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { BackToTopButton } from '../../BackToTopButton/BackToTopButton'
@@ -15,6 +17,12 @@ export const AppLayout = () => {
   const user = useAuthStore((s) => s.user)
   const emailVerified = useAuthStore((s) => s.emailVerified)
   const resend = useResendVerification()
+
+  const liveRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    setLiveRegion(liveRef.current)
+    return () => setLiveRegion(null)
+  }, [])
 
   const handleResend = () => {
     resend.mutate(undefined, {
@@ -52,6 +60,7 @@ export const AppLayout = () => {
       </main>
       <BottomNav />
       <BackToTopButton />
+      <div ref={liveRef} aria-live="polite" aria-atomic="true" className="sr-only" />
       <Toaster position="top-center" />
     </div>
   )

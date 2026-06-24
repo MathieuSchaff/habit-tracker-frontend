@@ -11,6 +11,7 @@ import {
   CollectionFilterProvider,
   useCollectionFilter,
 } from '@/features/collection/context/CollectionFilterContext'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { useCreateComparison } from '@/lib/queries/comparisons'
 import { userPreferenceQueries } from '@/lib/queries/user-preferences'
 import type { UserProduct } from '@/lib/queries/user-products'
@@ -57,6 +58,7 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
   const navigate = useNavigate()
 
   const updateMutation = useUpdateUserProduct()
+  const announce = useAnnounce()
   const createComparison = useCreateComparison()
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -111,12 +113,17 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
       <ShelfView
         products={filteredProducts}
         onStatusChange={(productId, newStatus) => {
-          updateMutation.mutate({ id: productId, input: { status: newStatus } })
+          updateMutation.mutate(
+            { id: productId, input: { status: newStatus } },
+            { onSuccess: () => announce('Statut mis à jour') }
+          )
         }}
         onStatusChangeMany={(productIds, newStatus) => {
           for (const id of productIds) {
             updateMutation.mutate({ id, input: { status: newStatus } })
           }
+          const n = productIds.length
+          announce(`${n} produit${n > 1 ? 's' : ''} déplacé${n > 1 ? 's' : ''}`)
         }}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
         onAddClick={onAddClick}

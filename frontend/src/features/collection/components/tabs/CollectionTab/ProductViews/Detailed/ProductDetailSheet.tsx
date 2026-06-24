@@ -5,6 +5,7 @@ import { useRef, useState } from 'react'
 import { ButtonLink } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { pdsLabels } from '@/features/collection/constants'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { purchaseQueries } from '@/lib/queries/purchases'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { useDeleteUserProduct, useUpdateUserProduct } from '@/lib/queries/user-products'
@@ -28,6 +29,7 @@ interface ProductDetailSheetProps {
 export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
   const updateMutation = useUpdateUserProduct()
   const deleteMutation = useDeleteUserProduct()
+  const announce = useAnnounce()
 
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const [showAddPurchase, setShowAddPurchase] = useState(false)
@@ -120,7 +122,14 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
           title="Retirer ce produit ?"
           message="Retirer supprime aussi vos notes et votre historique pour ce produit. Si vous voulez juste ne plus l'utiliser, vous pouvez le marquer À éviter — vos notes restent disponibles."
           confirmLabel="Retirer définitivement"
-          onConfirm={() => deleteMutation.mutate(p.id, { onSuccess: onClose })}
+          onConfirm={() =>
+            deleteMutation.mutate(p.id, {
+              onSuccess: () => {
+                announce('Produit retiré de votre collection')
+                onClose()
+              },
+            })
+          }
           onClose={() => setShowDeleteConfirm(false)}
           isPending={deleteMutation.isPending}
           onAvoid={
@@ -129,7 +138,12 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
               : () =>
                   updateMutation.mutate(
                     { id: p.id, input: { status: 'avoided' } },
-                    { onSuccess: onClose }
+                    {
+                      onSuccess: () => {
+                        announce('Produit marqué à éviter')
+                        onClose()
+                      },
+                    }
                   )
           }
           avoidPending={updateMutation.isPending}
