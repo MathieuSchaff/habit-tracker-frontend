@@ -15,6 +15,7 @@ import { db as baseDb } from '../../db'
 import { zValidator } from '../../utils/validator'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
+import { getUserById } from '../auth/user.utils'
 import { securityScan } from '../security/security.middleware'
 import { logSecurityEvent } from '../security/security.service'
 import { checkExportRateLimit, exportFilename, exportUserData } from './export.service'
@@ -132,6 +133,14 @@ export const profileRoute = app
   // by author_id explicitly (no RLS on those tables).
   .get('/export', async (c) => {
     const userId = getAuthedUserId(c)
+    const db = c.get('db')
+
+    // Demo accounts have no meaningful data to export and each call pollutes the
+    // security journal with a data_export_requested event. Block them up front.
+    const requester = await getUserById(db, userId)
+    if (requester?.isDemo) {
+      return c.json(err('forbidden'), HTTP_STATUS.FORBIDDEN)
+    }
 
     const rate = checkExportRateLimit(userId)
     if (!rate.ok) {
@@ -141,7 +150,6 @@ export const profileRoute = app
       )
     }
 
-    const db = c.get('db')
     const data = await exportUserData(db, userId)
 
     // Audit trail (RGPD). Best-effort on the base pool, NOT the request tx:

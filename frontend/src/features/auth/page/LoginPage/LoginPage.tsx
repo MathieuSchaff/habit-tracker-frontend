@@ -117,11 +117,10 @@ export const LoginPage = () => {
         >
           Se connecter
         </Button>
-
-        <AuthDivider />
-        <DemoButton />
       </form>
 
+      <AuthDivider />
+      <DemoButton />
       <AuthDivider />
       <GoogleAuthButton label="Se connecter avec Google" />
     </>

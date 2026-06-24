@@ -12,3 +12,9 @@
   font-size: 0.875rem;
   font-weight: var(--font-medium);
 }
+
+.demo-banner__cta {
+  color: var(--color-warning-text);
+  font-weight: var(--font-semibold);
+  text-decoration: underline;
+}

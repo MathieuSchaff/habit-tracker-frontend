@@ -99,6 +99,7 @@ export async function createUser(
     passwordHash: HashedPassword | null
     emailVerifiedAt?: string | null
     isDemo?: boolean
+    expiresAt?: string | null
   }
 ) {
   emailSchema.parse(userData.email)
@@ -110,6 +111,7 @@ export async function createUser(
       passwordHash: userData.passwordHash,
       emailVerifiedAt: userData.emailVerifiedAt,
       isDemo: userData.isDemo ?? false,
+      expiresAt: userData.expiresAt ?? null,
     })
     .returning({
       id: users.id,

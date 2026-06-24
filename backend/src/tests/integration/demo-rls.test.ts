@@ -15,6 +15,9 @@ import { drizzle } from 'drizzle-orm/bun-sql'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
+import { bindRlsContext } from '../../db/rls'
+import { tasks } from '../../db/schema'
+import { createDemo } from '../../features/auth/service'
 import { globalErrorHandler } from '../../utils/errors/error-handler'
 import { setupDbTests } from '../db-setup'
 import { cleanDatabase } from '../helpers/db-cleaner'
@@ -70,5 +73,34 @@ describe('POST /auth/demo — RLS enforcement via app_runtime', () => {
     const body = (await res.json()) as { success: boolean; data: { user: { isDemo: boolean } } }
     expect(body.success).toBe(true)
     expect(body.data.user.isDemo).toBe(true)
+  })
+
+  it('isolates demo accounts: one cannot read another seeded rows under RLS', async () => {
+    const ctx = {
+      db: appRuntimeDb,
+      jwtSecret: JWT_SECRET,
+      refreshSecret: REFRESH_SECRET,
+      frontendUrl: 'http://localhost:5173',
+      ip: '127.0.0.1',
+      userAgent: 'test',
+    }
+
+    const a = await createDemo(ctx)
+    const b = await createDemo(ctx)
+    if (!a.success || !b.success) throw new Error('demo creation failed')
+    const aId = a.data.user.id
+    const bId = b.data.user.id
+    expect(aId).not.toBe(bId)
+
+    // Read tasks with A's RLS context bound on the app_runtime pool: the policies
+    // must scope the result to A's rows only.
+    const aTasks = await appRuntimeDb.transaction(async (tx) => {
+      await bindRlsContext(tx, aId)
+      return tx.select({ userId: tasks.userId }).from(tasks)
+    })
+
+    expect(aTasks.length).toBeGreaterThan(0)
+    expect(aTasks.every((t) => t.userId === aId)).toBe(true)
+    expect(aTasks.some((t) => t.userId === bId)).toBe(false)
   })
 })

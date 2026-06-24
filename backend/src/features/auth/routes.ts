@@ -27,6 +27,7 @@ import { withAdminRls } from '../../db/rls'
 import { usersSafe } from '../../db/schema'
 import { clientIp } from '../../utils/clientIp'
 import {
+  demoRateLimiterFunc,
   forgotPasswordRateLimiterFunc,
   loginRateLimiterFunc,
   rateLimiterFunc,
@@ -144,7 +145,7 @@ export const jwtAuthRoutes = app
     return c.json(ok(result.data), HTTP_STATUS.OK)
   })
 
-  .post('/demo', async (c) => {
+  .post('/demo', demoRateLimiterFunc, async (c) => {
     const env = c.get('env')
     const ctx = buildAuthContext(c)
 

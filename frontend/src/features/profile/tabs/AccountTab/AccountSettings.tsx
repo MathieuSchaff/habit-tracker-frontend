@@ -15,12 +15,14 @@ import {
   useDownloadDataExport,
   useUpdatePrivacySettings,
 } from '../../../../lib/queries/profile'
+import { useAuthStore } from '../../../../store/auth'
 import { ChangePasswordForm } from './ChangePasswordForm'
 import { RoleRequestSection } from './RoleRequestSection'
 import './AccountSettings.css'
 
 export const AccountSettings = () => {
   const navigate = useNavigate()
+  const isDemo = useAuthStore((s) => s.isDemo)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const logout = useLogout()
@@ -212,57 +214,64 @@ export const AccountSettings = () => {
         </div>
       </SettingsSection>
 
-      <SettingsSection
-        title="Zone de danger"
-        description="Actions irréversibles sur votre compte."
-        variant="danger"
-      >
-        <div className="account-actions">
-          {!confirmDelete ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="account-action-btn delete-btn"
-              onClick={() => setConfirmDelete(true)}
-            >
-              <Trash2 size={18} />
-              Supprimer mon compte
-            </Button>
-          ) : (
-            <output className="delete-confirm">
-              <p className="delete-confirm-text">
-                Cette action est irréversible. Toutes vos données seront supprimées.
-              </p>
-              <div className="delete-confirm-actions">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="account-action-btn"
-                  onClick={() => setConfirmDelete(false)}
-                  disabled={deleteUser.isPending}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="account-action-btn delete-btn"
-                  onClick={() =>
-                    deleteUser.mutate(undefined, {
-                      onSuccess: () =>
-                        navigate({ to: '/auth/login', search: { redirect: undefined } }),
-                    })
-                  }
-                  disabled={deleteUser.isPending}
-                >
-                  <Trash2 size={18} />
-                  {deleteUser.isPending ? 'Suppression…' : 'Confirmer la suppression'}
-                </Button>
-              </div>
-            </output>
-          )}
-        </div>
-      </SettingsSection>
+      {isDemo ? (
+        <SettingsSection
+          title="Compte temporaire"
+          description="Vous explorez Aurore en mode démo. Vos données disparaîtront à la déconnexion — rien à supprimer."
+        />
+      ) : (
+        <SettingsSection
+          title="Zone de danger"
+          description="Actions irréversibles sur votre compte."
+          variant="danger"
+        >
+          <div className="account-actions">
+            {!confirmDelete ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="account-action-btn delete-btn"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 size={18} />
+                Supprimer mon compte
+              </Button>
+            ) : (
+              <output className="delete-confirm">
+                <p className="delete-confirm-text">
+                  Cette action est irréversible. Toutes vos données seront supprimées.
+                </p>
+                <div className="delete-confirm-actions">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="account-action-btn"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={deleteUser.isPending}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="account-action-btn delete-btn"
+                    onClick={() =>
+                      deleteUser.mutate(undefined, {
+                        onSuccess: () =>
+                          navigate({ to: '/auth/login', search: { redirect: undefined } }),
+                      })
+                    }
+                    disabled={deleteUser.isPending}
+                  >
+                    <Trash2 size={18} />
+                    {deleteUser.isPending ? 'Suppression…' : 'Confirmer la suppression'}
+                  </Button>
+                </div>
+              </output>
+            )}
+          </div>
+        </SettingsSection>
+      )}
     </div>
   )
 }

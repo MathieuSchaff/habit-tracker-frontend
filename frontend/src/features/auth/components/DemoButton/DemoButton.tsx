@@ -15,7 +15,7 @@ export const DemoButton = () => {
       loading={demo.isPending}
       onClick={() => demo.mutate(undefined, { onSuccess: () => navigate({ to: '/collection' }) })}
     >
-      Essayer la demo
+      Essayer la démo
     </Button>
   )
 }

@@ -152,6 +152,25 @@ digest-cron-install:
     sudo chmod 644 /etc/cron.d/aurore-digest
     printf "{{GREEN}}✓ Cron installed — daily error digest at 8am{{NC}}\n"
 
+# Delete demo accounts past their 24h TTL (cron entrypoint). TARGET: dev|prod.
+sweep-demos:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    printf "{{CYAN}}Sweeping expired demo accounts ($TARGET)...{{NC}}\n"
+    $COMPOSE exec -w /app/backend api bun run src/features/auth/sweep-expired-demos.cli.ts
+
+# [PROD] Install daily cron (4am) to purge expired demo accounts. Shares backup-cron's PATH assumption (just on root PATH).
+demo-sweep-cron-install:
+    #!/usr/bin/env bash
+    printf "{{YELLOW}}Installing demo-sweep cron at /etc/cron.d/aurore-demo-sweep{{NC}}\n"
+    echo "0 4 * * * root cd $(pwd) && TARGET=prod just sweep-demos >> /var/log/aurore-demo-sweep.log 2>&1" \
+        | sudo tee /etc/cron.d/aurore-demo-sweep > /dev/null
+    sudo chmod 644 /etc/cron.d/aurore-demo-sweep
+    printf "{{GREEN}}✓ Cron installed — daily demo sweep at 4am{{NC}}\n"
+
 # Stop all containers
 stop:
     {{COMPOSE_DEV}} down 2>/dev/null || true

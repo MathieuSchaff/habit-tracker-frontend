@@ -8,7 +8,7 @@ type SettingsSectionProps = {
   description?: string
   variant?: 'default' | 'danger'
   compact?: boolean
-  children: ReactNode
+  children?: ReactNode
   className?: string
 }
 

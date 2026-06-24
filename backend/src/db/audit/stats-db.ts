@@ -1,4 +1,4 @@
-import { count, countDistinct, sql } from 'drizzle-orm'
+import { count, countDistinct, eq, sql } from 'drizzle-orm'
 
 import { db } from '..'
 import {
@@ -144,7 +144,9 @@ async function userStats() {
   const [{ withProducts }] = await db
     .select({ withProducts: countDistinct(userProducts.userId) })
     .from(userProducts)
-  row('with at least 1 product', withProducts)
+    .innerJoin(usersSafe, eq(userProducts.userId, usersSafe.id))
+    .where(eq(usersSafe.isDemo, false))
+  row('with at least 1 product (non-demo)', withProducts)
 }
 
 async function contentStats() {
