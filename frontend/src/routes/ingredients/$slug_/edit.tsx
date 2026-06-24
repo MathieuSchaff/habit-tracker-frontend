@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { IngredientInfoSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
 import { IngredientEditPage } from '@/features/ingredients/page/IngredientEditPage/IngredientEditPage'
 import { requireAuth } from '@/lib/auth/requireAuth'
+import { ApiError } from '@/lib/helpers/apiError'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 
 // Trailing `_` on $slug_ opts this route out of $slug.tsx (IngredientLayout)
@@ -12,13 +13,18 @@ export const Route = createFileRoute('/ingredients/$slug_/edit')({
   beforeLoad: async ({ context, location }) => {
     await requireAuth({
       queryClient: context.queryClient,
-      pathname: location.pathname,
+      href: location.href,
       accessToken: context.auth.accessToken,
     })
   },
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(ingredientQueries.bySlug(params.slug)),
+    context.queryClient.ensureQueryData(ingredientQueries.bySlug(params.slug)).catch((err) => {
+      // Missing ingredient = 404 → notFoundComponent; keep 5xx/429 on the real error UI.
+      if (err instanceof ApiError && err.status === 404) throw notFound()
+      throw err
+    }),
   pendingComponent: IngredientInfoSkeleton,
-  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
+  notFoundComponent: () => <GlobalError error={new Error('not_found')} is404 />,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,
   component: IngredientEditPage,
 })

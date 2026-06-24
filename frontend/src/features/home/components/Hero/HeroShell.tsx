@@ -1,13 +1,14 @@
+import type { LinkProps } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 
-import { Button } from '../../../../component/Button/Button'
+import { Button, ButtonLink } from '../../../../component/Button/Button'
 import { AuroreBrandMark } from '../primitives/AuroreBrandMark'
 import './Hero.css'
 
 export type HeroAction = {
   label: string
   // Use `to` for internal TanStack routes, `href` for anchors/external.
-  to?: string
+  to?: LinkProps['to']
   href?: string
   onClick?: () => void
 }
@@ -33,9 +34,9 @@ function renderAction(a: HeroAction, primaryStyle: boolean) {
   )
   if (a.to) {
     return (
-      <Button variant={variant} size="lg" to={a.to}>
+      <ButtonLink variant={variant} size="lg" to={a.to}>
         {content}
-      </Button>
+      </ButtonLink>
     )
   }
   if (a.href) {

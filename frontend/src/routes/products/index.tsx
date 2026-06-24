@@ -1,5 +1,4 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
 
 import { productsSearchDefaults, productsSearchSchema } from '@/features/products/filters'
 import { deriveAvoidFor, productsListApiFilters } from '@/features/products/helpers'
@@ -10,7 +9,7 @@ import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
 
 export const Route = createFileRoute('/products/')({
-  validateSearch: zodValidator(productsSearchSchema),
+  validateSearch: productsSearchSchema,
   search: {
     middlewares: [stripSearchParams(productsSearchDefaults)],
   },

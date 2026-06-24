@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { useConfirm } from '@/features/admin/useConfirm'
 import { comparisonQueries, useDeleteComparison } from '@/lib/queries/comparisons'
@@ -16,7 +16,7 @@ export function ComparisonsListPage() {
     <section className="comparisons-list-page">
       <header className="comparisons-list-page__header">
         <h1 className="comparisons-list-page__title">Mes comparaisons</h1>
-        <Button to="/products/compare/new">Nouvelle comparaison</Button>
+        <ButtonLink to="/products/compare/new">Nouvelle comparaison</ButtonLink>
       </header>
 
       {comparisons.length === 0 ? (

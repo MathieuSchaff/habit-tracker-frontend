@@ -3,7 +3,7 @@ import { getRouteApi, Outlet, useNavigate, useRouterState } from '@tanstack/reac
 import { Leaf, MessageSquare, Pencil } from 'lucide-react'
 
 import { BackButton } from '@/component/Button/BackButton'
-import { Button } from '@/component/Button/Button'
+import { ButtonLink } from '@/component/Button/Button'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { CatalogQualityBadge } from '@/component/DataDisplay/CatalogQualityBadge/CatalogQualityBadge'
 import { DetailHero } from '@/component/Layout/DetailHero/DetailHero'
@@ -45,7 +45,7 @@ export function IngredientLayout() {
       <PageTopActions>
         <BackButton to="/ingredients">Ingrédients</BackButton>
         <PageTopActionsRight>
-          <Button
+          <ButtonLink
             to="/ingredients/$slug/edit"
             params={{ slug }}
             variant="secondary"
@@ -54,7 +54,7 @@ export function IngredientLayout() {
           >
             <Pencil size={14} />
             <span className="action-edit__label">Modifier</span>
-          </Button>
+          </ButtonLink>
         </PageTopActionsRight>
       </PageTopActions>
 

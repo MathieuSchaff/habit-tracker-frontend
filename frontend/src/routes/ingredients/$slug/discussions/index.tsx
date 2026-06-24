@@ -15,13 +15,7 @@ function IngredientDiscussionIndex() {
   const user = useAuthStore((s) => s.user)
 
   return (
-    <ThreadList
-      threads={threads}
-      entityType="ingredient"
-      slug={slug}
-      isLoggedIn={user !== null}
-      threadDetailPath={(threadId) => `/ingredients/${slug}/discussions/${threadId}`}
-    />
+    <ThreadList threads={threads} entityType="ingredient" slug={slug} isLoggedIn={user !== null} />
   )
 }
 

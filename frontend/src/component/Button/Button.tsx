@@ -1,6 +1,6 @@
-import { Link, type LinkProps } from '@tanstack/react-router'
+import { createLink } from '@tanstack/react-router'
 import clsx from 'clsx'
-import type { ReactNode } from 'react'
+import { forwardRef, type ReactNode } from 'react'
 
 import { Spinner } from '../Feedback/ui/Spinner/Spinner'
 
@@ -27,17 +27,53 @@ type ButtonAsButtonProps = BaseProps & {
   disabled?: boolean
 } & Omit<React.ComponentProps<'button'>, 'type' | 'onClick' | 'disabled' | 'children'>
 
-type ButtonAsLinkProps = BaseProps & {
-  to: string
-  params?: LinkProps['params']
-  search?: LinkProps['search']
-}
-
 type ButtonAsAnchorProps = BaseProps & {
   href: string
 } & Omit<React.ComponentProps<'a'>, 'href' | 'children' | 'className'>
 
-type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps | ButtonAsAnchorProps
+type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps
+
+// Router-link variant lives in its own component: a polymorphic union member
+// can't be the generic <Link> that TanStack's route inference requires.
+// createLink forwards full route type-safety (to/params/search), no casts.
+type ButtonLinkBaseProps = BaseProps &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'className'>
+
+const ButtonLinkBase = forwardRef<HTMLAnchorElement, ButtonLinkBaseProps>(
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      loading = false,
+      fullWidth = false,
+      children,
+      className,
+      ...rest
+    },
+    ref
+  ) => (
+    <a
+      ref={ref}
+      className={clsx(
+        'button',
+        variant,
+        size,
+        fullWidth && 'full-width',
+        loading && 'loading',
+        className
+      )}
+      aria-busy={loading || undefined}
+      aria-disabled={loading || undefined}
+      {...rest}
+    >
+      {loading && <Spinner />}
+      {!loading && children}
+    </a>
+  )
+)
+ButtonLinkBase.displayName = 'ButtonLinkBase'
+
+export const ButtonLink = createLink(ButtonLinkBase)
 
 export const Button = (props: ButtonProps) => {
   const {
@@ -64,35 +100,6 @@ export const Button = (props: ButtonProps) => {
       {!loading && children}
     </>
   )
-
-  if ('to' in props) {
-    const {
-      to,
-      params,
-      search,
-      variant: _,
-      size: _s,
-      loading: _l,
-      fullWidth: _fw,
-      className: _cn,
-      children: _ch,
-      ...linkRest
-    } = props as ButtonAsLinkProps
-
-    return (
-      <Link
-        to={to as never}
-        params={params}
-        search={search}
-        className={classes}
-        aria-busy={loading || undefined}
-        aria-disabled={loading || undefined}
-        {...linkRest}
-      >
-        {content}
-      </Link>
-    )
-  }
 
   if ('href' in props) {
     const {

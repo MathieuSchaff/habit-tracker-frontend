@@ -1,7 +1,6 @@
 import { BLOG_CATEGORY_VALUES, type BlogCategory } from '@aurore/shared'
 
 import { createFileRoute, notFound, stripSearchParams, useNavigate } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
@@ -19,7 +18,7 @@ const defaultValues = { page: 1 }
 const categorySet = new Set<string>(BLOG_CATEGORY_VALUES)
 
 export const Route = createFileRoute('/blog/$category/')({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   search: {
     middlewares: [stripSearchParams(defaultValues)],
   },

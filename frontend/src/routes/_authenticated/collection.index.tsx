@@ -1,5 +1,4 @@
 import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 
 import { CollectionPage } from '../../features/collection/page/CollectionPage'
@@ -31,7 +30,7 @@ const defaultValues: z.infer<typeof collectionSearchSchema> = {
 export type CollectionSearch = z.infer<typeof collectionSearchSchema>
 
 export const Route = createFileRoute('/_authenticated/collection/')({
-  validateSearch: zodValidator(collectionSearchSchema),
+  validateSearch: collectionSearchSchema,
   search: {
     middlewares: [stripSearchParams(defaultValues)],
   },

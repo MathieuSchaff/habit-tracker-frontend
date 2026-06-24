@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, BookOpen, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
@@ -118,10 +118,10 @@ export function BlogListPage({
         isLoading={isPlaceholderData}
         actions={
           isAdmin ? (
-            <Button to="/blog/admin/new" variant="outline" size="sm">
+            <ButtonLink to="/blog/admin/new" variant="outline" size="sm">
               <Plus size={14} />
               Nouvel article
-            </Button>
+            </ButtonLink>
           ) : undefined
         }
       />

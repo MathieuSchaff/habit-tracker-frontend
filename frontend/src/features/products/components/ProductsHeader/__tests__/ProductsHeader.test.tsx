@@ -9,6 +9,7 @@ const navigate = vi.fn()
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigate,
   Link: vi.fn(({ children }: { children: ReactNode }) => children),
+  createLink: vi.fn(() => vi.fn(({ children }: { children: ReactNode }) => children)),
   useRouter: vi.fn(() => ({ state: { location: { pathname: '/' } } })),
   useParams: vi.fn(() => ({})),
   useSearch: vi.fn(() => ({})),

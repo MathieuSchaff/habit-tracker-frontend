@@ -51,7 +51,7 @@ describe('requireAuth', () => {
     await expect(
       requireAuth({
         queryClient,
-        pathname: '/dashboard',
+        href: '/dashboard',
         accessToken: useAuthStore.getState().accessToken,
       })
     ).resolves.toBeUndefined()
@@ -63,7 +63,7 @@ describe('requireAuth', () => {
     await expect(
       requireAuth({
         queryClient,
-        pathname: '/dashboard',
+        href: '/dashboard',
         accessToken: useAuthStore.getState().accessToken,
       })
     ).resolves.toBeUndefined()
@@ -77,7 +77,7 @@ describe('requireAuth', () => {
     try {
       await requireAuth({
         queryClient,
-        pathname: '/dashboard',
+        href: '/dashboard',
         accessToken: useAuthStore.getState().accessToken,
       })
       expect.unreachable('should have thrown redirect')
@@ -90,7 +90,7 @@ describe('requireAuth', () => {
     mockSilentRefresh.mockResolvedValue('cooldown')
 
     try {
-      await requireAuth({ queryClient, pathname: '/dashboard', accessToken: null })
+      await requireAuth({ queryClient, href: '/dashboard', accessToken: null })
       expect.unreachable('should have thrown redirect')
     } catch {
       expect(useAuthStore.getState().accessToken).toBeNull()
@@ -110,7 +110,7 @@ describe('requireAuth', () => {
     mockSilentRefresh.mockResolvedValue('cooldown')
 
     await expect(
-      requireAuth({ queryClient, pathname: '/dashboard', accessToken: expiredToken })
+      requireAuth({ queryClient, href: '/dashboard', accessToken: expiredToken })
     ).resolves.toBeUndefined()
     expect(useAuthStore.getState().accessToken).toBe(expiredToken)
   })
@@ -124,7 +124,7 @@ describe('requireAuth', () => {
     await expect(
       requireAuth({
         queryClient,
-        pathname: '/settings',
+        href: '/settings',
         accessToken: useAuthStore.getState().accessToken,
       })
     ).resolves.toBeUndefined()
@@ -141,7 +141,7 @@ describe('requireAuth', () => {
     try {
       await requireAuth({
         queryClient,
-        pathname: '/settings',
+        href: '/settings',
         accessToken: useAuthStore.getState().accessToken,
       })
       expect.unreachable('should have thrown redirect')
@@ -158,7 +158,7 @@ describe('requireAuth', () => {
     mockSilentRefresh.mockResolvedValue('cooldown')
 
     await expect(
-      requireAuth({ queryClient, pathname: '/settings', accessToken: tokenBefore })
+      requireAuth({ queryClient, href: '/settings', accessToken: tokenBefore })
     ).resolves.toBeUndefined()
     // User stays logged in through the backoff blip.
     expect(useAuthStore.getState().accessToken).toBe(tokenBefore)
@@ -179,7 +179,7 @@ describe('requireAuth', () => {
     await expect(
       requireAuth({
         queryClient,
-        pathname: '/profile',
+        href: '/profile',
         accessToken: useAuthStore.getState().accessToken,
       })
     ).resolves.toBeUndefined()

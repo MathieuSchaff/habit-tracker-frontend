@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeftRight, FlaskConical, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { ButtonLink } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { pdsLabels } from '@/features/collection/constants'
 import { purchaseQueries } from '@/lib/queries/purchases'
@@ -85,7 +85,7 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
             <p className="pds-section-lead">
               Comparez les groupes d'ingrédients et vos notes personnelles côte à côte.
             </p>
-            <Button
+            <ButtonLink
               to="/products/compare/new"
               search={{ seed: p.productId }}
               variant="outline"
@@ -94,7 +94,7 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
             >
               <ArrowLeftRight size={14} aria-hidden="true" />
               <span>Choisir un produit à comparer</span>
-            </Button>
+            </ButtonLink>
           </PdsAccordion>
 
           <footer className="pds-footer">

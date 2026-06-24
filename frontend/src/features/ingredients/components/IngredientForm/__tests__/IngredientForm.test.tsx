@@ -1,5 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -45,6 +46,17 @@ vi.mock('@/lib/queries/product-tags', () => ({
     })),
   },
 }))
+
+// Expose ButtonLink's destination (the global setup stub renders children only); keep the real Button.
+vi.mock('@/component/Button/Button', async (importActual) => {
+  const actual = await importActual<typeof import('@/component/Button/Button')>()
+  return {
+    ...actual,
+    ButtonLink: ({ to, children }: { to: string; children: ReactNode }) => (
+      <a href={to}>{children}</a>
+    ),
+  }
+})
 
 const mockIngredient = {
   id: 'i1',
@@ -155,5 +167,45 @@ describe('IngredientForm - Conflict Resolution', () => {
       </QueryClientProvider>
     )
     expect(screen.getByLabelText(/Slug/)).toBeInTheDocument()
+  })
+})
+
+describe('IngredientForm - cancel link', () => {
+  const setupHooks = () => {
+    ;(useAuthStore as any).mockReturnValue({ role: 'user' })
+    ;(useCreateIngredient as any).mockReturnValue({ isPending: false })
+    ;(useUpdateIngredient as any).mockReturnValue({ isPending: false })
+    ;(useUpdateIngredientTags as any).mockReturnValue({ isPending: false })
+  }
+
+  it('points the edit cancel link at the ingredient detail page', () => {
+    setupHooks()
+    const queryClient = createTestQueryClient()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <IngredientForm mode="edit" ingredient={mockIngredient} onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByRole('link', { name: /Annuler/ })).toHaveAttribute(
+      'href',
+      '/ingredients/$slug'
+    )
+  })
+
+  // Strict ButtonLink params exposed a latent bug: edit with no slug used to build /ingredients/undefined (hidden by the old cast).
+  it('falls the edit cancel link back to the list when the slug is missing', () => {
+    setupHooks()
+    const queryClient = createTestQueryClient()
+    const noSlug = { ...mockIngredient, slug: undefined } as unknown as typeof mockIngredient
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <IngredientForm mode="edit" ingredient={noSlug} onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByRole('link', { name: /Annuler/ })).toHaveAttribute('href', '/ingredients')
   })
 })

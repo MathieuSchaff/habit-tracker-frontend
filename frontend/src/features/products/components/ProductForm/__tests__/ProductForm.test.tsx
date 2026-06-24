@@ -79,6 +79,17 @@ vi.mock('@/features/products/components/ProductForm/ProductImageField', () => ({
   ProductImageField: () => null,
 }))
 
+// Expose ButtonLink's destination (the global setup stub renders children only); keep the real Button.
+vi.mock('@/component/Button/Button', async (importActual) => {
+  const actual = await importActual<typeof import('@/component/Button/Button')>()
+  return {
+    ...actual,
+    ButtonLink: ({ to, children }: { to: string; children: React.ReactNode }) => (
+      <a href={to}>{children}</a>
+    ),
+  }
+})
+
 const mockProduct = {
   id: 'p1',
   slug: 'mock-product',
@@ -170,5 +181,31 @@ describe('ProductForm', () => {
     fireEvent.click(submit)
 
     expect(mockSubmit).toHaveBeenCalledTimes(1)
+  })
+
+  it('points the edit cancel link at the product detail page', () => {
+    const queryClient = createTestQueryClient()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ProductForm mode="edit" product={mockProduct} onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByRole('link', { name: /Annuler/ })).toHaveAttribute('href', '/products/$slug')
+  })
+
+  // Strict ButtonLink params exposed a latent bug: edit with no slug used to build /products/undefined (hidden by the old cast).
+  it('falls the edit cancel link back to the list when the slug is missing', () => {
+    const queryClient = createTestQueryClient()
+    const noSlug = { ...mockProduct, slug: undefined } as unknown as typeof mockProduct
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ProductForm mode="edit" product={noSlug} onSuccess={vi.fn()} />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByRole('link', { name: /Annuler/ })).toHaveAttribute('href', '/products')
   })
 })

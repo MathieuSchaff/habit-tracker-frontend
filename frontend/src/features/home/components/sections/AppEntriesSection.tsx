@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, type LinkProps } from '@tanstack/react-router'
 import { FlaskConical, GitCompare, Layers, MessageCircle, Newspaper, Package } from 'lucide-react'
 
 import { Container, SectionHead } from './Section'
@@ -6,7 +6,7 @@ import './AppEntriesSection.css'
 
 type Entry = {
   id: string
-  to?: string
+  to?: LinkProps['to']
   href?: string
   icon: React.ReactNode
   title: string
@@ -51,7 +51,7 @@ const ENTRIES: Entry[] = [
   },
   {
     id: 'compare',
-    to: '/compare',
+    to: '/products/compare/new',
     icon: <GitCompare size={20} />,
     title: 'Comparatif',
     desc: 'Deux ou trois candidats côte à côte: groupes de formule, notes perso, écarts utiles à la décision.',
@@ -122,7 +122,7 @@ export function AppEntriesSection() {
               )
             }
             return (
-              <Link key={e.id} to={e.to as never} className={cls}>
+              <Link key={e.id} to={e.to} className={cls}>
                 {inner}
               </Link>
             )

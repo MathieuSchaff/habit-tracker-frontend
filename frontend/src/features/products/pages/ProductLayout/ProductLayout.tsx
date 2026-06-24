@@ -17,7 +17,7 @@ import '@/features/products/styles/kinds.css'
 import '@/features/products/pages/ProductInfoTab/ProductInfoTab.css'
 
 import { BackButton } from '@/component/Button/BackButton'
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 
 const route = getRouteApi('/products/$slug')
@@ -77,7 +77,7 @@ export function ProductLayout() {
       <PageTopActions>
         <BackButton to="/products">Produits</BackButton>
         <PageTopActionsRight>
-          <Button
+          <ButtonLink
             to="/products/$slug/edit"
             params={{ slug }}
             variant="secondary"
@@ -86,7 +86,7 @@ export function ProductLayout() {
           >
             <Pencil size={14} />
             <span className="action-edit__label">Modifier</span>
-          </Button>
+          </ButtonLink>
           <Button onClick={() => setShowAddModal(true)} variant="accent">
             <Plus size={16} />
             Ajouter à la collection
