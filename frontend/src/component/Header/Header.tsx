@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { PanelLeftOpen } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -32,9 +33,9 @@ export const Header = () => {
         style={{ viewTransitionName: 'main-nav' }}
       >
         <div className="main-nav__header">
-          <div className="main-nav__logo">
+          <Link to="/" className="main-nav__logo" aria-label="Accueil" onClick={closeMenu}>
             <AuroreLogo size={40} />
-          </div>
+          </Link>
           <button
             type="button"
             className="main-nav__toggle"

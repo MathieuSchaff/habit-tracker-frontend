@@ -1,11 +1,14 @@
 import { ArrowRight } from 'lucide-react'
 
 import { ButtonLink } from '../../../../component/Button/Button'
+import { useAuthStore } from '../../../../store/auth'
 import { AuroreBrandMark } from '../primitives/AuroreBrandMark'
 import { Container } from './Section'
 import './FinalCTASection.css'
 
 export function FinalCTASection() {
+  // "Sans compte" framing only makes sense for prospects; signed-in users just explore.
+  const isAuthenticated = useAuthStore((s) => !!s.accessToken)
   return (
     <section className="aur-section">
       <Container>
@@ -23,7 +26,7 @@ export function FinalCTASection() {
               Commencer ma collection <ArrowRight size={16} />
             </ButtonLink>
             <ButtonLink variant="outline" size="lg" to="/products">
-              Explorer sans compte
+              {isAuthenticated ? 'Explorer les produits' : 'Explorer sans compte'}
             </ButtonLink>
           </div>
         </div>
