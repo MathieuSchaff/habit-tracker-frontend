@@ -12,15 +12,14 @@ import type {
 } from '@aurore/shared'
 import { err, ok } from '@aurore/shared'
 
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 import type { Database, DB } from '../../db/index'
 import { bindRlsContext } from '../../db/rls'
-import { users } from '../../db/schema'
+import { users, usersSafe } from '../../db/schema'
 import { isUniqueViolation } from '../../lib/helpers'
 import { logger } from '../../lib/logger'
 import { nowISO } from '../../utils/dates'
-import { seedDemoData } from './demo-seed'
 import {
   sendAccountLockedEmail,
   sendAlreadyRegisteredEmail,
@@ -260,6 +259,20 @@ export async function refresh(ctx: AuthContext, rawRefreshToken: string): Promis
       return err('invalid_token')
     }
 
+    // Demo sessions are time-bounded: without this the refresh rotation would renew
+    // a demo indefinitely (users.expires_at is otherwise never read for enforcement).
+    if (user.isDemo) {
+      const [demo] = await ctx.db
+        .select({ expiresAt: usersSafe.expiresAt })
+        .from(usersSafe)
+        .where(eq(usersSafe.id, user.id))
+        .limit(1)
+      if (demo?.expiresAt && Date.parse(demo.expiresAt) < Date.now()) {
+        await revokeAllUserRefreshTokens(ctx.db, user.id)
+        return err('invalid_token')
+      }
+    }
+
     if (!user.emailVerified) {
       const graceCutoffMs = Date.now() - 24 * 60 * 60 * 1000
       if (Date.parse(user.createdAt) < graceCutoffMs) return err('email_not_verified')
@@ -333,6 +346,9 @@ export async function changePassword(
   }
 }
 
+// Demo sessions are bounded: refresh() rejects past this, the daily sweep deletes them.
+const DEMO_SESSION_TTL_MS = 24 * 60 * 60 * 1000
+
 export async function createDemo(
   ctx: AuthContext
 ): Promise<ApiResponse<AuthenticatedResult, 'server_error'>> {
@@ -345,21 +361,37 @@ export async function createDemo(
         passwordHash: null,
         emailVerifiedAt: nowISO(),
         isDemo: true,
+        expiresAt: new Date(Date.now() + DEMO_SESSION_TTL_MS).toISOString(),
       })
       // app_runtime user_id required for WITH CHECK on all subsequent inserts in this tx.
       await bindRlsContext(tx, created.id)
       await createProfile(tx, created.id)
       // Seed inside the transaction so app.user_id is set for RLS-protected tables.
+      // Lazy import keeps the auth module graph free of the products/tasks/user-products
+      // services demo-seed pulls in, so auth stays loadable/testable in isolation.
+      const { seedDemoData } = await import('./demo-seed')
       await seedDemoData(created.id, tx as unknown as Database)
       return created
     })
 
-    const tokens = await createTokenPair(ctx, user.id, user.role)
-
-    return ok({
-      user: toPublicUser(user),
-      ...tokens,
-    })
+    try {
+      const tokens = await createTokenPair(ctx, user.id, user.role)
+      return ok({
+        user: toPublicUser(user),
+        ...tokens,
+      })
+    } catch (e) {
+      // createTokenPair runs after the tx commits, so a failure here would leave an
+      // inaccessible orphan (passwordHash=null, no token). Delete it before surfacing.
+      logger.error({ err: e }, 'Demo token creation failed, removing orphan user')
+      await ctx.db
+        .transaction(async (tx) => {
+          await tx.execute(sql`SET LOCAL app.role = 'admin'`)
+          await tx.delete(users).where(eq(users.id, user.id))
+        })
+        .catch((cleanupErr) => logger.error({ err: cleanupErr }, 'Demo orphan cleanup failed'))
+      return err('server_error')
+    }
   } catch (e) {
     logger.error({ err: e }, 'Demo creation failed')
     return err('server_error')

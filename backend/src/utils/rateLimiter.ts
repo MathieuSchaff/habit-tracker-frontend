@@ -77,6 +77,26 @@ export const loginRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
       skipFailedRequests: false,
     })
 
+// Throttles /auth/demo per IP. Each success writes a full demo account (~50 seed
+// rows); the daily sweep reclaims them but a burst still amplifies writes, so this
+// COUNTS all requests (own bucket) to cap account creation per window.
+export const demoRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
+  ? async (_c: Context, next: Next) => await next()
+  : rateLimiter<AppEnv>({
+      windowMs: 15 * 60 * 1000,
+      limit: 5,
+      standardHeaders: 'draft-7',
+      keyGenerator: (c) => `demo:${clientIp(c)}`,
+      handler: (c) =>
+        c.json(
+          err('too_many_requests', {
+            retryAfter: c.res.headers.get('Retry-After'),
+          }),
+          HTTP_STATUS.RATE_LIMIT_EXCEEDED
+        ),
+      skipFailedRequests: false,
+    })
+
 // Throttles /auth/forgot-password per IP. Mail-spam surface: every request can send
 // an email, so this COUNTS all requests (own bucket, distinct from login) to blunt
 // inbox bombing. A legit user rarely needs more than a handful of resets per window.

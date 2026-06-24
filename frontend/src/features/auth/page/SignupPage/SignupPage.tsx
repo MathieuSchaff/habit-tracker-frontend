@@ -174,11 +174,10 @@ export const SignupPage = () => {
         >
           Créer mon compte
         </Button>
-
-        <AuthDivider />
-        <DemoButton />
       </form>
 
+      <AuthDivider />
+      <DemoButton />
       <AuthDivider />
       <GoogleAuthButton label="S'inscrire avec Google" />
     </>

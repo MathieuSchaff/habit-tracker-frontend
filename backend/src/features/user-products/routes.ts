@@ -17,11 +17,11 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { userProductReviews } from '../../db/schema/products/user-products'
-import { recalculateAllSignalsForUser } from '../../services/dermoSignalService'
 import { zValidator } from '../../utils/validator'
 import { isUserBannedForScope } from '../auth/ban.service'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
+import { recalculateAllSignalsForUser } from './dermo-signal.service'
 import {
   addPurchase,
   deletePurchase,

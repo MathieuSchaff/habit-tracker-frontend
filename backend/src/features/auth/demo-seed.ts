@@ -1,6 +1,7 @@
 import { addDays, subMonths } from 'date-fns'
 
 import type { Database } from '../../db/index'
+import { logger } from '../../lib/logger'
 import { listProducts } from '../products/service'
 import { createSubtask, createTask, updateTask } from '../tasks/service'
 import { addPurchase, finishPurchase, openPurchase } from '../user-products/purchase.service'
@@ -10,12 +11,12 @@ import { createUserProduct, upsertUserProductReview } from '../user-products/ser
 const d = (date: Date) => date.toISOString()
 
 export async function seedDemoData(userId: string, db: Database) {
-  console.log(`🌱 Seeding demo data for user ${userId}...`)
+  logger.info({ userId }, 'seeding demo data')
 
   await seedDemoTasks(userId, db)
   await seedDemoCollection(userId, db)
 
-  console.log(`✅ Demo data seeded successfully for user ${userId}`)
+  logger.info({ userId }, 'demo data seeded')
 }
 
 async function seedDemoTasks(userId: string, db: Database) {
@@ -83,7 +84,7 @@ async function seedDemoCollection(userId: string, db: Database) {
   )
 
   if (products.length === 0) {
-    console.warn('No products found in catalog — skipping collection seed')
+    logger.warn({ userId }, 'no catalog products — skipping demo collection seed')
     return
   }
 
@@ -225,6 +226,8 @@ async function seedDemoPurchases(
     return
   }
 
+  // Non-deterministic on purpose (varied demo collections). Safe for analytics:
+  // every metric filters is_demo=false (see db/audit/stats-db.ts).
   const hasOpen = Math.random() > 0.5
   const purchasedAt = subMonths(new Date(), Math.floor(Math.random() * 4) + 1)
   const p = await addPurchase(

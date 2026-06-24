@@ -68,6 +68,7 @@ export default defineConfig({
     // for zero bytes, so strip the <link> from the HTML. Build-only.
     // Keep the (empty) asset though: the same CSS can be a lazy chunk's __vitePreload dep,
     // so deleting it 404s that preload at runtime. A served 0-byte 200 is harmless.
+    // Tracks vitejs/vite#11672 (CSS slot reserved pre-tree-shake); delete if Vite ships a native fix.
     {
       name: 'strip-empty-css',
       transformIndexHtml(html, ctx) {
