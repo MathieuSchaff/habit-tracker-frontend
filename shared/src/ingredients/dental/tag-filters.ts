@@ -1,4 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
+import { sortFilterCategories } from '../../tags/tag-taxonomy-builder'
 import { DENTAL_INGREDIENT_TAG_CATEGORIES, type DentalIngredientTagCategory } from './tag-taxonomy'
 
 export const DENTAL_INGREDIENT_TAG_CATEGORY_META: Record<
@@ -12,8 +13,5 @@ export const DENTAL_INGREDIENT_TAG_CATEGORY_META: Record<
 }
 
 export function dentalIngredientFilterCategories(): DentalIngredientTagCategory[] {
-  return [...DENTAL_INGREDIENT_TAG_CATEGORIES].sort(
-    (a, b) =>
-      DENTAL_INGREDIENT_TAG_CATEGORY_META[a].order - DENTAL_INGREDIENT_TAG_CATEGORY_META[b].order
-  )
+  return sortFilterCategories(DENTAL_INGREDIENT_TAG_CATEGORIES, DENTAL_INGREDIENT_TAG_CATEGORY_META)
 }

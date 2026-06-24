@@ -134,24 +134,6 @@ même source que le `.defaultNow()` béni en §2.1.
 > `devAssertSchema` — pas de schéma Zod `UserPublic`, et `ingredientResponseSchema`
 > a des nullabilités qui ne correspondent pas exactement au schéma DB.
 
-### 2.5 Validation runtime (paranoia mode)
-
-`backend/src/utils/dev-validate.ts` expose `devAssertSchema(schema, value, ctx)` :
-
-- en `NODE_ENV=production` → no-op, retourne la valeur telle quelle
-- en dev/test → `safeParse` et throw si la forme dérive (avec log structuré)
-
-Branché sur les boundary mappers calendar dates (`toApiPurchase`,
-`toApiTask`) — points où la conversion `date` ↔ instant est la plus
-sujette aux erreurs.
-
-```typescript
-function toApiPurchase(row: PurchaseRow): Purchase {
-  const mapped: Purchase = { /* … */ }
-  return devAssertSchema(purchaseSchema, mapped, 'toApiPurchase')
-}
-```
-
 ### 2.4 Frontend
 
 Helpers `frontend/src/lib/dates.ts` :
@@ -194,7 +176,7 @@ import { Time } from '@/component/DataDisplay/Time/Time'
 Styles : `'short' | 'medium' | 'long' | 'monthYear'` (défaut `'medium'`). En mode `relative`, le `style` contrôle le tooltip absolu (défaut `'long'`).
 
 **Interdits côté composant** (catchés par lefthook) :
-- `import ... from 'date-fns'` hors helpers (frontend n'en dépend plus ; backend = `utils/dates.ts` + `demo-seed.ts`)
+- `import ... from 'date-fns'` hors helpers (frontend n'en dépend plus ; backend = `demo-seed.ts` uniquement — `utils/dates.ts` n'importe pas date-fns)
 - `new Intl.DateTimeFormat(...)` / `new Intl.RelativeTimeFormat(...)` hors `frontend/src/lib/dates.ts`
 - `value.toLocaleDateString(...)`, `value.toLocaleString(...)` partout
 - `<time dateTime={...}>...</time>` à la main — passer par `<Time>`
@@ -203,6 +185,24 @@ Styles : `'short' | 'medium' | 'long' | 'monthYear'` (défaut `'medium'`). En mo
 Exceptions tolérées :
 - `formatInstant` / `formatRelative` appelés en string (template literal, attribut `title` quand `<Time>` ne convient pas).
 - `new Date().toISOString()` dans les fixtures `vi.mock` factories (pas d'imports possibles, contrainte du runtime).
+
+### 2.5 Validation runtime (paranoia mode)
+
+`backend/src/utils/dev-validate.ts` expose `devAssertSchema(schema, value, ctx)` :
+
+- en `NODE_ENV=production` → no-op, retourne la valeur telle quelle
+- en dev/test → `safeParse` et throw si la forme dérive (avec log structuré)
+
+Branché sur les boundary mappers calendar dates (`toApiPurchase`,
+`toApiTask`) — points où la conversion `date` ↔ instant est la plus
+sujette aux erreurs.
+
+```typescript
+function toApiPurchase(row: PurchaseRow): Purchase {
+  const mapped: Purchase = { /* … */ }
+  return devAssertSchema(purchaseSchema, mapped, 'toApiPurchase')
+}
+```
 
 ---
 

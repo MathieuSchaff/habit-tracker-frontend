@@ -6,14 +6,14 @@ accepted: 2026-05-24
 
 # Three formula passes re-emit algo-derm slugs with chemistry-aware gating
 
-The auto-tagging pipeline runs algo-derm's `tagProduct()` as Pass 1 (`passes/auto-tag-detection.ts`), which emits 38 candidate tags. For three of those — `peaux_atopiques`, `repulpant`, `matifiant` — Aurore drops the algo-derm candidate (no `TAG_CONFIG` entry → `unmapped` → dropped) and re-emits the equivalent slug from a dedicated Pass-4 formula detector instead (`passes/formula/{eczema-atopie,repulpant,fini-mat}.ts`). We keep this duplication and will not consolidate it into a `TAG_CONFIG` floor override.
+The auto-tagging pipeline runs algo-derm's `tagProduct()` as Pass 1 (`passes/algo-derm-detection.ts`), which emits a set of candidate tags. For three of those — `peaux_atopiques`, `repulpant`, `matifiant` — Aurore drops the algo-derm candidate (no `TAG_CONFIG` entry → `unmapped` → dropped) and re-emits the equivalent slug from a dedicated Pass-4 formula detector instead (`passes/formula/{eczema-atopie,repulpant,fini-mat}.ts`). We keep this duplication and will not consolidate it into a `TAG_CONFIG` floor override.
 
 ## Why
 
 algo-derm and the formula passes reason over **different inputs**, not the same input at a different threshold:
 
 - algo-derm's rules for these three slugs key on **computed axis scores** (`peaux_atopiques`: irritation+allergenicity risk both below a floor with no fragrance/sulfate/soap flags; `repulpant`: HA/glycerin presence top 12; `matifiant`: `seborrheicRegulation ≥ P85`). These fire on 22 % / 78 % / the entire `peau-grasse` set of the corpus — non-discriminating signal.
-- The formula passes key on **named-ingredient co-presence patterns**: `eczema-atopie` requires colloidal oatmeal (`avena sativa kernel`, the FDA OTC eczema protectant) OR ≥2 distinct ceramide variants top 12 + fragrance-free + no sulfate top 5; `repulpant` requires HA top 8 AND a pure glycerin token top 5 AND ≥1 canonical plumping peptide (Argireline / palmitoyl tripeptide-1); `fini-mat` requires a literal absorbent powder (silica/kaolin/perlite/talc/starch) top 8.
+- The formula passes key on **named-ingredient co-presence patterns or text signals**: `eczema-atopie` gates on product name/description matching `/atopi|ecz[ée]ma/i` (marketed-for positioning, not INCI co-presence — the EU-regulated atopy shelf carries no reliable INCI signal); `repulpant` requires HA top 8 AND a pure glycerin token top 5 AND ≥1 canonical plumping peptide (Argireline / palmitoyl tripeptide-1); `fini-mat` requires a literal absorbent powder (silica/kaolin/perlite/talc/starch) top 8.
 
 There is no shared knob to tune. `matifiant` is the clearest case: algo-derm infers it from a sebum-regulation *score*, the formula pass keys on the *presence of an absorbent powder* — a product can score high on sebum-regulation with zero absorbent ingredients, and vice-versa. Lowering or raising an algo-derm floor cannot reproduce the formula-pass logic because the formula pass does not consume the algo-derm axis at all.
 

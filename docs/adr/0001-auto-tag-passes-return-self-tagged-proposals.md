@@ -6,7 +6,7 @@ accepted: 2026-05-19
 
 # Auto-tag passes return self-tagged proposals
 
-The auto-tagging orchestrator (`backend/src/features/auto-tagging/orchestrator.ts`) runs ~30 detector functions on each product and dedups their output. Today most detectors return `SkincareProductTagSlug[]` and the orchestrator wraps each result with hardcoded `(relevance, source)` tuples (e.g. `for (const s of formulaSlugs) propose(s, 'secondary', 'formula')`). We will change passes to return `AutoTagProposal[]` — each proposal already carries its own `relevance`, `source`, and (for algo-derm) `confidence` — so the orchestrator no longer has to know what each detector is.
+The auto-tagging orchestrator (`backend/src/features/auto-tagging/orchestrator.ts`) runs ~30 detector functions on each product and dedups their output (FORMULA_PASSES alone has since grown to 35 sub-passes). Today most detectors return `SkincareProductTagSlug[]` and the orchestrator wraps each result with hardcoded `(relevance, source)` tuples (e.g. `for (const s of formulaSlugs) propose(s, 'secondary', 'formula')`). We will change passes to return `AutoTagProposal[]` — each proposal already carries its own `relevance`, `source`, and (for algo-derm) `confidence` — so the orchestrator no longer has to know what each detector is.
 
 ## Why
 
@@ -18,7 +18,7 @@ Pulling metadata onto the proposal makes each pass self-describing: the test sur
 
 - **A. Keep slug-emitting detectors, orchestrator owns `(relevance, source)`.** Detectors stay terse, but the orchestrator keeps 21 `'secondary'/'formula'` call sites and cannot be reduced to a uniform pass loop. The leakiness we set out to fix stays.
 - **B. Each pass returns `AutoTagProposal[]` with self-declared metadata.** **Chosen.** Uniform pass interface enables `passes.reduce(...)`; source/relevance ownership lives with the pass that knows them.
-- **B2. Split `source: 'formula'` into finer sub-sources** (`formula-texture`, `formula-occlusif`, ...). Rejected — `AutoTagSource` is persisted downstream (`backfill/main.ts:361` stats record, `audit/orchestrator-diff.ts` CSV column 5). Renaming is a contract migration that does not belong in an ownership refactor.
+- **B2. Split `source: 'formula'` into finer sub-sources** (`formula-texture`, `formula-occlusif`, ...). Rejected — `AutoTagSource` is persisted downstream (`backfill/main.ts:264` stats record, `audit/orchestrator-diff.ts` CSV column 5). Renaming is a contract migration that does not belong in an ownership refactor.
 
 ## Consequences
 

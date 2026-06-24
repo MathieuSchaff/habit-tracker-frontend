@@ -2,6 +2,24 @@
 // Tags applicable to skincare/haircare/dental ingredients.
 // Categories: concern, skin_type, ingredient_attribute, skin_effect, shared_label, actif_class.
 
+// Actif class (pharmacological clusters) — single source of truth for the
+// slugs shared with skincare PRODUCT tags. The product taxonomy spreads these
+// and adds product-only extras (urea); drift between the two now fails to compile.
+export const SHARED_SKINCARE_ACTIF_CLASS_SLUGS = {
+  RETINOIDS: 'retinoids',
+  VITAMIN_C: 'vitamin-c',
+  VITAMIN_E: 'vitamin-e',
+  AHA: 'aha',
+  BHA: 'bha',
+  PHA: 'pha',
+  ENZYMES_EXFOLIANTS: 'enzymes-exfoliants',
+  CERAMIDES: 'ceramides',
+  HYALURONIC_ACID: 'hyaluronic-acid',
+  PEPTIDES: 'peptides',
+  POLYPHENOLS: 'polyphenols',
+  TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+} as const
+
 export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   // Concerns
   ANTI_ROUGEURS: 'anti-rougeurs',
@@ -76,22 +94,10 @@ export const SKINCARE_INGREDIENT_TAG_SLUGS = {
   // other pregnancy-restricted actives.
   GROSSESSE_COMPATIBLE: 'grossesse-compatible',
 
-  // Actif class (pharmacological clusters)
-  // Group molecules that share a mechanism of action so routine rules
-  // (e.g. "max 1 retinoid", "redundant vitamin C variants") and UI
-  // filters can target the family rather than each member.
-  RETINOIDS: 'retinoids',
-  VITAMIN_C: 'vitamin-c',
-  VITAMIN_E: 'vitamin-e',
-  AHA: 'aha',
-  BHA: 'bha',
-  PHA: 'pha',
-  ENZYMES_EXFOLIANTS: 'enzymes-exfoliants',
-  CERAMIDES: 'ceramides',
-  HYALURONIC_ACID: 'hyaluronic-acid',
-  PEPTIDES: 'peptides',
-  POLYPHENOLS: 'polyphenols',
-  TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+  // Actif class (pharmacological clusters) — group molecules that share a
+  // mechanism of action so routine rules (e.g. "max 1 retinoid", "redundant
+  // vitamin C variants") and UI filters can target the family, not each member.
+  ...SHARED_SKINCARE_ACTIF_CLASS_SLUGS,
 } as const
 
 export type SkincareIngredientTagSlug =
