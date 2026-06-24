@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
+import { ensureFresh } from '@/lib/auth/freshness'
+import { queryClient } from '@/lib/queryClient'
 import { useAuthStore } from '@/store/auth'
 
 type Phase =
@@ -54,6 +56,61 @@ async function runConfirmCrop(
     throw e
   } finally {
     if (sourceUrlToRevoke) URL.revokeObjectURL(sourceUrlToRevoke)
+  }
+}
+
+// Raw XHR (for progress events) bypasses the fetch 401-interceptor in lib/api; mirror it here so
+// an expired session recovers via one silent-refresh + retry. Module-level keeps the try/catch out
+// of the hook body so the React Compiler can still optimize the wrapping useCallback.
+async function uploadWithRetry(
+  blob: Blob,
+  endpoint: string,
+  setState: (phase: Phase) => void
+): Promise<{ url: string }> {
+  const form = new FormData()
+  form.append('image', blob, 'image.webp')
+
+  const sendOnce = (token: string | null): Promise<{ url: string }> =>
+    new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.upload.onprogress = (ev) => {
+        if (ev.total > 0) {
+          setState({ phase: 'uploading', progress: Math.round((ev.loaded / ev.total) * 100) })
+        }
+      }
+      xhr.onload = () => {
+        try {
+          const body = JSON.parse(xhr.responseText) as
+            | { success: true; data: { url: string } }
+            | { success: false; error: string }
+          if (xhr.status >= 200 && xhr.status < 300 && body.success) {
+            resolve(body.data)
+          } else {
+            const code = (body as { error?: string }).error ?? 'unknown'
+            reject(Object.assign(new Error(code), { code, status: xhr.status }))
+          }
+        } catch {
+          reject(Object.assign(new Error('unknown'), { code: 'unknown', status: xhr.status }))
+        }
+      }
+      xhr.onerror = () =>
+        reject(
+          Object.assign(new Error('upload_storage_failed'), {
+            code: 'upload_storage_failed',
+            status: 0,
+          })
+        )
+      xhr.open('POST', endpoint)
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.send(form)
+    })
+
+  try {
+    return await sendOnce(useAuthStore.getState().accessToken)
+  } catch (e) {
+    if ((e as { status?: number }).status !== 401) throw e
+    if ((await ensureFresh(queryClient)) !== 'ok') throw e
+    return sendOnce(useAuthStore.getState().accessToken)
   }
 }
 
@@ -159,42 +216,7 @@ export function useImageUpload(opts: UseImageUploadOptions) {
   )
 
   const uploadXhr = useCallback(
-    (blob: Blob): Promise<{ url: string }> => {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        const form = new FormData()
-        form.append('image', blob, 'image.webp')
-        xhr.upload.onprogress = (ev) => {
-          if (ev.total > 0) {
-            const progress = Math.round((ev.loaded / ev.total) * 100)
-            setState({ phase: 'uploading', progress })
-          }
-        }
-        xhr.onload = () => {
-          try {
-            const body = JSON.parse(xhr.responseText) as
-              | { success: true; data: { url: string } }
-              | { success: false; error: string }
-            if (xhr.status >= 200 && xhr.status < 300 && body.success) {
-              resolve(body.data)
-            } else {
-              const code = (body as { error?: string }).error ?? 'unknown'
-              reject(Object.assign(new Error(code), { code }))
-            }
-          } catch {
-            reject(Object.assign(new Error('unknown'), { code: 'unknown' }))
-          }
-        }
-        xhr.onerror = () =>
-          reject(
-            Object.assign(new Error('upload_storage_failed'), { code: 'upload_storage_failed' })
-          )
-        xhr.open('POST', opts.endpoint)
-        const token = useAuthStore.getState().accessToken
-        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-        xhr.send(form)
-      })
-    },
+    (blob: Blob) => uploadWithRetry(blob, opts.endpoint, setState),
     [opts.endpoint]
   )
 

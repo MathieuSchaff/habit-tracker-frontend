@@ -20,7 +20,7 @@ export interface Clock {
 const systemClock: Clock = { now: () => Date.now() }
 let clock: Clock = systemClock
 
-// Treat a token as expired this far ahead of its real exp (clock skew + in-flight safety).
+// Treat a token as expired this far ahead of its real exp (clock skew + requests already in flight).
 const EXPIRY_BUFFER_MS = 30_000
 // Schedule the proactive refresh this far before expiry.
 const PROACTIVE_LEAD_MS = 60_000
@@ -55,7 +55,7 @@ export function isExpired(bufferMs = EXPIRY_BUFFER_MS): boolean {
   return clock.now() > exp - bufferMs
 }
 
-// ms until the proactive refresh should fire; <= 0 means refresh now.
+// <= 0 means the proactive refresh is already due.
 export function msUntilProactiveRefresh(expiresAt: number): number {
   return expiresAt - clock.now() - PROACTIVE_LEAD_MS
 }

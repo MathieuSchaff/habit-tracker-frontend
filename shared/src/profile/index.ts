@@ -216,24 +216,3 @@ export type ProfileErrorCode = 'username_taken'
 export const profileErrorMapping = {
   username_taken: HTTP_STATUS.CONFLICT,
 } as const satisfies Record<ProfileErrorCode, HttpStatus>
-
-// RGPD export (Article 20 portability)
-
-export {
-  type ExportDermoProfile,
-  type ExportDiscussionReply,
-  type ExportDiscussionThread,
-  type ExportPreferences,
-  type ExportProfile,
-  type ExportPurchase,
-  type ExportRowMeta,
-  type ExportSubtask,
-  type ExportTask,
-  type ExportUser,
-  type ExportUserIngredientAnalysisScore,
-  type ExportUserProduct,
-  type ExportUserProductReview,
-  type ExportUserProductStatusLog,
-  USER_EXPORT_SCHEMA_VERSION,
-  type UserExport,
-} from './export'
