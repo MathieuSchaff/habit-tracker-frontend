@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { useCreateReply } from '@/lib/queries/discussions'
 
 interface ReplyFormProps {
@@ -14,11 +15,20 @@ interface ReplyFormProps {
 export function ReplyForm({ entityType, slug, threadId }: ReplyFormProps) {
   const [content, setContent] = useState('')
   const { mutate, isPending } = useCreateReply(entityType, slug, threadId)
+  const announce = useAnnounce()
 
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault()
     if (!content.trim()) return
-    mutate({ content: content.trim() }, { onSuccess: () => setContent('') })
+    mutate(
+      { content: content.trim() },
+      {
+        onSuccess: () => {
+          setContent('')
+          announce('Réponse publiée')
+        },
+      }
+    )
   }
 
   return (

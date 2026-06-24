@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, Edit2, Plus, Trash2, Zap } from 'lucide-reac
 import { useState } from 'react'
 
 import { Checkbox } from '@/component/Input/Checkbox/Checkbox'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import {
   taskQueries,
   useCreateSubtask,
@@ -31,11 +32,12 @@ export function TaskItem({ task }: TaskItemProps) {
   const createSubtask = useCreateSubtask()
   const updateSubtask = useUpdateSubtask()
   const deleteSubtask = useDeleteSubtask()
+  const announce = useAnnounce()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (confirm('Supprimer cette tâche ?')) {
-      deleteTask.mutate(task.id)
+      deleteTask.mutate(task.id, { onSuccess: () => announce('Tâche supprimée') })
     }
   }
 
@@ -66,7 +68,10 @@ export function TaskItem({ task }: TaskItemProps) {
     createSubtask.mutate(
       { taskId: task.id, data: { title: newSubtaskTitle.trim() } },
       {
-        onSuccess: () => setNewSubtaskTitle(''),
+        onSuccess: () => {
+          setNewSubtaskTitle('')
+          announce('Sous-tâche ajoutée')
+        },
       }
     )
   }
@@ -93,12 +98,13 @@ export function TaskItem({ task }: TaskItemProps) {
         <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <Checkbox
             checked={task.status === 'done'}
-            onChange={() =>
-              updateTask.mutate({
-                id: task.id,
-                data: { status: task.status === 'done' ? 'active' : 'done' },
-              })
-            }
+            onChange={() => {
+              const nextDone = task.status !== 'done'
+              updateTask.mutate(
+                { id: task.id, data: { status: nextDone ? 'done' : 'active' } },
+                { onSuccess: () => announce(nextDone ? 'Tâche terminée' : 'Tâche rouverte') }
+              )
+            }}
             label={`Marquer "${task.title}" comme ${task.status === 'done' ? 'à faire' : 'terminée'}`}
           />
         </span>
@@ -200,11 +206,13 @@ export function TaskItem({ task }: TaskItemProps) {
                 <Checkbox
                   checked={subtask.completed}
                   onChange={(checked) =>
-                    updateSubtask.mutate({
-                      taskId: task.id,
-                      subId: subtask.id,
-                      data: { completed: checked },
-                    })
+                    updateSubtask.mutate(
+                      { taskId: task.id, subId: subtask.id, data: { completed: checked } },
+                      {
+                        onSuccess: () =>
+                          announce(checked ? 'Sous-tâche terminée' : 'Sous-tâche rouverte'),
+                      }
+                    )
                   }
                   size="sm"
                   label={`Marquer "${subtask.title}" comme ${subtask.completed ? 'à faire' : 'terminée'}`}
@@ -218,7 +226,12 @@ export function TaskItem({ task }: TaskItemProps) {
                   type="button"
                   className="subtask-item__delete"
                   aria-label={`Supprimer "${subtask.title}"`}
-                  onClick={() => deleteSubtask.mutate({ taskId: task.id, subId: subtask.id })}
+                  onClick={() =>
+                    deleteSubtask.mutate(
+                      { taskId: task.id, subId: subtask.id },
+                      { onSuccess: () => announce('Sous-tâche supprimée') }
+                    )
+                  }
                 >
                   <Trash2 size={14} aria-hidden="true" />
                 </button>

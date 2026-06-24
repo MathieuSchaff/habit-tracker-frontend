@@ -217,10 +217,6 @@ export const profileErrorMapping = {
   username_taken: HTTP_STATUS.CONFLICT,
 } as const satisfies Record<ProfileErrorCode, HttpStatus>
 
-// concern → product tag translation
-
-export { resolveAvoidSlugs, USER_CONCERN_TO_PRODUCT_TAGS } from './concern-mapping'
-
 // RGPD export (Article 20 portability)
 
 export {

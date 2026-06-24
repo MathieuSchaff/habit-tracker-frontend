@@ -5,6 +5,7 @@ import type { DiscussionReply, DiscussionThreadWithReplies } from '@aurore/share
 import { Trash2 } from 'lucide-react'
 
 import { Button } from '@/component/Button/Button'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { useDeleteReply, useDeleteThread } from '@/lib/queries/discussions'
 import { AuthorLine } from './AuthorLine'
 import { ReplyForm } from './ReplyForm'
@@ -31,6 +32,7 @@ function ReplyItem({
   currentUserId: string | null
 }) {
   const deleteReply = useDeleteReply(entityType, slug, threadId)
+  const announce = useAnnounce()
   return (
     <div className="reply-item">
       <p className="reply-item__content">{reply.content}</p>
@@ -44,10 +46,13 @@ function ReplyItem({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => deleteReply.mutate(reply.id)}
+            onClick={() =>
+              deleteReply.mutate(reply.id, { onSuccess: () => announce('Réponse supprimée') })
+            }
             disabled={deleteReply.isPending}
+            aria-label="Supprimer la réponse"
           >
-            <Trash2 size={14} />
+            <Trash2 size={14} aria-hidden="true" />
           </Button>
         )}
         {currentUserId && (
@@ -64,6 +69,7 @@ function ReplyItem({
 
 export function ThreadDetail({ thread, entityType, slug, currentUserId }: ThreadDetailProps) {
   const deleteThread = useDeleteThread(entityType, slug)
+  const announce = useAnnounce()
 
   return (
     <div className="discussions-section">
@@ -80,10 +86,15 @@ export function ThreadDetail({ thread, entityType, slug, currentUserId }: Thread
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => deleteThread.mutate(thread.id)}
+              onClick={() =>
+                deleteThread.mutate(thread.id, {
+                  onSuccess: () => announce('Discussion supprimée'),
+                })
+              }
               disabled={deleteThread.isPending}
+              aria-label="Supprimer la discussion"
             >
-              <Trash2 size={14} />
+              <Trash2 size={14} aria-hidden="true" />
             </Button>
           )}
           {currentUserId && (

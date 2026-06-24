@@ -6,6 +6,7 @@ import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { ListPageLayout } from '@/component/Layout'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { taskQueries, useCreateTask } from '../../../lib/queries/tasks'
 import { TaskItem } from '../components/TaskItem'
 
@@ -15,6 +16,7 @@ export function TasksPage() {
   const { data: tasks, isLoading } = useQuery(taskQueries.list())
   const { data: todayTasks } = useQuery(taskQueries.today())
   const createTask = useCreateTask()
+  const announce = useAnnounce()
   const [newTitle, setNewTitle] = useState('')
 
   const handleCreateTask = (e: React.SubmitEvent) => {
@@ -23,7 +25,10 @@ export function TasksPage() {
     createTask.mutate(
       { title: newTitle.trim() },
       {
-        onSuccess: () => setNewTitle(''),
+        onSuccess: () => {
+          setNewTitle('')
+          announce('Tâche ajoutée')
+        },
       }
     )
   }

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { SentimentIcon } from '@/assets/sentiment-icons'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { pdsLabels } from '@/features/collection/constants'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import type { UpdateUserProductVariables, UserProduct } from '@/lib/queries/user-products'
 import { useUpsertUserProductReview } from '@/lib/queries/user-products'
 import { CriteriaList } from './CriteriaList'
@@ -16,11 +17,14 @@ import './PdsExperienceSection.css'
 
 interface PdsExperienceSectionProps {
   p: UserProduct
-  updateMutation: { mutate: (vars: UpdateUserProductVariables) => void }
+  updateMutation: {
+    mutate: (vars: UpdateUserProductVariables, opts?: { onSuccess?: () => void }) => void
+  }
 }
 
 export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSectionProps) {
   const upsertReview = useUpsertUserProductReview()
+  const announce = useAnnounce()
   const [localComment, setLocalComment] = useState(p.comment || '')
   // Truncate to the current max on init — existing rows stored before the 5000→1000
   // limit change would fail the Zod validation on blur without this guard.
@@ -30,7 +34,10 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
 
   const handleCommentBlur = () => {
     if (localComment !== (p.comment || '')) {
-      updateMutation.mutate({ id: p.id, input: { comment: localComment } })
+      updateMutation.mutate(
+        { id: p.id, input: { comment: localComment } },
+        { onSuccess: () => announce('Note enregistrée') }
+      )
     }
   }
 
@@ -41,7 +48,10 @@ export function PdsExperienceSection({ p, updateMutation }: PdsExperienceSection
 
   const handlePublicCommentBlur = () => {
     if (localPublicComment !== (p.review?.comment ?? '')) {
-      upsertReview.mutate({ id: p.id, input: { comment: localPublicComment } })
+      upsertReview.mutate(
+        { id: p.id, input: { comment: localPublicComment } },
+        { onSuccess: () => announce('Commentaire enregistré') }
+      )
     }
   }
 

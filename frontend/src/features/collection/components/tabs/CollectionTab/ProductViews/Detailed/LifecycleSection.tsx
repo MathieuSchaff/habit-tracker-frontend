@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { Time } from '@/component/DataDisplay/Time/Time'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { compareInstant, nowInstant } from '@/lib/dates'
 import { purchaseQueries, useFinishPurchase, useOpenPurchase } from '@/lib/queries/purchases'
 import type { UserProduct } from '@/lib/queries/user-products'
@@ -32,6 +33,7 @@ export function LifecycleSection({ p, onAddPurchase }: LifecycleSectionProps) {
 
   const openMutation = useOpenPurchase()
   const finishMutation = useFinishPurchase()
+  const announce = useAnnounce()
 
   const [editingPurchaseId, setEditingPurchaseId] = useState<string | null>(null)
 
@@ -43,10 +45,10 @@ export function LifecycleSection({ p, onAddPurchase }: LifecycleSectionProps) {
             className="pds-lifecycle-btn finish"
             fullWidth
             onClick={() =>
-              finishMutation.mutate({
-                userProductId: p.id,
-                input: { finishedAt: nowInstant() },
-              })
+              finishMutation.mutate(
+                { userProductId: p.id, input: { finishedAt: nowInstant() } },
+                { onSuccess: () => announce('Flacon terminé') }
+              )
             }
           >
             <CheckCircle2 size={16} />
@@ -60,11 +62,14 @@ export function LifecycleSection({ p, onAddPurchase }: LifecycleSectionProps) {
             onClick={() => {
               const nextToOpen = purchases?.find((purch) => !purch.openedAt)
               if (nextToOpen) {
-                openMutation.mutate({
-                  userProductId: p.id,
-                  purchaseId: nextToOpen.id,
-                  input: { openedAt: nowInstant() },
-                })
+                openMutation.mutate(
+                  {
+                    userProductId: p.id,
+                    purchaseId: nextToOpen.id,
+                    input: { openedAt: nowInstant() },
+                  },
+                  { onSuccess: () => announce('Flacon entamé') }
+                )
               }
             }}
           >

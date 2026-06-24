@@ -1,4 +1,4 @@
-import { buildTagTaxonomy } from '../../tags/tag-taxonomy-builder'
+import { buildTagTaxonomy } from '../../tag-api/tag-taxonomy-builder'
 import { SUPPLEMENT_PRODUCT_TAG_SLUGS, type SupplementProductTagSlug } from './tag-slugs'
 
 export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [

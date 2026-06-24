@@ -232,6 +232,12 @@ export function FilterDrawer<T extends string>({
               ? 'Appliquer'
               : `Voir ${previewCount} produit${previewCount > 1 ? 's' : ''}`}
           </Button>
+          {/* Button label is an accessible name (read on focus, never re-announced on change) — mirror the count in a live region (WCAG 4.1.3). */}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {previewCount === undefined
+              ? ''
+              : `${previewCount} produit${previewCount > 1 ? 's' : ''} correspond${previewCount > 1 ? 'ent' : ''} aux filtres`}
+          </div>
         </div>
       </div>
     </dialog>

@@ -12,6 +12,7 @@ import { Select } from '@/component/Input/Select/Select'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { useConfirm } from '@/features/admin/useConfirm'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import { parseDatetimeLocalAsUTC } from '@/lib/dates'
 import {
   adminQueries,
@@ -103,6 +104,7 @@ export function AdminUserDetailPage() {
 // Shown only for a contributor target; role can be granted again later.
 function RoleCard({ userId }: { userId: string }) {
   const demote = useDemoteToUser(userId)
+  const announce = useAnnounce()
   const { confirm, dialog } = useConfirm()
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -119,8 +121,10 @@ function RoleCard({ userId }: { userId: string }) {
     if (!ok) return
     const body: UpdateRoleInput = { role: 'user' }
     if (reason.trim().length > 0) body.reason = reason.trim()
-    // No toast: the card unmounts on success (contributor gone), which is the confirmation.
+    // The card unmounts on success (contributor gone) = silent for a screen reader;
+    // announce before it goes. No toast — the announcement carries the confirmation.
     demote.mutate(body, {
+      onSuccess: () => announce('Modérateur rétrogradé'),
       onError: (err) => setError(getAdminErrorMessage(err)),
     })
   }
