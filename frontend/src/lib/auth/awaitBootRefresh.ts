@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store/auth'
-import { silentRefresh } from '../queries/silentRefresh'
+import { ensureFresh, isExpired } from './freshness'
 import { hasSessionHint } from './sessionHint'
 
 //  On a cold hard-nav to a role-gated route, the store still holds the default
@@ -9,7 +9,7 @@ import { hasSessionHint } from './sessionHint'
 // is fire-and-forget and the server hasn't answered yet. A guard that reads `role`
 // right now would see that placeholder and redirect a real admin away.
 //
-// So we wait. silentRefresh is deduped, so this doesn't fire a second request — it
+// So we wait. ensureFresh is deduped, so this doesn't fire a second request — it
 // joins the probe already in flight and resolves once the real role is set. Only
 // then does the guard read it. Reading after the answer, not before, is the whole point.
 //
@@ -17,7 +17,7 @@ import { hasSessionHint } from './sessionHint'
 // redirect stand (anonymous, correctly sent home).
 export async function awaitBootRefresh(queryClient: QueryClient): Promise<void> {
   const store = useAuthStore.getState()
-  if (store.accessToken && !store.isTokenExpired()) return
+  if (store.accessToken && !isExpired()) return
   if (!hasSessionHint()) return
-  await silentRefresh(queryClient)
+  await ensureFresh(queryClient)
 }

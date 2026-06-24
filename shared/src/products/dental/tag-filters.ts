@@ -1,6 +1,6 @@
 import type { TagCategoryMeta } from '../../core'
 import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
-import { DENTAL_PRODUCT_TAG_CATEGORIES, type DentalProductTagCategory } from './tag-taxonomy'
+import { DENTAL_PRODUCT_TAG_CATEGORIES, type DentalProductTagCategory } from './tag-slugs'
 
 export const DENTAL_PRODUCT_TAG_CATEGORY_META: Record<DentalProductTagCategory, TagCategoryMeta> = {
   concern: { label: 'Problème', placeholder: 'Tous', tier: 'essential', order: 1 },

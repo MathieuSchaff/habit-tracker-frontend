@@ -33,7 +33,6 @@ interface AuthStore {
   clearSessionExpired: () => void
   markBanned: (details: BanDetails) => void
   clearBanned: () => void
-  isTokenExpired: () => boolean
 }
 
 function decodeTokenExp(token: string): number | null {
@@ -47,7 +46,7 @@ function decodeTokenExp(token: string): number | null {
   }
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   accessToken: null,
   tokenExpiresAt: null,
   user: null,
@@ -92,10 +91,4 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   clearSessionExpired: () => set({ sessionExpired: false }),
   markBanned: (details) => set({ banned: true, bannedDetails: details }),
   clearBanned: () => set({ banned: false, bannedDetails: null }),
-
-  isTokenExpired: () => {
-    const exp = get().tokenExpiresAt
-    if (!exp) return true
-    return Date.now() > exp - 30_000
-  },
 }))

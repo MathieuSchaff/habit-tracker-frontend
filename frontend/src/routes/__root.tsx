@@ -14,9 +14,9 @@ import { AppErrorBoundary } from '../component/Feedback/app/AppErrorBoundary/App
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
 import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
+import { ensureFresh } from '../lib/auth/freshness'
 import { hasSessionHint } from '../lib/auth/sessionHint'
 import { useTokenRefresh } from '../lib/hooks/useTokenRefresh'
-import { silentRefresh } from '../lib/queries/silentRefresh'
 import type { RouterContext } from '../routerContext'
 import { useAuthStore } from '../store/auth'
 
@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // Optimistic boot: render the shell now (neutral nav skeleton while pending) instead of
     // gating the whole tree on the network.
     store.setBootRefreshPending(true)
-    void silentRefresh(context.queryClient).finally(() => {
+    void ensureFresh(context.queryClient).finally(() => {
       useAuthStore.getState().setBootRefreshPending(false)
     })
   },

@@ -1,9 +1,6 @@
 import type { TagCategoryMeta } from '../../core'
 import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
-import {
-  SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
-  type SupplementProductTagCategory,
-} from './tag-taxonomy'
+import { SUPPLEMENT_PRODUCT_TAG_CATEGORIES, type SupplementProductTagCategory } from './tag-slugs'
 
 export const SUPPLEMENT_PRODUCT_TAG_CATEGORY_META: Record<
   SupplementProductTagCategory,

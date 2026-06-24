@@ -1,6 +1,6 @@
 import type { TagCategoryMeta } from '../../core'
 import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
-import { HAIRCARE_PRODUCT_TAG_CATEGORIES, type HaircareProductTagCategory } from './tag-taxonomy'
+import { HAIRCARE_PRODUCT_TAG_CATEGORIES, type HaircareProductTagCategory } from './tag-slugs'
 
 export const HAIRCARE_PRODUCT_TAG_CATEGORY_META: Record<
   HaircareProductTagCategory,

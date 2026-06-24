@@ -18,18 +18,31 @@ its `index.ts` (`products/`, `ingredients/`).
 
 2. **One file under ~200 lines.** A domain with <3 functional areas stays a single
    `index.ts`, sectioned with `// SCHEMAS` / `// TYPES` / `// HELPERS` (see `auth/`, `profile/`,
-   `blog/`, `tags/`). Split into `schemas.ts`/`types.ts`/`helpers.ts` only once size warrants it
+   `blog/`, `tag-api/`). Split into `schemas.ts`/`types.ts`/`helpers.ts` only once size warrants it
    (`products/`, `ingredients/`) — the split should signal real size, not style.
 
-3. **Cross-entity slugs have one source.** Slugs shared between a product and an ingredient
-   taxonomy live in one const, spread into both. Example: `SHARED_SKINCARE_ACTIF_CLASS_SLUGS`
-   is owned by `ingredients/skincare/tag-slugs.ts` (actif_class = molecule property); the
-   product taxonomy spreads it and adds product-only extras (`urea`). Drift fails to compile.
+3. **One `*_TAG_DEFS` array is the source of truth per domain.** Each `<cat>/tag-slugs.ts`
+   declares `*_TAG_DEFS` = `{key, slug, category}` per tag (products also carry `label` and an
+   optional display `subgroup`; ingredient labels live in the seed, not here). The `*_TAG_SLUGS`
+   object, labels, taxonomy and display sub-groups are all **derived** from it (see #4) — a tag's
+   slug+label+category is read in one place and the rest can't drift. Cross-entity slugs shared
+   between a product and ingredient taxonomy live in one shared defs sub-array spread into both:
+   `SHARED_SKINCARE_ACTIF_CLASS_DEFS` (owned by `ingredients/skincare/tag-slugs.ts`) is spread
+   into the skincare product defs, which add product-only extras (`urea`). Drift fails to compile.
 
-4. **Generic tag-taxonomy helpers are neutral.** `buildTagTaxonomy` / `sortFilterCategories`
-   live in `tags/tag-taxonomy-builder.ts` — reachable by both `products/` and `ingredients/`
-   without a products↔ingredients import cycle. Per-domain `tag-filters.ts` declare data
-   (the `*_TAG_CATEGORY_META` record) and call the shared helper; they don't re-implement it.
+4. **Generic tag helpers are neutral.** `tag-api/tag-taxonomy-builder.ts` holds the derive helpers
+   (`deriveTagSlugs`, `buildTagLabels`, `buildTagBuckets`, `buildTagCategoryMap`,
+   `buildTagSubgroups`) plus `buildTagTaxonomy` / `sortFilterCategories` — reachable by both
+   `products/` and `ingredients/` without a products↔ingredients import cycle. `deriveTagSlugs`
+   uses a `const` type param so `SLUGS.KEY` keeps its literal slug type. Per-domain
+   `tag-taxonomy.ts` only calls these on its `*_TAG_DEFS`; `tag-filters.ts` declares the
+   `*_TAG_CATEGORY_META` record and calls `sortFilterCategories`. The `*_TAG_CATEGORIES` array and
+   its `*TagCategory` type live in `tag-slugs.ts` (the defs need the category union).
 
-5. **Tree-shaking is fine through the barrel.** Rolldown isolates the large taxonomy consts
+5. **`tag-api/` is the tag HTTP CRUD surface, not the vocabulary.** It holds the relevance/source
+   enums, create/update/replace schemas, and error mapping. The tag *vocabulary* is the
+   `*_TAG_DEFS` array in `products|ingredients/<cat>/tag-slugs.ts`; `tag-taxonomy.ts` only derives
+   from it. Don't put slug taxonomy in `tag-api/`.
+
+6. **Tree-shaking is fine through the barrel.** Rolldown isolates the large taxonomy consts
    into a lazy chunk (auth routes ship 0 B of it). `sideEffects:false` is not required.
