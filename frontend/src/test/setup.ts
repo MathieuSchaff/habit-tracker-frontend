@@ -20,6 +20,9 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     return {
       ...actual,
       Link: vi.fn(({ children }) => children),
+      // createLink closes over the internal (real) Link, bypassing the export
+      // mock above; stub it so ButtonLink & co render children, like Link.
+      createLink: vi.fn(() => vi.fn(({ children }) => children)),
       useRouter: vi.fn(() => ({ state: { location: { pathname: '/' } } })),
       useNavigate: vi.fn(() => vi.fn()),
       useParams: vi.fn(() => ({})),
@@ -29,6 +32,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     // If router is not yet generated or similar
     return {
       Link: vi.fn(({ children }) => children),
+      createLink: vi.fn(() => vi.fn(({ children }) => children)),
       useRouter: vi.fn(() => ({ state: { location: { pathname: '/' } } })),
       useNavigate: vi.fn(() => vi.fn()),
       useParams: vi.fn(() => ({})),

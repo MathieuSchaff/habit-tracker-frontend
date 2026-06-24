@@ -1,5 +1,4 @@
 import { createFileRoute, stripSearchParams, useNavigate } from '@tanstack/react-router'
-import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from 'zod'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
@@ -15,7 +14,7 @@ const searchSchema = z.object({
 const defaultValues = { page: 1 }
 
 export const Route = createFileRoute('/blog/')({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   search: {
     middlewares: [stripSearchParams(defaultValues)],
   },

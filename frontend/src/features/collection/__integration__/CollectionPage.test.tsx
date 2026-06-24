@@ -18,6 +18,8 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   return {
     ...actual,
     Link: vi.fn(({ children }) => <a href="/">{children}</a>),
+    // createLink closes over the real internal Link, bypassing the override above.
+    createLink: vi.fn(() => vi.fn(({ children }) => <a href="/">{children}</a>)),
     // This file's mock shadows the global setup; re-stub useRouter so children
     // calling it don't reach the real one (no RouterProvider in this test).
     useRouter: vi.fn(() => ({ state: { location: { pathname: '/' } } })),

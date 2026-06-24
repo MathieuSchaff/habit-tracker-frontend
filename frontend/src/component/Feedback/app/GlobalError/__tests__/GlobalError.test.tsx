@@ -4,7 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GlobalError } from '../GlobalError'
 
 vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
+  // Button.tsx calls createLink at module load; stub as an anchor so ButtonLink keeps a link role.
+  createLink: vi.fn(() => vi.fn(({ children, to }) => <a href={to}>{children}</a>)),
+  useRouter: () => ({ invalidate: vi.fn() }),
 }))
 
 vi.mock('../../../../../lib/errorReporter', () => ({
@@ -39,9 +41,9 @@ describe('GlobalError — runtime error variant', () => {
     expect(screen.getByRole('button', { name: /réessayer/i })).toBeInTheDocument()
   })
 
-  it("always shows Retour à l'accueil button", () => {
+  it("always shows Retour à l'accueil link", () => {
     render(<GlobalError error={fakeError} />)
-    expect(screen.getByRole('button', { name: /retour à l'accueil/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /retour à l'accueil/i })).toBeInTheDocument()
   })
 })
 

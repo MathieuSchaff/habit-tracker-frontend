@@ -19,6 +19,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   return {
     ...actual,
     Link: vi.fn(({ children }) => children),
+    createLink: vi.fn(() => vi.fn(({ children }) => children)),
     useNavigate: vi.fn(),
     getRouteApi: vi.fn(() => ({
       useSearch: () => ({ page: 1, type: 'skincare', profile_filter: false }),

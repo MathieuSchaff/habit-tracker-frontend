@@ -5,7 +5,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
@@ -46,7 +46,7 @@ export function BlogArticlePage({ slug }: BlogArticlePageProps) {
         </Link>
         {isAdmin && (
           <div className="blog-article__admin-actions">
-            <Button
+            <ButtonLink
               to="/blog/admin/edit/$slug"
               params={{ slug: article.slug }}
               variant="outline"
@@ -54,7 +54,7 @@ export function BlogArticlePage({ slug }: BlogArticlePageProps) {
             >
               <Pencil size={14} />
               Modifier
-            </Button>
+            </ButtonLink>
             <Button
               variant="danger-ghost"
               size="sm"

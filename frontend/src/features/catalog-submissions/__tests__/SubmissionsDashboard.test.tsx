@@ -11,33 +11,33 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
-  return {
-    ...actual,
-    Link: ({
-      children,
-      to,
-      search,
-      ...rest
-    }: {
-      children: React.ReactNode
-      to: string
-      search?: Record<string, string | undefined>
-    }) => {
-      const qs = search
-        ? new URLSearchParams(
-            Object.fromEntries(Object.entries(search).filter(([, v]) => v != null)) as Record<
-              string,
-              string
-            >
-          ).toString()
-        : ''
-      return (
-        <a href={qs ? `${to}?${qs}` : to} {...(rest as object)}>
-          {children}
-        </a>
-      )
-    },
+  const LinkMock = ({
+    children,
+    to,
+    search,
+    ...rest
+  }: {
+    children: React.ReactNode
+    to: string
+    search?: Record<string, string | undefined>
+  }) => {
+    const qs = search
+      ? new URLSearchParams(
+          Object.fromEntries(Object.entries(search).filter(([, v]) => v != null)) as Record<
+            string,
+            string
+          >
+        ).toString()
+      : ''
+    return (
+      <a href={qs ? `${to}?${qs}` : to} {...(rest as object)}>
+        {children}
+      </a>
+    )
   }
+  // ButtonLink (Modifier/Resoumettre) is built with createLink; reuse LinkMock so
+  // role=link + href assertions resolve the same way as <Link>.
+  return { ...actual, Link: LinkMock, createLink: () => LinkMock }
 })
 
 import { SubmissionsDashboard } from '../page/SubmissionsDashboard'

@@ -11,6 +11,8 @@ import {
 import { AccountSettings } from '../AccountSettings'
 
 vi.mock('@tanstack/react-router', () => ({
+  // Button.tsx calls createLink at module load; stub so the import doesn't throw.
+  createLink: vi.fn(() => vi.fn(({ children }) => children)),
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useNavigate: () => vi.fn(),
 }))

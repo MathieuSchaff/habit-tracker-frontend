@@ -1,8 +1,8 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 import { reportError } from '../../../../lib/errorReporter'
-import { Button } from '../../../Button/Button'
+import { Button, ButtonLink } from '../../../Button/Button'
 import './GlobalError.css'
 
 interface GlobalErrorProps {
@@ -90,7 +90,7 @@ const DropperIllustration = () => (
 )
 
 export const GlobalError = ({ error, reset, is404 = false }: GlobalErrorProps) => {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: report once on mount only
   useEffect(() => {
@@ -114,16 +114,19 @@ export const GlobalError = ({ error, reset, is404 = false }: GlobalErrorProps) =
       <p className="global-error-subtitle">{subtitle}</p>
 
       <div className="global-error-actions">
-        {reset && <Button onClick={() => reset()}>Réessayer</Button>}
-        <Button
-          variant="outline"
-          onClick={() => {
-            reset?.()
-            navigate({ to: '/' })
-          }}
-        >
+        {reset && (
+          <Button
+            onClick={() => {
+              reset()
+              router.invalidate()
+            }}
+          >
+            Réessayer
+          </Button>
+        )}
+        <ButtonLink to="/" variant="outline" onClick={() => reset?.()}>
           Retour à l'accueil
-        </Button>
+        </ButtonLink>
       </div>
     </div>
   )

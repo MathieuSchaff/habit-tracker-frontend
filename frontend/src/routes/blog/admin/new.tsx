@@ -1,6 +1,6 @@
 import type { BlogCategory } from '@aurore/shared'
 
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
 
 import { BackButton } from '@/component/Button/BackButton'
 import { PageHeader } from '@/component/Layout/PageHeader/PageHeader'
@@ -22,6 +22,7 @@ export const Route = createFileRoute('/blog/admin/new')({
 
 function NewArticleRoute() {
   const navigate = useNavigate()
+  const router = useRouter()
 
   function handleSuccess(category: BlogCategory, slug: string) {
     navigate({ to: '/blog/$category/$slug', params: { category, slug } })
@@ -36,7 +37,7 @@ function NewArticleRoute() {
       <ArticleEditorForm
         mode="create"
         onSuccess={handleSuccess}
-        onCancel={() => navigate({ to: '/blog' })}
+        onCancel={() => router.history.back()}
       />
     </DetailPageLayout>
   )

@@ -15,7 +15,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
@@ -610,14 +610,14 @@ function ProductFormActions({
 }) {
   return (
     <div className="product-edit-form__actions">
-      {mode === 'edit' ? (
-        <Button to="/products/$slug" params={{ slug: productSlug }} variant="outline">
+      {mode === 'edit' && productSlug ? (
+        <ButtonLink to="/products/$slug" params={{ slug: productSlug }} variant="outline">
           Annuler
-        </Button>
+        </ButtonLink>
       ) : (
-        <Button to="/products" variant="outline">
+        <ButtonLink to="/products" variant="outline">
           Annuler
-        </Button>
+        </ButtonLink>
       )}
       <Button type="submit" variant="primary" disabled={disabled} loading={isPending}>
         {submitLabel}

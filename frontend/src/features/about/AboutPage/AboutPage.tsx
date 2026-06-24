@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { Button } from '../../../component/Button/Button'
+import { ButtonLink } from '../../../component/Button/Button'
 import './AboutPage.css'
 
 function Eyebrow({ children }: { children: ReactNode }) {
@@ -58,13 +58,13 @@ function AboutHero() {
         </div>
 
         <div className="aur-about-hero__actions">
-          <Button to="/products" size="md" variant="primary">
+          <ButtonLink to="/products" size="md" variant="primary">
             Voir les produits
             <ArrowRight size={16} />
-          </Button>
-          <Button to="/collection" size="md" variant="outline">
+          </ButtonLink>
+          <ButtonLink to="/collection" size="md" variant="outline">
             Ouvrir ma collection
-          </Button>
+          </ButtonLink>
         </div>
       </div>
 
@@ -471,17 +471,17 @@ function AboutCta() {
         cours · Saint Graal · À éviter), notez pourquoi. Le reste suivra.
       </p>
       <div className="aur-about-cta__actions">
-        <Button to="/collection" size="lg" variant="primary">
+        <ButtonLink to="/collection" size="lg" variant="primary">
           Commencer ma collection
           <ArrowRight size={16} />
-        </Button>
-        <Button to="/products" size="lg" variant="outline">
+        </ButtonLink>
+        <ButtonLink to="/products" size="lg" variant="outline">
           Parcourir les produits
-        </Button>
-        <Button to="/ingredients" size="lg" variant="ghost">
+        </ButtonLink>
+        <ButtonLink to="/ingredients" size="lg" variant="ghost">
           <FlaskConical size={16} />
           Explorer les ingrédients
-        </Button>
+        </ButtonLink>
       </div>
     </section>
   )

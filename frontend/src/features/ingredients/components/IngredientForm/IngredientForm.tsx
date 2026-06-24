@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
@@ -240,16 +240,16 @@ function IngredientFormActions({
 }) {
   return (
     <div className="ingredient-edit-form__actions">
-      {mode === 'edit' ? (
-        <Button to="/ingredients/$slug" params={{ slug: ingredientSlug }} variant="outline">
+      {mode === 'edit' && ingredientSlug ? (
+        <ButtonLink to="/ingredients/$slug" params={{ slug: ingredientSlug }} variant="outline">
           <XIcon size={16} />
           Annuler
-        </Button>
+        </ButtonLink>
       ) : (
-        <Button to="/ingredients" variant="outline">
+        <ButtonLink to="/ingredients" variant="outline">
           <XIcon size={16} />
           Annuler
-        </Button>
+        </ButtonLink>
       )}
       <Button type="submit" variant="primary" disabled={disabled} loading={isPending}>
         {!isPending && <Save size={16} />}

@@ -7,7 +7,7 @@ import { silentRefresh } from '../queries/silentRefresh'
 
 type RequireAuthOptions = {
   queryClient: QueryClient
-  pathname: string
+  href: string
   // From router context: avoids reading Zustand store directly in route guards.
   accessToken: string | null
 }
@@ -16,7 +16,7 @@ type RequireAuthOptions = {
 // During silentRefresh cooldown we don't log out - network blips recover via the 401 interceptor.
 export async function requireAuth({
   queryClient,
-  pathname,
+  href,
   accessToken,
 }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
@@ -25,7 +25,7 @@ export async function requireAuth({
     const result = await silentRefresh(queryClient)
     // Cooldown + no token = never had a session, redirect. Cooldown + expired token = let 401 interceptor recover.
     if (result === 'failed' || (result === 'cooldown' && !accessToken)) {
-      clearAndRedirect(store, queryClient, pathname)
+      clearAndRedirect(store, queryClient, href)
     }
     return
   }
@@ -36,20 +36,20 @@ export async function requireAuth({
   } catch (error) {
     if (isRedirect(error)) throw error
     const result = await silentRefresh(queryClient)
-    if (result === 'failed') clearAndRedirect(store, queryClient, pathname)
+    if (result === 'failed') clearAndRedirect(store, queryClient, href)
   }
 }
 
 function clearAndRedirect(
   store: ReturnType<typeof useAuthStore.getState>,
   queryClient: QueryClient,
-  pathname: string
+  href: string
 ): never {
   store.clearAuth()
   // Drop all cached queries on session end (mirrors useLogout, includes user-scoped lists).
   queryClient.clear()
   throw redirect({
     to: '/auth/login',
-    search: { redirect: pathname },
+    search: { redirect: href },
   })
 }

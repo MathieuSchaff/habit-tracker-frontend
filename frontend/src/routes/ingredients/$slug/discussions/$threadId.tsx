@@ -1,8 +1,9 @@
-import { createFileRoute, getRouteApi } from '@tanstack/react-router'
+import { createFileRoute, getRouteApi, notFound } from '@tanstack/react-router'
 
 import { GlobalError } from '@/component/Feedback/app/GlobalError/GlobalError'
 import { ThreadDetailPage } from '@/features/discussions/pages/ThreadDetailPage'
 import { IngredientThreadSkeleton } from '@/features/ingredients/components/skeletons/IngredientLayoutSkeleton'
+import { ApiError } from '@/lib/helpers/apiError'
 import { discussionQueries } from '@/lib/queries/discussions'
 
 const route = getRouteApi('/ingredients/$slug/discussions/$threadId')
@@ -23,10 +24,15 @@ function IngredientThreadDetailRoute() {
 // are gated by the backend - frontend shows UI conditionally via useAuthStore.
 export const Route = createFileRoute('/ingredients/$slug/discussions/$threadId')({
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(
-      discussionQueries.thread('ingredient', params.slug, params.threadId)
-    ),
+    context.queryClient
+      .ensureQueryData(discussionQueries.thread('ingredient', params.slug, params.threadId))
+      .catch((err) => {
+        // Missing thread = 404 → notFoundComponent; keep 5xx/429 on the real error UI.
+        if (err instanceof ApiError && err.status === 404) throw notFound()
+        throw err
+      }),
   pendingComponent: IngredientThreadSkeleton,
-  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} is404 />,
+  notFoundComponent: () => <GlobalError error={new Error('not_found')} is404 />,
+  errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,
   component: IngredientThreadDetailRoute,
 })

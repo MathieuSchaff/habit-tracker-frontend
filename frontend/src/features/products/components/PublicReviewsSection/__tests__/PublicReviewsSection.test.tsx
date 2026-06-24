@@ -9,6 +9,8 @@ import { createTestQueryClient, renderWithProviders } from '@/test/utils'
 // Stub TanStack Router Link so the component test stays router-context-free.
 // Substitutes $param tokens with the provided params so href assertions hold.
 vi.mock('@tanstack/react-router', () => ({
+  // Button.tsx calls createLink at module load; stub so the import doesn't throw.
+  createLink: vi.fn(() => vi.fn(({ children }) => children)),
   Link: ({
     to,
     params,

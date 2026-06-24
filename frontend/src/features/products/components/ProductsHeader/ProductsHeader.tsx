@@ -5,7 +5,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
@@ -163,7 +163,7 @@ function ProductsHeaderImpl({
 
           <div className="products-header__tools">
             <SortControl value={sort} onChange={onSortChange} compact />
-            <Button
+            <ButtonLink
               to="/products/new"
               variant="ghost"
               size="md"
@@ -172,7 +172,7 @@ function ProductsHeaderImpl({
               title="Créer un produit"
             >
               <Plus size={16} aria-hidden="true" />
-            </Button>
+            </ButtonLink>
             <Button
               type="button"
               variant="primary"

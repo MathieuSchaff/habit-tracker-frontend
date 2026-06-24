@@ -2,7 +2,7 @@ import type { MySubmissionItem } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { Button } from '@/component/Button/Button'
+import { ButtonLink } from '@/component/Button/Button'
 import { Time } from '@/component/DataDisplay/Time/Time'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { SUBMISSION_STATE_LABELS } from '@/constants/catalog'
@@ -64,7 +64,7 @@ export function SubmissionsDashboard() {
                         {item.moderationReason}
                       </p>
                     )}
-                    <Button
+                    <ButtonLink
                       to={item.kind === 'product' ? '/products/new' : '/ingredients/new'}
                       search={
                         item.kind === 'product'
@@ -75,12 +75,12 @@ export function SubmissionsDashboard() {
                       size="sm"
                     >
                       Resoumettre
-                    </Button>
+                    </ButtonLink>
                   </div>
                 )}
 
                 {state === 'pending' && (
-                  <Button
+                  <ButtonLink
                     to={
                       item.kind === 'product' ? '/products/$slug/edit' : '/ingredients/$slug/edit'
                     }
@@ -89,7 +89,7 @@ export function SubmissionsDashboard() {
                     size="sm"
                   >
                     Modifier
-                  </Button>
+                  </ButtonLink>
                 )}
               </li>
             )

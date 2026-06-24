@@ -6,7 +6,7 @@ import { AlertTriangle, FlaskConical, Plus, SlidersHorizontal } from 'lucide-rea
 import type React from 'react'
 import { startTransition, useCallback, useMemo, useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
@@ -168,10 +168,15 @@ export function IngredientsPage() {
                 <span>Filtrer</span>
                 {filterCount > 0 && <span className="list-filter-btn__count">{filterCount}</span>}
               </Button>
-              <Button to="/ingredients/new" variant="primary" size="md" className="list-filter-btn">
+              <ButtonLink
+                to="/ingredients/new"
+                variant="primary"
+                size="md"
+                className="list-filter-btn"
+              >
                 <Plus size={14} />
                 <span>Créer</span>
-              </Button>
+              </ButtonLink>
             </div>
           </>
         }

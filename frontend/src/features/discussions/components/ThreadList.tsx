@@ -14,16 +14,9 @@ interface ThreadListProps {
   entityType: 'product' | 'ingredient'
   slug: string
   isLoggedIn: boolean
-  threadDetailPath: (threadId: string) => string
 }
 
-export function ThreadList({
-  threads,
-  entityType,
-  slug,
-  isLoggedIn,
-  threadDetailPath,
-}: ThreadListProps) {
+export function ThreadList({ threads, entityType, slug, isLoggedIn }: ThreadListProps) {
   return (
     <div className="discussions-section">
       {isLoggedIn && <ThreadForm entityType={entityType} slug={slug} />}
@@ -31,22 +24,43 @@ export function ThreadList({
         <EmptyState subtitle="Aucune discussion pour l'instant." />
       ) : (
         <div className="thread-list">
-          {threads.map((thread) => (
-            <Link key={thread.id} to={threadDetailPath(thread.id) as never} className="thread-item">
-              <p className="thread-item__title">{thread.title}</p>
-              <div className="thread-item__meta">
-                <AuthorLine
-                  authorId={thread.authorId}
-                  authorName={thread.authorName}
-                  createdAt={thread.createdAt}
-                />
-                <span className="thread-item__replies">
-                  <MessageSquare size={12} />
-                  {thread.replyCount}
-                </span>
-              </div>
-            </Link>
-          ))}
+          {threads.map((thread) => {
+            const content = (
+              <>
+                <p className="thread-item__title">{thread.title}</p>
+                <div className="thread-item__meta">
+                  <AuthorLine
+                    authorId={thread.authorId}
+                    authorName={thread.authorName}
+                    createdAt={thread.createdAt}
+                  />
+                  <span className="thread-item__replies">
+                    <MessageSquare size={12} />
+                    {thread.replyCount}
+                  </span>
+                </div>
+              </>
+            )
+            return entityType === 'product' ? (
+              <Link
+                key={thread.id}
+                to="/products/$slug/discussions/$threadId"
+                params={{ slug, threadId: thread.id }}
+                className="thread-item"
+              >
+                {content}
+              </Link>
+            ) : (
+              <Link
+                key={thread.id}
+                to="/ingredients/$slug/discussions/$threadId"
+                params={{ slug, threadId: thread.id }}
+                className="thread-item"
+              >
+                {content}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

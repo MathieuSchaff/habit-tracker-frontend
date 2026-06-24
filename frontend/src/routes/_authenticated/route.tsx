@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_authenticated')({
     if (preload) return
     await requireAuth({
       queryClient: context.queryClient,
-      pathname: location.pathname,
+      href: location.href,
       accessToken: context.auth.accessToken,
     })
   },
