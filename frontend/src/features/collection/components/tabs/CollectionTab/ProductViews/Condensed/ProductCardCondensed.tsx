@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Check, ChevronDown, SmilePlus, Sparkles } from 'lucide-react'
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from 'react'
 
-import { SentimentIcon } from '@/assets/sentiment-icons'
+import { SENTIMENT_COLORS, SentimentIcon } from '@/assets/sentiment-icons'
 import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
@@ -170,8 +170,13 @@ export function ProductCardCondensed({
           'prod-sentiment-badge',
           isPopping && 'popping',
           !p.sentiment && 'empty',
-          p.sentiment === 6 && 'grail'
+          p.sentiment && 'has-sentiment'
         )}
+        style={
+          p.sentiment
+            ? ({ '--sentiment-color': SENTIMENT_COLORS[p.sentiment] } as React.CSSProperties)
+            : undefined
+        }
         onClick={handleNextSentiment}
         aria-label={`Changer le ressenti pour ${p.product.name}`}
         data-stop-long-press

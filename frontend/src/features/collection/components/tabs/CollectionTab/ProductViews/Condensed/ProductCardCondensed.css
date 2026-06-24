@@ -110,8 +110,11 @@
     opacity: 0.4;
   }
 
-  .prod-sentiment-badge.grail {
-    color: var(--status-color-holy-grail, var(--color-primary));
+  /* Halo tints the badge with the sentiment hue; the face inks itself.
+     Grail (6) flows through the same path with the gem's gold. */
+  .prod-sentiment-badge.has-sentiment {
+    background: oklch(from var(--sentiment-color) l c h / 0.14);
+    border-color: oklch(from var(--sentiment-color) l c h / 0.4);
   }
 
   .prod-sentiment-badge:hover {

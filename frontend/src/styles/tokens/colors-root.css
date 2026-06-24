@@ -15,6 +15,24 @@
   --status-color-avoided: oklch(52% 0.14 25deg);
   --status-color-repurchase: oklch(70% 0.14 340deg);
 
+  /* Sentiment faces - an "Aurore" dawn sweep, theme-independent like status colors.
+     A mood/time gradient, never a verdict: the low end is calm pre-dawn, not punishment.
+     Each face is multi-tone (emoji, not line-art): hue = spherical edge, -fill = the
+     face body, plus shared highlight, dark facial ink and warm blush. */
+  --sentiment-1: oklch(62% 0.12 270deg);
+  --sentiment-2: oklch(64% 0.12 320deg);
+  --sentiment-3: oklch(68% 0.11 20deg);
+  --sentiment-4: oklch(70% 0.13 55deg);
+  --sentiment-5: oklch(74% 0.14 75deg);
+  --sentiment-1-fill: oklch(92% 0.05 270deg);
+  --sentiment-2-fill: oklch(92% 0.05 320deg);
+  --sentiment-3-fill: oklch(93% 0.05 20deg);
+  --sentiment-4-fill: oklch(93% 0.06 55deg);
+  --sentiment-5-fill: oklch(93% 0.07 75deg);
+  --sentiment-6-fill: oklch(93% 0.07 85deg);
+  --sentiment-ink: oklch(34% 0.035 285deg);
+  --sentiment-blush: oklch(72% 0.14 25deg);
+
   /* Stats palette - theme-independent. */
   --color-stat-orange: oklch(70% 0.18 45deg);
   --color-stat-purple: oklch(65% 0.15 280deg);
