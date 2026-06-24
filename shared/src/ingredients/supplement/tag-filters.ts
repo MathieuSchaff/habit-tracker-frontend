@@ -3,7 +3,7 @@ import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
 import {
   SUPPLEMENT_INGREDIENT_TAG_CATEGORIES,
   type SupplementIngredientTagCategory,
-} from './tag-taxonomy'
+} from './tag-slugs'
 
 export const SUPPLEMENT_INGREDIENT_TAG_CATEGORY_META: Record<
   SupplementIngredientTagCategory,

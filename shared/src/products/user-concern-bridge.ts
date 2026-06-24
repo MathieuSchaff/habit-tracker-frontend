@@ -1,4 +1,7 @@
 import type { SkinConcern } from '../profile'
+import { SKINCARE_PRODUCT_TAG_SLUGS } from './skincare/tag-slugs'
+
+const S = SKINCARE_PRODUCT_TAG_SLUGS
 
 // User concern slugs (SKIN_CONCERNS) and product tag concern slugs evolved
 // in parallel and don't share vocab. This table is the *only* place the
@@ -14,32 +17,32 @@ import type { SkinConcern } from '../profile'
 // counterpart (no avoid data, no positive data). Removed from the enum.
 export const USER_CONCERN_TO_PRODUCT_TAGS: Record<SkinConcern, readonly string[]> = {
   // identities — user slug = product slug
-  'barriere-cutanee': ['barriere-cutanee'],
-  'anti-age': ['anti-age'],
-  'cernes-poches': ['cernes-poches'],
-  deshydratation: ['deshydratation'],
-  hyperpigmentation: ['hyperpigmentation'],
-  'keratose-pilaire': ['keratose-pilaire'],
+  'barriere-cutanee': [S.BARRIERE_CUTANEE],
+  'anti-age': [S.ANTI_AGE],
+  'cernes-poches': [S.CERNES_POCHES],
+  deshydratation: [S.DESHYDRATATION],
+  hyperpigmentation: [S.HYPERPIGMENTATION],
+  'keratose-pilaire': [S.KERATOSE_PILAIRE],
   // 1→1 renames (user lay term → product clinical term)
-  'anti-acne': ['acne-imperfections'],
-  'anti-taches': ['hyperpigmentation'],
-  cicatrisation: ['reparation-cutanee'],
-  eclat: ['eclat-teint-uniforme'],
-  'teint-terne': ['eclat-teint-uniforme'],
-  eczema: ['eczema-atopie'],
+  'anti-acne': [S.ACNE_IMPERFECTIONS],
+  'anti-taches': [S.HYPERPIGMENTATION],
+  cicatrisation: [S.REPARATION],
+  eclat: [S.ECLAT_TEINT],
+  'teint-terne': [S.ECLAT_TEINT],
+  eczema: [S.ECZEMA_ATOPIE],
   // N→1 — 4 user nuances map to 1 generic product tag
-  'anti-rougeurs': ['rougeurs-vasculaires'],
-  rosacee: ['rougeurs-vasculaires'],
-  couperose: ['rougeurs-vasculaires'],
-  flushs: ['rougeurs-vasculaires'],
+  'anti-rougeurs': [S.ROUGEURS_VASCULAIRES],
+  rosacee: [S.ROUGEURS_VASCULAIRES],
+  couperose: [S.ROUGEURS_VASCULAIRES],
+  flushs: [S.ROUGEURS_VASCULAIRES],
   // 1→1 onto same product tag (two user terms collapse on pores-sebum)
-  'pores-dilates': ['pores-sebum'],
-  brillance: ['pores-sebum'],
+  'pores-dilates': [S.PORES_SEBUM],
+  brillance: [S.PORES_SEBUM],
   // 1→N — one user concern fans out to multiple product tags
-  'post-acne': ['acne-imperfections', 'reparation-cutanee'],
-  'photo-vieillissement': ['anti-age'],
-  repulpant: ['anti-age'],
-  'grain-peau': ['pores-sebum'],
+  'post-acne': [S.ACNE_IMPERFECTIONS, S.REPARATION],
+  'photo-vieillissement': [S.ANTI_AGE],
+  repulpant: [S.ANTI_AGE],
+  'grain-peau': [S.PORES_SEBUM],
 }
 
 // Caller passes the raw `avoid_for` payload (skin types + skin concerns mixed).

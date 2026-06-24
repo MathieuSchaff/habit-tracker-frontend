@@ -5,14 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../../store/auth'
 
-vi.mock('../../queries/silentRefresh', () => ({
-  silentRefresh: vi.fn().mockResolvedValue('ok'),
+// Partial mock: keep the real scheduling math (msUntilProactiveRefresh) and isExpired,
+// stub only the network refresh so the timer/visibility behaviour is what's under test.
+vi.mock('../../auth/freshness', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../auth/freshness')>()),
+  ensureFresh: vi.fn().mockResolvedValue('ok'),
 }))
 
-import { silentRefresh } from '../../queries/silentRefresh'
+import { ensureFresh } from '../../auth/freshness'
 import { useTokenRefresh } from '../useTokenRefresh'
 
-const mockSilentRefresh = vi.mocked(silentRefresh)
+const mockEnsureFresh = vi.mocked(ensureFresh)
 
 describe('useTokenRefresh', () => {
   let queryClient: QueryClient
@@ -25,8 +28,8 @@ describe('useTokenRefresh', () => {
     vi.useFakeTimers()
     queryClient = new QueryClient()
     useAuthStore.getState().clearAuth()
-    mockSilentRefresh.mockReset()
-    mockSilentRefresh.mockResolvedValue('ok')
+    mockEnsureFresh.mockReset()
+    mockEnsureFresh.mockResolvedValue('ok')
   })
 
   afterEach(() => {
@@ -38,7 +41,7 @@ describe('useTokenRefresh', () => {
     renderHook(() => useTokenRefresh(), { wrapper })
 
     vi.advanceTimersByTime(120_000)
-    expect(mockSilentRefresh).not.toHaveBeenCalled()
+    expect(mockEnsureFresh).not.toHaveBeenCalled()
   })
 
   it('schedules a refresh 1 minute before token expiry', () => {
@@ -47,10 +50,10 @@ describe('useTokenRefresh', () => {
 
     renderHook(() => useTokenRefresh(), { wrapper })
 
-    expect(mockSilentRefresh).not.toHaveBeenCalled()
+    expect(mockEnsureFresh).not.toHaveBeenCalled()
 
     vi.advanceTimersByTime(4 * 60_000)
-    expect(mockSilentRefresh).toHaveBeenCalledOnce()
+    expect(mockEnsureFresh).toHaveBeenCalledOnce()
   })
 
   it('refreshes immediately when token expires in less than 1 minute', () => {
@@ -58,7 +61,7 @@ describe('useTokenRefresh', () => {
 
     renderHook(() => useTokenRefresh(), { wrapper })
 
-    expect(mockSilentRefresh).toHaveBeenCalledOnce()
+    expect(mockEnsureFresh).toHaveBeenCalledOnce()
   })
 
   it('cleans up the timer on unmount', () => {
@@ -68,7 +71,7 @@ describe('useTokenRefresh', () => {
     unmount()
 
     vi.advanceTimersByTime(10 * 60_000)
-    expect(mockSilentRefresh).not.toHaveBeenCalled()
+    expect(mockEnsureFresh).not.toHaveBeenCalled()
   })
 
   it('reschedules when tokenExpiresAt changes', () => {
@@ -80,7 +83,7 @@ describe('useTokenRefresh', () => {
     rerender()
 
     vi.advanceTimersByTime(60_000)
-    expect(mockSilentRefresh).toHaveBeenCalledOnce()
+    expect(mockEnsureFresh).toHaveBeenCalledOnce()
   })
 
   describe('visibilitychange', () => {
@@ -106,23 +109,23 @@ describe('useTokenRefresh', () => {
     it('refreshes when tab becomes visible and token is expired', () => {
       loginWithExpiry(-10)
       renderHook(() => useTokenRefresh(), { wrapper })
-      mockSilentRefresh.mockClear() // discard the immediate-on-mount refresh
+      mockEnsureFresh.mockClear() // discard the immediate-on-mount refresh
 
       setVisibility('hidden')
       setVisibility('visible')
 
-      expect(mockSilentRefresh).toHaveBeenCalledOnce()
+      expect(mockEnsureFresh).toHaveBeenCalledOnce()
     })
 
     it('does not refresh on visibility change when token is still valid', () => {
       loginWithExpiry(3600)
       renderHook(() => useTokenRefresh(), { wrapper })
-      mockSilentRefresh.mockClear()
+      mockEnsureFresh.mockClear()
 
       setVisibility('hidden')
       setVisibility('visible')
 
-      expect(mockSilentRefresh).not.toHaveBeenCalled()
+      expect(mockEnsureFresh).not.toHaveBeenCalled()
     })
 
     it('does not refresh on visibility change when user is not logged in', () => {
@@ -131,18 +134,18 @@ describe('useTokenRefresh', () => {
       setVisibility('hidden')
       setVisibility('visible')
 
-      expect(mockSilentRefresh).not.toHaveBeenCalled()
+      expect(mockEnsureFresh).not.toHaveBeenCalled()
     })
 
     it('removes the listener on unmount', () => {
       loginWithExpiry(-10)
       const { unmount } = renderHook(() => useTokenRefresh(), { wrapper })
-      mockSilentRefresh.mockClear()
+      mockEnsureFresh.mockClear()
 
       unmount()
       setVisibility('visible')
 
-      expect(mockSilentRefresh).not.toHaveBeenCalled()
+      expect(mockEnsureFresh).not.toHaveBeenCalled()
     })
   })
 })

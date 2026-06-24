@@ -2,8 +2,8 @@ import type { AppType } from '@aurore/backend'
 
 import { hc, type InferResponseType } from 'hono/client'
 
+import { ensureFresh } from '@/lib/auth/freshness'
 import { httpClient } from '@/lib/httpClient'
-import { silentRefresh } from '@/lib/queries/silentRefresh'
 import { useAuthStore } from '../store/auth'
 import { queryClient } from './queryClient'
 
@@ -54,8 +54,8 @@ async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<
 
   const hadSession = useAuthStore.getState().accessToken != null
 
-  // silentRefresh dedupes concurrent calls so parallel 401s share one refresh.
-  const result = await silentRefresh(queryClient)
+  // ensureFresh dedupes concurrent calls so parallel 401s share one refresh.
+  const result = await ensureFresh(queryClient)
   if (result !== 'ok') {
     // Anonymous boot probes also hit 401; don't redirect them to login.
     if (result === 'failed' && hadSession) useAuthStore.getState().markSessionExpired()

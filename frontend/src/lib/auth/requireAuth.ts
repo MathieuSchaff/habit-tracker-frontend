@@ -3,7 +3,7 @@ import { isRedirect, redirect } from '@tanstack/react-router'
 
 import { useAuthStore } from '../../store/auth'
 import { authQueries } from '../queries/auth'
-import { silentRefresh } from '../queries/silentRefresh'
+import { ensureFresh, isExpired } from './freshness'
 
 type RequireAuthOptions = {
   queryClient: QueryClient
@@ -13,7 +13,7 @@ type RequireAuthOptions = {
 }
 
 // Route guard: local token check, server verify, silent refresh fallback, then redirect.
-// During silentRefresh cooldown we don't log out - network blips recover via the 401 interceptor.
+// During the refresh cooldown we don't log out - network blips recover via the 401 interceptor.
 export async function requireAuth({
   queryClient,
   href,
@@ -21,8 +21,8 @@ export async function requireAuth({
 }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
 
-  if (!accessToken || store.isTokenExpired()) {
-    const result = await silentRefresh(queryClient)
+  if (!accessToken || isExpired()) {
+    const result = await ensureFresh(queryClient)
     // Cooldown + no token = never had a session, redirect. Cooldown + expired token = let 401 interceptor recover.
     if (result === 'failed' || (result === 'cooldown' && !accessToken)) {
       clearAndRedirect(store, queryClient, href)
@@ -35,7 +35,7 @@ export async function requireAuth({
     await queryClient.ensureQueryData(authQueries.session())
   } catch (error) {
     if (isRedirect(error)) throw error
-    const result = await silentRefresh(queryClient)
+    const result = await ensureFresh(queryClient)
     if (result === 'failed') clearAndRedirect(store, queryClient, href)
   }
 }

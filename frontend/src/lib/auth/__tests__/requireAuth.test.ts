@@ -3,8 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '../../../store/auth'
 
-vi.mock('../../queries/silentRefresh', () => ({
-  silentRefresh: vi.fn(),
+// Partial mock: keep the real isExpired (drives the local-token branch), stub only the network refresh.
+vi.mock('../freshness', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../freshness')>()),
+  ensureFresh: vi.fn(),
 }))
 
 vi.mock('../../queries/auth', () => ({
@@ -16,10 +18,10 @@ vi.mock('../../queries/auth', () => ({
   },
 }))
 
-import { silentRefresh } from '../../queries/silentRefresh'
+import { ensureFresh } from '../freshness'
 import { requireAuth } from '../requireAuth'
 
-const mockSilentRefresh = vi.mocked(silentRefresh)
+const mockEnsureFresh = vi.mocked(ensureFresh)
 
 function setAuthenticated() {
   const token = `h.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.s`
@@ -38,7 +40,7 @@ describe('requireAuth', () => {
   beforeEach(() => {
     queryClient = new QueryClient()
     useAuthStore.getState().clearAuth()
-    mockSilentRefresh.mockReset()
+    mockEnsureFresh.mockReset()
   })
 
   afterEach(() => {
@@ -58,7 +60,7 @@ describe('requireAuth', () => {
   })
 
   it('attempts silent refresh when no token exists', async () => {
-    mockSilentRefresh.mockResolvedValue('ok')
+    mockEnsureFresh.mockResolvedValue('ok')
 
     await expect(
       requireAuth({
@@ -68,11 +70,11 @@ describe('requireAuth', () => {
       })
     ).resolves.toBeUndefined()
 
-    expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
+    expect(mockEnsureFresh).toHaveBeenCalledWith(queryClient)
   })
 
   it('redirects to login when no token and refresh fails', async () => {
-    mockSilentRefresh.mockResolvedValue('failed')
+    mockEnsureFresh.mockResolvedValue('failed')
 
     try {
       await requireAuth({
@@ -87,7 +89,7 @@ describe('requireAuth', () => {
   })
 
   it("redirects when no token and refresh is in 'cooldown'", async () => {
-    mockSilentRefresh.mockResolvedValue('cooldown')
+    mockEnsureFresh.mockResolvedValue('cooldown')
 
     try {
       await requireAuth({ queryClient, href: '/dashboard', accessToken: null })
@@ -107,7 +109,7 @@ describe('requireAuth', () => {
       role: 'user',
       isDemo: false,
     } as any)
-    mockSilentRefresh.mockResolvedValue('cooldown')
+    mockEnsureFresh.mockResolvedValue('cooldown')
 
     await expect(
       requireAuth({ queryClient, href: '/dashboard', accessToken: expiredToken })
@@ -119,7 +121,7 @@ describe('requireAuth', () => {
     setAuthenticated()
 
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
-    mockSilentRefresh.mockResolvedValue('ok')
+    mockEnsureFresh.mockResolvedValue('ok')
 
     await expect(
       requireAuth({
@@ -129,14 +131,14 @@ describe('requireAuth', () => {
       })
     ).resolves.toBeUndefined()
 
-    expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
+    expect(mockEnsureFresh).toHaveBeenCalledWith(queryClient)
   })
 
   it('redirects when token looks valid, server rejects, and refresh fails', async () => {
     setAuthenticated()
 
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
-    mockSilentRefresh.mockResolvedValue('failed')
+    mockEnsureFresh.mockResolvedValue('failed')
 
     try {
       await requireAuth({
@@ -155,7 +157,7 @@ describe('requireAuth', () => {
     const tokenBefore = useAuthStore.getState().accessToken
 
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValueOnce(new Error('Unauthorized'))
-    mockSilentRefresh.mockResolvedValue('cooldown')
+    mockEnsureFresh.mockResolvedValue('cooldown')
 
     await expect(
       requireAuth({ queryClient, href: '/settings', accessToken: tokenBefore })
@@ -174,7 +176,7 @@ describe('requireAuth', () => {
       isDemo: false,
     } as any)
 
-    mockSilentRefresh.mockResolvedValue('ok')
+    mockEnsureFresh.mockResolvedValue('ok')
 
     await expect(
       requireAuth({
@@ -184,6 +186,6 @@ describe('requireAuth', () => {
       })
     ).resolves.toBeUndefined()
 
-    expect(mockSilentRefresh).toHaveBeenCalledWith(queryClient)
+    expect(mockEnsureFresh).toHaveBeenCalledWith(queryClient)
   })
 })

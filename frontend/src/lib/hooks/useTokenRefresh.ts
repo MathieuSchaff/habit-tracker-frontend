@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuthStore } from '../../store/auth'
-import { silentRefresh } from '../queries/silentRefresh'
+import { ensureFresh, isExpired, msUntilProactiveRefresh } from '../auth/freshness'
 
 // Schedule silent refresh ~1 min before expiry. setAuth updates tokenExpiresAt, retriggering this effect.
 export function useTokenRefresh() {
@@ -12,14 +12,14 @@ export function useTokenRefresh() {
   useEffect(() => {
     if (!tokenExpiresAt) return
 
-    const delay = tokenExpiresAt - Date.now() - 60_000
+    const delay = msUntilProactiveRefresh(tokenExpiresAt)
 
     if (delay <= 0) {
-      silentRefresh(queryClient)
+      ensureFresh(queryClient)
       return
     }
 
-    const timer = setTimeout(() => silentRefresh(queryClient), delay)
+    const timer = setTimeout(() => ensureFresh(queryClient), delay)
     return () => clearTimeout(timer)
   }, [tokenExpiresAt, queryClient])
 
@@ -27,9 +27,8 @@ export function useTokenRefresh() {
   useEffect(() => {
     function handleVisible() {
       if (document.visibilityState !== 'visible') return
-      const store = useAuthStore.getState()
-      if (!store.accessToken) return
-      if (store.isTokenExpired()) silentRefresh(queryClient)
+      if (!useAuthStore.getState().accessToken) return
+      if (isExpired()) ensureFresh(queryClient)
     }
     document.addEventListener('visibilitychange', handleVisible)
     return () => document.removeEventListener('visibilitychange', handleVisible)
