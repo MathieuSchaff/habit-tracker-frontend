@@ -1,26 +1,18 @@
 import type { HttpStatus } from '../core'
 import { HTTP_STATUS } from '../core'
-import {
-  DENTAL_PRODUCT_TAG_TAXONOMY,
-  type DentalProductTagCategory,
-  dentalProductFilterCategories,
-} from './dental'
+import { dentalProductFilterCategories } from './dental/tag-filters'
+import type { DentalProductTagCategory } from './dental/tag-slugs'
+import { DENTAL_PRODUCT_TAG_TAXONOMY } from './dental/tag-taxonomy'
 import type { ProductDomainTab } from './domain-tabs'
-import {
-  HAIRCARE_PRODUCT_TAG_TAXONOMY,
-  type HaircareProductTagCategory,
-  haircareProductFilterCategories,
-} from './haircare'
-import {
-  SKINCARE_PRODUCT_TAG_TAXONOMY,
-  type SkincareProductTagCategory,
-  skincareProductFilterCategories,
-} from './skincare'
-import {
-  SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
-  type SupplementProductTagCategory,
-  supplementProductFilterCategories,
-} from './supplement'
+import { haircareProductFilterCategories } from './haircare/tag-filters'
+import type { HaircareProductTagCategory } from './haircare/tag-slugs'
+import { HAIRCARE_PRODUCT_TAG_TAXONOMY } from './haircare/tag-taxonomy'
+import { skincareProductFilterCategories } from './skincare/tag-filters'
+import type { SkincareProductTagCategory } from './skincare/tag-slugs'
+import { SKINCARE_PRODUCT_TAG_TAXONOMY } from './skincare/tag-taxonomy'
+import { supplementProductFilterCategories } from './supplement/tag-filters'
+import type { SupplementProductTagCategory } from './supplement/tag-slugs'
+import { SUPPLEMENT_PRODUCT_TAG_TAXONOMY } from './supplement/tag-taxonomy'
 import type { ProductErrorCode } from './types'
 
 export const productErrorMapping = {

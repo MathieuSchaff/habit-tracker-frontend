@@ -1,8 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ensureFresh } from '@/lib/auth/freshness'
 import { useAuthStore } from '@/store/auth'
 import { useImageUpload } from '../useImageUpload'
+
+// Stub only the network side of the freshness engine; keep real isExpired/scheduling.
+vi.mock('@/lib/auth/freshness', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/auth/freshness')>()
+  return { ...actual, ensureFresh: vi.fn() }
+})
 
 function installCanvasMock(blobSize = 50_000) {
   const originalToBlob = HTMLCanvasElement.prototype.toBlob
@@ -61,6 +68,8 @@ describe('useImageUpload', () => {
     restoreCanvas()
     restoreXhr?.()
     restoreXhr = undefined
+    vi.mocked(ensureFresh).mockReset()
+    useAuthStore.setState({ accessToken: null })
   })
 
   it('moves through compressing → uploading → idle on success', async () => {
@@ -266,6 +275,95 @@ describe('useImageUpload', () => {
       expect(callCount).toBe(2)
     } finally {
       HTMLCanvasElement.prototype.toBlob = originalToBlob
+    }
+  })
+
+  it('refreshes and retries once with the rotated token on a 401', async () => {
+    useAuthStore.setState({ accessToken: 'stale-tok' })
+    const sentAuth: Array<string | undefined> = []
+    const original = globalThis.XMLHttpRequest
+
+    class RetryXhr {
+      upload = { onprogress: null as ((e: ProgressEvent) => void) | null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      status = 0
+      responseText = ''
+      private authHeader: string | undefined
+      open() {}
+      setRequestHeader(name: string, value: string) {
+        if (name === 'Authorization') this.authHeader = value
+      }
+      send() {
+        sentAuth.push(this.authHeader)
+        if (sentAuth.length === 1) {
+          this.status = 401
+          this.responseText = JSON.stringify({ success: false, error: 'unauthorized' })
+        } else {
+          this.status = 201
+          this.responseText = JSON.stringify({ success: true, data: { url: 'https://cdn/x?v=2' } })
+        }
+        this.onload?.()
+      }
+    }
+    Object.defineProperty(globalThis, 'XMLHttpRequest', {
+      value: RetryXhr,
+      writable: true,
+      configurable: true,
+    })
+
+    // Silent refresh succeeds and rotates the token, like a real /auth/refresh.
+    vi.mocked(ensureFresh).mockImplementation(async () => {
+      useAuthStore.setState({ accessToken: 'fresh-tok' })
+      return 'ok'
+    })
+
+    try {
+      const { result } = renderHook(() =>
+        useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
+      )
+      await act(async () => {
+        ;(
+          result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+        ).__setSourceForTest(new Image())
+        await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
+      })
+      await waitFor(() => expect(result.current.state.phase).toBe('idle'))
+      expect(ensureFresh).toHaveBeenCalledOnce()
+      expect(sentAuth).toEqual(['Bearer stale-tok', 'Bearer fresh-tok'])
+    } finally {
+      Object.defineProperty(globalThis, 'XMLHttpRequest', {
+        value: original,
+        writable: true,
+        configurable: true,
+      })
+    }
+  })
+
+  it('surfaces the auth error when the silent refresh fails after a 401', async () => {
+    useAuthStore.setState({ accessToken: 'stale-tok' })
+    vi.mocked(ensureFresh).mockResolvedValue('failed')
+    restoreXhr = installXhrMock({
+      status: 401,
+      responseJson: { success: false, error: 'unauthorized' },
+    })
+    const { result } = renderHook(() =>
+      useImageUpload({ endpoint: '/api/uploads/avatar', outputSize: 1024 })
+    )
+    await act(async () => {
+      ;(
+        result.current as unknown as { __setSourceForTest: (b: HTMLImageElement) => void }
+      ).__setSourceForTest(new Image())
+      try {
+        await result.current.confirmCrop({ x: 0, y: 0, size: 1024 })
+      } catch {
+        /* expected reject */
+      }
+    })
+    await waitFor(() => expect(result.current.state.phase).toBe('error'))
+    expect(ensureFresh).toHaveBeenCalledOnce()
+    if (result.current.state.phase === 'error') {
+      expect(result.current.state.code).toBe('unauthorized')
     }
   })
 })

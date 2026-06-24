@@ -2,27 +2,19 @@ import { z } from 'zod'
 
 import type { HttpStatus } from '../core'
 import { HTTP_STATUS, tagItemSchema } from '../core'
-import {
-  DENTAL_INGREDIENT_TAG_TAXONOMY,
-  type DentalIngredientTagCategory,
-  dentalIngredientFilterCategories,
-} from './dental'
-import {
-  HAIRCARE_INGREDIENT_TAG_TAXONOMY,
-  type HaircareIngredientTagCategory,
-  haircareIngredientFilterCategories,
-} from './haircare'
+import { dentalIngredientFilterCategories } from './dental/tag-filters'
+import type { DentalIngredientTagCategory } from './dental/tag-slugs'
+import { DENTAL_INGREDIENT_TAG_TAXONOMY } from './dental/tag-taxonomy'
+import { haircareIngredientFilterCategories } from './haircare/tag-filters'
+import type { HaircareIngredientTagCategory } from './haircare/tag-slugs'
+import { HAIRCARE_INGREDIENT_TAG_TAXONOMY } from './haircare/tag-taxonomy'
 import { INGREDIENT_TYPES, type IngredientType } from './ingredient-types'
-import {
-  SKINCARE_INGREDIENT_TAG_TAXONOMY,
-  type SkincareIngredientTagCategory,
-  skincareIngredientFilterCategories,
-} from './skincare'
-import {
-  SUPPLEMENT_INGREDIENT_TAG_TAXONOMY,
-  type SupplementIngredientTagCategory,
-  supplementIngredientFilterCategories,
-} from './supplement'
+import { skincareIngredientFilterCategories } from './skincare/tag-filters'
+import type { SkincareIngredientTagCategory } from './skincare/tag-slugs'
+import { SKINCARE_INGREDIENT_TAG_TAXONOMY } from './skincare/tag-taxonomy'
+import { supplementIngredientFilterCategories } from './supplement/tag-filters'
+import type { SupplementIngredientTagCategory } from './supplement/tag-slugs'
+import { SUPPLEMENT_INGREDIENT_TAG_TAXONOMY } from './supplement/tag-taxonomy'
 import type { IngredientErrorCode } from './types'
 
 export const ingredientErrorMapping = {

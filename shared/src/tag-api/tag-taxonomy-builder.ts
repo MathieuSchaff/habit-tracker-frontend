@@ -8,16 +8,19 @@
 // taxonomy, `buildTagSubgroups` -> the display sub-group arrays. One place to
 // read a tag's slug+label+category; the rest is generated, so they cannot drift.
 
-// Ingredient taxonomies carry no label in shared (labels live in the seed); only
-// product defs require a label. Subgroups are display overlays (skincare only).
+// The ingredient taxonomy itself stays `{category}`-only; labels are derived
+// separately via `buildTagLabels`. Subgroups are display overlays (skincare only).
 export type TagDef<C extends string = string> = {
   readonly key: string
   readonly slug: string
   readonly category: C
 }
 
-export type ProductTagDef<C extends string = string> = TagDef<C> & {
+export type LabeledTagDef<C extends string = string> = TagDef<C> & {
   readonly label: string
+}
+
+export type ProductTagDef<C extends string = string> = LabeledTagDef<C> & {
   readonly subgroup?: string
 }
 
