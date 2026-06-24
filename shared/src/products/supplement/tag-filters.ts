@@ -1,5 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
-import { sortFilterCategories } from '../tag-taxonomy-builder'
+import { sortFilterCategories } from '../../tags/tag-taxonomy-builder'
 import {
   SUPPLEMENT_PRODUCT_TAG_CATEGORIES,
   type SupplementProductTagCategory,

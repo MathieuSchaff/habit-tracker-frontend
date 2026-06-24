@@ -1,115 +1,112 @@
 # Security
 
----
+This document explains how Aurore protects user accounts and user data.
 
-## Authentication & Authorization
+The main idea is simple:
 
-### JWT-Based Authentication
-- **Access Tokens**: Short-lived (15 minutes), stored in memory on the frontend, passed via `Authorization` header.
-- **Refresh Tokens**: Long-lived (7 days), stored in an **HttpOnly, Secure, SameSite=Lax** cookie. This prevents XSS-based token theft.
-- **Token Rotation**: When a refresh token is used, it is revoked and a new one is issued.
-- **Revocation**: On manual logout, the presented refresh token is revoked (its `jti` marked revoked in the database); other active sessions stay valid. Token-replay detection revokes *all* of a user's refresh tokens. A password change **or reset** also revokes **all** of the user's refresh tokens, atomically with the hash update — the revoke runs in the same transaction, so a revoke failure rolls back the password write (a stolen session can never survive a successful change or reset).
-
-### Password Hashing
-**Argon2** via Bun's native `password.hash` API — currently the industry standard for password hashing, resistant to GPU-based brute-force and side-channel attacks.
-
-### Session Security
-**Timing Attack Protection**: A dummy hash verification runs during login when a user is not found, keeping response time consistent regardless of whether the email exists.
-
-### Account Enumeration Protection
-Neither login nor signup ever reveals whether an email is registered:
-- **Login** returns a single `invalid_credentials` for unknown-email, wrong-password, and locked-account alike; the dummy hash above keeps timing uniform.
-- **Signup** returns an identical neutral response (`{ pending: true }`, HTTP 200, **no session**) whether the email is new or already registered, runs a dummy password hash on the existing-email branch to equalize timing, and conveys the new-vs-existing truth only by email to the address owner (a verification link for a new account, an "account already exists" notice otherwise). The cross-cutting policy lives in [`conventions/error-handling.md` § Security](conventions/error-handling.md).
-- **Forgot-password** returns the same neutral response (`{ pending: true }`, no session) whether or not the email exists; the unknown-email branch spends the same token crypto and the reset mail is fire-and-forget, so timing matches. OAuth-only accounts take the neutral branch too — no reset token is minted, so a Google login can't have a password silently grafted onto it. The reset link reaches only the address owner; a successful reset is single-use, rotates the password, marks the email verified, clears any lockout, and revokes every session — all in one transaction.
-
-### Email Verification
-Signup issues a single-use token (stored hashed in `email_verifications`) and the account stays unverified until the user confirms via email. Expired or consumed tokens are rejected. Because signup establishes no session, the user activates the account from the email link, then logs in. A 24-hour back-compat grace still admits logins from a freshly created account before verification; past that window login returns `email_not_verified` until the user confirms.
-
-### Google OAuth
-OAuth login is delegated to Google (`backend/src/features/auth/google.service.ts`). The callback exchanges the authorization code server-side; no Google tokens are exposed to the browser. A local `accessToken` is issued exactly like for password login.
+- users should only access their own data;
+- passwords and sessions should be handled safely;
+- the API should reject bad or unexpected input;
+- production should not expose internal errors or secrets.
 
 ---
 
-## API Security
+## Authentication
 
-### Validation (Zod)
-All incoming data (JSON bodies, query parameters, URL parameters) is strictly validated using **Zod** schemas defined in the `shared` package. This prevents malformed data from reaching business logic and mitigates injection risks.
+Aurore uses access tokens and refresh tokens.
 
-### Rate Limiting
-Two layers protect the API in production:
-- **Edge (nginx)** — `limit_req` at 10 req/s per IP on all `/api/` routes.
-- **Application (`hono-rate-limiter`)** — 100 req / 15 min per IP on auth, admin and write/submission routes; a stricter 10 req / 15 min limiter that counts failed attempts guards login against password spraying, paired with per-user DB lockout. A dedicated 5 req / 15 min limiter that counts every request throttles `/auth/forgot-password` (a mail-spam surface); `/auth/reset-password` validates the token before computing the Argon2 hash, so a bogus token on this unauthenticated route costs no CPU. Health and favicon endpoints are skipped. Disabled in development to avoid blocking local iteration.
+- Access tokens are short-lived: 15 minutes.
+- They are stored in memory on the frontend.
+- Refresh tokens last 7 days.
+- Refresh tokens are stored in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie.
+- Refresh tokens are rotated when they are used.
+- Logout revokes the current refresh token.
+- Password change or reset revokes all active sessions.
 
-The per-IP key is derived from the nginx-set `X-Real-IP` (or the rightmost `X-Forwarded-For` hop), never the client-supplied leftmost value — so a caller cannot rotate the header to bypass the limiters.
+Passwords are hashed with Argon2 using Bun’s native password API.
 
-### CORS
-CORS is configured to only allow requests from the trusted `FRONTEND_URL` defined in environment variables.
-
-### Error Handling
-A global error handler sanitizes all error responses. In production, internal stack traces and arbitrary error messages — including those from third-party libraries that carry an HTTP status — are never exposed to the client; they are logged server-side and the client receives only a stable error code.
+Login, signup and forgot-password responses are designed to avoid revealing whether an email already exists.
 
 ---
 
-## Browser Security
+## User data protection
 
-### Content-Security-Policy
-The production nginx config sends a strict CSP on every response: `script-src 'self'` (no `'unsafe-inline'`, no `'unsafe-eval'`), `style-src 'self' 'unsafe-inline'`, `font-src 'self'`, `img-src 'self' data:` plus the Bunny image CDN, `connect-src 'self'`, with `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`, and `object-src 'none'`. A local regression guard (`just test-csp`) builds the production bundle, serves it with the live CSP, and fails on any violation.
+User data is protected at two levels.
 
-### Self-hosted fonts
-Fonts are bundled via `@fontsource` rather than the Google Fonts CDN: no visitor IP is sent to a third party (GDPR), and the CSP needs no external font or style origins.
+First, the backend uses the authenticated user from the verified token.
+The client does not choose its own `userId` for sensitive actions.
 
-### Other headers
-nginx also sends HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+Second, PostgreSQL Row-Level Security is enabled on user-owned tables.
 
-### Upload limits
-Image uploads are bounded at the application layer (`bodyLimit` 1 MiB; avatars ≤200 KB, product images ≤500 KB) and at the edge (`client_max_body_size 2m`).
+This means that even if a backend query forgets a `userId` filter, PostgreSQL still blocks access to another user's rows.
 
----
-
-## Database Security
-
-### Row-Level Security (defense in depth)
-Tenant-scoped tables (`tasks`, `profiles`, `user_products`, `purchases`, `user_preferences`, `user_dermo_profiles`, `user_bans`, …) run with `FORCE ROW LEVEL SECURITY`. Policies filter on `auth.uid()` / `auth.role()`, two `SECURITY INVOKER` SQL functions (schema `auth`) that read per-transaction GUCs `app.user_id` and `app.role`.
-
-Each authenticated request is wrapped in a transaction by the `withRlsContext` middleware (`backend/src/features/auth/rls-context.middleware.ts`), which binds those GUCs via `set_config(...)` before handing control to the route. Pre-identity flows (signup, OAuth, demo, email confirmation) call the `bindRlsContext` helper (`backend/src/db/rls.ts`) to set the same context inside their own transaction.
-
-Result: even if application code forgets to filter by `userId`, Postgres itself refuses to return or insert rows for another tenant.
-
-### Privilege Separation (three DB roles)
-- **`app`** — owner role used for migrations and administrative tasks. Bypasses RLS. Credentials live only in the migration context.
-- **`app_runtime`** — runtime role used by the backend request pool (`APP_DATABASE_URL`). Subject to RLS, cannot bypass policies.
-- **`dev_readonly`** — investigation role for prod debugging. `NOLOGIN` (assumed via `SET ROLE` from `app`), `SELECT`-only, no bypass. Reads catalog tables freely; tenant tables (FORCE RLS) return zero rows. To inspect a tenant's data: `SET ROLE app_runtime; SET LOCAL app.user_id = '<uuid>';`. INSERT/UPDATE/DELETE are not granted, so a typo cannot destroy data.
-
-The backend connects with `app_runtime`, so a bug or SQL injection in a route is bounded by the active RLS context rather than having full DB access.
-
-### User Data Isolation
-Application code still scopes queries by `userId` extracted from the verified JWT — the client never provides its own userId for sensitive operations. RLS is the last line of defense if that contract slips.
-
-### Migrations
-All schema changes go through explicit SQL migration files — auditable, reviewable, and applied deliberately.
+The backend connects to the database with a restricted runtime role.
+The owner role is only used for migrations and admin tasks.
 
 ---
 
-## Infrastructure & Supply Chain
+## API security
 
-### Pinned container images
-Third-party images (Postgres, nginx, certbot) are pinned by digest, so production runs exactly the tested image rather than a floating tag. nginx is pinned to a release patched against CVE-2026-42945.
+All incoming data is validated with Zod:
 
-### Leaked-credential guard
-The environment validator rejects known-weak or previously-committed development passwords in `DATABASE_URL` / `APP_DATABASE_URL` at production boot — failing fast instead of silently running with a compromised credential.
+- JSON bodies;
+- query parameters;
+- URL parameters.
 
-### Secrets
-`.env.prod` is never committed (gitignored); secrets are generated with `openssl rand -base64`. The Postgres runtime role password is distinct and aligned at deploy time.
+CORS only allows the trusted frontend URL.
+
+In production, API errors are cleaned before they are sent to the client.
+Stack traces and internal error messages are logged server-side, but not exposed in responses.
+
+The API also has rate limits:
+
+- general API limits;
+- stricter limits for login;
+- stricter limits for forgot-password.
+
+This helps reduce brute-force attempts and spam.
 
 ---
 
-## Security Testing
+## Browser security
 
-- Auth flows (login, refresh, logout, password change, forgot/reset-password) are covered by integration tests in `backend/src/features/auth/tests`; the forgot/reset suite includes byte-identical enumeration guards, a concurrency test for the single-use token lock, and a guard that a bogus token never runs the password hash.
-- Invalid inputs are tested to verify they're rejected with `400 Bad Request`.
+In production, nginx sends security headers such as:
+
+- Content Security Policy;
+- HSTS;
+- `X-Content-Type-Options: nosniff`;
+- `X-Frame-Options: DENY`;
+- `Referrer-Policy`.
+
+Fonts are self-hosted with `@fontsource`, so the browser does not need to contact Google Fonts.
+
+Image uploads are size-limited in the backend and at the nginx level.
 
 ---
 
-## Reporting Vulnerabilities
+## Infrastructure
 
-If you find a security vulnerability, please do not open an issue. Contact the maintainer directly.
+Production secrets are not committed.
+
+`.env.prod` is ignored by Git.
+
+Container images are pinned by digest, so production does not depend on moving image tags.
+
+Database changes go through explicit SQL migrations.
+
+The app also checks production environment variables at startup and refuses known weak or leaked development credentials.
+
+---
+
+## Tests
+
+Security-sensitive auth flows are covered by integration tests:
+
+- login;
+- refresh;
+- logout;
+- password change;
+- forgot password;
+- reset password;
+- invalid input handling;
+- email enumeration protection.

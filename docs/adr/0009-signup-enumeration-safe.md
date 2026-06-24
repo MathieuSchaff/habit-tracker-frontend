@@ -57,4 +57,4 @@ Aurore holds skincare / routine / personal data. Not a bank, but enumerating its
 - `/auth/mobile/signup` loses immediate-token behavior → the mobile client must handle the email-link flow too.
 
 **Out of scope**
-- Forgot/reset-password does not exist yet. When built, apply the same always-neutral rule. Tracked separately.
+- Forgot/reset-password — implemented 2026-06-17 per ADR 0010, which applies the same always-neutral rule.

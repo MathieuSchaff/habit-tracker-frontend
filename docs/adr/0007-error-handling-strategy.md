@@ -36,4 +36,4 @@ The three styles are codified in `docs/conventions/error-handling.md`.
 **Negative**
 - Two valid styles require discipline: contributors must read the convention before adding a feature module.
 - `errorMappingRegistry` must stay in sync when new domain error classes are introduced (checklist in the convention doc).
-- Known registry drift as of 2026-05-21: `AuthError` entry is stale; `ReportError` missing but covered by `baseErrorMapping` codes.
+- `AuthError` was never registered (auth uses Style B); `ReportError` missing but covered by `baseErrorMapping` codes.

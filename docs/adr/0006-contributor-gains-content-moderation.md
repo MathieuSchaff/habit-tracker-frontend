@@ -1,12 +1,13 @@
 ---
-status: accepted
+status: implemented
 date: 2026-05-30
 accepted: 2026-05-30
+implemented: 2026-06-24
 ---
 
 # The contributor role (« modérateur ») becomes a content moderator; moderation splits into content/reversible (contributor) and account/irreversible (admin)
 
-Aurore ships three exclusive roles — enum `user_role = ['user','admin','contributor']`. Until now the middle role (`contributor`, user-facing label « modérateur ») could only **curate** the catalogue (verify sheets, edit any sheet, link ingredients, apply tags, upload images); every act of **content moderation** (hiding reviews/threads/replies, bans, force-private) and every destructive/structural act was admin-exclusive. This ADR expands the contributor into a genuine content moderator, and draws the contributor↔admin line as **content-and-reversible** versus **account-and-irreversible**. It also settles the catalogue-trust surface (no submission queue; a positive « vérifiée » marker) and the post-verification recourse (freeze + open suggested-edit). Implementation is pending; this records the decision and the trade-offs behind it.
+Aurore ships three exclusive roles — enum `user_role = ['user','admin','contributor']`. Until now the middle role (`contributor`, user-facing label « modérateur ») could only **curate** the catalogue (verify sheets, edit any sheet, link ingredients, apply tags, upload images); every act of **content moderation** (hiding reviews/threads/replies, bans, force-private) and every destructive/structural act was admin-exclusive. This ADR expands the contributor into a genuine content moderator, and draws the contributor↔admin line as **content-and-reversible** versus **account-and-irreversible**. It also settles the catalogue-trust surface (no submission queue; a positive « vérifiée » marker) and the post-verification recourse (freeze + open suggested-edit). S1 shipped (moderation routes, reports, suggested-edits, bans — all wired in `backend/src/index.ts`); this records the decision and the trade-offs behind it.
 
 ## Why
 
@@ -27,7 +28,7 @@ Three threads converged.
 - *Global ban (account lockout)* stays admin-only. It severs the user from their **private** space (collection, private notes, profile) over a **public** content offence — disproportionate, identity-level, and the biggest blast radius if a moderator goes rogue. Global ban serves account-level abuse (harassment via the account, ban-evasion) — a different job from keeping content clean.
 - The moderator gets the five content scopes (`product_create`, `product_edit`, `ingredient_edit`, `discussion_post`, `review_publish`), all reversible/liftable; `global` stays admin.
 
-**Catalogue submission — queue-before-publish vs publish-immediately + signal.** **Publish-immediately, no queue.** A queue would gate the catalogue more strictly than reviews (which publish instantly), import the friction Aurore rejects, and burden the curator with mandatory pre-approval. The real trust gap was never the missing queue — it is that `catalogQuality` is invisible to readers (the field exists in the payload, no component renders it). The lever is the *signal*, shown as a **positive** « vérifiée » marker on curated sheets — never a « ⚠ non vérifié » warning, which would shame the contributor and break zero-guilt. Spam is caught reactively (moderator hide + content-ban), not gated a priori.
+**Catalogue submission — queue-before-publish vs publish-immediately + signal.** **Publish-immediately, no queue.** A queue would gate the catalogue more strictly than reviews (which publish instantly), import the friction Aurore rejects, and burden the curator with mandatory pre-approval. The real trust gap was never the missing queue — it is that `catalogQuality` was invisible to readers (now rendered as a positive « vérifiée » marker via `CatalogQualityBadge` in ProductLayout and IngredientLayout; the negative « ⚠ non vérifié » warning was intentionally omitted — signal is asymmetric by design). The lever is the *signal*, shown as a **positive** « vérifiée » marker on curated sheets — never a « ⚠ non vérifié » warning, which would shame the contributor and break zero-guilt. Spam is caught reactively (moderator hide + content-ban), not gated a priori.
 
 **Post-verification recourse — report (A) vs suggested-edit (B).** **B, with open proposals.** A `verified` sheet freezes for its submitter so a checked sheet cannot be silently re-edited (this is what gives "verified" meaning). Recourse: A = a prose "report an error" the moderator acts on; B = a field-level suggested-edit (diff) the moderator accepts/rejects. Chose B open to *any authenticated user* (Wikipedia/Discogs model) — B only earns its small versioning surface if anyone can correct anything; restricted to the original submitter, A would have sufficed. Distinct from **Signaler** (bad content → hide): *improve* vs *destroy*, two separate queues.
 
@@ -39,7 +40,7 @@ Three threads converged.
 - **Granting this role now distributes ban power**, so role **revocation moves into scope** (#16b): an admin UI to demote a moderator, not a manual DB edit. Granting stays form + manual admin approval (sufficient vetting at solo scale).
 - **Moderator→admin escalation is first-class**, so the moderator never "begs": an « escalader à l'admin » action files the case into the admin queue with context (v1); repeated content-bans on one user auto-surface as a global-ban candidate (v2, when volume justifies).
 - **Residual tension, accepted:** the model is structurally a platform hierarchy; the vision survives only as long as the wording stays calm and every moderator action stays reversible. Revisit if any moderator surface starts to feel punitive.
-- **Status: decided, not yet built.** Until shipped, `03-features/admin/roles-and-permissions.html` (§3, §5) and `03-features/admin/README.md` still describe the shipped admin-exclusive moderation; update them on implementation.
+- **Status: implemented (S1 shipped).** `03-features/admin/roles-and-permissions.html` and `03-features/admin/README.md` have been updated to reflect the shared admin∨contributor moderation shell.
 
 ## Implementation notes
 

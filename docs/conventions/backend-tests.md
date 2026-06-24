@@ -74,20 +74,27 @@ NE PAS ajouter `setupDbTests()` en plus. Sinon :
 - Bun:test les exécute dans l'ordre d'enregistrement
 - ⇒ Si `setupDbTests()` est appelé APRÈS ton `beforeEach` local, le clean global wipe le `createTestUser` qui vient juste de se faire
 
-9 fichiers historiques suivent ce pattern. Ne les recopie pas sans raison, et si tu copies, vérifie l'ordre des hooks.
+16 fichiers suivent ce pattern. Ne les recopie pas sans raison, et si tu copies, vérifie l'ordre des hooks.
 
 Liste actuelle des self-cleaners (référence) :
 
 ```
+db/seed/utils/batch.test.ts
 features/auth/tests/auth.demo.test.ts
+features/auto-tagging/tests/auto-tag-eczema-withholding.test.ts
+features/auto-tagging/tests/auto-tag-manual-overlap.test.ts
 features/auto-tagging/tests/auto-tag-skip.test.ts
+features/auto-tagging/tests/auto-tag-stale-cleanup.test.ts
+features/auto-tagging/tests/auto-tag-write-tx.test.ts
 features/dermo-score/tests/dermo-score.service.test.ts
 features/product-comparisons/tests/product-comparisons.service.test.ts
+features/products/formula-preview.test.ts
+features/products/tests/create-product-autotag.test.ts
 features/products/tests/products.test.ts
 features/security/tests/security.service.test.ts
+features/user-products/tests/public-reviews.test.ts
 features/user-products/tests/purchases.test.ts
 features/user-products/tests/user.products.test.ts
-features/user-products/tests/public-reviews.test.ts
 ```
 
 ## 4. RLS / multi-rôle = `src/tests/integration/`

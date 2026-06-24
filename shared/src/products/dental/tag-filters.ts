@@ -1,5 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
-import { sortFilterCategories } from '../tag-taxonomy-builder'
+import { sortFilterCategories } from '../../tags/tag-taxonomy-builder'
 import { DENTAL_PRODUCT_TAG_CATEGORIES, type DentalProductTagCategory } from './tag-taxonomy'
 
 export const DENTAL_PRODUCT_TAG_CATEGORY_META: Record<DentalProductTagCategory, TagCategoryMeta> = {

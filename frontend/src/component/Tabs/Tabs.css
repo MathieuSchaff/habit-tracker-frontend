@@ -20,7 +20,7 @@
   top: 4px;
   bottom: 4px;
   left: 0;
-  background: oklch(100% 0 0);
+  background: var(--bg-card);
   border-radius: var(--radius-full);
   box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15);
   transition:
@@ -38,7 +38,7 @@
   padding: var(--space-2) var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  color: oklch(100% 0 0 / 0.7);
+  color: color-mix(in oklch, var(--color-primary-text) 70%, transparent);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -61,7 +61,7 @@
 }
 
 .icon-tab:hover {
-  color: oklch(100% 0 0);
+  color: var(--color-primary-text);
 }
 
 .icon-tab-active,

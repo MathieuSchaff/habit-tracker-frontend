@@ -1,102 +1,227 @@
-# Politique de Confidentialité
+# Politique de confidentialité
 
 Dernière mise à jour : 19 mai 2026
 
-Cette Politique de Confidentialité décrit comment **Aurore** (l'application) collecte, utilise et protège vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD).
+Cette page explique quelles données Aurore collecte, pourquoi elles sont utilisées, et comment elles sont protégées.
+
+Aurore est une application de recherche skincare. Elle sert à garder une trace de vos produits, ingrédients, notes et décisions personnelles.
+
+Aurore ne vend pas vos données.
+Aurore n’utilise pas vos données pour de la publicité.
+Aurore n’utilise pas de tracking marketing.
 
 ---
 
 ## 1. Données collectées
 
-Nous collectons les informations suivantes pour assurer le bon fonctionnement de l'application :
+Aurore collecte uniquement les données nécessaires au fonctionnement de l’application.
 
-### Données d'identification
-*   **Email :** Utilisé pour la création de compte, la connexion et la vérification de sécurité.
-*   **Identifiant Google (si applicable) :** Si vous choisissez la connexion via Google (OAuth).
-*   **Mot de passe :** Stocké de manière sécurisée sous forme de condensat (hash) via Argon2.
+### Compte utilisateur
 
-### Données de Profil et d'Usage
-*   **Profil Public :** Nom d'utilisateur, biographie, liens (visibles par les autres utilisateurs si vous le choisissez).
-*   **Données d'Usage :** Vos tâches, produits utilisés, journaux de bord (logs) et tags associés.
+Lors de la création d’un compte, Aurore peut collecter :
 
-### Données Sensibles (Dermatologiques)
-*   **Profil de peau :** Type de peau, score de Fitzpatrick, préoccupations cutanées et notes privées.
-*   **Note :** Ces données sont considérées comme des données de santé. Elles ne sont traitées qu'avec votre consentement explicite pour vous fournir des recommandations personnalisées.
+- votre adresse email ;
+- votre identifiant Google, si vous utilisez la connexion avec Google ;
+- votre mot de passe, uniquement sous forme sécurisée et chiffrée avec Argon2.
+
+Le mot de passe original n’est jamais stocké.
+
+### Données liées à l’utilisation de l’application
+
+Aurore peut enregistrer :
+
+- les produits que vous ajoutez ;
+- vos notes personnelles ;
+- vos tags ;
+- vos états de décision, par exemple `Wishlist`, `En cours`, `Saint Graal` ou `À éviter` ;
+- les informations liées à vos recherches skincare.
+
+### Données liées au profil de peau
+
+Si vous les remplissez, Aurore peut aussi enregistrer :
+
+- votre type de peau ;
+- votre score de Fitzpatrick ;
+- vos préoccupations cutanées ;
+- vos notes privées.
+
+Ces informations peuvent être considérées comme des données sensibles liées à la santé. Elles ne sont utilisées que pour faire fonctionner les fonctionnalités skincare de l’application.
 
 ---
 
-## 2. Finalités du traitement
+## 2. Pourquoi ces données sont utilisées
 
-Vos données sont traitées pour les raisons suivantes :
-1.  **Gestion du compte :** Authentification et sécurisation de votre accès.
-2.  **Personnalisation :** Adaptation des conseils et du suivi en fonction de votre profil dermatologique.
+Vos données sont utilisées pour :
 
-Aucun traitement à des fins d'analyse d'usage, de télémétrie ou de publicité n'est effectué.
+- créer et sécuriser votre compte ;
+- vous connecter à l’application ;
+- sauvegarder vos produits, notes et décisions ;
+- vous permettre de retrouver votre historique de recherche ;
+- adapter certaines informations à votre profil skincare ;
+- assurer la sécurité de l’application.
 
----
-
-## 3. Utilisation des Cookies
-
-L'application utilise uniquement des cookies **strictement nécessaires** au fonctionnement technique et à la sécurité. Aucun cookie de pistage publicitaire n'est utilisé.
-
-*   `refresh_token` : Permet de maintenir votre session active de manière sécurisée (HttpOnly, Secure).
-*   `google_oauth_state` / `google_code_verifier` : Utilisés temporairement lors de la connexion via Google pour prévenir les attaques de type CSRF.
+Aurore ne fait pas d’analyse publicitaire, de télémétrie marketing ou de revente de données.
 
 ---
 
-## 4. Conservation et Suppression des données
+## 3. Cookies
 
-*   **Compte actif :** Les données sont conservées tant que le compte est actif.
-*   **Suppression définitive :** Lorsque vous choisissez de supprimer votre compte via les paramètres de l'application, **l'intégralité de vos données personnelles est immédiatement et définitivement effacée** de nos bases de données (profil, historique de produits, logs) via les contraintes de cascade PostgreSQL. Cette action est irréversible.
+Aurore utilise seulement des cookies nécessaires au fonctionnement de l’application.
+
+### `refresh_token`
+
+Ce cookie permet de maintenir votre session ouverte de manière sécurisée.
+
+Il est configuré en `HttpOnly`, `Secure` et `SameSite=Lax`.
+
+Il ne peut pas être lu par le code JavaScript de la page.
+
+### `aurore_session`
+
+Ce cookie indique simplement à l’application qu’une session existe.
+
+Il contient seulement la valeur `1`.
+
+Il ne contient jamais le token de connexion.
+
+### `google_oauth_state` et `google_code_verifier`
+
+Ces cookies sont utilisés temporairement pendant la connexion avec Google.
+
+Ils servent à sécuriser le processus de connexion OAuth.
+
+---
+
+## 4. Conservation et suppression des données
+
+Vos données sont conservées tant que votre compte existe.
+
+Vous pouvez supprimer votre compte depuis les paramètres de l’application.
+
+Quand vous supprimez votre compte, vos données personnelles sont supprimées de la base de données :
+
+- profil ;
+- produits ;
+- notes ;
+- préférences ;
+- historique lié à votre compte.
+
+Cette suppression est définitive.
+
+Certaines données peuvent rester jusqu’à 7 jours dans les sauvegardes automatiques avant d’être supprimées définitivement.
 
 ---
 
 ## 5. Accès aux données
 
-Vos données ne sont jamais vendues ni partagées à des fins commerciales. Aurore est développée par une seule personne et aucun accès de routine n'est prévu, y compris par le développeur.
+Vos données ne sont pas vendues et ne sont pas partagées à des fins commerciales.
 
-### 5.1 Cloisonnement technique
+Aurore est développée par une seule personne. Il n’y a pas d’accès régulier aux données des utilisateurs.
 
-*   Le backend se connecte à la base avec un rôle PostgreSQL (`app_runtime`) soumis à des politiques **Row-Level Security**. Chaque requête applicative est restreinte au propriétaire de la donnée : même une faille dans le code ne permet pas de lire les données d'un autre utilisateur.
-*   Un rôle administrateur distinct existe pour les migrations et la maintenance — il n'est jamais utilisé pour servir des requêtes utilisateur.
+Un accès direct à la base de données peut être nécessaire uniquement dans des cas précis :
 
-### 5.2 Accès du développeur aux données brutes
+- si vous signalez un bug qui concerne votre compte ;
+- si vous donnez votre accord pour vérifier une donnée liée au problème ;
+- en cas d’incident urgent, par exemple une faille de sécurité, une corruption de données ou une panne bloquante.
 
-L'accès direct à la base (qui contourne RLS) est possible techniquement. Il est encadré par les règles suivantes :
-
-*   **Sur signalement d'un bug vous concernant** — je vous demande votre accord explicite (par email) avant de consulter la ligne concernée.
-*   **En cas d'incident urgent sans signalement** (corruption de données, faille de sécurité, indisponibilité bloquante) — je peux accéder aux données pour diagnostiquer et corriger. **Vous êtes alors prévenu·e par email** avec : la date, la raison de l'accès, les données consultées et ce qui a été fait.
-*   **Jamais** pour de la curiosité, de l'analyse d'usage ou de la veille produit.
-
-### 5.3 Journaux applicatifs (logs)
-
-Les logs de production enregistrent uniquement : méthode HTTP, chemin de la route, code de statut, temps de réponse. **Aucun contenu de requête, email ou identifiant personnel n'est écrit dans les logs.** En cas d'erreur, la pile d'exécution est enregistrée avec le chemin de la route uniquement.
-
-### 5.4 Sauvegardes
-
-*   Une sauvegarde complète de la base est générée quotidiennement (compressée, puis chiffrée par clé GPG asymétrique) et stockée sur le serveur d'hébergement. La clé privée n'est jamais présente sur le serveur : même un accès non autorisé au VPS ne permet pas de déchiffrer les sauvegardes.
-*   Les sauvegardes de plus de 7 jours sont automatiquement supprimées.
-*   Lors d'une suppression de compte, vos données peuvent subsister jusqu'à 7 jours dans les sauvegardes avant disparition définitive.
-
-### 5.5 Sous-traitants techniques
-
-*   **Hostinger** (VPS, Francfort, UE) — stockage de la base de données et des sauvegardes.
-*   **Brevo** (entreprise française, UE) — envoi des emails transactionnels (vérification d'email, réinitialisation de mot de passe). Seuls votre adresse email et le contenu du message transitent par ce service. Aucun email marketing.
-*   **Google** — uniquement si vous choisissez la connexion via Google OAuth.
+Dans ce dernier cas, vous serez informé par email si vos données ont dû être consultées.
 
 ---
 
-## 6. Vos Droits (RGPD) et Autonomie
+## 6. Protection technique des données
 
-Conformément au RGPD, vous disposez d'un contrôle total sur vos données directement depuis l'interface de l'application, sans avoir à nous contacter :
+Aurore utilise plusieurs protections techniques :
 
-*   **Droit d'accès et de rectification :** Vous pouvez consulter et modifier toutes vos informations personnelles (email, profil, préférences) directement dans vos paramètres.
-*   **Droit à l'effacement :** Vous pouvez déclencher la suppression totale de votre compte et de vos données à tout moment via le bouton "Supprimer mon compte".
-*   **Droit à la portabilité :** Vous pouvez télécharger l'intégralité de vos données au format JSON depuis **Profil → Compte → Mes données → « Télécharger mes données »**. L'export est limité à une fois toutes les 5 minutes pour protéger l'infrastructure.
-*   **Droit d'opposition :** Vous pouvez retirer votre consentement au traitement des données dermatologiques en vidant les champs de votre profil de peau depuis les paramètres.
+- mots de passe sécurisés avec Argon2 ;
+- sessions protégées par tokens ;
+- cookies sécurisés ;
+- validation des données envoyées à l’API ;
+- séparation des rôles en base de données ;
+- Row-Level Security dans PostgreSQL ;
+- sauvegardes chiffrées ;
+- logs limités.
+
+Les logs de production ne contiennent pas le contenu de vos requêtes, votre email ou vos données personnelles.
+
+Ils enregistrent seulement des informations techniques comme :
+
+- la route appelée ;
+- le code de réponse ;
+- le temps de réponse.
 
 ---
 
-## 7. Sécurité
+## 7. Sauvegardes
 
-Nous mettons en œuvre des mesures techniques et organisationnelles (chiffrement, tokens JWT, cookies sécurisés) pour protéger vos données contre tout accès non autorisé ou perte accidentelle.
+Une sauvegarde complète de la base de données est générée chaque jour.
+
+Les sauvegardes sont :
+
+- compressées ;
+- chiffrées avec une clé GPG ;
+- conservées sur le serveur d’hébergement ;
+- supprimées automatiquement après 7 jours.
+
+La clé privée utilisée pour déchiffrer les sauvegardes n’est pas présente sur le serveur.
+
+---
+
+## 8. Services utilisés
+
+Aurore utilise quelques services techniques nécessaires au fonctionnement de l’application.
+
+### OVH
+
+Hébergement du serveur, de la base de données et des sauvegardes.
+
+Localisation : Strasbourg, France, Union européenne.
+
+### Brevo
+
+Envoi des emails transactionnels :
+
+- vérification d’adresse email ;
+- réinitialisation de mot de passe ;
+- notifications liées au compte.
+
+Aucun email marketing n’est envoyé.
+
+### Google
+
+Utilisé uniquement si vous choisissez de vous connecter avec Google.
+
+---
+
+## 9. Vos droits
+
+Conformément au RGPD, vous pouvez :
+
+- consulter vos données ;
+- modifier vos données ;
+- supprimer votre compte ;
+- télécharger vos données ;
+- retirer certaines informations de votre profil.
+
+Vous pouvez le faire directement depuis l’application.
+
+L’export de vos données est disponible au format JSON depuis :
+
+`Profil → Compte → Mes données → Télécharger mes données`
+
+Pour protéger l’infrastructure, l’export est limité à une fois toutes les 5 minutes.
+
+Vous pouvez aussi retirer les informations dermatologiques en vidant les champs de votre profil de peau.
+
+---
+
+## 10. Sécurité
+
+Aurore met en place des mesures techniques pour réduire les risques :
+
+- accès non autorisé ;
+- vol de session ;
+- fuite de mot de passe ;
+- accès aux données d’un autre utilisateur ;
+- perte accidentelle de données.
+
+Aucune application ne peut garantir un risque zéro, mais Aurore est conçue pour limiter les accès inutiles et protéger les données utilisateur autant que possible.

@@ -4,6 +4,8 @@
 //             routine_step_v2, routine_moment, skin_effect, sensation,
 //             product_label, shared_label, actif_class.
 
+import { SHARED_SKINCARE_ACTIF_CLASS_SLUGS } from '../../ingredients/skincare/tag-slugs'
+
 export const SKINCARE_PRODUCT_TAG_SLUGS = {
   // Concerns
   // Functional (treat) — first 8
@@ -119,22 +121,11 @@ export const SKINCARE_PRODUCT_TAG_SLUGS = {
   COMEDOGENE: 'comedogene',
   NON_COMEDOGENE: 'non-comedogene',
 
-  // Actif class (pharmacological clusters)
-  // Mirror of skincare ingredient actif_class slugs. Auto-derived at seed
+  // Actif class (pharmacological clusters) — shared base mirrored from the
+  // ingredient taxonomy, plus product-only extras (urea). Auto-derived at seed
   // time from a product's INCI via algo-derm normalize + substring match
   // (see backend/src/db/seed/utils/actif-class-detection.ts).
-  RETINOIDS: 'retinoids',
-  VITAMIN_C: 'vitamin-c',
-  VITAMIN_E: 'vitamin-e',
-  AHA: 'aha',
-  BHA: 'bha',
-  PHA: 'pha',
-  ENZYMES_EXFOLIANTS: 'enzymes-exfoliants',
-  CERAMIDES: 'ceramides',
-  HYALURONIC_ACID: 'hyaluronic-acid',
-  PEPTIDES: 'peptides',
-  POLYPHENOLS: 'polyphenols',
-  TYROSINASE_INHIBITORS: 'tyrosinase-inhibitors',
+  ...SHARED_SKINCARE_ACTIF_CLASS_SLUGS,
   UREA: 'urea',
 } as const
 

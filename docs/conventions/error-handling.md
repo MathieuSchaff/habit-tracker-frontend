@@ -144,7 +144,7 @@ it warms the cache without throwing, so a failed fetch falls through to the in-p
 instead of replacing the whole page. Use `ensureQueryData` only when the data is mandatory for
 the route to render at all.
 
-**Coverage (not audited).** 28 route loaders use `ensureQueryData`, 3 use `prefetchQuery`. Many
+**Coverage (not audited).** Most route loaders use `ensureQueryData`; secondary/degradable fetches use `prefetchQuery`. Many
 `ensureQueryData` uses are correct — the route can't render without the data (a missing product →
 full-page 404 is the right outcome). The risk is a **secondary, degradable** fetch wrongly making
 the page fatal: the `/blog` P0 (a failed category-counts fetch killed the whole page) was exactly
