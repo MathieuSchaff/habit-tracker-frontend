@@ -1,26 +1,20 @@
+import { useAuthStore } from '@/store/auth'
 import { Footer } from '../../components/Footer/Footer'
-import { HeroBase } from '../../components/Hero/HeroBase'
-import { AppEntriesSection } from '../../components/sections/AppEntriesSection'
-import { FinalCTASection } from '../../components/sections/FinalCTASection'
-import { FlowSection } from '../../components/sections/FlowSection'
-import { PhilosophySection } from '../../components/sections/PhilosophySection'
-import { PillarsSection } from '../../components/sections/PillarsSection'
-import { ProblemSection } from '../../components/sections/ProblemSection'
+import { HomeHub } from './HomeHub'
+import { HomeMarketing } from './HomeMarketing'
+import { HomeSkeleton } from './HomeSkeleton'
 
 import './HomePage.css'
 
+// Dual-audience route (ADR 0011): same "/" for everyone, no redirect/guard.
+// Auth changes what the page shows, never whether it is reachable.
 export function HomePage() {
+  const user = useAuthStore((s) => s.user)
+  const bootRefreshPending = useAuthStore((s) => s.bootRefreshPending)
+
   return (
     <div className="aur-page">
-      <main>
-        <HeroBase />
-        <ProblemSection />
-        <PillarsSection />
-        <AppEntriesSection />
-        <FlowSection />
-        <PhilosophySection />
-        <FinalCTASection />
-      </main>
+      <main>{bootRefreshPending ? <HomeSkeleton /> : user ? <HomeHub /> : <HomeMarketing />}</main>
       <Footer />
     </div>
   )
