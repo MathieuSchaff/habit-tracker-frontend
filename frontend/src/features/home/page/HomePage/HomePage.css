@@ -16,6 +16,15 @@
 @import "../../components/Hero/Hero.css";
 @import "../../components/Footer/Footer.css";
 
+@import "../../components/DoorwayGrid/DoorwayGrid.css";
+@import "./HomeHub.css";
+
+.aur-hub-boot {
+  display: grid;
+  place-items: center;
+  min-height: 60dvh;
+}
+
 .aur-page {
   display: flex;
   flex-direction: column;

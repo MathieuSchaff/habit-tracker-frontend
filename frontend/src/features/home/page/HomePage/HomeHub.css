@@ -1,0 +1,122 @@
+/* Hero aside: a calm branded panel, not a live widget (mood, not metrics). */
+.aur-hub-aside {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 14rem;
+  padding: var(--space-6);
+}
+.aur-hub-aside__sheet {
+  position: absolute;
+  inset: var(--space-3);
+  background: var(--bg-sunken);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-xl);
+  transform: rotate(-1.4deg);
+}
+.aur-hub-aside__mark {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-primary);
+}
+.aur-hub-aside__caption {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+/* Skin portrait read-out */
+.aur-hub-skin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  max-width: 56rem;
+}
+.aur-hub-skin__note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.aur-hub-skin__loading {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.aur-hub-skin__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+.aur-hub-skin__empty-text {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  max-width: 48ch;
+  line-height: var(--leading-relaxed);
+  text-wrap: pretty;
+}
+
+/* Discrete hub shortcuts under the doorway grid */
+.aur-hub-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.aur-hub-links a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.aur-hub-links a:hover {
+  text-decoration: underline;
+}
+
+.aur-hub-shelf {
+  max-width: 56rem;
+}
+
+/* Learn doorways: calm row of links */
+.aur-hub-learn {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Re-orientation band: sober utility strip, not a second navigation */
+.aur-hub-reorient .aur-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  color: var(--color-primary);
+}
+.aur-hub-reorient__line {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+.aur-hub-reorient__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.aur-hub-reorient__links a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.aur-hub-reorient__links a:hover {
+  text-decoration: underline;
+}
