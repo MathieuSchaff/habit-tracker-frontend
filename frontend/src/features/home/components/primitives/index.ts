@@ -1,4 +1,3 @@
-export { ChaosTab } from './ChaosTab'
 export { ComparisonStrip } from './ComparisonStrip'
 export { CosmeticObject } from './CosmeticObject'
 export { IngredientCard } from './IngredientCard'

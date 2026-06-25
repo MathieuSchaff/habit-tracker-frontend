@@ -141,7 +141,7 @@
   container: hero-visual / inline-size;
 }
 
-/* Variant A: visual stack (3 cards) */
+/* Hero visual stack (3 cards) */
 .aur-hero-stack {
   position: relative;
   display: grid;
@@ -181,60 +181,4 @@
 }
 .aur-hero-stack__primary {
   grid-column: 1 / -1;
-}
-
-/* Variant B: chaos -> order */
-.aur-hero-chaos {
-  position: relative;
-  min-height: 26rem;
-}
-.aur-hero-chaos__col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.aur-hero-chaos__col--tilt {
-  transform: rotate(-1deg);
-}
-.aur-hero-chaos__cols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-3);
-  align-items: stretch;
-}
-.aur-hero-chaos__divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-block: var(--space-3);
-  gap: var(--space-2);
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.aur-hero-chaos__divider::before,
-.aur-hero-chaos__divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border-default);
-}
-.aur-hero-chaos__arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  color: oklch(99% 0 0);
-}
-
-/* Variant C: Wiki + comparison */
-.aur-hero-wiki {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
 }
