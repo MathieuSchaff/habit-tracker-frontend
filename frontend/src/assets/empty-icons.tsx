@@ -155,13 +155,13 @@ export function EmptyIllustration({ kind, size = 96 }: { kind: EmptyKind; size?:
   return Icon ? <Icon size={size} /> : null
 }
 
-// --- Onboarding ornaments (24-grid, match the product-icons family) ---
+// Onboarding ornaments (24-grid, match the product-icons family).
 // Each hint is the miniature of its empty-state scene so the metaphor
 // stays single: shelf=stock, heart=wishlist, gem=grail.
 
 const smallStroke = { ...stroke, strokeWidth: 1.75 } as const
 
-// Replaces the ✦ glyph in the first-time shelf scene.
+// SVG replacement for the sparkle asterisk used in the empty-shelf first-visit scene.
 export function SparkleIcon({ size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">

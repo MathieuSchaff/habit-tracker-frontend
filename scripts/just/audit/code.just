@@ -20,3 +20,7 @@ audit-code:
     printf "{{ CYAN }}=== react-doctor (React patterns/a11y/perf) ==={{ NC }}\n"
     cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
     printf "{{ GREEN }}Done. Rapports → .audit-out/{{ NC }}\n"
+
+# Flag likely AI-style / low-value comments (heuristic, no edits). ts/tsx/js/jsx/mjs/cjs/css. Report → .audit-out/comments.txt
+audit-comments dirs="backend/src frontend/src shared/src":
+    bun scripts/audit-comments.ts {{dirs}}

@@ -1,4 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
+import type { LinkProps } from '@tanstack/react-router'
 
 import { BackButton } from '@/component/Button/BackButton'
 import { discussionQueries } from '@/lib/queries/discussions'
@@ -9,7 +10,7 @@ interface ThreadDetailPageProps {
   entityType: 'product' | 'ingredient'
   slug: string
   threadId: string
-  backTo: string
+  backTo: LinkProps['to']
 }
 
 export function ThreadDetailPage({ entityType, slug, threadId, backTo }: ThreadDetailPageProps) {

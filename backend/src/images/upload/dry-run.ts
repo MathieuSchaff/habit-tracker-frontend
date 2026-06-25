@@ -217,8 +217,6 @@ const orphans = noMatch
 const strippedViaNormalize = stripped.filter((r) => r.via === 'normalize')
 const strippedViaTokenSet = stripped.filter((r) => r.via === 'token-set')
 
-// --- Output ---
-
 console.log('\n=== DRY RUN: Image → S3 mapping ===\n')
 console.log(`Images found:          ${imageFiles.length}`)
 console.log(`  exact match:         ${exact.length}`)

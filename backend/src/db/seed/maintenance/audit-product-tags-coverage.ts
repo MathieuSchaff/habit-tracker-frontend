@@ -43,7 +43,6 @@ function checkProductTags() {
     }
   })
 
-  // --- 📋 RAPPORT ---
   console.group('📋 PRODUCT TAGS AUDIT REPORT')
 
   if (orphanSlugs.length > 0) {

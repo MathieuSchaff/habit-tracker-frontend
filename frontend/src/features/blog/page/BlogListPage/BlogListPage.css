@@ -240,7 +240,7 @@
     margin-inline: auto;
   }
 
-  /* Override .list-main centering - now we live inside a grid column. */
+  /* Override .list-main centering: inside a grid column the max-width is moot. */
   .blog-list-page .list-main {
     max-width: none;
     margin-inline: 0;

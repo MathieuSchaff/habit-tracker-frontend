@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -93,7 +93,9 @@ describe('ReportContentButton', () => {
     fireEvent.change(screen.getByLabelText(/Raison/i), { target: { value: 'Hors sujet' } })
     await userEvent.click(screen.getByRole('button', { name: /Envoyer/i }))
 
-    capturedOnSuccess?.()
+    await act(async () => {
+      capturedOnSuccess?.()
+    })
 
     await waitFor(() => {
       expect(screen.getByText(REPORT_LABELS.successMessage)).toBeInTheDocument()
@@ -117,7 +119,9 @@ describe('ReportContentButton', () => {
     fireEvent.change(screen.getByLabelText(/Raison/i), { target: { value: 'Hors sujet' } })
     await userEvent.click(screen.getByRole('button', { name: /Envoyer/i }))
 
-    capturedOnError?.(new Error('Rate limit exceeded'))
+    await act(async () => {
+      capturedOnError?.(new Error('Rate limit exceeded'))
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Rate limit exceeded')).toBeInTheDocument()

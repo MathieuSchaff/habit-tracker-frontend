@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -156,7 +156,9 @@ describe('SearchSelect — keyboard', () => {
     const user = userEvent.setup()
     renderSelect()
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}')
 
     expect(input).toHaveAttribute('aria-expanded', 'true')
@@ -171,7 +173,9 @@ describe('SearchSelect — keyboard', () => {
     ]
     renderSelect(<SearchSelect {...baseProps} options={tiny} onToggle={vi.fn()} />)
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
 
     expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
@@ -181,7 +185,9 @@ describe('SearchSelect — keyboard', () => {
     const user = userEvent.setup()
     renderSelect()
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}{ArrowUp}')
 
     expect(document.activeElement).toBe(input)
@@ -203,10 +209,14 @@ describe('SearchSelect — keyboard', () => {
     const user = userEvent.setup()
     renderSelect()
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{Tab}')
     expect(input).toHaveAttribute('aria-expanded', 'false')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{Enter}')
     expect(input).toHaveAttribute('aria-expanded', 'true')
   })
@@ -221,7 +231,9 @@ describe('SearchSelect — keyboard', () => {
       </div>
     )
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}{Escape}')
 
     expect(input).toHaveAttribute('aria-expanded', 'false')
@@ -232,7 +244,9 @@ describe('SearchSelect — keyboard', () => {
     const user = userEvent.setup()
     renderSelect()
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}')
     expect(input).toHaveAttribute('aria-expanded', 'true')
     await user.keyboard('{Tab}')
@@ -263,7 +277,9 @@ describe('SearchSelect — a11y', () => {
     const user = userEvent.setup()
     renderSelect()
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     await user.keyboard('{ArrowDown}{ArrowDown}')
     expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
   })
@@ -361,7 +377,9 @@ describe('SearchSelect — keyboard edge cases', () => {
     ]
     renderSelect(<SearchSelect {...baseProps} options={tiny} onToggle={vi.fn()} />)
     const input = screen.getByRole('combobox')
-    input.focus()
+    act(() => {
+      input.focus()
+    })
     // 6 ArrowDown on 2 options must not push activedescendant past option-1.
     await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
     expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))

@@ -113,6 +113,7 @@ export const ProfileDashboard = () => {
         options={tabOptions}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        variant="underline"
         className="profile-tabs-container"
         idPrefix="profile-tab"
       />

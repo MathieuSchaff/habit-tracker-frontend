@@ -255,8 +255,6 @@ function normalizeKeyPart(s: string): string {
     .trim()
 }
 
-// ---------- Duplicate detection helpers ----------
-
 const VOLUME_RE = /\b\d+\s*(ml|l|g|kg|gr)\b/g
 const FORMAT_RE =
   /\b(eco[-\s]?recharge|recharge|eco|format|nomade|lot|pack|x\s*\d+|de\s+\d+|flacon)\b/g

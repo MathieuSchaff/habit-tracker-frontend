@@ -95,7 +95,6 @@ for (const { slug, inci, category, brand } of rows) {
 
 await sql.end()
 
-// === Report 1: pathological INCI strings ===
 console.log('='.repeat(70))
 console.log('1. INCI pathologies (formatting/quality issues)')
 console.log('='.repeat(70))
@@ -112,7 +111,6 @@ for (const [name, list] of Object.entries(pathologyLists) as Array<
     )
 }
 
-// === Report 2: top unmatched tokens ===
 function topN(map: Map<string, number>, n: number) {
   return Array.from(map.entries())
     .sort((a, b) => b[1] - a[1])
@@ -128,7 +126,6 @@ console.log('\n  non-FR products — top 40 unmatched')
 for (const [tok, count] of topN(unmatchedNonFR, 40))
   console.log(`    ${String(count).padStart(4)} × ${tok}`)
 
-// === Report 3: worst-match products (skincare only, ≥10 ings) ===
 console.log(`\n${'='.repeat(70)}`)
 console.log('3. Worst-match skincare products (≥10 ings, sorted by ratio asc)')
 console.log('='.repeat(70))
@@ -144,7 +141,6 @@ worstSkincare.forEach((p, i) => {
   console.log(`         unmatched: ${p.unmatchedSample.join(' | ')}`)
 })
 
-// === Report 4: aggregate per brand ===
 console.log(`\n${'='.repeat(70)}`)
 console.log('4. Brand-level match-rate (skincare, ≥5 products)')
 console.log('='.repeat(70))

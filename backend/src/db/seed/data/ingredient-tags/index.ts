@@ -7,24 +7,24 @@
 // liste noire à la main, TAG_TAXONOMY est la source de vérité.
 //
 // Catégories interdites sur un ingrédient (scope = 'product') :
-//   ❌ product_type   (ex: serum, creme-hydratante)
-//   ❌ routine_step   (ex: matin, hydratation, emollience)
-//   ❌ skin_zone      (ex: zone-visage, zone-yeux)
-//   ❌ la plupart des product_label (sans-parfum, vegan, hypoallergenique…)
-//   ❌ skin_effect "produit fini" (texture-riche, texture-legere)
+//   [x] product_type   (ex: serum, creme-hydratante)
+//   [x] routine_step   (ex: matin, hydratation, emollience)
+//   [x] skin_zone      (ex: zone-visage, zone-yeux)
+//   [x] la plupart des product_label (sans-parfum, vegan, hypoallergenique…)
+//   [x] skin_effect "produit fini" (texture-riche, texture-legere)
 //
 // Scope = 'both' : autorisés ici parce qu'ils décrivent AUSSI une
 // propriété intrinsèque de molécule :
-//   ✅ ingredient_attribute  (actif, humectant, filtre-uv, tensioactif…)
-//   ✅ skin_effect (OCCLUSIF, REPULPANT, MATIFIANT, EFFET_PROTECTEUR)
-//   ✅ product_label (FILTRES_CHIMIQUES, FILTRES_MINERAUX)
-//   ✅ shared_label  (COMEDOGENE, NON_COMEDOGENE)
-//   ✅ concern, skin_type
+//   [v] ingredient_attribute  (actif, humectant, filtre-uv, tensioactif…)
+//   [v] skin_effect (OCCLUSIF, REPULPANT, MATIFIANT, EFFET_PROTECTEUR)
+//   [v] product_label (FILTRES_CHIMIQUES, FILTRES_MINERAUX)
+//   [v] shared_label  (COMEDOGENE, NON_COMEDOGENE)
+//   [v] concern, skin_type
 //
 // Règle `avoid` :
-//   ✅ uniquement skin_type ou concern.
-//   ❌ jamais d'attribut, de label, de product_type ni de routine_step.
-//   ⚠️  exception conventionnelle : `grossesse-compatible` (scope=product)
+//   [v] uniquement skin_type ou concern.
+//   [x] jamais d'attribut, de label, de product_type ni de routine_step.
+//   [!] exception conventionnelle : `grossesse-compatible` (scope=product)
 //       est toléré dans `avoid` pour signifier "contre-indiqué pendant
 //       la grossesse" — le test le sait.
 //

@@ -1,26 +1,4 @@
-/**
- * Validateur complet et correcteur de markdown pour les seeds d'ingrédients
- *
- * Gère :
- * - Suppression de l'indentation
- * - Validation des listes (✅/⛔ sans marqueur)
- * - Validation des tableaux
- * - Détection des formules LaTeX
- * - Validation des longueurs (description max 5000, content max 100000)
- * - Rapport détaillé des problèmes
- *
- * Utilisation :
- *
- * import { validateAllIngredients, printValidationReport } from './validators/markdown-validator'
- *
- * const validation = validateAllIngredients(ingredientData)
- * printValidationReport(validation)
- * const correctedData = validation.fixed
- */
-
 import type { IngredientType } from '@aurore/shared'
-
-// TYPES
 
 export interface IngredientSeed {
   name: string
@@ -49,12 +27,6 @@ export interface AllValidationResults {
   fixed: IngredientSeed[]
 }
 
-// CORE VALIDATION FUNCTIONS
-
-/**
- * Corrige l'indentation du markdown
- * Détecte le minimum d'espaces au début de chaque ligne et les supprime
- */
 function fixMarkdownIndentation(markdown: string): {
   fixed: string
   issues: string[]
@@ -62,7 +34,6 @@ function fixMarkdownIndentation(markdown: string): {
   const issues: string[] = []
   let fixed = markdown
 
-  // Divise en lignes
   const lines = fixed.split('\n')
   const nonEmptyLines = lines.filter((line) => line.trim().length > 0)
 
@@ -70,7 +41,6 @@ function fixMarkdownIndentation(markdown: string): {
     return { fixed, issues }
   }
 
-  // Trouve le nombre minimum d'espaces au début des lignes non-vides
   const leadingSpaces = nonEmptyLines.map((line) => {
     const match = line.match(/^(\s*)/)
     return match ? match[1].length : 0
@@ -78,7 +48,6 @@ function fixMarkdownIndentation(markdown: string): {
 
   const minIndent = Math.min(...leadingSpaces)
 
-  // Si tout a au moins N espaces, on les retire
   if (minIndent > 0) {
     fixed = lines.map((line) => (line.length > 0 ? line.substring(minIndent) : line)).join('\n')
 
@@ -88,17 +57,12 @@ function fixMarkdownIndentation(markdown: string): {
   return { fixed, issues }
 }
 
-/**
- * Valide les listes markdown
- * Détecte les lignes avec ✅ ou ⛔ qui n'ont pas de marqueur de liste (- ou *)
- */
 function validateLists(markdown: string): string[] {
   const issues: string[] = []
   const lines = markdown.split('\n')
 
   const badListLines = lines.filter((line) => {
     const trimmed = line.trim()
-    // Détecte ✅ ou ⛔ au début, mais pas de - ou *
     return (
       trimmed.match(/^[✅⛔]/) &&
       !trimmed.startsWith('-') &&
@@ -119,15 +83,10 @@ function validateLists(markdown: string): string[] {
   return issues
 }
 
-/**
- * Valide les tableaux markdown
- * Vérifie que la deuxième ligne est bien une ligne de séparation |---|---|
- */
 function validateTables(markdown: string): string[] {
   const issues: string[] = []
   const lines = markdown.split('\n')
 
-  // Trouve toutes les lignes qui commencent par |
   const tableLineIndices: number[] = []
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].trim().startsWith('|')) {
@@ -139,15 +98,12 @@ function validateTables(markdown: string): string[] {
     return issues
   }
 
-  // Vérifie les tableaux (première ligne est header, deuxième est séparation)
   for (let i = 0; i < tableLineIndices.length - 1; i++) {
     const headerIdx = tableLineIndices[i]
     const nextIdx = tableLineIndices[i + 1]
 
-    // Si la prochaine ligne de tableau est directement après, c'est la séparation
     if (nextIdx === headerIdx + 1) {
       const separatorLine = lines[nextIdx].trim()
-      // Doit être comme |---|---|---|
       if (!separatorLine.match(/^\|[\s\-|]*\|$/)) {
         issues.push(`⚠️  Tableau à ligne ${headerIdx + 1}: ligne de séparation invalide`)
         issues.push(`   Reçu: "${separatorLine.substring(0, 60)}..."`)
@@ -159,9 +115,6 @@ function validateTables(markdown: string): string[] {
   return issues
 }
 
-/**
- * Détecte les formules LaTeX brutes
- */
 function detectLatex(markdown: string): string[] {
   const issues: string[] = []
 
@@ -186,9 +139,6 @@ function detectLatex(markdown: string): string[] {
   return issues
 }
 
-/**
- * Valide un seul ingrédient
- */
 function validateIngredient(ing: IngredientSeed): {
   valid: boolean
   errors: string[]
@@ -198,8 +148,6 @@ function validateIngredient(ing: IngredientSeed): {
   const errors: string[] = []
   const warnings: string[] = []
   let fixedContent = ing.content
-
-  // Validation des champs obligatoires
 
   if (!ing.name?.trim()) {
     errors.push('❌ name est obligatoire')
@@ -228,8 +176,6 @@ function validateIngredient(ing: IngredientSeed): {
     errors.push('❌ content est obligatoire')
   }
 
-  // Validation des longueurs
-
   const MAX_DESCRIPTION = 5000
   const MAX_CONTENT = 100000
 
@@ -241,25 +187,13 @@ function validateIngredient(ing: IngredientSeed): {
     errors.push(`❌ content trop long: ${ing.content.length}/${MAX_CONTENT} caractères`)
   }
 
-  // Correction du markdown
-
   const { fixed, issues: indentationIssues } = fixMarkdownIndentation(ing.content)
   fixedContent = fixed
   warnings.push(...indentationIssues)
 
-  // Validation des listes
-
   warnings.push(...validateLists(fixedContent))
-
-  // Validation des tableaux
-
   warnings.push(...validateTables(fixedContent))
-
-  // Détection LaTeX
-
   warnings.push(...detectLatex(fixedContent))
-
-  // Résultat final
 
   const valid = errors.length === 0
   const fixedIng = { ...ing, content: fixedContent }
@@ -272,14 +206,6 @@ function validateIngredient(ing: IngredientSeed): {
   }
 }
 
-// PUBLIC API
-
-/**
- * Valide TOUS les ingrédients et retourne les versions corrigées
- *
- * @param ingredients - Array d'ingrédients à valider
- * @returns Objet avec summary, results détaillés, et fixed (ingrédients corrigés)
- */
 export function validateAllIngredients(ingredients: IngredientSeed[]): AllValidationResults {
   const results: ValidationResult[] = []
   const fixed: IngredientSeed[] = []
@@ -318,25 +244,16 @@ export function validateAllIngredients(ingredients: IngredientSeed[]): AllValida
   }
 }
 
-/**
- * Affiche un rapport formaté et lisible de la validation
- *
- * @param results - Résultats de validateAllIngredients()
- */
 export function printValidationReport(results: AllValidationResults): void {
   console.log(`\n${'='.repeat(70)}`)
   console.log('📊 RAPPORT DE VALIDATION DES INGRÉDIENTS')
   console.log(`${'='.repeat(70)}\n`)
-
-  // Résumé
 
   console.log('📈 Résumé:')
   console.log(`   Total         : ${results.summary.total}`)
   console.log(`   ✅ Valides    : ${results.summary.valid}/${results.summary.total}`)
   console.log(`   ⚠️  Warnings  : ${results.summary.warnings}`)
   console.log()
-
-  // Détails par ingrédient
 
   let errorCount = 0
   let warningCount = 0
@@ -365,8 +282,6 @@ export function printValidationReport(results: AllValidationResults): void {
       console.log()
     }
   }
-
-  // Résumé final
 
   console.log('='.repeat(70))
   if (errorCount === 0) {
