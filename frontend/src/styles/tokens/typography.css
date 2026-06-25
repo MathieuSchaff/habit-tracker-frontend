@@ -17,6 +17,7 @@
   --font-bold: 700;
 
   /* Tighter leading on titles for an editorial feel. */
+  --leading-none: 1;
   --leading-tight: 1.15;
   --leading-snug: 1.3;
   --leading-normal: 1.5;

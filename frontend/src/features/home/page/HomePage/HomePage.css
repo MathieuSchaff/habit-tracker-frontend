@@ -1,0 +1,50 @@
+@import "../../components/primitives/Tag.css";
+@import "../../components/primitives/ProductCard.css";
+@import "../../components/primitives/IngredientCard.css";
+@import "../../components/primitives/ProfileCard.css";
+@import "../../components/primitives/ComparisonStrip.css";
+@import "../../components/primitives/CosmeticObject.css";
+
+@import "../../components/sections/shared.css";
+@import "../../components/sections/ProblemSection.css";
+@import "../../components/sections/PillarsSection.css";
+@import "../../components/sections/AppEntriesSection.css";
+@import "../../components/sections/FlowSection.css";
+@import "../../components/sections/PhilosophySection.css";
+@import "../../components/sections/FinalCTASection.css";
+
+@import "../../components/Hero/Hero.css";
+@import "../../components/Footer/Footer.css";
+
+.aur-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "cv01" 1,
+    "cv11" 1;
+}
+
+.aur-page :focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aur-page *,
+  .aur-page *::before,
+  .aur-page *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: a11y override - prefers-reduced-motion must beat author specificity */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: a11y override - prefers-reduced-motion must beat author specificity */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: a11y override - prefers-reduced-motion must beat author specificity */
+    transition-duration: 0.01ms !important;
+  }
+}
