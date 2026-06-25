@@ -7,7 +7,6 @@
 // annotator can pick up where they left off.
 //
 // Sampling strategy
-// -----------------
 // For each focus tag (16 total: 9 actif-class clusters, 4 sensoriels T1,
 // 3 acid clusters), we draw:
 //   - POSITIVES_PER_TAG products that currently carry the tag in DB. Picked
@@ -22,7 +21,6 @@
 // helping the annotator focus when triaging.
 //
 // Determinism
-// -----------
 // Seeded PRNG (mulberry32, SEED env). Same SEED + same DB state = same draw.
 // Re-running with a higher SAMPLE_SIZE adds new products on top of the
 // previous draw; the previous selection stays stable.

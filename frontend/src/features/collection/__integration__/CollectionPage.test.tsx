@@ -23,6 +23,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     // This file's mock shadows the global setup; re-stub useRouter so children
     // calling it don't reach the real one (no RouterProvider in this test).
     useRouter: vi.fn(() => ({ state: { location: { pathname: '/' } } })),
+    useNavigate: vi.fn(() => vi.fn()),
     getRouteApi: () => ({
       useNavigate: () => (updates: any) => {
         if (typeof updates.search === 'function') {

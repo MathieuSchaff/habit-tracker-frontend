@@ -41,7 +41,6 @@ function CheckProductIngredients() {
     }
   }
 
-  // --- 📝 RAPPORT D'AUDIT ---
   console.log("--- 🧪 RAPPORT D'AUDIT INGRÉDIENTS ---")
 
   // Erreur : Ingrédients liés à des slugs inexistants (Souvent une faute de frappe)

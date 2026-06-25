@@ -16,6 +16,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     Link: vi.fn(({ children }) => <a href="/">{children}</a>),
     // createLink closes over the real internal Link, bypassing the override above.
     createLink: vi.fn(() => vi.fn(({ children }) => <a href="/">{children}</a>)),
+    useNavigate: vi.fn(() => vi.fn()),
     getRouteApi: () => ({
       useNavigate: () => vi.fn(),
       useSearch: () => ({

@@ -1,6 +1,6 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ingredientLabels } from '../../constants'
@@ -71,15 +71,17 @@ describe('IngredientInfoTab', () => {
     setQueryData({ products: [], tags: [] })
   })
 
-  it('renders family (type + category) and the description section', () => {
-    render(<IngredientInfoTab />)
+  it('renders family (type + category) and the description section', async () => {
+    await act(async () => {
+      render(<IngredientInfoTab />)
+    })
 
     expect(screen.getByText('actif')).toBeInTheDocument()
     expect(screen.getByText('rétinoïde')).toBeInTheDocument()
     expect(screen.getByText('Description')).toBeInTheDocument()
   })
 
-  it('splits tags into beneficial (Fonctions) and avoid (À noter) sections', () => {
+  it('splits tags into beneficial (Fonctions) and avoid (À noter) sections', async () => {
     setQueryData({
       products: [],
       tags: [
@@ -87,26 +89,32 @@ describe('IngredientInfoTab', () => {
         { ingredientTagId: 't2', tagName: 'Photosensibilisant', relevance: 'avoid' },
       ],
     })
-    render(<IngredientInfoTab />)
+    await act(async () => {
+      render(<IngredientInfoTab />)
+    })
 
     expect(screen.getByText('Anti-âge')).toBeInTheDocument()
     expect(screen.getByText('Photosensibilisant')).toBeInTheDocument()
   })
 
-  it('shows an empty-state message when no products reference the ingredient', () => {
+  it('shows an empty-state message when no products reference the ingredient', async () => {
     setQueryData({ products: [], tags: [] })
-    render(<IngredientInfoTab />)
+    await act(async () => {
+      render(<IngredientInfoTab />)
+    })
     expect(screen.getByText(ingredientLabels.noProductsAssociated)).toBeInTheDocument()
   })
 
-  it('truncates to MAX_VISIBLE_PRODUCTS and exposes a "Voir tous" link', () => {
+  it('truncates to MAX_VISIBLE_PRODUCTS and exposes a "Voir tous" link', async () => {
     const products = Array.from({ length: 8 }, (_, i) => ({
       id: `p${i}`,
       slug: `product-${i}`,
       name: `Produit ${i}`,
     }))
     setQueryData({ products, tags: [] })
-    render(<IngredientInfoTab />)
+    await act(async () => {
+      render(<IngredientInfoTab />)
+    })
 
     // 5 visible names + the "Voir tous" link.
     expect(screen.getByText('Produit 0')).toBeInTheDocument()

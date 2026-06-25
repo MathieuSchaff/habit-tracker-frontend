@@ -10,8 +10,8 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // axes. Replaces the algo-derm `matifiant` mapping (its `computed_score` rule
 // conflated the slug with `peau-grasse` set membership (identical product
 // set, different semantics). The algo-derm slug has no TAG_CONFIG entry;
-// its candidate is dropped as `unmapped`. Here we tie matifiant to actual
-// absorbent ingredients, not skin-type inference.
+// its candidate is dropped as `unmapped`. Ties matifiant to actual
+// absorbent ingredients instead of skin-type inference.
 //
 // `talc` is included for legacy makeup/skincare hybrids; its safety status
 // (asbestos-free) is a separate concern handled at the brand level.

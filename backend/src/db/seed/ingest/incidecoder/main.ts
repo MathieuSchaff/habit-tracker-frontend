@@ -127,7 +127,6 @@ function extractINCIFromProduct(html: string): string[] | null {
   return out
 }
 
-// ---------- Phase 1: crawl ----------
 async function phaseCrawl(): Promise<void> {
   const index: BrandIndex = {}
   for (const idSlug of Object.values(TARGET_BRANDS_DB)) {
@@ -139,7 +138,6 @@ async function phaseCrawl(): Promise<void> {
   console.log(`\nwrote ${INDEX_PATH}`)
 }
 
-// ---------- Phase 2: match ----------
 type WeakProduct = {
   slug: string
   name: string
@@ -236,7 +234,6 @@ async function phaseMatch(): Promise<void> {
   }
 }
 
-// ---------- Phase 3: fetch ----------
 type FetchedINCI = { db: WeakProduct; url: string; inci: string[]; rawINCI: string }
 
 async function phaseFetch(scoreThreshold: number): Promise<void> {
@@ -268,7 +265,6 @@ async function phaseFetch(scoreThreshold: number): Promise<void> {
   console.log(`wrote ${INCI_PATH} (${out.length} products)`)
 }
 
-// ---------- Phase 4: apply ----------
 async function phaseApply(): Promise<void> {
   const aliasIndex = buildAliasIndex(MERGED_EVIDENCE_DB)
   const raw = await Bun.file(INCI_PATH).text()
@@ -296,7 +292,6 @@ async function phaseApply(): Promise<void> {
   console.log(`\nupdated=${updated}  skipped=${skipped}  total=${data.length}`)
 }
 
-// ---------- main ----------
 const args = process.argv.slice(2)
 if (args.includes('--crawl')) await phaseCrawl()
 else if (args.includes('--match')) await phaseMatch()

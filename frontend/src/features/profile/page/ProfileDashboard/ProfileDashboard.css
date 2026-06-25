@@ -15,8 +15,6 @@
   }
 }
 
-/* --- Hero --- */
-
 .profile-hero {
   --hero-tint: var(--color-primary);
   position: relative;
@@ -225,8 +223,6 @@
   }
 }
 
-/* --- Tabs --- */
-
 .profile-tabs-container {
   padding: 0;
   margin: var(--space-4) 0 var(--space-2);
@@ -267,8 +263,6 @@
   min-height: 32rem;
   width: 100%;
 }
-
-/* --- Profil tab card grid --- */
 
 .profile-tab-content__grid {
   display: grid;

@@ -1,5 +1,5 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
@@ -104,7 +104,7 @@ describe('ProductInfoTab', () => {
     } as unknown as ReturnType<typeof useCopyToClipboard>)
   })
 
-  it('renders description and ingredient list with concentration formatting', () => {
+  it('renders description and ingredient list with concentration formatting', async () => {
     setProduct({
       description: 'Glow serum.',
       ingredients: [
@@ -119,14 +119,16 @@ describe('ProductInfoTab', () => {
         },
       ],
     })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     expect(screen.getByText('Glow serum.')).toBeInTheDocument()
     expect(screen.getByText('Niacinamide')).toBeInTheDocument()
     expect(screen.getByText('10 %')).toBeInTheDocument()
   })
 
-  it('renders a neutral At a Glance summary from kind and ingredient groups', () => {
+  it('renders a neutral At a Glance summary from kind and ingredient groups', async () => {
     setProduct({
       kind: 'moisturizer',
       ingredients: [
@@ -138,22 +140,26 @@ describe('ProductInfoTab', () => {
         { ingredientSlug: 'glycerin', ingredientName: 'Glycerin', ingredientCategory: 'humectant' },
       ],
     })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     expect(screen.getByText('En bref')).toBeInTheDocument()
     expect(screen.getByText(/Composition : actifs et agents hydratants\./)).toBeInTheDocument()
   })
 
-  it('boxes the manufacturer copy behind a disclosure with an unverified-voice note', () => {
+  it('boxes the manufacturer copy behind a disclosure with an unverified-voice note', async () => {
     setProduct({ description: 'Buy now at a discount price!' })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     expect(screen.getByText('Texte de la marque')).toBeInTheDocument()
     expect(screen.getByText('Voix commerciale, non vérifiée par Aurore.')).toBeInTheDocument()
     expect(screen.getByText('Buy now at a discount price!')).toBeInTheDocument()
   })
 
-  it('copies the ingredient list as comma-joined string with concentrations', () => {
+  it('copies the ingredient list as comma-joined string with concentrations', async () => {
     setProduct({
       ingredients: [
         {
@@ -172,14 +178,16 @@ describe('ProductInfoTab', () => {
         },
       ],
     })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Copier la liste des ingrédients' }))
 
     expect(copy).toHaveBeenCalledWith('Niacinamide (10 %), Glycerin')
   })
 
-  it('warns when an avoid tag matches the user dermo profile', () => {
+  it('warns when an avoid tag matches the user dermo profile', async () => {
     vi.mocked(useAuthStore).mockReturnValue({ id: 'u1' } as never)
     setDermo({ skinTypes: ['peau-sensible'], skinConcerns: [] })
     setProduct({
@@ -188,19 +196,23 @@ describe('ProductInfoTab', () => {
         { tagSlug: 'anti-age', relevance: 'primary' },
       ],
     })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     expect(screen.getByText(/Peut ne pas convenir à votre profil cutané/)).toBeInTheDocument()
     expect(screen.getByText(/Sensible/)).toBeInTheDocument()
   })
 
-  it('does not warn for non-matching avoid tags', () => {
+  it('does not warn for non-matching avoid tags', async () => {
     vi.mocked(useAuthStore).mockReturnValue({ id: 'u1' } as never)
     setDermo({ skinTypes: ['peau-grasse'], skinConcerns: [] })
     setProduct({
       tags: [{ tagSlug: 'peau-sensible', relevance: 'avoid' }],
     })
-    render(<ProductInfoTab />)
+    await act(async () => {
+      render(<ProductInfoTab />)
+    })
 
     expect(screen.queryByText(/Peut ne pas convenir/)).not.toBeInTheDocument()
   })

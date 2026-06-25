@@ -15,8 +15,6 @@ function auditIngredientsSystem() {
   const dataSet = new Set(dataSlugs)
   const configSet = new Set(configSlugs)
 
-  // --- ANALYSE DES ÉCARTS ---
-
   // A. Slugs manquants (Définis en config mais absents de la DATA)
   const missingInData = configSlugs.filter((slug) => !dataSet.has(slug))
 
@@ -30,8 +28,6 @@ function auditIngredientsSystem() {
   const incompleteEntries = newData
     .filter((i) => !i.name || !i.description || i.content.length < 50)
     .map((i) => i.slug)
-
-  // --- AFFICHAGE DU RAPPORT ---
 
   console.log('📊 RÉSUMÉ DES DONNÉES')
   console.table({

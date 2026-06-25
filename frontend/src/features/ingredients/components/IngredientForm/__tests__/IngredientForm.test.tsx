@@ -41,7 +41,7 @@ vi.mock('@/lib/queries/product-tags', () => ({
   productTagQueries: {
     list: vi.fn(() => ({
       queryKey: ['product-tags', 'list'],
-      queryFn: vi.fn(),
+      queryFn: vi.fn().mockResolvedValue([]),
       data: [],
     })),
   },

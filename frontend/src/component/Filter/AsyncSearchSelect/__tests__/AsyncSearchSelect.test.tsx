@@ -82,7 +82,9 @@ describe('AsyncSearchSelect — debounce + gating', () => {
 
     await user.type(screen.getByRole('combobox'), 'n')
     // Wait past the debounce — still no request because below minChars (default 2).
-    await new Promise((r) => setTimeout(r, 80))
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 80))
+    })
 
     expect(searchCalls()).toHaveLength(0)
     expect(screen.getByText(/Tapez au moins 2 caractères/i)).toBeInTheDocument()

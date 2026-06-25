@@ -41,7 +41,7 @@ import {
 } from './env'
 import { type AuditState, BENEFIT_AXES, fetchAuditStats } from './stats'
 
-// ✓/✗=allow, c=confidenceFloor, v=coverageFloor, L=excludeRinseOff.
+// +/-=allow, c=confidenceFloor, v=coverageFloor, L=excludeRinseOff.
 function formatRule(r: TagRule): string {
   const parts: string[] = [r.allow ? '✓' : '✗']
   if (r.confidenceFloor !== undefined) parts.push(`c=${r.confidenceFloor.toFixed(2)}`)

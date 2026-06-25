@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -79,7 +79,9 @@ describe('useTokenRefresh', () => {
 
     const { rerender } = renderHook(() => useTokenRefresh(), { wrapper })
 
-    useAuthStore.setState({ tokenExpiresAt: Date.now() + 2 * 60_000 })
+    act(() => {
+      useAuthStore.setState({ tokenExpiresAt: Date.now() + 2 * 60_000 })
+    })
     rerender()
 
     vi.advanceTimersByTime(60_000)

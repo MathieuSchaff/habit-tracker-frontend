@@ -314,7 +314,7 @@ export async function updateIngredient(
 }
 
 // Stamp an ingredient as verified. Route guard (requireCatalogWrite) limits
-// callers to admin/contributor; here we only set the quality stamp. One-way:
+// callers to admin/contributor; only sets the quality stamp. One-way:
 // un-verify is out of scope.
 export async function verifyIngredient(database: DB, actorId: string, id: string) {
   const [row] = await database

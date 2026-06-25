@@ -172,7 +172,7 @@ export type ContentPreview = {
 
 export type ContentPreviewResult = ApiResponse<ContentPreview, CommonErrorCode>
 
-// --- Catalog moderation queue (#16). The queue lists submitted catalog rows so a
+// Catalog moderation queue (#16). The queue lists submitted catalog rows so a
 // moderator can verify (bless) or hide them. One request = one kind (a tab), so the
 // product-only `brand` field is null for ingredients. ContentPreview is the single-row
 // preview shape and lacks catalogQuality — hence this dedicated list item.
