@@ -17,6 +17,8 @@ pre-commit:
 
     biome:
       glob: "*.{ts,tsx,js,jsx,json,jsonc,css,md}"
-      run: bunx biome check --write {staged_files}
+      # --no-errors-on-unmatched: biome 2.5 doesn't process .md, so a docs-only commit
+      # would exit 1 ("No files processed"). Real lint violations still fail the hook.
+      run: bunx biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
 

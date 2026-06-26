@@ -10,7 +10,7 @@
 
 // The ingredient taxonomy itself stays `{category}`-only; labels are derived
 // separately via `buildTagLabels`. Subgroups are display overlays (skincare only).
-export type TagDef<C extends string = string> = {
+type TagDef<C extends string = string> = {
   readonly key: string
   readonly slug: string
   readonly category: C

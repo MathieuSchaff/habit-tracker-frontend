@@ -9,9 +9,9 @@
 import { analyzeINCI, normalize, splitINCI } from 'algo-derm'
 
 import { mapKindToContext } from '../../../lib/algo-derm-product-context'
-import type { OrchestratorInput, OrchestratorOptions } from '../orchestrator'
 import type { DetectAutoTagsOptions } from '../passes/algo-derm-detection'
 import { stripMarketingPreamble } from './ingredient-resolver'
+import type { OrchestratorInput, OrchestratorOptions } from './orchestrator-types'
 import type { PassContext } from './pass-types'
 
 export function buildPassContext(

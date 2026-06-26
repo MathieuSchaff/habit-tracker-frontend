@@ -6,56 +6,21 @@
 // `tests/auto-tag-orchestrator-parity.test.ts` keeps all three consumers
 // identical for the same input. ADR-0001 describes the registry-driven design.
 
-import type { ProductKind, ProductTexture, SkincareProductTagSlug } from '@aurore/shared'
+import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import { buildPassContext } from './lib/build-pass-context'
 import { mergeProposal, primaryPromote } from './lib/merge'
+import type { OrchestratorInput, OrchestratorOptions } from './lib/orchestrator-types'
 import type { AutoTagPair, AutoTagProposal } from './lib/pass-types'
-import type { BrandCertificationLookup } from './passes/brand-cert-detection'
-import type { PercentClaimEvidence } from './passes/percent-claim-detection'
 import { AUTO_TAG_PASSES } from './passes/registry'
 
+export type { OrchestratorInput, OrchestratorOptions } from './lib/orchestrator-types'
 export type { AutoTagPair, AutoTagRelevance, AutoTagSource } from './lib/pass-types'
 
 // Tuple is the source of truth for typed `inArray` queries; Set is the runtime check.
 // Haircare, dental, supplements carry no INCI-derived signal yet.
 export const AUTO_TAG_ELIGIBLE_CATEGORIES = ['skincare', 'solaire', 'bodycare'] as const
 const AUTO_TAG_ELIGIBLE_CATEGORIES_SET: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
-
-export interface OrchestratorInput {
-  inci: string | null | undefined
-  kind: ProductKind
-  category: string
-  // Brand detector lower-cases and normalizes whitespace before lookup.
-  brand?: string | null
-  // When set by admin, texture-from-field emits the tag directly. NULL falls
-  // back to INCI-based detection (gel only).
-  texture?: ProductTexture | null
-  // Used by `detectTextureCremeEyeInci` (name cross-check) and
-  // `detectTextureBaumeFromName` / `detectTextureStickFromName`.
-  name?: string | null
-  // Used by `detectAbsenceClaimsFromText` to recover `sans-parfum` when INCI
-  // is too short for algo-derm coverage.
-  description?: string | null
-  // Fallback concentration evidence from product_ingredients; used only when
-  // INCI quality is fragile.
-  percentClaims?: readonly PercentClaimEvidence[]
-  // Curated concentrations (% units) keyed by ingredient NAME (not slug):
-  // algo-derm normalize() keeps hyphens. Pins algo-derm's solver to real
-  // values, overriding the INCI-position Bayesian prior. Absent = prior unchanged.
-  knownConcentrations?: Record<string, number>
-}
-
-export interface OrchestratorOptions {
-  // Forwarded to `detectAutoTags`. See DetectAutoTagsOptions.
-  confOverride?: number
-  includeDropped?: boolean
-  coverageMinOverride?: number
-  disableFloors?: boolean
-  // Caller fetches once and passes in; orchestrator never queries DB directly.
-  // Undefined = brand pass no-ops.
-  brandCertifications?: BrandCertificationLookup
-}
 
 // Optional trace hooks. The orchestrator owns the single dispatch loop; the sink
 // lets a reader (explainInci) observe per-pass proposals, the pre-promote merge
