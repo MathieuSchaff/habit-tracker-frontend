@@ -129,6 +129,10 @@ Keep the `if (!res.ok) throw` form — TS uses it to narrow `res.json()` to the 
 of the Hono RPC union. (`throwIfNotOk` returns `Promise<void>`, so it does NOT narrow; using it
 forces an extra `if (!json.success) throw` to re-narrow.)
 
+Both forms satisfy the rule — the `if (!res.ok) throw new ApiError(...)` form above and
+`await throwIfNotOk(res)` + `if (!json.success) throw` (used by `social.ts`, `profile.ts`, the
+code-surfacing reads).
+
 Exempt — leave as-is, don't churn:
 - **Mutations** (`useMutation`/`mutationFn`) — not retried (guard is `defaultOptions.queries`
   only).
@@ -162,8 +166,9 @@ Read failures throw `ApiError('http_error', res.status)`: **status kept, the bac
 `searchInfinite`/`searchFlat` + `list`) now route through `throwIfNotOk`. `frontend/src/lib/
 helpers/apiError.ts` exposes `isRateLimitError` / `rateLimitRetryAfter` / `rateLimitMessage`;
 list pages render `RateLimitEmptyState`, search dropdowns pass `rateLimitMessage` as their
-`errorMessage`. Note `details.retryAfter` is a **string** (the backend forwards the `Retry-After`
-header verbatim) and can be absent — the helper coerces and falls back to a vague delay. P2/P3
+`errorMessage`. Note `details.retryAfter` is a **string or number** (rateLimiter routes forward the
+`Retry-After` header as a string; profile/export sends seconds as a number) and can be absent — the
+helper coerces both and falls back to a vague delay. P2/P3
 reads deferred.
 
 Established 2026-06-17 — commits `120f06f3` (rate-limit ceiling 100→1000), `0b2f396c` (blog

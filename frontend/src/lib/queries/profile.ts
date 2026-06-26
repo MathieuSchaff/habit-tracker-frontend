@@ -8,6 +8,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { useAuthStore } from '../../store/auth'
 import { api } from '../api'
+import { throwIfNotOk } from '../helpers/apiError'
 import { downloadBlobAsFile, parseAttachmentFilename } from '../helpers/download'
 
 export const profileQueries = {
@@ -16,6 +17,7 @@ export const profileQueries = {
       queryKey: ['profile', 'me'],
       queryFn: async () => {
         const res = await api.profile.$get()
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? json.error : 'Request failed')
         return json.data
@@ -27,6 +29,7 @@ export const profileQueries = {
       queryKey: ['profile', 'stats'],
       queryFn: async () => {
         const res = await api.profile.stats.$get()
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
@@ -38,6 +41,7 @@ export const profileQueries = {
       queryKey: ['profile', 'dermo'],
       queryFn: async () => {
         const res = await api.profile.dermo.$get()
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
@@ -49,6 +53,7 @@ export const profileQueries = {
       queryKey: ['profile', 'public', username],
       queryFn: async () => {
         const res = await api.profiles[':username'].public.$get({ param: { username } })
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
@@ -61,6 +66,7 @@ export const profileQueries = {
       queryKey: ['profile', 'reviews', username],
       queryFn: async () => {
         const res = await api.profiles[':username'].reviews.$get({ param: { username } })
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
@@ -73,6 +79,7 @@ export const profileQueries = {
       queryKey: ['profile', 'posts', username],
       queryFn: async () => {
         const res = await api.profiles[':username'].posts.$get({ param: { username } })
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
@@ -139,6 +146,7 @@ export const privacySettingsQueries = {
       queryKey: ['profile', 'privacy'],
       queryFn: async () => {
         const res = await api.profile['privacy-settings'].$get()
+        await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
         return json.data
