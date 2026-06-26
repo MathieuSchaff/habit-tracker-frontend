@@ -78,7 +78,7 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
             <Droplets size={12} aria-hidden="true" />
             <span>Composants principaux</span>
           </h3>
-          <ul className="pds-ingtags">
+          <ul role="list" className="pds-ingtags">
             {fullProduct.ingredients.map((pi) => (
               <li key={pi.ingredientId}>
                 <Link

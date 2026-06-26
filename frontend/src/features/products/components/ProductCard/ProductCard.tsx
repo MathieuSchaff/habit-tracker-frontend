@@ -108,7 +108,7 @@ function ProductCardImpl({ product, onAdd }: Props) {
 
         <Card.Footer>
           {primaryTags.length > 0 && (
-            <ul className="list-card__chips">
+            <ul role="list" className="list-card__chips">
               {primaryTags.map((t) => (
                 <li key={t.slug} className="list-card__chip" title={tagLabel(t.slug)}>
                   {tagLabel(t.slug)}

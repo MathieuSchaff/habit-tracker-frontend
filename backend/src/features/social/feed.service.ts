@@ -5,7 +5,7 @@ import {
   type SocialFeedResponse,
 } from '@aurore/shared'
 
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { profiles } from '../../db/schema/auth/users'
@@ -45,7 +45,9 @@ export async function feed(
       cohort.map((c) => c.username)
     ),
     eq(socialPosts.tone, tone),
-    isNotNull(profiles.username),
+    // profilePublic mirrors the cohort's master gate so the feed SQL upholds it even
+    // though inArray already bounds rows to the (public) cohort — defense-in-depth.
+    eq(profiles.profilePublic, true),
     eq(profiles.forcedPrivateByAdmin, false),
   ]
   if (concern) {
@@ -62,18 +64,21 @@ export async function feed(
     .orderBy(desc(socialPosts.createdAt))
     .limit(FEED_CAP)
 
-  const items: SocialFeedItemView[] = rows.map((row) => ({
-    ...toSurfaceView(row),
-    // Non-null: the author is a cohort member, so the band is always present.
-    authorBand: bandByUsername.get(row.authorUsername as string) ?? 'eloigne',
-  }))
+  const items: SocialFeedItemView[] = rows.flatMap((row) => {
+    const authorBand = bandByUsername.get(row.authorUsername as string)
+    // The author is a cohort member, so the band is always present. Skip defensively
+    // rather than emit 'eloigne' — the one band the feed must never surface (#5 calme).
+    if (!authorBand) return []
+    return [{ ...toSurfaceView(row), authorBand }]
+  })
 
   if (order === 'similarity') {
     // Stable sort by cohort rank keeps the createdAt-desc input order within an
     // author, so similarity order = closest authors first, newest-first within each.
     items.sort(
       (a, b) =>
-        (rankByUsername.get(a.author.username) ?? 0) - (rankByUsername.get(b.author.username) ?? 0)
+        (rankByUsername.get(a.author.username) ?? cohort.length) -
+        (rankByUsername.get(b.author.username) ?? cohort.length)
     )
   }
 

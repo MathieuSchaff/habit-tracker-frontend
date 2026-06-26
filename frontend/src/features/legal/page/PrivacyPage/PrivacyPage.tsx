@@ -275,7 +275,7 @@ export function PrivacyPage() {
 
           <PrivacyBlock title="Pour aller plus loin">
             <p>Sources officielles sur la protection des données personnelles :</p>
-            <ul className="privacy-list">
+            <ul role="list" className="privacy-list">
               <li>
                 <ExternalLink href="https://www.cnil.fr/fr/reglement-europeen-protection-donnees">
                   CNIL — Le règlement européen en 10 points

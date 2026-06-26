@@ -50,6 +50,16 @@ test.describe('Feed — authenticated (mocked feed payload)', () => {
         body: JSON.stringify({ success: true, data: { posts: [post] } }),
       })
     })
+    // Concern chips are drawn from the viewer's own dermo, not the feed payload —
+    // mock it so the concern ChipGroup renders deterministically (it self-hides at
+    // ≤1 option). FeedPage only reads `skinConcerns`.
+    await page.route('**/api/profile/dermo**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { skinConcerns: ['rosacee'] } }),
+      })
+    })
   })
 
   test('renders the feed shell with its tone tabs and order filter', async ({ page }) => {
@@ -75,5 +85,37 @@ test.describe('Feed — authenticated (mocked feed payload)', () => {
 
     await expect(page).toHaveURL(/tone=coup-de-gueule/, { timeout: 10_000 })
     await expect(page.getByText(GUEULE_POST.content)).toBeVisible()
+  })
+
+  test('renders concern chips from the viewer dermo and binds the selection to the URL', async ({
+    page,
+  }) => {
+    await page.goto('/feed')
+
+    const concerns = page.getByRole('radiogroup', { name: 'Filtrer par problématique' })
+    await expect(concerns.getByRole('radio', { name: 'Toutes' })).toBeVisible({ timeout: 15_000 })
+    await expect(concerns.getByRole('radio', { name: 'Rosacée' })).toBeVisible()
+
+    // The radio input is sr-only; the visible chip label is the click target.
+    await concerns.getByText('Rosacée').click()
+
+    await expect(page).toHaveURL(/concern=rosacee/, { timeout: 10_000 })
+    // The mocked feed ignores the filter, so a card stays rendered (no blank screen).
+    await expect(page.getByText(PRINCIPAL_POST.content)).toBeVisible()
+  })
+
+  test('binds the order chip to the URL', async ({ page }) => {
+    await page.goto('/feed')
+
+    const order = page.getByRole('radiogroup', { name: 'Trier le fil' })
+    await expect(order.getByRole('radio', { name: 'Affinité' })).toBeVisible({ timeout: 15_000 })
+
+    await order.getByText('Affinité').click()
+
+    // Default order is `recency` (stripped); selecting `similarity` lands in the URL.
+    await expect(page).toHaveURL(/order=similarity/, { timeout: 10_000 })
+    // Affinity sort names its bounded scope so the label doesn't over-promise (T7-3).
+    await expect(page.getByText(/parmi les publications récentes/i)).toBeVisible()
+    await expect(page.getByText(PRINCIPAL_POST.content)).toBeVisible()
   })
 })

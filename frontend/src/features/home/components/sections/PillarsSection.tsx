@@ -76,7 +76,7 @@ export function PillarsSection() {
                 <em>{p.titleEm}</em>
               </h3>
               <p className="aur-pillar__desc">{p.desc}</p>
-              <ul className="aur-pillar__list">
+              <ul role="list" className="aur-pillar__list">
                 {p.items.map((it) => (
                   <li className="aur-pillar__list-item" key={it}>
                     {it}

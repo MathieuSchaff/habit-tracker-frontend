@@ -17,7 +17,7 @@ export function ProfileReviewsSection({ username }: { username: string }) {
   return (
     <section className="public-profile__section">
       <h2 className="public-profile__section-title">Avis récents</h2>
-      <ul className="profile-reviews">
+      <ul role="list" className="profile-reviews">
         {reviews.map((review) => (
           <li key={review.id} className="profile-reviews__item">
             <Link

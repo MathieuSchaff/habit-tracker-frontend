@@ -33,7 +33,7 @@ export function BlogCategoryNav({ category }: Props) {
 
   return (
     <nav className="blog-category-nav" aria-label="Catégories">
-      <ul className="blog-category-nav__list">
+      <ul role="list" className="blog-category-nav__list">
         <li>
           <Link
             to="/blog"

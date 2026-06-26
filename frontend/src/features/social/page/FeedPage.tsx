@@ -1,10 +1,12 @@
-import type { FeedOrder, PostTone, SkinConcern } from '@aurore/shared'
+import type { SkinConcern } from '@aurore/shared'
 import { FEED_ORDERS, POST_TONES } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 
+import { Button } from '@/component/Button/Button'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
+import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { ListPageLayout } from '@/component/Layout/PageLayout/ListPageLayout'
 import { Tabs } from '@/component/Tabs/Tabs'
@@ -26,7 +28,9 @@ const orderChips = FEED_ORDERS.map((order) => ({ value: order, label: FEED_ORDER
 export function FeedPage() {
   const { tone, order, concern } = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
-  const { data, isFetching } = useQuery(socialQueries.feed({ tone, order, concern }))
+  const { data, isFetching, isPending, isError, refetch } = useQuery(
+    socialQueries.feed({ tone, order, concern })
+  )
   // Concern scope is drawn from the viewer's own problématiques — a stable source
   // independent of the filtered result (so chips never vanish as you filter).
   const { data: dermo } = useQuery(profileQueries.dermo())
@@ -52,9 +56,7 @@ export function FeedPage() {
         <Tabs
           options={toneTabs}
           activeTab={tone}
-          onTabChange={(next: PostTone) =>
-            navigate({ search: (prev) => ({ ...prev, tone: next }) })
-          }
+          onTabChange={(next) => navigate({ search: (prev) => ({ ...prev, tone: next }) })}
           variant="pill"
           hasPanels={false}
           ariaLabel="Ton des publications"
@@ -80,24 +82,38 @@ export function FeedPage() {
           <ChipGroup
             options={orderChips}
             selected={[order]}
-            onChange={([next]) =>
-              navigate({ search: (prev) => ({ ...prev, order: next as FeedOrder }) })
-            }
+            onChange={([next]) => navigate({ search: (prev) => ({ ...prev, order: next }) })}
             mode="exclusive"
             size="sm"
             aria-label="Trier le fil"
           />
         </div>
+        {order === 'similarity' && (
+          // The affinity sort runs over a bounded recent window, not the whole
+          // cohort — name the scope so "Affinité" doesn't over-promise.
+          <p className="feed-filters__note">Trié par affinité, parmi les publications récentes.</p>
+        )}
       </div>
 
       <ListPageLayout.Body maxWidth="640px">
-        {posts.length === 0 ? (
+        {isPending ? (
+          <Spinner />
+        ) : isError ? (
+          <EmptyState
+            title="Le fil n'a pas pu se charger"
+            subtitle="Vos données sont intactes — réessayez dans un instant."
+          >
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Réessayer
+            </Button>
+          </EmptyState>
+        ) : posts.length === 0 ? (
           <EmptyState
             title="Rien pour l'instant"
             subtitle="Quand des personnes proches de vous publieront, leurs partages apparaîtront ici."
           />
         ) : (
-          <ul className="feed-list">
+          <ul role="list" className="feed-list">
             {posts.map((post) => (
               <FeedPostCard key={post.id} post={post} />
             ))}

@@ -36,7 +36,7 @@ export function MetaStrip({ products }: Props) {
 
   return (
     <section className="cmp-shelf" aria-label="Produits comparés">
-      <ol className="cmp-shelf__row">
+      <ol role="list" className="cmp-shelf__row">
         {products.map((p, i) => {
           const tags = p.tags.filter(
             (t) => TAG_TYPES_SET.has(t.tagType) && t.relevance === 'primary'
@@ -97,7 +97,7 @@ export function MetaStrip({ products }: Props) {
                 </span>
               </div>
               {tags.length > 0 && (
-                <ul className="cmp-shelf__tags">
+                <ul role="list" className="cmp-shelf__tags">
                   {tags.slice(0, 3).map((t) => (
                     <li key={t.slug} className="cmp-shelf__tag">
                       {tagLabel(t.slug)}

@@ -178,7 +178,7 @@ export function ProductInfoTab() {
               )}
             </Button>
           </SectionHeader>
-          <ul className="ingredient-list">
+          <ul role="list" className="ingredient-list">
             {product.ingredients.map((ing) => {
               const concentration = formatConcentration(
                 ing.concentrationValue,

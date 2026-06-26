@@ -34,7 +34,7 @@ export function StatusHistory({ userProductId }: StatusHistoryProps) {
           <p className="pds-empty-msg">Aucune transition enregistrée pour le moment.</p>
         )}
         {data && data.length > 0 && (
-          <ol className="pds-history-list">
+          <ol role="list" className="pds-history-list">
             {data.map((entry) => {
               const to = statusLabels[entry.toStatus]
               const from = entry.fromStatus ? statusLabels[entry.fromStatus] : null

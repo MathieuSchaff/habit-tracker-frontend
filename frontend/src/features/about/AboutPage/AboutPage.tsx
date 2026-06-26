@@ -196,7 +196,7 @@ function AboutPain() {
           </div>
         </div>
 
-        <ol className="aur-about-pain__list">
+        <ol role="list" className="aur-about-pain__list">
           {items.map((item, i) => (
             <li className="aur-about-pain__item" key={item.head}>
               <span className="aur-about-pain__num">{String(i + 1).padStart(2, '0')}</span>
@@ -315,7 +315,7 @@ function AboutPrinciples() {
         sub="Pas une charte affichée pour rassurer — un cadre concret, qu’on peut vérifier dans l’interface."
       />
 
-      <ol className="aur-about-principles">
+      <ol role="list" className="aur-about-principles">
         {principles.map((p) => (
           <li className="aur-about-principle" key={p.title}>
             <div>
@@ -366,7 +366,7 @@ function AboutNot() {
       <h2 className="aur-about-not__title" id="aur-about-not-title">
         Ce qu’Aurore <em>n’est pas.</em>
       </h2>
-      <ul className="aur-about-not__list">
+      <ul role="list" className="aur-about-not__list">
         {notList.map((it) => (
           <li className="aur-about-not__item" key={it.head}>
             <span className="aur-about-not__cross" aria-hidden="true">
@@ -406,7 +406,7 @@ function AboutCollab() {
             des analyses, signaler des erreurs — sans jamais transformer ça en jeu de réputation.
           </p>
 
-          <ul className="aur-about-collab__list">
+          <ul role="list" className="aur-about-collab__list">
             <li>Fiches d’ingrédient</li>
             <li>Fiches produit</li>
             <li>Articles longs</li>

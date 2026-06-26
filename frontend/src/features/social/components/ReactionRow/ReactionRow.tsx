@@ -83,7 +83,11 @@ export function ReactionRow({
               {label}
             </Button>
             {reactors.length > 0 && (
-              <ul className="reaction-row__reactors" aria-label={`Réactions « ${label} »`}>
+              <ul
+                role="list"
+                className="reaction-row__reactors"
+                aria-label={`Réactions « ${label} »`}
+              >
                 {reactors.map((reactor) => (
                   <li key={`${kind}:${reactor.username}`}>
                     <ReactorName reactor={reactor} />

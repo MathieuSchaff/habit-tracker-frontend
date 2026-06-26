@@ -64,12 +64,12 @@ export function FeedPostCard({ post }: { post: FeedItem }) {
   const bandLabel = SIMILARITY_BAND_LABELS[post.authorBand]
   return (
     <li className="feed-card">
-      <header className="feed-card__header">
+      <div className="feed-card__header">
         <AuthorName author={post.author} />
         {bandLabel && <Badge variant="primary">{bandLabel}</Badge>}
         <Time iso={post.createdAt} style="monthYear" className="feed-card__date" />
         <Badge variant="chip">{POST_TONE_LABELS[post.tone]}</Badge>
-      </header>
+      </div>
       <PostAnchors post={post} />
       <p className="feed-card__body">{post.content}</p>
       <ReactionRow reactableType="post" reactableId={post.id} />

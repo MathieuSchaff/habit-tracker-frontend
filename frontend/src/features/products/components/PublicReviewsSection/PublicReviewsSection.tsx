@@ -107,7 +107,7 @@ export function PublicReviewsSection({ slug }: PublicReviewsSectionProps) {
           <p className="public-reviews__intro">
             Des expériences personnelles partagées par leurs auteurs, pas un verdict.
           </p>
-          <ul className="public-reviews__verbatims">
+          <ul role="list" className="public-reviews__verbatims">
             {reviews.map((review) => {
               // Only show axis notes when the author opted ratings public (non-null values).
               const ratedAxes = reviewAxisKeys.filter((k) => review[k] != null)

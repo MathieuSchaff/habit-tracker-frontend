@@ -31,7 +31,7 @@ export function ProblemSection() {
             </p>
           </div>
 
-          <ol className="aur-problem__list">
+          <ol role="list" className="aur-problem__list">
             {PROBLEMS.map((it) => (
               <li
                 key={it.num}

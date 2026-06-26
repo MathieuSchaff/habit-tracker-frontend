@@ -41,7 +41,7 @@ export function ProductPostsSection({ slug }: { slug: string }) {
   return (
     <section className="product-section product-posts">
       <SectionHeader title="Publications" variant="primary" />
-      <ul className="product-posts__list">
+      <ul role="list" className="product-posts__list">
         {posts.map((post) => (
           <li key={post.id} className="product-posts__item">
             <header className="product-posts__header">
