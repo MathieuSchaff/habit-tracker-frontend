@@ -1,8 +1,9 @@
-# Local prod-like profiling: HTTP/2 + brotli + immutable assets, mirroring prod nginx
-# behavior that `vite preview` lacks (h1, no immutable). Run via `just profile-prod`.
+# Local prod-like profiling: HTTP/2 + zstd/gzip + immutable assets.
+# Prod nginx currently serves gzip only; this approximates its cache behavior
+# while being closer to production than `vite preview`. Run via `just profile-prod`.
 # Caddy auto-issues an internal-CA cert for localhost → accept the browser warning once.
 localhost:8443 {
-	# zstd+gzip are in core Caddy; brotli needs a custom build (xcaddy + caddy-brotli).
+	# The stock Caddy image supports zstd + gzip. It does not serve Brotli.
 	encode zstd gzip
 
 	# API → backend on the host (app_api exposes :3000). `handle` keeps the /api prefix.

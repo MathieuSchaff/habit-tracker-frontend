@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "fallow": "^2.101.0",

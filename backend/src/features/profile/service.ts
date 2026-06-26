@@ -225,7 +225,12 @@ export async function deleteUser(db: Database, userId: string) {
 }
 
 const PROFILE_FLAG_KEYS = ['profilePublic', 'bioPublic', 'avatarPublic', 'linksPublic'] as const
-const DERMO_FLAG_KEYS = ['skinTypesPublic', 'fitzpatrickPublic', 'skinConcernsPublic'] as const
+const DERMO_FLAG_KEYS = [
+  'skinTypesPublic',
+  'fitzpatrickPublic',
+  'skinConcernsPublic',
+  'discoverable',
+] as const
 
 export async function getPrivacySettings(db: DB, userId: string): Promise<PrivacySettings> {
   const [profile] = await db
@@ -244,6 +249,7 @@ export async function getPrivacySettings(db: DB, userId: string): Promise<Privac
       skinTypesPublic: userDermoProfiles.skinTypesPublic,
       fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
       skinConcernsPublic: userDermoProfiles.skinConcernsPublic,
+      discoverable: userDermoProfiles.discoverable,
     })
     .from(userDermoProfiles)
     .where(eq(userDermoProfiles.userId, userId))
@@ -263,6 +269,7 @@ export async function getPrivacySettings(db: DB, userId: string): Promise<Privac
     skinTypesPublic: dermo?.skinTypesPublic ?? false,
     fitzpatrickPublic: dermo?.fitzpatrickPublic ?? false,
     skinConcernsPublic: dermo?.skinConcernsPublic ?? false,
+    discoverable: dermo?.discoverable ?? false,
     aiConsent: prefs?.aiConsent ?? false,
   }
 }
@@ -333,9 +340,10 @@ export async function updatePrivacySettings(
 }
 
 // Projects a public profile view by username, masking each field whose
-// `*_public` flag is false. Master `profile_public` gate is enforced by RLS:
-// non-public rows are invisible to app_runtime. Returns null when the username
-// is unknown or the profile is not public.
+// `*_public` flag is false. The master gate is the explicit profilePublic +
+// not-forced WHERE below, NOT RLS: the social `_for_*` policies widen
+// app_runtime to non-public rows that reacted/posted, so dropping it leaks them.
+// Returns null when the username is unknown or the profile is not public.
 export async function getPublicProfileByUsername(
   db: DB,
   username: string

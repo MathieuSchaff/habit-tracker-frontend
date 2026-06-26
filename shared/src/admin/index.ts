@@ -13,6 +13,7 @@ export const banScopeSchema = z.enum([
   'ingredient_create',
   'discussion_post',
   'review_publish',
+  'social_post',
 ])
 
 export type BanScope = z.infer<typeof banScopeSchema>

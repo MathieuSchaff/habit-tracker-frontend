@@ -8,17 +8,25 @@ import { makeUserProduct } from '@/test/utils'
 
 // Per-test query data, keyed by `queryKey.join('.')`. vi.hoisted so the mock
 // factory (hoisted above imports) can read it.
-const { mockQuery } = vi.hoisted(() => ({ mockQuery: { data: {} as Record<string, unknown> } }))
+const { mockQuery } = vi.hoisted(() => ({
+  mockQuery: { data: {} as Record<string, unknown>, errors: {} as Record<string, boolean> },
+}))
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>()
   return {
     ...actual,
-    useQuery: (opts: { queryKey: unknown[] }) => ({
-      data: mockQuery.data[opts.queryKey.join('.')],
-      isLoading: false,
-      isPending: false,
-    }),
+    useQuery: (opts: { queryKey: unknown[] }) => {
+      const key = opts.queryKey.join('.')
+      const isError = mockQuery.errors[key] ?? false
+      return {
+        data: isError ? undefined : mockQuery.data[key],
+        isLoading: false,
+        isPending: false,
+        isError,
+        refetch: vi.fn(),
+      }
+    },
   }
 })
 
@@ -53,6 +61,7 @@ function setQueries(data: Record<string, unknown>) {
 afterEach(() => {
   useAuthStore.setState({ user: null, role: 'user' })
   mockQuery.data = {}
+  mockQuery.errors = {}
 })
 
 describe('HomeHub', () => {
@@ -112,5 +121,22 @@ describe('HomeHub', () => {
     expect(screen.getByText('Voir mon profil')).toBeInTheDocument()
     // Private notes are never exposed on the home.
     expect(screen.queryByText(/secret/)).not.toBeInTheDocument()
+  })
+
+  it('surfaces a calm retry instead of an endless spinner when the skin query errors', () => {
+    useAuthStore.setState({ user: fakeUser, role: 'user' })
+    setQueries({
+      'profile.me': { createdAt: null },
+      'user-products.list': [],
+      'tasks.today': [],
+      'profile.privacy': { discoverable: false },
+    })
+    mockQuery.errors = { 'profile.dermo': true }
+
+    render(<HomeHub />)
+
+    expect(screen.getByText(/Votre portrait n'a pas pu se charger/)).toBeInTheDocument()
+    expect(screen.getByText('Réessayer')).toBeInTheDocument()
+    expect(screen.queryByText('Chargement de votre portrait…')).not.toBeInTheDocument()
   })
 })

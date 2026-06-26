@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useLogout } from '@/lib/queries/auth'
@@ -55,6 +55,7 @@ const ALL_FLAGS_OFF = {
   skinTypesPublic: false,
   fitzpatrickPublic: false,
   skinConcernsPublic: false,
+  discoverable: false,
   aiConsent: false,
 }
 
@@ -101,6 +102,7 @@ describe('AccountSettings privacy granular toggles', () => {
       /Types de peau/,
       /Phototype/,
       /Préoccupations/,
+      /trouvable/i,
     ]) {
       expect(screen.getByRole('switch', { name: label })).toBeDisabled()
     }
@@ -117,8 +119,17 @@ describe('AccountSettings privacy granular toggles', () => {
       /Types de peau/,
       /Phototype/,
       /Préoccupations/,
+      /trouvable/i,
     ]) {
       expect(screen.getByRole('switch', { name: label })).not.toBeDisabled()
     }
+  })
+
+  it('opting in to discoverable updates only that flag', () => {
+    const mutate = mountWithPrivacy({ ...ALL_FLAGS_OFF, profilePublic: true })
+
+    fireEvent.click(screen.getByRole('switch', { name: /trouvable/i }))
+
+    expect(mutate).toHaveBeenCalledWith({ discoverable: true })
   })
 })

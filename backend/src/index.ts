@@ -31,6 +31,9 @@ import { productsFeature } from './features/products'
 import { profileRoute, publicProfileRoutes } from './features/profile'
 import { reportsRoutes } from './features/reports/routes'
 import { roleRequestsRoutes } from './features/role-requests/routes'
+import { socialPostsRoutes } from './features/social/posts.routes'
+import { socialReactionsRoutes } from './features/social/reactions.routes'
+import { socialRoutes } from './features/social/routes'
 import { suggestedEditsRoutes } from './features/suggested-edits/routes'
 import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
@@ -85,6 +88,9 @@ const routes = app
   .route('/api/ready', readyRoute)
   .route('/api/profile', profileRoute)
   .route('/api/profiles', publicProfileRoutes)
+  .route('/api/social', socialRoutes)
+  .route('/api/social/posts', socialPostsRoutes)
+  .route('/api/social/reactions', socialReactionsRoutes)
   .route('/api', productsFeature)
   .route('/api/product-comparisons', productComparisonRoutes)
   .route('/api/ingredients', ingredientRoutes)

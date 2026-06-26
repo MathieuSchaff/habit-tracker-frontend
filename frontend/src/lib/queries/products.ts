@@ -83,6 +83,7 @@ export const productKeys = {
   bySlug: (slug: string) => [...productKeys.all, slug] as const,
   ingredients: (id: string) => [...productKeys.all, id, 'ingredients'] as const,
   publicReviews: (slug: string) => [...productKeys.all, slug, 'reviews', 'public'] as const,
+  posts: (slug: string) => [...productKeys.all, slug, 'posts'] as const,
 }
 
 export const productQueries = {
@@ -149,6 +150,19 @@ export const productQueries = {
       queryKey: productKeys.publicReviews(slug),
       queryFn: async () => {
         const res = await api.products[':slug'].reviews.public.$get({ param: { slug } })
+        if (!res.ok) throw new ApiError('http_error', res.status)
+        const json = await res.json()
+        return json.data
+      },
+      enabled: !!slug,
+      staleTime: 60 * 1000,
+    }),
+
+  posts: (slug: string) =>
+    queryOptions({
+      queryKey: productKeys.posts(slug),
+      queryFn: async () => {
+        const res = await api.products[':slug'].posts.$get({ param: { slug } })
         if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data

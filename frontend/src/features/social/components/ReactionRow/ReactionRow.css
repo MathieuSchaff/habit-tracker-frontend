@@ -1,0 +1,37 @@
+.reaction-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-top: var(--space-2);
+}
+
+.reaction-row__kind {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reaction-row__reactors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.reaction-row__reactors li:not(:last-child)::after {
+  content: ",";
+}
+
+.reaction-row__reactor-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.reaction-row__reactor-link:hover {
+  text-decoration: underline;
+}

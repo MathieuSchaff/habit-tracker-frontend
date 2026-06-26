@@ -33,5 +33,7 @@
 
   /* --- 6. Périmètre --- */
   "include": ["src/**/*"], // Inclus tout ce qui est dans shared/src
-  "exclude": ["node_modules", "dist"] // Ignore les dépendances et le dossier de sortie
+  // Test files are run by `bun test` (which provides bun:test at runtime) and
+  // are not part of the published type contract — keep them out of the emit.
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }

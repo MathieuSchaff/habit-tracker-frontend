@@ -88,8 +88,9 @@ export default defineConfig({
         return out
       },
     },
-    // Bundle treemap with real gzip/brotli transfer sizes (nginx serves brotli). Gated behind
-    // ANALYZE so normal/prod builds don't emit stats.html. Must stay last. Run: ANALYZE=1 vite build
+    // Bundle treemap with gzip/brotli size estimates. Production nginx currently serves gzip;
+    // brotli remains useful as a comparison. Gated behind ANALYZE so normal/prod builds don't
+    // emit stats.html. Must stay last. Run: ANALYZE=1 vite build
     Boolean(process.env.ANALYZE) &&
       visualizer({
         filename: './stats.html',

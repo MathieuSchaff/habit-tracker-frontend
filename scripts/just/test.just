@@ -39,8 +39,13 @@ test-db-studio:
 
 # ─────────────────────────── Run once ───────────────────────────
 
-# Run ALL tests — backend (full cycle) + frontend
-test: test-backend test-frontend
+# Run ALL tests — shared (pure) + backend (full cycle) + frontend
+test: test-shared test-backend test-frontend
+
+# Run shared unit tests — pure, no DB, optional filter
+test-shared args="":
+    cd shared && bun test {{args}}
+    @printf "{{GREEN}}✓ Shared tests done{{NC}}\n"
 
 # Run backend tests — brings DB up, optional filter
 test-backend args="": test-db-up

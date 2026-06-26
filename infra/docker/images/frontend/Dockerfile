@@ -2,9 +2,9 @@
 FROM oven/bun:1.3.12-alpine AS builder
 WORKDIR /app
 
-# Manifests workspace. bunfig.toml pins linker = "hoisted"; without it bun's
-# default install layout leaves vite's phantom dep `rolldown` unhoisted, so
-# vite.config.ts's `import 'rolldown/experimental'` fails to resolve.
+# Workspace manifests. Keep the repository's pinned Bun linker policy in the
+# image. The optional ANALYZE build uses the Rolldown version bundled with Vite;
+# normal production builds do not enable the analyzer.
 COPY package.json bun.lock bunfig.toml ./
 COPY frontend/package.json frontend/
 COPY shared/package.json shared/

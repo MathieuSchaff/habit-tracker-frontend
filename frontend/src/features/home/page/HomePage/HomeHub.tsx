@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { Suspense } from 'react'
 
-import { ButtonLink } from '@/component/Button/Button'
+import { Button, ButtonLink } from '@/component/Button/Button'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { SKIN_CONCERN_LABELS } from '@/constants/skin'
 import { statusLabels } from '@/features/collection/constants'
@@ -31,7 +31,6 @@ import { Container, SectionHead } from '../../components/sections/Section'
 import { lastTouched } from '../../lib/lastTouched'
 import './HomeHub.css'
 
-// "La dernière fois, vous avez classé X en « En stock »[ · J'adore]."
 // avoided never exposes sentiment (collection taxonomy masks it).
 function repriseLine(item: UserProduct): string {
   const status = statusLabels[item.status].label
@@ -44,7 +43,12 @@ export function HomeHub() {
   const role = useAuthStore((s) => s.role)
 
   const { data: me } = useQuery(profileQueries.me())
-  const { data: dermo } = useQuery(profileQueries.dermo())
+  const {
+    data: dermo,
+    isPending: skinPending,
+    isError: skinError,
+    refetch: refetchSkin,
+  } = useQuery(profileQueries.dermo())
   const { data: list } = useQuery(userProductQueries.list())
   const { data: todayTasks } = useQuery(taskQueries.today())
   const { data: privacy } = useQuery(privacySettingsQueries.get())
@@ -107,7 +111,6 @@ export function HomeHub() {
     },
   ]
 
-  const skinReady = dermo !== undefined
   const hasSkin = Boolean(
     dermo &&
       ((dermo.skinTypes?.length ?? 0) > 0 ||
@@ -155,8 +158,18 @@ export function HomeHub() {
             }
           />
           <div className="aur-hub-skin">
-            {!skinReady ? (
+            {skinPending ? (
               <p className="aur-hub-skin__loading">Chargement de votre portrait…</p>
+            ) : skinError ? (
+              <div className="aur-hub-skin__empty">
+                <p className="aur-hub-skin__empty-text">
+                  Votre portrait n'a pas pu se charger. Vos données sont intactes — réessayez dans
+                  un instant.
+                </p>
+                <Button variant="outline" onClick={() => refetchSkin()}>
+                  Réessayer
+                </Button>
+              </div>
             ) : hasSkin && dermo ? (
               <>
                 <SkinProfileRead dermo={{ ...dermo, privateNotes: null }} />

@@ -1,0 +1,1 @@
+CREATE INDEX "user_dermo_profiles_discoverable_concerns_gin" ON "user_dermo_profiles" USING gin ("skin_concerns") WHERE "user_dermo_profiles"."discoverable";

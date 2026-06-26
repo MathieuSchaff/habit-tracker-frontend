@@ -39,6 +39,7 @@ import { Route as AdminCatalogRouteImport } from './routes/admin/catalog'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
 import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
 import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
@@ -213,6 +214,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
   id: '/collection',
   path: '/collection',
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/collection': typeof AuthenticatedCollectionRouteWithChildren
+  '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/submissions': typeof AuthenticatedSubmissionsRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -400,6 +407,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/submissions': typeof AuthenticatedSubmissionsRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -454,6 +462,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/_authenticated/collection': typeof AuthenticatedCollectionRouteWithChildren
+  '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/submissions': typeof AuthenticatedSubmissionsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -510,6 +519,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/collection'
+    | '/feed'
     | '/profile'
     | '/submissions'
     | '/tasks'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/privacy'
     | '/settings'
+    | '/feed'
     | '/profile'
     | '/submissions'
     | '/tasks'
@@ -615,6 +626,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/_authenticated/collection'
+    | '/_authenticated/feed'
     | '/_authenticated/profile'
     | '/_authenticated/submissions'
     | '/_authenticated/tasks'
@@ -904,6 +916,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/collection': {
       id: '/_authenticated/collection'
       path: '/collection'
@@ -1088,6 +1107,7 @@ const AuthenticatedCollectionRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionRoute: typeof AuthenticatedCollectionRouteWithChildren
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSubmissionsRoute: typeof AuthenticatedSubmissionsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -1100,6 +1120,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionRoute: AuthenticatedCollectionRouteWithChildren,
+  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSubmissionsRoute: AuthenticatedSubmissionsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,

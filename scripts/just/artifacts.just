@@ -45,7 +45,9 @@ artifacts-clean:
     done
     printf "{{GREEN}}%d artefact(s) supprimé(s).{{NC}}\n" "$n"
 
-# Ouvre un artefact (interactif). Sans arg → menu fzf/select. Avec arg → match (stats|analyze|coverage|audit ou fragment de chemin); génère si absent.
+# Ouvre un artefact (interactif). Sans arg → menu fzf/select. Avec arg → match
+# (stats|analyze|coverage|audit ou fragment de chemin). Les rapports bundle sont
+# régénérés s'ils manquent ou si leurs entrées ont changé depuis leur génération.
 artifacts-open ARG="":
     #!/usr/bin/env bash
     set -uo pipefail
@@ -64,10 +66,32 @@ artifacts-open ARG="":
         audit)    echo .audit-out ;;
     esac; }
     gen() { case "$1" in
-        stats|analyze) echo "bunx tsc -b && cd frontend && ANALYZE=1 bunx vite build" ;;
+        stats|analyze) echo "just ts-build && cd frontend && ANALYZE=1 bunx vite build" ;;
         coverage)      echo "just test-frontend-coverage" ;;
         audit)         echo "just audit-code" ;;
     esac; }
+    has_output() { for c in $(files "$1"); do [ -e "$c" ] && return 0; done; return 1; }
+    bundle_is_stale() {
+        outputs=(frontend/stats.html frontend/dist/analyze-data.md)
+        inputs=(frontend/src frontend/public shared/src
+            frontend/index.html frontend/vite.config.ts frontend/postcss.config.js
+            frontend/package.json frontend/tsconfig.json frontend/tsconfig.app.json
+            frontend/tsconfig.node.json shared/package.json shared/tsconfig.json
+            package.json tsconfig.json bun.lock)
+        for output in "${outputs[@]}"; do [ -f "$output" ] || return 0; done
+        for output in "${outputs[@]}"; do
+            if find "${inputs[@]}" -type f -newer "$output" -print -quit 2>/dev/null | grep -q .; then
+                return 0
+            fi
+        done
+        return 1
+    }
+    generate() {
+        key_to_generate="$1"
+        reason="$2"
+        printf "{{YELLOW}}%s %s → génération : %s{{NC}}\n" "$key_to_generate" "$reason" "$(gen "$key_to_generate")"
+        ( eval "$(gen "$key_to_generate")" ) || { printf "{{RED}}génération échouée.{{NC}}\n"; exit 1; }
+    }
 
     # Pick the key: explicit arg (exact key or path fragment), else interactive.
     key=""
@@ -90,8 +114,8 @@ artifacts-open ARG="":
         [ -z "$key" ] && exit 0
     fi
 
-    # Open first existing candidate; if none, generate then open. Generation runs in a subshell
-    # so its `cd frontend` does not leak into the existence checks.
+    # Generation runs in a subshell so its `cd frontend` does not leak into the
+    # freshness checks or artifact opening.
     # xdg-open on .md is unreliable (lands in a plain editor, no render). Route markdown to a
     # md-aware opener: explicit $VISUAL/$EDITOR first, then glow (rendered), then zed.
     open_path() {
@@ -106,8 +130,19 @@ artifacts-open ARG="":
         esac
     }
     open_first() { for c in $(files "$1"); do [ -e "$c" ] && { printf "{{GREEN}}↗ %s{{NC}}\n" "$c"; open_path "$c"; return 0; }; done; return 1; }
+    case "$key" in
+        stats|analyze)
+            if bundle_is_stale; then
+                generate "$key" "(absent ou périmé)"
+            else
+                printf "{{GREEN}}✓ rapports bundle à jour{{NC}}\n"
+            fi
+            ;;
+        *)
+            has_output "$key" || generate "$key" "(absent)"
+            ;;
+    esac
     if ! open_first "$key"; then
-        printf "{{YELLOW}}%s absent → génération : %s{{NC}}\n" "$key" "$(gen "$key")"
-        ( eval "$(gen "$key")" ) || { printf "{{RED}}génération échouée.{{NC}}\n"; exit 1; }
-        open_first "$key" || { printf "{{RED}}%s introuvable après génération.{{NC}}\n" "$key"; exit 1; }
+        printf "{{RED}}%s introuvable après génération.{{NC}}\n" "$key"
+        exit 1
     fi
