@@ -126,6 +126,30 @@ export const profiles = pgTable(
           AND up.user_id = ${t.userId}
       )`,
     }),
+    // A signed reaction is public by doctrine (ADR-0013), so the reactor's
+    // pseudonym must surface to app_runtime — same shape as the public-review
+    // policy. social_reactions has no RLS, so the EXISTS needs no SECURITY DEFINER.
+    // Force-private still wins.
+    pgPolicy('profiles_select_for_reaction', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`NOT ${t.forcedPrivateByAdmin} AND EXISTS (
+        SELECT 1 FROM social_reactions sr WHERE sr.user_id = ${t.userId}
+      )`,
+    }),
+    // A visible Post is a public signed artifact (#7/T5b): the product surface
+    // shows non-public authors (the /u link is gated client-side), so the author's
+    // pseudonym must surface to app_runtime. social_posts has no RLS.
+    pgPolicy('profiles_select_for_social_post', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`NOT ${t.forcedPrivateByAdmin} AND EXISTS (
+        SELECT 1 FROM social_posts sp
+        WHERE sp.author_id = ${t.userId} AND sp.moderation_status = 'visible'
+      )`,
+    }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',
       for: 'all',
@@ -149,10 +173,19 @@ export const userDermoProfiles = pgTable(
     skinTypesPublic: boolean('skin_types_public').notNull().default(false),
     fitzpatrickPublic: boolean('fitzpatrick_public').notNull().default(false),
     skinConcernsPublic: boolean('skin_concerns_public').notNull().default(false),
+    // Consent to be matched by the skin-similarity engine. Opt-in, off by
+    // default; only effective under the master profile_public gate. Distinct
+    // from the *_public display flags (decision-map #5).
+    discoverable: boolean('discoverable').notNull().default(false),
     ...timestamps,
   },
   (t) => [
     check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),
+    // Partial GIN over the opt-in cohort only, for the concern people-search (#6
+    // array-overlap filter). Tiny: indexes just the discoverable rows.
+    index('user_dermo_profiles_discoverable_concerns_gin')
+      .using('gin', t.skinConcerns)
+      .where(sql`${t.discoverable}`),
     ...tenantPolicies('user_dermo_profiles', t.userId),
     pgPolicy('user_dermo_profiles_select_public', {
       as: 'permissive',
@@ -181,6 +214,23 @@ export const userDermoProfiles = pgTable(
           AND NOT p.forced_private_by_admin
           AND r.is_public = TRUE
           AND r.moderation_status = 'visible'
+      )`,
+    }),
+    // Exposes opt-in rows to the similarity engine (social #5/ADR 0012). Same
+    // master gate as _select_public (profile_public + not force-privated), plus
+    // the discoverable consent. No SECURITY DEFINER wrapper: the inner read hits
+    // only `profiles`, whose policies never reference user_dermo_profiles, so no
+    // recursion cycle (unlike 0067). The engine reads private dermo data through
+    // this path and only ever surfaces an ordinal band.
+    pgPolicy('user_dermo_profiles_select_discoverable', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`${t.discoverable} = TRUE AND EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.user_id = ${t.userId}
+          AND p.profile_public = TRUE
+          AND p.forced_private_by_admin = FALSE
       )`,
     }),
   ]

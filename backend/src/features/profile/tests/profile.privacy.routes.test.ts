@@ -40,6 +40,7 @@ describe('Privacy Settings Routes', () => {
         skinTypesPublic: false,
         fitzpatrickPublic: false,
         skinConcernsPublic: false,
+        discoverable: false,
         aiConsent: false,
       })
     })
@@ -215,7 +216,7 @@ describe('Privacy Settings Routes', () => {
       expect(data.data.skinConcernsPublic).toBe(true)
     })
 
-    it('updates all 8 flags in a single request', async () => {
+    it('updates all 9 flags in a single request', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       const res = await client.profile['privacy-settings'].$patch(
@@ -228,6 +229,7 @@ describe('Privacy Settings Routes', () => {
             skinTypesPublic: true,
             fitzpatrickPublic: true,
             skinConcernsPublic: true,
+            discoverable: true,
             aiConsent: true,
           },
         },
@@ -245,8 +247,35 @@ describe('Privacy Settings Routes', () => {
         skinTypesPublic: true,
         fitzpatrickPublic: true,
         skinConcernsPublic: true,
+        discoverable: true,
         aiConsent: true,
       })
+    })
+
+    // discoverable is opt-in matching consent (decision-map #5): it round-trips
+    // like any dermo flag, persists, and a partial update of another flag must
+    // not reset it.
+    it('opts in to discoverable without disturbing other flags', async () => {
+      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
+
+      const optIn = await client.profile['privacy-settings'].$patch(
+        { json: { discoverable: true } },
+        withAuth(token)
+      )
+      const optInData = await optIn.json()
+      if (!optInData.success) throw new Error('expected ok')
+      expect(optInData.data.discoverable).toBe(true)
+      expect(optInData.data.profilePublic).toBe(false)
+
+      // A later unrelated PATCH must preserve the discoverable opt-in.
+      const later = await client.profile['privacy-settings'].$patch(
+        { json: { profilePublic: true } },
+        withAuth(token)
+      )
+      const laterData = await later.json()
+      if (!laterData.success) throw new Error('expected ok')
+      expect(laterData.data.discoverable).toBe(true)
+      expect(laterData.data.profilePublic).toBe(true)
     })
   })
 })

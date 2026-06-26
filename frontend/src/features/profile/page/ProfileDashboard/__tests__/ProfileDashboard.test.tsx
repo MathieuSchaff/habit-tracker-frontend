@@ -31,6 +31,9 @@ vi.mock('../../../components/ProfileAvatar/ProfileAvatar', () => ({
     <div data-testid="profile-avatar">{username}</div>
   ),
 }))
+vi.mock('../../../../social/components/SimilarPeople/SimilarPeople', () => ({
+  SimilarPeople: () => <div data-testid="similar-people" />,
+}))
 vi.mock('../../../components/IdentityCard/IdentityCard', () => ({
   IdentityCard: ({
     isEditing,

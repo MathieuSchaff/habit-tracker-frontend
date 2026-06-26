@@ -1,4 +1,4 @@
-import type { SkinConcern, SkinType } from '@aurore/shared'
+import type { FeedOrder, PostTone, SimilarityBand, SkinConcern, SkinType } from '@aurore/shared'
 
 export const SKIN_TYPE_LABELS: Record<SkinType, string> = {
   'peau-seche': 'Sèche',
@@ -31,6 +31,25 @@ export const SKIN_CONCERN_LABELS: Record<SkinConcern, string> = {
   eczema: 'Eczéma',
   'grain-peau': 'Grain de peau',
   'keratose-pilaire': 'Kératose pilaire',
+}
+
+// Ordinal similarity bands surfaced as calm labels. 'eloigne' is never shown
+// (the engine excludes it from every surface), so it carries no label.
+export const SIMILARITY_BAND_LABELS: Partial<Record<SimilarityBand, string>> = {
+  'tres-proche': 'Très proche',
+  proche: 'Proche',
+}
+
+// Post tone is a facet, not an object: a calm label, never a counter or score.
+export const POST_TONE_LABELS: Record<PostTone, string> = {
+  principal: 'Principal',
+  'coup-de-gueule': 'Coup de gueule',
+}
+
+// Feed ordering: by recency or by closeness — never by reactions/popularity (#3).
+export const FEED_ORDER_LABELS: Record<FeedOrder, string> = {
+  recency: 'Récent',
+  similarity: 'Affinité',
 }
 
 export const FITZPATRICK_ITEMS = [

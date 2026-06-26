@@ -58,6 +58,15 @@ vi.mock('@/features/discussions/components/SuggestEditButton', () => ({
   SuggestEditButton: () => null,
 }))
 
+// Posts surface + composer have their own suites and need a QueryClient (own
+// useQuery / useMutation); this bare suite mocks them out like the buttons above.
+vi.mock('@/features/products/components/ProductPostsSection/ProductPostsSection', () => ({
+  ProductPostsSection: () => null,
+}))
+vi.mock('@/features/products/components/PostComposer/PostComposer', () => ({
+  PostComposer: () => null,
+}))
+
 function setProduct(overrides: Record<string, unknown> = {}) {
   vi.mocked(useSuspenseQuery).mockReturnValue({
     data: {

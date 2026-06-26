@@ -1,12 +1,14 @@
 import type { PublicProfileView } from '@aurore/shared'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { FITZPATRICK_ITEMS, SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { profileQueries } from '@/lib/queries/profile'
 import { sanitizeUrl } from '@/lib/url'
 import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
+import { ProfilePostsSection } from '../../components/ProfilePostsSection/ProfilePostsSection'
+import { ProfileReviewsSection } from '../../components/ProfileReviewsSection/ProfileReviewsSection'
 import './PublicProfilePage.css'
 
 type PublicProfilePageProps = {
@@ -26,6 +28,10 @@ function hasAnyVisibleField(view: PublicProfileView): boolean {
 
 export function PublicProfilePage({ username }: PublicProfilePageProps) {
   const { data } = useSuspenseQuery(profileQueries.publicByUsername(username))
+  // Shared (deduped) with the trail sections — only used to keep the "rien de
+  // partagé" message from contradicting a populated posts/reviews trail.
+  const { data: reviewsData } = useQuery(profileQueries.reviewsByUsername(username))
+  const { data: postsData } = useQuery(profileQueries.postsByUsername(username))
 
   const fitzItem = FITZPATRICK_ITEMS.find((f) => f.value === data.fitzpatrickType)
   const hasSkinTypes = data.skinTypes !== null && data.skinTypes.length > 0
@@ -109,11 +115,20 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
         </section>
       )}
 
-      {!hasAnyVisibleField(data) && (
-        <p className="public-profile__empty">
-          Ce profil est public, mais aucune information n'est partagée pour le moment.
-        </p>
-      )}
+      {/* Layer ②: public collections (le payload porte-produits) — reserved for
+          the public-collections spec (#8). Cleanly absent until then. */}
+
+      {/* Layer ③: recent trail (posts then reviews, §18). Each self-hides when empty. */}
+      <ProfilePostsSection username={username} />
+      <ProfileReviewsSection username={username} />
+
+      {!hasAnyVisibleField(data) &&
+        reviewsData?.reviews.length === 0 &&
+        postsData?.posts.length === 0 && (
+          <p className="public-profile__empty">
+            Ce profil est public, mais aucune information n'est partagée pour le moment.
+          </p>
+        )}
     </main>
   )
 }

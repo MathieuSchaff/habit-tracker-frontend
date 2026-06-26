@@ -118,6 +118,17 @@ export const publicProductReviewsResponseSchema = z.object({
   reviews: z.array(publicReviewViewSchema),
 })
 
+// Profile surface (#7 / social T4): same review view, but the product is
+// explicit (on a product page it is implicit). Extends, so the gards/projection
+// stay shared and the product-page surface is untouched.
+export const publicProfileReviewViewSchema = publicReviewViewSchema.extend({
+  product: z.object({ slug: z.string(), name: z.string() }),
+})
+
+export const publicProfileReviewsResponseSchema = z.object({
+  reviews: z.array(publicProfileReviewViewSchema),
+})
+
 // TYPES
 
 export type UserProductStatus = z.infer<typeof userProductStatusSchema>
@@ -131,6 +142,8 @@ export type UpdateUserProductReviewInput = z.infer<typeof updateUserProductRevie
 export type ReviewAxisKey = (typeof reviewAxisKeys)[number]
 export type PublicReviewView = z.infer<typeof publicReviewViewSchema>
 export type PublicProductReviewsResponse = z.infer<typeof publicProductReviewsResponseSchema>
+export type PublicProfileReviewView = z.infer<typeof publicProfileReviewViewSchema>
+export type PublicProfileReviewsResponse = z.infer<typeof publicProfileReviewsResponseSchema>
 
 export type UserProductErrorCode =
   | 'user_product_not_found'

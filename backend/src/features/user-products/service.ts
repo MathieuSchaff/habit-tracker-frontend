@@ -1,6 +1,7 @@
 import type {
   CreateUserProductInput,
   PublicProductReviewsResponse,
+  PublicProfileReviewsResponse,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
 } from '@aurore/shared'
@@ -356,6 +357,86 @@ export async function listPublicReviewsForProduct(
       comment: row.comment,
       createdAt: row.createdAt,
       // skinTypesPublic is null when no dermo row (LEFT JOIN); treat as false.
+      reviewer: {
+        username: row.username as string,
+        profilePublic: row.profilePublic,
+        skinTypes: row.skinTypesPublic ? (row.skinTypes ?? null) : null,
+        fitzpatrickType: row.fitzpatrickPublic ? (row.fitzpatrickType ?? null) : null,
+      },
+    }
+  })
+
+  return { reviews }
+}
+
+// Profile-surface mirror of listPublicReviewsForProduct, keyed on the author's
+// username with the product made explicit. Same gards (public + visible +
+// comment non-empty + not force-privated) plus the master profilePublic gate
+// (the product page shows public reviews even from non-public profiles; a
+// profile page must not). Same ratings-null projection. Recent capped sample,
+// never a wall (#7 calme).
+const PROFILE_REVIEWS_SAMPLE_CAP = 12
+
+export async function listPublicReviewsByUser(
+  db: DB,
+  username: string
+): Promise<PublicProfileReviewsResponse> {
+  const rows = await db
+    .select({
+      id: userProductReviews.id,
+      tolerance: userProductReviews.tolerance,
+      efficacy: userProductReviews.efficacy,
+      sensoriality: userProductReviews.sensoriality,
+      stability: userProductReviews.stability,
+      mixability: userProductReviews.mixability,
+      valueForMoney: userProductReviews.valueForMoney,
+      ratingsPublic: userProductReviews.ratingsPublic,
+      comment: userProductReviews.comment,
+      createdAt: userProductReviews.createdAt,
+      username: profiles.username,
+      profilePublic: profiles.profilePublic,
+      skinTypes: userDermoProfiles.skinTypes,
+      fitzpatrickType: userDermoProfiles.fitzpatrickType,
+      skinTypesPublic: userDermoProfiles.skinTypesPublic,
+      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
+      productSlug: products.slug,
+      productName: products.name,
+    })
+    .from(userProductReviews)
+    .innerJoin(userProducts, eq(userProducts.id, userProductReviews.userProductId))
+    .innerJoin(products, eq(products.id, userProducts.productId))
+    .innerJoin(profiles, eq(profiles.userId, userProducts.userId))
+    .leftJoin(userDermoProfiles, eq(userDermoProfiles.userId, userProducts.userId))
+    .where(
+      and(
+        eq(userProductReviews.isPublic, true),
+        eq(userProductReviews.moderationStatus, 'visible'),
+        eq(profiles.username, username),
+        isNotNull(profiles.username),
+        // Primary gate for the profile surface: RLS (profiles_select_for_public_review)
+        // exposes review pseudonyms even for non-public profiles on the product page,
+        // so the stricter profile-page rule is enforced here, not by RLS.
+        eq(profiles.profilePublic, true),
+        eq(profiles.forcedPrivateByAdmin, false),
+        sql`coalesce(trim(${userProductReviews.comment}), '') <> ''`
+      )
+    )
+    .orderBy(desc(userProductReviews.createdAt))
+    .limit(PROFILE_REVIEWS_SAMPLE_CAP)
+
+  const reviews = rows.map((row) => {
+    const showRatings = row.ratingsPublic
+    return {
+      id: row.id,
+      tolerance: showRatings ? row.tolerance : null,
+      efficacy: showRatings ? row.efficacy : null,
+      sensoriality: showRatings ? row.sensoriality : null,
+      stability: showRatings ? row.stability : null,
+      mixability: showRatings ? row.mixability : null,
+      valueForMoney: showRatings ? row.valueForMoney : null,
+      comment: row.comment,
+      createdAt: row.createdAt,
+      product: { slug: row.productSlug, name: row.productName },
       reviewer: {
         username: row.username as string,
         profilePublic: row.profilePublic,

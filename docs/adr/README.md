@@ -17,8 +17,10 @@ Canonical ADRs for Aurore. This directory is tracked in git.
 | [0009](./0009-signup-enumeration-safe.md) | Signup is enumeration-safe — neutral response, truth only by email | accepted | 2026-06-17 |
 | [0010](./0010-forgot-password-enumeration-safe.md) | Forgot-password is enumeration-safe — neutral request, reset only by email | accepted | 2026-06-17 |
 | [0011](./0011-home-is-dual-audience.md) | Home (`/`) is dual-audience — never redirect authenticated users away | accepted | 2026-06-25 |
+| [0012](./0012-discoverability-opt-in-decoupled.md) | Profile discoverability is opt-in matching consent, decoupled from display | accepted | 2026-06-25 |
+| [0013](./0013-reactions-signed-counterless.md) | Reactions are signed and counter-less — a list of who, never a tally | accepted | 2026-06-25 |
 
-Next available: **0012**. Name: `NNNN-short-imperative-verb-phrase.md`.
+Next available: **0014**. Name: `NNNN-short-imperative-verb-phrase.md`.
 
 ## Template
 

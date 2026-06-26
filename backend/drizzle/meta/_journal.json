@@ -722,6 +722,48 @@
       "when": 1782075172910,
       "tag": "0102_dev-readonly-login",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1782358486465,
+      "tag": "0103_lean_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1782359959601,
+      "tag": "0104_social_discoverable_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1782363631399,
+      "tag": "0105_social_concern_search_gin",
+      "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1782366598679,
+      "tag": "0106_social_posts",
+      "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1782373270291,
+      "tag": "0107_social_reactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1782379814927,
+      "tag": "0108_profiles_select_for_social",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import type { ProfileUpdateInput } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { Settings, Shield, Sparkles } from 'lucide-react'
+import { Settings, Shield, Sparkles, Users } from 'lucide-react'
 import { Suspense, useState } from 'react'
 
 import { Time } from '@/component/DataDisplay/Time/Time'
@@ -10,6 +10,7 @@ import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
 import { useAnnounce } from '@/hooks/useAnnounce'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
+import { SimilarPeople } from '../../../social/components/SimilarPeople/SimilarPeople'
 import {
   type CompletionStep,
   CompletionStrip,
@@ -22,7 +23,7 @@ import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 import './ProfileDashboard.css'
 
-type TabType = 'profile' | 'preferences' | 'account'
+type TabType = 'profile' | 'preferences' | 'account' | 'people'
 
 export const ProfileDashboard = () => {
   const { data: profile } = useSuspenseQuery(profileQueries.me())
@@ -76,6 +77,11 @@ export const ProfileDashboard = () => {
       id: 'account',
       label: 'Compte',
       icon: <Shield size={18} />,
+    },
+    {
+      id: 'people',
+      label: 'Des gens comme vous',
+      icon: <Users size={18} />,
     },
   ]
 
@@ -174,6 +180,17 @@ export const ProfileDashboard = () => {
           hidden={activeTab !== 'account'}
         >
           <AccountSettings />
+        </div>
+
+        <div
+          className="profile-tab-content"
+          role="tabpanel"
+          id="profile-tab-panel-people"
+          aria-labelledby="profile-tab-people"
+          hidden={activeTab !== 'people'}
+        >
+          {/* Lazy-mount: don't fetch the cohort until the tab is opened. */}
+          {activeTab === 'people' && <SimilarPeople />}
         </div>
       </div>
     </main>

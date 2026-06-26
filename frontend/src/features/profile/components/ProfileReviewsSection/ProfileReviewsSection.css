@@ -1,0 +1,34 @@
+.profile-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-reviews__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.profile-reviews__product {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.profile-reviews__product:hover,
+.profile-reviews__product:focus-visible {
+  text-decoration: underline;
+}
+
+.profile-reviews__comment {
+  margin: 0;
+  color: var(--text-secondary);
+}

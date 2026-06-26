@@ -56,6 +56,30 @@ export const profileQueries = {
       staleTime: 1000 * 60,
       enabled: !!username,
     }),
+  reviewsByUsername: (username: string) =>
+    queryOptions({
+      queryKey: ['profile', 'reviews', username],
+      queryFn: async () => {
+        const res = await api.profiles[':username'].reviews.$get({ param: { username } })
+        const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60,
+      enabled: !!username,
+    }),
+  postsByUsername: (username: string) =>
+    queryOptions({
+      queryKey: ['profile', 'posts', username],
+      queryFn: async () => {
+        const res = await api.profiles[':username'].posts.$get({ param: { username } })
+        const json = await res.json()
+        if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
+        return json.data
+      },
+      staleTime: 1000 * 60,
+      enabled: !!username,
+    }),
 }
 
 export const useUpdateProfile = () => {

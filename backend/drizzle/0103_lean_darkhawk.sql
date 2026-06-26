@@ -1,0 +1,1 @@
+ALTER TABLE "user_dermo_profiles" ADD COLUMN "discoverable" boolean DEFAULT false NOT NULL;

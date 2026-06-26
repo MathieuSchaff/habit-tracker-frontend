@@ -12,6 +12,8 @@ import {
   productIngredientErrorMapping,
   profileErrorMapping,
   purchaseErrorMapping,
+  socialPostErrorMapping,
+  socialReactionErrorMapping,
   tagErrorMapping,
   taskErrorMapping,
   userProductErrorMapping,
@@ -45,6 +47,8 @@ const errorMappingRegistry = new Map<string, Record<string, HttpStatus>>([
   ['BlogError', articleErrorMapping as Record<string, HttpStatus>],
   ['DiscussionError', discussionErrorMapping as Record<string, HttpStatus>],
   ['ProfileError', profileErrorMapping as Record<string, HttpStatus>],
+  ['SocialPostError', socialPostErrorMapping as Record<string, HttpStatus>],
+  ['SocialReactionError', socialReactionErrorMapping as Record<string, HttpStatus>],
 ])
 
 export async function globalErrorHandler(error: Error, c: Context<AppEnv>) {

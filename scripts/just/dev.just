@@ -42,9 +42,12 @@ _db-guard:
     {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '${APP_RUNTIME_PASSWORD}'" >/dev/null
     printf "{{GREEN}}✓ DB restaurée depuis snapshot{{NC}}\n"
 
-# Prod-like profiling: Caddy HTTP/2 + brotli + immutable over prod build, /api → backend (closest local match to prod nginx). Needs backend up (`just dev-d`); open https://localhost:8443, accept self-signed warning.
-profile-prod:
-    cd frontend && bun run build
+# Prod-like profiling: Caddy HTTP/2 + zstd/gzip + immutable assets over a prod
+# build, /api → backend. Prod nginx currently serves gzip only; this is closer
+# than `vite preview`, not an exact transport replica. Needs backend up
+# (`just dev-d`); open https://localhost:8443 and accept the self-signed cert.
+profile-prod: ts-build
+    cd frontend && bunx vite build
     docker run --rm -p 8443:8443 \
         --add-host host.docker.internal:host-gateway \
         -v {{justfile_directory()}}/frontend/dist:/srv:ro \

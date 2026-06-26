@@ -48,6 +48,7 @@ export const AccountSettings = () => {
       | 'skinTypesPublic'
       | 'fitzpatrickPublic'
       | 'skinConcernsPublic'
+      | 'discoverable'
       | 'aiConsent',
     value: boolean
   ) => {
@@ -138,6 +139,17 @@ export const AccountSettings = () => {
                 label="Préoccupations"
                 checked={privacy.skinConcernsPublic}
                 onChange={(checked) => handlePrivacyToggle('skinConcernsPublic', checked)}
+                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+              />
+            </div>
+
+            <div className="privacy-subgroup">
+              <p className="privacy-subgroup-title">Rencontres de peau</p>
+              <Toggle
+                label="Être trouvable par des peaux similaires"
+                hint="Aurore peut vous proposer à des personnes dont la peau ressemble à la vôtre. La problématique par laquelle on vous trouve peut être déduite ; vos autres informations restent privées."
+                checked={privacy.discoverable}
+                onChange={(checked) => handlePrivacyToggle('discoverable', checked)}
                 disabled={!privacy.profilePublic || updatePrivacy.isPending}
               />
             </div>

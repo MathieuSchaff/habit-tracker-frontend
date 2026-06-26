@@ -5,6 +5,7 @@ import type { DiscussionReply, DiscussionThreadWithReplies } from '@aurore/share
 import { Trash2 } from 'lucide-react'
 
 import { Button } from '@/component/Button/Button'
+import { ReactionRow } from '@/features/social/components/ReactionRow/ReactionRow'
 import { useAnnounce } from '@/hooks/useAnnounce'
 import { useDeleteReply, useDeleteThread } from '@/lib/queries/discussions'
 import { AuthorLine } from './AuthorLine'
@@ -63,6 +64,7 @@ function ReplyItem({
           />
         )}
       </div>
+      <ReactionRow reactableType="thread_reply" reactableId={reply.id} />
     </div>
   )
 }
@@ -105,6 +107,7 @@ export function ThreadDetail({ thread, entityType, slug, currentUserId }: Thread
             />
           )}
         </div>
+        <ReactionRow reactableType="thread" reactableId={thread.id} />
       </div>
 
       {thread.replies.length > 0 && (

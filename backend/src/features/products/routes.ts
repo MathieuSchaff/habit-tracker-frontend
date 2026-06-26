@@ -30,6 +30,7 @@ import {
 } from '../auth/middleware'
 import { withRlsContext } from '../auth/rls-context.middleware'
 import { securityScan } from '../security/security.middleware'
+import { listPostsForProduct } from '../social/posts.service'
 import { listPublicReviewsForProduct } from '../user-products/service'
 import { previewProductFormula } from './formula-preview.service'
 import {
@@ -174,6 +175,15 @@ export const productRoutes = productsApp
     const db = c.get('db')
     const { slug } = c.req.valid('param')
     const result = await listPublicReviewsForProduct(db, slug)
+    return c.json(ok(result), HTTP_STATUS.OK)
+  })
+
+  // Deliberate posts anchored to this product (#7/T5). Visible only; the author
+  // /u link is gated client-side by author.profilePublic. No feed amplification.
+  .get('/:slug/posts', zValidator('param', slugParam), async (c) => {
+    const db = c.get('db')
+    const { slug } = c.req.valid('param')
+    const result = await listPostsForProduct(db, slug)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
