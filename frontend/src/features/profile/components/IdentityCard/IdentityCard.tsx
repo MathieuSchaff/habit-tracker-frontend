@@ -73,7 +73,7 @@ export function IdentityCard({
             <>
               {hasBio && <p className="identity-card__bio">{profile.bio}</p>}
               {hasLinks && (
-                <ul className="identity-card__links" aria-label="Mes liens">
+                <ul role="list" className="identity-card__links" aria-label="Mes liens">
                   {profile.links?.map((link) => (
                     <li key={link.url}>
                       <a

@@ -21,7 +21,7 @@ export function ProfilePostsSection({ username }: { username: string }) {
   return (
     <section className="public-profile__section">
       <h2 className="public-profile__section-title">Publications récentes</h2>
-      <ul className="profile-posts">
+      <ul role="list" className="profile-posts">
         {posts.map((post) => (
           <li key={post.id} className="profile-posts__item">
             <p className="profile-posts__content">{post.content}</p>

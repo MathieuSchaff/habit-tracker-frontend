@@ -119,7 +119,7 @@ export const SignupPage = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <ul className="signup__rules" aria-label="Règles du mot de passe">
+        <ul role="list" className="signup__rules" aria-label="Règles du mot de passe">
           {passwordChecks.map(({ key, label, valid }) => (
             <li
               key={key}

@@ -57,7 +57,7 @@ export function DiffSection({ products }: Props) {
               {list.length === 0 ? (
                 <p className="diff-section__empty">Aucun ingrédient en propre.</p>
               ) : (
-                <ul id={colId} className="diff-section__pills">
+                <ul role="list" id={colId} className="diff-section__pills">
                   {visible.map((i) => (
                     <li key={i.slug} className="diff-pill">
                       <span

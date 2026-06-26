@@ -57,7 +57,7 @@ export function CommonIngredientsSection({ products }: Props) {
           {sortedActives.length > 0 && (
             <div className="terroir__group">
               <p className="terroir__group-label">Actifs communs</p>
-              <ul className="terroir__pills">
+              <ul role="list" className="terroir__pills">
                 {sortedActives.map((i) => (
                   <li key={i.slug} className="terroir-pill terroir-pill--active">
                     <span className="terroir-pill__pos">#{Math.round(avgPosition(i.slug))}</span>
@@ -70,7 +70,7 @@ export function CommonIngredientsSection({ products }: Props) {
           {sortedOthers.length > 0 && (
             <div className="terroir__group">
               <p className="terroir__group-label terroir__group-label--muted">Autres communs</p>
-              <ul className="terroir__pills">
+              <ul role="list" className="terroir__pills">
                 {sortedOthers.map((i) => (
                   <li key={i.slug} className="terroir-pill">
                     <span className="terroir-pill__pos">#{Math.round(avgPosition(i.slug))}</span>

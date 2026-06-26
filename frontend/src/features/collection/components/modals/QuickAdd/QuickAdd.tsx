@@ -177,7 +177,7 @@ export function QuickAdd({ onClose }: QuickAddProps) {
                     ? 'Un produit similaire existe déjà :'
                     : 'Des produits similaires existent déjà :'}
                 </p>
-                <ul>
+                <ul role="list">
                   {similarProducts.map((p) => (
                     <li key={p.id}>
                       {p.name} — {p.brand}

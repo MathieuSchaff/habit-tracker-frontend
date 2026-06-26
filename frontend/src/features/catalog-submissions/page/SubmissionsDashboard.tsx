@@ -39,7 +39,7 @@ export function SubmissionsDashboard() {
           subtitle="Proposez un produit ou un ingrédient pour enrichir le catalogue."
         />
       ) : (
-        <ul className="submissions__list">
+        <ul role="list" className="submissions__list">
           {items.map((item) => {
             const state = stateOf(item)
             return (

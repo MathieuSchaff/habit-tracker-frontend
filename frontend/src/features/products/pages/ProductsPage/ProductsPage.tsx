@@ -314,7 +314,7 @@ export function ProductsPage() {
             )
           ) : (
             <>
-              <ul className="list-grid">
+              <ul role="list" className="list-grid">
                 {items.map((product) => (
                   <ProductCard key={product.id} product={product} onAdd={handleAddProduct} />
                 ))}

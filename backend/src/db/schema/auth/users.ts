@@ -150,6 +150,19 @@ export const profiles = pgTable(
         WHERE sp.author_id = ${t.userId} AND sp.moderation_status = 'visible'
       )`,
     }),
+    // A visible reply is a public signed artifact too: getPostWithReplies leftJoins
+    // the reply author's pseudonym, so it must surface to app_runtime. Mirrors
+    // _for_social_post — gate on moderation_status='visible' so a hidden reply never
+    // leaks its author. social_post_replies has no RLS. Force-private still wins.
+    pgPolicy('profiles_select_for_post_reply', {
+      as: 'permissive',
+      for: 'select',
+      to: appRuntimeRole,
+      using: sql`NOT ${t.forcedPrivateByAdmin} AND EXISTS (
+        SELECT 1 FROM social_post_replies spr
+        WHERE spr.author_id = ${t.userId} AND spr.moderation_status = 'visible'
+      )`,
+    }),
     pgPolicy('profiles_admin_bypass', {
       as: 'permissive',
       for: 'all',

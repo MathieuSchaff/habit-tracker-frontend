@@ -6,6 +6,7 @@ import {
   GitCompare,
   Layers,
   ListChecks,
+  Newspaper,
   Package,
   Users,
 } from 'lucide-react'
@@ -108,6 +109,14 @@ export function HomeHub() {
         : 'Activez la découverte pour voir des profils proches.',
       to: '/profile',
       cta: privacy?.discoverable ? 'Découvrir' : 'Activer la découverte',
+    },
+    {
+      id: 'feed',
+      icon: <Newspaper size={20} aria-hidden="true" />,
+      title: 'Le fil des semblables',
+      line: 'Les publications des personnes qui partagent votre peau.',
+      to: '/feed',
+      cta: 'Ouvrir le fil',
     },
   ]
 

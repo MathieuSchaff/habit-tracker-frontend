@@ -101,7 +101,7 @@ export function FlowSection() {
           lede="Voici le flux réel dans Aurore: collecter un candidat, le lire, le comparer, décider, puis retrouver cette décision plus tard."
         />
 
-        <ol className="aur-flow">
+        <ol role="list" className="aur-flow">
           {STEPS.map((s) => (
             <li className="aur-flow__step" key={s.num}>
               <span className="aur-flow__num">{s.num}</span>

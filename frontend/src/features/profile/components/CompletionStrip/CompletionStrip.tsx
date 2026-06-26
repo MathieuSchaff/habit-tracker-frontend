@@ -58,7 +58,7 @@ export function CompletionStrip({ profile, dermo, onEditSection }: CompletionStr
         </p>
       </div>
 
-      <ol className="completion-strip__steps" aria-label="Étapes restantes">
+      <ol role="list" className="completion-strip__steps" aria-label="Étapes restantes">
         {steps.map((step, index) => (
           <li
             key={step.id}

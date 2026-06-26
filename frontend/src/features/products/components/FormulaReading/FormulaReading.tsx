@@ -49,7 +49,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
       {drivers.length > 0 && (
         <div className="formula-reading__group">
           <h3 className="formula-reading__subhead">À noter dans cette formule</h3>
-          <ul className="formula-reading__list">
+          <ul role="list" className="formula-reading__list">
             {drivers.map((d) => {
               const axes = d.axes as RiskAxis[]
               const relevant = axes.some((a) => relevantAxes.has(a))
@@ -81,7 +81,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
           <p className="formula-reading__explainer">
             Limites officielles de concentration ou d'usage — courant pour les actifs réglementés.
           </p>
-          <ul className="formula-reading__list">
+          <ul role="list" className="formula-reading__list">
             {formatRegulatoryNotes(regulatoryNotes).map((line) => (
               <li key={line.key} className="formula-reading__item">
                 {line.label && <span className="formula-reading__label">{line.label}</span>}
@@ -98,7 +98,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
             <GitMerge size={13} aria-hidden="true" />
             Interactions
           </h3>
-          <ul className="formula-reading__list">
+          <ul role="list" className="formula-reading__list">
             {interactions.map((i) => (
               <li key={i.id} className="formula-reading__item">
                 {i.note}

@@ -48,6 +48,9 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
+      "a11y": {
+        "noRedundantRoles": "off"
+      },
       "correctness": {
         "useExhaustiveDependencies": "warn",
         "useHookAtTopLevel": "error",

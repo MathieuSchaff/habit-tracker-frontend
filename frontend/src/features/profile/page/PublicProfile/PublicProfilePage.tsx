@@ -50,7 +50,7 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
       {hasLinks && (
         <section className="public-profile__section">
           <h2 className="public-profile__section-title">Liens</h2>
-          <ul className="public-profile__links">
+          <ul role="list" className="public-profile__links">
             {data.links?.map((link) => {
               const safe = sanitizeUrl(link.url)
               if (!safe) return null

@@ -7,6 +7,8 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { profiles, userDermoProfiles } from '../../../db/schema/auth/users'
+import { ingredients } from '../../../db/schema/ingredients/ingredients'
+import { products } from '../../../db/schema/products/products'
 import { socialPosts } from '../../../db/schema/social/posts'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
@@ -64,7 +66,14 @@ describe('GET /api/social/feed', () => {
 
   async function insertPost(
     authorId: string,
-    post: { tone: PostTone; concernSlug: SkinConcern; createdAt: string; content?: string }
+    post: {
+      tone: PostTone
+      concernSlug: SkinConcern
+      createdAt: string
+      content?: string
+      productId?: string
+      ingredientId?: string
+    }
   ): Promise<void> {
     await testDb.insert(socialPosts).values({
       authorId,
@@ -72,6 +81,8 @@ describe('GET /api/social/feed', () => {
       content: post.content ?? 'Mon expérience.',
       concernSlug: post.concernSlug,
       createdAt: post.createdAt,
+      productId: post.productId,
+      ingredientId: post.ingredientId,
     })
   }
 
@@ -188,8 +199,46 @@ describe('GET /api/social/feed', () => {
       'tone',
     ])
     expect(['tres-proche', 'proche']).toContain(item.authorBand)
-    // No counter rides along anywhere in the payload (structural zéro-compteur).
-    expect(JSON.stringify(data)).not.toMatch(/count|total/i)
+    // Exact-key assertions ARE the structural zéro-compteur guard: with both the item
+    // and the response shape pinned, no count/total field can ride along.
+    expect(Object.keys(data)).toEqual(['posts'])
+  })
+
+  it('resolves product and ingredient anchors (leftJoins + toSurfaceView)', async () => {
+    const token = await seedViewer()
+    const close = await seedPeer('close', SENSITIVE)
+
+    const [product] = await testDb
+      .insert(products)
+      .values({
+        createdBy: close,
+        name: 'Crème Apaisante',
+        brand: 'BrandX',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'dropper',
+        slug: 'creme-apaisante-feed',
+      })
+      .returning()
+    const [ingredient] = await testDb
+      .insert(ingredients)
+      .values({ createdBy: close, name: 'Niacinamide', slug: 'niacinamide-feed', type: 'skincare' })
+      .returning()
+    if (!product || !ingredient) throw new Error('anchor seed failed')
+
+    await insertPost(close, {
+      tone: 'principal',
+      concernSlug: 'rosacee',
+      createdAt: ts(10),
+      productId: product.id,
+      ingredientId: ingredient.id,
+    })
+
+    const data = await fetchFeed(token)
+    expect(data.posts).toHaveLength(1)
+    const [item] = data.posts
+    expect(item.productAnchor).toEqual({ slug: 'creme-apaisante-feed', name: 'Crème Apaisante' })
+    expect(item.ingredientAnchor).toEqual({ slug: 'niacinamide-feed', name: 'Niacinamide' })
   })
 })
 

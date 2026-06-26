@@ -16,6 +16,9 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Safari/VoiceOver drops the list role from any list with list-style:none, so
+   semantic <ul>/<ol> must carry role="list" to keep it (biome noRedundantRoles
+   is off for this). */
 ul,
 ol {
   list-style: none;

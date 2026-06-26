@@ -60,7 +60,7 @@ export const ProfileLinksEditor = ({
 
   return (
     <fieldset className="links-editor" aria-label="Liens de profil">
-      <ul className="links-editor__list">
+      <ul role="list" className="links-editor__list">
         {links.map((link, i) => (
           <li key={keys[i]}>
             <fieldset className="links-editor__row" disabled={disabled}>

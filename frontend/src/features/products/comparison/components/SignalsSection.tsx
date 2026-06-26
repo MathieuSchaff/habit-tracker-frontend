@@ -65,7 +65,7 @@ export function SignalsSection({ products }: Props) {
             count={actives.length}
             icon={<Sparkle size={16} aria-hidden="true" />}
           >
-            <ul className="signals-card__items">
+            <ul role="list" className="signals-card__items">
               {actives.map((i) => (
                 <li key={i.slug} className="signals-pill">
                   {i.inciName}
@@ -83,7 +83,7 @@ export function SignalsSection({ products }: Props) {
             count={alerts.length}
             icon={<AlertTriangle size={16} aria-hidden="true" />}
           >
-            <ul className="signals-card__items">
+            <ul role="list" className="signals-card__items">
               {alerts.map((a) => (
                 <li key={a.slug} className="signals-pill">
                   {a.inciName}
@@ -105,7 +105,7 @@ export function SignalsSection({ products }: Props) {
             count={conflicts.length}
             icon={<Zap size={16} aria-hidden="true" />}
           >
-            <ul className="signals-card__conflicts">
+            <ul role="list" className="signals-card__conflicts">
               {conflicts.map((c) => (
                 <li key={`${c.a}-${c.b}`} className="signals-conflict">
                   <p className="signals-conflict__pair">

@@ -19,7 +19,7 @@ export function ProductsGridSkeleton() {
       <span className="sr-only" role="status" aria-live="polite">
         Chargement des produits…
       </span>
-      <ul className="list-grid products-grid-skeleton__grid" aria-hidden="true">
+      <ul role="list" className="list-grid products-grid-skeleton__grid" aria-hidden="true">
         {CARD_PLACEHOLDERS.map((card) => (
           <li key={card.id} className="products-grid-skeleton__card">
             <Skeleton className="products-grid-skeleton__image" />

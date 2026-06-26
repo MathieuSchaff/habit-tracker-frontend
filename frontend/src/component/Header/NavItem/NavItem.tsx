@@ -18,7 +18,7 @@ export function NavSideList({ onItemClick, className = '' }: NavSideListProps) {
     isAuthenticated || bootRefreshPending ? navItems.filter((item) => item.to !== '/') : navItems
 
   return (
-    <ul id="main-nav-list" className={`main-nav__list ${className}`}>
+    <ul role="list" id="main-nav-list" className={`main-nav__list ${className}`}>
       {visibleItems.map((item) => (
         <li key={item.to as string}>
           <Link

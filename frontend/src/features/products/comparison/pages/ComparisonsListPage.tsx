@@ -29,7 +29,7 @@ export function ComparisonsListPage() {
           </p>
         </div>
       ) : (
-        <ul className="comparisons-list-page__grid">
+        <ul role="list" className="comparisons-list-page__grid">
           {comparisons.map((c) => (
             <li key={c.id} className="comparison-card">
               <Link

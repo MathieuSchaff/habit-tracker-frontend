@@ -17,7 +17,7 @@ export function DuplicateWarning({
           ? 'Un produit similaire existe déjà :'
           : 'Des produits similaires existent déjà :'}
       </p>
-      <ul>
+      <ul role="list">
         {products.map((p) => (
           <li key={p.id}>
             <Link to="/products/$slug" params={{ slug: p.slug }}>
