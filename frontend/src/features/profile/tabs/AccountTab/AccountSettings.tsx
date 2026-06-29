@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Download, ExternalLink, LogOut, ShieldCheck, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '../../../../component/Button/Button'
 import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
@@ -31,6 +31,20 @@ export const AccountSettings = () => {
 
   const { data: privacy, isLoading: privacyLoading } = useQuery(privacySettingsQueries.get())
   const updatePrivacy = useUpdatePrivacySettings()
+
+  // Deep-link from HomeHub's "Activer la découverte": once the toggles render,
+  // scroll to the discoverable one. Once-only so background refetches don't jump.
+  const hash = useLocation({ select: (l) => l.hash })
+  const scrolledToToggle = useRef(false)
+  useEffect(() => {
+    if (scrolledToToggle.current || hash !== 'discoverable' || !privacy) return
+    scrolledToToggle.current = true
+    requestAnimationFrame(() => {
+      document
+        .getElementById('privacy-discoverable')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [hash, privacy])
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -143,7 +157,7 @@ export const AccountSettings = () => {
               />
             </div>
 
-            <div className="privacy-subgroup">
+            <div id="privacy-discoverable" className="privacy-subgroup">
               <p className="privacy-subgroup-title">Rencontres de peau</p>
               <Toggle
                 label="Être trouvable par des peaux similaires"

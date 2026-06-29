@@ -36,6 +36,7 @@ export const SignupPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [redirecting, setRedirecting] = useState(false)
 
   const navigate = useNavigate()
   const signup = useSignup()
@@ -67,6 +68,7 @@ export const SignupPage = () => {
         // Neutral flow (ADR 0009): signup creates no session and the response is
         // identical whether or not the email already exists. Send the user to the
         // "check your email" screen instead of into the app.
+        setRedirecting(true)
         navigate({ to: '/auth/verify-pending' })
       },
       onError: (error) => {
@@ -168,7 +170,7 @@ export const SignupPage = () => {
           type="submit"
           variant="primary"
           size="lg"
-          loading={signup.isPending}
+          loading={signup.isPending || redirecting}
           fullWidth
           className="auth-submit-btn"
         >

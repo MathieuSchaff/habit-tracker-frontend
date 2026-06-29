@@ -7,12 +7,14 @@ export type DoorwayItem = {
   title: string
   line: string
   to: LinkProps['to']
+  search?: LinkProps['search']
+  hash?: LinkProps['hash']
   cta: string
 }
 
-export function DoorwayCard({ icon, title, line, to, cta }: Omit<DoorwayItem, 'id'>) {
+export function DoorwayCard({ icon, title, line, to, search, hash, cta }: Omit<DoorwayItem, 'id'>) {
   return (
-    <Link to={to} className="aur-doorway">
+    <Link to={to} search={search} hash={hash} className="aur-doorway">
       <span className="aur-doorway__icon">{icon}</span>
       <h3 className="aur-doorway__title">{title}</h3>
       <p className="aur-doorway__line">{line}</p>

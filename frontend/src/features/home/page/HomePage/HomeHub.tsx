@@ -108,6 +108,11 @@ export function HomeHub() {
         ? 'Des personnes à la peau proche de la vôtre.'
         : 'Activez la découverte pour voir des profils proches.',
       to: '/profile',
+      // Land where the action lives: the discovery list when on, else the account
+      // tab that holds the toggle. Avoids the dead-end into the default profile tab.
+      search: { tab: privacy?.discoverable ? 'people' : 'account' },
+      // Off case lands mid-page; scroll straight to the discoverable toggle.
+      hash: privacy?.discoverable ? undefined : 'discoverable',
       cta: privacy?.discoverable ? 'Découvrir' : 'Activer la découverte',
     },
     {

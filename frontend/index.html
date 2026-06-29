@@ -2,6 +2,12 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
+    <!-- @layer order must be declared before any CSS loads. Rolldown strips the
+         bare @layer statement from the bundled CSS, so without this the cascade
+         falls back to encounter order and component styles lose to reset/base. -->
+    <style>
+      @layer reset, variables, base, components, utilities;
+    </style>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

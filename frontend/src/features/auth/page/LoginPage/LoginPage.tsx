@@ -26,6 +26,9 @@ export const LOGIN_ERRORS: Record<LoginErrorCode, string> = {
 
 export const LoginPage = () => {
   const [errors, setErrors] = useState<FieldErrors>({})
+  // Spin the button past the mutation, through the route load, until the
+  // destination paints - the loader keeps the old form on screen otherwise.
+  const [redirecting, setRedirecting] = useState(false)
 
   const navigate = useNavigate()
   const { redirect } = useSearch({ from: '/auth/login' })
@@ -48,11 +51,13 @@ export const LoginPage = () => {
 
     login.mutate(parsed.data, {
       onSuccess: () => {
+        setRedirecting(true)
         queryClient.invalidateQueries({ queryKey: ['session'] })
         navigate({ to: redirect ?? '/collection' })
       },
       onError: (error) => {
         if (error.message === 'email_not_verified') {
+          setRedirecting(true)
           navigate({ to: '/auth/verify-pending' })
           return
         }
@@ -111,7 +116,7 @@ export const LoginPage = () => {
           type="submit"
           variant="primary"
           size="lg"
-          loading={login.isPending}
+          loading={login.isPending || redirecting}
           fullWidth
           className="auth-submit-btn"
         >
