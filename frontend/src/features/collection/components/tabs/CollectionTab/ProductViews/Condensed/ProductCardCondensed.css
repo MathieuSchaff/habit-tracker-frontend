@@ -83,6 +83,36 @@
     flex-shrink: 0;
   }
 
+  .prod-sentiment-toggle {
+    position: absolute;
+    top: -10px;
+    right: -8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    line-height: 0;
+    transition: transform var(--transition-base) var(--ease-bounce);
+  }
+
+  .prod-sentiment-toggle.empty {
+    opacity: 0.35;
+  }
+
+  .prod-sentiment-toggle:hover {
+    transform: scale(1.12);
+  }
+
+  .prod-sentiment-toggle.popping {
+    animation: sentimentPop 0.35s var(--ease-bounce);
+  }
+
+  /* Legacy round badge — kept for when we revisit the overlay styling. */
   .prod-sentiment-badge {
     position: absolute;
     top: -13px;

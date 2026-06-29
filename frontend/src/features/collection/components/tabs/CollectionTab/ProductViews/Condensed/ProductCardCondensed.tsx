@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Check, ChevronDown, SmilePlus, Sparkles } from 'lucide-react'
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from 'react'
 
-import { SENTIMENT_COLORS, SentimentIcon } from '@/assets/sentiment-icons'
+import { SentimentIcon } from '@/assets/sentiment-icons'
 import { Card } from '@/component/Card/Card'
 import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
@@ -61,9 +61,8 @@ export function ProductCardCondensed({
 }: ProductCardCondensedProps) {
   const updateMutation = useUpdateUserProduct()
   const announce = useAnnounce()
-  const { data: prefs } = useQuery(userPreferenceQueries.get())
   const [isPopping, setIsPopping] = useState(false)
-
+  const { data: prefs } = useQuery(userPreferenceQueries.get())
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pressStartPos = useRef<{ x: number; y: number } | null>(null)
   const longPressFired = useRef(false)
@@ -126,7 +125,6 @@ export function ProductCardCondensed({
   const handleNextSentiment = (e: React.MouseEvent) => {
     e.stopPropagation()
     const current = p.sentiment || 0
-    // Cycle 1 → 6 (HG) → null. Avoided caps at 5 (HG on rejected is self-contradictory).
     const max = p.status === 'avoided' ? 5 : 6
     const next = current >= max ? null : current + 1
     updateMutation.mutate(
@@ -166,27 +164,19 @@ export function ProductCardCondensed({
     >
       <button
         type="button"
-        className={clsx(
-          'prod-sentiment-badge',
-          isPopping && 'popping',
-          !p.sentiment && 'empty',
-          p.sentiment && 'has-sentiment'
-        )}
-        style={
-          p.sentiment
-            ? ({ '--sentiment-color': SENTIMENT_COLORS[p.sentiment] } as React.CSSProperties)
-            : undefined
-        }
+        className={clsx('prod-sentiment-toggle', !p.sentiment && 'empty', isPopping && 'popping')}
         onClick={handleNextSentiment}
         aria-label={`Changer le ressenti pour ${p.product.name}`}
         data-stop-long-press
       >
         {p.sentiment ? (
-          <SentimentIcon value={p.sentiment} size={18} />
+          <SentimentIcon value={p.sentiment} size={26} />
         ) : (
-          <SmilePlus size={16} aria-hidden="true" />
+          <SmilePlus size={22} aria-hidden="true" />
         )}
       </button>
+
+      {/* Badge rond (.prod-sentiment-badge) — retiré le temps de retravailler les icônes. */}
 
       <span
         className={clsx('pcc-check', (selectMode || selected) && 'pcc-check--visible')}
