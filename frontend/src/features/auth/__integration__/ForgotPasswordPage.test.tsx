@@ -78,4 +78,11 @@ describe('ForgotPasswordPage', () => {
 
     expect(await screen.findByText(/Une erreur est survenue/)).toBeVisible()
   })
+
+  it('disables the submit button while the request is in flight', () => {
+    setMutationResult({ isPending: true })
+    renderWithProviders(<ForgotPasswordPage />)
+
+    expect(screen.getByRole('button', { busy: true })).toBeDisabled()
+  })
 })

@@ -885,4 +885,119 @@ describe('Auth Routes (browser)', () => {
       expect(postLogoutRefresh.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
   })
+
+  describe('POST /auth/forgot-password', () => {
+    it('returns a neutral pending response with no session cookie for an unknown email', async () => {
+      const res = await client.auth['forgot-password'].$post({
+        json: { email: TEST_CREDENTIALS.invalide.emailInconnu },
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('forgot-password failed')
+      expect(data.data).toEqual({ pending: true })
+      expect(extractCookie(res)).toBe('')
+    })
+
+    it('returns the same neutral response for an existing email (no enumeration)', async () => {
+      const creds = TEST_CREDENTIALS.toto
+      await createTestUser(creds.rawEmail, creds.rawPassword)
+
+      const unknown = await client.auth['forgot-password'].$post({
+        json: { email: TEST_CREDENTIALS.alice.email },
+      })
+      const existing = await client.auth['forgot-password'].$post({
+        json: { email: creds.rawEmail },
+      })
+
+      expect(existing.status).toBe(unknown.status)
+      expect(await existing.json()).toEqual(await unknown.json())
+    })
+
+    it('rejects a malformed email at the validation boundary (400)', async () => {
+      const res = await client.auth['forgot-password'].$post({
+        json: { email: 'not-an-email' },
+      })
+
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+  })
+
+  describe('POST /auth/reset-password', () => {
+    async function issueToken(email: string, password: string) {
+      const { createPasswordResetToken } = await import('../password-reset.service')
+      const user = await createTestUser(email, password)
+      const token = await createPasswordResetToken(testDb, user.id)
+      return { user, token }
+    }
+
+    it('resets the password and returns ok(null); the new password then logs in', async () => {
+      const creds = TEST_CREDENTIALS.toto
+      const { token } = await issueToken(creds.rawEmail, creds.rawPassword)
+      const newPassword = 'NouveauPass123!'
+
+      const res = await client.auth['reset-password'].$post({
+        json: { token, password: newPassword },
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.OK)
+      const data = await res.json()
+      expect(data.success).toBe(true)
+      if (!data.success) throw new Error('reset-password failed')
+      expect(data.data).toBeNull()
+
+      const login = await client.auth.login.$post({
+        json: { email: creds.rawEmail, password: newPassword },
+      })
+      expect(login.status).toBe(HTTP_STATUS.OK)
+    })
+
+    it('maps an unknown token to invalid_token (400)', async () => {
+      const res = await client.auth['reset-password'].$post({
+        json: { token: 'a'.repeat(64), password: 'NouveauPass123!' },
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      if (!data.success) expect(data.error).toBe('invalid_token')
+    })
+
+    it('maps an expired token to token_expired (400)', async () => {
+      const { passwordResets } = await import('../../../db/schema')
+      const creds = TEST_CREDENTIALS.toto
+      const { user, token } = await issueToken(creds.rawEmail, creds.rawPassword)
+
+      await testDb
+        .update(passwordResets)
+        .set({ expiresAt: new Date(Date.now() - 1000).toISOString() })
+        .where(eq(passwordResets.userId, user.id))
+
+      const res = await client.auth['reset-password'].$post({
+        json: { token, password: 'NouveauPass123!' },
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      const data = await res.json()
+      expect(data.success).toBe(false)
+      if (!data.success) expect(data.error).toBe('token_expired')
+    })
+
+    it('rejects a token of the wrong length at the validation boundary (400)', async () => {
+      const res = await client.auth['reset-password'].$post({
+        json: { token: 'too-short', password: 'NouveauPass123!' },
+      })
+
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+
+    it('rejects a weak password at the validation boundary (400)', async () => {
+      const res = await client.auth['reset-password'].$post({
+        json: { token: 'a'.repeat(64), password: '123' },
+      })
+
+      expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
+    })
+  })
 })
