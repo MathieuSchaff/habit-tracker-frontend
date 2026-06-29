@@ -10,10 +10,16 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   return { ...actual, useQuery: vi.fn(), useSuspenseQuery: vi.fn() }
 })
 
+const { mockUseSearch, mockNavigate } = vi.hoisted(() => ({
+  mockUseSearch: vi.fn(() => ({ tab: 'profile' })),
+  mockNavigate: vi.fn(),
+}))
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
+  getRouteApi: () => ({ useSearch: mockUseSearch, useNavigate: () => mockNavigate }),
 }))
 
 vi.mock('@/lib/queries/profile', () => ({
@@ -122,6 +128,7 @@ function setUpdateProfile(overrides: Partial<ReturnType<typeof useUpdateProfile>
 describe('ProfileDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseSearch.mockReturnValue({ tab: 'profile' })
     setProfile({ bio: 'Hello world' })
     setDermo(null)
     setUpdateProfile()
@@ -135,7 +142,16 @@ describe('ProfileDashboard', () => {
     expect(screen.getByText('Skincare nerd')).toBeInTheDocument()
   })
 
-  it('switches tab panels when a tab is clicked', () => {
+  it('shows the panel for the tab selected in the URL', () => {
+    mockUseSearch.mockReturnValue({ tab: 'account' })
+    render(<ProfileDashboard />)
+
+    expect(screen.getByTestId('account-settings').closest('[role="tabpanel"]')).not.toHaveAttribute(
+      'hidden'
+    )
+  })
+
+  it('navigates to the clicked tab instead of holding it in local state', () => {
     render(<ProfileDashboard />)
 
     expect(screen.getByTestId('account-settings').closest('[role="tabpanel"]')).toHaveAttribute(
@@ -144,9 +160,9 @@ describe('ProfileDashboard', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /Compte/ }))
 
-    expect(screen.getByTestId('account-settings').closest('[role="tabpanel"]')).not.toHaveAttribute(
-      'hidden'
-    )
+    expect(mockNavigate).toHaveBeenCalledTimes(1)
+    const arg = mockNavigate.mock.calls[0][0] as { search: (prev: object) => object }
+    expect(arg.search({ tab: 'profile' })).toEqual({ tab: 'account' })
   })
 
   it('fires updateProfile.mutate when the IdentityCard form submits', () => {

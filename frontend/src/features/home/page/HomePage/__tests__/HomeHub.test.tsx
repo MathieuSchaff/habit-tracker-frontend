@@ -34,7 +34,22 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
   return {
     ...actual,
-    Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    // Expose `to`/`search.tab`/`hash` so doorway deep-links are assertable.
+    Link: ({
+      children,
+      to,
+      search,
+      hash,
+    }: {
+      children: React.ReactNode
+      to?: string
+      search?: { tab?: string }
+      hash?: string
+    }) => (
+      <a href={typeof to === 'string' ? to : undefined} data-tab={search?.tab} data-hash={hash}>
+        {children}
+      </a>
+    ),
   }
 })
 
@@ -85,7 +100,12 @@ describe('HomeHub', () => {
     expect(screen.getByText(/Vos produits, vos notes et les raisons/)).toBeInTheDocument()
     expect(screen.getByText(/Aucun produit pour l'instant/)).toBeInTheDocument()
     expect(screen.getByText('Compléter mon profil')).toBeInTheDocument()
-    expect(screen.getByText('Activer la découverte')).toBeInTheDocument()
+    // Discovery off → land on the account tab that holds the toggle, not a dead-end.
+    const discoverCta = screen.getByText('Activer la découverte').closest('a')
+    expect(discoverCta).toHaveAttribute('href', '/profile')
+    expect(discoverCta).toHaveAttribute('data-tab', 'account')
+    // …and deep-links to the toggle so it isn't lost mid-page.
+    expect(discoverCta).toHaveAttribute('data-hash', 'discoverable')
   })
 
   it('surfaces the last decision and live doorways for a returning user', () => {
@@ -117,7 +137,12 @@ describe('HomeHub', () => {
     expect(screen.getByText(/Dernier ajout : The Ordinary — Niacinamide 10%/)).toBeInTheDocument()
     // Doorway A cta flips to "Ouvrir ma collection" once a recent item exists.
     expect(screen.getByText('Ouvrir ma collection')).toBeInTheDocument()
-    expect(screen.getByText('Découvrir')).toBeInTheDocument()
+    // Discovery on → the doorway opens the people tab directly.
+    const discoverCta = screen.getByText('Découvrir').closest('a')
+    expect(discoverCta).toHaveAttribute('href', '/profile')
+    expect(discoverCta).toHaveAttribute('data-tab', 'people')
+    // On → no scroll hash needed (the people tab is the content itself).
+    expect(discoverCta).not.toHaveAttribute('data-hash')
     expect(screen.getByText('Voir mon profil')).toBeInTheDocument()
     // Private notes are never exposed on the home.
     expect(screen.queryByText(/secret/)).not.toBeInTheDocument()

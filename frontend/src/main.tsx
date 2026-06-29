@@ -1,3 +1,7 @@
+// Global styles first: declares the @layer order before any component CSS can
+// register a layer (else routeTree's component CSS inverts the cascade).
+import './styles/index.css'
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, type ParsedLocation, RouterProvider } from '@tanstack/react-router'
 import { lazy, StrictMode, Suspense } from 'react'
@@ -14,7 +18,6 @@ import '@fontsource/dm-sans/600.css'
 import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/500.css'
 import '@fontsource/young-serif/400.css'
-import './styles/index.css'
 
 import type { RouterContext } from './routerContext'
 

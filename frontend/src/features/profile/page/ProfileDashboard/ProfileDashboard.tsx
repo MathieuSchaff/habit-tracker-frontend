@@ -1,6 +1,7 @@
 import type { ProfileUpdateInput } from '@aurore/shared'
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
 import { Settings, Shield, Sparkles, Users } from 'lucide-react'
 import { Suspense, useState } from 'react'
 
@@ -23,14 +24,20 @@ import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 import './ProfileDashboard.css'
 
-type TabType = 'profile' | 'preferences' | 'account' | 'people'
+export const PROFILE_TABS = ['profile', 'preferences', 'account', 'people'] as const
+export type ProfileTab = (typeof PROFILE_TABS)[number]
+
+const routeApi = getRouteApi('/_authenticated/profile')
 
 export const ProfileDashboard = () => {
   const { data: profile } = useSuspenseQuery(profileQueries.me())
   const { data: dermo } = useQuery(profileQueries.dermo())
   const updateProfile = useUpdateProfile()
   const announce = useAnnounce()
-  const [activeTab, setActiveTab] = useState<TabType>('profile')
+  // Tab lives in the URL so HomeHub doorways can deep-link straight to it (e.g.
+  // "Activer la découverte" → account tab where the discoverable toggle sits).
+  const { tab: activeTab } = routeApi.useSearch()
+  const navigate = routeApi.useNavigate()
   const [editingSection, setEditingSection] = useState<CompletionStep | null>(null)
 
   const displayName = profile.username ?? 'Utilisateur'
@@ -62,7 +69,7 @@ export const ProfileDashboard = () => {
     ? 'Une erreur est survenue lors de la mise à jour.'
     : null
 
-  const tabOptions: TabOption<TabType>[] = [
+  const tabOptions: TabOption<ProfileTab>[] = [
     {
       id: 'profile',
       label: 'Profil',
@@ -118,7 +125,7 @@ export const ProfileDashboard = () => {
       <Tabs
         options={tabOptions}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(next) => navigate({ search: (prev) => ({ ...prev, tab: next }) })}
         variant="underline"
         className="profile-tabs-container"
         idPrefix="profile-tab"

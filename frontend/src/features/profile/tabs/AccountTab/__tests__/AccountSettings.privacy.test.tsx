@@ -10,11 +10,16 @@ import {
 } from '@/lib/queries/profile'
 import { AccountSettings } from '../AccountSettings'
 
+// Mutable so a test can simulate landing via the "#discoverable" deep-link.
+// Name must start with `mock` to satisfy vitest's vi.mock hoisting rule.
+let mockHash = ''
 vi.mock('@tanstack/react-router', () => ({
   // Button.tsx calls createLink at module load; stub so the import doesn't throw.
   createLink: vi.fn(() => vi.fn(({ children }) => children)),
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useNavigate: () => vi.fn(),
+  useLocation: ({ select }: { select: (l: { hash: string }) => unknown }) =>
+    select({ hash: mockHash }),
 }))
 
 vi.mock('@tanstack/react-query', async () => {
@@ -90,6 +95,7 @@ function mountWithPrivacy(privacy: typeof ALL_FLAGS_OFF) {
 describe('AccountSettings privacy granular toggles', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockHash = ''
   })
 
   it('disables every sub-toggle when master profilePublic is off', () => {
@@ -131,5 +137,37 @@ describe('AccountSettings privacy granular toggles', () => {
     fireEvent.click(screen.getByRole('switch', { name: /trouvable/i }))
 
     expect(mutate).toHaveBeenCalledWith({ discoverable: true })
+  })
+})
+
+describe('AccountSettings deep-link scroll to discoverable toggle', () => {
+  let scrollSpy: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockHash = ''
+    scrollSpy = vi.fn()
+    // jsdom does not implement scrollIntoView; stub it.
+    Element.prototype.scrollIntoView =
+      scrollSpy as unknown as typeof Element.prototype.scrollIntoView
+    // Run the rAF callback synchronously so the scroll happens within render.
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(0)
+      return 0
+    })
+  })
+
+  it('scrolls to the discoverable subgroup when arriving via #discoverable', () => {
+    mockHash = 'discoverable'
+    mountWithPrivacy({ ...ALL_FLAGS_OFF, profilePublic: true })
+
+    expect(scrollSpy).toHaveBeenCalledTimes(1)
+    expect((scrollSpy.mock.instances[0] as HTMLElement).id).toBe('privacy-discoverable')
+  })
+
+  it('does not scroll without the hash', () => {
+    mountWithPrivacy({ ...ALL_FLAGS_OFF, profilePublic: true })
+
+    expect(scrollSpy).not.toHaveBeenCalled()
   })
 })
