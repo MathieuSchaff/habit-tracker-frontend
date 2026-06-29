@@ -12,6 +12,7 @@ describe('SentimentIcon', () => {
 
     expect(icon).toHaveAttribute('stroke-width', '2.3')
     expect(container.querySelectorAll('.snt-cheek')).toHaveLength(0)
+    expect(container.querySelector('.snt-rim')).toHaveAttribute('stroke-opacity', '0.32')
     expect(container.querySelector('.snt-mouth')).toHaveAttribute('stroke', 'var(--sentiment-ink)')
   })
 
@@ -22,6 +23,7 @@ describe('SentimentIcon', () => {
 
     expect(icon).toHaveAttribute('stroke-width', '2')
     expect(cheeks).toHaveLength(2)
+    expect(container.querySelector('.snt-rim')).toHaveAttribute('stroke-opacity', '0.24')
     expect(cheeks[0]).toHaveAttribute('cx', '6.7')
     expect(cheeks[1]).toHaveAttribute('cx', '17.3')
     expect(cheeks[0]?.getAttribute('fill')).toMatch(/^url\(#.+\)$/)
@@ -42,7 +44,7 @@ describe('SentimentIcon', () => {
     expect(faceGradient?.querySelectorAll('stop')).toHaveLength(3)
     expect(faceGradient?.querySelector('stop:last-child')).toHaveAttribute(
       'stop-color',
-      'color-mix(in oklch, var(--sentiment-3-fill) 68%, var(--sentiment-3))'
+      'color-mix(in oklch, var(--sentiment-3-fill) 78%, var(--sentiment-3))'
     )
   })
 
@@ -63,5 +65,19 @@ describe('SentimentIcon', () => {
     for (const feature of container.querySelectorAll('.snt-eye, .snt-mouth')) {
       expect(feature).toHaveAttribute('stroke', 'var(--sentiment-ink)')
     }
+  })
+
+  it('renders the grail as a faceted gradient gem without static ids', () => {
+    const { container } = render(
+      <>
+        <SentimentIcon value={6} size={24} />
+        <SentimentIcon value={6} size={24} />
+      </>
+    )
+
+    expect(container.querySelectorAll('.snt-gem-face')).toHaveLength(2)
+    expect(container.querySelectorAll('.snt-gem-shine')).toHaveLength(2)
+    expect(container.querySelectorAll('linearGradient')).toHaveLength(4)
+    expect([...container.querySelectorAll('[id]')].some((node) => node.id === 'spark')).toBe(false)
   })
 })

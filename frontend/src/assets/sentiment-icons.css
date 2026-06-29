@@ -8,6 +8,7 @@
 @media (prefers-reduced-motion: no-preference) {
   /* Inner parts transform around their own box, not the 24x24 canvas. */
   .snt-eye,
+  .snt-brow,
   .snt-cheek,
   .snt-mouth,
   .snt-gem,
@@ -29,6 +30,10 @@
 
   .snt-icon:hover .snt-eye {
     animation: snt-blink 600ms ease-in-out 140ms;
+  }
+
+  .snt-icon:hover .snt-brow {
+    animation: snt-brow 560ms ease-in-out 110ms;
   }
 
   .snt-icon:hover .snt-cheek {
@@ -83,6 +88,16 @@
   }
   80% {
     transform: scaleY(0.1);
+  }
+}
+
+@keyframes snt-brow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  45% {
+    transform: translateY(-0.45px);
   }
 }
 

@@ -25,11 +25,19 @@ const SENTIMENT_FILLS: Record<number, string> = {
 }
 
 const SENTIMENT_SHADES: Record<number, string> = {
-  1: 'color-mix(in oklch, var(--sentiment-1-fill) 68%, var(--sentiment-1))',
-  2: 'color-mix(in oklch, var(--sentiment-2-fill) 68%, var(--sentiment-2))',
-  3: 'color-mix(in oklch, var(--sentiment-3-fill) 68%, var(--sentiment-3))',
-  4: 'color-mix(in oklch, var(--sentiment-4-fill) 68%, var(--sentiment-4))',
-  5: 'color-mix(in oklch, var(--sentiment-5-fill) 68%, var(--sentiment-5))',
+  1: 'color-mix(in oklch, var(--sentiment-1-fill) 78%, var(--sentiment-1))',
+  2: 'color-mix(in oklch, var(--sentiment-2-fill) 78%, var(--sentiment-2))',
+  3: 'color-mix(in oklch, var(--sentiment-3-fill) 78%, var(--sentiment-3))',
+  4: 'color-mix(in oklch, var(--sentiment-4-fill) 78%, var(--sentiment-4))',
+  5: 'color-mix(in oklch, var(--sentiment-5-fill) 78%, var(--sentiment-5))',
+}
+
+const SENTIMENT_BLUSH_OPACITY: Record<number, number> = {
+  1: 0.12,
+  2: 0.18,
+  3: 0.28,
+  4: 0.36,
+  5: 0.44,
 }
 
 const INK = 'var(--sentiment-ink)'
@@ -51,6 +59,10 @@ function isCompact(size: number): boolean {
 
 function Eye({ cx, cy, radius = 1.3 }: { cx: number; cy: number; radius?: number }) {
   return <circle className="snt-eye" cx={cx} cy={cy} r={radius} fill={INK} stroke="none" />
+}
+
+function Brow({ d }: { d: string }) {
+  return <path className="snt-brow" d={d} stroke={INK} strokeWidth={1.35} />
 }
 
 function CompactExpression({ value }: { value: number }) {
@@ -141,7 +153,7 @@ function Face({
       <defs>
         <radialGradient id={faceGradientId} cx="34%" cy="28%" r="74%" fx="30%" fy="24%">
           <stop offset="0%" stopColor={HIGHLIGHT} />
-          <stop offset="52%" stopColor={SENTIMENT_FILLS[value]} />
+          <stop offset="48%" stopColor={SENTIMENT_FILLS[value]} />
           <stop offset="100%" stopColor={SENTIMENT_SHADES[value]} />
         </radialGradient>
         {!compact && (
@@ -160,6 +172,16 @@ function Face({
         fill={`url(#${faceGradientId})`}
         stroke="none"
       />
+      <circle
+        className="snt-rim"
+        cx={12}
+        cy={12}
+        r={8.85}
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity={compact ? 0.32 : 0.24}
+        strokeWidth={compact ? 0.9 : 0.75}
+      />
       {!compact && (
         <>
           <ellipse
@@ -169,6 +191,7 @@ function Face({
             rx={2.5}
             ry={1.7}
             fill={`url(#${blushGradientId})`}
+            opacity={SENTIMENT_BLUSH_OPACITY[value]}
             stroke="none"
           />
           <ellipse
@@ -178,6 +201,7 @@ function Face({
             rx={2.5}
             ry={1.7}
             fill={`url(#${blushGradientId})`}
+            opacity={SENTIMENT_BLUSH_OPACITY[value]}
             stroke="none"
           />
         </>
@@ -194,9 +218,16 @@ function Sentiment1({ size = 24 }: IconProps) {
         <CompactExpression value={1} />
       ) : (
         <>
-          <Eye cx={8.7} cy={10.3} />
-          <Eye cx={15.3} cy={10.3} />
-          <path className="snt-mouth" d="M8.4 16.4Q12 13.2 15.6 16.4" stroke={INK} />
+          <Brow d="M7.2 9.5L9.9 8.75" />
+          <Brow d="M14.1 8.75L16.8 9.5" />
+          <Eye cx={8.6} cy={10.9} radius={1.15} />
+          <Eye cx={15.4} cy={10.9} radius={1.15} />
+          <path
+            className="snt-mouth"
+            d="M8.2 16.7Q12 13.1 15.8 16.7"
+            stroke={INK}
+            strokeWidth={2.15}
+          />
         </>
       )}
     </Face>
@@ -210,9 +241,14 @@ function Sentiment2({ size = 24 }: IconProps) {
         <CompactExpression value={2} />
       ) : (
         <>
-          <Eye cx={8.7} cy={10.3} />
-          <Eye cx={15.3} cy={10.3} />
-          <path className="snt-mouth" d="M9 15.8Q12 14.8 15 15.8" stroke={INK} />
+          <path className="snt-eye" d="M7.4 10.3Q8.7 9.8 10 10.3" stroke={INK} />
+          <path className="snt-eye" d="M14 10.3Q15.3 9.8 16.6 10.3" stroke={INK} />
+          <path
+            className="snt-mouth"
+            d="M8.8 15.8Q12 14.7 15.2 15.8"
+            stroke={INK}
+            strokeWidth={2.1}
+          />
         </>
       )}
     </Face>
@@ -226,9 +262,9 @@ function Sentiment3({ size = 24 }: IconProps) {
         <CompactExpression value={3} />
       ) : (
         <>
-          <Eye cx={8.7} cy={10.3} />
-          <Eye cx={15.3} cy={10.3} />
-          <path className="snt-mouth" d="M9 15.2L15 15.2" stroke={INK} />
+          <Eye cx={8.7} cy={10.4} radius={1.15} />
+          <Eye cx={15.3} cy={10.4} radius={1.15} />
+          <path className="snt-mouth" d="M9 15.25H15" stroke={INK} strokeWidth={2.1} />
         </>
       )}
     </Face>
@@ -242,9 +278,14 @@ function Sentiment4({ size = 24 }: IconProps) {
         <CompactExpression value={4} />
       ) : (
         <>
-          <Eye cx={8.7} cy={10.3} />
-          <Eye cx={15.3} cy={10.3} />
-          <path className="snt-mouth" d="M9 14.6Q12 16.4 15 14.6" stroke={INK} />
+          <Eye cx={8.7} cy={10.3} radius={1.18} />
+          <Eye cx={15.3} cy={10.3} radius={1.18} />
+          <path
+            className="snt-mouth"
+            d="M8.8 14.5Q12 17 15.2 14.5"
+            stroke={INK}
+            strokeWidth={2.15}
+          />
         </>
       )}
     </Face>
@@ -258,11 +299,21 @@ function Sentiment5({ size = 24 }: IconProps) {
         <CompactExpression value={5} />
       ) : (
         <>
-          <path className="snt-eye" d="M7.6 10.7Q8.7 9.4 9.8 10.7" stroke={INK} />
-          <path className="snt-eye" d="M14.2 10.7Q15.3 9.4 16.4 10.7" stroke={INK} />
+          <path
+            className="snt-eye"
+            d="M7.4 10.8Q8.7 9.35 10 10.8"
+            stroke={INK}
+            strokeWidth={2.05}
+          />
+          <path
+            className="snt-eye"
+            d="M14 10.8Q15.3 9.35 16.6 10.8"
+            stroke={INK}
+            strokeWidth={2.05}
+          />
           <path
             className="snt-mouth"
-            d="M8.4 14Q12 17.8 15.6 14Q12 15.8 8.4 14Z"
+            d="M8.25 13.9Q12 18.05 15.75 13.9Q12 16.25 8.25 13.9Z"
             fill={INK}
             stroke={INK}
           />
@@ -274,6 +325,10 @@ function Sentiment5({ size = 24 }: IconProps) {
 
 // Saint Graal: a faceted gem, the most precious of the set, with a twinkle.
 export function Sentiment6({ size = 24 }: IconProps) {
+  const compact = isCompact(size)
+  const gemGradientId = useId()
+  const gemCrownId = useId()
+
   return (
     <svg
       width={size}
@@ -281,18 +336,43 @@ export function Sentiment6({ size = 24 }: IconProps) {
       viewBox="0 0 24 24"
       className="snt-icon"
       {...stroke}
+      strokeWidth={compact ? 1.55 : 1.45}
       style={{ color: SENTIMENT_COLORS[6] }}
     >
       <title>{sentimentLabels[6]}</title>
+      <defs>
+        <linearGradient id={gemGradientId} x1="7" x2="17" y1="7" y2="19">
+          <stop offset="0%" stopColor={HIGHLIGHT} />
+          <stop offset="45%" stopColor={SENTIMENT_FILLS[6]} />
+          <stop
+            offset="100%"
+            stopColor="color-mix(in oklch, var(--sentiment-6-fill) 68%, var(--status-color-holy-grail))"
+          />
+        </linearGradient>
+        <linearGradient id={gemCrownId} x1="8" x2="16" y1="7" y2="12">
+          <stop offset="0%" stopColor={HIGHLIGHT} stopOpacity={0.92} />
+          <stop offset="100%" stopColor={SENTIMENT_FILLS[6]} stopOpacity={0.22} />
+        </linearGradient>
+      </defs>
       <g className="snt-gem">
-        <path d="M8.5 7L15.5 7 18.5 10.5 12 19 5.5 10.5Z" fill={SENTIMENT_FILLS[6]} />
+        <path
+          className="snt-gem-face"
+          d="M8.5 7L15.5 7 18.5 10.5 12 19 5.5 10.5Z"
+          fill={`url(#${gemGradientId})`}
+        />
+        <path
+          className="snt-gem-shine"
+          d="M8.5 7H15.5L13.5 10.5H10.5Z"
+          fill={`url(#${gemCrownId})`}
+          stroke="none"
+        />
         <path d="M5.5 10.5L18.5 10.5" />
         <path d="M8.5 7L10.5 10.5" />
         <path d="M15.5 7L13.5 10.5" />
         <path d="M10.5 10.5L12 19" />
         <path d="M13.5 10.5L12 19" />
       </g>
-      <g id="spark" className="snt-spark">
+      <g className="snt-spark">
         <path
           d="M19.5 1.8Q19.5 4 21.7 4 19.5 4 19.5 6.2 19.5 4 17.3 4 19.5 4 19.5 1.8Z"
           fill="currentColor"
