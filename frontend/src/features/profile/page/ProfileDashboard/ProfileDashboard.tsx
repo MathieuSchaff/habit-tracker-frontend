@@ -25,7 +25,7 @@ import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings
 import './ProfileDashboard.css'
 
 export const PROFILE_TABS = ['profile', 'preferences', 'account', 'people'] as const
-export type ProfileTab = (typeof PROFILE_TABS)[number]
+type ProfileTab = (typeof PROFILE_TABS)[number]
 
 const routeApi = getRouteApi('/_authenticated/profile')
 

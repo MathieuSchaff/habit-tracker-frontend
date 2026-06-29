@@ -30,18 +30,11 @@ import {
   type SupplementProductTagSlug,
 } from '@aurore/shared'
 
-// Re-export every domain-specific slug map so local seed/ingredient-tag files
-// can import via the colocated `data/tags` barrel instead of reaching into
-// `@aurore/shared` directly. Each consumer imports only the maps whose
-// keys it actually uses — TS catches wrong-domain slugs at compile time.
-export {
-  DENTAL_PRODUCT_TAG_SLUGS,
-  HAIRCARE_PRODUCT_TAG_SLUGS,
-  SKINCARE_INGREDIENT_TAG_SLUGS,
-  SKINCARE_PRODUCT_TAG_SLUGS,
-  SUPPLEMENT_INGREDIENT_TAG_SLUGS,
-  SUPPLEMENT_PRODUCT_TAG_SLUGS,
-} from '@aurore/shared'
+// Re-export the slug maps that colocated seed/ingredient-tag files import via
+// this `data/tags` barrel instead of reaching into `@aurore/shared` directly.
+// Each consumer imports only the maps whose keys it uses — TS catches
+// wrong-domain slugs at compile time.
+export { DENTAL_PRODUCT_TAG_SLUGS, SKINCARE_INGREDIENT_TAG_SLUGS } from '@aurore/shared'
 
 // Ingredient slug → FR label. Each domain co-locates the label with its tag
 // def in shared; merged here across the four ingredient domains. Shared slugs

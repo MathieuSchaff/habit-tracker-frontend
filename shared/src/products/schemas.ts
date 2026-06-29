@@ -13,6 +13,11 @@ const inciBase = noHtml(z.string().max(5000)).refine(
   { message: 'inci must be a comma-separated ingredient list' }
 )
 
+const isKindValidForCategory = (d: { category: string; kind: string }): boolean => {
+  const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
+  return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
+}
+
 export const createProductSchema = z
   .object({
     name: noHtml(z.string().trim().min(2).max(200)),
@@ -31,13 +36,7 @@ export const createProductSchema = z
     notes: noHtml(z.string().max(5000)).optional(),
     priceCents: z.number().int().min(0).optional(),
   })
-  .refine(
-    (d) => {
-      const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
-      return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
-    },
-    { message: 'kind is not valid for the given category' }
-  )
+  .refine(isKindValidForCategory, { message: 'kind is not valid for the given category' })
 
 export const updateProductSchema = z
   .object({
@@ -70,8 +69,7 @@ export const updateProductSchema = z
       return
     }
     if (d.category !== undefined && d.kind !== undefined) {
-      const validKinds = PRODUCT_KINDS[d.category]
-      if (!validKinds || !Object.values(validKinds).includes(d.kind as never)) {
+      if (!isKindValidForCategory(d as { category: string; kind: string })) {
         ctx.addIssue({
           code: 'custom',
           message: 'kind is not valid for the given category',
@@ -146,13 +144,7 @@ export const productFormulaPreviewSchema = z
     texture: z.enum(PRODUCT_TEXTURE_VALUES).optional(),
     description: noHtml(z.string().max(5000)).optional(),
   })
-  .refine(
-    (d) => {
-      const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
-      return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
-    },
-    { message: 'kind is not valid for the given category' }
-  )
+  .refine(isKindValidForCategory, { message: 'kind is not valid for the given category' })
 
 // consumed via @aurore/shared; fallow cannot resolve the workspace symlink
 // fallow-ignore-next-line unused-type

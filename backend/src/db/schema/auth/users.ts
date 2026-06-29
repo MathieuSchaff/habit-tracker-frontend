@@ -105,15 +105,9 @@ export const profiles = pgTable(
       to: appRuntimeRole,
       using: sql`${t.profilePublic} AND NOT ${t.forcedPrivateByAdmin}`,
     }),
-    // #7: expose the pseudonym when the reviewer has opted-in at least one
-    // public review, even if their profile master flag stays false. Leak
-    // surface = "this user has shared a public review" (already inferable
-    // from the review row). No other profile columns become visible here.
-    // Force-private blocks this path too, admin moderation is final.
-    // Moderation_status='visible' guard: once every public review of a user
-    // is hidden by admin moderation, the profile must stop appearing through
-    // this path too (otherwise the pseudonym leaks via a hypothetical future
-    // join that forgets the moderation filter at the service layer).
+    // #7: a public review is a signed artifact, so its author's pseudonym must
+    // surface even if their master flag stays false. moderation_status='visible'
+    // so a fully-moderated user stops surfacing here too. Force-private still wins.
     pgPolicy('profiles_select_for_public_review', {
       as: 'permissive',
       for: 'select',
@@ -126,10 +120,9 @@ export const profiles = pgTable(
           AND up.user_id = ${t.userId}
       )`,
     }),
-    // A signed reaction is public by doctrine (ADR-0013), so the reactor's
-    // pseudonym must surface to app_runtime — same shape as the public-review
-    // policy. social_reactions has no RLS, so the EXISTS needs no SECURITY DEFINER.
-    // Force-private still wins.
+    // A signed reaction is public by doctrine (ADR-0013), so the reactor's pseudonym
+    // must surface. No moderation_status guard: a reaction has no moderation of its
+    // own. social_reactions has no RLS, so the EXISTS needs no SECURITY DEFINER.
     pgPolicy('profiles_select_for_reaction', {
       as: 'permissive',
       for: 'select',
@@ -138,9 +131,9 @@ export const profiles = pgTable(
         SELECT 1 FROM social_reactions sr WHERE sr.user_id = ${t.userId}
       )`,
     }),
-    // A visible Post is a public signed artifact (#7/T5b): the product surface
-    // shows non-public authors (the /u link is gated client-side), so the author's
-    // pseudonym must surface to app_runtime. social_posts has no RLS.
+    // A visible Post is a public signed artifact, so its author's pseudonym must
+    // surface (product surface shows non-public authors, /u link gated client-side).
+    // moderation_status='visible' so a hidden post never leaks its author.
     pgPolicy('profiles_select_for_social_post', {
       as: 'permissive',
       for: 'select',
@@ -150,10 +143,9 @@ export const profiles = pgTable(
         WHERE sp.author_id = ${t.userId} AND sp.moderation_status = 'visible'
       )`,
     }),
-    // A visible reply is a public signed artifact too: getPostWithReplies leftJoins
-    // the reply author's pseudonym, so it must surface to app_runtime. Mirrors
-    // _for_social_post — gate on moderation_status='visible' so a hidden reply never
-    // leaks its author. social_post_replies has no RLS. Force-private still wins.
+    // A visible reply is a public signed artifact too, so its author's pseudonym must
+    // surface (getPostWithReplies leftJoins it). moderation_status='visible' so a
+    // hidden reply never leaks its author. social_post_replies has no RLS.
     pgPolicy('profiles_select_for_post_reply', {
       as: 'permissive',
       for: 'select',

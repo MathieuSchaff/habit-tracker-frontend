@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect } from 'react'
 // Excluded from prod bundle - Vite resolves import.meta.env.DEV at build time
 const TanStackRouterDevtools = import.meta.env.DEV
   ? lazy(() =>
-      import('@tanstack/router-devtools').then((m) => ({
+      import('@tanstack/react-router-devtools').then((m) => ({
         default: m.TanStackRouterDevtools,
       }))
     )
