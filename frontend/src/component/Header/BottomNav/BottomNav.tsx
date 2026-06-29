@@ -1,7 +1,6 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   BookOpen,
-  CircleCheckBig,
   Columns2,
   FileText,
   FlaskConical,
@@ -81,10 +80,6 @@ export function BottomNav() {
               <Link to="/submissions" className="bottom-nav__sheet-link" onClick={closeSheet}>
                 <FileText size={20} strokeWidth={1.5} aria-hidden="true" />
                 Mes soumissions
-              </Link>
-              <Link to="/tasks" className="bottom-nav__sheet-link" onClick={closeSheet}>
-                <CircleCheckBig size={20} strokeWidth={1.5} aria-hidden="true" />
-                Tâches
               </Link>
 
               <div className="bottom-nav__sheet-row">
