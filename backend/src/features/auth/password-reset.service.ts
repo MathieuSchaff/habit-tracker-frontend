@@ -6,7 +6,7 @@ import type {
 } from '@aurore/shared'
 import { err, ok } from '@aurore/shared'
 
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { passwordResets, users } from '../../db/schema'
@@ -37,6 +37,19 @@ export async function createPasswordResetToken(db: DB, userId: string): Promise<
       .set({ usedAt: sql`now()` })
       .where(and(eq(passwordResets.userId, userId), isNull(passwordResets.usedAt)))
 
+    // Opportunistic hygiene (mirrors cleanupUserRefreshTokens on login): drop this
+    // user's consumed/expired rows so the table never grows unbounded, folded into
+    // the same tx so the real branch stays one round-trip. The fresh token inserted
+    // below is active and unexpired, so it's never caught here.
+    await tx
+      .delete(passwordResets)
+      .where(
+        and(
+          eq(passwordResets.userId, userId),
+          or(isNotNull(passwordResets.usedAt), lt(passwordResets.expiresAt, sql`now()`))
+        )
+      )
+
     await tx.insert(passwordResets).values({
       userId,
       tokenHash,
@@ -62,9 +75,14 @@ export async function requestPasswordReset(
     // changePassword's !passwordHash guard): stay neutral so neither leaks existence
     // and a Google-only account can't have a password silently grafted on by reset.
     if (!user?.passwordHash) {
-      // Timing equalization: spend the same token crypto as the real branch (discarded),
-      // or fast-vs-slow re-leaks existence. Mirror login's DUMMY_HASH discipline.
+      // Timing equalization: the real branch awaits createPasswordResetToken — both the
+      // token hash AND a DB transaction. Mirror both here (the discarded hash plus a
+      // no-op transactional read) or the faster dummy branch re-leaks existence over
+      // enough samples. Mirror of login's DUMMY_HASH discipline.
       hashToken(generateRawToken())
+      await ctx.db.transaction(async (tx) => {
+        await tx.select({ one: sql`1` }).from(passwordResets).where(sql`false`).limit(1)
+      })
       return ok({ pending: true })
     }
 

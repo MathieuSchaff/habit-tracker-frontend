@@ -116,3 +116,24 @@ export const forgotPasswordRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimi
         ),
       skipFailedRequests: false,
     })
+
+// Throttles /auth/reset-password per IP. The global limiter has skipFailedRequests:true,
+// so the 400s from probing random tokens never consume its quota — uncapped probe
+// throughput against the token lookup. This own bucket COUNTS failures (like login) to
+// cap that, complementing the cheap pre-check that already blocks argon2 CPU exhaustion.
+export const resetPasswordRateLimiterFunc: MiddlewareHandler<AppEnv> = skipLimiter
+  ? async (_c: Context, next: Next) => await next()
+  : rateLimiter<AppEnv>({
+      windowMs: 15 * 60 * 1000,
+      limit: 10,
+      standardHeaders: 'draft-7',
+      keyGenerator: (c) => `reset:${clientIp(c)}`,
+      handler: (c) =>
+        c.json(
+          err('too_many_requests', {
+            retryAfter: c.res.headers.get('Retry-After'),
+          }),
+          HTTP_STATUS.RATE_LIMIT_EXCEEDED
+        ),
+      skipFailedRequests: false,
+    })

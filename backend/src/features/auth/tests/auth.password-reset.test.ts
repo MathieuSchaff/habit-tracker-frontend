@@ -13,6 +13,8 @@ import {
   resetPassword,
 } from '../password-reset.service'
 import { login, refresh } from '../service'
+import * as tokenUtils from '../token.utils'
+import * as userUtils from '../user.utils'
 import { createCtx, testDb } from './auth-test.setup'
 
 setupDbTests()
@@ -304,5 +306,48 @@ describe('resetPassword', () => {
     const row = await userRow(creds.rawEmail)
     expect(row?.failedLoginAttempts).toBe(0)
     expect(row?.lockedUntil).toBeNull()
+  })
+})
+
+// Timing-oracle guard (ADR 0010): the unknown/OAuth-only branch must spend the same
+// token hash as the real branch, or a refactor silently re-opens the latency oracle.
+describe('requestPasswordReset — timing equalization', () => {
+  it('hashe un token jetable sur la branche email inconnu (parité de timing)', async () => {
+    const hashSpy = spyOn(tokenUtils, 'hashToken')
+    try {
+      await requestPasswordReset(createCtx(), TEST_CREDENTIALS.invalide.emailInconnu)
+      // No token row is created on this branch, so the only hashToken call is the dummy one.
+      expect(hashSpy).toHaveBeenCalled()
+    } finally {
+      hashSpy.mockRestore()
+    }
+  })
+})
+
+// Outer catch → server_error: the route maps this to HTTP 500. Untested before, so a
+// regression turning a thrown error into a leak or crash would go unnoticed.
+describe('server_error fallbacks', () => {
+  it('requestPasswordReset renvoie server_error si la lecture user échoue', async () => {
+    const spy = spyOn(userUtils, 'getUser').mockRejectedValue(new Error('db down'))
+    try {
+      const result = await requestPasswordReset(createCtx(), TEST_CREDENTIALS.toto.email)
+      expect(result.success).toBe(false)
+      if (!result.success) expect(result.error).toBe('server_error')
+    } finally {
+      spy.mockRestore()
+    }
+  })
+
+  it('resetPassword renvoie server_error si le hash du token échoue', async () => {
+    const spy = spyOn(tokenUtils, 'hashToken').mockImplementation(() => {
+      throw new Error('hash down')
+    })
+    try {
+      const result = await resetPassword(createCtx(), 'a'.repeat(64), NEW_PASSWORD)
+      expect(result.success).toBe(false)
+      if (!result.success) expect(result.error).toBe('server_error')
+    } finally {
+      spy.mockRestore()
+    }
   })
 })

@@ -120,4 +120,11 @@ describe('ResetPasswordPage', () => {
       '/auth/forgot-password'
     )
   })
+
+  it('disables the submit button while the reset is in flight', () => {
+    setMutationResult({ isPending: true })
+    renderWithProviders(<ResetPasswordPage />)
+
+    expect(screen.getByRole('button', { busy: true })).toBeDisabled()
+  })
 })

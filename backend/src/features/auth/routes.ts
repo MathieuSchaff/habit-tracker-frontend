@@ -31,6 +31,7 @@ import {
   forgotPasswordRateLimiterFunc,
   loginRateLimiterFunc,
   rateLimiterFunc,
+  resetPasswordRateLimiterFunc,
 } from '../../utils/rateLimiter'
 import { zValidator } from '../../utils/validator'
 import { isUserBanned } from './ban.service'
@@ -301,20 +302,25 @@ export const jwtAuthRoutes = app
     }
   )
 
-  .post('/reset-password', zValidator('json', resetPasswordSchema), async (c) => {
-    const ctx = buildAuthContext(c)
-    const { token, password } = c.req.valid('json')
+  .post(
+    '/reset-password',
+    resetPasswordRateLimiterFunc,
+    zValidator('json', resetPasswordSchema),
+    async (c) => {
+      const ctx = buildAuthContext(c)
+      const { token, password } = c.req.valid('json')
 
-    const result = await resetPassword(ctx, token, password as RawPassword)
+      const result = await resetPassword(ctx, token, password as RawPassword)
 
-    if (!isApiSuccess(result)) {
-      // invalid/expired token → 400 (mirror /verify-email); server_error → 500. A distinct
-      // invalid-vs-expired code is safe: token-holder-only, no enum oracle.
-      return c.json(err(result.error), errorToStatus(result.error, resetPasswordErrorMapping))
+      if (!isApiSuccess(result)) {
+        // invalid/expired token → 400 (mirror /verify-email); server_error → 500. A distinct
+        // invalid-vs-expired code is safe: token-holder-only, no enum oracle.
+        return c.json(err(result.error), errorToStatus(result.error, resetPasswordErrorMapping))
+      }
+
+      return c.json(ok(null), HTTP_STATUS.OK)
     }
-
-    return c.json(ok(null), HTTP_STATUS.OK)
-  })
+  )
 
   .post('/mobile/login', loginRateLimiterFunc, zValidator('json', authBodySchema), async (c) => {
     const ctx = buildAuthContext(c)
