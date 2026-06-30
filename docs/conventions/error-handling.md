@@ -174,6 +174,15 @@ reads deferred.
 Established 2026-06-17 — commits `120f06f3` (rate-limit ceiling 100→1000), `0b2f396c` (blog
 degradation), `dc24466d` (read-queryFn sweep, all domains).
 
+### Rate-limit — backend capacity (topology, not a bug)
+
+The limiter is **per-IP**, not per-user (`globalRateLimiter` in backend `index.ts`, `keyGenerator:
+rate-global:${clientIp}`, 1000/15min). Generous for one human (normal browse ≈ 5 %, power user ≈
+26 % — hitting the ceiling solo = deliberate abuse). **Real risk = shared IP** (mobile CGNAT,
+office/school NAT): ~18 active browsers on one IP exhaust the budget under normal use. Fix *if*
+shared-IP reports surface = **per-user budget for authed requests** (key on `user.id`, keep IP for
+anon = anti-scrape) — NOT a higher global ceiling (doesn't fix NAT). `rateLimiter.ts` untouched.
+
 ### Open items (frontend errors)
 
 | Item | Status | Pointer |

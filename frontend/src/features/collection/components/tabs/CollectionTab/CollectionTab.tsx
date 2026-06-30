@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { ArrowUpDown, Search, SlidersHorizontal } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
-import { sortLabels, sortOptions } from '@/features/collection/constants'
+import { sortAriaLabel, sortOptions, sortTitle } from '@/features/collection/constants'
 import {
   CollectionFilterProvider,
   useCollectionFilter,
@@ -28,6 +28,8 @@ const ProductDetailSheet = lazy(() =>
     default: m.ProductDetailSheet,
   }))
 )
+
+const COMPAT_ERROR_MESSAGE = 'Affinités indisponibles pour le moment.'
 
 interface CollectionTabProps {
   userProducts: UserProduct[] | undefined
@@ -65,6 +67,11 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showFiltersSheet, setShowFiltersSheet] = useState(false)
 
+  // A notice mounted with its content isn't reliably announced; route it through the live region.
+  useEffect(() => {
+    if (compatError) announce(COMPAT_ERROR_MESSAGE)
+  }, [compatError, announce])
+
   const selectedProduct = expandedId
     ? (filteredProducts.find((p) => p.id === expandedId) ?? null)
     : null
@@ -92,8 +99,8 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
             size="sm"
             className="coll-sort-btn"
             onClick={cycleSortBy}
-            aria-label={`Tri : ${sortLabels[sort]}. Activer pour trier par ${sortLabels[nextSort]}`}
-            title={`Tri : ${sortLabels[sort]}`}
+            aria-label={sortAriaLabel(sort, nextSort)}
+            title={sortTitle(sort)}
           >
             <ArrowUpDown size={16} aria-hidden="true" />
           </Button>
@@ -110,11 +117,7 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
         </div>
       </div>
 
-      {compatError && (
-        <p className="coll-compat-error" role="status">
-          Affinités indisponibles pour le moment.
-        </p>
-      )}
+      {compatError && <p className="coll-compat-error">{COMPAT_ERROR_MESSAGE}</p>}
 
       <ShelfView
         products={filteredProducts}

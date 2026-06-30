@@ -19,6 +19,24 @@ export const RISK_AXIS_PHRASE: Record<RiskAxis, string> = {
   fungalAcne: 'peut nourrir la levure (fungal acne)',
 }
 
+type BenefitAxis =
+  | 'soothing'
+  | 'hydrating'
+  | 'barrierSupport'
+  | 'antioxidant'
+  | 'brightening'
+  | 'seborrheicRegulation'
+
+// Noun-form labels for the collection "motifs" view: "<phrase> · N produits".
+export const BENEFIT_AXIS_PHRASE: Record<BenefitAxis, string> = {
+  soothing: 'apaisant',
+  hydrating: 'hydratant',
+  barrierSupport: 'soutient la barrière',
+  antioxidant: 'antioxydant',
+  brightening: 'coup d’éclat',
+  seborrheicRegulation: 'régule le sébum',
+}
+
 // Skin-profile slugs → risk axes that matter to that user, used to highlight
 // relevant signals without re-deriving the backend's profile mapping.
 export const PROFILE_RELEVANT_AXES: Record<string, ReadonlyArray<RiskAxis>> = {

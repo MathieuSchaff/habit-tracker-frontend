@@ -26,11 +26,8 @@ const ACNE_CONCERNS: ReadonlyArray<SkinConcern> = [
   'brillance',
 ]
 
-// algo-derm v1 models only sensitiveSkin / acneProne / rosacea / pregnant, so the
-// other 14 SKIN_CONCERNS have no engine counterpart and are intentionally dropped:
-// barriere-cutanee, anti-taches, anti-age, hyperpigmentation, deshydratation,
-// cernes-poches, eclat, cicatrisation, photo-vieillissement, teint-terne, repulpant,
-// eczema, grain-peau, keratose-pilaire.
+// algo-derm v1 has only sensitiveSkin / acneProne / rosacea / pregnant axes;
+// the other 14 SKIN_CONCERNS map to none and are intentionally dropped.
 function mapToAlgoDermProfile(
   skinTypes: ReadonlyArray<SkinType>,
   skinConcerns: ReadonlyArray<SkinConcern>

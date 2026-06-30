@@ -52,6 +52,23 @@ describe('computeProductDermoScore', () => {
     expect(a.overallRisk).toBeLessThanOrEqual(1)
     expect(['low', 'medium', 'high']).toContain(a.rating)
     expect(a.coverage.total).toBe(6)
+    // Tie the baseline to algo-derm actually scoring the irritants (Alcohol Denat /
+    // Parfum / Limonene), not just ingredient coverage, catches engine regressions.
+    expect(a.overallRisk).toBeGreaterThan(0)
+    expect(a.productAxisRisk.irritation.risk).toBeGreaterThan(0)
+  })
+
+  it('falls back to the anonymous score when the user has no dermo profile', async () => {
+    const inci = 'Aqua, Glycerin, Niacinamide, Alcohol Denat, Parfum, Limonene'
+    const p = await makeProduct({ name: 'Sérum sans profil', brand: 'Brand', inci })
+
+    const anon = await computeProductDermoScore(p.slug, null, testDb)
+    // user (beforeEach) has no user_dermo_profiles row → loadAlgoDermProfile returns
+    // undefined, so the personalized path must collapse onto the anonymous result.
+    const noProfile = await computeProductDermoScore(p.slug, user.id, testDb)
+
+    if (!anon.ok || !noProfile.ok) throw new Error('expected ok=true')
+    expect(noProfile.assessment).toEqual(anon.assessment)
   })
 
   it('returns inci_missing when product has no INCI', async () => {

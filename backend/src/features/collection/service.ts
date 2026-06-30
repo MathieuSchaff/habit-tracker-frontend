@@ -1,8 +1,14 @@
-import { and, eq, inArray, or } from 'drizzle-orm'
+import { analyzeINCI, cleanInciString } from 'algo-derm'
+import { and, eq, inArray, isNotNull, ne, or } from 'drizzle-orm'
 
 import type { DB } from '../../db'
 import { userIngredientAnalysisScore } from '../../db/schema/ingredients/user-ingredient-analysis-score'
 import { productIngredients } from '../../db/schema/products/product-ingredients'
+import { products } from '../../db/schema/products/products'
+import { userProducts } from '../../db/schema/products/user-products'
+import { mapKindToContext } from '../../lib/algo-derm-product-context'
+import { fetchKnownConcentrationsByProduct } from '../../lib/fetch-known-concentrations'
+import { loadAlgoDermProfile } from '../dermo-score/service'
 
 // Neutral midpoint of the 0..100 compatibility scale.
 const NEUTRAL = 50
@@ -72,4 +78,96 @@ export async function calculateCompatibilityScores(
   }
 
   return result
+}
+
+// A formula motif must recur: one product is an anecdote, not a pattern.
+const MIN_AXIS_PRODUCTS = 2
+const MAX_SAMPLES = 3
+
+export type AxisMotif = { axis: string; count: number; samples: string[] }
+export type FormulaMotifs = {
+  productsAnalyzed: number
+  benefits: AxisMotif[]
+  notes: AxisMotif[]
+}
+
+type AxisAcc = Map<string, { count: number; samples: string[] }>
+
+function accumulate(acc: AxisAcc, axes: Iterable<string>, productName: string): void {
+  for (const axis of axes) {
+    const entry = acc.get(axis) ?? { count: 0, samples: [] }
+    entry.count++
+    if (entry.samples.length < MAX_SAMPLES) entry.samples.push(productName)
+    acc.set(axis, entry)
+  }
+}
+
+function toSortedMotifs(acc: AxisAcc): AxisMotif[] {
+  return [...acc.entries()]
+    .filter(([, v]) => v.count >= MIN_AXIS_PRODUCTS)
+    .map(([axis, v]) => ({ axis, count: v.count, samples: v.samples }))
+    .sort((a, b) => b.count - a.count)
+}
+
+// Aggregate algo-derm's theoretical assessment across the whole shelf into calm
+// "motifs": which benefit axes and which to-note risk axes recur across products.
+// Mirrors what FormulaReading surfaces per product (topBenefitDrivers / non-interaction
+// topDrivers), but counted per product — never a score, ranking, or verdict.
+// 'avoided' products are excluded: rejected formulas are not part of the shelf's signal.
+export async function getCollectionFormulaMotifs(userId: string, db: DB): Promise<FormulaMotifs> {
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      inci: products.inci,
+      kind: products.kind,
+    })
+    .from(userProducts)
+    .innerJoin(products, eq(userProducts.productId, products.id))
+    .where(
+      and(
+        eq(userProducts.userId, userId),
+        ne(userProducts.status, 'avoided'),
+        isNotNull(products.inci)
+      )
+    )
+
+  if (rows.length === 0) return { productsAnalyzed: 0, benefits: [], notes: [] }
+
+  const profile = await loadAlgoDermProfile(userId, db)
+  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(
+    rows.map((r) => r.id),
+    db
+  )
+
+  const benefitAcc: AxisAcc = new Map()
+  const noteAcc: AxisAcc = new Map()
+  let productsAnalyzed = 0
+
+  for (const row of rows) {
+    const inci = row.inci ? cleanInciString(row.inci) : undefined
+    if (!inci) continue
+
+    const context = {
+      ...mapKindToContext(row.kind),
+      knownConcentrations: concentrationsByProduct.get(row.id),
+    }
+    const { explanation } = analyzeINCI(inci, { profile, context })
+    productsAnalyzed++
+
+    const benefitAxes = new Set(explanation.topBenefitDrivers.flatMap((d) => d.axes))
+    const noteAxes = new Set(
+      explanation.topDrivers
+        .filter((d) => d.source !== 'interaction' && d.axes.length > 0)
+        .flatMap((d) => d.axes)
+    )
+    accumulate(benefitAcc, benefitAxes, row.name)
+    accumulate(noteAcc, noteAxes, row.name)
+  }
+
+  return {
+    productsAnalyzed,
+    benefits: toSortedMotifs(benefitAcc),
+    notes: toSortedMotifs(noteAcc),
+  }
 }

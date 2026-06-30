@@ -170,11 +170,11 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
 
     // Scope to the StatusChips fieldset to disambiguate from other "En stock"
     // occurrences in the sheet (history badges, accessible names elsewhere).
-    const statusGroup = await screen.findByRole('group', {
+    const statusGroup = await screen.findByRole('radiogroup', {
       name: new RegExp(pdsLabels.statusGroupAria, 'i'),
     })
-    const inStockBtn = within(statusGroup).getByRole('button', { name: /En stock/i })
-    await userEvent.click(inStockBtn)
+    const inStockRadio = within(statusGroup).getByRole('radio', { name: /En stock/i })
+    await userEvent.click(inStockRadio)
 
     expect(mockUpdateProduct).toHaveBeenCalled()
     expect(screen.queryByText("ENREGISTRER L'ACHAT")).not.toBeInTheDocument()

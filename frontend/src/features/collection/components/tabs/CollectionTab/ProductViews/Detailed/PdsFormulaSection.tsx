@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Check, Copy, Droplets, Sparkles } from 'lucide-react'
 
+import { pdsLabels } from '@/features/collection/constants'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
@@ -95,9 +96,7 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
           </ul>
         </div>
       ) : fullProductPending ? (
-        <p className="pds-empty-msg" aria-live="polite">
-          Chargement de la formule…
-        </p>
+        <p className="pds-empty-msg">{pdsLabels.loadingFormula}</p>
       ) : !fullProductError && !fullProduct?.inci ? (
         <p className="pds-empty-msg">
           Liste d'ingrédients non ajoutée. Vous pouvez garder ce produit comme note personnelle.
