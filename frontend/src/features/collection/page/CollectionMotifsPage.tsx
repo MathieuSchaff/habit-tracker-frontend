@@ -1,15 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-
 import { ListPageLayout } from '@/component/Layout'
-import { userProductQueries } from '@/lib/queries/user-products'
 import { CollectionSubNav } from '../components/CollectionSubNav'
-import { AnalysisTab } from '../components/tabs/AnalysisTab/AnalysisTab'
+import { FormulaMotifs } from '../components/tabs/FormulaMotifs/FormulaMotifs'
 
 import './CollectionPage.css'
 
 export const CollectionMotifsPage = () => {
-  const { data: userProducts } = useQuery(userProductQueries.list())
-
   return (
     <ListPageLayout>
       <ListPageLayout.Header
@@ -21,7 +16,7 @@ export const CollectionMotifsPage = () => {
       />
 
       <ListPageLayout.Body maxWidth="1200px" className="coll-page-container">
-        {userProducts && <AnalysisTab userProducts={userProducts} />}
+        <FormulaMotifs />
       </ListPageLayout.Body>
     </ListPageLayout>
   )

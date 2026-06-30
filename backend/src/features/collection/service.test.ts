@@ -4,10 +4,11 @@ import { ingredients } from '../../db/schema/ingredients/ingredients'
 import { userIngredientAnalysisScore } from '../../db/schema/ingredients/user-ingredient-analysis-score'
 import { productIngredients } from '../../db/schema/products/product-ingredients'
 import { products } from '../../db/schema/products/products'
+import { userProducts } from '../../db/schema/products/user-products'
 import { testDb } from '../../tests/db.test.config'
 import { setupDbTests } from '../../tests/db-setup'
 import { createTestUser } from '../../tests/helpers/test-factories'
-import { calculateCompatibilityScores } from './service'
+import { calculateCompatibilityScores, getCollectionFormulaMotifs } from './service'
 
 setupDbTests()
 
@@ -131,5 +132,100 @@ describe('calculateCompatibilityScores', () => {
     const scores = await calculateCompatibilityScores(user.id, [], testDb)
 
     expect(scores).toEqual({})
+  })
+})
+
+// Rich, widely-recognized INCI: glycerin → hydrating benefit, tocopherol → antioxidant,
+// parfum → fragrance heuristic note. analyzeINCI uses algo-derm's bundled evidence, so
+// these assertions don't depend on the aurore DB seed.
+const MOTIF_INCI = 'Aqua, Glycerin, Niacinamide, Panthenol, Tocopherol, Parfum'
+
+async function createInciProduct(userId: string, slug: string, inci: string): Promise<string> {
+  const [row] = await testDb
+    .insert(products)
+    .values({
+      createdBy: userId,
+      name: slug,
+      brand: 'TestBrand',
+      category: 'skincare',
+      kind: 'serum',
+      unit: 'dropper',
+      slug,
+      inci,
+    })
+    .returning({ id: products.id })
+  if (!row) throw new Error('product insert failed')
+  return row.id
+}
+
+async function addToCollection(
+  userId: string,
+  productId: string,
+  status: 'in_stock' | 'avoided' = 'in_stock'
+): Promise<void> {
+  await testDb.insert(userProducts).values({ userId, productId, status })
+}
+
+describe('getCollectionFormulaMotifs', () => {
+  it('returns nothing for an empty collection', async () => {
+    const user = await createTestUser('motif-empty@test.local')
+
+    const motifs = await getCollectionFormulaMotifs(user.id, testDb)
+
+    expect(motifs).toEqual({ productsAnalyzed: 0, benefits: [], notes: [] })
+  })
+
+  it('does not count a product with no INCI', async () => {
+    const user = await createTestUser('motif-no-inci@test.local')
+    const [row] = await testDb
+      .insert(products)
+      .values({
+        createdBy: user.id,
+        name: 'no-inci',
+        brand: 'TestBrand',
+        category: 'skincare',
+        kind: 'serum',
+        unit: 'dropper',
+        slug: 'motif-no-inci-product',
+      })
+      .returning({ id: products.id })
+    if (!row) throw new Error('product insert failed')
+    await addToCollection(user.id, row.id)
+
+    const motifs = await getCollectionFormulaMotifs(user.id, testDb)
+
+    expect(motifs.productsAnalyzed).toBe(0)
+  })
+
+  it('gates a single product out: one occurrence is not a motif', async () => {
+    const user = await createTestUser('motif-single@test.local')
+    await addToCollection(user.id, await createInciProduct(user.id, 'motif-single-a', MOTIF_INCI))
+
+    const motifs = await getCollectionFormulaMotifs(user.id, testDb)
+
+    expect(motifs.productsAnalyzed).toBe(1)
+    expect(motifs.benefits).toEqual([])
+    expect(motifs.notes).toEqual([])
+  })
+
+  it('aggregates recurring axes and excludes avoided products', async () => {
+    const user = await createTestUser('motif-agg@test.local')
+    await addToCollection(user.id, await createInciProduct(user.id, 'motif-agg-a', MOTIF_INCI))
+    await addToCollection(user.id, await createInciProduct(user.id, 'motif-agg-b', MOTIF_INCI))
+    // Same formula but rejected — must not feed the shelf's signal.
+    await addToCollection(
+      user.id,
+      await createInciProduct(user.id, 'motif-agg-c', MOTIF_INCI),
+      'avoided'
+    )
+
+    const motifs = await getCollectionFormulaMotifs(user.id, testDb)
+
+    expect(motifs.productsAnalyzed).toBe(2)
+    expect(motifs.benefits.some((b) => b.axis === 'hydrating')).toBe(true)
+    expect(motifs.benefits.every((b) => b.count === 2)).toBe(true)
+    expect(motifs.notes.length).toBeGreaterThan(0)
+    // avoided excluded → no axis can reach 3.
+    expect(motifs.notes.every((n) => n.count <= 2)).toBe(true)
   })
 })

@@ -51,6 +51,7 @@ export const pdsLabels = {
   decision: 'Ma décision',
   lifecycle: 'Cycle de vie',
   statusGroupAria: 'Statut du produit',
+  loadingFormula: 'Chargement de la formule…',
   addPurchaseTitle: 'ENREGISTRER UN ACHAT',
   editPurchaseTitle: "MODIFIER L'ACHAT",
 } as const
@@ -113,6 +114,11 @@ export const sortLabels: Record<SortOption, string> = {
   price_desc: 'Prix ↓',
   compatibility_desc: 'Affinité',
 }
+
+export const sortTitle = (current: SortOption) => `Tri : ${sortLabels[current]}`
+
+export const sortAriaLabel = (current: SortOption, next: SortOption) =>
+  `${sortTitle(current)}. Activer pour trier par ${sortLabels[next]}`
 
 // Empirical compatibility, surfaced as a calm indicative chip (never a number or
 // verdict, per the product vision). Mid-band and missing scores show nothing.

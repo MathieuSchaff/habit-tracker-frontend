@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useId, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 
 import './ChipGroup.css'
 
@@ -8,6 +8,8 @@ type ChipOption<T extends string> = {
   label: string
   count?: number
   disabled?: boolean
+  icon?: ReactNode
+  title?: string
 }
 
 type ChipGroupProps<T extends string> = {
@@ -19,6 +21,7 @@ type ChipGroupProps<T extends string> = {
   mode?: 'toggle' | 'exclusive'
   disabled?: boolean
   className?: string
+  chipClassName?: string
   'aria-label'?: string
   'aria-describedby'?: string
   maxVisible?: number
@@ -34,6 +37,7 @@ export function ChipGroup<T extends string>({
   mode = 'toggle',
   disabled,
   className,
+  chipClassName,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
   maxVisible,
@@ -61,65 +65,72 @@ export function ChipGroup<T extends string>({
 
   const isRadio = mode === 'exclusive'
 
-  const chips = visibleOptions.map(({ value, label, count, disabled: optionDisabled }) => {
-    const isSelected = selected.includes(value)
-    const isDisabled =
-      disabled || optionDisabled || (!isSelected && max != null && selected.length >= max)
+  const chips = visibleOptions.map(
+    ({ value, label, count, disabled: optionDisabled, icon, title }) => {
+      const isSelected = selected.includes(value)
+      const isDisabled =
+        disabled || optionDisabled || (!isSelected && max != null && selected.length >= max)
 
-    const content = (
-      <>
-        {label}
-        {count !== undefined && (
-          <>
-            <span className="chip__count" aria-hidden="true">
-              {count}
-            </span>
-            <span className="sr-only"> ({count} résultats)</span>
-          </>
-        )}
-      </>
-    )
+      const content = (
+        <>
+          {icon}
+          {label}
+          {count !== undefined && (
+            <>
+              <span className="chip__count" aria-hidden="true">
+                {count}
+              </span>
+              <span className="sr-only"> ({count} résultats)</span>
+            </>
+          )}
+        </>
+      )
 
-    return isRadio ? (
-      <label
-        key={value}
-        className={clsx(
-          'chip',
-          `chip--${size}`,
-          isSelected && 'chip--active',
-          isDisabled && 'chip--disabled'
-        )}
-      >
-        <input
-          type="radio"
-          name={groupId}
-          className="sr-only"
-          checked={isSelected}
+      return isRadio ? (
+        <label
+          key={value}
+          className={clsx(
+            'chip',
+            `chip--${size}`,
+            isSelected && 'chip--active',
+            isDisabled && 'chip--disabled',
+            chipClassName
+          )}
+          title={title}
+        >
+          <input
+            type="radio"
+            name={groupId}
+            className="sr-only"
+            checked={isSelected}
+            disabled={isDisabled}
+            onChange={() => handleClick(value)}
+            onKeyDown={onChipKeyDown}
+          />
+          {content}
+        </label>
+      ) : (
+        <button
+          key={value}
+          type="button"
+          className={clsx(
+            'chip',
+            `chip--${size}`,
+            isSelected && 'chip--active',
+            isDisabled && 'chip--disabled',
+            chipClassName
+          )}
+          onClick={() => handleClick(value)}
+          aria-pressed={isSelected}
           disabled={isDisabled}
-          onChange={() => handleClick(value)}
+          title={title}
           onKeyDown={onChipKeyDown}
-        />
-        {content}
-      </label>
-    ) : (
-      <button
-        key={value}
-        type="button"
-        className={clsx(
-          'chip',
-          `chip--${size}`,
-          isSelected && 'chip--active',
-          isDisabled && 'chip--disabled'
-        )}
-        onClick={() => handleClick(value)}
-        aria-pressed={isSelected}
-        disabled={isDisabled}
-        onKeyDown={onChipKeyDown}
-      >
-        {content}
-      </button>
-    )
-  })
+        >
+          {content}
+        </button>
+      )
+    }
+  )
 
   return (
     <fieldset
