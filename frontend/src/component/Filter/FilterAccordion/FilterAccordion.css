@@ -3,6 +3,13 @@
   border-bottom: var(--rule-section);
 }
 
+/* Inline (non-collapsible) single-control group: matches the accordion row (card bg + bottom rule);
+   the inner .filter-drawer__group--nested supplies its own padding. */
+.filter-inline-group {
+  background: var(--bg-card);
+  border-bottom: var(--rule-section);
+}
+
 .filter-accordion__trigger {
   display: flex;
   align-items: center;

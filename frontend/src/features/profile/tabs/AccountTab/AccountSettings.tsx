@@ -20,6 +20,17 @@ import { ChangePasswordForm } from './ChangePasswordForm'
 import { RoleRequestSection } from './RoleRequestSection'
 import './AccountSettings.css'
 
+type PrivacyKey =
+  | 'profilePublic'
+  | 'bioPublic'
+  | 'avatarPublic'
+  | 'linksPublic'
+  | 'skinTypesPublic'
+  | 'fitzpatrickPublic'
+  | 'skinConcernsPublic'
+  | 'discoverable'
+  | 'aiConsent'
+
 export const AccountSettings = () => {
   const navigate = useNavigate()
   const isDemo = useAuthStore((s) => s.isDemo)
@@ -53,21 +64,15 @@ export const AccountSettings = () => {
     })
   }
 
-  const handlePrivacyToggle = (
-    key:
-      | 'profilePublic'
-      | 'bioPublic'
-      | 'avatarPublic'
-      | 'linksPublic'
-      | 'skinTypesPublic'
-      | 'fitzpatrickPublic'
-      | 'skinConcernsPublic'
-      | 'discoverable'
-      | 'aiConsent',
-    value: boolean
-  ) => {
+  const handlePrivacyToggle = (key: PrivacyKey, value: boolean) => {
     updatePrivacy.mutate({ [key]: value })
   }
+
+  // Disable only the toggle whose request is in flight, not the whole group. Optimistic updates
+  // make the flip instant; this just blocks a double-fire on the same control until it settles.
+  const pendingKey = updatePrivacy.isPending
+    ? (Object.keys(updatePrivacy.variables ?? {})[0] as PrivacyKey | undefined)
+    : undefined
 
   return (
     <div className="account-settings">
@@ -110,7 +115,7 @@ export const AccountSettings = () => {
               hint="Si activé, votre nom d'utilisateur peut apparaître sur les pages publiques. Choisissez ensuite ce que vous souhaitez partager."
               checked={privacy.profilePublic}
               onChange={(checked) => handlePrivacyToggle('profilePublic', checked)}
-              disabled={updatePrivacy.isPending}
+              disabled={pendingKey === 'profilePublic'}
             />
 
             <div className="privacy-subgroup">
@@ -119,19 +124,19 @@ export const AccountSettings = () => {
                 label="Bio"
                 checked={privacy.bioPublic}
                 onChange={(checked) => handlePrivacyToggle('bioPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'bioPublic'}
               />
               <Toggle
                 label="Avatar"
                 checked={privacy.avatarPublic}
                 onChange={(checked) => handlePrivacyToggle('avatarPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'avatarPublic'}
               />
               <Toggle
                 label="Liens"
                 checked={privacy.linksPublic}
                 onChange={(checked) => handlePrivacyToggle('linksPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'linksPublic'}
               />
             </div>
 
@@ -141,19 +146,19 @@ export const AccountSettings = () => {
                 label="Types de peau"
                 checked={privacy.skinTypesPublic}
                 onChange={(checked) => handlePrivacyToggle('skinTypesPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'skinTypesPublic'}
               />
               <Toggle
                 label="Phototype"
                 checked={privacy.fitzpatrickPublic}
                 onChange={(checked) => handlePrivacyToggle('fitzpatrickPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'fitzpatrickPublic'}
               />
               <Toggle
                 label="Préoccupations"
                 checked={privacy.skinConcernsPublic}
                 onChange={(checked) => handlePrivacyToggle('skinConcernsPublic', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'skinConcernsPublic'}
               />
             </div>
 
@@ -164,7 +169,7 @@ export const AccountSettings = () => {
                 hint="Aurore peut vous proposer à des personnes dont la peau ressemble à la vôtre. La problématique par laquelle on vous trouve peut être déduite ; vos autres informations restent privées."
                 checked={privacy.discoverable}
                 onChange={(checked) => handlePrivacyToggle('discoverable', checked)}
-                disabled={!privacy.profilePublic || updatePrivacy.isPending}
+                disabled={!privacy.profilePublic || pendingKey === 'discoverable'}
               />
             </div>
 
@@ -179,7 +184,7 @@ export const AccountSettings = () => {
                 hint="Peut être révoqué à tout moment. Aucune donnée envoyée sans ce consentement."
                 checked={privacy.aiConsent}
                 onChange={(checked) => handlePrivacyToggle('aiConsent', checked)}
-                disabled={updatePrivacy.isPending}
+                disabled={pendingKey === 'aiConsent'}
               />
             </div>
 

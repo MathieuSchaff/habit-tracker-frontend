@@ -24,3 +24,19 @@
     padding-bottom: calc(var(--bottom-nav-height, 4.5rem) + env(safe-area-inset-bottom, 0));
   }
 }
+
+/* Toaster promoted into the top layer (see AppToaster) so toasts clear native <dialog> modals.
+   Stay a transparent, click-through passthrough: react-hot-toast renders its own fixed container. */
+.app-toaster {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: visible;
+  pointer-events: none;
+}

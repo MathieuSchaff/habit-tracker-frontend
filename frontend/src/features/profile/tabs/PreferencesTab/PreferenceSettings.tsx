@@ -1,7 +1,7 @@
 import type { DisplayScale } from '@aurore/shared'
 
 import { useQuery } from '@tanstack/react-query'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ChipGroup } from '../../../../component/Input/ChipGroup/ChipGroup'
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
@@ -54,9 +54,22 @@ export function PreferenceSettings() {
 
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
+  // Drive the sliders off local state so the thumb tracks the pointer immediately. Binding the
+  // value to the debounced server state instead snaps the thumb back to the stale value each tick.
+  // Seed once when the query first resolves, then local state owns the sliders. Re-seeding on every
+  // server change would yank a slider being dragged back to a sibling's just-refetched value.
+  const [localWeights, setLocalWeights] = useState<Record<string, number> | null>(null)
+  const serverWeights = prefs?.criteriaWeights
+  useEffect(() => {
+    if (serverWeights && localWeights === null) setLocalWeights(serverWeights)
+  }, [serverWeights, localWeights])
+
   if (isLoading || !prefs) return <output>Chargement des préférences…</output>
 
+  const weights = localWeights ?? prefs.criteriaWeights
+
   const handleWeightChange = (key: string, value: number) => {
+    setLocalWeights((w) => ({ ...(w ?? prefs.criteriaWeights), [key]: value }))
     clearTimeout(debounceTimers.current[key])
     debounceTimers.current[key] = setTimeout(() => {
       updateMutation.mutate({ criteriaWeights: { [key]: value } })
@@ -98,7 +111,7 @@ export function PreferenceSettings() {
                   <span className="pref-weight-desc">{criteriaDescriptions[key]}</span>
                 </div>
                 <span className="pref-weight-value">
-                  ×{prefs.criteriaWeights[key as keyof typeof prefs.criteriaWeights]}
+                  ×{weights[key as keyof typeof prefs.criteriaWeights]}
                 </span>
               </div>
               <input
@@ -106,7 +119,7 @@ export function PreferenceSettings() {
                 min="0"
                 max="10"
                 step="1"
-                value={prefs.criteriaWeights[key as keyof typeof prefs.criteriaWeights]}
+                value={weights[key as keyof typeof prefs.criteriaWeights]}
                 onChange={(e) => handleWeightChange(key, parseInt(e.target.value, 10))}
                 className="pref-weight-slider"
                 aria-label={`Pondération ${label}`}

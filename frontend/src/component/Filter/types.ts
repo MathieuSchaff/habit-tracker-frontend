@@ -47,5 +47,7 @@ export type FilterGroupConfig<T extends string> = {
   label: string
   defaultOpen: boolean
   tier: 'essential' | 'advanced'
+  /** Render flat without the collapsible <details> shell — for single-control groups (brand, ingredient). */
+  inline?: boolean
   subFilters: GroupedFilterField<T>[]
 }

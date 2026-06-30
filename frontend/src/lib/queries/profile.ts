@@ -155,18 +155,36 @@ export const privacySettingsQueries = {
     }),
 }
 
+const PRIVACY_UPDATE_KEY = ['profile', 'privacy', 'update']
+
 export const useUpdatePrivacySettings = () => {
   const queryClient = useQueryClient()
+  const key = privacySettingsQueries.get().queryKey
 
   return useMutation({
+    mutationKey: PRIVACY_UPDATE_KEY,
     mutationFn: async (data: UpdatePrivacySettingsInput) => {
       const res = await api.profile['privacy-settings'].$patch({ json: data })
       const json = await res.json()
       if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')
       return json.data
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['profile', 'privacy'], data)
+    // Optimistic: a privacy toggle must feel instant. Snapshot for rollback, merge the changed flag.
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old) => (old ? ({ ...old, ...data } as typeof old) : old))
+      return { previous }
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) queryClient.setQueryData(key, context.previous)
+    },
+    // Reconcile only once the last in-flight toggle settles: concurrent toggles each return a full
+    // row, so trusting any single response could clobber a sibling's optimistic change.
+    onSettled: () => {
+      if (queryClient.isMutating({ mutationKey: PRIVACY_UPDATE_KEY }) === 1) {
+        queryClient.invalidateQueries({ queryKey: key })
+      }
     },
     meta: { errorMessage: 'Mise à jour de la confidentialité impossible.' },
   })

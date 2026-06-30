@@ -48,6 +48,7 @@ export function useProductsFilterGroups(
         label: NON_TAG_FILTER_LABELS.ingredient,
         defaultOpen: false,
         tier: 'essential',
+        inline: true,
         subFilters: [
           {
             key: 'ingredient',
@@ -65,6 +66,7 @@ export function useProductsFilterGroups(
         label: 'Recherche précise',
         defaultOpen: false,
         tier: 'advanced',
+        inline: true,
         subFilters: [
           {
             key: 'brand',

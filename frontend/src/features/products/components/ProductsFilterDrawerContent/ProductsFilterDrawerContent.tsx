@@ -5,8 +5,6 @@ import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { PriceFilterAccordion } from '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion'
 import type { FilterKey } from '@/features/products/filters'
 
-import '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion.css'
-
 type Props = {
   open: boolean
   onClose: () => void
