@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Eye, Package, Sparkles } from 'lucide-react'
+import { Eye, Info, Package, Sparkles } from 'lucide-react'
 
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { BENEFIT_AXIS_PHRASE, RISK_AXIS_PHRASE } from '@/constants/derm'
@@ -33,12 +33,12 @@ export function FormulaMotifs() {
   return (
     <div className="fmotif-container">
       <p className="fmotif-intro">
-        Aurore lit la composition de vos produits et regarde ce qui revient. Ce sont des motifs dans
-        vos formules, pas un classement ni une recommandation.
+        Aurore lit la composition de vos produits et regarde ce qui revient.
       </p>
 
       <div className="fmotif-grid">
         <MotifCard
+          tone="benefit"
           title="Ce qui revient"
           icon={<Sparkles size={24} />}
           description="Bénéfices que les compositions de votre étagère partagent le plus souvent."
@@ -47,6 +47,7 @@ export function FormulaMotifs() {
           emptyText="Pas encore assez de compositions reconnues pour dégager un motif."
         />
         <MotifCard
+          tone="note"
           title="Points à noter"
           icon={<Eye size={24} />}
           description="Signaux qui reviennent dans plusieurs formules — à connaître, jamais une alerte."
@@ -57,14 +58,17 @@ export function FormulaMotifs() {
       </div>
 
       <p className="fmotif-footnote">
-        Estimation sur la composition, pas un avis médical. Aurore ne note pas vos formules et ne
-        les classe pas comme bonnes ou mauvaises.
+        <Info size={14} aria-hidden="true" />
+        <span>
+          Estimation sur la composition, pas un classement, une recommandation ni un avis médical.
+        </span>
       </p>
     </div>
   )
 }
 
 function MotifCard({
+  tone,
   title,
   icon,
   description,
@@ -72,6 +76,7 @@ function MotifCard({
   label,
   emptyText,
 }: {
+  tone: 'benefit' | 'note'
   title: string
   icon: React.ReactNode
   description: string
@@ -80,7 +85,7 @@ function MotifCard({
   emptyText: string
 }) {
   return (
-    <section className="fmotif-card">
+    <section className={`fmotif-card fmotif-card--${tone}`}>
       <div className="fmotif-header">
         <div className="fmotif-icon-wrap">{icon}</div>
         <div>
