@@ -3,6 +3,7 @@ import {
   createUserProductSchema,
   err,
   finishPurchaseSchema,
+  HOLY_GRAIL_SENTIMENT,
   HTTP_STATUS,
   ok,
   openPurchaseSchema,
@@ -11,12 +12,12 @@ import {
   updateUserProductSchema,
 } from '@aurore/shared'
 
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
-import { userProductReviews } from '../../db/schema/products/user-products'
+import { userProductReviews, userProducts } from '../../db/schema/products/user-products'
 import { zValidator } from '../../utils/validator'
 import { isUserBannedForScope } from '../auth/ban.service'
 import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
@@ -62,7 +63,25 @@ export const userProductRoutes = app
     const db = c.get('db')
     const userId = getAuthedUserId(c)
     const input = c.req.valid('json')
+
+    // createUserProduct upserts, so a re-add can flip an existing row's
+    // avoided/Holy-Grail flag, moving it in or out of the signal's bad/good
+    // buckets. Snapshot those flags first; recompute only when one actually
+    // changes (a plain in_stock add carries no signal, skip the full rebuild).
+    const previous = await db.query.userProducts.findFirst({
+      where: and(eq(userProducts.userId, userId), eq(userProducts.productId, input.productId)),
+      columns: { status: true, sentiment: true },
+    })
+
     const result = await createUserProduct(userId, input, db)
+
+    const avoidedFlipped = (previous?.status === 'avoided') !== (result.status === 'avoided')
+    const holyGrailFlipped =
+      (previous?.sentiment === HOLY_GRAIL_SENTIMENT) !== (result.sentiment === HOLY_GRAIL_SENTIMENT)
+    if (avoidedFlipped || holyGrailFlipped) {
+      await recalculateAllSignalsForUser(userId, db)
+    }
+
     return c.json(ok(result), HTTP_STATUS.CREATED)
   })
 

@@ -40,7 +40,9 @@ export const dermoScoreRoutes = app.get(
 
     const outcome = await computeProductDermoScore(slug, userId, database)
     if (!outcome.ok) {
-      return c.json(err(outcome.reason), HTTP_STATUS.BAD_REQUEST)
+      // inci_missing = the product exists but has no INCI to score; that is a
+      // missing resource, not malformed client input, so 404 rather than 400.
+      return c.json(err(outcome.reason), HTTP_STATUS.NOT_FOUND)
     }
     return c.json(ok(outcome.assessment), HTTP_STATUS.OK)
   }

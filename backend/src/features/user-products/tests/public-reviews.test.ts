@@ -226,6 +226,10 @@ describe('listPublicReviewsForProduct', () => {
 
   it('skips reviewers whose profile has no username', async () => {
     const owner = await createTestUser('noname@public-rev.test')
+    // Pseudonyms are assigned at profile creation, so the username is never null
+    // through the normal flow; force it to cover the isNotNull guard that still
+    // defends against legacy/admin-created rows.
+    await testDb.update(profiles).set({ username: null }).where(eq(profiles.userId, owner.id))
     const product = await makeProduct(owner.id, 'Anon Cream')
     const up = await createUserProduct(
       owner.id,
