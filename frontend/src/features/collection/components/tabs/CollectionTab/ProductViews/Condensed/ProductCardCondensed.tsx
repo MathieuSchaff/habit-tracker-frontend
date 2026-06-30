@@ -38,12 +38,12 @@ interface ProductCardCondensedProps {
   onMoveStatus?: (status: UserProductStatus) => void
 }
 
+// Only gold/rare render a corner ornament; lower scores carry no visible mark by design.
 function getScoreChipClass(score: string | null): string {
   if (score == null) return 'score-none'
   const n = Number.parseFloat(score)
   if (n >= SCORE_THRESHOLDS.gold) return 'score-gold'
   if (n >= SCORE_THRESHOLDS.rare) return 'score-rare'
-  if (n >= SCORE_THRESHOLDS.good) return 'score-good'
   return 'score-none'
 }
 
@@ -236,6 +236,7 @@ export function ProductCardCondensed({
             {p.product.kind && <Badge variant="chip">{getProductKindLabel(p.product.kind)}</Badge>}
             {compatTone && (
               <span className={clsx('pcc-compat', `pcc-compat--${compatTone}`)}>
+                <span className="sr-only">Affinité : </span>
                 {compatTone === 'favorite' && <Sparkles size={11} aria-hidden="true" />}
                 {compatLabels[compatTone]}
               </span>
@@ -245,7 +246,7 @@ export function ProductCardCondensed({
         </Card.Footer>
 
         {(scoreChipClass === 'score-gold' || scoreChipClass === 'score-rare') && (
-          <div className={clsx('prod-score-corner', scoreChipClass)} />
+          <div className={clsx('prod-score-corner', scoreChipClass)} aria-hidden="true" />
         )}
       </Card>
     </div>

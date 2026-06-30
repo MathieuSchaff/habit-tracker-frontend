@@ -20,7 +20,8 @@ interface RepurchasePickerProps {
 export function RepurchasePicker({ value, onChange }: RepurchasePickerProps) {
   return (
     <div className="pds-repurchase-section">
-      <fieldset className="pds-repurchase-btns" aria-label="Racheter ?">
+      <fieldset className="pds-repurchase-btns">
+        <legend className="sr-only">Racheter ?</legend>
         {options.map(({ value: val, label }) => (
           <button
             key={val}

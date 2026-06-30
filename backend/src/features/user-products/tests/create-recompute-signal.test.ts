@@ -31,7 +31,7 @@ async function countScores(userId: string) {
 // the suspicion/favorite scores stale. A seeded orphan score is reconciled away
 // whenever recalculateAllSignalsForUser runs against a collection with no signal
 // candidates, so its survival is the observable for "did the recompute fire".
-describe('POST /user-products — dermo signal recompute', () => {
+describe('user-products mutations — dermo signal recompute', () => {
   let client: TestClient
   let token: string
   let userId: string
@@ -89,6 +89,47 @@ describe('POST /user-products — dermo signal recompute', () => {
     expect(await countScores(userId)).toBe(1)
 
     await client['user-products'].$post({ json: { productId, status: 'avoided' } }, withAuth(token))
+    expect(await countScores(userId)).toBe(0)
+  })
+
+  async function createInStock() {
+    const res = await client['user-products'].$post(
+      { json: { productId, status: 'in_stock' } },
+      withAuth(token)
+    )
+    const body = await res.json()
+    if (!body.success) throw new Error('create failed')
+    expect(await countScores(userId)).toBe(1) // in_stock create carries no signal
+    return body.data.id
+  }
+
+  it('recomputes on PATCH to avoided', async () => {
+    const id = await createInStock()
+
+    await client['user-products'][':id'].$patch(
+      { param: { id }, json: { status: 'avoided' } },
+      withAuth(token)
+    )
+
+    expect(await countScores(userId)).toBe(0)
+  })
+
+  it('recomputes on DELETE', async () => {
+    const id = await createInStock()
+
+    await client['user-products'][':id'].$delete({ param: { id } }, withAuth(token))
+
+    expect(await countScores(userId)).toBe(0)
+  })
+
+  it('recomputes on review upsert when tolerance is set', async () => {
+    const id = await createInStock()
+
+    await client['user-products'][':id'].review.$put(
+      { param: { id }, json: { tolerance: 1 } },
+      withAuth(token)
+    )
+
     expect(await countScores(userId)).toBe(0)
   })
 })

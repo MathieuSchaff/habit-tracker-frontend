@@ -22,7 +22,8 @@ export function SentimentPicker({ value, onChange, status }: SentimentPickerProp
   const holyGrailAllowed = status !== 'avoided'
 
   return (
-    <fieldset className="pds-sentiment-row" aria-label={pdsLabels.sentimentQuick}>
+    <fieldset className="pds-sentiment-row">
+      <legend className="sr-only">{pdsLabels.sentimentQuick}</legend>
       {STANDARD_VALUES.map((val) => (
         <button
           key={val}

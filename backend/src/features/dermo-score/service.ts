@@ -3,7 +3,7 @@ import type { SkinConcern, SkinType } from '@aurore/shared'
 import { analyzeINCI, cleanInciString, type ProductAssessment, type UserProfile } from 'algo-derm'
 import { eq } from 'drizzle-orm'
 
-import { type Database, db } from '../../db'
+import { type Database, type DB, db } from '../../db'
 import { userDermoProfiles } from '../../db/schema/auth/users'
 import { products } from '../../db/schema/products/products'
 import { mapKindToContext } from '../../lib/algo-derm-product-context'
@@ -26,6 +26,11 @@ const ACNE_CONCERNS: ReadonlyArray<SkinConcern> = [
   'brillance',
 ]
 
+// algo-derm v1 models only sensitiveSkin / acneProne / rosacea / pregnant, so the
+// other 14 SKIN_CONCERNS have no engine counterpart and are intentionally dropped:
+// barriere-cutanee, anti-taches, anti-age, hyperpigmentation, deshydratation,
+// cernes-poches, eclat, cicatrisation, photo-vieillissement, teint-terne, repulpant,
+// eczema, grain-peau, keratose-pilaire.
 function mapToAlgoDermProfile(
   skinTypes: ReadonlyArray<SkinType>,
   skinConcerns: ReadonlyArray<SkinConcern>
@@ -74,9 +79,9 @@ export async function computeProductDermoScore(
   return { ok: true, assessment }
 }
 
-async function loadAlgoDermProfile(
+export async function loadAlgoDermProfile(
   userId: string,
-  database: Database
+  database: DB
 ): Promise<UserProfile | undefined> {
   const [row] = await database
     .select({
