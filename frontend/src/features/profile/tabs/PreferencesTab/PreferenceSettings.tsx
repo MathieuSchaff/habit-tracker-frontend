@@ -1,9 +1,6 @@
-import type { DisplayScale } from '@aurore/shared'
-
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 
-import { ChipGroup } from '../../../../component/Input/ChipGroup/ChipGroup'
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
 import {
   userPreferenceQueries,
@@ -40,13 +37,6 @@ const criteriaDescriptions: Record<string, string> = {
   valueForMoney: 'Prix vs durée et efficacité',
 }
 
-const scaleLabels: Record<DisplayScale, string> = {
-  out_of_5: 'Sur 5',
-  out_of_10: 'Sur 10',
-  out_of_20: 'Sur 20',
-  percentage: 'Pourcentage (%)',
-}
-
 export function PreferenceSettings() {
   const { data: prefs, isLoading } = useQuery(userPreferenceQueries.get())
   const updateMutation = useUpdateUserPreferences()
@@ -76,28 +66,8 @@ export function PreferenceSettings() {
     }, 400)
   }
 
-  const scaleOptions = (Object.keys(scaleLabels) as DisplayScale[]).map((s) => ({
-    value: s,
-    label: scaleLabels[s],
-  }))
-
   return (
     <div className="pref-settings">
-      <SettingsSection
-        title="Échelle d'affichage"
-        description="Choisissez comment les notes de vos produits sont affichées."
-      >
-        <ChipGroup
-          options={scaleOptions}
-          selected={prefs.displayScale ? [prefs.displayScale] : []}
-          onChange={([scale]) => {
-            if (scale) updateMutation.mutate({ displayScale: scale })
-          }}
-          mode="exclusive"
-          aria-label="Échelle d'affichage"
-        />
-      </SettingsSection>
-
       <SettingsSection
         title="Pondération des critères"
         description="Ajustez l'importance de chaque critère dans le calcul de la note finale. Un poids de 0 ignore le critère."

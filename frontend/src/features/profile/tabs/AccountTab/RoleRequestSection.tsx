@@ -38,6 +38,7 @@ export const RoleRequestSection = () => {
   const cancel = useCancelRoleRequest()
   const [motivation, setMotivation] = useState('')
   const [link, setLink] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   if (!isUser) return null
 
@@ -149,21 +150,38 @@ export const RoleRequestSection = () => {
       </FormMessage>
     )
   } else {
-    // null (first time), cancelled, or rejected → the form, with the rejection reason shown above it.
+    // Rejected users keep the resubmit form open (the rejection reason needs a visible next step);
+    // never-asked / cancelled users get a quiet opt-in so the section is one button, not a standing
+    // form, for the 99% who won't apply.
+    const wasRejected = latest?.status === 'rejected'
+    const formOpen = wasRejected || showForm
     body = (
       <div className="role-request-section">
-        {latest?.status === 'rejected' && (
+        {wasRejected && (
           <FormMessage variant="warning">
             Votre demande a été refusée
             {latest.rejectionReason ? ` : ${latest.rejectionReason}` : '.'} Vous pouvez en soumettre
             une nouvelle.
           </FormMessage>
         )}
-        <p className="role-request-intro">
-          Devenir modérateur, c'est aider à vérifier et enrichir le catalogue : valider des fiches,
-          lier les ingrédients, compléter les tags.
-        </p>
-        {form}
+        {formOpen ? (
+          <>
+            <p className="role-request-intro">
+              Devenir modérateur, c'est aider à vérifier et enrichir le catalogue : valider des
+              fiches, lier les ingrédients, compléter les tags.
+            </p>
+            {form}
+          </>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowForm(true)}
+            aria-expanded={false}
+          >
+            Je veux contribuer
+          </Button>
+        )}
       </div>
     )
   }

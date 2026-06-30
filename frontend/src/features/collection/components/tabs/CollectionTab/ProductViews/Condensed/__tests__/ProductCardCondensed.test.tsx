@@ -19,7 +19,7 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>()
   return {
     ...actual,
-    useQuery: () => ({ data: { criteriaWeights: undefined, displayScale: 'out_of_20' } }),
+    useQuery: () => ({ data: { criteriaWeights: undefined } }),
   }
 })
 

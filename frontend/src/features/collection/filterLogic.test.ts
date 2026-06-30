@@ -119,14 +119,14 @@ describe('sortProducts', () => {
       makeProduct({ id: 'high' }),
     ]
     const scores = { high: 0.9, low: 0.2 } // 'none' absent → NEGATIVE_INFINITY
-    const sorted = sortProducts(products, 'compatibility_desc', undefined, undefined, scores)
+    const sorted = sortProducts(products, 'compatibility_desc', undefined, scores)
     expect(sorted.map((p) => p.id)).toEqual(['high', 'low', 'none'])
   })
 
   it('does not mutate the input array', () => {
     const products = [makeProduct({ id: 'a', name: 'B' }), makeProduct({ id: 'b', name: 'A' })]
     const original = products.map((p) => p.id)
-    sortProducts(products, 'name', undefined, undefined)
+    sortProducts(products, 'name', undefined)
     expect(products.map((p) => p.id)).toEqual(original)
   })
 
@@ -135,9 +135,6 @@ describe('sortProducts', () => {
       makeProduct({ id: 'b', name: 'Zinc' }),
       makeProduct({ id: 'a', name: 'Aloe' }),
     ]
-    expect(sortProducts(products, 'name', undefined, undefined).map((p) => p.id)).toEqual([
-      'a',
-      'b',
-    ])
+    expect(sortProducts(products, 'name', undefined).map((p) => p.id)).toEqual(['a', 'b'])
   })
 })

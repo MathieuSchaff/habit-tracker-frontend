@@ -148,9 +148,6 @@ const publicProfileViewSchema = z.object({
 
 // user-preferences
 
-export const displayScale = ['out_of_5', 'out_of_10', 'out_of_20', 'percentage'] as const
-export const displayScaleSchema = z.enum(displayScale)
-
 export const criteriaWeightsSchema = z.object({
   tolerance: z.number().min(0).max(10).default(1),
   efficacy: z.number().min(0).max(10).default(1),
@@ -162,7 +159,6 @@ export const criteriaWeightsSchema = z.object({
 
 const userPreferencesSchema = z.object({
   userId: z.uuid(),
-  displayScale: displayScaleSchema.default('out_of_20'),
   criteriaWeights: criteriaWeightsSchema.default({
     tolerance: 1,
     efficacy: 1,
@@ -175,7 +171,6 @@ const userPreferencesSchema = z.object({
 })
 
 export const updateUserPreferencesSchema = z.object({
-  displayScale: displayScaleSchema.optional(),
   criteriaWeights: criteriaWeightsSchema.partial().optional(),
 })
 
@@ -203,7 +198,6 @@ export type PublicProfileView = z.infer<typeof publicProfileViewSchema>
 
 // user-preferences inferred types
 
-export type DisplayScale = z.infer<typeof displayScaleSchema>
 export type CriteriaWeights = z.infer<typeof criteriaWeightsSchema>
 export type UserPreferences = z.infer<typeof userPreferencesSchema>
 export type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSchema>

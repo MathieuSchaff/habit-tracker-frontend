@@ -1,4 +1,4 @@
-import type { CriteriaWeights, DisplayScale, ProfileLink, SkinConcern, SkinType } from './index'
+import type { CriteriaWeights, ProfileLink, SkinConcern, SkinType } from './index'
 
 // RGPD portability export (Article 20). Shape is what the user downloads from
 // /api/profile/export. Stays in shared/ so backend service + frontend hook +
@@ -55,7 +55,6 @@ export interface ExportDermoProfile {
 
 export interface ExportPreferences {
   _meta: ExportRowMeta
-  displayScale: DisplayScale
   criteriaWeights: CriteriaWeights
   aiConsent: boolean
 }

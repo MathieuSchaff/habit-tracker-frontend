@@ -10,7 +10,6 @@ vi.mock('../../../../lib/queries/user-preferences', () => ({
     get: () => ({
       queryKey: ['user-preferences'],
       queryFn: async () => ({
-        displayScale: 'out_of_20',
         criteriaWeights: {
           tolerance: 1,
           efficacy: 1,

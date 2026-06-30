@@ -1,6 +1,5 @@
 import type {
   CriteriaWeights,
-  DisplayScale,
   PrivacySettings,
   ProfilePublic,
   ProfileStats,
@@ -36,8 +35,6 @@ const DEFAULT_CRITERIA_WEIGHTS: CriteriaWeights = {
   mixability: 1,
   valueForMoney: 1,
 }
-
-const DEFAULT_DISPLAY_SCALE: DisplayScale = 'out_of_20'
 
 function toProfilePublic(profile: Profile): ProfilePublic {
   return {
@@ -154,14 +151,12 @@ export async function getUserPreferences(db: DB, userId: string) {
 
   if (!row) {
     return {
-      displayScale: DEFAULT_DISPLAY_SCALE,
       criteriaWeights: DEFAULT_CRITERIA_WEIGHTS,
       updatedAt: nowISO(),
     }
   }
 
   return {
-    displayScale: row.displayScale,
     criteriaWeights: row.criteriaWeights,
     updatedAt: row.updatedAt,
   }
@@ -188,13 +183,11 @@ export async function updateUserPreferences(
     .insert(userPreferences)
     .values({
       userId,
-      displayScale: data.displayScale ?? existing?.displayScale ?? DEFAULT_DISPLAY_SCALE,
       criteriaWeights: mergedWeights,
     })
     .onConflictDoUpdate({
       target: userPreferences.userId,
       set: {
-        ...(data.displayScale ? { displayScale: data.displayScale } : {}),
         criteriaWeights: mergedWeights,
         updatedAt: nowISO(),
       },
@@ -202,7 +195,6 @@ export async function updateUserPreferences(
     .returning()
 
   return {
-    displayScale: row.displayScale,
     criteriaWeights: row.criteriaWeights,
     updatedAt: row.updatedAt,
   }
@@ -315,7 +307,6 @@ export async function updatePrivacySettings(
   if (data.aiConsent !== undefined) {
     const [existing] = await db
       .select({
-        displayScale: userPreferences.displayScale,
         criteriaWeights: userPreferences.criteriaWeights,
       })
       .from(userPreferences)
@@ -326,7 +317,6 @@ export async function updatePrivacySettings(
       .insert(userPreferences)
       .values({
         userId,
-        displayScale: existing?.displayScale ?? DEFAULT_DISPLAY_SCALE,
         criteriaWeights: existing?.criteriaWeights ?? DEFAULT_CRITERIA_WEIGHTS,
         aiConsent: data.aiConsent,
       })
