@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeftRight, FlaskConical, Trash2 } from 'lucide-react'
+import { Droplets, FlaskConical, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-import { ButtonLink } from '@/component/Button/Button'
 import { Sheet } from '@/component/Dialog/Sheet'
 import { pdsLabels } from '@/features/collection/constants'
 import { useAnnounce } from '@/hooks/useAnnounce'
@@ -57,9 +56,7 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
         />
 
         <div className="pds-scroll">
-          <PdsFormulaSection p={p} />
-
-          {/* §5 Mon expérience */}
+          {/* §5 Mon expérience — leads the sheet in this variant */}
           <PdsExperienceSection p={p} updateMutation={updateMutation} />
 
           {/* §6 Ma décision */}
@@ -82,21 +79,9 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
             <LifecycleSection p={p} onAddPurchase={() => setShowAddPurchase(true)} />
           </PdsAccordion>
 
-          {/* §7 Comparer */}
-          <PdsAccordion icon={<ArrowLeftRight size={14} />} title="Comparer">
-            <p className="pds-section-lead">
-              Comparez les groupes d'ingrédients et vos notes personnelles côte à côte.
-            </p>
-            <ButtonLink
-              to="/products/compare/new"
-              search={{ seed: p.productId }}
-              variant="outline"
-              size="sm"
-              className="pds-compare-btn"
-            >
-              <ArrowLeftRight size={14} aria-hidden="true" />
-              <span>Choisir un produit à comparer</span>
-            </ButtonLink>
+          {/* Formula demoted — reference material, closed by default */}
+          <PdsAccordion icon={<Droplets size={14} />} title="Formule & ingrédients">
+            <PdsFormulaSection p={p} />
           </PdsAccordion>
 
           <footer className="pds-footer">

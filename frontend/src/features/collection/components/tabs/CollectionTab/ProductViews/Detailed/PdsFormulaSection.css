@@ -141,11 +141,3 @@
   color: var(--color-warning-text);
   opacity: 0.85;
 }
-
-.pds-glance {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--leading-relaxed);
-  color: var(--text-secondary);
-  padding: 0 var(--space-1);
-}
