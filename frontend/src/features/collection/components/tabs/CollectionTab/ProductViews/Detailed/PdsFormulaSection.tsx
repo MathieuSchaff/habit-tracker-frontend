@@ -114,8 +114,6 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
         </div>
       )}
 
-      {/* §3 Description - naked paragraph, calm. */}
-      {fullProduct?.description && <p className="pds-glance">{fullProduct.description}</p>}
     </>
   )
 }
