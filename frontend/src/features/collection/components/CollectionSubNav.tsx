@@ -2,33 +2,26 @@ import { Link } from '@tanstack/react-router'
 
 import './CollectionSubNav.css'
 
-type View = 'shelf' | 'motifs' | 'achats'
+// `exact` keeps the index link inactive while a child tab (motifs/achats) is open.
+const VIEWS = [
+  { label: 'Collection', to: '/collection', exact: true },
+  { label: 'Motifs', to: '/collection/motifs', exact: false },
+  { label: 'Achats', to: '/collection/achats', exact: false },
+] as const
 
-interface CollectionSubNavProps {
-  current: View
-}
-
-const VIEWS: { key: View; label: string; to: string }[] = [
-  { key: 'shelf', label: 'Collection', to: '/collection' },
-  { key: 'motifs', label: 'Motifs', to: '/collection/motifs' },
-  { key: 'achats', label: 'Achats', to: '/collection/achats' },
-]
-
-export function CollectionSubNav({ current }: CollectionSubNavProps) {
-  const others = VIEWS.filter((v) => v.key !== current)
+export function CollectionSubNav() {
   return (
     <nav className="coll-subnav" aria-label="Vues de la collection">
-      {others.map((v, idx) => (
-        <span key={v.key} className="coll-subnav-item">
-          {idx > 0 && (
-            <span className="coll-subnav-sep" aria-hidden="true">
-              ·
-            </span>
-          )}
-          <Link to={v.to} className="coll-subnav-link">
-            {v.label}
-          </Link>
-        </span>
+      {VIEWS.map((v) => (
+        <Link
+          key={v.to}
+          to={v.to}
+          className="coll-subnav-link"
+          activeOptions={{ exact: v.exact }}
+          activeProps={{ className: 'coll-subnav-link--active', 'aria-current': 'page' }}
+        >
+          {v.label}
+        </Link>
       ))}
     </nav>
   )

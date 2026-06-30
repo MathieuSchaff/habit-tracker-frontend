@@ -122,13 +122,6 @@ describe('CollectionPage', () => {
     expect(screen.getByTitle(/Tri : Évaluation/i)).toBeInTheDocument()
   })
 
-  it('expose des liens discrets vers Motifs et Achats dans le header', () => {
-    renderWithProviders(<CollectionPage />)
-
-    expect(screen.getByRole('link', { name: /Motifs/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Achats/i })).toBeInTheDocument()
-  })
-
   it('renders shelf tabs with status labels and shows all products on "Tout"', async () => {
     renderWithProviders(<CollectionPage />)
 

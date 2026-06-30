@@ -41,6 +41,84 @@ export function FilterAccordion<T extends string>({
     summaryRef.current?.focus()
   }
 
+  const fields = group.subFilters.map((sf) => {
+    const selected = localFilters[sf.key] ?? []
+    const variant = sf.variant ?? 'chips'
+
+    if (variant === 'search-select') {
+      return (
+        <div key={sf.key} className="filter-drawer__group filter-drawer__group--nested">
+          <span className="filter-subgroup__label">{sf.label}</span>
+          <SearchSelect
+            options={sf.options}
+            selected={selected}
+            onToggle={(value) => onToggle(sf.key, value)}
+            placeholder={sf.placeholder}
+            label={sf.label}
+          />
+        </div>
+      )
+    }
+
+    if (variant === 'async-search-select') {
+      if (!sf.loadOptionsQuery || !sf.resolveValuesQuery) return null
+      return (
+        <div key={sf.key} className="filter-drawer__group filter-drawer__group--nested">
+          <span className="filter-subgroup__label">{sf.label}</span>
+          <AsyncSearchSelect
+            selected={selected}
+            onToggle={(value) => onToggle(sf.key, value)}
+            loadOptionsQuery={sf.loadOptionsQuery}
+            resolveValuesQuery={sf.resolveValuesQuery}
+            placeholder={sf.placeholder}
+            label={sf.label}
+          />
+        </div>
+      )
+    }
+
+    if (sf.subGroups) {
+      return (
+        <SubGroupedChips
+          key={sf.key}
+          field={sf}
+          selected={selected}
+          onToggle={(value) => onToggle(sf.key, value)}
+          escapeHandler={escapeHandler}
+        />
+      )
+    }
+
+    return (
+      <div key={sf.key} className="filter-subgroup">
+        {group.subFilters.length > 1 && (
+          <span className="filter-subgroup__label" aria-hidden="true">
+            {sf.label}
+          </span>
+        )}
+        <ChipGroup
+          options={sf.options}
+          selected={selected}
+          onChange={(newSelected) => {
+            const added = newSelected.find((v) => !selected.includes(v))
+            const removed = selected.find((v) => !newSelected.includes(v))
+            const value = added ?? removed
+            if (value) onToggle(sf.key, value)
+          }}
+          size="sm"
+          onChipKeyDown={escapeHandler}
+          aria-label={`Options pour ${sf.label}`}
+        />
+      </div>
+    )
+  })
+
+  // Single-control groups (brand, ingredient) skip the collapsible shell — a <details> wrapping one
+  // field is pure friction. Render the field flat, always visible.
+  if (group.inline) {
+    return <div className="filter-inline-group">{fields}</div>
+  }
+
   return (
     <details
       ref={detailsRef}
@@ -64,77 +142,7 @@ export function FilterAccordion<T extends string>({
         </div>
       </summary>
       <div id={contentId} className="filter-accordion__body">
-        {group.subFilters.map((sf) => {
-          const selected = localFilters[sf.key] ?? []
-          const variant = sf.variant ?? 'chips'
-
-          if (variant === 'search-select') {
-            return (
-              <div key={sf.key} className="filter-drawer__group filter-drawer__group--nested">
-                <span className="filter-subgroup__label">{sf.label}</span>
-                <SearchSelect
-                  options={sf.options}
-                  selected={selected}
-                  onToggle={(value) => onToggle(sf.key, value)}
-                  placeholder={sf.placeholder}
-                  label={sf.label}
-                />
-              </div>
-            )
-          }
-
-          if (variant === 'async-search-select') {
-            if (!sf.loadOptionsQuery || !sf.resolveValuesQuery) return null
-            return (
-              <div key={sf.key} className="filter-drawer__group filter-drawer__group--nested">
-                <span className="filter-subgroup__label">{sf.label}</span>
-                <AsyncSearchSelect
-                  selected={selected}
-                  onToggle={(value) => onToggle(sf.key, value)}
-                  loadOptionsQuery={sf.loadOptionsQuery}
-                  resolveValuesQuery={sf.resolveValuesQuery}
-                  placeholder={sf.placeholder}
-                  label={sf.label}
-                />
-              </div>
-            )
-          }
-
-          if (sf.subGroups) {
-            return (
-              <SubGroupedChips
-                key={sf.key}
-                field={sf}
-                selected={selected}
-                onToggle={(value) => onToggle(sf.key, value)}
-                escapeHandler={escapeHandler}
-              />
-            )
-          }
-
-          return (
-            <div key={sf.key} className="filter-subgroup">
-              {group.subFilters.length > 1 && (
-                <span className="filter-subgroup__label" aria-hidden="true">
-                  {sf.label}
-                </span>
-              )}
-              <ChipGroup
-                options={sf.options}
-                selected={selected}
-                onChange={(newSelected) => {
-                  const added = newSelected.find((v) => !selected.includes(v))
-                  const removed = selected.find((v) => !newSelected.includes(v))
-                  const value = added ?? removed
-                  if (value) onToggle(sf.key, value)
-                }}
-                size="sm"
-                onChipKeyDown={escapeHandler}
-                aria-label={`Options pour ${sf.label}`}
-              />
-            </div>
-          )
-        })}
+        {fields}
       </div>
     </details>
   )
