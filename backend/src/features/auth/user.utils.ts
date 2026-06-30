@@ -6,6 +6,7 @@ import type { DB } from '../../db/index'
 import type { User, UserSafe } from '../../db/schema'
 import { profiles, users, usersSafe } from '../../db/schema'
 import { normalizeInstant } from '../../utils/dates'
+import { generateUniqueUsername } from './username-generator'
 
 // Maps raw SELECT * from auth.find_user_*() SECURITY DEFINER fns into the Drizzle User shape.
 // SECURITY DEFINER fns are the only path that exposes password_hash to app_runtime.
@@ -132,9 +133,12 @@ export async function createUser(
   return user
 }
 export async function createProfile(db: DB, userId: string, data?: { avatarUrl?: string | null }) {
+  // Assign a pseudonym up front so public sharing (reviews, social) can never
+  // silently no-op on a NULL username; the user renames it later in ProfileForm.
+  const username = await generateUniqueUsername(db)
   const [profile] = await db
     .insert(profiles)
-    .values({ userId, avatarUrl: data?.avatarUrl ?? null })
+    .values({ userId, username, avatarUrl: data?.avatarUrl ?? null })
     .returning()
   if (!profile) throw new Error('Failed to create profile')
   return profile

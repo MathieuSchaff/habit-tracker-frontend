@@ -1,4 +1,7 @@
 .toggle {
+  /* Anchor the sr-only switch input to the label; without it the absolutely
+     positioned input resolves against a far ancestor and focus scroll-jumps. */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -1,18 +1,20 @@
-// Absence-claim justesse audit for `sans-sulfates` (report obs 3, report-only).
+// Regression guard for `sans-sulfates` on CLEANSERS (report-only).
 //
-// algo-derm withholds the `sans-sulfates` absence claim whenever ANY token in its
-// `sulfate_surfactant` group is present (lauryl/laureth/myreth/coco/cetearyl/coceth
-// sulfate, mirrored in step-nettoyage-1.ts IONIC_SURFACTANT_PATTERNS). But
-// `cetearyl sulfate` (sodium cetearyl sulfate) is a co-emulsifier, not a washing
-// sulfate — the "sulfate-free" claim consumers care about targets SLS/SLES. So a
-// leave-on cream whose only sulfate token is cetearyl is wrongly DENIED the claim
-// = false negative. `coceth sulfate` is milder/ambiguous: flagged separately.
+// `sans-sulfates` is a CLEANSER-ONLY absence claim: algo-derm withholds it on
+// every other kind via `relevantKinds: ["cleanser", "gentle_cleanser"]`
+// (absence.ts) — the claim only discriminates where a washing sulfate could
+// occur. So a leave-on cream carrying `sodium cetearyl sulfate` is correctly
+// NOT tagged; flagging it would be a false FN (the bug this file used to have).
 //
-// Bug B (a real washing sulfate on a leave-on kind = product-kind mistag) is the
-// reverse rule already covered by kind-inci-coherence.ts; products carrying a
-// washing sulfate are excluded here so the two audits don't overlap.
+// The real failure mode this guards: a CLEANSER whose only sulfate token is
+// `cetearyl sulfate` (a C16-18 fatty-alcohol co-emulsifier, not a foaming
+// washing sulfate) being DENIED the claim. algo-derm already excludes `cetearyl`
+// from its `sulfate_surfactant` heuristic group, so this should report 0 FN; a
+// non-zero count means that exclusion regressed. `coceth sulfate` is
+// milder/ambiguous and reported separately for review.
 //
-// Read-only. Cleansers are skipped (washing sulfates are legitimate there).
+// A cleanser carrying a real washing sulfate (SLS/SLES) legitimately loses the
+// claim and is excluded. Read-only.
 // Usage: bun run .../sans-sulfates-coherence.ts
 
 import { eq } from 'drizzle-orm'
@@ -24,7 +26,7 @@ import { IONIC_SURFACTANT_PATTERNS } from '../../passes/formula/step-nettoyage-1
 
 const SANS_SULFATES_SLUG = 'sans-sulfates'
 
-// Partition the algo-derm group. Olefin sulfonate is not a sulfate (dropped).
+// Partition the canonical sulfate token list. Olefin sulfonate is not a sulfate.
 const EMULSIFIER = ['cetearyl sulfate'] // co-emulsifier, not a washing sulfate
 const COCETH = ['coceth sulfate'] // milder anionic, ambiguous — review
 const WASHING = IONIC_SURFACTANT_PATTERNS.filter(
@@ -58,20 +60,21 @@ async function main() {
   const { fetchEligibleProducts } = await import('./db')
   const subset = await fetchEligibleProducts({ categories: ['skincare'] })
 
-  // Bug A buckets: non-cleanser products whose sulfate tokens are ALL emulsifier /
-  // coceth (no washing sulfate) → wrongly denied the absence claim.
-  const cetearyl: Array<{
+  // The claim is cleanser-only, so it can only be wrongly denied on a cleanser.
+  // A cleanser whose sulfate tokens are ALL emulsifier/coceth (no washing
+  // sulfate) but lacks the tag = false negative.
+  const emulsifierOnly: Array<{
     slug: string
     kind: string
     hits: SulfateHit[]
     tagged: boolean
     inci: string
   }> = []
-  const cocethOnly: typeof cetearyl = []
+  const cocethOnly: typeof emulsifierOnly = []
 
   let scanned = 0
   for (const p of subset) {
-    if (p.kind === 'cleanser') continue
+    if (p.kind !== 'cleanser') continue
     if (!p.inci?.trim()) continue
     scanned++
 
@@ -82,7 +85,7 @@ async function main() {
       if (g) hits.push({ token: ing, position: i, group: g })
     })
     if (hits.length === 0) continue
-    // A washing sulfate makes this a real-sulfate / kind-mistag case (Bug B) — out of scope.
+    // A washing sulfate legitimately breaks the claim — out of scope.
     if (hits.some((h) => h.group === 'washing')) continue
 
     const row = {
@@ -92,18 +95,17 @@ async function main() {
       tagged: hasSansSulfates.has(p.id),
       inci: p.inci,
     }
-    if (hits.some((h) => h.group === 'emulsifier')) cetearyl.push(row)
+    if (hits.some((h) => h.group === 'emulsifier')) emulsifierOnly.push(row)
     else cocethOnly.push(row)
   }
 
-  console.log('🧼 sans-sulfates absence-claim justesse (report-only, obs 3)\n')
+  console.log('🧼 sans-sulfates regression guard — cleansers (report-only)\n')
   console.log(
-    `   ${scanned} produits non-cleanser avec INCI · ${cetearyl.length} cetearyl-émulsifiant · ${cocethOnly.length} coceth-seul\n`
+    `   ${scanned} cleansers avec INCI · ${emulsifierOnly.length} cetearyl-émulsifiant · ${cocethOnly.length} coceth-seul\n`
   )
 
-  const dump = (label: string, rows: typeof cetearyl) => {
+  const dump = (label: string, rows: typeof emulsifierOnly) => {
     if (rows.length === 0) return
-    // FN = denied the claim despite no washing sulfate.
     const fn = rows.filter((r) => !r.tagged).length
     console.log(`── ${label} (${rows.length}, dont ${fn} sans le tag sans-sulfates = FN) ──`)
     for (const r of rows.sort((a, b) => a.slug.localeCompare(b.slug))) {
@@ -116,16 +118,19 @@ async function main() {
     console.log()
   }
 
-  dump('Bug A — cetearyl sulfate = émulsifiant (devrait être sans-sulfates)', cetearyl)
+  dump('cetearyl sulfate seul = émulsifiant (cleanser doit garder sans-sulfates)', emulsifierOnly)
   dump('coceth sulfate seul — à trancher (washing ou non ?)', cocethOnly)
 
-  if (cetearyl.length === 0 && cocethOnly.length === 0) {
-    console.log('✓ aucun faux négatif émulsifiant détecté')
+  const fnCount = emulsifierOnly.filter((r) => !r.tagged).length
+  if (emulsifierOnly.length === 0 && cocethOnly.length === 0) {
+    console.log('✓ aucun cleanser à sulfate-émulsifiant seul')
+  } else if (fnCount === 0) {
+    console.log('✓ aucun faux négatif : cetearyl bien exclu du heuristic sulfate_surfactant')
   } else {
     console.log(
-      '  Fix = retirer cetearyl (et trancher coceth) du groupe sulfate_surfactant pour le claim'
+      `⚠ ${fnCount} cleanser(s) privé(s) de sans-sulfates par un émulsifiant — l’exclusion cetearyl`
     )
-    console.log('  d’absence (algo-derm + step-nettoyage-1.ts), puis re-backfill sans-sulfates.')
+    console.log('  du groupe sulfate_surfactant (algo-derm heuristic_rules.json) a régressé.')
   }
 }
 
