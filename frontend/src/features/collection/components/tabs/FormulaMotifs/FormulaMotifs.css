@@ -6,8 +6,7 @@
   animation: fade-slide-in var(--transition-base) ease;
 }
 
-.fmotif-intro,
-.fmotif-footnote {
+.fmotif-intro {
   font-size: var(--text-sm);
   color: var(--text-muted);
   line-height: var(--leading-relaxed);
@@ -15,7 +14,18 @@
 }
 
 .fmotif-footnote {
-  font-style: italic;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.fmotif-footnote svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
 .fmotif-grid {
@@ -33,6 +43,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.fmotif-card--benefit {
+  --_motif-color: var(--color-success);
+}
+
+.fmotif-card--note {
+  --_motif-color: var(--color-info);
 }
 
 .fmotif-header {
@@ -107,8 +125,11 @@
   font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: oklch(from var(--_motif-color) l c h / 0.12);
-  color: var(--_motif-color);
+  background: oklch(from var(--_motif-color) l c h / 0.14);
+  /* accent stays on the icon + pill tint; the count keeps a theme-aware text
+     color so the small caps clear 4.5:1 on every theme (accent L is tuned for
+     large UI, not small text) */
+  color: var(--text-primary);
   padding: 2px var(--space-2);
   border-radius: var(--radius-full);
   white-space: nowrap;
