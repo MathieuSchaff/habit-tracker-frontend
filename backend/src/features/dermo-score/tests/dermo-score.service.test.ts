@@ -5,7 +5,7 @@ import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { createProduct } from '../../products/service'
 import { upsertDermoProfile } from '../../profile/service'
-import { computeProductDermoScore } from '../service'
+import { computeProductDermoScore, loadAlgoDermProfile } from '../service'
 
 let user: { id: string }
 
@@ -89,5 +89,48 @@ describe('computeProductDermoScore', () => {
     expect(sensitive.assessment.productAxisRisk.irritation.risk).toBeGreaterThan(
       anon.assessment.productAxisRisk.irritation.risk
     )
+  })
+})
+
+describe('loadAlgoDermProfile', () => {
+  it('returns undefined when the user has no dermo profile row', async () => {
+    expect(await loadAlgoDermProfile(user.id, testDb)).toBeUndefined()
+  })
+
+  it('maps a sensitive skin type to sensitiveSkin', async () => {
+    await upsertDermoProfile(testDb, user.id, { skinTypes: ['peau-sensible'] })
+
+    expect(await loadAlgoDermProfile(user.id, testDb)).toEqual({
+      sensitiveSkin: true,
+      acneProne: false,
+      rosacea: false,
+      pregnant: false,
+    })
+  })
+
+  it('maps an acne concern to acneProne', async () => {
+    await upsertDermoProfile(testDb, user.id, { skinConcerns: ['anti-acne'] })
+
+    const profile = await loadAlgoDermProfile(user.id, testDb)
+    expect(profile?.acneProne).toBe(true)
+    expect(profile?.rosacea).toBe(false)
+  })
+
+  it('maps a rosacea concern to rosacea', async () => {
+    await upsertDermoProfile(testDb, user.id, { skinConcerns: ['rosacee'] })
+
+    const profile = await loadAlgoDermProfile(user.id, testDb)
+    expect(profile?.rosacea).toBe(true)
+    expect(profile?.acneProne).toBe(false)
+  })
+
+  // pregnant has no column/UI yet; the mapper must keep hardcoding false (not undefined).
+  it('always reports pregnant=false', async () => {
+    await upsertDermoProfile(testDb, user.id, {
+      skinTypes: ['peau-sensible'],
+      skinConcerns: ['rosacee', 'anti-acne'],
+    })
+
+    expect((await loadAlgoDermProfile(user.id, testDb))?.pregnant).toBe(false)
   })
 })

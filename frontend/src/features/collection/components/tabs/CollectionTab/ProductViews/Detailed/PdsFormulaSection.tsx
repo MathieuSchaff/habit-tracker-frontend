@@ -17,9 +17,11 @@ interface PdsFormulaSectionProps {
 }
 
 export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
-  const { data: fullProduct, isError: fullProductError } = useQuery(
-    productQueries.bySlug(p.product.slug)
-  )
+  const {
+    data: fullProduct,
+    isError: fullProductError,
+    isPending: fullProductPending,
+  } = useQuery(productQueries.bySlug(p.product.slug))
 
   const { copied: inciCopied, copy: copyInci } = useCopyToClipboard()
   const handleCopyInci = () => {
@@ -92,6 +94,10 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
             ))}
           </ul>
         </div>
+      ) : fullProductPending ? (
+        <p className="pds-empty-msg" aria-live="polite">
+          Chargement de la formule…
+        </p>
       ) : !fullProductError && !fullProduct?.inci ? (
         <p className="pds-empty-msg">
           Liste d'ingrédients non ajoutée. Vous pouvez garder ce produit comme note personnelle.

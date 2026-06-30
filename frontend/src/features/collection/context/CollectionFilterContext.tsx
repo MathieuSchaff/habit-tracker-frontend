@@ -46,6 +46,7 @@ type CollectionFilterContextValue = {
   filterOptions: { brands: string[]; productTypes: string[] }
   hasActiveFilters: boolean
   compatScores: Record<string, number | null>
+  compatError: boolean
 
   setFilter: (updates: CollectionFilterUpdates) => void
   resetFilters: () => void
@@ -71,7 +72,9 @@ export function CollectionFilterProvider({
   const [q, setQ] = useState('')
 
   const productIds = useMemo(() => userProducts?.map((p) => p.product.id) ?? [], [userProducts])
-  const { data: compatScores } = useQuery(compatibilityScoresQuery(productIds))
+  const { data: compatScores, isError: compatError } = useQuery(
+    compatibilityScoresQuery(productIds)
+  )
 
   const filterOptions = useMemo(() => {
     if (!userProducts) return { brands: [], productTypes: [] }
@@ -149,6 +152,7 @@ export function CollectionFilterProvider({
         filterOptions,
         hasActiveFilters,
         compatScores: compatScores ?? {},
+        compatError,
         setFilter,
         resetFilters,
       }}

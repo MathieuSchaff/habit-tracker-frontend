@@ -25,6 +25,7 @@ describe('useCollectionFilter', () => {
       filterOptions: { brands: [], productTypes: [] },
       hasActiveFilters: false,
       compatScores: {},
+      compatError: false,
       setFilter: () => {},
       resetFilters: () => {},
     }
@@ -41,6 +42,7 @@ describe('useCollectionFilter', () => {
       'filterOptions',
       'hasActiveFilters',
       'compatScores',
+      'compatError',
       'setFilter',
       'resetFilters',
     ])

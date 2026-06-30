@@ -97,6 +97,7 @@ export function ShelfTabs({
       <Tabs
         variant="underline"
         scrollable
+        hasPanels={false}
         options={primaryOptions}
         activeTab={active}
         onTabChange={onChange}
@@ -144,6 +145,7 @@ export function ShelfTabs({
             <DropdownMenu.Item key={item.key} onSelect={() => onChange(item.key)}>
               <button
                 type="button"
+                aria-pressed={active === item.key}
                 className={clsx(
                   'shelf-tabs-plus-item',
                   active === item.key && 'shelf-tabs-plus-item--active'

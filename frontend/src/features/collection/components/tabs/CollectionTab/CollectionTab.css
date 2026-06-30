@@ -148,3 +148,11 @@
     transform: rotate(360deg);
   }
 }
+
+/* Calm, non-blocking notice when the affinity scores fail to load. */
+.coll-compat-error {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}

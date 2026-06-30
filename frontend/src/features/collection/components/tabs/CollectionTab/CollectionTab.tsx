@@ -54,7 +54,8 @@ export function CollectionTab({ userProducts, onAddClick }: CollectionTabProps) 
 }
 
 function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
-  const { filteredProducts, q, sort, setFilter, hasActiveFilters } = useCollectionFilter()
+  const { filteredProducts, q, sort, setFilter, hasActiveFilters, compatError } =
+    useCollectionFilter()
   const navigate = useNavigate()
 
   const updateMutation = useUpdateUserProduct()
@@ -68,10 +69,9 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
     ? (filteredProducts.find((p) => p.id === expandedId) ?? null)
     : null
 
-  const cycleSortBy = () => {
-    const idx = sortOptions.indexOf(sort)
-    setFilter({ sort: sortOptions[(idx + 1) % sortOptions.length] })
-  }
+  const sortIdx = sortOptions.indexOf(sort)
+  const nextSort = sortOptions[(sortIdx + 1) % sortOptions.length]
+  const cycleSortBy = () => setFilter({ sort: nextSort })
 
   return (
     <>
@@ -92,7 +92,7 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
             size="sm"
             className="coll-sort-btn"
             onClick={cycleSortBy}
-            aria-label={`Trier par ${sortLabels[sort]}`}
+            aria-label={`Tri : ${sortLabels[sort]}. Activer pour trier par ${sortLabels[nextSort]}`}
             title={`Tri : ${sortLabels[sort]}`}
           >
             <ArrowUpDown size={16} aria-hidden="true" />
@@ -109,6 +109,12 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
           </Button>
         </div>
       </div>
+
+      {compatError && (
+        <p className="coll-compat-error" role="status">
+          Affinités indisponibles pour le moment.
+        </p>
+      )}
 
       <ShelfView
         products={filteredProducts}

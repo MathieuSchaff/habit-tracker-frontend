@@ -198,4 +198,54 @@ describe('recalculateAllSignalsForUser', () => {
       .where(eq(userIngredientAnalysisScore.userId, user.id))
     expect(rows).toHaveLength(0)
   })
+
+  // Tolerance boundaries: bad <= 2, good >= 4, so 3 is the neutral gap.
+  it('treats tolerance = 3 as neutral (no signal row)', async () => {
+    const user = await createTestUser('signal-neutral@test.local')
+    const ing = await createIngredient(user.id, 'neutral-actif')
+    const p1 = await createProduct(user.id, 'neutral-1', [ing])
+    const p2 = await createProduct(user.id, 'neutral-2', [ing])
+    await addToCollection(user.id, p1, { tolerance: 3 })
+    await addToCollection(user.id, p2, { tolerance: 3 })
+
+    await recalculateAllSignalsForUser(user.id, testDb)
+
+    expect(await getScore(user.id, ing)).toBeUndefined()
+  })
+
+  it('classifies tolerance = 4 as a favorite (good-bucket lower bound)', async () => {
+    const user = await createTestUser('signal-tol4@test.local')
+    const ing = await createIngredient(user.id, 'tol4-actif')
+    const p1 = await createProduct(user.id, 'tol4-1', [ing])
+    const p2 = await createProduct(user.id, 'tol4-2', [ing])
+    await addToCollection(user.id, p1, { tolerance: 4 })
+    await addToCollection(user.id, p2, { tolerance: 4 })
+
+    await recalculateAllSignalsForUser(user.id, testDb)
+
+    const row = await getScore(user.id, ing)
+    expect(row?.isFavorite).toBe(true)
+    expect(row?.isSuspect).toBe(false)
+  })
+
+  // Dual-bucket: sentiment=6 (good) AND tolerance<=2 (bad) on the same product
+  // puts the ingredient in both sets, so it stays a candidate (row written) but
+  // its bad/good contributions cancel to zero.
+  it('lands sentiment=6 + low tolerance in both buckets (cancels to zero)', async () => {
+    const user = await createTestUser('signal-dual@test.local')
+    const ing = await createIngredient(user.id, 'dual-actif')
+    const p1 = await createProduct(user.id, 'dual-1', [ing])
+    const p2 = await createProduct(user.id, 'dual-2', [ing])
+    await addToCollection(user.id, p1, { sentiment: 6, tolerance: 2 })
+    await addToCollection(user.id, p2, { sentiment: 6, tolerance: 2 })
+
+    await recalculateAllSignalsForUser(user.id, testDb)
+
+    const row = await getScore(user.id, ing)
+    expect(row).toBeDefined()
+    expect(row?.isSuspect).toBe(false)
+    expect(row?.isFavorite).toBe(false)
+    expect(Number(row?.suspicionScore)).toBe(0)
+    expect(Number(row?.favoriteScore)).toBe(0)
+  })
 })
