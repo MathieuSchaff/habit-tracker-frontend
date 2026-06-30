@@ -160,6 +160,10 @@ export const useDeleteUserProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userProductKeys.all })
       queryClient.invalidateQueries({ queryKey: productKeys.shelfStatuses() })
+      // Removing a product drops it from the empirical signal the compatibility
+      // query derives, but not the product-id set it is keyed on — invalidate it
+      // explicitly, like update/review do.
+      queryClient.invalidateQueries({ queryKey: compatibilityKeys.all })
     },
     meta: { errorMessage: 'Suppression impossible — réessayez plus tard.' },
   })

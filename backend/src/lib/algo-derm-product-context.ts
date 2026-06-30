@@ -35,6 +35,7 @@ export const RINSE_OFF_KINDS: ReadonlySet<ProductKind> = new Set<ProductKind>([
   'body-wash',
   'body-scrub',
   'mouthwash',
+  'toothpaste',
 ])
 
 export function mapKindToContext(kind: ProductKind): ProductContext {
