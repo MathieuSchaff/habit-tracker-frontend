@@ -1,5 +1,3 @@
-import type { DisplayScale } from '@aurore/shared'
-
 export interface ReviewCriteria {
   tolerance?: number | null
   efficacy?: number | null
@@ -37,11 +35,10 @@ const CRITERIA_KEYS: (keyof ReviewCriteria & keyof CriteriaWeights)[] = [
   'valueForMoney',
 ]
 
-/** Weighted average of rated criteria, scaled to display format. Null/zero ratings are excluded. */
+/** Weighted average of rated criteria, scaled to /20. Null/zero ratings are excluded. */
 export function calculateWeightedScore(
   review: ReviewCriteria | null | undefined,
-  weights: CriteriaWeights = DEFAULT_WEIGHTS,
-  scale: DisplayScale = 'out_of_20'
+  weights: CriteriaWeights = DEFAULT_WEIGHTS
 ): string | null {
   if (!review) return null
 
@@ -60,17 +57,5 @@ export function calculateWeightedScore(
   if (totalWeight === 0) return null
 
   const scoreOutOf5 = totalPoints / totalWeight
-
-  switch (scale) {
-    case 'out_of_5':
-      return scoreOutOf5.toFixed(1)
-    case 'out_of_10':
-      return (scoreOutOf5 * 2).toFixed(1)
-    case 'out_of_20':
-      return (scoreOutOf5 * 4).toFixed(1)
-    case 'percentage':
-      return `${Math.round(scoreOutOf5 * 20)}%`
-    default:
-      return (scoreOutOf5 * 4).toFixed(1)
-  }
+  return (scoreOutOf5 * 4).toFixed(1)
 }

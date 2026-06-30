@@ -134,10 +134,15 @@ describe('RoleRequestSection', () => {
     expect(screen.getByRole('button', { name: 'Envoyer la demande' })).toBeInTheDocument()
   })
 
-  it('shows the bare form for a first-time user', () => {
+  it('keeps the form behind an opt-in for a first-time user, then reveals it', async () => {
     setRole('user')
     setQuery({ data: null })
     renderWithProviders(<RoleRequestSection />)
+
+    // Collapsed by default: just the opt-in, no standing form.
+    expect(screen.queryByLabelText(/Votre motivation/)).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Je veux contribuer' }))
 
     expect(screen.getByLabelText(/Votre motivation/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer la demande' })).toBeInTheDocument()
@@ -149,6 +154,7 @@ describe('RoleRequestSection', () => {
     const { submit } = setMutations()
     renderWithProviders(<RoleRequestSection />)
 
+    await userEvent.click(screen.getByRole('button', { name: 'Je veux contribuer' }))
     const textarea = screen.getByLabelText(/Votre motivation/)
     const submitBtn = screen.getByRole('button', { name: 'Envoyer la demande' })
 

@@ -1,17 +1,10 @@
 import type { CriteriaWeights } from '@aurore/shared'
 
 import { sql } from 'drizzle-orm'
-import { boolean, jsonb, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import { tenantPolicies } from '../_policies'
 import { users } from './users'
-
-export const displayScaleEnum = pgEnum('display_scale', [
-  'out_of_5',
-  'out_of_10',
-  'out_of_20',
-  'percentage',
-])
 
 export const userPreferences = pgTable(
   'user_preferences',
@@ -19,7 +12,6 @@ export const userPreferences = pgTable(
     userId: uuid('user_id')
       .primaryKey()
       .references(() => users.id, { onDelete: 'cascade' }),
-    displayScale: displayScaleEnum('display_scale').notNull().default('out_of_20'),
     criteriaWeights: jsonb('criteria_weights')
       .$type<CriteriaWeights>()
       .notNull()

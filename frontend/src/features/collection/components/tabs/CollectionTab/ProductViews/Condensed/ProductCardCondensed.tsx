@@ -136,8 +136,7 @@ export function ProductCardCondensed({
     setTimeout(() => setIsPopping(false), 350)
   }
 
-  const displayScale = prefs?.displayScale ?? 'out_of_20'
-  const score = calculateWeightedScore(p.review, prefs?.criteriaWeights, displayScale)
+  const score = calculateWeightedScore(p.review, prefs?.criteriaWeights)
   const priceEuros = p.product.priceCents ? `${(p.product.priceCents / 100).toFixed(2)} €` : null
 
   const compatScore = useCompatScore(p.product.id)

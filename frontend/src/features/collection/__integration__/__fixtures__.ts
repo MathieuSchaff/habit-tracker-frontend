@@ -12,7 +12,6 @@ export const defaultCollectionSearch = {
 }
 
 export const mockPrefs = {
-  displayScale: 'out_of_20',
   criteriaWeights: { tolerance: 1, efficacy: 1 },
 }
 

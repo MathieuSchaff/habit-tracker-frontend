@@ -1,6 +1,5 @@
 import {
   type CriteriaWeights,
-  type DisplayScale,
   type ProfileLink,
   type SkinConcern,
   type SkinType,
@@ -182,7 +181,6 @@ export async function exportUserData(db: DB, userId: string): Promise<UserExport
             userId: prefs.userId,
             updatedAt: prefs.updatedAt,
           },
-          displayScale: prefs.displayScale as DisplayScale,
           criteriaWeights: prefs.criteriaWeights as CriteriaWeights,
           aiConsent: prefs.aiConsent,
         }

@@ -96,7 +96,7 @@ export function CollectionFilterProvider({
       { q, brand, productType, sentiment, repurchase, minNote, maxPrice },
       prefs?.criteriaWeights
     )
-    return sortProducts(filtered, sort, prefs?.criteriaWeights, prefs?.displayScale, compatScores)
+    return sortProducts(filtered, sort, prefs?.criteriaWeights, compatScores)
   }, [
     userProducts,
     q,

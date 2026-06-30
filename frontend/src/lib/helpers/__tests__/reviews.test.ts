@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  type CriteriaWeights,
-  calculateWeightedScore,
-  DEFAULT_WEIGHTS,
-  type ReviewCriteria,
-} from '../reviews'
+import { type CriteriaWeights, calculateWeightedScore, type ReviewCriteria } from '../reviews'
 
 const fullReview: ReviewCriteria = {
   tolerance: 4,
@@ -62,7 +57,7 @@ describe('calculateWeightedScore', () => {
     }
     // (5×3 + 3×2 + 2×1 + 2×1 + 2×1 + 2×1) / (3+2+1+1+1+1) = 29/9 ≈ 3.2222
     // ×4 = 12.888... → "12.9"
-    expect(calculateWeightedScore(review, weights, 'out_of_20')).toBe('12.9')
+    expect(calculateWeightedScore(review, weights)).toBe('12.9')
   })
 
   it('skips null or zero criteria', () => {
@@ -82,12 +77,6 @@ describe('calculateWeightedScore', () => {
   it('returns null for empty/missing input', () => {
     expect(calculateWeightedScore(null)).toBeNull()
     expect(calculateWeightedScore(undefined)).toBeNull()
-  })
-
-  it('supports different output scales', () => {
-    expect(calculateWeightedScore(fullReview, DEFAULT_WEIGHTS, 'out_of_5')).toBe('4.0')
-    expect(calculateWeightedScore(fullReview, DEFAULT_WEIGHTS, 'out_of_10')).toBe('8.0')
-    expect(calculateWeightedScore(fullReview, DEFAULT_WEIGHTS, 'percentage')).toBe('80%')
   })
 
   it('rounds to 1 decimal place', () => {

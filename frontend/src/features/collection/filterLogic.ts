@@ -1,4 +1,4 @@
-import { type DisplayScale, detectKindPrimaryType, type ProductKind } from '@aurore/shared'
+import { detectKindPrimaryType, type ProductKind } from '@aurore/shared'
 
 import { compareInstant } from '@/lib/dates'
 import { type CriteriaWeights, calculateWeightedScore } from '@/lib/helpers/reviews'
@@ -10,12 +10,8 @@ export type CollectionFilters = Pick<
   'brand' | 'productType' | 'sentiment' | 'repurchase' | 'minNote' | 'maxPrice'
 > & { q: string }
 
-function getNumericReviewScore(
-  p: UserProduct,
-  weights: CriteriaWeights | undefined,
-  scale: DisplayScale | undefined
-): number {
-  const score = calculateWeightedScore(p.review, weights, scale)
+function getNumericReviewScore(p: UserProduct, weights: CriteriaWeights | undefined): number {
+  const score = calculateWeightedScore(p.review, weights)
   return score ? Number.parseFloat(score) : 0
 }
 
@@ -28,7 +24,7 @@ export function applyFilters(
   const needle = q.toLowerCase()
 
   return products.filter((p) => {
-    const numericScore = getNumericReviewScore(p, criteriaWeights, 'out_of_20')
+    const numericScore = getNumericReviewScore(p, criteriaWeights)
 
     const matchesSearch =
       p.product.name.toLowerCase().includes(needle) ||
@@ -57,7 +53,6 @@ export function sortProducts(
   products: UserProduct[],
   sort: CollectionSearch['sort'],
   criteriaWeights: CriteriaWeights | undefined,
-  displayScale: DisplayScale | undefined,
   compatScores?: Record<string, number | null>
 ): UserProduct[] {
   const copy = [...products]
@@ -74,10 +69,7 @@ export function sortProducts(
       case 'price_desc':
         return (b.product.priceCents || 0) - (a.product.priceCents || 0)
       case 'note':
-        return (
-          getNumericReviewScore(b, criteriaWeights, displayScale) -
-          getNumericReviewScore(a, criteriaWeights, displayScale)
-        )
+        return getNumericReviewScore(b, criteriaWeights) - getNumericReviewScore(a, criteriaWeights)
       case 'compatibility_desc': {
         // Null-last: products with no empirical score sort below scored ones.
         const sa = compatScores?.[a.product.id] ?? Number.NEGATIVE_INFINITY

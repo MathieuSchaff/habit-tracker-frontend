@@ -9,6 +9,9 @@
   gap: var(--space-5);
   overflow: hidden;
   box-shadow: var(--shadow-card);
+  /* Card width is non-monotonic with viewport (full-width below --md, ~half above),
+     so the body splits on the card's own width, not the viewport's. */
+  container: skin-portrait / inline-size;
 }
 
 .skin-portrait-card::before {
@@ -75,6 +78,28 @@
   flex-direction: column;
   gap: var(--space-6);
   align-items: center;
+}
+
+/* Wide card: anchor the halo left, let the profile read fill the freed space
+   instead of centering a narrow column (the dead-space the audit flagged).
+   px, not rem: the root font-size is fluid (clamp), so rem here would drift with the viewport. */
+@container skin-portrait (min-width: 420px) {
+  .skin-portrait-card__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-7, var(--space-6));
+  }
+
+  .skin-portrait-card__halo-wrapper {
+    padding-block-start: var(--space-2);
+  }
+
+  .skin-portrait-card__empty {
+    text-align: start;
+    margin: 0;
+    align-self: center;
+  }
 }
 
 .skin-portrait-card__halo-wrapper {

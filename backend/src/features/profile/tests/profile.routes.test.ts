@@ -369,7 +369,6 @@ describe('Profile Routes', () => {
       const data = await res.json()
       expect(data.success).toBe(true)
       if (!data.success) throw new Error('expected ok')
-      expect(data.data.displayScale).toBe('out_of_20')
       expect(data.data.criteriaWeights).toBeDefined()
       expect(data.data.criteriaWeights.tolerance).toBe(1)
     })
@@ -381,20 +380,6 @@ describe('Profile Routes', () => {
   })
 
   describe('PATCH /profile/preferences', () => {
-    it('updates displayScale', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const res = await client.profile.preferences.$patch(
-        { json: { displayScale: 'out_of_10' } },
-        withAuth(token)
-      )
-
-      expect(res.status).toBe(HTTP_STATUS.OK)
-      const data = await res.json()
-      if (!data.success) throw new Error('expected ok')
-      expect(data.data.displayScale).toBe('out_of_10')
-    })
-
     it('updates criteriaWeights and merges with existing values', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
@@ -412,22 +397,14 @@ describe('Profile Routes', () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 
       await client.profile.preferences.$patch(
-        { json: { displayScale: 'percentage' } },
+        { json: { criteriaWeights: { tolerance: 7 } } },
         withAuth(token)
       )
 
       const res = await client.profile.preferences.$get({}, withAuth(token))
       const data = await res.json()
       if (!data.success) throw new Error('expected ok')
-      expect(data.data.displayScale).toBe('percentage')
-    })
-
-    it('rejects invalid displayScale', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await authPatch(app, '/api/profile/preferences', token, {
-        displayScale: 'out_of_100',
-      })
-      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+      expect(data.data.criteriaWeights.tolerance).toBe(7)
     })
 
     it('rejects weight outside 0-10 range', async () => {
@@ -442,7 +419,7 @@ describe('Profile Routes', () => {
       const res = await app.request('/api/profile/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayScale: 'out_of_10' }),
+        body: JSON.stringify({ criteriaWeights: { tolerance: 5 } }),
       })
       expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
