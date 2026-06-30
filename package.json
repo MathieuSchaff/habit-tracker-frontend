@@ -1,9 +1,9 @@
 {
   "name": "aurore",
   "devDependencies": {
-    "@biomejs/biome": "^2.5.0",
-    "fallow": "^2.101.0",
-    "knip": "^6.17.1",
+    "@biomejs/biome": "^2.5.1",
+    "fallow": "^2.103.0",
+    "knip": "^6.23.0",
     "madge": "^8.0.0",
     "typescript": "^6.0.3"
   },
