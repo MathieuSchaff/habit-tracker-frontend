@@ -31,6 +31,9 @@ export const Header = () => {
         className={`main-nav ${isOpen ? 'main-nav--open' : ''}`}
         aria-label="Navigation principale"
         style={{ viewTransitionName: 'main-nav' }}
+        // UserMenu dropdown portals here (not document.body) so this nav's capture-dismiss
+        // treats item clicks as inside — else it swallows them and links never fire.
+        data-dropdown-boundary
       >
         <div className="main-nav__header">
           <Link to="/" className="main-nav__logo" aria-label="Accueil" onClick={closeMenu}>

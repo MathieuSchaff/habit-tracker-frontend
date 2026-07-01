@@ -180,7 +180,13 @@ function DropdownMenuContent({
 
   useLayoutEffect(() => {
     if (!isOpen) return
-    setPortalTarget(triggerRef.current?.closest('dialog[open]') ?? document.body)
+    // Portal into the nearest dismiss boundary (open dialog, or a container marked
+    // data-dropdown-boundary) so an outer capture-dismiss on that boundary sees menu
+    // clicks as inside. Portaling to document.body would put the menu outside e.g. the
+    // nav drawer, whose capture-dismiss would then swallow item clicks (no navigation).
+    setPortalTarget(
+      triggerRef.current?.closest('dialog[open], [data-dropdown-boundary]') ?? document.body
+    )
   }, [isOpen, triggerRef])
 
   // useLayoutEffect: runs before paint so (0,0) first-render is never visible.
