@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ChevronDown } from 'lucide-react'
-import { type ReactNode, useId, useState } from 'react'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 
 import './PdsAccordion.css'
 
@@ -9,6 +9,8 @@ interface PdsAccordionProps {
   title: ReactNode
   badge?: ReactNode
   defaultOpen?: boolean
+  // forces the accordion open when it flips true (e.g. a reason prompt fires from outside)
+  forceOpen?: boolean
   accent?: boolean
   children: ReactNode
 }
@@ -18,11 +20,16 @@ export function PdsAccordion({
   title,
   badge,
   defaultOpen = false,
+  forceOpen = false,
   accent = false,
   children,
 }: PdsAccordionProps) {
   const [open, setOpen] = useState(defaultOpen)
   const bodyId = useId()
+
+  useEffect(() => {
+    if (forceOpen) setOpen(true)
+  }, [forceOpen])
 
   return (
     <section className={clsx('pds-acc', open && 'is-open', accent && 'is-accent')}>

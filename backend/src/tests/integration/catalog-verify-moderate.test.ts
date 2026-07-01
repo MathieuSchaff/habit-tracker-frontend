@@ -199,6 +199,8 @@ describe('catalog queue — listCatalogQueue author', () => {
     const named = await createTestUser('vm-queue-named@test.local')
     const anon = await createTestUser('vm-queue-anon@test.local')
     await testDb.update(profiles).set({ username: 'mathieu' }).where(eq(profiles.userId, named.id))
+    // createProfile now auto-assigns a pseudonym; null it back to exercise "unset".
+    await testDb.update(profiles).set({ username: null }).where(eq(profiles.userId, anon.id))
 
     const withName = await createProduct(named.id, 'user', baseProductInput, testDb, {
       autoTag: false,

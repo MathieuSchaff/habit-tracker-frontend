@@ -125,10 +125,11 @@ describe('GET /products/:slug/posts', () => {
   })
 
   it('excludes a post from an author who has not set a username (no null-author on the wire)', async () => {
-    // createTestUser sets no username — profiles.username stays null. Mirror of
-    // listPublicReviewsForProduct's isNotNull(username) gard: such a row must not
-    // surface (its author.username would be null cast to string otherwise).
+    // createProfile now auto-assigns a pseudonym; null it back so the row has no
+    // username. Mirror of listPublicReviewsForProduct's isNotNull(username) guard:
+    // such a row must not surface (its author.username would be null cast to string).
     const owner = await createTestUser('noname@social.test', 'Azerty123!')
+    await testDb.update(profiles).set({ username: null }).where(eq(profiles.userId, owner.id))
     const [product] = await testDb
       .insert(products)
       .values({

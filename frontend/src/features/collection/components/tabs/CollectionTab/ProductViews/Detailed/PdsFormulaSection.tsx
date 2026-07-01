@@ -113,7 +113,6 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
           </div>
         </div>
       )}
-
     </>
   )
 }

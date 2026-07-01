@@ -89,17 +89,17 @@ export function IngredientsPage() {
 
   const avoidForParam = avoidFor.length > 0 ? avoidFor : undefined
 
-  const apiFilters: ListIngredientsFilters = hasFilters
-    ? {
-        ...(Object.fromEntries(
+  const apiFilters: ListIngredientsFilters = {
+    ...(hasFilters
+      ? (Object.fromEntries(
           FILTER_KEYS.map((k) => [k, filters[k].length > 0 ? filters[k] : undefined])
-        ) as Partial<ListIngredientsFilters>),
-        type,
-        page,
-        limit: PAGE_SIZE,
-        avoid_for: avoidForParam,
-      }
-    : { type, sort: 'random', limit: 12, avoid_for: avoidForParam }
+        ) as Partial<ListIngredientsFilters>)
+      : {}),
+    type,
+    page,
+    limit: PAGE_SIZE,
+    avoid_for: avoidForParam,
+  }
 
   const { data, isLoading, isPlaceholderData, error } = useQuery({
     ...ingredientQueries.list(apiFilters),
@@ -142,7 +142,7 @@ export function IngredientsPage() {
       <ListPageLayout.Header
         title="Ingrédients"
         isLoading={isPlaceholderData}
-        meta={hasFilters ? `${total} ingrédient${total > 1 ? 's' : ''}` : 'Découverte'}
+        meta={isLoading && total === 0 ? undefined : `${total} ingrédient${total > 1 ? 's' : ''}`}
         actions={
           <>
             <SearchCombobox
@@ -290,7 +290,7 @@ export function IngredientsPage() {
               })}
             </div>
 
-            {hasFilters && (
+            {totalPages > 1 && (
               <ListPagination currentPage={page} totalPages={totalPages} onPageChange={goToPage} />
             )}
           </>
