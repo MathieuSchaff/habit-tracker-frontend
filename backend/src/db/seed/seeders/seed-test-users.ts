@@ -14,9 +14,11 @@ import { and, eq, inArray } from 'drizzle-orm'
 
 import { signup } from '../../../features/auth/service'
 import { getUser } from '../../../features/auth/user.utils'
+import { calendarMonthsAgoUTC } from '../../../utils/dates'
 import type { DB } from '../..'
 import { userBans } from '../../schema/auth/user-bans'
 import { profiles, userDermoProfiles, users } from '../../schema/auth/users'
+import { purchases } from '../../schema/products/purchases'
 import { userProductReviews, userProducts } from '../../schema/products/user-products'
 import { createCtx } from './create-user'
 
@@ -562,8 +564,74 @@ export async function seedTestUsers(tx: DB, productSlugToId: Map<string, string>
       await tx.insert(userProductReviews).values(reviewInserts).onConflictDoNothing()
     }
 
+    // Purchase history so the Achats page has data. Derived from status (mirrors
+    // demo-seed): in_stock = one open bottle, archived = bought → used → finished,
+    // Holy Grail (sentiment 6) = a finished bottle plus a repurchase. Wishlist /
+    // watched / avoided are never bought.
+    const purchaseSeeds = persona.collection.flatMap((entry, i) => {
+      if (entry.status !== 'in_stock' && entry.status !== 'archived') return []
+      const productId = productSlugToId.get(entry.slug)
+      const upId = productId ? upIdByProductId.get(productId) : undefined
+      if (!upId) return []
+
+      const pricePaidCents = 1500 + (i % 5) * 500
+      if (entry.sentiment === 6) {
+        return [
+          {
+            userProductId: upId,
+            purchasedAt: calendarMonthsAgoUTC(10),
+            pricePaidCents,
+            openedAt: calendarMonthsAgoUTC(9),
+            finishedAt: calendarMonthsAgoUTC(5),
+          },
+          {
+            userProductId: upId,
+            purchasedAt: calendarMonthsAgoUTC(5),
+            pricePaidCents,
+            openedAt: calendarMonthsAgoUTC(4),
+          },
+        ]
+      }
+      if (entry.status === 'archived') {
+        return [
+          {
+            userProductId: upId,
+            purchasedAt: calendarMonthsAgoUTC(8),
+            pricePaidCents,
+            openedAt: calendarMonthsAgoUTC(7),
+            finishedAt: calendarMonthsAgoUTC(2),
+          },
+        ]
+      }
+      const boughtMonthsAgo = 2 + (i % 4)
+      return [
+        {
+          userProductId: upId,
+          purchasedAt: calendarMonthsAgoUTC(boughtMonthsAgo),
+          pricePaidCents,
+          openedAt: calendarMonthsAgoUTC(boughtMonthsAgo - 1),
+        },
+      ]
+    })
+
+    // Idempotent: skip products that already have a purchase — there is no unique
+    // key to dedupe on, so a re-run must not double-insert.
+    let purchaseInserts = purchaseSeeds
+    if (purchaseSeeds.length > 0) {
+      const upIds = [...new Set(purchaseSeeds.map((p) => p.userProductId))]
+      const existing = await tx
+        .select({ userProductId: purchases.userProductId })
+        .from(purchases)
+        .where(inArray(purchases.userProductId, upIds))
+      const alreadySeeded = new Set(existing.map((r) => r.userProductId))
+      purchaseInserts = purchaseSeeds.filter((p) => !alreadySeeded.has(p.userProductId))
+      if (purchaseInserts.length > 0) {
+        await tx.insert(purchases).values(purchaseInserts)
+      }
+    }
+
     console.log(
-      `  ✅ ${persona.username}: ${userProductInserts.length} produits, ${reviewInserts.length} reviews`
+      `  ✅ ${persona.username}: ${userProductInserts.length} produits, ${reviewInserts.length} reviews, ${purchaseInserts.length} achats`
     )
   }
 }

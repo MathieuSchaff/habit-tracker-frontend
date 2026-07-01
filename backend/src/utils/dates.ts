@@ -26,3 +26,12 @@ export function instantToCalendar(iso: string): string {
 export function calendarToInstant(yyyymmdd: string): string {
   return `${yyyymmdd}T00:00:00.000Z`
 }
+
+// Calendar date (YYYY-MM-DD, UTC) `months` before today. Day overflow rolls
+// forward per JS Date normalization — fine for the coarse relative dates seed uses.
+export function calendarMonthsAgoUTC(months: number): string {
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - months, now.getUTCDate()))
+    .toISOString()
+    .slice(0, 10)
+}
