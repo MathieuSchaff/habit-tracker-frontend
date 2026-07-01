@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import clsx from 'clsx'
-import { Check, ChevronDown, ExternalLink, X } from 'lucide-react'
+import { Check, ChevronDown, Columns2, ExternalLink, X } from 'lucide-react'
 
 import { Sheet } from '@/component/Dialog/Sheet'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
@@ -97,6 +97,14 @@ export function PdsHero({ p, closeBtnRef, onClose, onStatusChange }: PdsHeroProp
             <Link to="/products/$slug" params={{ slug: p.product.slug }} className="pds-hero-link">
               <span>Fiche produit</span>
               <ExternalLink size={12} aria-hidden="true" />
+            </Link>
+            <Link
+              to="/products/compare/new"
+              search={{ seed: p.product.id }}
+              className="pds-hero-link"
+            >
+              <span>Comparer</span>
+              <Columns2 size={12} aria-hidden="true" />
             </Link>
           </div>
         </div>

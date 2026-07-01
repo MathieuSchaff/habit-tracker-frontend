@@ -4,7 +4,6 @@ import { Button } from '@/component/Button/Button'
 import { pdsLabels, statusLabels } from '@/features/collection/constants'
 import type { UserProduct } from '@/lib/queries/user-products'
 import { PdsAccordion } from './PdsAccordion'
-import { StatusChips } from './StatusChips'
 import { StatusHistory } from './StatusHistory'
 import type { StatusDecision } from './useStatusDecision'
 
@@ -17,30 +16,27 @@ interface PdsDecisionSectionProps {
 }
 
 export function PdsDecisionSection({ p, decision, isUpdatePending }: PdsDecisionSectionProps) {
-  const statusCfg = statusLabels[p.status]
   const {
     decisionSectionRef,
     pendingStatus,
     reasonDraft,
     setReasonDraft,
-    handleStatusChange,
     handleConfirmStatus,
     handleCancelStatus,
   } = decision
 
   return (
-    <PdsAccordion icon={<Heart size={14} />} title={pdsLabels.decision} badge={statusCfg.label}>
+    <PdsAccordion
+      icon={<Heart size={14} />}
+      title={pdsLabels.decision}
+      forceOpen={pendingStatus !== null}
+    >
       <section
         ref={decisionSectionRef}
         id="pds-decision"
         tabIndex={-1}
         className="pds-decision-body"
       >
-        <p className="pds-section-lead">
-          Aurore traite votre choix d'étagère comme votre décision actuelle. Modifiable à tout
-          moment.
-        </p>
-        <StatusChips currentStatus={p.status} onChange={handleStatusChange} />
         {pendingStatus && (
           <div className="pds-reason-prompt">
             <p className="pds-reason-lead">

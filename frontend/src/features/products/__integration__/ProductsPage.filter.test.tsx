@@ -166,9 +166,8 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
-    // Ingredient accordion ships closed (defaultOpen: false); user must expand it.
-    await user.click(within(dialog).getByText('Ingrédient', { selector: 'h3' }))
-
+    // Ingredient is an inline single-control group (no accordion shell) — the
+    // combobox renders flat, always visible, so there's nothing to expand.
     const combo = within(dialog).getByRole('combobox', { name: /Ingrédient/i })
     await user.type(combo, 'nia')
 

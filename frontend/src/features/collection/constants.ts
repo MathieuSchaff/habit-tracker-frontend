@@ -48,9 +48,8 @@ export const statusLabels: Record<
 export const pdsLabels = {
   experience: 'Mon expérience',
   sentimentQuick: 'Ressenti rapide',
-  decision: 'Ma décision',
+  decision: 'Historique des décisions',
   lifecycle: 'Cycle de vie',
-  statusGroupAria: 'Statut du produit',
   loadingFormula: 'Chargement de la formule…',
   addPurchaseTitle: 'ENREGISTRER UN ACHAT',
   editPurchaseTitle: "MODIFIER L'ACHAT",

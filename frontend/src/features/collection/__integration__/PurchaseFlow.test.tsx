@@ -163,18 +163,13 @@ describe("Flow : Enregistrement d'achat depuis la collection", () => {
       await screen.findByRole('button', { name: /Voir les détails de Dream Cream/i })
     )
 
-    // "Ma décision" accordion holds the status chips; expand it first.
-    await userEvent.click(
-      await screen.findByRole('button', { name: new RegExp(pdsLabels.decision, 'i') })
-    )
+    // Status now lives only in the Hero dropdown.
+    await userEvent.click(await screen.findByRole('button', { name: /Changer le statut/i }))
 
-    // Scope to the StatusChips fieldset to disambiguate from other "En stock"
-    // occurrences in the sheet (history badges, accessible names elsewhere).
-    const statusGroup = await screen.findByRole('radiogroup', {
-      name: new RegExp(pdsLabels.statusGroupAria, 'i'),
+    const statusMenu = await screen.findByRole('menu', {
+      name: /Changer le statut du produit/i,
     })
-    const inStockRadio = within(statusGroup).getByRole('radio', { name: /En stock/i })
-    await userEvent.click(inStockRadio)
+    await userEvent.click(within(statusMenu).getByRole('menuitem', { name: /En stock/i }))
 
     expect(mockUpdateProduct).toHaveBeenCalled()
     expect(screen.queryByText("ENREGISTRER L'ACHAT")).not.toBeInTheDocument()
