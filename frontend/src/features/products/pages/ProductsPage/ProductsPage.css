@@ -236,7 +236,6 @@
   }
 
   .products-header__tools > .button.primary {
-    flex: 1;
     min-height: 42px;
   }
 
