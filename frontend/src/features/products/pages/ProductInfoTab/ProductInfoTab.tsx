@@ -237,7 +237,7 @@ export function ProductInfoTab() {
           </IconBox>
           <div>
             <h3 id="product-notes-title" className="product-notes-block__title">
-              Notes personnelles
+              Notes
             </h3>
             <p className="product-notes-block__body">{product.notes}</p>
           </div>
