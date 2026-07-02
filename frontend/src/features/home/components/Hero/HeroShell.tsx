@@ -21,6 +21,7 @@ export type HeroShellProps = {
   primary: HeroAction
   secondary?: HeroAction
   meta?: string[]
+  note?: React.ReactNode
   layout?: 'split' | 'center'
   children: React.ReactNode
 }
@@ -61,6 +62,7 @@ export function HeroShell({
   primary,
   secondary,
   meta,
+  note,
   layout = 'split',
   children,
 }: HeroShellProps) {
@@ -90,6 +92,7 @@ export function HeroShell({
                 ))}
               </div>
             ) : null}
+            {note ? <p className="aur-hero__note">{note}</p> : null}
           </div>
           <div className="aur-hero__visual">{children}</div>
         </div>

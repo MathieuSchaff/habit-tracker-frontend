@@ -134,6 +134,24 @@
   background: var(--color-primary);
 }
 
+/* Honest founder note: stands in for the social proof a young product lacks. */
+.aur-hero__note {
+  margin-top: var(--space-5);
+  max-width: 42ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.aur-hero__note-cite {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-style: normal;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
 .aur-hero__visual {
   position: relative;
   min-width: 0;

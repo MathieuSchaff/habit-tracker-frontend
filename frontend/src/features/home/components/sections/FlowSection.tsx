@@ -110,7 +110,7 @@ export function FlowSection() {
                   <h3 className="aur-flow__title">{s.title}</h3>
                   <p className="aur-flow__desc">{s.desc}</p>
                 </div>
-                <div>{s.viz}</div>
+                <div aria-hidden="true">{s.viz}</div>
               </div>
             </li>
           ))}
