@@ -8,7 +8,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // on foot creams, toners, deodorant — P=0.025 on the gold set. The redness
 // *positioning* lives in the product name/description, which algo-derm never sees.
 // This pass emits only when the product names a redness condition and is not
-// color-correcting makeup. Measured on the gold set: P 0.025→0.611, R 0.091→1.000
+// color-correcting makeup. Measured on the gold set: P 0.025→0.550, R 0.091→1.000
 // (R5, 2026-06-03). The residual FP (generic centella soothing, azelaic exfoliants)
 // are the genuine incidental-claim-vs-lead-positioning boundary, left uncut.
 const REDNESS_POSITION_RE = /rougeur|rosac|couperos|\bflush|redness/i
