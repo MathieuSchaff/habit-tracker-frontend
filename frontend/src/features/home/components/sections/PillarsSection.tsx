@@ -54,7 +54,7 @@ export function PillarsSection() {
     <section className="aur-section" id="piliers">
       <Container>
         <SectionHead
-          num="02"
+          num="03"
           eyebrow="Trois piliers"
           title={
             <>

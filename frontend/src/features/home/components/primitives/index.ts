@@ -1,6 +1,3 @@
 export { ComparisonStrip } from './ComparisonStrip'
 export { CosmeticObject } from './CosmeticObject'
-export { IngredientCard } from './IngredientCard'
-export { ProductCard } from './ProductCard'
-export { ProfileCard } from './ProfileCard'
 export { Tag } from './Tag'

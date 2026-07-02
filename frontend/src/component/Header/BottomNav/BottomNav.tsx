@@ -7,6 +7,7 @@ import {
   LogIn,
   LogOut,
   MoreHorizontal,
+  Sparkles,
   User,
   UserPlus,
 } from 'lucide-react'
@@ -14,7 +15,7 @@ import { useCallback, useState } from 'react'
 
 import { ChestIcon, HomeIcon, ProductNavIcon } from '@/assets/icons'
 import { Sheet } from '@/component/Dialog/Sheet'
-import { useLogout } from '../../../lib/queries/auth'
+import { useDemo, useLogout } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { ThemeToggle } from '../../ThemeToggle/ThemeToggle'
 
@@ -29,10 +30,23 @@ export function BottomNav() {
   // hint user doesn't flash the logged-out branch if they open the sheet within the window.
   const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
   const logout = useLogout()
+  const demo = useDemo()
+  // Keep the tab busy across the demo POST and the full-page hand-off (mirrors the hero CTA).
+  const [redirecting, setRedirecting] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // Native <dialog> (via Sheet) traps Tab, closes on Esc, and restores focus to the trigger.
   const closeSheet = useCallback(() => setSheetOpen(false), [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
+
+  // Demo flips auth, which unmounts the marketing shell; a hard load lands on the
+  // auth-gated /collection where the "keep your data" signup banner lives.
+  const startDemo = () =>
+    demo.mutate(undefined, {
+      onSuccess: () => {
+        setRedirecting(true)
+        window.location.assign('/collection')
+      },
+    })
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -127,15 +141,29 @@ export function BottomNav() {
       )}
 
       <nav className="bottom-nav" aria-label="Navigation principale mobile">
-        <Link
-          to="/collection"
-          className={`bottom-nav__tab${isActive('/collection') ? ' bottom-nav__tab--active' : ''}`}
-          aria-label="Collection"
-          aria-current={isActive('/collection') ? 'page' : undefined}
-        >
-          <ChestIcon size={22} strokeWidth={1.5} aria-hidden="true" />
-          Collection
-        </Link>
+        {isAuthenticated || bootRefreshPending ? (
+          <Link
+            to="/collection"
+            className={`bottom-nav__tab${isActive('/collection') ? ' bottom-nav__tab--active' : ''}`}
+            aria-label="Collection"
+            aria-current={isActive('/collection') ? 'page' : undefined}
+          >
+            <ChestIcon size={22} strokeWidth={1.5} aria-hidden="true" />
+            Collection
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="bottom-nav__tab bottom-nav__tab--cta"
+            onClick={startDemo}
+            disabled={demo.isPending || redirecting}
+            aria-busy={demo.isPending || redirecting}
+            aria-label="Essayer Aurore avec une collection de démo"
+          >
+            <Sparkles size={22} strokeWidth={1.5} aria-hidden="true" />
+            Essayer
+          </button>
+        )}
 
         <Link
           to="/products"
