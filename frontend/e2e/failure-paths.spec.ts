@@ -129,7 +129,7 @@ test.describe('Discussion thread — failure paths', () => {
       if (req.method() === 'POST' && /\/discussions/.test(req.url())) posted = true
     })
 
-    await page.getByRole('button', { name: 'Publier' }).click()
+    await page.getByRole('button', { name: 'Publier la discussion' }).click()
 
     // Form stays open (still showing the title input). No POST fired.
     await expect(page.getByRole('heading', { name: 'Nouvelle discussion' })).toBeVisible()
@@ -158,7 +158,7 @@ test.describe('Discussion thread — failure paths', () => {
 
     await page.getByLabel(/^Sujet/).fill(title)
     await page.getByLabel(/^Ton expérience/).fill(content)
-    await page.getByRole('button', { name: 'Publier' }).click()
+    await page.getByRole('button', { name: 'Publier la discussion' }).click()
 
     // Form must stay open, inputs preserved (no onSuccess clear ran).
     await expect(page.getByRole('heading', { name: 'Nouvelle discussion' })).toBeVisible()
@@ -178,7 +178,7 @@ test.describe('Discussion thread — failure paths', () => {
     const postPromise = page.waitForRequest(
       (req) => req.method() === 'POST' && /\/api\/products\/[^/]+\/discussions$/.test(req.url())
     )
-    await page.getByRole('button', { name: 'Publier' }).click()
+    await page.getByRole('button', { name: 'Publier la discussion' }).click()
 
     const req = await postPromise
     expect(req.postDataJSON()).toMatchObject({ title, content: 'Body content for the thread.' })

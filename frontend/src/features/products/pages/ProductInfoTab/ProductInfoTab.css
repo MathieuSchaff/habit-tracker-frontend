@@ -38,11 +38,6 @@
   line-height: 1;
 }
 
-.product-section {
-  margin-top: var(--space-8);
-  margin-bottom: var(--space-8);
-}
-
 /* KP bridge: contextual help chips under the avoid notice (same profile-scoped group). */
 .product-kp-bridge {
   display: flex;
@@ -55,11 +50,6 @@
 .product-kp-bridge__intro {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-}
-
-.product-section--cta {
-  display: flex;
-  justify-content: center;
 }
 
 .product-description__source {
