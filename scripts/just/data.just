@@ -151,3 +151,20 @@ catalog-normalize-inci:
     printf "{{CYAN}}Normalize products.inci ($MODE, $TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/normalize-product-inci.ts \
         ${WRITE:+--write}
+
+# Soft-hide products that are bundles (coffret/kit/lot-de-N), not a standalone formula.
+# Slug regex shared with catalog-scan-dups. Idempotent — safe to re-run after new imports.
+# Env: WRITE (sans = dry-run). TARGET=prod from the laptop still hits dev (exec is local,
+# not ssh) — for real prod run via `just prod-ssh 'TARGET=prod WRITE=1 just catalog-hide-kit-packs'`.
+[group('catalog')]
+catalog-hide-kit-packs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    TARGET="${TARGET:-dev}"
+    target_compose
+    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (hide kit/pack products)"; fi
+    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
+    printf "{{CYAN}}Hide kit/pack products ($MODE, $TARGET)...{{NC}}\n"
+    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/hide-kit-pack-products.ts \
+        ${WRITE:+--write}
