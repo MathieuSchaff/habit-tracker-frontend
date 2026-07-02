@@ -77,7 +77,6 @@ export function detectTextureRiche(
 // Hoisted above texture-legere/non-gras so multiple detectors can compose them.
 // Aligned with algo-derm `silicone` heuristic (data/rules/heuristic_rules.json).
 // Excluded: 'amodimethicone' (haircare only), 'siloxane'/'silanol' (too broad, over-tags end-group variants).
-// When the orchestrator hoists `assessment.heuristicFlags`, replace with `flags.has('silicone')` (audit §C.1, B.4).
 const SILICONE_LIGHT_PATTERNS = [
   'dimethicone',
   'dimethiconol',
