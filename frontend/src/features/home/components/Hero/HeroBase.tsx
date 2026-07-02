@@ -41,9 +41,15 @@ export function HeroBase() {
       }}
       secondary={{ label: 'Voir les produits', to: '/products' }}
       meta={['Indépendant', 'Sans publicité', 'Sans recommandation sponsorisée']}
+      note={
+        <>
+          « Je l’ai construit pour arrêter de perdre le fil de ma propre routine. »
+          <cite className="aur-hero__note-cite">Mathieu, fondateur d’Aurore</cite>
+        </>
+      }
     >
-      <div className="aur-hero-stack">
-        <div className="aur-hero-stack__sheet" aria-hidden="true" />
+      <div className="aur-hero-stack" aria-hidden="true">
+        <div className="aur-hero-stack__sheet" />
         <div className="aur-hero-stack__primary">
           <ProductCard
             brand="The Ordinary"

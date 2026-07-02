@@ -6,16 +6,13 @@ import './AppEntriesSection.css'
 
 type Entry = {
   id: string
-  to?: LinkProps['to']
-  href?: string
+  to: LinkProps['to']
   icon: React.ReactNode
   title: string
   desc: string
   exampleLabel: string
   example: string
   cta: string
-  badge?: string
-  wip?: boolean
 }
 
 const ENTRIES: Entry[] = [
@@ -50,18 +47,6 @@ const ENTRIES: Entry[] = [
     cta: 'Explorer le wiki',
   },
   {
-    id: 'compare',
-    to: '/products/compare/new',
-    icon: <GitCompare size={20} />,
-    title: 'Comparatif',
-    desc: 'Deux ou trois candidats côte à côte: groupes de formule, notes perso, écarts utiles à la décision.',
-    exampleLabel: 'Comparaison récente',
-    example: 'BHA 2 % vs Effaclar Duo+',
-    cta: 'Lancer un comparatif',
-    badge: 'Bientôt',
-    wip: true,
-  },
-  {
     id: 'articles',
     to: '/blog',
     icon: <Newspaper size={20} />,
@@ -92,42 +77,34 @@ export function AppEntriesSection() {
           eyebrow="Entrer dans l'app"
           title={
             <>
-              Six entrées, <em>une seule logique</em>.
+              Cinq entrées, <em>une seule logique</em>.
             </>
           }
           lede="Chaque entrée ramène au même objectif: avancer vers une décision produit claire et ne pas perdre le raisonnement."
         />
 
         <div className="aur-entries">
-          {ENTRIES.map((e) => {
-            const inner = (
-              <>
-                {e.badge ? <span className="aur-entry__badge">{e.badge}</span> : null}
-                <span className="aur-entry__icon">{e.icon}</span>
-                <h3 className="aur-entry__title">{e.title}</h3>
-                <p className="aur-entry__desc">{e.desc}</p>
-                <div className="aur-entry__example">
-                  <span className="aur-entry__example-label">{e.exampleLabel}</span>
-                  <span className="aur-entry__example-text">{e.example}</span>
-                </div>
-                <span className="aur-entry__cta">{e.cta}</span>
-              </>
-            )
-            const cls = `aur-entry${e.wip ? ' aur-entry--wip' : ''}`
-            if (e.wip || !e.to) {
-              return (
-                <div key={e.id} className={cls} aria-disabled={e.wip || undefined}>
-                  {inner}
-                </div>
-              )
-            }
-            return (
-              <Link key={e.id} to={e.to} className={cls}>
-                {inner}
-              </Link>
-            )
-          })}
+          {ENTRIES.map((e) => (
+            <Link key={e.id} to={e.to} className="aur-entry">
+              <span className="aur-entry__icon">{e.icon}</span>
+              <h3 className="aur-entry__title">{e.title}</h3>
+              <p className="aur-entry__desc">{e.desc}</p>
+              <div className="aur-entry__example">
+                <span className="aur-entry__example-label">{e.exampleLabel}</span>
+                <span className="aur-entry__example-text">{e.example}</span>
+              </div>
+              <span className="aur-entry__cta">{e.cta}</span>
+            </Link>
+          ))}
         </div>
+
+        <p className="aur-entries__upcoming">
+          <GitCompare size={16} aria-hidden="true" />
+          <span>
+            <strong>Bientôt</strong> · Comparatif — deux ou trois candidats côte à côte, écarts
+            utiles à la décision.
+          </span>
+        </p>
       </Container>
     </section>
   )
