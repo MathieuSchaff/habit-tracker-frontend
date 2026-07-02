@@ -1,7 +1,27 @@
+import { useState } from 'react'
+
+import { useDemo } from '../../../../lib/queries/auth'
 import { IngredientCard, ProductCard, ProfileCard } from '../primitives'
 import { HeroShell } from './HeroShell'
 
 export function HeroBase() {
+  const demo = useDemo()
+  // Keep spinning through the demo POST and the full-page hand-off below.
+  const [redirecting, setRedirecting] = useState(false)
+
+  // Primary CTA delivers value before commitment: one-click demo seeds a
+  // populated collection, then the in-app banner offers to keep it via signup.
+  // Demo success flips auth, which unmounts this marketing hero and drops any
+  // SPA navigate; a hard load reliably lands on the auth-gated /collection where
+  // the "keep your data" signup banner lives.
+  const startDemo = () =>
+    demo.mutate(undefined, {
+      onSuccess: () => {
+        setRedirecting(true)
+        window.location.assign('/collection')
+      },
+    })
+
   return (
     <HeroShell
       badge="Bêta ouverte"
@@ -14,7 +34,11 @@ export function HeroBase() {
         </>
       }
       subtitle="Aurore garde vos produits, vos notes et les raisons derrière chaque choix, pour que vous puissiez décider sans recommencer la recherche à chaque fois."
-      primary={{ label: 'Commencer ma collection', to: '/collection' }}
+      primary={{
+        label: 'Commencer ma collection',
+        onClick: startDemo,
+        loading: demo.isPending || redirecting,
+      }}
       secondary={{ label: 'Voir les produits', to: '/products' }}
       meta={['Indépendant', 'Sans publicité', 'Sans recommandation sponsorisée']}
     >

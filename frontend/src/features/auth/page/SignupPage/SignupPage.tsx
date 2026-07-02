@@ -180,7 +180,6 @@ export const SignupPage = () => {
 
       <AuthDivider />
       <DemoButton />
-      <AuthDivider />
       <GoogleAuthButton label="S'inscrire avec Google" />
     </>
   )

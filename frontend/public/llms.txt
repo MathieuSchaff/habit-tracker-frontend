@@ -1,0 +1,8 @@
+# Aurore
+
+> Outil skincare calme : réunissez vos produits, lisez leurs formules INCI et gardez la raison de chaque décision. Sans score, sans verdict, sans publicité.
+
+## Explorer
+- [Produits](https://aurore-app.fr/products) : catalogue skincare et lecture des formules
+- [Ingrédients](https://aurore-app.fr/ingredients) : fiches INCI et repères de lecture
+- [À propos](https://aurore-app.fr/about) : l'approche et les principes

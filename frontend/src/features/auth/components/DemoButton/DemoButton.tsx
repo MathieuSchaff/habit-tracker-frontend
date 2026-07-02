@@ -13,7 +13,7 @@ export const DemoButton = () => {
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       fullWidth
       loading={demo.isPending || redirecting}
       onClick={() =>

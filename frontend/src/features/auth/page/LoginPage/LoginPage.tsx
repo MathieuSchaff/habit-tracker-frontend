@@ -7,6 +7,7 @@ import { useState } from 'react'
 
 import { Button } from '../../../../component/Button/Button'
 import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormMessage'
+import { hasSessionHint } from '../../../../lib/auth/sessionHint'
 import { useLogin } from '../../../../lib/queries/auth'
 import { AuthDivider } from '../../components/AuthDivider/AuthDivider'
 import { AuthField } from '../../components/AuthField/AuthField'
@@ -71,7 +72,9 @@ export const LoginPage = () => {
     <>
       <div className="auth-page__header">
         <h1 className="auth-page__title">Connexion</h1>
-        <p className="auth-page__subtitle">Content de vous revoir sur Aurore</p>
+        <p className="auth-page__subtitle">
+          {hasSessionHint() ? 'Content de vous revoir sur Aurore' : 'Connexion à Aurore'}
+        </p>
       </div>
 
       <form
@@ -126,7 +129,6 @@ export const LoginPage = () => {
 
       <AuthDivider />
       <DemoButton />
-      <AuthDivider />
       <GoogleAuthButton label="Se connecter avec Google" />
     </>
   )
