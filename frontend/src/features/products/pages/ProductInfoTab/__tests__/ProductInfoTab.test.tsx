@@ -24,14 +24,8 @@ vi.mock('@/lib/queries/products', () => ({
   productKeys: { all: ['products'] as const },
   productQueries: {
     bySlug: vi.fn(() => ({ queryKey: ['p', 'bySlug'] })),
-    publicReviews: vi.fn(() => ({
-      queryKey: ['p', 'publicReviews'],
-      queryFn: async () => ({ reviews: [] }),
-    })),
   },
 }))
-
-const EMPTY_PUBLIC_REVIEWS = { reviews: [] }
 
 vi.mock('@/lib/queries/profile', () => ({
   profileQueries: { dermo: vi.fn(() => ({ queryKey: ['profile', 'dermo'] })) },
@@ -58,15 +52,6 @@ vi.mock('@/features/discussions/components/SuggestEditButton', () => ({
   SuggestEditButton: () => null,
 }))
 
-// Posts surface + composer have their own suites and need a QueryClient (own
-// useQuery / useMutation); this bare suite mocks them out like the buttons above.
-vi.mock('@/features/products/components/ProductPostsSection/ProductPostsSection', () => ({
-  ProductPostsSection: () => null,
-}))
-vi.mock('@/features/products/components/PostComposer/PostComposer', () => ({
-  PostComposer: () => null,
-}))
-
 function setProduct(overrides: Record<string, unknown> = {}) {
   vi.mocked(useSuspenseQuery).mockReturnValue({
     data: {
@@ -86,17 +71,11 @@ function setProduct(overrides: Record<string, unknown> = {}) {
 }
 
 function setDermo(profile: { skinTypes?: string[]; skinConcerns?: string[] } | null) {
-  // Two useQuery callers in ProductInfoTab now: dermo profile + publicReviews
-  // (added with #7). Dispatch by queryKey so each gets the right payload.
-  vi.mocked(useQuery).mockImplementation((options) => {
-    const key = (options as { queryKey?: unknown[] }).queryKey
-    if (Array.isArray(key) && key[1] === 'publicReviews') {
-      return { data: EMPTY_PUBLIC_REVIEWS, isLoading: false } as unknown as ReturnType<
-        typeof useQuery
-      >
-    }
-    return { data: profile, isLoading: false } as unknown as ReturnType<typeof useQuery>
-  })
+  // Only useQuery caller left in ProductInfoTab: the dermo profile.
+  vi.mocked(useQuery).mockReturnValue({
+    data: profile,
+    isLoading: false,
+  } as unknown as ReturnType<typeof useQuery>)
 }
 
 describe('ProductInfoTab', () => {

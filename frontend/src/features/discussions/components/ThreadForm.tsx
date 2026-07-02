@@ -63,7 +63,13 @@ export function ThreadForm({ entityType, slug }: ThreadFormProps) {
         rows={4}
         required
       />
-      <FormActions onCancel={() => setOpen(false)} submitLabel="Publier" isPending={isPending} />
+      {/* Suffixed labels: PostComposer's "Publier"/"Annuler" can be open on the same tab, accessible names must differ. */}
+      <FormActions
+        onCancel={() => setOpen(false)}
+        cancelLabel="Annuler la discussion"
+        submitLabel="Publier la discussion"
+        isPending={isPending}
+      />
     </form>
   )
 }

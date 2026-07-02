@@ -1,9 +1,10 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 import { loginAsSeed } from './helpers/auth'
 
 // Read-only spec against seeded public reviews — no writes, snapshot-once safe.
 // Asserts: ratings-public review renders axis notes; comment-only review hides them.
+// Reviews live on the product's Discussions tab (nav rework 2026-07-02).
 
 test.beforeEach(async ({ page }) => {
   // /products/:slug is anon-accessible, but try login first to avoid a redirect
@@ -11,15 +12,20 @@ test.beforeEach(async ({ page }) => {
   await loginAsSeed(page)
 })
 
+async function gotoReviews(page: Page, slug: string) {
+  await page.goto(`/products/${slug}`)
+  await expect(page).toHaveURL(new RegExp(`/products/${slug}$`), { timeout: 15_000 })
+  await page.getByRole('tab', { name: /Discussions/ }).click()
+  await expect(page).toHaveURL(new RegExp(`/products/${slug}/discussions`))
+  return page.locator('section.public-reviews')
+}
+
 test.describe('Public reviews — ratings opted-in (cerave-baume-hydratant)', () => {
   const SLUG = 'cerave-baume-hydratant'
   const COMMENT = 'Texture épaisse qui pénètre bien, aucune réaction même sur peau réactive.'
 
   test('renders the "Retours utilisateurs" section with marie\'s comment', async ({ page }) => {
-    await page.goto(`/products/${SLUG}`)
-    await expect(page).toHaveURL(new RegExp(`/products/${SLUG}$`), { timeout: 15_000 })
-
-    const section = page.locator('section.public-reviews')
+    const section = await gotoReviews(page, SLUG)
     await expect(section.getByRole('heading', { name: 'Retours utilisateurs' })).toBeVisible({
       timeout: 10_000,
     })
@@ -29,10 +35,7 @@ test.describe('Public reviews — ratings opted-in (cerave-baume-hydratant)', ()
   test('shows axis label "Tolérance" and a "5/5" value when ratingsPublic=true', async ({
     page,
   }) => {
-    await page.goto(`/products/${SLUG}`)
-    await expect(page).toHaveURL(new RegExp(`/products/${SLUG}$`), { timeout: 15_000 })
-
-    const section = page.locator('section.public-reviews')
+    const section = await gotoReviews(page, SLUG)
     // Wait for reviews to load (comment text as anchor).
     await expect(section.getByText(COMMENT)).toBeVisible({ timeout: 10_000 })
 
@@ -50,10 +53,7 @@ test.describe('Public reviews — comment-only (avene-hydrance-boost-serum-conce
   const COMMENT = 'Hydratation sans effet collant, parfait sous SPF le matin.'
 
   test("renders lea's comment but hides axis notes when ratingsPublic=false", async ({ page }) => {
-    await page.goto(`/products/${SLUG}`)
-    await expect(page).toHaveURL(new RegExp(`/products/${SLUG}$`), { timeout: 15_000 })
-
-    const section = page.locator('section.public-reviews')
+    const section = await gotoReviews(page, SLUG)
     await expect(section.getByText(COMMENT)).toBeVisible({ timeout: 10_000 })
 
     // No axis notes: "Tolérance" label must be absent from the reviews section.

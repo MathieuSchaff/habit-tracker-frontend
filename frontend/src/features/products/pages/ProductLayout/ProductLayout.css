@@ -1,0 +1,10 @@
+/* Section rhythm for both tab panels (Infos + Discussions) rendered in the layout's outlet. */
+.product-section {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.product-section--cta {
+  display: flex;
+  justify-content: center;
+}

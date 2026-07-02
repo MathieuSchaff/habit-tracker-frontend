@@ -18,10 +18,7 @@ import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
 import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
-import { PostComposer } from '@/features/products/components/PostComposer/PostComposer'
-import { ProductPostsSection } from '@/features/products/components/ProductPostsSection/ProductPostsSection'
 import { ProductSummary } from '@/features/products/components/ProductSummary/ProductSummary'
-import { PublicReviewsSection } from '@/features/products/components/PublicReviewsSection/PublicReviewsSection'
 import { deriveKpChips } from '@/features/products/kp-chips'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { productQueries } from '@/lib/queries/products'
@@ -243,15 +240,6 @@ export function ProductInfoTab() {
           </div>
         </aside>
       )}
-
-      <PublicReviewsSection slug={slug} />
-
-      {user && (
-        <div className="product-section">
-          <PostComposer productId={product.id} slug={slug} />
-        </div>
-      )}
-      <ProductPostsSection slug={slug} />
 
       {safeUrl !== null && (
         <div className="product-section product-section--cta">

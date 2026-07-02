@@ -15,6 +15,7 @@ import { AddToCollectionModal } from '@/features/products/components/AddToCollec
 import { productQueries } from '@/lib/queries/products'
 import '@/features/products/styles/kinds.css'
 import '@/features/products/pages/ProductInfoTab/ProductInfoTab.css'
+import './ProductLayout.css'
 
 import { BackButton } from '@/component/Button/BackButton'
 import { Button, ButtonLink } from '@/component/Button/Button'
