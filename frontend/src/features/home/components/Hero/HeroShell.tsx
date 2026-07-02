@@ -11,6 +11,7 @@ export type HeroAction = {
   to?: LinkProps['to']
   href?: string
   onClick?: () => void
+  loading?: boolean
 }
 
 export type HeroShellProps = {
@@ -47,7 +48,7 @@ function renderAction(a: HeroAction, primaryStyle: boolean) {
     )
   }
   return (
-    <Button variant={variant} size="lg" onClick={a.onClick}>
+    <Button variant={variant} size="lg" onClick={a.onClick} loading={a.loading}>
       {content}
     </Button>
   )
