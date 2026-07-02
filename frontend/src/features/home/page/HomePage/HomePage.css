@@ -1,7 +1,4 @@
 @import "../../components/primitives/Tag.css";
-@import "../../components/primitives/ProductCard.css";
-@import "../../components/primitives/IngredientCard.css";
-@import "../../components/primitives/ProfileCard.css";
 @import "../../components/primitives/ComparisonStrip.css";
 @import "../../components/primitives/CosmeticObject.css";
 
@@ -43,6 +40,43 @@
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
+}
+
+/* Progressive disclosure: the deeper manifesto stays one calm tap away instead
+   of stacking into an 8-screen wall. Native <details> keeps it crawlable. */
+.aur-marketing-more__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: fit-content;
+  margin: var(--space-10) auto;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  cursor: pointer;
+  list-style: none;
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.aur-marketing-more__toggle::-webkit-details-marker {
+  display: none;
+}
+.aur-marketing-more__toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--color-primary);
+}
+.aur-marketing-more__chevron {
+  transition: transform var(--transition-fast);
+}
+.aur-marketing-more[open] .aur-marketing-more__chevron {
+  transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {

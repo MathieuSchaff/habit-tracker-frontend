@@ -95,6 +95,18 @@
     filter: drop-shadow(0 0 10px oklch(from var(--color-accent) l c h / 0.4));
   }
 
+  /* Anon "try it" entry: accent-highlighted so the primary action is discoverable
+     instead of buried under the generic "Plus" sheet. */
+  .bottom-nav__tab--cta {
+    color: var(--color-accent);
+    filter: drop-shadow(0 0 10px oklch(from var(--color-accent) l c h / 0.4));
+  }
+
+  .bottom-nav__tab--cta:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
   .bottom-nav__sheet-link,
   .bottom-nav__sheet-auth-link {
     display: flex;

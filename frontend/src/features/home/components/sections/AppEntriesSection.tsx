@@ -73,7 +73,7 @@ export function AppEntriesSection() {
     <section className="aur-section aur-section--sunken" id="entrees">
       <Container>
         <SectionHead
-          num="03"
+          num="02"
           eyebrow="Entrer dans l'app"
           title={
             <>

@@ -159,44 +159,42 @@
   container: hero-visual / inline-size;
 }
 
-/* Hero visual stack (3 cards) */
-.aur-hero-stack {
+/* Hero visual: two real app previews, offset like a small stack. */
+.aur-hero-shots {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-  padding: var(--space-3);
   min-width: 0;
+  padding-block: var(--space-4);
+  padding-bottom: 14%;
 }
-/* 2-up only once each card clears ~300px; below 640px the split-hero column (which keeps
-   growing past 430px on wide screens) crams them to ~255px and their values wrap. */
-@container hero-visual (min-width: 640px) {
-  .aur-hero-stack {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-4);
-    padding: var(--space-4);
-  }
-  .aur-hero-stack__secondary {
-    grid-column: 1 / 2;
-  }
-  .aur-hero-stack__tertiary {
-    grid-column: 2 / -1;
-  }
-}
-.aur-hero-stack__sheet {
-  position: absolute;
-  inset: 0;
-  margin: var(--space-3);
-  background: var(--bg-sunken);
-  border: 1px dashed var(--border-default);
+.aur-hero-shot {
+  margin: 0;
   border-radius: var(--radius-xl);
-  z-index: 0;
-  transform: rotate(-1.4deg);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
 }
-.aur-hero-stack > * {
-  position: relative;
-  z-index: 1;
+.aur-hero-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
-.aur-hero-stack__primary {
-  grid-column: 1 / -1;
+.aur-hero-shot--primary {
+  width: 86%;
+  box-shadow: var(--shadow-lg);
+}
+.aur-hero-shot--secondary {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 46%;
+  box-shadow: var(--shadow-pop);
+}
+/* Below ~340px the second preview crowds the first; keep only the collection. */
+@container hero-visual (max-width: 340px) {
+  .aur-hero-shot--primary {
+    width: 100%;
+  }
+  .aur-hero-shot--secondary {
+    display: none;
+  }
 }

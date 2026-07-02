@@ -1,7 +1,8 @@
 import { useState } from 'react'
 
+import collectionPreview from '../../../../assets/hero/preview-collection.webp'
+import formulaPreview from '../../../../assets/hero/preview-formula.webp'
 import { useDemo } from '../../../../lib/queries/auth'
-import { IngredientCard, ProductCard, ProfileCard } from '../primitives'
 import { HeroShell } from './HeroShell'
 
 export function HeroBase() {
@@ -48,47 +49,27 @@ export function HeroBase() {
         </>
       }
     >
-      <div className="aur-hero-stack" aria-hidden="true">
-        <div className="aur-hero-stack__sheet" />
-        <div className="aur-hero-stack__primary">
-          <ProductCard
-            brand="The Ordinary"
-            name="Niacinamide 10 % + Zinc 1 %"
-            type="Sérum visage · 30 ml"
-            status="in-stock"
-            statusLabel="En cours"
-            inci="Aqua, Niacinamide, Pentylene Glycol, Zinc PCA, Dimethyl Isosorbide, Tamarindus Indica…"
-            highlight={['Niacinamide', 'Zinc PCA']}
-            stats={[
-              { label: 'Dernière note', value: 'Sans parfum, peau moins luisante' },
-              { label: 'Décision', value: 'Comparer avant achat' },
-            ]}
+      <div className="aur-hero-shots">
+        <figure className="aur-hero-shot aur-hero-shot--primary">
+          <img
+            src={collectionPreview}
+            width={1120}
+            height={673}
+            loading="eager"
+            decoding="async"
+            alt="La collection dans Aurore : chaque produit rangé par état — en stock, wishlist, garde un œil — avec une note personnelle."
           />
-        </div>
-        <div className="aur-hero-stack__secondary">
-          <IngredientCard
-            name="Niacinamide"
-            inci="Pyridine-3-carboxamide"
-            rating="A"
-            ratingLabel="profil"
-            roles={[
-              { label: 'Régulation du sébum', variant: 'active' },
-              { label: 'À contextualiser', variant: 'warn' },
-            ]}
-            rows={[{ key: 'Origine', value: 'Vitamine B3' }]}
+        </figure>
+        <figure className="aur-hero-shot aur-hero-shot--secondary">
+          <img
+            src={formulaPreview}
+            width={900}
+            height={541}
+            loading="eager"
+            decoding="async"
+            alt="Une fiche produit dans Aurore : la formule lue calmement, chaque ingrédient expliqué sans verdict."
           />
-        </div>
-        <div className="aur-hero-stack__tertiary">
-          <ProfileCard
-            initials="L"
-            name="Mon profil peau"
-            meta="Objectifs · Rougeurs · Taches · Fermeté"
-            rows={[
-              { key: 'Contrainte', val: 'Sensibilité cutanée' },
-              { key: 'Repères suivis', val: 'Niacinamide, Bakuchiol' },
-            ]}
-          />
-        </div>
+        </figure>
       </div>
     </HeroShell>
   )
