@@ -49,7 +49,8 @@ import './IngredientsPage.css'
 const routeApi = getRouteApi('/ingredients/')
 
 const EMPTY_FILTERS = emptyFilters(FILTER_KEYS)
-const PAGE_SIZE = 20
+// 24 divides evenly by 2/3/4 columns (auto-fill grid) so non-final pages have no ragged last row
+const PAGE_SIZE = 24
 
 export function IngredientsPage() {
   const [isDrawerOpen, setDrawerOpen] = useState(false)

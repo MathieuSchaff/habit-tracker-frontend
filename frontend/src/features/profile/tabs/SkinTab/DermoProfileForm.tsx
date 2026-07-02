@@ -5,9 +5,9 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useState } from 'react'
 
-import { Button } from '@/component/Button/Button'
 import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
+import { FormActions } from '@/component/Input/FormActions/FormActions'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { FITZPATRICK_ITEMS, SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { profileQueries, useUpdateDermoProfile } from '../../../../lib/queries/profile'
@@ -15,9 +15,10 @@ import './DermoProfileForm.css'
 
 type DermoProfileFormProps = {
   onSave?: () => void
+  onCancel?: () => void
 }
 
-export function DermoProfileForm({ onSave }: DermoProfileFormProps) {
+export function DermoProfileForm({ onSave, onCancel }: DermoProfileFormProps) {
   const { data: dermo } = useSuspenseQuery(profileQueries.dermo())
   const updateMutation = useUpdateDermoProfile()
 
@@ -166,17 +167,7 @@ export function DermoProfileForm({ onSave }: DermoProfileFormProps) {
         <FormMessage variant="success">Profil dermato enregistré.</FormMessage>
       )}
 
-      <div className="dermo-form__actions">
-        <Button
-          type="submit"
-          variant="primary"
-          size="md"
-          loading={updateMutation.isPending}
-          disabled={!isDirty}
-        >
-          Enregistrer
-        </Button>
-      </div>
+      <FormActions onCancel={onCancel} isPending={updateMutation.isPending} disabled={!isDirty} />
     </form>
   )
 }

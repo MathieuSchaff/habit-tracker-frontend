@@ -10,10 +10,22 @@
   border: 1px dashed oklch(from var(--color-primary) l c h / 0.35);
 }
 
+.completion-strip__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .completion-strip__intro {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+.completion-strip__dismiss {
+  flex-shrink: 0;
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-2)) 0 0;
 }
 
 .completion-strip__overline {

@@ -61,7 +61,7 @@ export function SkinPortraitCard({ dermo, isEditing, onEdit, onCloseEdit }: Skin
 
       {isEditing ? (
         <Suspense fallback={<Spinner />}>
-          <DermoProfileForm onSave={onCloseEdit} />
+          <DermoProfileForm onSave={onCloseEdit} onCancel={onCloseEdit} />
         </Suspense>
       ) : (
         <div className="skin-portrait-card__body">
