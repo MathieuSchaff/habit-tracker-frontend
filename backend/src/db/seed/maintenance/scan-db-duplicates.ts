@@ -20,6 +20,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { KIT_PACK_RE } from './_kit-pack-pattern'
+
 const backupPath = process.argv[2]
 if (!backupPath) {
   console.error('Usage: scan-db-duplicates.ts <backup.sql>')
@@ -125,8 +127,7 @@ for (const r of rows) {
 }
 
 // 2. Kit/refill markers in slug
-const KIT_RE = /-(?:famille-et|et-eco-recharge|kit|coffret|duo-pack|lot-de-\d+)-/
-const kits: Row[] = rows.filter((r) => KIT_RE.test(r.slug))
+const kits: Row[] = rows.filter((r) => KIT_PACK_RE.test(r.slug))
 
 // 3. INCI clusters — same brand, similar INCI, similar core name
 function tokenizeInci(s: string): Set<string> {
