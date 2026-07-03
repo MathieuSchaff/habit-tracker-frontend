@@ -41,10 +41,8 @@ export const statusLabels: Record<
   },
 }
 
-// Product Detail Sheet section + dialog wording, centralized so tests and
-// production import the same string. Renaming a section here updates both -
-// removes the historical pattern where a wording rename silently broke tests
-// (e.g. "Votre expérience" → "Mon expérience", 2026-05-21 audit).
+// Centralize section + dialog wording so tests and production use the same string.
+// A rename here updates both, instead of silently breaking a test.
 export const pdsLabels = {
   experience: 'Mon expérience',
   sentimentQuick: 'Ressenti rapide',
@@ -104,7 +102,7 @@ export const sortOptions: SortOption[] = [
   'compatibility_desc',
 ]
 
-export const sortLabels: Record<SortOption, string> = {
+const sortLabels: Record<SortOption, string> = {
   name: 'Nom',
   note: 'Évaluation',
   sentiment: 'Ressenti',

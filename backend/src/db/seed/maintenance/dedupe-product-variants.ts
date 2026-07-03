@@ -1,20 +1,19 @@
 #!/usr/bin/env bun
 /**
- * dedupe-product-variants.ts — Drop volume-variant duplicates from seed files.
- *
- * Detects entries sharing (lower(name), lower(brand)) inside the same seed file,
- * then drops "non-canonical" entries whose slug carries a volume / pack suffix
- * (e.g. -400ml, -100g, -eco-recharge, -2-x). Only drops when a single canonical
- * entry exists in the group — ambiguous cases (no canonical, or multiple
- * canonicals) are reported and skipped.
+ * Drop volume-variant duplicates from seed files: entries sharing
+ * (lower(name), lower(brand)) whose slug carries a volume/pack suffix.
+ * Only drops when the group has one canonical entry; ambiguous groups
+ * are reported and skipped.
  *
  * Usage:
  *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts          # dry-run
  *   bun run backend/src/db/seed/maintenance/dedupe-product-variants.ts --write  # apply
  */
 
-import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+
+import { dropLines, type Entry, parseEntries, walk } from './_seed-parse'
 
 const WRITE = process.argv.includes('--write')
 const SEED_ROOT = join(import.meta.dir, '..')
@@ -42,78 +41,6 @@ function extractVolumeMl(slug: string): number {
     default:
       return v
   }
-}
-
-type Entry = {
-  start: number
-  end: number
-  slug: string
-  name: string
-  brand: string
-}
-
-function walk(dir: string): string[] {
-  const out: string[] = []
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full))
-    else if (entry.endsWith('.seed.ts')) out.push(full)
-  }
-  return out
-}
-
-function parseEntries(text: string): Entry[] {
-  const lines = text.split('\n')
-  const entries: Entry[] = []
-  let depth = 0
-  let entryDepth = -1
-  let start = -1
-  let slug = ''
-  let name = ''
-  let brand = ''
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? ''
-    const opens = (line.match(/\{/g) ?? []).length
-    const closes = (line.match(/\}/g) ?? []).length
-
-    if (entryDepth === -1 && /^\s{2}\{\s*$/.test(line)) {
-      entryDepth = depth
-      start = i
-      slug = ''
-      name = ''
-      brand = ''
-    }
-
-    if (entryDepth !== -1) {
-      const slugM = line.match(/^\s+slug:\s*['"]([^'"]+)['"]/)
-      const nameM = line.match(/^\s+name:\s*(?:'([^']+)'|"([^"]+)")/)
-      const brandM = line.match(/^\s+brand:\s*['"]([^'"]+)['"]/)
-      if (slugM && !slug) slug = slugM[1] ?? ''
-      if (nameM && !name) name = nameM[1] ?? nameM[2] ?? ''
-      if (brandM && !brand) brand = brandM[1] ?? ''
-    }
-
-    depth += opens - closes
-
-    if (entryDepth !== -1 && depth === entryDepth && /^\s{2}\},?\s*$/.test(line)) {
-      if (slug && name && brand) {
-        entries.push({ start, end: i, slug, name, brand })
-      }
-      entryDepth = -1
-      start = -1
-    }
-  }
-  return entries
-}
-
-function dropLines(text: string, ranges: Array<{ start: number; end: number }>): string {
-  const lines = text.split('\n')
-  const sorted = [...ranges].sort((a, b) => b.start - a.start)
-  for (const r of sorted) {
-    lines.splice(r.start, r.end - r.start + 1)
-  }
-  return lines.join('\n')
 }
 
 const files = walk(PRODUCTS_DIR)

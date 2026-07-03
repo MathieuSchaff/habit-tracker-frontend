@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Button, ButtonLink } from '@/component/Button/Button'
-import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { FormError } from '@/component/Feedback/ui/FormError/FormError'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
@@ -505,17 +505,6 @@ export function ProductForm({
       />
     </form>
   )
-}
-
-function FormError({
-  error,
-  fieldError,
-}: {
-  error: string | null
-  fieldError: { field: unknown; message: string } | null
-}) {
-  if (!error || fieldError) return null
-  return <FormMessage variant="error">{error}</FormMessage>
 }
 
 function SlugEditModalGate({

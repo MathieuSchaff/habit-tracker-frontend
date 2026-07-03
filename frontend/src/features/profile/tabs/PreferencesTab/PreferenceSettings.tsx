@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { SettingsSection } from '../../../../component/Layout/SettingsSection/SettingsSection'
 import {
@@ -44,15 +44,11 @@ export function PreferenceSettings() {
 
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
-  // Drive the sliders off local state so the thumb tracks the pointer immediately. Binding the
-  // value to the debounced server state instead snaps the thumb back to the stale value each tick.
-  // Seed once when the query first resolves, then local state owns the sliders. Re-seeding on every
-  // server change would yank a slider being dragged back to a sibling's just-refetched value.
+  // Sliders read from local state so the thumb tracks the pointer. Binding to the debounced
+  // server value would snap the thumb back to the stale value each tick.
+  // localWeights stays null until the first drag (sliders fall back to the server value, see
+  // `weights`), then local state owns them so a sibling's refetch can't yank the dragged slider.
   const [localWeights, setLocalWeights] = useState<Record<string, number> | null>(null)
-  const serverWeights = prefs?.criteriaWeights
-  useEffect(() => {
-    if (serverWeights && localWeights === null) setLocalWeights(serverWeights)
-  }, [serverWeights, localWeights])
 
   if (isLoading || !prefs) return <output>Chargement des préférences…</output>
 

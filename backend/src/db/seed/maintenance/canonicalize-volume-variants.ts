@@ -1,14 +1,7 @@
 #!/usr/bin/env bun
 /**
- * canonicalize-volume-variants.ts — Drop volume-variant duplicates (intra-file).
- *
- * Reads the latest audit-imported-products.json report and, for each
- * intra-source pair where INCI ≥ 0.95, name ≥ 0.85 and no blocking flag is
- * set (num-diff / tint-diff / gamme-letter), builds connected groups
- * (union-find) over the slugs in the same file. Each group with 2+ entries is
- * canonicalized: keep the largest-volume entry, drop the rest.
- *
- * Tie-break on equal volume: keep the first entry in source order.
+ * Drop intra-file volume-variant duplicates from seed files.
+ * Keep the largest-volume entry per group; tie-break on source order.
  *
  * Usage:
  *   bun run backend/src/db/seed/maintenance/canonicalize-volume-variants.ts          # dry-run
@@ -19,6 +12,8 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+
+import { dropLines } from './_seed-parse'
 
 const WRITE = process.argv.includes('--write')
 const SEED_ROOT = join(import.meta.dir, '..')
@@ -67,14 +62,13 @@ const candidatePairs = pairs.filter(
 
 console.log(`audit pairs: ${pairs.length} → candidates: ${candidatePairs.length}`)
 
-// Group pairs by file → union-find within each file
 const byFile = new Map<string, AuditPair[]>()
 for (const p of candidatePairs) {
   if (!byFile.has(p.a.file)) byFile.set(p.a.file, [])
   byFile.get(p.a.file)?.push(p)
 }
 
-// Volume parsing — fallback to slug when totalAmount/amountUnit unreliable
+// Fall back to slug when totalAmount/amountUnit are unreliable.
 function volumeToMl(amount: number | null, unit: string | null, slug: string): number | null {
   const fromUnit = (() => {
     if (amount === null || unit === null) return null
@@ -158,13 +152,6 @@ function parseEntries(text: string): Entry[] {
   return entries
 }
 
-function dropLines(text: string, ranges: Array<{ start: number; end: number }>): string {
-  const lines = text.split('\n')
-  const sorted = [...ranges].sort((a, b) => b.start - a.start)
-  for (const r of sorted) lines.splice(r.start, r.end - r.start + 1)
-  return lines.join('\n')
-}
-
 // Repo-relative paths in the audit; need absolute for fs ops
 const REPO_ROOT = join(SEED_ROOT, '..', '..', '..', '..')
 
@@ -177,7 +164,6 @@ for (const [relFile, filePairs] of byFile) {
   const entries = parseEntries(text)
   const bySlug = new Map(entries.map((e) => [e.slug, e]))
 
-  // Union-find over slugs
   const parent = new Map<string, string>()
   const find = (x: string): string => {
     const p = parent.get(x) ?? x

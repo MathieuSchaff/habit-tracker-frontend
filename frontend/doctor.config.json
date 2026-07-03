@@ -1,7 +1,8 @@
 {
   "$schema": "https://react.doctor/schema/config.json",
   "rules": {
-    "react-doctor/react-compiler-no-manual-memoization": "off"
+    "react-doctor/react-compiler-no-manual-memoization": "off",
+    "react-doctor/no-redundant-roles": "off"
   },
   "ignore": {
     "overrides": [
@@ -121,7 +122,9 @@
           "src/features/home/components/primitives/IngredientCard.tsx",
           "src/features/profile/components/ProfileAvatar/ProfileAvatar.tsx",
           "src/features/profile/components/SkinPortraitCard/SkinPortraitCard.tsx",
-          "src/features/tasks/components/TaskItem.tsx"
+          "src/features/tasks/components/TaskItem.tsx",
+          "src/component/Feedback/app/DemoBanner/DemoBanner.tsx",
+          "src/features/products/comparison/components/DiffSection.tsx"
         ],
         "rules": ["react-doctor/prefer-tag-over-role"]
       },

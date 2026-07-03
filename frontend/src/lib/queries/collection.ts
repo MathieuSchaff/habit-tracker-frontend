@@ -3,7 +3,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { type ApiData, api } from '../api'
 import { ApiError } from '../helpers/apiError'
 
-export const collectionKeys = {
+const collectionKeys = {
   all: ['collection'] as const,
   formulaMotifs: () => [...collectionKeys.all, 'formula-motifs'] as const,
 }

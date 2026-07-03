@@ -13,14 +13,10 @@ import { loadAlgoDermProfile } from '../dermo-score/service'
 // Neutral midpoint of the 0..100 compatibility scale.
 const NEUTRAL = 50
 
-// Aggregate the per-ingredient empirical signal (favorite - suspicion) into one
-// 0..100 score per product, for the products currently displayed. Only ingredients
-// the user has real evidence on (isSuspect or isFavorite) count; a product sharing
-// none returns null — not enough signal to position it.
-//
-// INCI-position weighting is deliberately out of scope for v1: product_ingredients
-// stores no order (it lives only in the raw products.inci string), so every
-// contributing ingredient is weighted equally.
+// Only ingredients the user has evidence on (isSuspect/isFavorite) count; a
+// product sharing none returns null, not a low score.
+// Equal weight per ingredient: product_ingredients stores no INCI order, so
+// position can't weight the score in v1.
 export async function calculateCompatibilityScores(
   userId: string,
   productIds: string[],
@@ -49,7 +45,6 @@ export async function calculateCompatibilityScores(
 
   if (signalRows.length === 0) return result
 
-  // Signed signal in [-1, 1]: >0 leans favorite, <0 leans suspect.
   const signalById = new Map<string, number>()
   for (const row of signalRows) {
     signalById.set(row.ingredientId, Number(row.favoriteScore) - Number(row.suspicionScore))
@@ -84,7 +79,7 @@ export async function calculateCompatibilityScores(
 const MIN_AXIS_PRODUCTS = 2
 const MAX_SAMPLES = 3
 
-export type AxisMotif = { axis: string; count: number; samples: string[] }
+type AxisMotif = { axis: string; count: number; samples: string[] }
 export type FormulaMotifs = {
   productsAnalyzed: number
   benefits: AxisMotif[]
@@ -109,11 +104,9 @@ function toSortedMotifs(acc: AxisAcc): AxisMotif[] {
     .sort((a, b) => b.count - a.count)
 }
 
-// Aggregate algo-derm's theoretical assessment across the whole shelf into calm
-// "motifs": which benefit axes and which to-note risk axes recur across products.
-// Mirrors what FormulaReading surfaces per product (topBenefitDrivers / non-interaction
-// topDrivers), but counted per product — never a score, ranking, or verdict.
-// 'avoided' products are excluded: rejected formulas are not part of the shelf's signal.
+// Count recurring benefit/risk axes across the shelf. Never a score, ranking,
+// or verdict (product vision). 'avoided' products are excluded: a rejected
+// formula is not part of the shelf's signal.
 export async function getCollectionFormulaMotifs(userId: string, db: DB): Promise<FormulaMotifs> {
   const rows = await db
     .select({

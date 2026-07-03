@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ChevronDown } from 'lucide-react'
-import { type ReactNode, useEffect, useId, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 
 import './PdsAccordion.css'
 
@@ -9,7 +9,6 @@ interface PdsAccordionProps {
   title: ReactNode
   badge?: ReactNode
   defaultOpen?: boolean
-  // forces the accordion open when it flips true (e.g. a reason prompt fires from outside)
   forceOpen?: boolean
   accent?: boolean
   children: ReactNode
@@ -24,12 +23,11 @@ export function PdsAccordion({
   accent = false,
   children,
 }: PdsAccordionProps) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [userOpen, setUserOpen] = useState(defaultOpen)
   const bodyId = useId()
 
-  useEffect(() => {
-    if (forceOpen) setOpen(true)
-  }, [forceOpen])
+  // forceOpen wins over the toggle so a pending prompt can't be hidden.
+  const open = forceOpen || userOpen
 
   return (
     <section className={clsx('pds-acc', open && 'is-open', accent && 'is-accent')}>
@@ -38,7 +36,7 @@ export function PdsAccordion({
         className="pds-acc-head"
         aria-expanded={open}
         aria-controls={bodyId}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setUserOpen((o) => !o)}
       >
         <span className="pds-acc-icon" aria-hidden="true">
           {icon}
