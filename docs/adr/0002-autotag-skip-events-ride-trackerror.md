@@ -27,4 +27,4 @@ A dedicated `auto_tag_skip_events` table plus an async worker (option C below) w
 - `err.stack` is passed through so each distinct throw site gets its own fingerprint group (bad INCI, missing brand-cert row, DB timeout become separate groups instead of one mixed bucket). The `:line:col` normalization in `computeFingerprint` keeps groups stable across refactors.
 - `operation: 'create' | 'update'` lives in `context`, not in `message` or in the stack-derived fingerprint. Same throw site groups across both operations; the dimension stays filterable in query.
 - Helper signature requires `userId`, sourced from the existing `userId` argument of `createProduct` / `updateProduct`. Forensic "which user triggered the skip" stays a single FK join, not a jsonb-path query.
-- The asymmetry between the two helpers is documented in `docs-private/02-engineering/CONTEXT.md` and reflected in the auto-tagging README's "Three consumers" + "Failure modes" sections.
+- The asymmetry between the two helpers is documented internally and reflected in the auto-tagging README's "Three consumers" + "Failure modes" sections.

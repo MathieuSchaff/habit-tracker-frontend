@@ -20,7 +20,7 @@ So the rule this ADR fixes: **`roleAtDose` is authoritative only where it is con
 
 ## Considered options
 
-- **A. Broad adoption — move active-vs-excipient into algo-derm (`functionalRole`), reduce the detector to a thin mapping, delete caps/name-gate/`%`-rescue.** Rejected here, deferred. No measured payoff yet (AHA P=0.955, `%`-rescue moves 0), and it destroys audit attribution if bundled. Gated behind a measurement — see `docs-private/03-features/algo-derm/handoff-functionalrole-go-nogo.md` (trigger: ≥10 gold FP/FN attributable to the position-cap proxy that a full dose verdict removes without new errors).
+- **A. Broad adoption — move active-vs-excipient into algo-derm (`functionalRole`), reduce the detector to a thin mapping, delete caps/name-gate/`%`-rescue.** Rejected here, deferred. No measured payoff yet (AHA P=0.955, `%`-rescue moves 0), and it destroys audit attribution if bundled. Gated behind a measurement (trigger: ≥10 gold FP/FN attributable to the position-cap proxy that a full dose verdict removes without new errors).
 - **B. Narrow override — confident `roleAtDose` overrides the name-gate for cap-marginal AHA only; legacy proxy kept as fallback.** **Chosen.** Additive, 0 regression, bisectable, captures the signal exactly where the proxy is blind (an exfoliant-named 40 % urea peel whose lactic acid sits sub-1 % is now correctly a pH adjuster).
 - **C. Ignore `roleAtDose`, keep the pure proxy.** Rejected. The field rides the tarball for free and the name-gate provably mis-handles sub-c50 acids under exfoliant names and active acids the keyword list misses.
 
