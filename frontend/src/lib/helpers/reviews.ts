@@ -17,7 +17,7 @@ export interface CriteriaWeights {
   valueForMoney: number
 }
 
-export const DEFAULT_WEIGHTS: CriteriaWeights = {
+const DEFAULT_WEIGHTS: CriteriaWeights = {
   tolerance: 1,
   efficacy: 1,
   sensoriality: 1,

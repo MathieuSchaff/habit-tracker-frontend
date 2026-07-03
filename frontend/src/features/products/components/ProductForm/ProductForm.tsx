@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
 import { Button, ButtonLink } from '@/component/Button/Button'
-import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { FormError } from '@/component/Feedback/ui/FormError/FormError'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { Input } from '@/component/Input/Input'
@@ -48,8 +48,6 @@ import {
 } from './ProductForm.schema'
 import { SlugEditModal } from './SlugEditModal'
 import { TextureField } from './TextureField'
-
-type PendingIngredient = IngredientItem
 
 const EMPTY_TAGS: TagState[] = []
 
@@ -106,7 +104,7 @@ export function ProductForm({
 
   // A prefilled brand came from an existing fiche, so treat it as confirmed (no extra click).
   const [brandConfirmed, setBrandConfirmed] = useState(mode === 'edit' || !!prefill?.brand)
-  const [pendingIngredients, setPendingIngredients] = useState<PendingIngredient[]>([])
+  const [pendingIngredients, setPendingIngredients] = useState<IngredientItem[]>([])
   const [slugModalOpen, setSlugModalOpen] = useState(false)
 
   const debouncedName = useDebounce(form.name.trim())
@@ -505,17 +503,6 @@ export function ProductForm({
       />
     </form>
   )
-}
-
-function FormError({
-  error,
-  fieldError,
-}: {
-  error: string | null
-  fieldError: { field: unknown; message: string } | null
-}) {
-  if (!error || fieldError) return null
-  return <FormMessage variant="error">{error}</FormMessage>
 }
 
 function SlugEditModalGate({

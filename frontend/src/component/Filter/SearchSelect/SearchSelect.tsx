@@ -164,7 +164,6 @@ export function SearchSelect({
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            // react-doctor-disable-next-line react-doctor/no-redundant-roles
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={isOpen}

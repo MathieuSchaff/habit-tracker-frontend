@@ -6,7 +6,7 @@ import { Save, X as XIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { Button, ButtonLink } from '@/component/Button/Button'
-import { FormMessage } from '@/component/Feedback/ui/FormMessage/FormMessage'
+import { FormError } from '@/component/Feedback/ui/FormError/FormError'
 import { ChipGroup } from '@/component/Input/ChipGroup/ChipGroup'
 import { FormField } from '@/component/Input/FormField/FormField'
 import { TagManager } from '@/component/Input/TagManager/TagManager'
@@ -212,17 +212,6 @@ export function IngredientForm({
       />
     </form>
   )
-}
-
-function FormError({
-  error,
-  fieldError,
-}: {
-  error: string | null
-  fieldError: { field: unknown; message: string } | null
-}) {
-  if (!error || fieldError) return null
-  return <FormMessage variant="error">{error}</FormMessage>
 }
 
 function IngredientFormActions({

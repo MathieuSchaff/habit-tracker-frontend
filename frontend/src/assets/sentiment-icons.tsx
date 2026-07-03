@@ -6,7 +6,7 @@ import './sentiment-icons.css'
 
 type IconProps = { size?: number }
 
-export const SENTIMENT_COLORS: Record<number, string> = {
+const SENTIMENT_COLORS: Record<number, string> = {
   1: 'var(--sentiment-1)',
   2: 'var(--sentiment-2)',
   3: 'var(--sentiment-3)',
@@ -323,7 +323,6 @@ function Sentiment5({ size = 24 }: IconProps) {
   )
 }
 
-// Saint Graal: a faceted gem, the most precious of the set, with a twinkle.
 export function Sentiment6({ size = 24 }: IconProps) {
   const compact = isCompact(size)
   const gemGradientId = useId()
