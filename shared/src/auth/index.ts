@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { ApiResponse, CommonErrorCode } from '../core'
 import { HTTP_STATUS, type HttpStatus } from '../core'
 
-// SCHEMAS
+export * from './cookies'
 
 export const accessTokenPayloadSchema = z.object({
   sub: z.string(),
@@ -27,7 +27,6 @@ export const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  // .email("Format d'email invalide")
   .pipe(z.email("Format d'email invalide"))
   .brand<'Email'>()
 
@@ -92,8 +91,6 @@ export const resetPasswordFormSchema = z
     message: 'Les mots de passe ne correspondent pas',
     path: ['confirmPassword'],
   })
-
-// TYPES
 
 export type AuthInput = z.infer<typeof authSchema>
 
@@ -198,7 +195,7 @@ export interface AccessTokenPayload {
   exp: number
 }
 
-/* Long-lived (7–30 days). Stored in DB for revocation and rotation. */
+/* Long-lived (7-30 days). Stored in DB for revocation and rotation. */
 export interface RefreshTokenPayload {
   sub: string
   type: 'refresh'
@@ -214,8 +211,6 @@ export interface CreateRefreshTokenArgs {
   ip?: string | null
   userAgent?: string | null
 }
-
-// HELPERS
 
 export const authErrorMapping = {
   invalid_credentials: HTTP_STATUS.UNAUTHORIZED,
@@ -235,7 +230,3 @@ export const resetPasswordErrorMapping = {
   invalid_token: HTTP_STATUS.BAD_REQUEST,
   token_expired: HTTP_STATUS.BAD_REQUEST,
 } as const satisfies Partial<Record<ResetPasswordErrorCode, HttpStatus>>
-
-/* Non-sensitive boot hint cookie. Presence ⇒ a refresh session may exist (never a token);
-   lets the SPA skip the /auth/refresh probe for anonymous visitors. */
-export const SESSION_HINT_COOKIE = 'aurore_session'
