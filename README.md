@@ -1,88 +1,185 @@
 # Aurore — Skincare Research Memory
 
-I was tired of switching between brand websites, copying INCI lists into a spreadsheet, then pasting them into an AI to get an opinion — and losing everything between sessions. A folder of dead Markdown notes I never opened again.
+Aurore is a skincare research app I built because I was tired of my own messy workflow.
 
-Aurore centralises that: a personal database of skincare products and ingredients, with the **decision trail** kept beside each product — why it's still a candidate, why it was rejected, what fits the user's own goals. Calm by design, no scores, no medical claims, no shopping pressure.
+Before this, I was switching between brand websites, copying INCI lists into spreadsheets, comparing notes from various sources, and then losing the reasoning a few days later in random Markdown notes.
+
+Aurore is my way to keep everything in one place: products, ingredients, notes, decisions, and the reason why a product is still interesting — or why I decided to avoid it.
+
+It is not a medical tool.
+It does not try to tell people what to buy.
+It is just a calmer way to research skincare products.
+
+**[Live demo → aurore-app.fr](https://aurore-app.fr)** — open beta.
+
+![Aurore — landing](./docs/screenshots/01-landing.png)
 
 ---
 
-## At a glance
+## What Aurore does
 
-Aurore is a full-stack skincare research app for people who compare formulas before buying.
+Aurore helps people save and compare skincare products before buying them.
 
 It lets users:
 
-- save skincare products in a personal database;
-- parse and structure INCI ingredient lists;
-- keep notes and decision states beside each product;
-- compare formulas without fake scores or medical claims;
-- preserve the reasoning behind each skincare decision.
+- save products in a personal database;
+- parse INCI ingredient lists;
+- keep notes beside each product;
+- mark products as wishlist, current candidate, holy grail, or avoided;
+- compare formulas without pretending there is one perfect score;
+- come back later and remember why they made a decision.
 
-Built as a production-grade TypeScript monorepo with React, Hono, PostgreSQL, RLS, Docker, tests and E2E coverage.
+The main idea is simple: skincare research takes time, so the reasoning should not disappear.
+
+---
+
+## Why I built it
+
+I built Aurore because I often ended up doing the same research twice.
+
+I would find a product, check the ingredients, compare it with other products, ask questions, take notes, and then forget where I saved everything.
+
+Aurore keeps that research trail next to the product itself.
+
+The goal is not to replace personal judgment.
+The goal is to make the research process easier to follow.
+
+---
 
 ## What Aurore is
 
-A calm skincare shelf and formula notebook for people who **compare formulas before buying** — formula-conscious buyers, INCI readers, AI-skincare overthinkers.
+Aurore is a calm skincare shelf and formula notebook.
 
-The core loop:
+It is made for people who:
+
+- read INCI lists;
+- compare formulas;
+- hesitate before buying;
+- want to remember why they liked or rejected a product;
+- compare online research, but still want to keep their own notes.
+
+The basic loop is:
 
 ```text
-collect products → understand formulas → compare candidates
-→ decide (keep / wishlist / reject) → come back later without losing the reasoning
+collect products → read formulas → compare options
+→ decide → keep the reasoning → come back later
 ```
 
-**Decision states** (FR labels in the UI): `Wishlist`, `En cours`, `Saint Graal`, `À éviter`. `À éviter` is a first-class state, not a trash bin — it remembers *why* a product was rejected so the same research loop doesn't repeat.
+Products can have different decision states:
 
-## What Aurore isn't
+- `Wishlist`
+- `En cours`
+- `Saint Graal`
+- `À éviter`
 
-- Not a medical tool or diagnostic system.
-- Not a universal "best product for you" oracle.
-- Not a safety score or Yuka-style verdict.
-- Not a shopping app or influencer platform.
+`À éviter` is not just a trash state. It keeps the reason why a product was rejected, so the same research does not have to be repeated later.
+
+---
+
+## What Aurore is not
+
+Aurore is not:
+
+- a medical tool;
+- a diagnostic system;
+- a dermatology app;
+- a universal product recommendation engine;
+- a Yuka-style safety score;
+- a shopping app;
+- an influencer platform.
+
+It is a personal research and memory tool.
 
 ---
 
 ## Core features
 
-**Products & ingredients**
+### Products and ingredients
 
 - Personal database of cosmetic products.
-- INCI parsed into structured ingredients: role, family, notes.
-- Tag system for filtering and auto-tagging from formula signals.
-- Per-product personal note and decision state.
-- Product comparison without winners, scores, or fake precision.
+- INCI lists parsed into structured ingredients.
+- Ingredient roles, families and notes.
+- Tags for filtering products.
+- Personal notes on each product.
+- Decision state for each product.
+- Product comparison without fake precision.
 
-**Research memory**
+### Research memory
 
-- Candidate, wishlist, holy-grail and rejection states.
-- Rejection reasons kept as useful memory, not discarded history.
-- A product page designed around context: formula, notes, decision and assessment.
+- Wishlist, current candidate, holy-grail and avoided states.
+- Rejection reasons are kept instead of being lost.
+- Product pages show the formula, notes, decision state and assessment.
+- The app is designed to help users continue their research later.
 
-**Auth & data boundaries**
+### Auth and data boundaries
 
-- Email + password auth with Argon2 via Bun.
+- Email and password authentication with Argon2 via Bun.
 - Google OAuth.
-- Short-lived access token plus refresh token rotation in an HttpOnly cookie.
-- Row-Level Security at the Postgres level — see [`SECURITY.md`](./docs/SECURITY.md).
+- Short-lived access token.
+- Refresh token rotation in an HttpOnly cookie.
+- PostgreSQL Row-Level Security for user-owned data.
+
+See [`docs/SECURITY.md`](./docs/SECURITY.md) for more details.
+
+---
 
 ## Formula assessment
 
-Aurore computes a backend-side formula assessment from the INCI list, based on risk, benefit and confidence axes.
+Aurore computes a formula assessment on the backend from the INCI list.
 
-It is not a medical diagnosis, not a safety score, and not a universal recommendation. Its purpose is to help users structure their own research and compare formulas more calmly.
+The assessment looks at:
 
-The assessment logic lives in a separate MIT library (`algo-derm`) vendored as a backend tarball. The frontend receives only the precomputed `ProductAssessment`; the bundled dataset never ships to the browser.
+- possible risks;
+- possible benefits;
+- confidence level.
 
-## Technical highlights
+It is not a diagnosis.
+It is not a medical recommendation.
+It is not a universal safety score.
 
-- Full-stack TypeScript monorepo with shared Zod contracts between frontend and backend.
-- Hono backend with REST API and typesafe RPC.
-- PostgreSQL 18 with Drizzle migrations and Row-Level Security.
-- Secure auth: Argon2, short-lived access tokens, refresh token rotation, HttpOnly cookies, Google OAuth.
-- Backend-computed formula assessment, kept out of the browser bundle.
-- Isolated backend test database, frontend tests and Playwright E2E suite.
-- Docker Compose environments for development, testing and production.
-- Nginx + SSL production setup.
+The point is to help users read formulas more calmly and compare products with more context.
+
+The assessment logic lives in a separate MIT library called `algo-derm`.
+
+In this repo, the library is included as a backend tarball under `vendor/`. This means the app can be built and run without access to a private registry.
+
+The frontend only receives the final `ProductAssessment`. The ingredient dataset is not shipped to the browser.
+
+See [`docs/scoring.md`](./docs/scoring.md) for:
+
+- the input and output contract;
+- the confidence model;
+- the limits of the assessment;
+- examples;
+- known caveats.
+
+---
+
+## Screenshots
+
+|                                        Catalogue                                         |                                             Formula reading                                              |                                         Ingredient reference                                          |
+| :--------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------: |
+| [![Catalogue](./docs/screenshots/02-catalogue.png)](./docs/screenshots/02-catalogue.png) | [![Formula reading](./docs/screenshots/03-product-detail.png)](./docs/screenshots/03-product-detail.png) | [![Ingredient reference](./docs/screenshots/04-ingredient.png)](./docs/screenshots/04-ingredient.png) |
+
+---
+
+## Technical overview
+
+Aurore is a full-stack TypeScript monorepo.
+
+The app uses:
+
+- React 19 on the frontend;
+- TanStack Router and TanStack Query;
+- Hono for the backend API;
+- shared Zod schemas between frontend and backend;
+- PostgreSQL 18 with Drizzle;
+- Row-Level Security for user data;
+- Docker Compose for development and production;
+- Vitest and Playwright for tests;
+- Nginx and SSL in production.
+
+---
 
 ## Architecture
 
@@ -101,64 +198,137 @@ Hono API / RPC
 PostgreSQL 18 + Drizzle + RLS
 ```
 
+Repository structure:
+
 ```text
 aurore/
-├── backend/            # Hono API (Route → Service → DB)
-├── frontend/           # React SPA (Vite + TanStack Router/Query)
-├── shared/             # Shared Zod schemas (source of truth)
-├── vendor/             # Vendored deps (algo-derm tarball)
-├── infra/              # Docker, Nginx, keys, ops config
-├── backups/            # DB backups
-├── scripts/            # Automation scripts (incl. just recipes)
-└── docs/               # Public project docs
+├── backend/            # Hono API: routes, services, database access
+├── frontend/           # React app with Vite and TanStack
+├── shared/             # Shared Zod schemas
+├── vendor/             # Vendored dependencies, including algo-derm
+├── infra/              # Docker, Nginx and ops config
+├── backups/            # Database backup workflow
+├── scripts/            # Automation scripts and just recipes
+└── docs/               # Project documentation
 ```
+
+---
 
 ## Stack
 
-| Layer          | Technology                                             |
-| :------------- | :----------------------------------------------------- |
-| Runtime        | Bun                                                    |
-| Backend        | Hono (REST API + typesafe RPC)                         |
-| Frontend       | React 19, TanStack Router & Query                      |
-| Database       | PostgreSQL 18 + Drizzle ORM                            |
-| Validation     | Zod (shared between front and back)                    |
-| Styling        | Vanilla CSS + Lucide Icons                             |
-| Quality        | Biome (lint & format) + Vitest + Playwright + Lefthook |
-| Infrastructure | Docker Compose + Nginx                                 |
+| Layer          | Technology                                |
+| :------------- | :---------------------------------------- |
+| Runtime        | Bun                                       |
+| Backend        | Hono, REST API, typesafe RPC              |
+| Frontend       | React 19, TanStack Router, TanStack Query |
+| Database       | PostgreSQL 18, Drizzle ORM                |
+| Validation     | Zod                                       |
+| Styling        | Vanilla CSS, Lucide Icons                 |
+| Quality        | Biome, Vitest, Playwright, Lefthook       |
+| Infrastructure | Docker Compose, Nginx                     |
 
 ---
 
 ## Quick start
 
-> **Important**: `just dev` runs a host-side TypeScript preflight before Docker starts. Dev containers execute TypeScript source directly; host `dist/` files are for typechecking, not runtime.
+> `just dev` runs a TypeScript preflight on the host before Docker starts.
+> In development, containers run TypeScript source directly.
 
 ```bash
-# First-time setup: deps, hooks and env template
+# First-time setup
 just init
 
 # Fill in secrets
 $EDITOR .env.dev
 
-# Start the full development environment
+# Start the development environment
 just dev-fresh
 ```
 
 Daily workflow:
 
-- `just ts-check` — TypeScript watch mode on the host.
-- `just dev` — Docker development stack.
+```bash
+# TypeScript watch mode
+just ts-check
 
-See [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) for commands, tests, database workflows, production notes and troubleshooting.
+# Docker development stack
+just dev
+```
+
+See [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) for setup, commands, tests, database workflows and troubleshooting.
+
+---
+
+## Running without Docker or just
+
+Some parts of the project can run with Bun alone.
+
+This is useful for quick checks, but it does not start the full backend, database, migrations or E2E environment.
+
+```bash
+bun install
+
+# Shared Zod contracts
+(cd shared && bun run build && bun test)
+
+# Frontend unit tests
+(cd frontend && bun run test:run)
+
+# Lint and format
+bunx biome check .
+```
+
+The full stack requires Docker.
+
+---
 
 ## Documentation
 
-**Engineering**
+### Engineering
 
-- [`DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — setup, commands, tests, database workflows and troubleshooting.
-- [`TESTING.md`](./docs/TESTING.md) — backend, frontend and E2E test command map.
-- [`conventions/`](./docs/conventions/) — backend tests, dates, error handling.
+- [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — setup, commands, tests and troubleshooting.
+- [`docs/TESTING.md`](./docs/TESTING.md) — backend, frontend and E2E test commands.
+- [`docs/scoring.md`](./docs/scoring.md) — formula assessment contract, confidence model and limits.
+- [`docs/conventions/`](./docs/conventions/) — backend tests, dates, error handling and project conventions.
 
-**Policy**
+### Architecture decisions
 
-- [`SECURITY.md`](./docs/SECURITY.md) — auth model, RLS, DB role separation.
-- [`PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy, data handling.
+- [`docs/adr/`](./docs/adr/) — architecture decision records.
+
+The ADRs document the main decisions behind the project, especially around auth, database access, RLS, formula assessment, deployment and testing.
+
+### Policy
+
+- [`docs/SECURITY.md`](./docs/SECURITY.md) — auth model, RLS and database role separation.
+- [`docs/PRIVACY.md`](./docs/PRIVACY.md) — RGPD policy and data handling.
+
+---
+
+## Limitations
+
+Aurore has clear limits:
+
+- It is not dermatological advice.
+- It is not a diagnostic system.
+- Formula assessment depends on ingredient coverage.
+- Unknown ingredients lower the confidence level.
+- A low-confidence assessment should not be treated as a strong signal.
+- Assessment is currently per product.
+- Routine-level interactions are not modelled yet.
+- The project is maintained by one developer.
+- `algo-derm` is still pre-1.0, so its calibration can change.
+- The app is currently tested at personal/open-beta scale.
+
+---
+
+## Project status
+
+Aurore is an open beta and a solo project.
+
+The current focus is:
+
+- making the formula assessment easier to understand;
+- improving product comparison;
+- adding more edge-case tests;
+- keeping the project easy to run;
+- keeping the code and documentation readable for technical reviewers.

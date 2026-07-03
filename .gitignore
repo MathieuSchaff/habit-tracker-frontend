@@ -105,6 +105,7 @@ frontend/public/mock-products
 # Dev screenshots & scratch notes
 # =========================
 *.png
+!docs/screenshots/*.png
 
 # =========================
 # Manual image-fetcher scripts (one-shot maintenance, output goes to CDN)
