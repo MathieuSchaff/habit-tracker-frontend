@@ -1,10 +1,10 @@
 import { type Mutation, MutationCache, QueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
-import { reportError } from './errorReporter'
 import { isApiError } from './helpers/apiError'
+import { captureFrontendError } from './observability/faro'
 
-// `meta.errorMessage` opts in to a generic toast; `meta.silent` skips reportError when 4xx is part of the contract.
+// `meta.errorMessage` opts in to a generic toast; `meta.silent` skips explicit Faro reporting when 4xx is part of the contract.
 declare module '@tanstack/react-query' {
   interface Register {
     mutationMeta: { errorMessage?: string; silent?: boolean }
@@ -15,7 +15,7 @@ declare module '@tanstack/react-query' {
 // Exported for testing the report-vs-silent and toast dedup behaviour.
 export function handleMutationError(error: unknown, mutation: Pick<Mutation, 'meta' | 'options'>) {
   if (!mutation.meta?.silent) {
-    reportError(error as Error, {
+    captureFrontendError(error, {
       source: 'mutation',
       mutationKey: mutation.options.mutationKey,
     })

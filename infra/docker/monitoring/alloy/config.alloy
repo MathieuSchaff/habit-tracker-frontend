@@ -1,0 +1,54 @@
+// Scrape Docker container stdout (json-file driver) and ship to Loki.
+
+discovery.docker "app" {
+	host = "unix:///var/run/docker.sock"
+}
+
+// Keep app_* containers only, expose a clean `container` label.
+discovery.relabel "app" {
+	targets = discovery.docker.app.targets
+
+	rule {
+		source_labels = ["__meta_docker_container_name"]
+		regex         = "/(app_.*)"
+		action        = "keep"
+	}
+	rule {
+		source_labels = ["__meta_docker_container_name"]
+		regex         = "/(app_.*)"
+		target_label  = "container"
+	}
+}
+
+loki.source.docker "app" {
+	host       = "unix:///var/run/docker.sock"
+	targets    = discovery.relabel.app.output
+	labels     = {job = "docker"}
+	forward_to = [loki.process.pino.receiver]
+}
+
+// pino logs JSON with a numeric `level` (30 info / 40 warn / 50 error / 60 fatal);
+// promote it to a low-cardinality `level` label so LogQL can filter `level="error"`.
+// Non-JSON lines (nginx, postgres) fall through to level="unknown".
+loki.process "pino" {
+	forward_to = [loki.write.default.receiver]
+
+	stage.json {
+		expressions = {level_num = "level"}
+	}
+
+	stage.template {
+		source   = "level"
+		template = "{{ if eq .level_num \"50\" }}error{{ else if eq .level_num \"60\" }}fatal{{ else if eq .level_num \"40\" }}warn{{ else if eq .level_num \"30\" }}info{{ else if eq .level_num \"20\" }}debug{{ else }}unknown{{ end }}"
+	}
+
+	stage.labels {
+		values = {level = "level"}
+	}
+}
+
+loki.write "default" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+}

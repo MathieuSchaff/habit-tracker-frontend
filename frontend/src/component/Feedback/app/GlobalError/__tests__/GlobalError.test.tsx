@@ -9,8 +9,8 @@ vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ invalidate: vi.fn() }),
 }))
 
-vi.mock('../../../../../lib/errorReporter', () => ({
-  reportError: vi.fn(),
+vi.mock('../../../../../lib/observability/faro', () => ({
+  captureFrontendError: vi.fn(),
 }))
 
 afterEach(() => cleanup())

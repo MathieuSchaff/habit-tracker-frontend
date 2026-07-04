@@ -15,15 +15,13 @@ import {
   socialPostErrorMapping,
   socialReactionErrorMapping,
   tagErrorMapping,
-  taskErrorMapping,
   userProductErrorMapping,
 } from '@aurore/shared'
 
+import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { Context } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { db } from '../../db'
-import { trackError } from '../../features/errors/service'
 import { logger } from '../../lib/logger'
 
 interface AppError extends Error {
@@ -42,7 +40,6 @@ const errorMappingRegistry = new Map<string, Record<string, HttpStatus>>([
   ['ProductIngredientError', productIngredientErrorMapping as Record<string, HttpStatus>],
   ['PurchaseError', purchaseErrorMapping as Record<string, HttpStatus>],
   ['TagError', tagErrorMapping as Record<string, HttpStatus>],
-  ['TaskError', taskErrorMapping as Record<string, HttpStatus>],
   ['UserProductError', userProductErrorMapping as Record<string, HttpStatus>],
   ['BlogError', articleErrorMapping as Record<string, HttpStatus>],
   ['DiscussionError', discussionErrorMapping as Record<string, HttpStatus>],
@@ -72,20 +69,14 @@ export async function globalErrorHandler(error: Error, c: Context<AppEnv>) {
     )
   }
 
-  logger.error({ err: error, path: c.req.path, method: c.req.method }, 'Unhandled internal error')
+  const span = trace.getActiveSpan()
+  span?.recordException(error)
+  span?.setAttribute('http.method', c.req.method)
+  span?.setAttribute('http.route', c.req.path)
+  span?.setAttribute('http.status_code', HTTP_STATUS.INTERNAL_SERVER_ERROR)
+  span?.setStatus({ code: SpanStatusCode.ERROR, message: error.message })
 
-  // Persist for the admin error view. Off-tx (base db): the request tx is aborted here.
-  try {
-    await trackError(db, {
-      source: 'backend',
-      message: error.message || error.name || 'Unknown error',
-      stack: error.stack,
-      context: { path: c.req.path, method: c.req.method },
-      userId: c.get('userId') ?? null,
-    })
-  } catch (trackErr) {
-    logger.error({ err: trackErr }, 'Failed to persist backend error')
-  }
+  logger.error({ err: error, path: c.req.path, method: c.req.method }, 'Unhandled internal error')
 
   return c.json(
     err('server_error', process.env.NODE_ENV === 'development' ? error.stack : undefined),

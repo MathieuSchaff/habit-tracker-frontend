@@ -1,17 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 
 import type { Context } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { errorGroups, errorOccurrences } from '../../db/schema'
-import { testDb } from '../../tests/db.test.config'
-import { setupDbTests } from '../../tests/db-setup'
 import { globalErrorHandler } from './error-handler'
 
-setupDbTests()
-
-// Minimal Context stand-in: the handler only reads req.path/method + userId and
-// calls c.json. trackError uses the base db pool, not the context.
+// Minimal Context stand-in: the handler only reads req.path/method and calls c.json.
 function fakeContext(userId?: string): Context<AppEnv> {
   return {
     req: { path: '/api/boom', method: 'GET' },
@@ -21,33 +15,22 @@ function fakeContext(userId?: string): Context<AppEnv> {
 }
 
 describe('globalErrorHandler', () => {
-  beforeEach(async () => {
-    await testDb.delete(errorOccurrences)
-    await testDb.delete(errorGroups)
+  it('returns server_error for an unhandled internal error', async () => {
+    const res = await globalErrorHandler(new Error('boom'), fakeContext())
+
+    expect(res).toMatchObject({
+      body: { success: false, error: 'server_error' },
+      status: 500,
+    })
   })
 
-  afterEach(async () => {
-    await testDb.delete(errorOccurrences)
-    await testDb.delete(errorGroups)
-  })
-
-  it('persists an unhandled internal error as source=backend', async () => {
-    await globalErrorHandler(new Error('boom'), fakeContext())
-
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(1)
-    expect(groups[0].source).toBe('backend')
-    expect(groups[0].message).toBe('boom')
-
-    const occurrences = await testDb.select().from(errorOccurrences)
-    expect(occurrences).toHaveLength(1)
-  })
-
-  it('does not persist a mapped app error (has a code)', async () => {
+  it('returns the mapped code for an app error', async () => {
     const appError = Object.assign(new Error('nope'), { code: 'not_found' })
-    await globalErrorHandler(appError, fakeContext())
+    const res = await globalErrorHandler(appError, fakeContext())
 
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(0)
+    expect(res).toMatchObject({
+      body: { success: false, error: 'not_found' },
+      status: 404,
+    })
   })
 })

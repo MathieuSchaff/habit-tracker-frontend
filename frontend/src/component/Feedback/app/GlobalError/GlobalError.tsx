@@ -1,7 +1,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
-import { reportError } from '../../../../lib/errorReporter'
+import { captureFrontendError } from '../../../../lib/observability/faro'
 import { Button, ButtonLink } from '../../../Button/Button'
 import './GlobalError.css'
 
@@ -94,7 +94,7 @@ export const GlobalError = ({ error, reset, is404 = false }: GlobalErrorProps) =
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: report once on mount only
   useEffect(() => {
-    reportError(error, { component: 'GlobalError' })
+    captureFrontendError(error, { component: 'GlobalError' })
     // react-doctor-disable-next-line react-doctor/exhaustive-deps
   }, [])
 

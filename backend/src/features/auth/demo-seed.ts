@@ -3,7 +3,6 @@ import { addDays, subMonths } from 'date-fns'
 import type { Database } from '../../db/index'
 import { logger } from '../../lib/logger'
 import { listProducts } from '../products/service'
-import { createSubtask, createTask, updateTask } from '../tasks/service'
 import { addPurchase, finishPurchase, openPurchase } from '../user-products/purchase.service'
 import { createUserProduct, upsertUserProductReview } from '../user-products/service'
 
@@ -13,68 +12,9 @@ const d = (date: Date) => date.toISOString()
 export async function seedDemoData(userId: string, db: Database) {
   logger.info({ userId }, 'seeding demo data')
 
-  await seedDemoTasks(userId, db)
   await seedDemoCollection(userId, db)
 
   logger.info({ userId }, 'demo data seeded')
-}
-
-async function seedDemoTasks(userId: string, db: Database) {
-  const tRoutine = await createTask(
-    { title: 'Tester la routine du soir', energy: 'low' },
-    userId,
-    db
-  )
-  await updateTask(tRoutine.id, userId, { status: 'active' }, db)
-  await createSubtask(tRoutine.id, { title: 'Appliquer le sérum vitamine C' }, db)
-  await createSubtask(tRoutine.id, { title: 'Tester la crème barrière' }, db)
-  await createSubtask(tRoutine.id, { title: 'Note les réactions le lendemain matin' }, db)
-
-  const tSdb = await createTask(
-    { title: 'Nettoyer la salle de bain', energy: 'medium' },
-    userId,
-    db
-  )
-  await updateTask(tSdb.id, userId, { status: 'active' }, db)
-  await createSubtask(tSdb.id, { title: 'Trier les produits périmés' }, db)
-  await createSubtask(tSdb.id, { title: 'Ranger les nouvelles commandes' }, db)
-
-  await createTask({ title: 'Prendre rendez-vous chez le dermatologue', energy: 'low' }, userId, db)
-  await createTask({ title: "Chercher un SPF teinté pour l'été", energy: 'medium' }, userId, db)
-  await createTask(
-    { title: 'Commander les recharges avant rupture de stock', energy: 'high' },
-    userId,
-    db
-  )
-
-  const tSnooze = await createTask(
-    { title: 'Faire le bilan de la routine du mois', energy: 'low' },
-    userId,
-    db
-  )
-  await updateTask(
-    tSnooze.id,
-    userId,
-    {
-      status: 'snoozed',
-      snoozedUntil: d(addDays(new Date(), 4)),
-    },
-    db
-  )
-
-  const tDone1 = await createTask(
-    { title: 'Lire les avis sur le nouvel acide glycolique', energy: 'low' },
-    userId,
-    db
-  )
-  await updateTask(tDone1.id, userId, { status: 'done' }, db)
-
-  const tDone2 = await createTask(
-    { title: 'Mettre à jour la liste de produits à éviter', energy: 'medium' },
-    userId,
-    db
-  )
-  await updateTask(tDone2.id, userId, { status: 'done' }, db)
 }
 
 async function seedDemoCollection(userId: string, db: Database) {

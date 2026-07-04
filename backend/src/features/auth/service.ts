@@ -329,7 +329,7 @@ export async function changePassword(
 
     // Atomic: a revoke failure must roll back the password write too, otherwise
     // the password changes while stolen sessions stay alive. /change-password has
-    // no withRlsContext wrapper, so ctx.db is the pool — open the tx explicitly.
+    // no withRlsContext wrapper, so ctx.db is the pool. Open the tx explicitly.
     await ctx.db.transaction(async (tx) => {
       await tx
         .update(users)
@@ -367,7 +367,7 @@ export async function createDemo(
       await bindRlsContext(tx, created.id)
       await createProfile(tx, created.id)
       // Seed inside the transaction so app.user_id is set for RLS-protected tables.
-      // Lazy import keeps the auth module graph free of the products/tasks/user-products
+      // Lazy import keeps the auth module graph free of the products/user-products
       // services demo-seed pulls in, so auth stays loadable/testable in isolation.
       const { seedDemoData } = await import('./demo-seed')
       await seedDemoData(created.id, tx as unknown as Database)

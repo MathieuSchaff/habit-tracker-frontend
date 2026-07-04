@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
-import { tasks } from '../../db/schema'
+import { userPreferences } from '../../db/schema'
 import { generateAccessToken } from '../../features/auth/jwt.utils'
 import { requireJwtAuth } from '../../features/auth/middleware'
 import { withRlsContext } from '../../features/auth/rls-context.middleware'
@@ -48,7 +48,7 @@ describe('withRlsContext', () => {
     const app = await createTestApp()
 
     const probe = new Hono<AppEnv>()
-    // No requireJwtAuth — no userId set
+    // No requireJwtAuth, so no userId is set
     probe.use('*', withRlsContext)
     probe.get('/rls-probe-public', (c) => c.json({ ok: true }))
 
@@ -59,7 +59,7 @@ describe('withRlsContext', () => {
   })
 
   it('rolls back the tx when the handler throws after a DB insert', async () => {
-    // Use a real seeded user so the FK on tasks.user_id is satisfied.
+    // Use a real seeded user so the FK on user_preferences.user_id is satisfied.
     const user = await createTestUser('rls-rollback-probe@test.local', 'Azerty123!')
 
     const app = await createTestApp()
@@ -69,7 +69,7 @@ describe('withRlsContext', () => {
     probe.use('*', withRlsContext)
     probe.post('/fail-after-insert', async (c) => {
       const db = c.get('db')
-      await db.insert(tasks).values({ userId: user.id, title: 'should-not-persist' })
+      await db.insert(userPreferences).values({ userId: user.id, aiConsent: true })
       throw new Error('simulated failure')
     })
 
@@ -85,7 +85,10 @@ describe('withRlsContext', () => {
     expect(res.status).toBeGreaterThanOrEqual(500)
 
     // Confirm the tx rolled back: the row must not exist outside the request tx.
-    const persisted = await testDb.select().from(tasks).where(eq(tasks.title, 'should-not-persist'))
+    const persisted = await testDb
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, user.id))
     expect(persisted).toHaveLength(0)
   })
 })

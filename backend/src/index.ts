@@ -9,7 +9,6 @@ import type { AppEnv } from './app-env'
 import { env } from './config/env'
 import { db } from './db/index'
 import { adminBansRoutes } from './features/admin/bans.routes'
-import { adminErrorsRoutes } from './features/admin/errors.routes'
 import { adminModerationRoutes } from './features/admin/moderation.routes'
 import { adminReportsRoutes } from './features/admin/reports.routes'
 import { adminRoleRequestsRoutes } from './features/admin/role-requests.routes'
@@ -20,7 +19,6 @@ import { articleRoutes } from './features/blog'
 import { meRoutes } from './features/catalog-submissions/routes'
 import { collectionRoutes } from './features/collection/routes'
 import { ingredientDiscussionRoutes } from './features/discussions/ingredient-discussion-routes'
-import { errorsRoute } from './features/errors'
 import { healthRoute, readyRoute } from './features/health/routes'
 import { ingredientTagDefRoutes } from './features/ingredient-tags/routes'
 import { ingredientTagRoutes } from './features/ingredients/ingredient-tags/routes'
@@ -35,10 +33,10 @@ import { socialPostsRoutes } from './features/social/posts.routes'
 import { socialReactionsRoutes } from './features/social/reactions.routes'
 import { socialRoutes } from './features/social/routes'
 import { suggestedEditsRoutes } from './features/suggested-edits/routes'
-import { taskRoutes } from './features/tasks/routes'
 import { uploadsRoutes } from './features/uploads'
 import { userProductRoutes } from './features/user-products'
 import { logger } from './lib/logger'
+import { otelTracingMiddleware } from './lib/observability/hono-tracing'
 import { globalErrorHandler } from './utils/errors/error-handler'
 import { globalRateLimiterFunc } from './utils/rateLimiter'
 
@@ -80,6 +78,7 @@ app.use('*', async (c, next) => {
   })
 })
 
+app.use('*', otelTracingMiddleware)
 app.use('*', globalRateLimiterFunc)
 
 const routes = app
@@ -98,17 +97,14 @@ const routes = app
   .route('/api/ingredients', ingredientDiscussionRoutes)
   .route('/api/product-tags', productTagDefRoutes)
   .route('/api/ingredient-tags', ingredientTagDefRoutes)
-  .route('/api/tasks', taskRoutes)
   .route('/api/user-products', userProductRoutes)
   .route('/api/collection', collectionRoutes)
   .route('/api/me', meRoutes)
   .route('/api/uploads', uploadsRoutes)
-  .route('/api/errors', errorsRoute)
   .route('/api/articles', articleRoutes)
   .route('/api/admin', adminBansRoutes)
   .route('/api/admin/moderation', adminModerationRoutes)
   .route('/api/admin/reports', adminReportsRoutes)
-  .route('/api/admin/errors', adminErrorsRoutes)
   .route('/api/admin/security-events', adminSecurityEventsRoutes)
   .route('/api/reports', reportsRoutes)
   .route('/api/admin/role-requests', adminRoleRequestsRoutes)

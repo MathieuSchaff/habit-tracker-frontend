@@ -14,16 +14,12 @@ import { authGet, setupAndLogin } from '../../../tests/helpers/route-test-helper
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { resetExportRateLimit, USER_EXPORT_TENANT_TABLES } from '../export.service'
 
-// The route runs RLS-scoped; what we cover here is:
-//   - auth + headers contract
-//   - exhaustivity: every tenant table audited is represented in the JSON
-//   - cross-user isolation
-//   - rate-limit + audit event side-effects
+// RLS-scoped route; this file covers auth/headers contract, exhaustivity
+// (every audited tenant table has a JSON section), cross-user isolation,
+// and rate-limit + audit side-effects.
 //
-// Tenant-data fixtures are intentionally minimal — the surface this exercises
-// is "does the export hit every section", not "every column round-trips".
-// Column-level fidelity belongs in dedicated service tests once a column is
-// added/changed.
+// Fixtures stay minimal: this tests "does export hit every section", not
+// column-level fidelity (that belongs in service tests).
 
 const EXPECTED_TOP_LEVEL_KEYS = [
   '_meta',
@@ -36,8 +32,6 @@ const EXPECTED_TOP_LEVEL_KEYS = [
   'productStatusLog',
   'purchases',
   'ingredientAnalysisScores',
-  'tasks',
-  'subtasks',
   'discussionThreads',
   'discussionReplies',
 ] as const
@@ -99,8 +93,6 @@ describe('GET /profile/export', () => {
       user_product_status_log: 'productStatusLog',
       purchases: 'purchases',
       user_ingredient_analysis_score: 'ingredientAnalysisScores',
-      tasks: 'tasks',
-      subtasks: 'subtasks',
       discussion_threads: 'discussionThreads',
       discussion_replies: 'discussionReplies',
     }
@@ -122,8 +114,8 @@ describe('GET /profile/export', () => {
     expect(body._meta.schemaVersion).toBe('1')
     expect(body._meta.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     expect(body._meta.userId).toBeDefined()
-    // The user's row id and the top-level userId must agree — otherwise we
-    // exported a different user than the requester (RLS violation signal).
+    // user._meta.id and _meta.userId must match, otherwise we exported
+    // someone else's data (RLS violation signal).
     expect(body.user._meta.id).toBe(body._meta.userId)
   })
 

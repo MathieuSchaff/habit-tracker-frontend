@@ -17,7 +17,6 @@ import { discussionReplies, discussionThreads } from '../../db/schema/products/d
 import { purchases } from '../../db/schema/products/purchases'
 import { userProductStatusLog } from '../../db/schema/products/user-product-status-log'
 import { userProductReviews, userProducts } from '../../db/schema/products/user-products'
-import { subtasks, tasks } from '../../db/schema/tasks/tasks'
 import { nowISO } from '../../utils/dates'
 
 // Reads run as the RLS-scoped app_runtime role (withRlsContext sets auth.uid()
@@ -29,7 +28,7 @@ export async function exportUserData(db: DB, userId: string): Promise<UserExport
   // Reads are intentionally sequential: bun-sql + drizzle currently mis-bind
   // result-format codes when many SELECTs are pipelined through a single tx
   // connection (observed as "bind message has N result formats but query has
-  // M columns"). One user export = ~13 small queries on a local pg socket,
+  // M columns"). One user export = ~11 small queries on a local pg socket,
   // well under any UX threshold, so the loss is negligible.
   const userRow = await db.select().from(usersSafe).where(eq(usersSafe.id, userId)).limit(1)
   const profileRow = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1)
@@ -78,19 +77,6 @@ export async function exportUserData(db: DB, userId: string): Promise<UserExport
     .innerJoin(userProducts, eq(userProducts.id, purchases.userProductId))
     .where(eq(userProducts.userId, userId))
   const ingredientScoreRows = await db.select().from(userIngredientAnalysisScore)
-  const taskRows = await db.select().from(tasks)
-  const subtaskRows = await db
-    .select({
-      id: subtasks.id,
-      taskId: subtasks.taskId,
-      title: subtasks.title,
-      completed: subtasks.completed,
-      order: subtasks.order,
-      createdAt: subtasks.createdAt,
-    })
-    .from(subtasks)
-    .innerJoin(tasks, eq(tasks.id, subtasks.taskId))
-    .where(eq(tasks.userId, userId))
   const threadRows = await db
     .select({
       id: discussionThreads.id,
@@ -252,30 +238,6 @@ export async function exportUserData(db: DB, userId: string): Promise<UserExport
       isSuspect: row.isSuspect ?? false,
       isFavorite: row.isFavorite ?? false,
     })),
-    tasks: taskRows.map((row) => ({
-      _meta: {
-        id: row.id,
-        userId: row.userId,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      },
-      title: row.title,
-      energy: row.energy,
-      status: row.status,
-      snoozedUntil: row.snoozedUntil,
-      doneAt: row.doneAt,
-      focusDurationMinutes: row.focusDurationMinutes,
-    })),
-    subtasks: subtaskRows.map((row) => ({
-      _meta: {
-        id: row.id,
-        taskId: row.taskId,
-        createdAt: row.createdAt,
-      },
-      title: row.title,
-      completed: row.completed,
-      order: row.order,
-    })),
     discussionThreads: threadRows.map((row) => ({
       _meta: {
         id: row.id,
@@ -312,8 +274,6 @@ export const USER_EXPORT_TENANT_TABLES = [
   'user_product_status_log',
   'purchases',
   'user_ingredient_analysis_score',
-  'tasks',
-  'subtasks',
   'discussion_threads',
   'discussion_replies',
 ] as const

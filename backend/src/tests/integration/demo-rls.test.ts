@@ -16,7 +16,7 @@ import { Hono } from 'hono'
 
 import type { AppEnv } from '../../app-env'
 import { bindRlsContext } from '../../db/rls'
-import { tasks } from '../../db/schema'
+import { profiles } from '../../db/schema'
 import { createDemo } from '../../features/auth/service'
 import { globalErrorHandler } from '../../utils/errors/error-handler'
 import { setupDbTests } from '../db-setup'
@@ -26,7 +26,7 @@ import { JWT_SECRET, REFRESH_SECRET } from '../helpers/secrets'
 const APP_DATABASE_URL = process.env.APP_DATABASE_URL
 if (!APP_DATABASE_URL) throw new Error('APP_DATABASE_URL not set')
 
-// A real app_runtime connection — RLS is fully enforced here.
+// Real app_runtime connection: RLS is fully enforced here.
 const appRuntimePool = new SQL(APP_DATABASE_URL)
 const appRuntimeDb = drizzle(appRuntimePool, {
   schema: await import('../../db/schema'),
@@ -92,15 +92,15 @@ describe('POST /auth/demo — RLS enforcement via app_runtime', () => {
     const bId = b.data.user.id
     expect(aId).not.toBe(bId)
 
-    // Read tasks with A's RLS context bound on the app_runtime pool: the policies
+    // Read profiles with A's RLS context bound on the app_runtime pool: policies
     // must scope the result to A's rows only.
-    const aTasks = await appRuntimeDb.transaction(async (tx) => {
+    const aRows = await appRuntimeDb.transaction(async (tx) => {
       await bindRlsContext(tx, aId)
-      return tx.select({ userId: tasks.userId }).from(tasks)
+      return tx.select({ userId: profiles.userId }).from(profiles)
     })
 
-    expect(aTasks.length).toBeGreaterThan(0)
-    expect(aTasks.every((t) => t.userId === aId)).toBe(true)
-    expect(aTasks.some((t) => t.userId === bId)).toBe(false)
+    expect(aRows.length).toBeGreaterThan(0)
+    expect(aRows.every((row) => row.userId === aId)).toBe(true)
+    expect(aRows.some((row) => row.userId === bId)).toBe(false)
   })
 })

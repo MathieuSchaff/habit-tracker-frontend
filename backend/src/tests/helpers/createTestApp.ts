@@ -24,18 +24,15 @@ export async function createTestApp() {
   const { socialRoutes } = await import('../../features/social/routes')
   const { socialPostsRoutes } = await import('../../features/social/posts.routes')
   const { socialReactionsRoutes } = await import('../../features/social/reactions.routes')
-  const { taskRoutes } = await import('../../features/tasks/routes')
   const { userProductRoutes } = await import('../../features/user-products/routes')
   const { collectionRoutes } = await import('../../features/collection/routes')
   const { meRoutes } = await import('../../features/catalog-submissions/routes')
-  const { errorsRoute } = await import('../../features/errors/routes')
   const { ingredientDiscussionRoutes } = await import(
     '../../features/discussions/ingredient-discussion-routes'
   )
   const { articleRoutes } = await import('../../features/blog/routes')
   const { uploadsRoutes } = await import('../../features/uploads/routes')
   const { adminBansRoutes } = await import('../../features/admin/bans.routes')
-  const { adminErrorsRoutes } = await import('../../features/admin/errors.routes')
   const { adminModerationRoutes } = await import('../../features/admin/moderation.routes')
   const { adminReportsRoutes } = await import('../../features/admin/reports.routes')
   const { adminRoleRequestsRoutes } = await import('../../features/admin/role-requests.routes')
@@ -55,7 +52,7 @@ export async function createTestApp() {
   })
 
   // Mirror production mounting (index.ts): every router under /api, and products
-  // via the productsFeature composite — so a prefix/composition regression cannot
+  // via the productsFeature composite, so a prefix/composition regression cannot
   // pass here. Chain reassigned to preserve route types for testClient RPC inference.
   const routedApp = app
     .route('/api/auth', jwtAuthRoutes)
@@ -73,17 +70,14 @@ export async function createTestApp() {
     .route('/api/ingredients', ingredientDiscussionRoutes)
     .route('/api/product-tags', productTagDefRoutes)
     .route('/api/ingredient-tags', ingredientTagDefRoutes)
-    .route('/api/tasks', taskRoutes)
     .route('/api/user-products', userProductRoutes)
     .route('/api/collection', collectionRoutes)
     .route('/api/me', meRoutes)
     .route('/api/uploads', uploadsRoutes)
-    .route('/api/errors', errorsRoute)
     .route('/api/articles', articleRoutes)
     .route('/api/admin', adminBansRoutes)
     .route('/api/admin/moderation', adminModerationRoutes)
     .route('/api/admin/reports', adminReportsRoutes)
-    .route('/api/admin/errors', adminErrorsRoutes)
     .route('/api/admin/security-events', adminSecurityEventsRoutes)
     .route('/api/reports', reportsRoutes)
     .route('/api/admin/role-requests', adminRoleRequestsRoutes)

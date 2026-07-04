@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 import { fromDateInputValue, todayDateInputValue } from '@/lib/dates'
-import { reportError } from '@/lib/errorReporter'
+import { captureFrontendError } from '@/lib/observability/faro'
 import { useCreateProduct } from '@/lib/queries/products'
 import { useAddPurchase } from '@/lib/queries/purchases'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
@@ -75,7 +75,7 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       toast.success(`${selectedProduct.name} ajouté à votre collection !`)
       onClose()
     } catch (error) {
-      reportError(error as Error, { flow: 'quick-add-existing' })
+      captureFrontendError(error, { flow: 'quick-add-existing' })
       toast.error("Impossible d'ajouter le produit à votre collection.")
     }
   }
@@ -94,7 +94,7 @@ export function useQuickAdd({ onClose }: UseQuickAddProps) {
       toast.success(`${newName} créé et ajouté à votre collection !`)
       onClose()
     } catch (error) {
-      reportError(error as Error, { flow: 'quick-add-create' })
+      captureFrontendError(error, { flow: 'quick-add-create' })
       toast.error("Impossible de créer ou d'ajouter le produit.")
     }
   }

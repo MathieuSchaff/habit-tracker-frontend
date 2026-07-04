@@ -11,7 +11,6 @@ export interface ExportRowMeta {
   id?: string
   userId?: string
   userProductId?: string
-  taskId?: string
   threadId?: string
   productId?: string | null
   ingredientId?: string | null
@@ -107,23 +106,6 @@ export interface ExportUserIngredientAnalysisScore {
   isFavorite: boolean
 }
 
-export interface ExportTask {
-  _meta: ExportRowMeta
-  title: string
-  energy: string | null
-  status: string
-  snoozedUntil: string | null
-  doneAt: string | null
-  focusDurationMinutes: number | null
-}
-
-export interface ExportSubtask {
-  _meta: ExportRowMeta
-  title: string
-  completed: boolean
-  order: number
-}
-
 export interface ExportDiscussionThread {
   _meta: ExportRowMeta
   title: string
@@ -150,8 +132,6 @@ export interface UserExport {
   productStatusLog: ExportUserProductStatusLog[]
   purchases: ExportPurchase[]
   ingredientAnalysisScores: ExportUserIngredientAnalysisScore[]
-  tasks: ExportTask[]
-  subtasks: ExportSubtask[]
   discussionThreads: ExportDiscussionThread[]
   discussionReplies: ExportDiscussionReply[]
 }

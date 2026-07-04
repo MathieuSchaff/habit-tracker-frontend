@@ -1,8 +1,6 @@
-# base
 FROM oven/bun:1.3.12-debian@sha256:1b709c9dd883fc1af38c210f7ea5222c552a8d470ea73efbd4b8fcfee798a64b AS base
 WORKDIR /app
 
-# deps
 FROM base AS deps
 COPY package.json bun.lock tsconfig.json bunfig.toml ./
 COPY backend/package.json backend/
@@ -11,7 +9,6 @@ COPY frontend/package.json frontend/
 COPY vendor/ vendor/
 RUN bun install --frozen-lockfile
 
-# dev
 FROM base AS dev
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -23,30 +20,25 @@ WORKDIR /app/backend
 EXPOSE 3000
 CMD ["bun", "--watch", "src/index.ts"]
 
-# prod
 FROM oven/bun:1.3.12-debian@sha256:1b709c9dd883fc1af38c210f7ea5222c552a8d470ea73efbd4b8fcfee798a64b AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Manifests racine du workspace
 COPY package.json bun.lock tsconfig.json bunfig.toml ./
 
-# Dossiers workspace requis par bun install
+# bun install needs the workspace dirs to exist.
 RUN mkdir -p backend shared frontend
 
-# Manifests des packages workspace
 COPY backend/package.json backend/
 COPY shared/package.json shared/
 COPY frontend/package.json frontend/
 COPY vendor/ vendor/
 
-# Production runtime deps only
 RUN bun install --frozen-lockfile --production
 
-# Runtime source
 COPY backend/ ./backend/
 COPY shared/ ./shared/
 
 USER bun
 EXPOSE 3000
-CMD ["bun", "backend/src/index.ts"]
+CMD ["bun", "--preload", "./backend/src/instrumentation.ts", "backend/src/index.ts"]

@@ -4,13 +4,13 @@ vi.mock('react-hot-toast', () => ({
   toast: { error: vi.fn() },
 }))
 
-vi.mock('../errorReporter', () => ({
-  reportError: vi.fn().mockResolvedValue(undefined),
+vi.mock('../observability/faro', () => ({
+  captureFrontendError: vi.fn(),
 }))
 
 import { toast } from 'react-hot-toast'
 
-import { reportError } from '../errorReporter'
+import { captureFrontendError } from '../observability/faro'
 import { handleMutationError } from '../queryClient'
 
 const mutationStub = (
@@ -21,7 +21,7 @@ const mutationStub = (
 describe('handleMutationError', () => {
   beforeEach(() => {
     vi.mocked(toast.error).mockClear()
-    vi.mocked(reportError).mockClear()
+    vi.mocked(captureFrontendError).mockClear()
   })
 
   afterEach(() => {
@@ -32,8 +32,8 @@ describe('handleMutationError', () => {
     const err = new Error('boom')
     handleMutationError(err, mutationStub({ errorMessage: 'Échec.' }, ['user-products', 'update']))
 
-    expect(reportError).toHaveBeenCalledTimes(1)
-    expect(reportError).toHaveBeenCalledWith(err, {
+    expect(captureFrontendError).toHaveBeenCalledTimes(1)
+    expect(captureFrontendError).toHaveBeenCalledWith(err, {
       source: 'mutation',
       mutationKey: ['user-products', 'update'],
     })
@@ -42,7 +42,7 @@ describe('handleMutationError', () => {
 
   it('reports without toasting when meta.errorMessage is absent', () => {
     handleMutationError(new Error('silent'), mutationStub({}))
-    expect(reportError).toHaveBeenCalledTimes(1)
+    expect(captureFrontendError).toHaveBeenCalledTimes(1)
     expect(toast.error).not.toHaveBeenCalled()
   })
 
@@ -51,7 +51,7 @@ describe('handleMutationError', () => {
       new Error('expected'),
       mutationStub({ silent: true, errorMessage: 'Conflit.' })
     )
-    expect(reportError).not.toHaveBeenCalled()
+    expect(captureFrontendError).not.toHaveBeenCalled()
     expect(toast.error).toHaveBeenCalledWith('Conflit.', { id: 'Conflit.' })
   })
 

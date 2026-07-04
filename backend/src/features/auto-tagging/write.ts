@@ -17,7 +17,7 @@ import type { DB } from '../../db/index'
 import { brandCertifications, products, productTagLinks, productTagTypes } from '../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../lib/fetch-known-concentrations'
 import { fetchPercentClaimsByProduct } from '../../lib/fetch-percent-claims'
-import { trackError } from '../errors'
+import { logger } from '../../lib/logger'
 import { resolveTagRows } from './lib/resolve-tag-rows'
 import { detectAllAutoTags } from './orchestrator'
 
@@ -84,7 +84,7 @@ export async function writeTagsForProduct(
   )
 
   // Withhold eczema-atopie on a contraindicating description, resolve slugs to
-  // tag ids, drop domain-ineligible tag types — shared with backfill/reconcile.
+  // tag ids, drop domain-ineligible tag types. Shared with backfill/reconcile.
   const { rows: resolved } = resolveTagRows(pairs, product, tagSlugToInfo)
   const rows = resolved.map((r) => ({
     productId: product.id,
@@ -108,7 +108,7 @@ export async function writeTagsForProduct(
   })
 }
 
-// Frozen contract: `computeFingerprint` keys on this string. See ADR-0002.
+// Frozen log event name used by Grafana queries and alerts.
 export const AUTOTAG_SKIP_EVENT_KIND = 'product_autotag_skipped' as const
 
 export interface AutoTagSkipMeta {
@@ -116,23 +116,24 @@ export interface AutoTagSkipMeta {
   userId: string
 }
 
+export function buildAutoTagSkipLog(productId: string, meta: AutoTagSkipMeta, err: unknown) {
+  return {
+    event: AUTOTAG_SKIP_EVENT_KIND,
+    productId,
+    operation: meta.operation,
+    userId: meta.userId,
+    cause: err instanceof Error ? err.message : String(err),
+    err: err instanceof Error ? err : undefined,
+  }
+}
+
 export async function recordAutoTagSkip(
-  database: DB,
+  _database: DB,
   productId: string,
   meta: AutoTagSkipMeta,
   err: unknown
 ): Promise<void> {
-  await trackError(database, {
-    source: 'backend',
-    message: AUTOTAG_SKIP_EVENT_KIND,
-    stack: err instanceof Error ? (err.stack ?? null) : null,
-    userId: meta.userId,
-    context: {
-      productId,
-      operation: meta.operation,
-      cause: err instanceof Error ? err.message : String(err),
-    },
-  })
+  logger.warn(buildAutoTagSkipLog(productId, meta, err), AUTOTAG_SKIP_EVENT_KIND)
 }
 
 // Intake-only fail-soft wrapper. Seed-core and the backfill runner call

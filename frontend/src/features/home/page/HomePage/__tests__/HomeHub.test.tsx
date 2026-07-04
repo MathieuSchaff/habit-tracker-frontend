@@ -91,7 +91,6 @@ describe('HomeHub', () => {
         privateNotes: null,
       },
       'user-products.list': [],
-      'tasks.today': [],
       'profile.privacy': { discoverable: false },
     })
 
@@ -126,7 +125,6 @@ describe('HomeHub', () => {
         privateNotes: 'secret',
       },
       'user-products.list': [recent],
-      'tasks.today': [{ id: 't1' }],
       'profile.privacy': { discoverable: true },
     })
 
@@ -153,7 +151,6 @@ describe('HomeHub', () => {
     setQueries({
       'profile.me': { createdAt: null },
       'user-products.list': [],
-      'tasks.today': [],
       'profile.privacy': { discoverable: false },
     })
     mockQuery.errors = { 'profile.dermo': true }

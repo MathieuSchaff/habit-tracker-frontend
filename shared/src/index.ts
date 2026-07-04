@@ -1,6 +1,6 @@
 // Public surface of @aurore/shared = the union of every domain barrel.
 // Each domain's index.ts owns what it exposes; keep this file `export *` only.
-// Never hand-enumerate symbols here — a named list drifts from the domains it mirrors.
+// Never hand-enumerate symbols here. A named list drifts from the domains it mirrors.
 
 export * from './admin'
 export * from './auth'
@@ -9,7 +9,6 @@ export * from './catalog/submissions'
 export * from './collection'
 export * from './core'
 export * from './discussions'
-export * from './errors'
 export * from './ingredients'
 export * from './products'
 export * from './profile'
@@ -21,6 +20,5 @@ export * from './security-events'
 export * from './social'
 export * from './suggested-edits'
 export * from './tag-api'
-export * from './tasks'
 export * from './uploads'
 export * from './user-products'

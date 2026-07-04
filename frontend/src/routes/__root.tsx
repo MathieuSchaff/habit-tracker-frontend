@@ -1,14 +1,14 @@
 import { createRootRouteWithContext, useNavigate, useRouterState } from '@tanstack/react-router'
-import { lazy, Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 
 // Excluded from prod bundle - Vite resolves import.meta.env.DEV at build time
-const TanStackRouterDevtools = import.meta.env.DEV
-  ? lazy(() =>
-      import('@tanstack/react-router-devtools').then((m) => ({
-        default: m.TanStackRouterDevtools,
-      }))
-    )
-  : () => null
+// const TanStackRouterDevtools = import.meta.env.DEV
+//   ? lazy(() =>
+//       import('@tanstack/react-router-devtools').then((m) => ({
+//         default: m.TanStackRouterDevtools,
+//       }))
+//     )
+//   : () => null
 
 import { AppErrorBoundary } from '../component/Feedback/app/AppErrorBoundary/AppErrorBoundary'
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
@@ -28,9 +28,9 @@ function RootComponent() {
     <AppErrorBoundary>
       <NavigationProgress />
       <AppLayout />
-      <Suspense>
+      {/* <Suspense>
         <TanStackRouterDevtools />
-      </Suspense>
+      </Suspense> */}
     </AppErrorBoundary>
   )
 }
@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // so subsequent navigations don't re-fire /auth/refresh on every click.
     const store = useAuthStore.getState()
     if (store.bootRefreshAttempted) return
-    // Anonymous visitor (no session-hint cookie) → skip the probe and its loader gate.
+    // Anonymous visitor (no session-hint cookie): skip the probe and its loader gate.
     if (!hasSessionHint()) return
     store.markBootRefreshAttempted()
     // Optimistic boot: render the shell now (neutral nav skeleton while pending) instead of

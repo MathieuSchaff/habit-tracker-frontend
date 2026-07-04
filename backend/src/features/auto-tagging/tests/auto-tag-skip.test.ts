@@ -1,72 +1,56 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 
-import { errorGroups, errorOccurrences } from '../../../db/schema'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { createProduct } from '../../products/service'
-import { AUTOTAG_SKIP_EVENT_KIND, recordAutoTagSkip, writeTagsForProductFailSoft } from '../write'
+import {
+  AUTOTAG_SKIP_EVENT_KIND,
+  buildAutoTagSkipLog,
+  recordAutoTagSkip,
+  writeTagsForProductFailSoft,
+} from '../write'
 
 const FAKE_PRODUCT_ID = '00000000-0000-7000-8000-000000000001'
 
 describe('recordAutoTagSkip', () => {
-  let userId: string
-
-  beforeEach(async () => {
-    await cleanDatabase()
-    const user = await createTestUser()
-    userId = user.id
-  })
-
-  it('inserts an errorGroup with the frozen message + structured context', async () => {
+  it('builds the frozen event name + structured context for Grafana logs', () => {
     const err = new Error('analyzeINCI exploded on garbage input')
-    await recordAutoTagSkip(testDb, FAKE_PRODUCT_ID, { operation: 'create', userId }, err)
+    const log = buildAutoTagSkipLog(FAKE_PRODUCT_ID, { operation: 'create', userId: 'u1' }, err)
 
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(1)
-    const [g] = groups
-    expect(g.message).toBe(AUTOTAG_SKIP_EVENT_KIND)
-    expect(g.source).toBe('backend')
-    expect(g.stack).toBe(err.stack ?? null)
-    expect(g.context).toEqual({
+    expect(log).toMatchObject({
+      event: AUTOTAG_SKIP_EVENT_KIND,
       productId: FAKE_PRODUCT_ID,
       operation: 'create',
+      userId: 'u1',
       cause: 'analyzeINCI exploded on garbage input',
+      err,
     })
-
-    const occs = await testDb.select().from(errorOccurrences)
-    expect(occs).toHaveLength(1)
-    expect(occs[0].userId).toBe(userId)
   })
 
-  it('handles non-Error throws (string) — stack null, cause stringified', async () => {
-    await recordAutoTagSkip(
-      testDb,
+  it('stringifies non-Error throws', () => {
+    const log = buildAutoTagSkipLog(
       FAKE_PRODUCT_ID,
-      { operation: 'update', userId },
+      { operation: 'update', userId: 'u1' },
       'thrown-as-string'
     )
 
-    const [g] = await testDb.select().from(errorGroups)
-    expect(g.stack).toBeNull()
-    expect(g.context).toMatchObject({ cause: 'thrown-as-string', operation: 'update' })
+    expect(log).toMatchObject({
+      cause: 'thrown-as-string',
+      operation: 'update',
+      err: undefined,
+    })
   })
 
-  it('dedupes by fingerprint: same throw site twice → one group, two occurrences', async () => {
-    const makeErr = () => {
-      const e = new Error('same site')
-      e.stack = 'Error: same site\n    at writeTagsForProduct (write.ts:99:1)'
-      return e
-    }
-    await recordAutoTagSkip(testDb, FAKE_PRODUCT_ID, { operation: 'create', userId }, makeErr())
-    await recordAutoTagSkip(testDb, FAKE_PRODUCT_ID, { operation: 'create', userId }, makeErr())
-
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(1)
-    expect(groups[0].count).toBe(2)
-
-    const occs = await testDb.select().from(errorOccurrences)
-    expect(occs).toHaveLength(2)
+  it('keeps the fail-soft reporter non-throwing', async () => {
+    await expect(
+      recordAutoTagSkip(
+        testDb,
+        FAKE_PRODUCT_ID,
+        { operation: 'create', userId: 'u1' },
+        new Error('same site')
+      )
+    ).resolves.toBeUndefined()
   })
 })
 
@@ -75,7 +59,7 @@ describe('writeTagsForProductFailSoft', () => {
     await cleanDatabase()
   })
 
-  it('records nothing when the orchestrator succeeds on a healthy product', async () => {
+  it('does not throw when the orchestrator succeeds on a healthy product', async () => {
     const user = await createTestUser()
     const product = await createProduct(
       user.id,
@@ -84,23 +68,21 @@ describe('writeTagsForProductFailSoft', () => {
       testDb
     )
 
-    await writeTagsForProductFailSoft(testDb, product.id, {
-      operation: 'create',
-      userId: user.id,
-    })
-
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(0)
+    await expect(
+      writeTagsForProductFailSoft(testDb, product.id, {
+        operation: 'create',
+        userId: user.id,
+      })
+    ).resolves.toBeUndefined()
   })
 
-  it('records nothing when the product does not exist (writeTagsForProduct returns early)', async () => {
+  it('does not throw when the product does not exist (writeTagsForProduct returns early)', async () => {
     const user = await createTestUser()
-    await writeTagsForProductFailSoft(testDb, FAKE_PRODUCT_ID, {
-      operation: 'update',
-      userId: user.id,
-    })
-
-    const groups = await testDb.select().from(errorGroups)
-    expect(groups).toHaveLength(0)
+    await expect(
+      writeTagsForProductFailSoft(testDb, FAKE_PRODUCT_ID, {
+        operation: 'update',
+        userId: user.id,
+      })
+    ).resolves.toBeUndefined()
   })
 })

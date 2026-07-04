@@ -72,9 +72,10 @@ Examples: `uploads/routes.ts`, `products/product-ingredients/routes.ts`,
    so it can't drift from the registry.
 
 2. **Never mix styles within `withRlsContext`.** Any swallowed error breaks the rollback
-   contract. Best-effort logs (`logSecurityEvent`, `trackError`, audit writes) must run off the
-   request tx — pass the base pool (`baseDb`), not `c.get('db')` — or be wrapped in a nested
-   `transaction()` (savepoint) so a failed log can't abort the request tx.
+   contract. Best-effort writes (`logSecurityEvent`, audit writes) must run off the request tx —
+   pass the base pool (`baseDb`), not `c.get('db')` — or be wrapped in a nested `transaction()`
+   (savepoint) so a failed write can't abort the request tx. Error monitoring belongs in logs and
+   OpenTelemetry/Faro, not in request-local DB writes.
 
 3. **Route structure**:
    - Validate at the boundary via `zValidator`

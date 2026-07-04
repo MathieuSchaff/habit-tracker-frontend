@@ -1,8 +1,7 @@
 import type { RoleRequestStatus } from '@aurore/shared'
 
-/* Admin UI wording, centralized so tests and production import the same string.
-   Renaming a label here updates both — prevents silent test drift after a copy
-   tweak (see 2026-05-21 audit, PR 4 pattern). */
+// Admin UI wording, centralized so tests and production import the same string.
+// A copy tweak then cannot make a test pass against stale text.
 export const adminLabels = {
   statOpenReports: 'Signalement(s) ouvert(s)',
   statActiveBans: 'Ban(s) actif(s)',
@@ -21,8 +20,6 @@ export const adminLabels = {
   navRoleRequests: 'Demandes modérateur',
   statPendingRoleRequests: 'Demande(s) modérateur en attente',
   emptyRoleRequests: 'Aucune demande dans cette vue.',
-  navErrors: 'Erreurs',
-  emptyErrors: 'Aucune erreur dans cette vue.',
   navSecurity: 'Sécurité',
   emptySecurityEvents: 'Aucun événement dans cette vue.',
 } as const

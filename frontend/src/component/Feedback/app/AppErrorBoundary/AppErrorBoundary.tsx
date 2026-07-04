@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 
-import { reportError } from '../../../../lib/errorReporter'
+import { captureFrontendError } from '../../../../lib/observability/faro'
 import { GlobalError } from '../GlobalError/GlobalError'
 
 // Defense-in-depth boundary for non-route descendants (Header, Toaster, BottomNav);
@@ -22,7 +22,7 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    reportError(error, { source: 'AppErrorBoundary', componentStack: info.componentStack })
+    captureFrontendError(error, { source: 'AppErrorBoundary', componentStack: info.componentStack })
   }
 
   reset = (): void => {
