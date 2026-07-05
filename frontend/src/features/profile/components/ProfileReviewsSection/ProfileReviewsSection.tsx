@@ -4,10 +4,8 @@ import { Link } from '@tanstack/react-router'
 import { profileQueries } from '@/lib/queries/profile'
 import './ProfileReviewsSection.css'
 
-// Layer ③ of the porte-produits profile (#7/T4): a recent, capped sample of the
-// person's public reviews — the product is explicit here. Renders nothing when
-// empty (clean absence, never a broken placeholder). Non-blocking (useQuery), so
-// it never delays the profile's skin section.
+// Keep this sample capped so public profiles stay quick to scan.
+// Non-blocking, so it never delays the profile's skin section.
 export function ProfileReviewsSection({ username }: { username: string }) {
   const { data } = useQuery(profileQueries.reviewsByUsername(username))
   const reviews = data?.reviews ?? []

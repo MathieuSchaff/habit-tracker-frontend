@@ -252,8 +252,7 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Item B' }))
   })
 
-  // Tab ferme le menu et rend le focus au trigger. Gap d'oracle identifié
-  // par le plan §5 — comble la matrice a11y.
+  // Tab ferme le menu et rend le focus au trigger.
   it('Tab ferme le menu et rend le focus au trigger', async () => {
     const user = userEvent.setup()
     render(<Sample />)

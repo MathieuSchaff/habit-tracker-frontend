@@ -6,6 +6,7 @@ import type {
   ReplaceIngredientTagsInput,
   UpdateIngredientRouteInput,
 } from '@aurore/shared'
+import { ALL_INGREDIENT_FILTER_CATEGORIES } from '@aurore/shared'
 
 import {
   infiniteQueryOptions,
@@ -39,26 +40,11 @@ const ingredientKeys = {
     [...ingredientKeys.all, 'filter-options', type ?? 'all'] as const,
 }
 
-const TAG_AXES: readonly AllIngredientTagCategory[] = [
-  'concern',
-  'skin_type',
-  'hair_type',
-  'age_group',
-  'goal',
-  'moment',
-  'restriction',
-  'ingredient_attribute',
-  'skin_effect',
-  'hair_effect',
-  'dental_effect',
-  'shared_label',
-]
-
 // Extracted (was inlined in `list.queryFn`) so the filter → query mapping
 // can be unit-tested without spinning up react-query / msw.
 export function buildListIngredientsQuery(filters: ListIngredientsFilters): Record<string, string> {
   const query: Record<string, string> = {}
-  for (const axis of TAG_AXES) {
+  for (const axis of ALL_INGREDIENT_FILTER_CATEGORIES) {
     const values = filters[axis]
     if (values?.length) query[axis] = values.join(',')
   }
@@ -136,11 +122,14 @@ export const ingredientQueries = {
       enabled: !!id,
     }),
 
-  search: (query: string) =>
+  search: (query: string, type?: IngredientType) =>
     queryOptions({
-      queryKey: [...ingredientKeys.all, 'search', query] as const,
+      queryKey: [...ingredientKeys.all, 'search', query, type ?? 'all'] as const,
       queryFn: async ({ signal }) => {
-        const res = await api.ingredients.search.$get({ query: { q: query } }, { init: { signal } })
+        const res = await api.ingredients.search.$get(
+          { query: { q: query, ...(type && { type }) } },
+          { init: { signal } }
+        )
         await throwIfNotOk(res)
         const json = await res.json()
         if (!json.success) throw new ApiError('http_error', res.status)
@@ -162,7 +151,7 @@ export const ingredientQueries = {
       },
       initialPageParam: 0 as number,
       getNextPageParam: (): number | undefined => undefined,
-      enabled: query.length >= 2,
+      // No enabled floor here: SearchCombobox owns gating via minChars.
     }),
 
   // Resolve names for slugs deep-linked from URL; cached so filter re-mount doesn't refetch.
@@ -180,11 +169,11 @@ export const ingredientQueries = {
       enabled: slugs.length > 0,
       staleTime: 10 * 60 * 1000,
     }),
-  options: () =>
+  options: (type?: IngredientType) =>
     queryOptions({
-      queryKey: [...ingredientKeys.all, 'options'] as const,
+      queryKey: [...ingredientKeys.all, 'options', type ?? 'all'] as const,
       queryFn: async () => {
-        const res = await api.ingredients.options.$get()
+        const res = await api.ingredients.options.$get({ query: type ? { type } : {} })
         if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
         return json.data

@@ -4,7 +4,7 @@ import { AdminRoleRequestsPage } from '@/features/admin/components/AdminRoleRequ
 import { requireAdminOrRedirect } from '@/features/admin/route-guards'
 import { adminQueries } from '@/lib/queries/admin'
 
-// Account elevation is admin-only; a contributor reaching this by URL is redirected (ADR-0006).
+// Account elevation is admin-only; contributors reaching this by URL are redirected.
 export const Route = createFileRoute('/admin/role-requests')({
   beforeLoad: requireAdminOrRedirect,
   loader: ({ context }) =>

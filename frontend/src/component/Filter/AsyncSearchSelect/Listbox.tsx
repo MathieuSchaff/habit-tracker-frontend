@@ -6,10 +6,11 @@ type Props = {
   filtered: FilterOption[]
   activeIndex: number
   onSelect: (opt: FilterOption) => void
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void
   ref?: React.Ref<HTMLDivElement>
 }
 
-export function Listbox({ id, label, filtered, activeIndex, onSelect, ref }: Props) {
+export function Listbox({ id, label, filtered, activeIndex, onSelect, onScroll, ref }: Props) {
   return (
     <div
       ref={ref}
@@ -17,6 +18,7 @@ export function Listbox({ id, label, filtered, activeIndex, onSelect, ref }: Pro
       className="search-select__dropdown"
       role="listbox"
       aria-label={`Suggestions pour ${label}`}
+      onScroll={onScroll}
     >
       {filtered.map((opt, index) => {
         const isActive = index === activeIndex

@@ -8,10 +8,8 @@ import { ReactionRow } from '@/features/social/components/ReactionRow/ReactionRo
 import { profileQueries } from '@/lib/queries/profile'
 import './ProfilePostsSection.css'
 
-// Layer ③ of the porte-produits profile (#7/T5): a recent, capped sample of the
-// person's deliberate posts — anchored to a product/ingredient/concern so the
-// reader leaves on the thing. Renders nothing when empty (clean absence).
-// Non-blocking (useQuery), so it never delays the profile's skin section.
+// Keep this sample capped so public profiles stay quick to scan.
+// Non-blocking, so it never delays the profile's skin section.
 export function ProfilePostsSection({ username }: { username: string }) {
   const { data } = useQuery(profileQueries.postsByUsername(username))
   const posts = data?.posts ?? []

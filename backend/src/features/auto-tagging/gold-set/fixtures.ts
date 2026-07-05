@@ -1,7 +1,7 @@
-// Gold-set annotations for auto-tag precision/recall measurement (audit O2).
+// Gold-set annotations for auto-tag precision/recall measurement.
 //
-// Hand-maintained corpus (~1226 products as of 2026-05-25), each product judged
-// on the 29 focus tags. Drives precision/recall/F1/Brier/ECE per tag so
+// Hand-maintained corpus; each product is judged on the focus tags.
+// Drives precision/recall/F1/Brier/ECE per tag so
 // calibration changes can be verified against stable ground truth.
 //
 // Selective annotation: `present` = annotator confirms the tag fits, `absent` =
@@ -16,12 +16,12 @@ import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
 export const GOLD_SET_SCHEMA_VERSION = '2026-05-08' as const
 
-// 29 focus tags, "calibrated 2026-05-08" subset (AUTO-TAGS.md §"Récap reprise"):
+// Focus tags covered by this benchmark:
 //   - 9 actif-class clusters (positionCap: ∞)
 //   - 3 sensoriel Tier-1 (formula heuristics)
 //   - 3 acid clusters (positionCap=10 drift preserved by design)
-//   - 10 algo-derm concerns, §20 piste f pilot
-//   - 4 formula-pass concerns, §20 piste f, formula-layer expansion
+//   - algo-derm concerns
+//   - formula-pass concerns
 //
 // `satisfies` catches slug renames at compile time instead of silently skewing
 // benchmark metrics at runtime.
@@ -38,7 +38,7 @@ export const GOLD_SET_FOCUS_TAGS = [
   'fini-mat',
   'texture-legere',
   'texture-riche',
-  // formula-pass concern layer (§20 piste f)
+  // formula-pass concern layer
   'keratose-pilaire',
   'eczema-atopie',
   'reparation-cutanee',
@@ -46,7 +46,7 @@ export const GOLD_SET_FOCUS_TAGS = [
   'aha',
   'bha',
   'pha',
-  // algo-derm concern layer (§20 piste f pilot)
+  // algo-derm concern layer
   'acne-imperfections',
   'anti-age',
   'hyperpigmentation',

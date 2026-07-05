@@ -1,4 +1,4 @@
-import type { ProductDomainTab } from '@aurore/shared'
+import type { IngredientType, ProductDomainTab } from '@aurore/shared'
 
 import { useMemo } from 'react'
 
@@ -21,8 +21,17 @@ type FilterOptions = {
 type IngredientLookupRow = { slug: string; name: string }
 const toIngredientOption = (i: IngredientLookupRow) => ({ value: i.slug, label: i.name })
 
-const loadIngredientOptions = (q: string) => ({
-  ...ingredientQueries.search(q),
+// Tab and ingredient domains match 1:1 except tab "complement" → type "supplement".
+// Exported: ProductsHeader scopes its facet suggestions with the same mapping.
+export const TAB_INGREDIENT_TYPE: Record<ProductDomainTab, IngredientType> = {
+  skincare: 'skincare',
+  haircare: 'haircare',
+  dental: 'dental',
+  complement: 'supplement',
+}
+
+const loadIngredientOptions = (type: IngredientType) => (q: string) => ({
+  ...ingredientQueries.search(q, type),
   select: (data: IngredientLookupRow[]) => data.map(toIngredientOption),
 })
 
@@ -56,7 +65,7 @@ export function useProductsFilterGroups(
             placeholder: NON_TAG_FILTER_PLACEHOLDERS.ingredient,
             variant: 'async-search-select',
             options: [],
-            loadOptionsQuery: loadIngredientOptions,
+            loadOptionsQuery: loadIngredientOptions(TAB_INGREDIENT_TYPE[category]),
             resolveValuesQuery: resolveIngredientValues,
           },
         ],
@@ -78,5 +87,5 @@ export function useProductsFilterGroups(
         ],
       },
     ]
-  }, [filterOptions, tagGroups])
+  }, [filterOptions, tagGroups, category])
 }

@@ -56,17 +56,17 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
         />
 
         <div className="pds-scroll">
-          {/* §5 Mon expérience — leads the sheet in this variant */}
+          {/* User experience leads the sheet in this variant. */}
           <PdsExperienceSection p={p} updateMutation={updateMutation} />
 
-          {/* §6 Ma décision */}
+          {/* Decision */}
           <PdsDecisionSection
             p={p}
             decision={decision}
             isUpdatePending={updateMutation.isPending}
           />
 
-          {/* §8 Cycle de vie */}
+          {/* Lifecycle */}
           <PdsAccordion
             icon={<FlaskConical size={14} />}
             title={pdsLabels.lifecycle}

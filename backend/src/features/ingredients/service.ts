@@ -1,14 +1,15 @@
 import type {
   AllIngredientTagCategory,
   CreateIngredientInput,
+  IngredientErrorCode,
   IngredientFilterOptions,
   IngredientType,
   ListIngredientsSearchFilters,
   UpdateIngredientInput,
 } from '@aurore/shared'
 import {
+  ALL_INGREDIENT_FILTER_CATEGORIES,
   createIngredientSchema,
-  DOMAIN_INGREDIENT_FILTER_CATEGORIES,
   updateIngredientSchema,
 } from '@aurore/shared'
 
@@ -41,28 +42,22 @@ function normalizeEdit<T extends { createdAt: string }>(row: T): T {
   return { ...row, createdAt: normalizeInstant(row.createdAt) }
 }
 
+// Stricter than the shared noHtml refinement: a lone `<` / `>` or `javascript:`
+// passes Zod but crashes the seed noHtml check and can leak into rendered INCI lists.
+function assertNameNoHtml(name: string, code: IngredientErrorCode) {
+  if (name.includes('<') || name.includes('>') || name.includes('javascript:')) {
+    throw new IngredientError(code, 'Nom invalide')
+  }
+}
+
 // Fields the caller may never overwrite; silently skipped in updateIngredient.
 const IMMUTABLE_KEYS = new Set(['id', 'createdBy', 'createdAt', 'updatedAt'])
 
 // Fields tracked in the audit log. Mirrors `ingredientChangesSchema` in shared/.
 const TRACKED_FIELDS = ['name', 'description', 'content', 'type', 'category'] as const
 
-// Tag axes accepted on `/api/ingredients`. Union of every domain's filter
-// categories, the same endpoint serves any selected ingredient_type.
-const TAG_AXES = [
-  'concern',
-  'skin_type',
-  'hair_type',
-  'age_group',
-  'goal',
-  'moment',
-  'restriction',
-  'ingredient_attribute',
-  'skin_effect',
-  'hair_effect',
-  'dental_effect',
-  'shared_label',
-] as const satisfies readonly (keyof ListIngredientsSearchFilters)[]
+// Mutable copy because drizzle inArray rejects readonly arrays.
+const ALL_FILTER_CATEGORIES = [...ALL_INGREDIENT_FILTER_CATEGORIES]
 
 export async function listIngredients(database: DB, filters: ListIngredientsSearchFilters) {
   const conditions: SQL[] = []
@@ -90,7 +85,7 @@ export async function listIngredients(database: DB, filters: ListIngredientsSear
     )
   }
 
-  for (const axis of TAG_AXES) {
+  for (const axis of ALL_INGREDIENT_FILTER_CATEGORIES) {
     addTagGroup(filters[axis]?.split(',').filter(Boolean) ?? [])
   }
 
@@ -173,10 +168,7 @@ export async function createIngredient(
 ) {
   createIngredientSchema.parse(input)
 
-  // noHtml guard: `<` / `>` / `javascript:` in the name crash the seed noHtml check and can leak into rendered INCI lists.
-  if (input.name.includes('<') || input.name.includes('>') || input.name.includes('javascript:')) {
-    throw new IngredientError('ingredient_creation_failed', 'Nom invalide')
-  }
+  assertNameNoHtml(input.name, 'ingredient_creation_failed')
 
   await assertWithinSubmissionRateLimit(
     database,
@@ -253,13 +245,7 @@ export async function updateIngredient(
 
   const oldIngredient = await getIngredientById(database, id)
 
-  // Same noHtml guard as createIngredient.
-  if (
-    data.name &&
-    (data.name.includes('<') || data.name.includes('>') || data.name.includes('javascript:'))
-  ) {
-    throw new IngredientError('ingredient_update_failed', 'Nom invalide')
-  }
+  if (data.name) assertNameNoHtml(data.name, 'ingredient_update_failed')
 
   // Skip unchanged fields to avoid spurious UPDATE + audit entries.
   const filteredData: Partial<UpdateIngredientInput> = {}
@@ -292,10 +278,10 @@ export async function updateIngredient(
 
   if (!newIngredient) {
     // 0-row UPDATE. With an optimistic lock set, the row moved under us (or is now
-    // RLS-locked) → 409 so the client reloads (the optimistic-lock conflict wins over the 403).
+    // RLS-locked), so return 409 and the client reloads (the optimistic-lock conflict wins over the 403).
     // Otherwise getIngredientById above already proved the row is visible, so a
     // 0-row update means it exists but the caller may not edit it (now verified or
-    // not theirs) → 403. Never read rowCount (bun-postgres footgun). slug is
+    // not theirs), so return 403. Never read rowCount (bun-postgres footgun). slug is
     // immutable and moderation_status isn't patchable here, so no 23505 is reachable.
     if (expectedUpdatedAt) throw new IngredientError('ingredient_update_conflict')
     throw new IngredientError('unauthorized_access')
@@ -356,7 +342,12 @@ export async function listIngredientEdits(database: DB, ingredientId: string) {
 
 // Fuzzy search aligned with `searchProducts`: accent-folded substring fallback
 // catches short queries below the trigram floor, with similarity for typos.
-export async function searchIngredients(database: DB, query: string, limit = 10) {
+export async function searchIngredients(
+  database: DB,
+  query: string,
+  opts: { limit?: number; type?: IngredientType } = {}
+) {
+  const { limit = 10, type } = opts
   const q = query.trim()
   if (!q) return []
   const escaped = escapeLike(q)
@@ -381,12 +372,15 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     })
     .from(ingredients)
     .where(
-      or(
-        sql`search_norm(${ingredients.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
-        sql`search_norm(${ingredients.slug}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
-        // % is the indexable form of similarity() > threshold (GIN trgm).
-        sql`search_norm(${ingredients.name}) % search_norm(${q})`,
-        sql`search_norm(${ingredients.slug}) % search_norm(${q})`
+      and(
+        type ? eq(ingredients.type, type) : undefined,
+        or(
+          sql`search_norm(${ingredients.name}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+          sql`search_norm(${ingredients.slug}) LIKE '%' || search_norm(${escaped}) || '%' ESCAPE '\\'`,
+          // % is the indexable form of similarity() > threshold (GIN trgm).
+          sql`search_norm(${ingredients.name}) % search_norm(${q})`,
+          sql`search_norm(${ingredients.slug}) % search_norm(${q})`
+        )
       )
     )
     .orderBy(
@@ -399,12 +393,6 @@ export async function searchIngredients(database: DB, query: string, limit = 10)
     )
     .limit(limit)
 }
-
-// All tag categories used by any domain, bounds the query so unrelated tag
-// types (if ever introduced) don't leak into the drawer.
-const ALL_FILTER_CATEGORIES = Array.from(
-  new Set(Object.values(DOMAIN_INGREDIENT_FILTER_CATEGORIES).flat())
-) as AllIngredientTagCategory[]
 
 export async function getIngredientFilterOptions(
   database: DB,
@@ -442,7 +430,7 @@ export async function getIngredientFilterOptions(
   return { tags }
 }
 
-export async function listAllIngredientOptions(database: DB) {
+export async function listAllIngredientOptions(database: DB, type?: IngredientType) {
   return database
     .select({
       id: ingredients.id,
@@ -450,6 +438,7 @@ export async function listAllIngredientOptions(database: DB) {
       slug: ingredients.slug,
     })
     .from(ingredients)
+    .where(type ? eq(ingredients.type, type) : undefined)
     .orderBy(ingredients.name)
 }
 

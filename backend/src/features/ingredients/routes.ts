@@ -49,10 +49,11 @@ const idParam = z.object({
 
 const searchQuery = z.object({
   q: z.string().min(1).max(100),
+  type: z.enum(INGREDIENT_TYPE_VALUES).optional(),
 })
 
-// Comma-separated slugs. Capped at 2000 chars so a stray client never seq-scans
-// the table, handler splits + caps at 50 entries before hitting the DB.
+// Comma-separated slugs, capped at 2000 chars so a bad client can't force a
+// table seq-scan. Handler also caps at 50 entries before hitting the DB.
 const bySlugsQuery = z.object({
   slugs: z.string().min(1).max(2000),
 })
@@ -78,9 +79,9 @@ export const ingredientRoutes = ingredientsApp
 
   .get('/search', zValidator('query', searchQuery), async (c) => {
     const db = c.get('db')
-    const { q } = c.req.valid('query')
+    const { q, type } = c.req.valid('query')
 
-    const results = await searchIngredients(db, q)
+    const results = await searchIngredients(db, q, { type })
 
     return c.json(ok(results), HTTP_STATUS.OK)
   })
@@ -101,11 +102,16 @@ export const ingredientRoutes = ingredientsApp
       return c.json(ok(options), HTTP_STATUS.OK)
     }
   )
-  .get('/options', async (c) => {
-    const db = c.get('db')
-    const items = await listAllIngredientOptions(db)
-    return c.json(ok(items), HTTP_STATUS.OK)
-  })
+  .get(
+    '/options',
+    zValidator('query', z.object({ type: z.enum(INGREDIENT_TYPE_VALUES).optional() })),
+    async (c) => {
+      const db = c.get('db')
+      const { type } = c.req.valid('query')
+      const items = await listAllIngredientOptions(db, type)
+      return c.json(ok(items), HTTP_STATUS.OK)
+    }
+  )
   .get('/', zValidator('query', listIngredientsSearchSchema), async (c) => {
     const db = c.get('db')
     const query = c.req.valid('query')

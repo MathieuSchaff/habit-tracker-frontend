@@ -292,4 +292,31 @@ test.describe('Product detail — Discussions tab', () => {
       page.getByRole('tab', { name: 'Infos', exact: true, selected: true })
     ).toBeVisible()
   })
+
+  // Regression: the back button must return to the filtered list, not strand on
+  // the product's own Infos tab. Tabs navigate with replace:true so opening
+  // Discussions doesn't push a history entry that history.back() would land on.
+  test('"Produits" back button returns to the filtered list, not the previous tab', async ({
+    page,
+  }) => {
+    await page.goto('/products?category=skincare&sort=name')
+    await expect(page).toHaveURL(/[?&]sort=name/)
+
+    const firstCard = page.locator('.list-card--product a[href^="/products/"]').first()
+    await expect(firstCard).toBeVisible({ timeout: 15_000 })
+    await firstCard.click()
+    await expect(page).toHaveURL(/\/products\/[^/]+$/)
+
+    await page.getByRole('tab', { name: /Discussions/ }).click()
+    await expect(page).toHaveURL(/\/discussions/)
+    await expect(page.getByRole('button', { name: 'Ouvrir une discussion' })).toBeVisible({
+      timeout: 10_000,
+    })
+
+    await page.getByRole('button', { name: 'Produits' }).click()
+
+    // Back on the list with its search params intact — proves history.back() ran
+    // and that the Discussions tab did not stack an extra history entry.
+    await expect(page).toHaveURL(/\/products\?[^/]*sort=name/)
+  })
 })

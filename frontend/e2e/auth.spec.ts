@@ -188,7 +188,7 @@ test.describe('Auth — demo', () => {
   }) => {
     await page.goto('/auth/login')
 
-    await page.getByRole('button', { name: 'Essayer la demo' }).click()
+    await page.getByRole('button', { name: /Essayer la démo/i }).click()
 
     // /demo seeds tasks + a full collection + reviews in one awaited transaction
     // before returning the session; under parallel workers on the tmpfs DB this
@@ -201,10 +201,37 @@ test.describe('Auth — demo', () => {
   test('demo from signup page also works', async ({ page }) => {
     await page.goto('/auth/signup')
 
-    await page.getByRole('button', { name: 'Essayer la demo' }).click()
+    await page.getByRole('button', { name: /Essayer la démo/i }).click()
 
     // Same heavy demo seed as above — allow headroom over the 15s default.
     await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
+    await expect(page.getByText('Mode démo')).toBeVisible()
+  })
+
+  test('mobile bottom-nav demo does not depend on boot refresh after the first tap', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.route('**/api/auth/refresh', (route) =>
+      route.fulfill({
+        status: 503,
+        contentType: 'text/html',
+        body: '<h1>Service Temporarily Unavailable</h1>',
+      })
+    )
+
+    await page.goto('/')
+    // Dev-only panels sit in the same bottom corner as the mobile nav.
+    await page.addStyleTag({
+      content:
+        '[aria-label="Open TanStack Router Devtools"], [aria-label="Open Tanstack query devtools"] { display: none !important; pointer-events: none !important; }',
+    })
+
+    await page.getByRole('button', { name: /Essayer Aurore/i }).click()
+
+    await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
+    await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible()
+    await expect(page.getByText('On a renversé quelque chose.')).not.toBeVisible()
     await expect(page.getByText('Mode démo')).toBeVisible()
   })
 })
@@ -286,9 +313,9 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
   })
 })
 
-// Optimistic boot (levier C): the root /auth/refresh probe is fire-and-forget so the shell
-// renders without waiting for the network. The cases below pin the two things that break if the
-// gate is removed naively — protected-route self-heal and the synchronous role guards.
+// Optimistic boot: the root /auth/refresh probe is fire-and-forget so the shell
+// renders without waiting for the network. These cases pin protected-route
+// self-heal and the synchronous role guards.
 test.describe('Auth — optimistic boot (cold load, logged in)', () => {
   test('cold load on a protected route self-heals without redirect to login', async ({ page }) => {
     // API login sets the refresh cookie + hint without populating the SPA store, so the goto is a
@@ -305,9 +332,8 @@ test.describe('Auth — optimistic boot (cold load, logged in)', () => {
   })
 
   test('cold load on a role-gated route keeps an admin in place', async ({ page }) => {
-    // Seed user is an admin (see role-requests.spec). Role guards read `role` synchronously; with
-    // the boot refresh now un-awaited they must await it before the check, else the admin is
-    // ejected to / on a direct /admin URL. Critical regression guard for levier C.
+    // Role guards must await the boot refresh before reading the role, otherwise
+    // an admin can be ejected to / on a direct /admin URL.
     await loginAsSeed(page)
 
     await page.goto('/admin')

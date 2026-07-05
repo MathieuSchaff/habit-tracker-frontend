@@ -8,9 +8,8 @@
 // pH-dependent acids (AHA/BHA/PHA) use a tight cap; antioxidants/humectants/
 // ceramides use Infinity because the gold-set tags them regardless of INCI position.
 //
-// An earlier attempt gated ALL clusters on `concentrationEstimate.belowBreakpoint`
-// (EU <1% zone) to replace position caps. Gold-set audit (2026-05-14) rejected it:
-// macro F1 dropped 0.995 -> 0.930 (vitamin-e/HA/ceramides are functional below 1%).
+// Do not gate all clusters on the EU <1% zone: vitamin-e/HA/ceramides can be
+// functional below 1%.
 // The narrow version survives: a solver `%` tiebreaker scoped to cap-marginal AHA hits
 // only (lactic/glycolic et al. are pH adjusters below ~1%, exfoliants above) — see
 // `concentrationLookup` below. AHA dosing matches the breakpoint, unlike HA/vit-E.
@@ -73,7 +72,7 @@ export type ConcentrationLookup = (matchedPattern: string) => number | undefined
 // The solver % rescues them: a cap-marginal AHA the name doesn't vouch for is kept when the
 // solver puts it at a confidently functional dose. Threshold 2% (not 1%) so solver noise
 // (MAE 4pts) near the pH-adjuster boundary can't rescue a true pH adjuster — only the
-// unambiguous actives (audit 2026-06-19: rescues anua 4.7% / isntree 3.5%, not 1% cleansers).
+// unambiguous actives, not 1% cleansers.
 const AHA_RESCUE_PCT_MIN = 2
 
 // roleAtDose (algo-derm v21+): a dose-conditioned exfoliant-vs-pH-adjuster signal on
@@ -255,7 +254,7 @@ export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
       // Both plant name and alt INCI form (standardized flavonolignan complex).
       'silybum marianum',
       'silymarin',
-      // Theobroma cacao rejected (audit 2026-05-13): 62 over-tags vs 2 recall gains.
+      // Theobroma cacao over-tags trace cacao extracts.
       // Manual baseline judges trace cacao extract as non-functional polyphenol dose.
     ],
     positionCap: Number.POSITIVE_INFINITY,

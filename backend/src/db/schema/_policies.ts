@@ -82,7 +82,7 @@ export function catalogPolicies(name: string, writeRole: 'contributor' | 'admin'
 export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgColumn) {
   return [
     // Public reads see 'visible' rows; the moderator (admin∨contributor) also sees
-    // 'hidden' so a reported sheet can be reviewed/restored (ADR-0006 S2). The owner
+    // 'hidden' so a reported sheet can be reviewed/restored. The owner
     // sees their own 'hidden' rows ONLY while app.own_submissions is set (the
     // /me/submissions path) — plain browse stays honest, the author's hidden sheet
     // never resurfaces in the public grid. This owner clause is the DB-layer scope
@@ -121,7 +121,7 @@ export function catalogSubmissionPolicies(name: string, createdByColumn: AnyPgCo
 }
 
 // Extends base tenant policies to grant contributors the reversible moderation surface:
-// read any row (incl. hidden) and UPDATE it (ADR-0006 S1). Additive, owner CRUD and
+// read any row (incl. hidden) and UPDATE it. Additive, owner CRUD and
 // admin_bypass still apply. Write path is the moderation service (4 moderation_* columns
 // only), so the coarse role gate is safe (the field-level limits mirror catalogSubmissionPolicies).
 export function moderationPolicies(name: string) {

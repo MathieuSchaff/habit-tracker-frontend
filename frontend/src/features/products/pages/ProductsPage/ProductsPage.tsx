@@ -29,6 +29,7 @@ import {
   buildResetSearchParams,
   deriveAvoidFor,
   hasActivePriceRange,
+  PRODUCTS_PAGE_SIZE,
   productsListApiFilters,
 } from '@/features/products/helpers'
 import { useProductsExtraChips } from '@/features/products/hooks/useProductsExtraChips'
@@ -185,7 +186,7 @@ export function ProductsPage() {
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
-  const totalPages = Math.ceil(total / 20)
+  const totalPages = Math.ceil(total / PRODUCTS_PAGE_SIZE)
   // 429 on the list read: distinguish "throttled" from "empty catalogue" (placeholder kept on paginate).
   const showRateLimit = isRateLimitError(error)
 
@@ -247,6 +248,7 @@ export function ProductsPage() {
             hasFilters={hasFilters}
             isPlaceholderData={isPlaceholderData}
             sort={sort}
+            hasQuery={!!q}
             onSortChange={handleSortChange}
             onOpenDrawer={handleOpenDrawer}
             effectiveFilterCount={effectiveFilterCount}

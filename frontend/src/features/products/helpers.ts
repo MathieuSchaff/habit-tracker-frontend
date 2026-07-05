@@ -4,6 +4,9 @@ import type { FilterValues } from '@/component/Filter'
 import type { ListProductsFilters, ProductSort } from '@/lib/queries/products'
 import { FILTER_KEYS, type FilterKey, type ProductsSearch, type TagFilterKey } from './filters'
 
+// 24 divides evenly by 2/3/4 columns (auto-fill grid) so non-final pages have no ragged last row
+export const PRODUCTS_PAGE_SIZE = 24
+
 export function hasActivePriceRange(priceMin?: number, priceMax?: number): boolean {
   return priceMin !== undefined || priceMax !== undefined
 }
@@ -49,7 +52,7 @@ export function buildProductsApiFilters(args: {
     return {
       category: args.category,
       sort: 'newest',
-      limit: 20,
+      limit: PRODUCTS_PAGE_SIZE,
       page: args.page,
       avoid_for: avoidFor,
     }
@@ -77,7 +80,7 @@ export function buildProductsApiFilters(args: {
     priceMin: args.priceMin,
     priceMax: args.priceMax,
     page: args.page,
-    limit: 20,
+    limit: PRODUCTS_PAGE_SIZE,
   }
 }
 

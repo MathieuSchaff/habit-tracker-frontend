@@ -2,10 +2,8 @@ import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { Spinner } from '../../component/Feedback/ui/Spinner/Spinner'
-import {
-  PROFILE_TABS,
-  ProfileDashboard,
-} from '../../features/profile/page/ProfileDashboard/ProfileDashboard'
+import { ProfileDashboard } from '../../features/profile/page/ProfileDashboard/ProfileDashboard'
+import { PROFILE_TABS } from '../../features/profile/page/ProfileDashboard/tabs'
 import { profileQueries } from '../../lib/queries/profile'
 import './profile.css'
 

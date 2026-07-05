@@ -10,8 +10,8 @@ import { createAdminGuardedRouter } from './_guarded-router'
 
 const reportIdParam = z.object({ id: z.uuid() })
 
-// Report queue is moderator-reachable, not admin-only (ADR-0006 S1); all routes are
-// list/resolve/dismiss, so blanket guard is safe.
+// Report queue is moderator-reachable, not admin-only.
+// All routes are list/resolve/dismiss, so the blanket guard is safe.
 export const adminReportsRoutes = createAdminGuardedRouter(requireContentModerator)
   .get('/', zValidator('query', listReportsQuerySchema), async (c) => {
     const filters = c.req.valid('query')
@@ -32,7 +32,7 @@ export const adminReportsRoutes = createAdminGuardedRouter(requireContentModerat
       return c.json(ok(report), HTTP_STATUS.OK)
     }
   )
-  // ADR-0006 S3: both contributor and admin may escalate; blanket guard is correct, no ban power added.
+  // Both contributor and admin may escalate; no ban power is added here.
   .patch('/:id/escalate', zValidator('param', reportIdParam), async (c) => {
     const { id } = c.req.valid('param')
     const moderatorId = getAuthedUserId(c)

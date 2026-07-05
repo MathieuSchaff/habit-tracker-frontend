@@ -65,7 +65,7 @@ export const LABEL_OVERRIDES: Record<string, string> = {
   'barriere-cutanee-alteree': 'Peau sensibilisée',
 }
 
-// Merged tag-slug → label across the 4 domain taxonomies. Overlapping slugs share labels.
+// Merged tag-slug to label map across the 4 domain taxonomies. Overlapping slugs share labels.
 const ALL_TAG_LABELS: Record<string, string> = {
   ...Object.fromEntries(
     Object.entries(SKINCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
@@ -87,14 +87,24 @@ export function tagLabel(slug: string): string {
 
 const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)
 
-export const productsSearchSchema = baseSchema.extend({
-  category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
-  profile_filter: z.boolean().default(false),
-  sort: productSortEnum.default('newest'),
-  priceMin: z.number().int().min(0).optional(),
-  priceMax: z.number().int().min(0).optional(),
-  q: z.string().trim().min(1).max(100).optional(),
-})
+export const productsSearchSchema = baseSchema
+  .extend({
+    category: z.enum(PRODUCT_DOMAIN_TABS).default('skincare'),
+    profile_filter: z.boolean().default(false),
+    sort: productSortEnum.optional(),
+    priceMin: z.number().int().min(0).optional(),
+    priceMax: z.number().int().min(0).optional(),
+    // catch: a hand-crafted/shared URL with an invalid q (whitespace-only, >100 chars)
+    // must degrade to the plain list, not throw past the route into GlobalError.
+    q: z.string().trim().min(1).max(100).optional().catch(undefined),
+  })
+  // Contextual sort default: a q without explicit sort means relevance; relevance
+  // without q is meaningless and heals back to newest. Both mappings are stable
+  // under re-validation (TanStack round-trips validateSearch output through the URL).
+  .transform((s) => {
+    const sort = s.sort ?? (s.q ? ('relevance' as const) : ('newest' as const))
+    return { ...s, sort: sort === 'relevance' && !s.q ? ('newest' as const) : sort }
+  })
 
 export type ProductsSearch = z.infer<typeof productsSearchSchema>
 

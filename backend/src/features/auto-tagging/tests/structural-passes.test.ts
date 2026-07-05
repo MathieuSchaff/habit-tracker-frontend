@@ -1,4 +1,4 @@
-// Shape tests for the 7 structural passes (ADR-0001 slice #3).
+// Shape tests for the structural passes (ADR-0001).
 //
 // Each test asserts the wrapper does not drop signal vs its underlying
 // detector. Detector-internal coverage lives in the per-detector test files;

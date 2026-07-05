@@ -8,9 +8,12 @@ export const ingredientsHandlers = [
   http.get('*/api/ingredients/search', ({ request }) => {
     const url = new URL(request.url)
     const q = (url.searchParams.get('q') ?? '').toLowerCase()
+    const type = url.searchParams.get('type')
     if (!q) return ok([])
     const hits = INGREDIENTS.filter(
-      (i) => i.name.toLowerCase().includes(q) || i.slug.toLowerCase().includes(q)
+      (i) =>
+        (!type || i.type === type) &&
+        (i.name.toLowerCase().includes(q) || i.slug.toLowerCase().includes(q))
     ).slice(0, 10)
     return ok(hits)
   }),

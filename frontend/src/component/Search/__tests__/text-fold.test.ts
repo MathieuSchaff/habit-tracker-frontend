@@ -16,6 +16,12 @@ describe('foldText', () => {
     expect(foldText('  Vitamine C  ')).toBe('vitamine c')
   })
 
+  // Mirrors SQL search_norm(): a double-spaced query must still match facets.
+  it('collapses internal whitespace runs like search_norm', () => {
+    expect(foldText('acide  salicylique')).toBe('acide salicylique')
+    expect(foldText('vitamine \t\n c')).toBe('vitamine c')
+  })
+
   it('returns empty string for empty input', () => {
     expect(foldText('')).toBe('')
   })

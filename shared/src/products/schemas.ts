@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
 import { fieldChangeSchema, httpsUrl, noHtml, safeUrl } from '../core'
+import { PRODUCT_DOMAIN_TABS } from './domain-tabs'
 import { PRODUCT_CATEGORY_VALUES, PRODUCT_KINDS } from './kinds'
 import { PRODUCT_TEXTURE_VALUES } from './textures'
 import { PRODUCT_AMOUNT_UNIT_VALUES, PRODUCT_UNIT_VALUES } from './units'
 
 // Soft validation: rejects HTML and bare prose (no comma for strings > 100 chars).
-// Does not attempt full INCI nomenclature parsing — algo-derm handles that at
-// processing time.
+// It does not parse full INCI nomenclature. algo-derm does that at processing time.
 const inciBase = noHtml(z.string().max(5000)).refine(
   (v) => v.trim().length <= 100 || v.includes(','),
   { message: 'inci must be a comma-separated ingredient list' }
@@ -109,11 +109,17 @@ export const searchProductsQuery = z.object({
   q: z.string().trim().min(1).max(100),
   limit: z.coerce.number().int().min(1).max(20).default(8),
   offset: z.coerce.number().int().min(0).default(0),
+  // Scope to the active domain tab so the dropdown agrees with the list page it links to.
+  category: z.enum(PRODUCT_DOMAIN_TABS).optional(),
+})
+
+export const distinctBrandsQuery = z.object({
+  category: z.enum(PRODUCT_DOMAIN_TABS).optional(),
 })
 
 // Comma-separated UUIDs in query string (kept GET-friendly so it can be used
-// as a TanStack Query key without serializing a body). Cap at 50 ids — covers
-// any realistic comparison/picker batch and keeps the URL bounded.
+// as a TanStack Query key without serializing a body). Cap at 50 ids. That
+// covers any realistic comparison/picker batch and keeps the URL bounded.
 export const productsByIdsQuery = z.object({
   ids: z
     .string()
@@ -151,13 +157,12 @@ export const productFormulaPreviewSchema = z
 export type ProductFormulaPreviewInput = z.infer<typeof productFormulaPreviewSchema>
 
 export const patentSchema = z.object({
-  name: z.string(), // 'Rosactiv 2.0'
+  name: z.string(),
   description: z
     .string()
     .transform((v) => (v.trim() === '' ? null : v))
     .nullable()
     .optional(),
-  // si url = "" =>  ZodError => sucess est false=>  l'update échoue
-  // { name: "Rosactiv", url: "" } =>   ZodError =>  update bloqué
+  // Map empty url to null. Otherwise safeUrl rejects "" and the whole update fails.
   url: z.preprocess((v) => (v === '' ? null : v), safeUrl.nullable().optional()),
 })

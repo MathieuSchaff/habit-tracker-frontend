@@ -311,9 +311,8 @@ describe('AdminUserDetailPage', () => {
   })
 })
 
-// ADR-0006 S4: a contributor (« modérateur ») gets a content-only slice of this page —
-// pause/lift publications, with the account surface (email/role header, force-private)
-// gated out, and 'global' (account lockout) removed from the scope options.
+// Contributors get a content-only slice: pause/lift publications, no account surface,
+// and no global account lockout option.
 describe('AdminUserDetailPage — contributor content-only slice', () => {
   beforeEach(() => {
     vi.clearAllMocks()

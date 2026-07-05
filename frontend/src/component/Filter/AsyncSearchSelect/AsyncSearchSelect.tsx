@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
+import { useScrollActiveOptionIntoView } from '@/hooks/useScrollActiveOptionIntoView'
 import { rateLimitMessage } from '@/lib/helpers/apiError'
+import { ComboboxTextInput } from '../ComboboxTextInput'
 import type { AsyncSearchQueryFactory, FilterOption } from '../types'
+import { useAnnouncement } from '../useAnnouncement'
 import { DismissButton } from './DismissButton'
 import { DropdownStatus } from './DropdownStatus'
 import { Listbox } from './Listbox'
@@ -47,13 +50,7 @@ export function AsyncSearchSelect({
   const debouncedQuery = useDebounce(query, debounce)
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [announcement, setAnnouncement] = useState('')
-
-  useEffect(() => {
-    if (!announcement) return
-    const t = setTimeout(() => setAnnouncement(''), 1000)
-    return () => clearTimeout(t)
-  }, [announcement])
+  const [announcement, setAnnouncement] = useAnnouncement()
 
   const clickOutsideContainer = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -103,7 +100,7 @@ export function AsyncSearchSelect({
       setQuery('')
       setActiveIndex(-1)
     },
-    [onToggle]
+    [onToggle, setAnnouncement]
   )
 
   const handleKeyDown = useComboboxKeyboard({
@@ -132,40 +129,29 @@ export function AsyncSearchSelect({
     setActiveIndex(-1)
   })
 
-  useEffect(() => {
-    if (activeIndex >= 0 && isOpen) {
-      const element = document.getElementById(`${listboxId}-option-${activeIndex}`)
-      element?.scrollIntoView({ block: 'nearest' })
-    }
-  }, [activeIndex, isOpen, listboxId])
+  useScrollActiveOptionIntoView(activeIndex, isOpen, listboxId)
 
   return (
     <div className="search-select">
       <SelectedChips options={selectedOptions} onRemove={onToggle} />
       <div ref={clickOutsideContainer}>
         <div className="search-select__input-wrapper">
-          <input
-            ref={inputRef}
-            type="text"
-            className="search-select__input"
-            placeholder={placeholder ?? 'Rechercher...'}
+          <ComboboxTextInput
+            inputRef={inputRef}
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
+            placeholder={placeholder}
+            label={label}
+            ariaLabelledBy={ariaLabelledBy}
+            listboxId={listboxId}
+            activeIndex={activeIndex}
+            expanded={showDropdown}
+            onChange={(v) => {
+              setQuery(v)
               setIsOpen(true)
               setActiveIndex(-1)
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={showDropdown}
-            aria-controls={showDropdown ? listboxId : undefined}
-            aria-activedescendant={
-              activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
-            }
-            aria-label={ariaLabelledBy ? undefined : label}
-            aria-labelledby={ariaLabelledBy}
           />
           {isOpen && <DismissButton onDismiss={dismiss} />}
         </div>

@@ -1,5 +1,5 @@
 /**
- * RLS regression for role_requests under the real app_runtime pool (#16b).
+ * RLS regression for role_requests under the real app_runtime pool.
  *
  * The route-level tests (features/role-requests/tests) run as the table-owner role `app`
  * (implicit BYPASSRLS), which masks production: APP_DATABASE_URL connects as `app_runtime`

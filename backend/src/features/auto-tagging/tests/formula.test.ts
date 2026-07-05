@@ -928,7 +928,6 @@ describe('detectRepulpant', () => {
   })
 })
 
-// T1.1 — fini-mat / matifiant
 describe('detectFiniMat', () => {
   test('silica in top 8 → fini-mat + matifiant', () => {
     const tags = detectFiniMat('Aqua, Glycerin, Silica, Niacinamide')
@@ -957,7 +956,6 @@ describe('detectFiniMat', () => {
   })
 })
 
-// T1.2 — texture-riche
 describe('detectTextureRiche', () => {
   test('shea + cocoa butter top 8 → texture-riche', () => {
     expect(
@@ -1004,7 +1002,6 @@ describe('detectTextureRiche', () => {
   })
 })
 
-// T1.3 — texture-legere
 describe('detectTextureLegere', () => {
   test('aqua top 1 + no butter → texture-legere on serum', () => {
     expect(detectTextureLegere('Aqua, Glycerin, Niacinamide, Hyaluronic Acid', 'serum')).toContain(
@@ -1069,7 +1066,6 @@ describe('detectTextureLegere', () => {
   })
 })
 
-// T1.5 — non-gras (silicone-led light formula)
 describe('detectNonGras', () => {
   test('serum + dimethicone top 5 + no oil → non-gras', () => {
     const tags = detectNonGras('Aqua, Glycerin, Dimethicone, Niacinamide, Tocopherol', 'serum')
@@ -1105,7 +1101,6 @@ describe('detectNonGras', () => {
   })
 })
 
-// T1.6 — pigments-verts
 describe('detectPigmentsVerts', () => {
   test('CI 77288 → pigments-verts', () => {
     expect(detectPigmentsVerts('Aqua, Glycerin, CI 77288')).toContain(S.PIGMENTS_VERTS)
@@ -1128,11 +1123,9 @@ describe('detectPigmentsVerts', () => {
   })
 })
 
-// T1.7 vegan → migrated to algo-derm (TAG_DEFS v7)
 // detectVegan tests removed. Logic tested via detectAutoTags in
 // algo-derm-detection.test.ts.
 
-// T1.8 — peau-normale heuristic
 describe('detectPeauNormale', () => {
   test('moisturizer + clean INCI + no other skin_type → peau-normale', () => {
     expect(
@@ -1215,10 +1208,6 @@ describe('detectPeauNormale', () => {
   })
 })
 
-// D.1 audit fixes (2026-05-08)
-// Coverage for the recall and mutex gaps closed in commit
-// `fix(seed/auto-tags): close recall and mutex gaps in formula detectors`.
-
 // detectGrossesseAvoid — sodium retinoyl hyaluronate test removed (migrated to algo-derm).
 
 describe('detectStepNettoyage1 — extended sulfate variants', () => {
@@ -1273,8 +1262,7 @@ describe('detectNonGras — extended silicone patterns', () => {
 
 // Mutex invariants
 // Pairs of slugs that are sensoriel-mutually-exclusive must never co-fire on
-// the same INCI. Asserted on canonical fixtures that previously triggered
-// double-emit (cf AUTO-TAGS.md §T1 cleanup post-WRITE).
+// the same INCI.
 
 describe('mutex invariants — sensoriel slugs cannot co-fire', () => {
   test('texture-riche / texture-legere (heavy butter formula)', () => {

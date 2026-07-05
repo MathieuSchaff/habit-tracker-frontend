@@ -1,9 +1,9 @@
-// Only the positive state has a label; an unverified sheet renders nothing, no warning (ADR-0006).
+// Only the positive state has a label; unverified sheets render nothing, no warning.
 export const CATALOG_QUALITY_LABELS = {
   verified: 'Vérifiée',
 } as const
 
-// `pending` = unverified + visible: live, awaiting a moderator pass (#16).
+// Pending submissions stay visible while waiting for moderator review.
 export const SUBMISSION_STATE_LABELS = {
   verified: 'Vérifiée',
   pending: 'En lecture',

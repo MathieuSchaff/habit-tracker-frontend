@@ -1,4 +1,4 @@
-// Plain-language group phrases for the At a Glance summary (design-system §2).
+// Plain-language group phrases for the product summary.
 // Maps an ingredient's functional `category` to a calm noun phrase — no claim, no score.
 // Skincare covers the six guaranteed categories; the rest are best-effort.
 

@@ -1,9 +1,9 @@
 /**
- * RLS regression for user_bans under the real app_runtime pool (ADR-0006 S4).
+ * RLS regression for user_bans under the real app_runtime pool.
  *
  * Route-level tests run as the table-owner `app` (implicit BYPASSRLS), which masks
- * production: APP_DATABASE_URL connects as `app_runtime` (no BYPASSRLS). Until S4,
- * user_bans had only tenant_isolation (user_id = auth.uid()) + admin_bypass — so a
+ * production: APP_DATABASE_URL connects as `app_runtime` (no BYPASSRLS).
+ * user_bans needs more than tenant_isolation (user_id = auth.uid()) + admin_bypass — so a
  * contributor (« modérateur ») could not write ANY ban under prod RLS. S4 adds
  * user_bans_moderation_scoped: a contributor may SELECT/INSERT/UPDATE/DELETE bans
  * whose scope !== 'global'; the account-level 'global' lockout stays admin-only.

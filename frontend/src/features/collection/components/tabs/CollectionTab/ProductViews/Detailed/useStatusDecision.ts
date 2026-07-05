@@ -8,7 +8,7 @@ const STATUSES_REQUIRING_REASON_PROMPT: ReadonlyArray<UserProduct['status']> = [
 ]
 
 // avoided/archived open an inline reason prompt before submit; reason lands on the status log,
-// never in comment. Prompt lives in §6 so we scroll there when triggered from the header popover.
+// never in comment. Scroll to the prompt when triggered from the header popover.
 export function useStatusDecision(
   p: UserProduct,
   onCommitStatus: (status: UserProduct['status'], reason?: string) => void

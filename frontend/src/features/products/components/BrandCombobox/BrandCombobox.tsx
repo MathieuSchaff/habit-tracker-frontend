@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/component/Button/Button'
 import { Input } from '@/component/Input/Input'
 import { ComboboxPrimitive } from '@/component/Search/ComboboxPrimitive'
+import { useCombobox } from '@/component/Search/useCombobox'
 import { productQueries } from '@/lib/queries/products'
 
 import './BrandCombobox.css'
@@ -27,9 +28,7 @@ export function BrandCombobox({
   placeholder = 'Ex : The Ordinary, Solgar…',
 }: BrandComboboxProps) {
   const [inputValue, setInputValue] = useState(value)
-  const [showDropdown, setShowDropdown] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   // Synchronous mirror so validateBrand reads the Tab-autocompleted value before React re-renders.
   const latestValueRef = useRef(value)
 
@@ -45,6 +44,14 @@ export function BrandCombobox({
     return brands.filter((b) => b.toLowerCase().includes(needle))
   }, [brands, inputValue])
 
+  const combobox = useCombobox({
+    items: filtered,
+    onSelect: handleSelect,
+    onKeyDown: handleKeyDown,
+    canOpen: filtered.length > 0,
+    isLoading,
+  })
+
   const isKnownBrand = (val: string) => brands.some((b) => b.toLowerCase() === val.toLowerCase())
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,31 +59,30 @@ export function BrandCombobox({
     latestValueRef.current = val
     setInputValue(val)
     setShowConfirm(false)
-    setShowDropdown(val.length > 0)
-    setHighlightedIndex(-1)
+    if (val.length > 0) combobox.open()
+    else combobox.close()
     onChange(val, false)
   }
 
   function handleSelect(brand: string) {
     latestValueRef.current = brand
     setInputValue(brand)
-    setShowDropdown(false)
+    combobox.close()
     setShowConfirm(false)
-    setHighlightedIndex(-1)
     onChange(brand, true)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent) {
     // Tab autocompletes highlighted item or first match, then lets focus advance.
-    if (e.key === 'Tab' && showDropdown && filtered.length > 0) {
-      const indexToSelect = highlightedIndex >= 0 ? highlightedIndex : 0
+    if (e.key === 'Tab' && combobox.isOpen) {
+      const indexToSelect = combobox.highlightedIndex >= 0 ? combobox.highlightedIndex : 0
       handleSelect(filtered[indexToSelect])
     }
   }
 
   function validateBrand() {
     // Read from ref: Tab-autocomplete updates inputValue, but blur fires before re-render.
-    setShowDropdown(false)
+    combobox.close()
     const trimmed = latestValueRef.current.trim()
     if (trimmed && !isKnownBrand(trimmed)) {
       setShowConfirm(true)
@@ -97,15 +103,8 @@ export function BrandCombobox({
   return (
     <div>
       <ComboboxPrimitive
-        items={filtered}
-        isOpen={showDropdown && filtered.length > 0}
-        onClose={() => setShowDropdown(false)}
-        onSelect={handleSelect}
-        highlightedIndex={highlightedIndex}
-        setHighlightedIndex={setHighlightedIndex}
+        combobox={combobox}
         inputValue={inputValue}
-        onKeyDown={handleKeyDown}
-        isLoading={isLoading}
         renderItem={(brand) => brand}
         keyExtractor={(brand) => brand}
       >
@@ -119,11 +118,11 @@ export function BrandCombobox({
             aria-label={label ? undefined : 'Marque'}
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
+            onFocus={() => inputValue.length > 0 && combobox.open()}
             onBlur={validateBrand}
             placeholder={placeholder}
             autoComplete="off"
-            aria-expanded={showDropdown && filtered.length > 0}
+            aria-expanded={combobox.isOpen}
             aria-controls={listboxId}
             aria-activedescendant={activeDescendant}
             aria-autocomplete="list"

@@ -90,6 +90,9 @@ function CollectionTabContent({ onAddClick }: { onAddClick: () => void }) {
               placeholder="Rechercher..."
               value={q}
               onChange={(e) => setFilter({ q: e.target.value })}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               className="coll-search-input"
               aria-label="Rechercher dans la collection"
             />

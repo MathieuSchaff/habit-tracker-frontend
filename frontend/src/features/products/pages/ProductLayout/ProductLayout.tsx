@@ -1,7 +1,15 @@
 import { getProductKindLabel } from '@aurore/shared'
 
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
+import {
+  getRouteApi,
+  Link,
+  Outlet,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+  useRouterState,
+} from '@tanstack/react-router'
 import { MessageSquare, Pencil, Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
@@ -51,6 +59,8 @@ export function ProductLayout() {
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const [showAddModal, setShowAddModal] = useState(false)
   const navigate = useNavigate()
+  const router = useRouter()
+  const canGoBack = useCanGoBack()
   // Subscribe to a boolean, not the whole location, to skip re-renders on search-param churn.
   const isDiscussions = useRouterState({
     select: (s) => s.location.pathname.includes('/discussions'),
@@ -64,19 +74,31 @@ export function ProductLayout() {
 
   const handleTabChange = useCallback(
     (id: ProductTab) => {
+      // replace: tabs are same-page sections, not history steps. Pushing them would strand
+      // the back button on the previous tab instead of returning to the list.
       if (id === 'infos') {
-        navigate({ to: '/products/$slug', params: { slug } })
+        navigate({ to: '/products/$slug', params: { slug }, replace: true })
       } else {
-        navigate({ to: '/products/$slug/discussions', params: { slug } })
+        navigate({ to: '/products/$slug/discussions', params: { slug }, replace: true })
       }
     },
     [navigate, slug]
   )
 
+  // Go back in history so the list's search params (filters) survive; fall back to a bare
+  // /products when the detail page was reached directly (deep link, no in-app history).
+  const handleBack = useCallback(() => {
+    if (canGoBack) {
+      router.history.back()
+    } else {
+      navigate({ to: '/products' })
+    }
+  }, [canGoBack, router, navigate])
+
   return (
     <DetailPageLayout banner={true}>
       <PageTopActions>
-        <BackButton to="/products">Produits</BackButton>
+        <BackButton onClick={handleBack}>Produits</BackButton>
         <PageTopActionsRight>
           <ButtonLink
             to="/products/$slug/edit"

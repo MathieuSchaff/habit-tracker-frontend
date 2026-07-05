@@ -45,41 +45,6 @@ export type TagBudgetTable = Partial<
   Record<BudgetCategory, Partial<Record<SkincareProductTagSlug, TagBudget>>>
 >
 
-// Seeded 2026-05-13, re-baselined 2026-05-26 on v11, re-baselined 2026-06-12
-// from DUMP_BUDGETS=1 against a corpus of 3684 products (3623 with INCI: 2820
-// skincare / 422 solaire / 381 bodycare) on algo-derm TAG_DEFS v12. v12 FP/FN cleanup:
-// active-list mapped tags fall back to coverage confidence when no benefit drivers
-// → non-comedogene 6.5→9.4 % skincare, 5.8→8.3 % solaire (genuine improvement,
-// not noise); hypoallergenique 12.9→16.3 % skincare; vegan caramel/mel fix and
-// urea word-anchor have no net visible effect here (disallowed tags). Auto
-// baseline = ceil(hit_rate × 1.5, 0.05); sensitives hand-tightened below that
-// (see markers).
-//
-// 2026-06-13 (v17): `peau-grasse`/`peau-seche` moved off algo-derm to name
-// positioning passes (their benefit-axis confidence was inflated corpus-wide,
-// 25-26% of skincare — see ADR-0004); their budgets now bound the explicit
-// marketed-for emission (<1%). The four residual risk-tolerance drifts
-// (non-irritant, hypoallergenique, non-comedogene, comedogene) are genuine
-// algo-derm improvement (ADR-0010 worst-axis, ADR-0011 dryness floor), not
-// noise — rebaselined with minimal headroom, sensitives still hand-tightened.
-//
-// 2026-06-21 (v17→v21 re-vendor): main's curation + cetearyl-sulfate exclusion
-// lifted INCI coverage corpus-wide (93.7→94.2 % tagged), nudging three of the
-// minimal-headroom v17 caps over: non-irritant/solaire 21.6→22.5 %,
-// non-comedogene/solaire 11.1→12.1 %, comedogene/bodycare 9.2→11.0 %. Verified
-// genuine — comedogene-bodycare firings carry real comedogenic emollients
-// (coconut oil, isopropyl myristate/palmitate, myristyl myristate); gold-set P/R
-// byte-identical across all 21 clusters → no precision regression. The benefit-
-// axis scoring decouple (TAG_DEFS v18) only touches allow:false tags, so it
-// moves nothing here. Rebaselined the three with minimal headroom.
-//
-// 2026-06-21 (v22): `sans_sulfates` gated by formulaType (relevantKinds =
-// cleanser). Leave-on skincare/solaire emissions vanish (skincare 89.0→14.6 %,
-// solaire 91.9→0 %); only cleanser + undefined-formulaType kinds (body/lip/
-// deodorant) keep the claim. bodycare unchanged (all undefined formulaType).
-// Tightened the two impacted caps so they detect a gate regression again (a 1.0
-// cap on a 14.6 % tag is blind); CHECK was already green (max-only, no min).
-//
 // Sensitives:
 //   - `comedogene`: leave-on only, safety-relevant. Tight cap.
 //   - `non-comedogene`: high-stake claim, must not creep on noisy INCI.
@@ -87,7 +52,7 @@ export type TagBudgetTable = Partial<
 //   - `hypoallergenique`: regulatory-adjacent claim.
 export const TAG_HIT_RATE_BUDGET: TagBudgetTable = {
   skincare: {
-    'sans-sulfates': { max: 0.25 }, // hit_rate=14.6% · rebaselined v22 (formulaType gate drops leave-on; only cleanser + undefined-formulaType kinds survive)
+    'sans-sulfates': { max: 0.25 }, // leave-on products should not carry this claim
     'sans-huiles-minerales': { max: 1.0 }, // hit_rate=80.2%
     'sans-alcool-denature': { max: 1.0 }, // hit_rate=79.3%
     'sans-allergenes-parfumants': { max: 1.0 }, // hit_rate=73.1%

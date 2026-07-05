@@ -39,9 +39,11 @@ describe('buildListIngredientsQuery — axes', () => {
       hair_effect: ['volume'],
       dental_effect: ['blanchissant'],
       shared_label: ['clean'],
+      actif_class: ['ceramides'],
     })
     expect(Object.keys(result).sort()).toEqual(
       [
+        'actif_class',
         'age_group',
         'concern',
         'dental_effect',

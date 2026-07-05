@@ -30,7 +30,7 @@ function ReactorName({ reactor }: { reactor: Reactor }) {
 }
 
 // Entraide reactions on a Reactable (post / thread / reply). Shows WHO reacted per
-// kind, never a count (ADR-0013). Toggling is signed and needs auth; anonymous
+// kind, never a count. Toggling is signed and needs auth; anonymous
 // readers see existing reactors but no buttons, and an empty anonymous row renders
 // nothing (calme — no controls a logged-out reader can't use).
 export function ReactionRow({
@@ -49,8 +49,7 @@ export function ReactionRow({
   // /api/profile here just 401s (twice, retry-amplified) per anon view.
   const isAuthed = useAuthStore((s) => !!s.accessToken)
   const viewerKinds = data?.viewerKinds ?? []
-  // Boolean, never a sum: the doctrine forbids a count even in component scope
-  // (ADR-0013). The row only needs to know whether anyone reacted at all.
+  // Boolean, never a sum. The row only needs to know whether anyone reacted at all.
   const hasAnyReaction = data ? Object.values(data.reactions).some((r) => r.length > 0) : false
 
   if (!isAuthed && !hasAnyReaction) return null

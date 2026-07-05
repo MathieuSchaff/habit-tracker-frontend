@@ -150,8 +150,8 @@ describe('catalog RLS — fail closed', () => {
   // it sets app.role='admin' LOCAL to the writing tx (the bug was a bare
   // SET LOCAL outside any tx → no-op → RLS denied the write). Exercises the
   // real helper on the shared app_runtime `db`, not a hand-rolled tx.
-  // S2 (ADR-0006, Option 1): select_visible exposes hidden submission rows to the
-  // moderator (admin∨contributor) so a sheet can be reviewed/restored; plain users
+  // select_visible exposes hidden submission rows to moderators so a sheet can be
+  // reviewed/restored; plain users
   // (even the owner) and anon never see a hidden sheet — public reads stay honest.
   it('hides a product sheet from role=user + anon, shows it to contributor + admin', async () => {
     const owner = await createTestUser('rls-hidden@test.local', 'Azerty123!')

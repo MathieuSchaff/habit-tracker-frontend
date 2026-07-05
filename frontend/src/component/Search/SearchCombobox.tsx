@@ -14,6 +14,7 @@ import {
   type ComboboxSection,
   type ComboboxSectionItem,
 } from './ComboboxPrimitive'
+import { useCombobox } from './useCombobox'
 import './SearchCombobox.css'
 
 export interface SearchComboboxResult {
@@ -69,16 +70,8 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
 }: SearchComboboxProps<TItem, TQueryKey>) {
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebounce(query, debounce)
-  const [isOpen, setIsOpen] = useState(false)
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
-
-  function clearAndClose() {
-    setQuery('')
-    setIsOpen(false)
-    setHighlightedIndex(-1)
-  }
 
   const {
     data,
@@ -99,20 +92,6 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
   const rawResults = data?.pages.flatMap((p) => p.items) ?? []
   const results = rawResults.map(toResult)
 
-  function handleSelect(result: SearchComboboxResult) {
-    setQuery('')
-    setIsOpen(false)
-    setHighlightedIndex(-1)
-    onSelect(result.slug, result)
-  }
-
-  function handleSectionSelect(entry: ComboboxSectionItem) {
-    setQuery('')
-    setIsOpen(false)
-    setHighlightedIndex(-1)
-    entry.onSelect()
-  }
-
   const visibleSections = (sections?.(debouncedQuery) ?? [])
     .filter((s) => s.items.length > 0)
     .map((s) => ({
@@ -123,37 +102,58 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
       })),
     }))
 
-  const showDropdown = isOpen && debouncedQuery.length >= minChars
+  const combobox = useCombobox({
+    items: results,
+    sections: visibleSections,
+    onSelect: handleSelect,
+    onKeyDown: handleKeyDown,
+    canOpen: debouncedQuery.length >= minChars,
+    isLoading: isFetching && !isFetchingNextPage && !isPlaceholderData,
+    isError,
+  })
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function clearAndClose() {
+    setQuery('')
+    combobox.close()
+  }
+
+  function handleSelect(result: SearchComboboxResult) {
+    clearAndClose()
+    onSelect(result.slug, result)
+  }
+
+  function handleSectionSelect(entry: ComboboxSectionItem) {
+    clearAndClose()
+    entry.onSelect()
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Tab') {
-      setIsOpen(false)
-      setHighlightedIndex(-1)
+      combobox.close()
     }
-    if (e.key === 'Enter' && highlightedIndex === -1 && showDropdown && onSubmitQuery) {
+    // Gate and submit on the live query, not the debounced one: Enter right after the
+    // last keystroke must not silently no-op nor navigate to a stale q.
+    // openIntent, not isOpen: the canOpen gate lags behind on the debounced query.
+    if (
+      e.key === 'Enter' &&
+      combobox.highlightedIndex === -1 &&
+      combobox.openIntent &&
+      onSubmitQuery
+    ) {
+      const live = query.trim()
+      if (live.length < minChars) return
       e.preventDefault()
-      onSubmitQuery(debouncedQuery)
+      onSubmitQuery(live)
       clearAndClose()
     }
   }
 
   return (
     <ComboboxPrimitive
-      items={results}
-      sections={visibleSections}
-      isOpen={showDropdown}
-      onClose={() => {
-        setIsOpen(false)
-        setHighlightedIndex(-1)
-      }}
-      onSelect={handleSelect}
-      highlightedIndex={highlightedIndex}
-      setHighlightedIndex={setHighlightedIndex}
+      combobox={combobox}
       inputValue={debouncedQuery}
-      onKeyDown={handleKeyDown}
-      isLoading={isFetching && !isFetchingNextPage && !isPlaceholderData}
+      isUpdating={isFetching && isPlaceholderData}
       isLoadingMore={isFetchingNextPage}
-      isError={isError}
       errorMessage={rateLimitMessage(error) ?? undefined}
       onRetry={() => {
         refetch()
@@ -183,16 +183,18 @@ export function SearchCombobox<TItem, TQueryKey extends QueryKey>({
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
-              setIsOpen(true)
-              setHighlightedIndex(-1)
+              combobox.open()
             }}
             onFocus={() => {
               onFocus?.()
-              if (query.length >= minChars) setIsOpen(true)
+              if (query.length >= minChars) combobox.open()
             }}
             autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             aria-label={label}
-            aria-expanded={showDropdown}
+            aria-expanded={combobox.isOpen}
             aria-controls={listboxId}
             aria-activedescendant={activeDescendant}
             aria-autocomplete="list"

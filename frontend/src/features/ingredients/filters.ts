@@ -2,9 +2,9 @@
 // the selected `type`. Active domain lives in URL search param `type` (default 'skincare').
 
 import {
+  ALL_INGREDIENT_FILTER_CATEGORIES,
   type AllIngredientTagCategory,
   DENTAL_INGREDIENT_TAG_CATEGORY_META,
-  DOMAIN_INGREDIENT_FILTER_CATEGORIES,
   HAIRCARE_INGREDIENT_TAG_CATEGORY_META,
   INGREDIENT_TYPE_LABELS,
   INGREDIENT_TYPE_VALUES,
@@ -23,9 +23,7 @@ import type { TabOption } from '@/component/Tabs/Tabs'
 
 export type FilterKey = AllIngredientTagCategory
 
-// concern/ingredient_attribute appear in multiple domains; Set deduplicates.
-const _allTagKeys = Object.values(DOMAIN_INGREDIENT_FILTER_CATEGORIES).flat()
-export const FILTER_KEYS = [...new Set(_allTagKeys)] as FilterKey[]
+export const FILTER_KEYS = [...ALL_INGREDIENT_FILTER_CATEGORIES] as FilterKey[]
 
 export const DOMAIN_TAG_META: Record<IngredientType, Record<string, TagCategoryMeta>> = {
   skincare: SKINCARE_INGREDIENT_TAG_CATEGORY_META,

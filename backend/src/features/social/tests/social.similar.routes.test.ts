@@ -95,7 +95,7 @@ describe('GET /api/social/similar', () => {
     expect(['tres-proche', 'proche']).toContain(data.profiles[0].band)
   })
 
-  it('orders by similarity descending, never by anything else (#3 zéro-tri)', async () => {
+  it('orders by similarity descending, never by anything else', async () => {
     const token = await seedViewer({
       skinConcerns: ['rosacee'],
       skinTypes: ['peau-sensible'],
@@ -122,7 +122,7 @@ describe('GET /api/social/similar', () => {
     ])
   })
 
-  it('excludes the éloigné band from the surface — never shown as a negative label (#5 calme)', async () => {
+  it('excludes the éloigné band from the surface', async () => {
     const token = await seedViewer({
       skinConcerns: ['rosacee'],
       skinTypes: ['peau-sensible'],
@@ -144,7 +144,7 @@ describe('GET /api/social/similar', () => {
     expect(data.profiles).toEqual([{ username: 'close', band: 'tres-proche' }])
   })
 
-  it('surfaces only opt-in peers under the master gate; everyone else is invisible (#4/#5)', async () => {
+  it('surfaces only opt-in peers under the master gate', async () => {
     const token = await seedViewer({
       skinConcerns: ['rosacee'],
       skinTypes: ['peau-sensible'],

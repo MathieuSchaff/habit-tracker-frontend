@@ -75,7 +75,7 @@ describe('ReactionRow', () => {
       'false'
     )
     expect(screen.getByRole('button', { name: 'Soutien' })).toBeInTheDocument()
-    // The reactor is shown by name (who), never as a tally (ADR-0013).
+    // The reactor is shown by name, never as a tally.
     expect(screen.getByText('lea')).toBeInTheDocument()
     expect(container.textContent).not.toMatch(/\d/)
   })

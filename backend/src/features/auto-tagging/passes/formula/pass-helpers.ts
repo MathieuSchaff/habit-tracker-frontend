@@ -5,7 +5,7 @@ import type { TagEvidence } from '../../lib/pass-types'
 export const inciWindow = (ingredients: readonly string[], n: number): readonly string[] =>
   ingredients.slice(0, Math.min(ingredients.length, n))
 
-// Name/claim positioning gate shared by the R5 formula concern detectors:
+// Name/claim positioning gate shared by formula concern detectors:
 // normalize name+description into one whitespace-collapsed haystack, require the
 // positioning regex, optionally veto via an exclusion regex. Returns the matched
 // substring + which field carried it (audit evidence) or null. `matchesNamePositioning`

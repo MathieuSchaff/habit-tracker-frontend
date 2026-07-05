@@ -12,6 +12,7 @@ import {
   deleteIngredient,
   getIngredientById,
   getIngredientBySlug,
+  listAllIngredientOptions,
   listIngredientEdits,
   listIngredients,
   searchIngredients,
@@ -231,12 +232,26 @@ describe('Ingredient Service', () => {
 
     it('should filter by tags (concern)', async () => {
       const i1 = await makeIngredient('Rétinol')
+      // Untagged witness: a silently dropped axis would return it too.
+      await makeIngredient('Squalane')
       const tag = await makeTag('Anti-âge', 'concern')
       await addTagToIngredient(testDb, i1.id, tag.id)
 
       const result = await listIngredients(testDb, filters({ concern: 'anti-age' }))
       expect(result.total).toBe(1)
       expect(result.items[0]?.name).toBe('Rétinol')
+    })
+
+    it('should filter by tags (actif_class)', async () => {
+      const i1 = await makeIngredient('Céramide NP')
+      // Untagged witness: a silently dropped axis would return it too.
+      await makeIngredient('Acide hyaluronique')
+      const tag = await makeTag('Céramides', 'actif_class')
+      await addTagToIngredient(testDb, i1.id, tag.id)
+
+      const result = await listIngredients(testDb, filters({ actif_class: tag.slug }))
+      expect(result.total).toBe(1)
+      expect(result.items[0]?.name).toBe('Céramide NP')
     })
 
     describe('avoid_for filter', () => {
@@ -268,6 +283,19 @@ describe('Ingredient Service', () => {
         const result = await listIngredients(testDb, filters())
         expect(result.items[0]?.profileMatches).toEqual([])
       })
+    })
+  })
+
+  describe('listAllIngredientOptions', () => {
+    it('should scope options to the ingredient type when set', async () => {
+      await makeIngredient('Niacinamide')
+      await makeIngredient('Kératine hydrolysée', { type: 'haircare' })
+
+      const haircare = await listAllIngredientOptions(testDb, 'haircare')
+      expect(haircare.map((i) => i.name)).toEqual(['Kératine hydrolysée'])
+
+      const all = await listAllIngredientOptions(testDb)
+      expect(all.map((i) => i.name)).toEqual(['Kératine hydrolysée', 'Niacinamide'])
     })
   })
 
@@ -321,6 +349,18 @@ describe('Ingredient Service', () => {
       await makeIngredient('Niacinamide')
       const results = await searchIngredients(testDb, '   ')
       expect(results).toHaveLength(0)
+    })
+
+    // Cross-domain homonyms (ceramides) must not leak into another tab's dropdown.
+    it('should scope results to the requested type', async () => {
+      await makeIngredient('Céramide NP')
+      await makeIngredient('Céramide 2', { type: 'haircare' })
+
+      const scoped = await searchIngredients(testDb, 'ceramide', { type: 'skincare' })
+      expect(scoped.map((r) => r.name)).toEqual(['Céramide NP'])
+
+      const unscoped = await searchIngredients(testDb, 'ceramide')
+      expect(unscoped).toHaveLength(2)
     })
   })
 })

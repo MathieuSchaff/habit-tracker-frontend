@@ -80,8 +80,7 @@
   align-items: center;
 }
 
-/* Wide card: anchor the halo left, let the profile read fill the freed space
-   instead of centering a narrow column (the dead-space the audit flagged).
+/* Wide card: anchor the halo left and let the profile read fill the freed space.
    px, not rem: the root font-size is fluid (clamp), so rem here would drift with the viewport. */
 @container skin-portrait (min-width: 420px) {
   .skin-portrait-card__body {

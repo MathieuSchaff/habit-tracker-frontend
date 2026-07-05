@@ -245,9 +245,8 @@ describe('AdminReportsPage', () => {
     expect(resolve).not.toHaveBeenCalled()
   })
 
-  // ADR-0006 S1: a contributor (« modérateur ») owns the queue but gets a
-  // content-only view — no account PII (reporter/target emails), no admin-only
-  // « Voir le profil » / global-ban affordances.
+  // Contributors own the queue but get a content-only view: no account PII,
+  // no admin-only profile/global-ban affordances.
   it('hides reporter email from a contributor (no account PII)', () => {
     setRole('contributor')
     setupQueries([baseReports[0]])
@@ -269,8 +268,7 @@ describe('AdminReportsPage', () => {
     expect(screen.queryByRole('link', { name: /Voir le profil/i })).not.toBeInTheDocument()
   })
 
-  // S2 (ADR-0006): a catalogue-sheet report previews the fiche + moderates it
-  // through the same panel (TARGET_TO_MODERATE maps product → products).
+  // A catalogue-sheet report previews the fiche and moderates it through the same panel.
   it('previews a product-sheet report and hides the fiche', async () => {
     const productReport: ReportItem = {
       id: 'rep-prod',
@@ -329,8 +327,8 @@ describe('AdminReportsPage', () => {
     expect(screen.getByRole('tab', { name: 'Ouverts' })).toHaveAttribute('aria-selected', 'false')
   })
 
-  // S3 (ADR-0006): escalate-to-admin. Orthogonal to status — a row stays open while
-  // escalated; the « Escaladés » view is admin-only.
+  // Escalation is orthogonal to status: a row stays open while escalated.
+  // The « Escaladés » view is admin-only.
   it('escalates an open report after confirmation', async () => {
     setupQueries([baseReports[0]])
     const { escalate } = setupMutations()

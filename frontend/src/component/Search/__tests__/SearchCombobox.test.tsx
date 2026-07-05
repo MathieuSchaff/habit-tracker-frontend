@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // jsdom lacks IntersectionObserver; stub for ComboboxPrimitive's sentinel.
 if (!window.IntersectionObserver) {
@@ -165,14 +165,17 @@ describe('SearchCombobox — loading states', () => {
     await userEvent.type(screen.getByRole('combobox'), 'c')
     await waitFor(() => expect(abcStarted).toBe(true))
 
-    // Placeholder data: old items still visible, no spinner.
+    // Placeholder data: old items still visible, no spinner, but a visible
+    // "updating" affordance so the stale list doesn't read as current.
     expect(screen.queryByText('Chargement…')).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item A' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Item B' })).toBeInTheDocument()
+    expect(screen.getByRole('listbox')).toHaveClass('combobox-primitive__items--updating')
 
     resolveC(ITEMS_C)
     await waitFor(() => screen.getByRole('option', { name: 'Item C' }))
     expect(screen.queryByRole('option', { name: 'Item A' })).not.toBeInTheDocument()
+    expect(screen.getByRole('listbox')).not.toHaveClass('combobox-primitive__items--updating')
   })
 })
 
@@ -196,7 +199,25 @@ describe('SearchCombobox — keyboard', () => {
     expect(input).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('Enter with no highlight calls onSubmitQuery with debounced query', async () => {
+  it('Enter right after typing submits the live text, not the stale debounced one', async () => {
+    const queryFn = makeQueryFn({})
+    const onSubmitQuery = vi.fn()
+    render(
+      // Default debounce (300ms): Enter fires before the debounce flushes.
+      <SearchCombobox
+        label="Search"
+        queryFn={queryFn}
+        toResult={toResult}
+        onSelect={vi.fn()}
+        onSubmitQuery={onSubmitQuery}
+      />,
+      { wrapper: makeWrapper() }
+    )
+    await userEvent.type(screen.getByRole('combobox'), 'niacinamide{Enter}')
+    expect(onSubmitQuery).toHaveBeenCalledWith('niacinamide')
+  })
+
+  it('Enter with no highlight calls onSubmitQuery with the typed query', async () => {
     const queryFn = makeQueryFn({ ab: () => Promise.resolve(ITEMS_AB) })
     const onSubmitQuery = vi.fn()
     render(
@@ -264,6 +285,69 @@ describe('SearchCombobox — keyboard', () => {
     await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
     expect(onSelect).toHaveBeenCalledWith('item-a', expect.objectContaining({ slug: 'item-a' }))
     expect(sectionSelect).not.toHaveBeenCalled()
+  })
+})
+
+describe('SearchCombobox — infinite pagination through the real useInfiniteQuery wiring', () => {
+  let observerCallback: IntersectionObserverCallback | null = null
+  let originalIO: typeof IntersectionObserver
+
+  beforeEach(() => {
+    originalIO = window.IntersectionObserver
+    class MockIO {
+      constructor(cb: IntersectionObserverCallback) {
+        observerCallback = cb
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords(): IntersectionObserverEntry[] {
+        return []
+      }
+    }
+    window.IntersectionObserver = MockIO as unknown as typeof IntersectionObserver
+  })
+
+  afterEach(() => {
+    window.IntersectionObserver = originalIO
+    observerCallback = null
+  })
+
+  it('sentinel intersection fetches page 2 via getNextPageParam and appends without duplication', async () => {
+    // 2-page dataset: exercises getNextPageParam (nextOffset) + pages flatMap for real.
+    const queryFn = (q: string) => ({
+      queryKey: ['test-search-pages', q] as const,
+      queryFn: async ({ pageParam }: { pageParam: number }) =>
+        pageParam === 0
+          ? { items: ITEMS_AB, hasMore: true, nextOffset: 2 }
+          : { items: ITEMS_C, hasMore: false, nextOffset: 4 },
+      initialPageParam: 0,
+      getNextPageParam: (last: { hasMore: boolean; nextOffset: number }) =>
+        last.hasMore ? last.nextOffset : undefined,
+    })
+    render(
+      <SearchCombobox
+        label="Search"
+        queryFn={queryFn}
+        toResult={toResult}
+        onSelect={vi.fn()}
+        debounce={0}
+      />,
+      { wrapper: makeWrapper() }
+    )
+    await userEvent.type(screen.getByRole('combobox'), 'ab')
+    await waitFor(() => screen.getByRole('option', { name: 'Item A' }))
+    expect(observerCallback).not.toBeNull()
+
+    act(() => {
+      observerCallback?.(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver
+      )
+    })
+
+    await waitFor(() => screen.getByRole('option', { name: 'Item C' }))
+    expect(screen.getAllByRole('option')).toHaveLength(3)
   })
 })
 

@@ -4,7 +4,7 @@ import { loginAsSeed } from './helpers/auth'
 
 // Read-only spec against seeded public reviews — no writes, snapshot-once safe.
 // Asserts: ratings-public review renders axis notes; comment-only review hides them.
-// Reviews live on the product's Discussions tab (nav rework 2026-07-02).
+// Reviews live on the product's Discussions tab.
 
 test.beforeEach(async ({ page }) => {
   // /products/:slug is anon-accessible, but try login first to avoid a redirect

@@ -141,7 +141,7 @@ export const SCORE_THRESHOLDS = {
   good: 10,
 } as const
 
-// FR labels for user-experience tags (PDS §5).
+// FR labels for user-experience tags.
 export const ressentiLabels: Record<RessentiTag, string> = {
   leger: 'Léger',
   riche: 'Riche',

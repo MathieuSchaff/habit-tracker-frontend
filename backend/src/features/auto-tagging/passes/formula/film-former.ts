@@ -52,7 +52,7 @@ export function detectOcclusifTags(
 // emollients are present at trace level and don't drive sensoriel/barrier
 // behavior. Mutex with `occlusif`: a petrolatum-led formula is functionally
 // occlusif even if squalane sits at pos 4, emitting both blurs the
-// semantic split (R4 spec).
+// semantic split.
 //
 // Pattern coverage:
 //   - `squalane`: substring stops at the trailing 'ne' so `squalene`

@@ -11,6 +11,7 @@ import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { SortControl } from '@/features/products/components/SortControl/SortControl'
+import { TAB_INGREDIENT_TYPE } from '@/features/products/hooks/useProductsFilterGroups'
 import { useDraggableY } from '@/hooks/useDraggableY'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 import { type ProductSort, productQueries } from '@/lib/queries/products'
@@ -25,6 +26,7 @@ type Props = {
   hasFilters: boolean
   isPlaceholderData: boolean
   sort: ProductSort
+  hasQuery: boolean
   onSortChange: (next: ProductSort) => void
   onOpenDrawer: () => void
   effectiveFilterCount: number
@@ -39,6 +41,7 @@ function ProductsHeaderImpl({
   hasFilters,
   isPlaceholderData,
   sort,
+  hasQuery,
   onSortChange,
   onOpenDrawer,
   effectiveFilterCount,
@@ -51,9 +54,14 @@ function ProductsHeaderImpl({
   // Search facet lists only matter once the combobox is engaged; gating on focus keeps
   // them off the cold-load waterfall (they competed with the LCP grid).
   const [searchActive, setSearchActive] = useState(false)
-  const { data: brands = [] } = useQuery({ ...productQueries.brands(), enabled: searchActive })
+  // Facets scoped to the active tab: a cross-domain suggestion would navigate to a
+  // silent 0-result list (category is ANDed server-side and kept on navigate).
+  const { data: brands = [] } = useQuery({
+    ...productQueries.brands(activeTab),
+    enabled: searchActive,
+  })
   const { data: ingredients = [] } = useQuery({
-    ...ingredientQueries.options(),
+    ...ingredientQueries.options(TAB_INGREDIENT_TYPE[activeTab]),
     enabled: searchActive,
   })
 
@@ -98,7 +106,8 @@ function ProductsHeaderImpl({
             onSelect: () =>
               navigate({
                 to: '/products',
-                search: (prev) => ({ ...prev, ingredient: [i.slug], page: 1 }),
+                // Drop any stale q: the label promises "all products with X", not "X AND q".
+                search: (prev) => ({ ...prev, ingredient: [i.slug], q: undefined, page: 1 }),
               }),
           })),
         },
@@ -116,7 +125,7 @@ function ProductsHeaderImpl({
             onSelect: () =>
               navigate({
                 to: '/products',
-                search: (prev) => ({ ...prev, brand: [b], page: 1 }),
+                search: (prev) => ({ ...prev, brand: [b], q: undefined, page: 1 }),
               }),
           })),
         },
@@ -135,7 +144,8 @@ function ProductsHeaderImpl({
               onSelect: () =>
                 navigate({
                   to: '/products',
-                  search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                  // sort reset: a fresh q defaults to relevance via productsSearchSchema.
+                  search: (prev) => ({ ...prev, q: trimmed, page: 1, sort: undefined }),
                 }),
             },
           ],
@@ -162,7 +172,7 @@ function ProductsHeaderImpl({
           </div>
 
           <div className="products-header__tools">
-            <SortControl value={sort} onChange={onSortChange} compact />
+            <SortControl value={sort} onChange={onSortChange} hasQuery={hasQuery} compact />
             <ButtonLink
               to="/products/new"
               variant="ghost"
@@ -214,7 +224,7 @@ function ProductsHeaderImpl({
           <div className="products-header__search">
             <SearchCombobox
               label="Rechercher un produit"
-              queryFn={productQueries.search}
+              queryFn={(q) => productQueries.search(q, activeTab)}
               toResult={(item) => ({
                 id: item.id,
                 slug: item.slug,
@@ -229,7 +239,8 @@ function ProductsHeaderImpl({
                 if (trimmed.length === 0) return
                 navigate({
                   to: '/products',
-                  search: (prev) => ({ ...prev, q: trimmed, page: 1 }),
+                  // sort reset: a fresh q defaults to relevance via productsSearchSchema.
+                  search: (prev) => ({ ...prev, q: trimmed, page: 1, sort: undefined }),
                 })
               }}
             />

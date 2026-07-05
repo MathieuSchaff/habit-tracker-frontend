@@ -185,12 +185,19 @@ export const productQueries = {
       staleTime: 5 * 60 * 1000,
     }),
 
-  search: (q: string) =>
+  search: (q: string, category?: ProductDomainTab) =>
     infiniteQueryOptions({
-      queryKey: [...productKeys.all, 'search', q] as const,
+      queryKey: [...productKeys.all, 'search', category ?? 'all', q] as const,
       queryFn: async ({ pageParam, signal }: { pageParam: number; signal: AbortSignal }) => {
         const res = await api.products.search.$get(
-          { query: { q, limit: '20', offset: String(pageParam) } },
+          {
+            query: {
+              q,
+              limit: '20',
+              offset: String(pageParam),
+              ...(category ? { category } : {}),
+            },
+          },
           { init: { signal } }
         )
         await throwIfNotOk(res)
@@ -201,7 +208,7 @@ export const productQueries = {
       initialPageParam: 0 as number,
       getNextPageParam: (lastPage): number | undefined =>
         lastPage.hasMore ? lastPage.nextOffset : undefined,
-      enabled: q.length >= 2,
+      // No enabled floor here: SearchCombobox owns gating via minChars.
       staleTime: 30 * 1000,
     }),
 
@@ -219,7 +226,7 @@ export const productQueries = {
         if (!json.success) throw new ApiError('http_error', res.status)
         return json.data.items
       },
-      enabled: q.length >= 2,
+      // No enabled floor here: AsyncSearchSelect owns gating via minChars.
       staleTime: 30 * 1000,
     }),
 
@@ -271,14 +278,16 @@ export const productQueries = {
     })
   },
 
-  brands: () =>
+  brands: (category?: ProductDomainTab) =>
     queryOptions({
-      queryKey: [...productKeys.all, 'brands'] as const,
+      queryKey: [...productKeys.all, 'brands', category ?? 'all'] as const,
       queryFn: async () => {
-        const res = await api.products.brands.$get()
+        const res = await api.products.brands.$get({
+          query: category ? { category } : {},
+        })
         if (!res.ok) throw new ApiError('http_error', res.status)
         const json = await res.json()
-        return json.data as string[]
+        return json.data
       },
       staleTime: 5 * 60 * 1000,
     }),

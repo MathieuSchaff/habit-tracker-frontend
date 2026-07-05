@@ -6,8 +6,8 @@
 //   - `runners/backfill/main.ts` (post-snapshot rehydrate)
 //
 // `tagProduct` from algo-derm (TAG_DEFS_VERSION 7) emits 38 candidate tags.
-// 29 are mapped + kept after calibration (snapshot 2026-05-07, N=1853 products
-// with INCI). The rest drop: they fire on > 50 % of the corpus (`sans-savon`),
+// 29 are mapped + kept after calibration. The rest drop: they fire on too much
+// of the corpus (`sans-savon`),
 // are re-emitted with chemistry-aware gating by a formula pass (`matifiant`,
 // `repulpant`, `eczema-atopie`), are redundant with the actif-class clusters
 // (`keratolytique` → AHA/BHA/RETINOIDS), or are false precision on a claim
@@ -31,111 +31,6 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // Calibration version guard. Fails fast at module load to prevent silent drift
 // when a new algo-derm tarball changes tag semantics. Bump after re-running
 // `just audit-auto-tags` and confirming per-tag floors still hold.
-//
-//   v2 (2026-05-13): MAPPED_TAGS check signature gained NormalizedIngredients
-//                      (ordered + position helpers). Position caps added to
-//                      `comedogene` (top 8), `anti-age` / `pores-sebum` /
-//                      `sebo-regulateur` / `acne-imperfections` / etc. (top 12).
-//   v3 (2026-05-13): `peaux_sensibles` excludes formaldehyde_donor +
-//                      isothiazolinone (parity with peaux_atopiques).
-//                      COMEDOGEN_PATTERNS enriched 4 → 12 (Fulton ≥ 3 list).
-//   v4 (2026-05-13): `peau-mixte` tightened to seborrheicRegulation AND
-//                      hydrating both ≥ 0.4 (was 0.25). No-op for Aurore
-//                      (peau-mixte already absent from TAG_CONFIG → `unmapped`),
-//                      but the version pin must match.
-//   v5 (2026-05-13): Per-axis AXIS_BENEFIT_THRESHOLDS (B3). Uniform 0.35
-//                      replaced by per-axis P85 over Aurore corpus (n=3601):
-//                      soothing 0.20 / hydrating 0.47 / barrierSupport 0.25 /
-//                      antioxidant 0.19 / brightening 0.21 /
-//                      seborrheicRegulation 0.20. Eclat-teint-uniforme 0.30
-//                      override dropped (relation hyperpigmentation ⊃ eclat
-//                      now via active-list branch). Audit hit-rate drift on
-//                      `apaisant` / `anti-oxydant` / `barriere-cutanee` /
-//                      `eclat-teint-uniforme` expected; re-calibrate
-//                      TAG_HIT_RATE_BUDGET after audit.
-//   v6 (2026-05-13): Position-weighted confidence (B2). `anti-age` /
-//                      `purifiant` / `keratolytique` / `repulpant` confidence
-//                      now `min(coverage, 0.9) × positionConfidence(pos, cap)`.
-//                      Runtime impact on Aurore is narrow: only `anti-age`
-//                      reaches gating (confidenceFloor 0.5); `purifiant` is
-//                      `allow:false`, `keratolytique` is unmapped, `repulpant`
-//                      is re-emitted via passes/formula/. Anti-age hit rate
-//                      may dip on products with retinol/vit-C at INCI pos > 5
-//                      (~half confidence); re-baseline budgets if drift.
-//   v7 (2026-05-14): `vegan` + `grossesse_risque` added (pregnancy and vegan
-//                      detection migrated from Aurore formula passes to algo-derm).
-//                      `grossesse-compatible` enriched with formaldehyde_donor
-//                      exclusion. `ProductAssessment.context` exposed; sunscreen
-//                      added to `formulaType` enum. Re-run `just audit-auto-tags`
-//                      and re-baseline TAG_HIT_RATE_BUDGET if hit rates drift.
-//   v8-v10 adopted 2026-05-26 in one reconcile (vendored 0.1.6 jumped v7→v10
-//          unnoticed; the 0.1.6 bump shipped 1b/1c perf but also swept the
-//          un-vendored honest-output + gating changes). Re-baselined budgets
-//          after `DUMP_BUDGETS=1 just audit-auto-tags` on the v10 corpus.
-//   v8: Low-risk/clean computed confidence falls back to coverage when the
-//          risk axis has no drivers (was 0). Clean high-coverage formulas can
-//          now clear the floor for hypoallergenique / peaux_sensibles /
-//          peau-sensible / non-comedogene → those hit rates may rise.
-//   v9: Honest-output contract. Every ProductTag gains `state`
-//          (present|absent|insufficient_data), additive: the consumer reads
-//          `present`/`confidence` only. Tolerance tags masked to present=false
-//          when conf < 0.5 OR coverage < 0.6 (subsumed by Aurore's stricter
-//          0.85/0.7 floors). `grossesse-compatible` is now the strict negation
-//          of `grossesse_risque` + coverage ≥ 0.8; may drop in the 0.75-0.80
-//          coverage band our floor (0.75) used to admit.
-//   v10: Active-claim gating. anti-age / purifiant / keratolytique /
-//          acne-imperfections report present=false on rinse-off (and on AHA/BHA
-//          at pH ≥ 4 / unknown pH). Only anti-age + acne-imperfections are
-//          allow:true here, so their rinse-off hit rate drops: this is the
-//          part of the rinse-off concern FPs algo-derm fixes upstream;
-//          Phase 2 handles the benefit-derived effect tags it doesn't gate.
-//   v11 (2026-05-26): Phase 2 rinse-off effect-tag gating. protection /
-//          anti-oxydant / apaisant / sebo-regulateur report present=false on
-//          rinse-off (benefit-derived effects washed off a cleanser). All four
-//          are allow:true here, so their rinse-off hit rate drops to 0;
-//          re-baselined budgets after `DUMP_BUDGETS=1 just audit-auto-tags`.
-//   v12 (2026-06-12): FP/FN cleanup batch. gateActiveClaim only gates when
-//          the pH-acid carries the claim (BPO/urea keep tag at pH≥4); absence
-//          tags with detected trigger → confidence 0.95 (not coverage-capped);
-//          active-list mapped tags fall back to coverage confidence when no
-//          benefit drivers; urea patterns word-anchored (preservative duos
-//          don't fire keratolytique/deshydratation); vegan space-guarded
-//          (caramel no longer denies via mel pattern). No tag set change →
-//          budgets unchanged; re-baselined to confirm.
-//   v13-v14 (2026-06-13): functional-role tags (`role:humectant` / `emollient`
-//          / `surfactant` / `filmForming` / `occlusive`) emitted as
-//          display/filter metadata, non-scoring. Unmapped in Aurore's
-//          TAG_CONFIG → no-op for the consumer.
-//   v15 (2026-06-13): tolerance tags `peaux_sensibles` / `peaux_atopiques` /
-//          `peau-sensible` gate on the now-discriminant `dryness` axis
-//          (< 0.5, post-ADR-0011). A defatting formula (alcohol/BPO/retinoid)
-//          that slipped under irritation/allergenicity now turns the tolerance
-//          claim absent. One-way conservative (only removes claims). Hit-rate
-//          dip on those three expected; re-baseline TAG_HIT_RATE_BUDGET.
-//   v16 (2026-06-13): dry-skin-suitability tags `peau-seche` (skin-type) and
-//          `deshydratation` (concerns) also gate `dryness < 0.5`. Strong
-//          defatting actives (retinoid/alcohol/AHA) drop the tag even when a
-//          weak hydration benefit fired it; resolves lactic acid humectant-vs-
-//          AHA dual role. `check`-only change (confidence untouched). Larger
-//          flip count than v15; re-baseline both slugs.
-//   v17 (2026-06-13): fix — reverts v15's `dryness` addition to
-//          `lowRiskConfidence` for the three tolerance tags (back to
-//          [irritation, allergenicity]). The dryness axis had zero per-axis
-//          confidence when undriven, collapsing the min and masking gentle
-//          partial-coverage formulas to insufficient_data. v15/v16 `check`
-//          gates stay; tolerance tags wrongly masked report `present` again.
-//   v18-v21 (2026-06-21): re-vendor — scoring decouple (v18) only moves
-//          allow:false tags, duplicate drops (v19 protection, v20 reparateur)
-//          re-emitted by formula passes. No emission change here; documented in
-//          tag-budgets.ts (coverage-gain rebaseline of three minimal-headroom caps).
-//   v22 (2026-06-21): absence tags `sans_sulfates` / `sans_savon` gate on
-//          `context.formulaType` (relevantKinds = cleanser/gentle_cleanser).
-//          On a known leave-on kind the trivially-true `present` claim downgrades
-//          to insufficient_data → dropped here as `not_present`. sans_savon is
-//          allow:false (no-op). sans_sulfates falls on leave-on skincare/solaire
-//          (~2485 emissions), survives on cleanser + undefined-formulaType kinds
-//          (body/lip/deodorant). Re-baseline sans-sulfates caps; CHECK stays
-//          green (max-only caps, no min → a drop never breaches).
 const CALIBRATED_FOR_TAG_DEFS_VERSION = 22
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
@@ -185,72 +80,45 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // gate on chemistry-aware co-presence. Unmapped candidates are dropped: expected,
   // not drift. Boundary rule (map vs re-emit): ADR 0004.
   // Concerns (computed_score)
-  // Unwired (ADR-0004, R5 2026-06-03): algo-derm fires on sebum/exfoliating actives in
-  // the INCI regardless of positioning — P=0.250. Re-emitted by `formula:acne-imperfections-name`
-  // (acne/blemish lexical field) → P=0.857, R=0.750.
+  // algo-derm fires on sebum/exfoliating actives regardless of positioning.
+  // Re-emitted by the formula name pass, which requires acne/blemish wording.
   'acne-imperfections': { auroreSlug: S.ACNE_IMPERFECTIONS, confidenceFloor: 0.5, allow: false },
-  // Unwired (ADR-0004, R5 2026-06-03): algo-derm keys on ubiquitous soothing
-  // actives (allantoin/panthenol) and fires redness on foot creams/toners — gold
-  // set P=0.025. Re-emitted by the positioning pass `formula:rougeurs-vasculaires-name`
-  // (name/claim names a redness condition) → P=0.611, R=1.000.
+  // Redness needs name/claim positioning; ubiquitous soothing actives are too broad.
   'rougeurs-vasculaires': {
     auroreSlug: S.ROUGEURS_VASCULAIRES,
     confidenceFloor: 0.5,
     allow: false,
   },
-  // Unwired (ADR-0004, R5 2026-06-03): algo-derm fires on ubiquitous barrier actives
-  // (ceramides/panthenol) and under-fires — P=0.333, R=0.130. Re-emitted by
-  // `formula:barriere-cutanee-name` (réparateur/barrier positioning) → P=1.000, R=0.783.
+  // Barrier concern needs explicit réparateur/barrier positioning.
   'barriere-cutanee': { auroreSlug: S.BARRIERE_CUTANEE, confidenceFloor: 0.5, allow: false },
-  // Unwired (ADR-0004, R5 2026-06-03): all four fired on brightening / sebum /
-  // humectant actives present in INCI regardless of positioning (P 0.05–0.18).
-  // Re-emitted by name/claim positioning passes (formula:{hyperpigmentation,
-  // eclat-teint,pores-sebum,deshydratation}-name) → P 0.80–0.91. See R5.
+  // These concern tags need name/claim positioning, not just active presence.
   hyperpigmentation: { auroreSlug: S.HYPERPIGMENTATION, confidenceFloor: 0.5, allow: false },
   'eclat-teint-uniforme': { auroreSlug: S.ECLAT_TEINT, confidenceFloor: 0.5, allow: false },
-  // Unwired (ADR-0004, R5 2026-06-03): algo-derm fires on anti-age actives (retinoids,
-  // peptides, vitamin C) across the catalogue regardless of positioning — P=0.310. Re-emitted
-  // by `formula:anti-age-name` (retinoid family + anti-âge/anti-rides claims) → P=0.933, R=0.944.
+  // Anti-age needs explicit positioning; retinoids/peptides/vitamin C alone are too broad.
   'anti-age': { auroreSlug: S.ANTI_AGE, confidenceFloor: 0.5, allow: false },
   'pores-sebum': { auroreSlug: S.PORES_SEBUM, confidenceFloor: 0.5, allow: false },
   deshydratation: { auroreSlug: S.DESHYDRATATION, confidenceFloor: 0.85, allow: false },
 
   // Skin effects
-  // Unwired (ADR-0004, R5 2026-06-03): algo-derm fires on ubiquitous soothing actives
-  // (panthenol/allantoin/centella) — P=0.542, R=0.076. Re-emitted by `formula:apaisant-name`,
-  // a proximity gate (soothing vocab next to a product-type word) → P=1.000, R=0.871.
+  // Soothing actives are too common; the formula pass requires soothing positioning.
   apaisant: { auroreSlug: S.APAISANT, confidenceFloor: 0.5, allow: false },
   'sebo-regulateur': { auroreSlug: S.SEBO_REGULATEUR, confidenceFloor: 0.5, allow: true },
-  // Unwired (2026-06-13, ADR-0004): algo-derm fires on antioxidant actives
-  // (tocopherol, ascorbic, ferulic) present in nearly every emulsion regardless
-  // of positioning — ~1348/4058 products. Its 0.5 confidence floor was a coverage
-  // proxy, not a precision gate (algo-derm benefit confidence is the driver
-  // evidence weight; a single A-evidence tocopherol clears it). Re-emitted by
-  // `formula:anti-oxydant-name` (explicit antioxidant claim + unambiguous heroes).
-  // Also absorbs the antioxidant meaning of the former `protection` candidate
-  // (algo-derm dropped it as a duplicate in TAG_DEFS v19; UV meaning stays on
-  // `formula:protection`). `reparateur` likewise dropped as a `barriere-cutanee`
-  // duplicate in v20 — re-emitted by `formula:reparateur-name`.
+  // Antioxidant actives are common stabilizers; user-facing antioxidant claims
+  // come from explicit positioning or unambiguous hero ingredients.
   'anti-oxydant': { auroreSlug: S.ANTI_OXYDANT, confidenceFloor: 0.5, allow: false },
   // Strict subset of sebo-regulateur trigger (same minus niacinamide): any
   // purifiant product also fires sebo-regulateur. pores-sebum + sebo-regulateur
   // axes cover the ground without redundancy.
   purifiant: { auroreSlug: S.PURIFIANT, confidenceFloor: 1.0, allow: false },
-  // Already surfaced by actif-class (BHA / AHA / RETINOIDS). No Aurore slug;
-  // clinical term off-doctrine. Explicit drop (audit A4).
+  // Already surfaced by actif-class (BHA / AHA / RETINOIDS). No Aurore slug.
   keratolytique: { allow: false },
 
   // peau-mixte excluded: too noisy on neutral hydrators.
   // peaux_sensibles: strict computed variant, excludes sulfate/formaldehyde_donor/
   // isothiazolinone (the mapped peau-sensible tolerates them; axis gate only).
   peaux_sensibles: { auroreSlug: S.PEAU_SENSIBLE, confidenceFloor: 0.5, allow: true },
-  // Unwired (2026-06-13, ADR-0004): the skin-type tags fired off a benefit-axis
-  // confidence inflated corpus-wide by the v13-v17 scoring evolution (dryness floor,
-  // inert-coverage recognition) — peau-grasse 26% / peau-seche 25% of skincare, the
-  // two opposites both firing on half the catalogue = noise, not an audience claim.
-  // No gold set exists for them to calibrate a confidence floor (0 / 1 annotations).
-  // Re-emitted by `formula:peau-grasse-name` / `formula:peau-seche-name` on the
-  // explicit marketed-for phrase in the name (precision ~1.0, conservative recall).
+  // Skin-type tags need explicit marketed-for wording; benefit-axis confidence
+  // makes opposite audiences fire too broadly.
   'peau-grasse': { auroreSlug: S.PEAU_GRASSE, confidenceFloor: 0.85, allow: false },
   'peau-seche': { auroreSlug: S.PEAU_SECHE, confidenceFloor: 0.85, allow: false },
 
@@ -274,8 +142,8 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
     coverageFloor: 0.7,
     allow: true,
   },
-  // Denatured alcohol (not simple ethanol co-solvent) is a chronic drying irritant;
-  // its absence signals for sensitive/atopic skin unlike sans_savon (audit A2).
+  // Denatured alcohol is a chronic drying irritant; its absence matters for
+  // sensitive/atopic skin unlike sans_savon.
   sans_alcool_denature: {
     auroreSlug: S.SANS_ALCOOL_DENATURE,
     coverageFloor: 0.7,
@@ -285,8 +153,8 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   sans_savon: { auroreSlug: S.SANS_SAVON, coverageFloor: 1.0, allow: false },
 
   // Fires on allergenicity.risk < 0.30 + no fragrance/EO/allergen flags.
-  // Reactivated 2026-05-08 (T1.11). Floors require strong axis confidence
-  // and substantial INCI coverage before claiming low allergenicity.
+  // Floors require strong axis confidence and substantial INCI coverage before
+  // claiming low allergenicity.
   hypoallergenique: {
     auroreSlug: S.HYPOALLERGENIQUE,
     confidenceFloor: 0.85,
@@ -318,7 +186,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // INCI absence is not a vegan signal: glycerin/squalane/stearic acid are
   // plant- or animal-derived with identical INCI names; heuristic fired on
   // 81-90 % of corpus. Brand-cert pass is the sole authoritative source for
-  // the vegan slug (audit 2026-05-24).
+  // the vegan slug.
   vegan: { auroreSlug: S.VEGAN, coverageFloor: 0.5, allow: false },
 
   // Explicit avoid signal: fires on retinoids, hydroquinone, formaldehyde donors,
@@ -331,7 +199,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
     allow: true,
   },
 
-  // Leave-on only (§7.6).
+  // Leave-on only.
   comedogene: {
     auroreSlug: S.COMEDOGENE,
     confidenceFloor: 0.85,
@@ -339,8 +207,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
     excludeRinseOff: true,
   },
   // Fires on comedogenicity.risk <= 0.25: emitted on > 60 % of corpus at 0.5.
-  // R3: 0.90/0.60 floors require substantial INCI coverage before claiming
-  // non-comedogenicity (a single humectant in 70 % unknown formula is not enough).
+  // Require substantial INCI coverage before claiming non-comedogenicity.
   'non-comedogene': {
     auroreSlug: S.NON_COMEDOGENE,
     confidenceFloor: 0.9,

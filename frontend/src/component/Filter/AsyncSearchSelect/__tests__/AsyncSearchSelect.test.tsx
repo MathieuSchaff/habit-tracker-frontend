@@ -206,6 +206,21 @@ describe('AsyncSearchSelect — keyboard', () => {
     expect(input.value).toBe('')
   })
 
+  it('Enter commit keeps the combobox open (multi-select)', async () => {
+    const onToggle = vi.fn()
+    const user = userEvent.setup()
+    renderASS(<AsyncSearchSelect {...baseProps} onToggle={onToggle} />)
+
+    const input = screen.getByRole('combobox')
+    await user.type(input, 'nia')
+    await screen.findByRole('option', { name: /Niacinamide/i })
+    await user.keyboard('{ArrowDown}{Enter}')
+
+    expect(onToggle).toHaveBeenCalledWith('niacinamide')
+    // isOpen must survive the commit: the dismiss button only renders while open.
+    expect(screen.getByRole('button', { name: /Fermer la liste/i })).toBeInTheDocument()
+  })
+
   it('Escape closes the dropdown and stops propagation', async () => {
     const onToggle = vi.fn()
     const parentEsc = vi.fn()
@@ -236,6 +251,29 @@ describe('AsyncSearchSelect — keyboard', () => {
     await waitFor(() => {
       expect(screen.queryByRole('option', { name: /Niacinamide/i })).not.toBeInTheDocument()
     })
+  })
+})
+
+describe('AsyncSearchSelect — ARIA', () => {
+  it('wires aria-expanded/aria-controls/aria-activedescendant on the input', async () => {
+    const user = userEvent.setup()
+    renderASS(<AsyncSearchSelect {...baseProps} onToggle={vi.fn()} />)
+
+    const input = screen.getByRole('combobox')
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(input).not.toHaveAttribute('aria-controls')
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+
+    await user.type(input, 'nia')
+    const option = await screen.findByRole('option', { name: /Niacinamide/i })
+    const listbox = screen.getByRole('listbox')
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+    expect(input).toHaveAttribute('aria-controls', listbox.id)
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+
+    await user.keyboard('{ArrowDown}')
+    expect(input).toHaveAttribute('aria-activedescendant', `${listbox.id}-option-0`)
+    expect(option).toHaveAttribute('aria-selected', 'true')
   })
 })
 
@@ -335,7 +373,7 @@ describe('AsyncSearchSelect — click outside', () => {
   })
 })
 
-describe('AsyncSearchSelect — régression positionnement (2026-04-26)', () => {
+describe('AsyncSearchSelect — dropdown positioning regression', () => {
   // Regression: effect deps were `[showDropdown]` only, so it fired before the
   // listbox mounted (ref null, empty coords). `filtered.length` re-triggers it.
   it('sets non-empty inline coords on the dropdown once it shows', async () => {

@@ -8,6 +8,7 @@ import {
   buildResetSearchParams,
   hasActivePriceRange,
   isDiscoveryMode,
+  PRODUCTS_PAGE_SIZE,
 } from '../helpers'
 
 function emptyTagFilters(): FilterValues<FilterKey> {
@@ -88,7 +89,7 @@ describe('buildProductsApiFilters', () => {
     expect(out).toEqual({
       category: 'skincare',
       sort: 'newest',
-      limit: 20,
+      limit: PRODUCTS_PAGE_SIZE,
       page: 1,
       avoid_for: undefined,
     })
@@ -104,7 +105,7 @@ describe('buildProductsApiFilters', () => {
       hasFilters: false,
     })
     expect(out.avoid_for).toEqual(['peau-sensible'])
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
   })
 
   it('switches to paginated mode when filters are active', () => {
@@ -125,7 +126,7 @@ describe('buildProductsApiFilters', () => {
     expect(out.priceMin).toBe(1000)
     expect(out.priceMax).toBe(5000)
     expect(out.page).toBe(2)
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
   })
 
   it('leaves empty tag arrays as undefined', () => {
@@ -209,7 +210,7 @@ describe('buildProductsApiFilters', () => {
       page: 1,
       hasFilters: false,
     })
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
     expect(out.sort).toBe('price_asc')
   })
 
@@ -223,7 +224,7 @@ describe('buildProductsApiFilters', () => {
       page: 1,
       hasFilters: false,
     })
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
     expect(out.priceMin).toBe(500)
   })
 
@@ -250,7 +251,7 @@ describe('buildProductsApiFilters', () => {
       page: 1,
       hasFilters: false,
     })
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
     expect(out.q).toBe('matifiant')
   })
 })
@@ -280,9 +281,9 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
   it('dental: excludes skincare, haircare, and supplement tag keys', () => {
     const filters = emptyTagFilters()
     filters.concern = ['gencives']
-    filters.skin_type = ['peau-grasse'] // skincare — must be excluded
-    filters.hair_type = ['cheveux-boucles'] // haircare — must be excluded
-    filters.goal = ['immunite'] // supplement — must be excluded
+    filters.skin_type = ['peau-grasse'] // skincare, must be excluded
+    filters.hair_type = ['cheveux-boucles'] // haircare, must be excluded
+    filters.goal = ['immunite'] // supplement, must be excluded
     const out = buildProductsApiFilters({
       category: 'dental',
       filters,
@@ -300,9 +301,9 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
   it('complement: excludes skincare, haircare, and dental tag keys', () => {
     const filters = emptyTagFilters()
     filters.goal = ['energie']
-    filters.skin_type = ['peau-grasse'] // skincare — must be excluded
-    filters.hair_type = ['cheveux-fins'] // haircare — must be excluded
-    filters.dental_effect = ['blanchissant'] // dental — must be excluded
+    filters.skin_type = ['peau-grasse'] // skincare, must be excluded
+    filters.hair_type = ['cheveux-fins'] // haircare, must be excluded
+    filters.dental_effect = ['blanchissant'] // dental, must be excluded
     const out = buildProductsApiFilters({
       category: 'complement',
       filters,
@@ -374,7 +375,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
       page: 1,
       hasFilters: false,
     })
-    expect(out.limit).toBe(20)
+    expect(out.limit).toBe(24)
     expect(out.priceMin).toBe(5000)
     expect(out.priceMax).toBe(100)
   })

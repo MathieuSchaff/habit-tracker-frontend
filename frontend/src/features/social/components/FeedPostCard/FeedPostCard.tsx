@@ -57,9 +57,8 @@ function PostAnchors({ post }: { post: FeedItem }) {
   )
 }
 
-// One post in the feed: author + closeness band + tone + anchors + content + entraide
-// reactions. The band reinforces "people like me"; it is the ordinal label, never a
-// score (#1). No counters, no sort-by-reaction.
+// The band reinforces "people like me"; it is a label, never a score.
+// No counters, no sort-by-reaction.
 export function FeedPostCard({ post }: { post: FeedItem }) {
   const bandLabel = SIMILARITY_BAND_LABELS[post.authorBand]
   return (

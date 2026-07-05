@@ -28,10 +28,8 @@ function AuthorName({ author }: { author: SocialPostSurfaceView['author'] }) {
   return <span className="product-posts__author-name">{author.username}</span>
 }
 
-// Deliberate posts anchored to this product (#7/T5). The product is implicit here,
-// so we show author + tone + content, not the product anchor. Self-hides when empty
-// (calme: no empty box on the many products that have no posts yet). No counters,
-// no sort-by-reaction — newest first, server-side.
+// The product is implicit here, so we show author + tone + content.
+// Self-hides when empty. No counters, no reaction-based sorting.
 export function ProductPostsSection({ slug }: { slug: string }) {
   const { data } = useQuery(productQueries.posts(slug))
   const posts = data?.posts ?? []

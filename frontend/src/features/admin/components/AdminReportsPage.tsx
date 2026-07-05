@@ -41,7 +41,7 @@ const TARGET_TO_MODERATE: Record<
 
 export function AdminReportsPage() {
   const [tab, setTab] = useState<ReportTab>('open')
-  // Moderator gets content-only queue, never account PII (ADR-0006 S1).
+  // Moderators get content-only queue, never account PII.
   const isAdmin = useAuthStore((s) => s.role === 'admin')
   const isEscalatedView = tab === 'escalated'
   const statusFilter: ReportStatus | undefined = tab === 'escalated' ? undefined : tab

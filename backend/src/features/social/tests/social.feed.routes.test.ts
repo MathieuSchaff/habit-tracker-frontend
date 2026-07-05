@@ -145,7 +145,7 @@ describe('GET /api/social/feed', () => {
     expect(data.posts.map((p) => p.author.username)).toEqual(['far', 'close'])
   })
 
-  it('orders by similarity on demand — closest authors first, never by reactions (#3)', async () => {
+  it('orders by similarity on demand — closest authors first, never by reactions', async () => {
     const token = await seedViewer()
     const close = await seedPeer('close', SENSITIVE)
     const far = await seedPeer('far', {
@@ -179,7 +179,7 @@ describe('GET /api/social/feed', () => {
     expect(data.posts.map((p) => p.concernSlug).sort()).toEqual(['couperose', 'rosacee'])
   })
 
-  it('ships an ordinal band per item and never a count (ADR-0013 / #1 zéro-chiffre)', async () => {
+  it('ships an ordinal band per item and never a count', async () => {
     const token = await seedViewer()
     const close = await seedPeer('close', SENSITIVE)
     await insertPost(close, { tone: 'principal', concernSlug: 'rosacee', createdAt: ts(10) })

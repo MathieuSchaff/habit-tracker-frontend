@@ -4,10 +4,18 @@ import { PRODUCT_DOMAIN_DB_CATEGORIES, type ProductDomainTab } from './domain-ta
 import { PRODUCT_KINDS } from './kinds'
 
 // Query schema for GET /products. Discriminated on `category` so each domain
-// declares only its own filter keys — prevents e.g. skin_type from leaking into
-// a haircare request. Per-domain keys mirror shared/src/products/{domain}/tag-filters.ts.
+// declares only its own filter keys, so skin_type cannot leak into a haircare
+// request. Per-domain keys mirror shared/src/products/{domain}/tag-filters.ts.
 
-export const PRODUCT_SORT_VALUES = ['name', 'random', 'price_asc', 'price_desc', 'newest'] as const
+// 'relevance' is only meaningful with q; without q the backend falls back to name order.
+export const PRODUCT_SORT_VALUES = [
+  'relevance',
+  'name',
+  'random',
+  'price_asc',
+  'price_desc',
+  'newest',
+] as const
 export const productSortEnum = z.enum(PRODUCT_SORT_VALUES)
 export type ProductSort = z.infer<typeof productSortEnum>
 const sortEnum = productSortEnum

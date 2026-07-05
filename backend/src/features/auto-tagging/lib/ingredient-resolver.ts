@@ -1,7 +1,7 @@
 // Shared helper for detectors that need a normalized INCI ingredient array.
 //
 // `hoisted` allows the orchestrator to share a single splitINCI result across
-// all passes (audit O3 D.3). When omitted, falls back to splitting locally
+// all passes. When omitted, falls back to splitting locally
 // for test/runner callers that don't hoist.
 
 import { normalize, splitINCI, stripPreamble } from 'algo-derm'

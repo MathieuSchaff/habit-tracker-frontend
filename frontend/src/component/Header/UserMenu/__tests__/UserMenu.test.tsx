@@ -106,8 +106,7 @@ describe('UserMenu', () => {
     expect(mutate).toHaveBeenCalledTimes(1)
   })
 
-  // ADR-0006 S1: « Modération » reaches admin AND contributor (« modérateur »),
-  // and points at /admin/reports (the moderator's landing; /admin/users is admin-only).
+  // « Modération » reaches admins and contributors, and points at the reports queue.
   it('shows the Modération link to /admin/reports for an admin', () => {
     setAuthStore({ accessToken: 'tok', role: 'admin' })
     render(<UserMenu />)

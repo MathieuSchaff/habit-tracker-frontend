@@ -1,5 +1,5 @@
 // Groups focus tags by pipeline layer for per-layer coverage reporting.
-// An uncovered layer (0 focus tags) surfaces as a gold-set expansion target (§20 piste f).
+// An uncovered layer surfaces as a gold-set expansion target.
 // Layers map onto AutoTagSource: 'brand-cert' corresponds to source 'brand', the rest identical.
 
 import { type GoldSetFocusTag, isGoldSetFocusTag } from './fixtures'
@@ -31,7 +31,7 @@ export const FOCUS_TAG_LAYER = {
   'eczema-atopie': 'formula',
   'reparation-cutanee': 'formula',
   'cernes-poches': 'formula',
-  // Re-emitted by formula name/claim positioning passes since R5 (algo-derm unwired).
+  // Re-emitted by formula name/claim positioning passes.
   'rougeurs-vasculaires': 'formula',
   hyperpigmentation: 'formula',
   'eclat-teint-uniforme': 'formula',

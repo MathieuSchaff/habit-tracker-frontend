@@ -1,4 +1,4 @@
-// Unit coverage for the Pass interface foundation (ADR-0001 slice #1).
+// Unit coverage for the Pass interface foundation (ADR-0001).
 //
 // Targets `lib/pass-helpers.ts` (asProposals, priorSlugsBySource, priorSlugSet)
 // and `lib/merge.ts` (mergeProposal, primaryPromote). Orchestrator integration

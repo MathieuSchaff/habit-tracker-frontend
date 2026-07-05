@@ -1,4 +1,4 @@
-// Pure metric primitives for the gold-set benchmark (audit O2).
+// Pure metric primitives for the gold-set benchmark.
 // Separated from the runner to allow DB-free unit tests.
 //
 // Conventions:

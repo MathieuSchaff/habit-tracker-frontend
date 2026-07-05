@@ -4,14 +4,13 @@ import { matchesNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Positioning gate for `apaisant` (re-emits an algo-derm slug, ADR-0004, R5).
+// Positioning gate for `apaisant` (re-emits an algo-derm slug, ADR-0004).
 // algo-derm fires on ubiquitous soothing actives (panthenol, allantoin, centella)
-// present in nearly every gentle product — P=0.542, R=0.076 (under-fires). But bare
-// "apaisant" is as generic as "hydratant" was: it appears in boilerplate ingredient
+// present in nearly every gentle product. But bare "apaisant" is as generic as
+// "hydratant": it appears in boilerplate ingredient
 // copy on products positioned for something else entirely. The gate is a PROXIMITY
 // gate — soothing vocab must sit within 3 tokens of a product-type word (either order),
-// i.e. the product names itself as soothing care — OR explicit anti-redness positioning.
-// Gold set: P 0.542→1.000, R 0.076→0.871.
+// i.e. the product names itself as soothing care, or explicit anti-redness positioning.
 const PRODUCT_TYPE =
   'soin|cr[eè]me|cream|gel|baume|balm|lotion|fluide|s[eé]rum|serum|masque|mask|tonique|toner|pad|ampoule|brume|mist|spray|patch|huile|lait|wash|pack|essence'
 const SOOTHE = 'apais|soothing|calming|calmant'

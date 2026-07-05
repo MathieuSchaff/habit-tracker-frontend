@@ -1,5 +1,6 @@
 import {
   createProductSchema,
+  distinctBrandsQuery,
   HTTP_STATUS,
   listProductsQuery,
   ok,
@@ -64,7 +65,7 @@ const slugPreviewQuery = z.object({
 
 const productsApp = new Hono<AppEnv>()
 
-// One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
+// One guard per use(): nesting swallows the short-circuit 403 and turns it into a "Context not finalized" 500.
 productsApp.use('*', async (c, next) => {
   return c.req.method === 'GET' ? optionalJwtAuth(c, next) : requireJwtAuth(c, next)
 })
@@ -86,9 +87,10 @@ export const productRoutes = productsApp
     }
   )
   // Must precede /:slug or the slug route captures this path.
-  .get('/brands', async (c) => {
+  .get('/brands', zValidator('query', distinctBrandsQuery), async (c) => {
     const db = c.get('db')
-    const brands = await getDistinctBrands(db)
+    const { category } = c.req.valid('query')
+    const brands = await getDistinctBrands(db, category)
     return c.json(ok(brands), HTTP_STATUS.OK)
   })
   .get('/check-duplicate', zValidator('query', checkDuplicateQuery), async (c) => {
@@ -105,8 +107,8 @@ export const productRoutes = productsApp
   })
   .get('/search', zValidator('query', searchProductsQuery), async (c) => {
     const db = c.get('db')
-    const { q, limit, offset } = c.req.valid('query')
-    const result = await searchProducts({ q, limit, offset }, db)
+    const { q, limit, offset, category } = c.req.valid('query')
+    const result = await searchProducts({ q, limit, offset, category }, db)
     return c.json(ok(result), HTTP_STATUS.OK)
   })
   .get('/by-ids', zValidator('query', productsByIdsQuery), async (c) => {
@@ -121,7 +123,7 @@ export const productRoutes = productsApp
     const db = c.get('db')
     const { ids } = c.req.valid('query')
     const userId = c.get('userId') ?? null
-    // Token not yet present (anonymous boot) → nothing to read; return an empty overlay.
+    // Token not yet present (anonymous boot) means nothing to read; return an empty overlay.
     const rows = userId ? await getShelfStatusByProductIds(db, userId, ids) : []
     return c.json(
       ok(rows.map((r) => ({ productId: r.productId, userStatus: r.status }))),
@@ -178,8 +180,8 @@ export const productRoutes = productsApp
     return c.json(ok(result), HTTP_STATUS.OK)
   })
 
-  // Deliberate posts anchored to this product (#7/T5). Visible only; the author
-  // /u link is gated client-side by author.profilePublic. No feed amplification.
+  // Product posts stay anchored here; the feed does not amplify them from this route.
+  // The /u link is gated client-side by author.profilePublic.
   .get('/:slug/posts', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
     const { slug } = c.req.valid('param')

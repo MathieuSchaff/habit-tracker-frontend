@@ -9,7 +9,7 @@ const collectionSearchSchema = z.object({
     .default('name'),
   brand: z.string().default('all'),
   // Auto-derived TYPE_* tag from products.kind via detectKindPrimaryType.
-  // Replaces the legacy raw `kind` filter (25 heterogeneous values) - ROADMAP §5 P2.
+  // Replaces the legacy raw `kind` filter with too many heterogeneous values.
   productType: z.string().default('all'),
   sentiment: z.coerce.number().int().min(1).max(5).or(z.literal('all')).default('all'),
   repurchase: z.enum(['yes', 'no', 'unsure', 'all']).default('all'),

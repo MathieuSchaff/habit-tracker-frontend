@@ -25,8 +25,7 @@ interface ShelfTabsProps {
 
 const HOLY_GRAIL_COLOR = 'var(--status-color-holy-grail)'
 const REPURCHASE_COLOR = 'var(--status-color-repurchase)'
-// Negative-framing statuses (archived, avoided) are neutral in the dropdown: personal decisions
-// shouldn't carry a warning color (anti-patterns.md #18).
+// Archived and avoided are personal decisions, so they stay visually neutral.
 const NEUTRAL_SECONDARY_COLOR = 'var(--text-muted)'
 
 export function ShelfTabs({

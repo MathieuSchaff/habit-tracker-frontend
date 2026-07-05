@@ -5,12 +5,11 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // Positioning gate for `rougeurs-vasculaires` (re-emits an algo-derm slug, ADR-0004).
 // algo-derm keys on ubiquitous soothing actives (allantoin/panthenol in the top, or
 // any soothing + low-irritation product), so it fires the vascular-redness concern
-// on foot creams, toners, deodorant — P=0.025 on the gold set. The redness
+// on foot creams, toners, deodorant. The redness
 // *positioning* lives in the product name/description, which algo-derm never sees.
 // This pass emits only when the product names a redness condition and is not
-// color-correcting makeup. Measured on the gold set: P 0.025→0.550, R 0.091→1.000
-// (R5, 2026-06-03). The residual FP (generic centella soothing, azelaic exfoliants)
-// are the genuine incidental-claim-vs-lead-positioning boundary, left uncut.
+// color-correcting makeup. Generic centella soothing and azelaic exfoliants are
+// left as incidental-claim-vs-lead-positioning boundaries.
 const REDNESS_POSITION_RE = /rougeur|rosac|couperos|\bflush|redness/i
 
 // Color-correcting / camouflage makeup (green primers, CC creams, tone-up) neutralizes

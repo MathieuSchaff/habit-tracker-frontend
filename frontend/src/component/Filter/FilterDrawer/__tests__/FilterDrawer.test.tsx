@@ -391,10 +391,9 @@ describe('FilterDrawer — async child does not block the drawer', () => {
   })
 })
 
-// Regression guards for the §5.2 "Maximum update depth" loop: emit-on-effect
-// + unmemoised parent currentFilters ping-ponged forever. Fix moved emit into
-// commitLocal (user-action only).
-describe('FilterDrawer — feedback loop guards (regression §5.2)', () => {
+// Guards the "Maximum update depth" loop: emit-on-effect + unmemoised parent
+// currentFilters ping-ponged forever. Emit only on user action.
+describe('FilterDrawer — feedback loop guards', () => {
   it('does not call onLocalFiltersChange just by opening', () => {
     const onChange = vi.fn()
     render(

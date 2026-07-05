@@ -1,10 +1,16 @@
-import { ChevronDown, X } from 'lucide-react'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { foldText } from '@/component/Search/text-fold'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
+import { useScrollActiveOptionIntoView } from '@/hooks/useScrollActiveOptionIntoView'
+import { DismissButton } from '../AsyncSearchSelect/DismissButton'
+import { Listbox } from '../AsyncSearchSelect/Listbox'
+import { SelectedChips } from '../AsyncSearchSelect/SelectedChips'
+import { useComboboxKeyboard } from '../AsyncSearchSelect/useComboboxKeyboard'
+import { ComboboxTextInput } from '../ComboboxTextInput'
 import type { FilterOption } from '../types'
+import { useAnnouncement } from '../useAnnouncement'
 
 import './SearchSelect.css'
 
@@ -28,12 +34,7 @@ export function SearchSelect({
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [announcement, setAnnouncement] = useState('')
-  useEffect(() => {
-    if (!announcement) return
-    const timer = setTimeout(() => setAnnouncement(''), 1000)
-    return () => clearTimeout(timer)
-  }, [announcement])
+  const [announcement, setAnnouncement] = useAnnouncement()
   const clickOutsideContainer = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -67,54 +68,32 @@ export function SearchSelect({
     }
   }
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          if (!isOpen) {
-            setIsOpen(true)
-            setActiveIndex(0)
-          } else {
-            setActiveIndex((prev) => (prev < filtered.length - 1 ? prev + 1 : prev))
-          }
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1))
-          if (activeIndex === 0) {
-            inputRef.current?.focus()
-          }
-          break
-        case 'Enter':
-          e.preventDefault()
-          if (isOpen && activeIndex >= 0 && filtered[activeIndex]) {
-            setAnnouncement(`${filtered[activeIndex].label} ajouté`)
-            onToggle(filtered[activeIndex].value)
-            setQuery('')
-            setActiveIndex(-1)
-          } else {
-            setIsOpen(true)
-          }
-          break
-        case 'Escape':
-          // First Escape closes the dropdown; a second bubbles up and closes the dialog.
-          if (isOpen) {
-            e.preventDefault()
-            e.stopPropagation()
-            setIsOpen(false)
-            setActiveIndex(-1)
-            inputRef.current?.focus()
-          }
-          break
-        case 'Tab':
-          setIsOpen(false)
-          setActiveIndex(-1)
-          break
-      }
+  const dismiss = useCallback(() => {
+    setIsOpen(false)
+    setQuery('')
+    setActiveIndex(-1)
+    inputRef.current?.focus()
+  }, [])
+
+  const commitOption = useCallback(
+    (opt: FilterOption) => {
+      setAnnouncement(`${opt.label} ajouté`)
+      onToggle(opt.value)
+      setQuery('')
+      setActiveIndex(-1)
     },
-    [isOpen, activeIndex, filtered, onToggle]
+    [onToggle, setAnnouncement]
   )
+
+  const handleKeyDown = useComboboxKeyboard({
+    isOpen,
+    setIsOpen,
+    activeIndex,
+    setActiveIndex,
+    filtered,
+    inputRef,
+    onSelect: commitOption,
+  })
 
   useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen, [], '.filter-drawer__body')
 
@@ -124,114 +103,46 @@ export function SearchSelect({
     setActiveIndex(-1)
   })
 
-  useEffect(() => {
-    if (activeIndex >= 0 && isOpen) {
-      const element = document.getElementById(`${listboxId}-option-${activeIndex}`)
-      element?.scrollIntoView({ block: 'nearest' })
-    }
-  }, [activeIndex, isOpen, listboxId])
+  useScrollActiveOptionIntoView(activeIndex, isOpen, listboxId)
 
   return (
     <div className="search-select">
-      {selectedOptions.length > 0 && (
-        <div className="search-select__selected">
-          {selectedOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className="chip chip--sm chip--active chip--removable"
-              onClick={() => onToggle(opt.value)}
-              aria-label={`Retirer ${opt.label}`}
-            >
-              {opt.label}
-              <X size={12} aria-hidden="true" />
-            </button>
-          ))}
-        </div>
-      )}
+      <SelectedChips options={selectedOptions} onRemove={onToggle} />
       <div ref={clickOutsideContainer}>
         <div className="search-select__input-wrapper">
-          <input
-            ref={inputRef}
-            type="text"
-            className="search-select__input"
-            placeholder={placeholder ?? 'Rechercher...'}
+          <ComboboxTextInput
+            inputRef={inputRef}
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
+            placeholder={placeholder}
+            label={label}
+            ariaLabelledBy={ariaLabelledBy}
+            listboxId={listboxId}
+            activeIndex={activeIndex}
+            expanded={isOpen}
+            onChange={(v) => {
+              setQuery(v)
               setIsOpen(true)
               setActiveIndex(-1)
             }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={isOpen}
-            aria-controls={isOpen ? listboxId : undefined}
-            aria-activedescendant={
-              activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
-            }
-            aria-label={ariaLabelledBy ? undefined : label}
-            aria-labelledby={ariaLabelledBy}
           />
-          {isOpen && (
-            <button
-              type="button"
-              className="search-select__dismiss"
-              onMouseDown={(e) => {
-                // preventDefault on mousedown so the input doesn't blur before click fires.
-                e.preventDefault()
-                setIsOpen(false)
-                setQuery('')
-                setActiveIndex(-1)
-                inputRef.current?.focus()
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setIsOpen(false)
-                  setQuery('')
-                  setActiveIndex(-1)
-                  inputRef.current?.focus()
-                }
-              }}
-              aria-label="Fermer la liste"
-            >
-              <ChevronDown size={14} aria-hidden="true" style={{ transform: 'rotate(180deg)' }} />
-            </button>
-          )}
+          {isOpen && <DismissButton onDismiss={dismiss} />}
         </div>
 
         {isOpen && filtered.length > 0 && (
-          <div
+          <Listbox
             ref={dropdownRef}
             id={listboxId}
-            className="search-select__dropdown"
-            role="listbox"
-            aria-label={`Suggestions pour ${label}`}
+            label={label}
+            filtered={filtered}
+            activeIndex={activeIndex}
             onScroll={handleScroll}
-          >
-            {filtered.map((opt, index) => (
-              // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard nav is on the combobox input via aria-activedescendant
-              <div
-                key={opt.value}
-                role="option"
-                id={`${listboxId}-option-${index}`}
-                aria-selected={index === activeIndex}
-                tabIndex={-1}
-                className={`search-select__option-wrapper ${index === activeIndex ? 'search-select__option--active' : ''}`}
-                onClick={() => {
-                  setAnnouncement(`${opt.label} ajouté`)
-                  onToggle(opt.value)
-                  setQuery('')
-                  setActiveIndex(-1)
-                  inputRef.current?.focus()
-                }}
-              >
-                <span className="search-select__option">{opt.label}</span>
-              </div>
-            ))}
-          </div>
+            onSelect={(opt) => {
+              commitOption(opt)
+              inputRef.current?.focus()
+            }}
+          />
         )}
 
         {isOpen && query && filtered.length === 0 && (

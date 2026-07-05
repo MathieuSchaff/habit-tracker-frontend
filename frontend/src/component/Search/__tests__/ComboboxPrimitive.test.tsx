@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ComboboxPrimitive } from '../ComboboxPrimitive'
+import { useCombobox } from '../useCombobox'
 
 type Item = { id: string; label: string }
 
@@ -12,44 +13,71 @@ const ITEMS_AB: Item[] = [
   { id: 'b', label: 'Bravo' },
 ]
 
-// Driver harness: ComboboxPrimitive is uncontrolled re: highlightedIndex; tests
-// drive it via local state so we can assert internal keyboard handling.
+type HarnessProps = {
+  items?: Item[]
+  isOpen?: boolean
+  inputValue?: string
+  onSelect?: (item: Item) => void
+  onClose?: () => void
+  onKeyDown?: (e: React.KeyboardEvent) => void
+  isLoading?: boolean
+  isError?: boolean
+  onRetry?: () => void
+  footer?: React.ReactNode
+  hasMore?: boolean
+  onLoadMore?: () => void
+  isLoadingMore?: boolean
+}
+
+// Driver harness: state and keyboard live in useCombobox; tests exercise them
+// through the primitive with real keyboard events.
 function Harness({
   items = ITEMS_AB,
   isOpen = true,
-  ...overrides
-}: Partial<React.ComponentProps<typeof ComboboxPrimitive<Item>>> & {
-  items?: Item[]
-  isOpen?: boolean
-}) {
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  inputValue = 'ab',
+  onSelect,
+  onClose,
+  onKeyDown,
+  isLoading,
+  isError,
+  onRetry,
+  footer,
+  hasMore,
+  onLoadMore,
+  isLoadingMore,
+}: HarnessProps) {
+  const combobox = useCombobox<Item>({
+    items,
+    onSelect: onSelect ?? (() => {}),
+    onClose,
+    onKeyDown,
+    isLoading,
+    isError,
+  })
+  const { open, close } = combobox
+  // Tests declare the dropdown state via the isOpen prop; map it onto the hook intent.
+  useEffect(() => {
+    if (isOpen) open()
+    else close()
+  }, [isOpen, open, close])
   return (
     <ComboboxPrimitive<Item>
-      items={items}
-      isOpen={isOpen}
-      onClose={overrides.onClose ?? vi.fn()}
-      onSelect={overrides.onSelect ?? vi.fn()}
+      combobox={combobox}
+      inputValue={inputValue}
+      onRetry={onRetry}
+      footer={footer}
+      hasMore={hasMore}
+      onLoadMore={onLoadMore}
+      isLoadingMore={isLoadingMore}
       renderItem={(item) => <span>{item.label}</span>}
       keyExtractor={(item) => item.id}
-      highlightedIndex={overrides.highlightedIndex ?? highlightedIndex}
-      setHighlightedIndex={overrides.setHighlightedIndex ?? setHighlightedIndex}
-      inputValue={overrides.inputValue ?? 'ab'}
-      onKeyDown={overrides.onKeyDown}
-      footer={overrides.footer}
-      hasMore={overrides.hasMore}
-      onLoadMore={overrides.onLoadMore}
-      isLoadingMore={overrides.isLoadingMore}
-      isLoading={overrides.isLoading}
-      isError={overrides.isError}
-      onRetry={overrides.onRetry}
-      sections={overrides.sections}
     >
       {({ listboxId, activeDescendant }) => (
         <input
           type="text"
           role="combobox"
           aria-label="Test"
-          aria-expanded={isOpen}
+          aria-expanded={combobox.isOpen}
           aria-controls={listboxId}
           aria-activedescendant={activeDescendant}
           aria-autocomplete="list"
@@ -169,16 +197,17 @@ describe('ComboboxPrimitive — IntersectionObserver infinite scroll', () => {
 })
 
 describe('ComboboxPrimitive — scrollIntoView on highlight change', () => {
-  it('scrolls the active option into view when highlightedIndex changes', () => {
+  it('scrolls the active option into view when the highlight moves', async () => {
     const scrollSpy = vi.fn()
     // jsdom does not implement scrollIntoView; stub it.
     Element.prototype.scrollIntoView =
       scrollSpy as unknown as typeof Element.prototype.scrollIntoView
 
-    const { rerender } = render(<Harness highlightedIndex={-1} setHighlightedIndex={vi.fn()} />)
+    render(<Harness />)
     expect(scrollSpy).not.toHaveBeenCalled()
 
-    rerender(<Harness highlightedIndex={1} setHighlightedIndex={vi.fn()} />)
+    screen.getByRole('combobox').focus()
+    await userEvent.keyboard('{ArrowDown}')
     expect(scrollSpy).toHaveBeenCalled()
   })
 })
@@ -200,43 +229,159 @@ describe('ComboboxPrimitive — footer prop', () => {
 
 describe('ComboboxPrimitive — onKeyDown parent intercept', () => {
   it('short-circuits internal switch when parent onKeyDown calls preventDefault', async () => {
-    const setHighlightedIndex = vi.fn()
     const parentOnKeyDown = vi.fn((e: React.KeyboardEvent) => {
       // Parent claims the event (e.g. Tab handling).
       e.preventDefault()
     })
-    render(
-      <Harness
-        onKeyDown={parentOnKeyDown}
-        setHighlightedIndex={setHighlightedIndex}
-        highlightedIndex={-1}
-      />
-    )
+    render(<Harness onKeyDown={parentOnKeyDown} />)
     const input = screen.getByRole('combobox')
     input.focus()
     await userEvent.keyboard('{ArrowDown}')
 
     expect(parentOnKeyDown).toHaveBeenCalled()
-    // Internal switch must not have run: highlightedIndex setter stays untouched.
-    expect(setHighlightedIndex).not.toHaveBeenCalled()
+    // Internal switch must not have run: nothing gets highlighted.
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+    expect(screen.queryAllByRole('option', { selected: true })).toHaveLength(0)
   })
 
   it('runs the internal switch when parent onKeyDown does NOT preventDefault', async () => {
-    const setHighlightedIndex = vi.fn()
     const parentOnKeyDown = vi.fn() // no preventDefault
-    render(
-      <Harness
-        onKeyDown={parentOnKeyDown}
-        setHighlightedIndex={setHighlightedIndex}
-        highlightedIndex={-1}
-      />
-    )
+    render(<Harness onKeyDown={parentOnKeyDown} />)
     const input = screen.getByRole('combobox')
     input.focus()
     await userEvent.keyboard('{ArrowDown}')
 
     expect(parentOnKeyDown).toHaveBeenCalled()
-    expect(setHighlightedIndex).toHaveBeenCalledWith(0)
+    expect(input).toHaveAttribute('aria-activedescendant')
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true')
+  })
+})
+
+describe('ComboboxPrimitive — loading-state a11y', () => {
+  it('ignores arrow nav while loading — no dangling aria-activedescendant', async () => {
+    render(<Harness isLoading />)
+    const input = screen.getByRole('combobox')
+    input.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+  })
+
+  it('clears aria-activedescendant if loading starts with a residual highlight', async () => {
+    const { rerender } = render(<Harness />)
+    const input = screen.getByRole('combobox')
+    input.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(input).toHaveAttribute('aria-activedescendant')
+
+    rerender(<Harness isLoading />)
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+  })
+
+  it('Escape still closes while loading', async () => {
+    const onClose = vi.fn()
+    render(<Harness isLoading onClose={onClose} />)
+    screen.getByRole('combobox').focus()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('suppresses the result-count live region while loading', () => {
+    render(<Harness isLoading />)
+    expect(screen.queryByText(/résultats disponibles/)).not.toBeInTheDocument()
+  })
+})
+
+describe('ComboboxPrimitive — empty-state a11y', () => {
+  // The empty-state <output> already announces; the count live region must not
+  // speak over it nor advertise arrow keys that no-op with zero entries.
+  it('suppresses the result-count live region when there are no results', () => {
+    render(<Harness items={[]} inputValue="xyz" />)
+    expect(screen.queryByText(/résultats disponibles/)).not.toBeInTheDocument()
+  })
+})
+
+describe('ComboboxPrimitive — Escape propagation', () => {
+  it('stops Escape while open; a second Escape reaches the parent (dialog peel)', () => {
+    const onClose = vi.fn()
+    const parentEsc = vi.fn()
+    render(
+      // biome-ignore lint/a11y/noStaticElementInteractions: test wrapper to assert Escape propagation is stopped
+      <div onKeyDown={(e) => e.key === 'Escape' && parentEsc()}>
+        <Harness onClose={onClose} />
+      </div>
+    )
+    const input = screen.getByRole('combobox')
+
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(parentEsc).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(parentEsc).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ComboboxPrimitive — keyboard wrap', () => {
+  it('ArrowDown on the last option wraps to the first, ArrowUp on the first wraps to the last', () => {
+    render(<Harness />)
+    const input = screen.getByRole('combobox')
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-0'))
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    expect(input).toHaveAttribute('aria-activedescendant', expect.stringContaining('-option-1'))
+  })
+})
+
+describe('ComboboxPrimitive — IME composition', () => {
+  it('ignores Enter while composing: no select, nothing forwarded to the parent', () => {
+    const onSelect = vi.fn()
+    const onKeyDown = vi.fn()
+    render(<Harness onSelect={onSelect} onKeyDown={onKeyDown} />)
+    const input = screen.getByRole('combobox')
+
+    // Highlight Bravo (index 1) through real keyboard nav, then reset the parent spy.
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    onKeyDown.mockClear()
+
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(onKeyDown).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onSelect).toHaveBeenCalledWith(ITEMS_AB[1])
+  })
+})
+
+describe('ComboboxPrimitive — load-more status announcement', () => {
+  let originalIO: typeof IntersectionObserver | undefined
+
+  beforeEach(() => {
+    originalIO = window.IntersectionObserver
+    class MockIO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords(): IntersectionObserverEntry[] {
+        return []
+      }
+    }
+    window.IntersectionObserver = MockIO as unknown as typeof IntersectionObserver
+  })
+
+  afterEach(() => {
+    if (originalIO) window.IntersectionObserver = originalIO
+  })
+
+  it('exposes the load-more Chargement… as role=status (not under aria-hidden)', () => {
+    render(<Harness hasMore isLoadingMore />)
+    expect(screen.getByRole('status')).toHaveTextContent('Chargement…')
   })
 })
 

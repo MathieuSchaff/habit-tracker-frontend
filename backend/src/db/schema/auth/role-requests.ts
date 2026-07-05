@@ -12,7 +12,7 @@ export const roleRequestStatusEnum = pgEnum('role_request_status', [
   'cancelled',
 ])
 
-// Self-service requests to become a contributor (#16b). Only contributor is requestable
+// Self-service requests to become a contributor. Only contributor is requestable
 // (admin is never self-service), so there is no target-role column. tenantPolicies gives
 // the owner CRUD on their own rows and admins full read/write; contributors get nothing
 // here — granting the role is an account-elevation decision, admin-only.

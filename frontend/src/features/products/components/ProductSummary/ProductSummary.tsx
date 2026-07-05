@@ -14,9 +14,8 @@ function joinFr(items: string[]): string {
   return `${items.slice(0, -1).join(', ')} et ${items[items.length - 1]}`
 }
 
-// At a Glance (design-system §2): a neutral, one-line read of the product —
-// kind plus the functional ingredient groups present. Derived from data, never a
-// score, warning, or recommendation.
+// Neutral one-line read of the product: kind plus functional ingredient groups.
+// Derived from data, never a score, warning, or recommendation.
 export function ProductSummary({ kind, categories }: ProductSummaryProps) {
   const groups = summarizeIngredientGroups(categories)
   const kindLabel = kind ? getProductKindLabel(kind) : null

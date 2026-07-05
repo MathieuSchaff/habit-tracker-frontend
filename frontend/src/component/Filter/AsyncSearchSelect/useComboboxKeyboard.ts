@@ -23,6 +23,9 @@ export function useComboboxKeyboard({
 }: Args) {
   return useCallback(
     (e: React.KeyboardEvent) => {
+      // Enter while composing (IME, predictive keyboards) only commits the composition;
+      // it must never toggle an option nor reset the query.
+      if (e.key === 'Enter' && (e.nativeEvent.isComposing || e.keyCode === 229)) return
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault()
@@ -35,7 +38,7 @@ export function useComboboxKeyboard({
           break
         case 'ArrowUp':
           e.preventDefault()
-          setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1))
+          setActiveIndex(activeIndex > 0 ? activeIndex - 1 : -1)
           if (activeIndex === 0) inputRef.current?.focus()
           break
         case 'Enter':

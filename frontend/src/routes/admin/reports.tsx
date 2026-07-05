@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth'
 export const Route = createFileRoute('/admin/reports')({
   // users() is reporter/target PII enrichment, admin-only (403 for a moderator).
   // prefetchQuery, not ensureQueryData: a failed enrichment fetch must degrade in-page
-  // (AdminReportsPage reads it via useQuery, `?? []`), not kill the reports queue (ADR-0006 S1).
+  // (AdminReportsPage reads it via useQuery, `?? []`), not kill the reports queue.
   loader: ({ context }) => {
     const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(adminQueries.reports('open')),

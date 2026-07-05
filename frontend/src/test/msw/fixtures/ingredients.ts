@@ -16,8 +16,9 @@ export type IngredientSearchHit = {
 // /api/ingredients/by-slugs returns only { slug, name }.
 export type IngredientBySlug = { slug: string; name: string }
 
-// 10 ingredients chosen to exercise search overlap (niacinamide vs niacin-pca),
-// resolve-by-slugs, and category diversity.
+// Ingredients chosen to exercise search overlap (niacinamide vs niacin-pca),
+// resolve-by-slugs, category diversity, and cross-domain leak (ceramide
+// skincare vs haircare).
 export const INGREDIENTS: IngredientSearchHit[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
@@ -88,6 +89,20 @@ export const INGREDIENTS: IngredientSearchHit[] = [
     slug: 'matrixyl-3000',
     type: 'skincare',
     category: 'actif',
+  },
+  {
+    id: '00000000-0000-0000-0000-00000000000b',
+    name: 'Céramide NP',
+    slug: 'ceramide-np',
+    type: 'skincare',
+    category: 'emollient',
+  },
+  {
+    id: '00000000-0000-0000-0000-00000000000c',
+    name: 'Céramide 2',
+    slug: 'ceramide-2-hair',
+    type: 'haircare',
+    category: null,
   },
 ]
 

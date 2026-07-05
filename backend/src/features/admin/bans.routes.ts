@@ -34,10 +34,8 @@ const banIdParam = z.object({ banId: z.uuid() })
 // Blanket guards (rate limit/JWT/not-banned/RLS) via applyAuthedGuards.
 // Authz is per-route, not blanket: this router mounts at '/api/admin', a prefix
 // shared with moderation/reports, so a blanket authz guard would leak onto those siblings
-// and block contributor-reachable routes (Hono co-mount trap, ADR-0006 S1).
-// ADR-0006 S4: contributors handle content-scoped bans (scope !== 'global') via
-// requireContentModerator + an in-handler scope gate; 'global' lockout and admin
-// tools stay requireAdmin.
+// and block contributor-reachable routes.
+// Contributors handle content-scoped bans; global lockout and admin tools stay admin-only.
 const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const adminBansRoutes = app

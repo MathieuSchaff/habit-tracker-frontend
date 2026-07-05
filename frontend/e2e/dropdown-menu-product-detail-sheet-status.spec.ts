@@ -2,10 +2,8 @@ import { expect, test } from '@playwright/test'
 
 import { loginAsSeed } from './helpers/auth'
 
-// Oracle pour les findings D1 (portal vers <dialog open> top layer), D2
-// (itemsRef survit aux re-renders), D3 (Escape menu ne ferme pas la Sheet),
-// D15 (focus return même si trigger reparent éventuellement).
-// Site #1 du composant DropdownMenu — celui qui a déclenché l'audit 2026-05-20.
+// Covers the fragile DropdownMenu-in-Sheet path: portal layer, re-renders,
+// Escape handling, and focus return.
 
 test.beforeEach(async ({ page }) => {
   await loginAsSeed(page)

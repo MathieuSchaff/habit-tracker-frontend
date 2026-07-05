@@ -17,8 +17,7 @@ import {
 
 import './CollectionFiltersSheet.css'
 
-// Tiers mirror card-corner thresholds (gold/rare/good) without exposing the raw /20 score,
-// per design-system.md "no product scores" rule.
+// Tiers mirror card-corner thresholds without exposing the raw /20 score.
 const NOTE_TIERS: { value: number; label: string }[] = [
   { value: 0, label: 'Toutes' },
   { value: SCORE_THRESHOLDS.good, label: 'Bonne' },

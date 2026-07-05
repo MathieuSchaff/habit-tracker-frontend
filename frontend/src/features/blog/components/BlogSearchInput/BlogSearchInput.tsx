@@ -16,6 +16,9 @@ export function BlogSearchInput({ value, placeholder, onChange }: Props) {
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         aria-label="Rechercher"
       />
     </div>

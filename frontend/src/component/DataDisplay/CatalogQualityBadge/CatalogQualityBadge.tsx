@@ -7,7 +7,7 @@ import './CatalogQualityBadge.css'
 type CatalogQuality = 'unverified' | 'verified'
 
 // Positive-only signal: calm marker on verified sheets, nothing on unverified.
-// A « non vérifié » warning would shame the submitter and break zero-guilt (ADR-0006).
+// A « non vérifié » warning would shame the submitter.
 export function CatalogQualityBadge({ quality }: { quality: CatalogQuality }) {
   if (quality !== 'verified') return null
   return (

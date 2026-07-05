@@ -252,9 +252,8 @@ describe('Privacy Settings Routes', () => {
       })
     })
 
-    // discoverable is opt-in matching consent (decision-map #5): it round-trips
-    // like any dermo flag, persists, and a partial update of another flag must
-    // not reset it.
+    // discoverable is opt-in matching consent. It persists like any dermo flag,
+    // and a partial update of another flag must not reset it.
     it('opts in to discoverable without disturbing other flags', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
 

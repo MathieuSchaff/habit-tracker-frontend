@@ -1,4 +1,4 @@
-// Brand-level label emission (T4.C). Pure lookup, no INCI inspection.
+// Brand-level label emission. Pure lookup, no INCI inspection.
 // Orchestrator pre-loads brand certifications once per run; per-product cost is O(1).
 //
 // Co-fire: vegan may also fire from the INCI absence pass; duplicates collapse

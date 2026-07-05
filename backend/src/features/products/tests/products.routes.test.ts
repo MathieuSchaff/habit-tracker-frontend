@@ -28,8 +28,7 @@ setupDbTests()
 describe('Product Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
-  // Catalog record routes require contributor+ since the catalog-authz work;
-  // record CRUD here runs as a contributor, deletes still require admin.
+  // Record routes need contributor+ (catalog-authz); CRUD here runs as contributor, delete still needs admin.
   let contributorToken: string
 
   beforeEach(async () => {
@@ -119,7 +118,7 @@ describe('Product Routes', () => {
     it('should reject missing required fields', async () => {
       const token = contributorToken
 
-      // Intentional invalid payload to verify schema validation.
+      // Invalid on purpose, to trigger schema validation.
       const res = await client.products.$post({ json: { name: 'Zinc' } as never }, withAuth(token))
 
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
@@ -448,7 +447,7 @@ describe('Product Routes', () => {
 
   describe('GET /products/brands', () => {
     it('returns an empty array when no products exist', async () => {
-      const res = await client.products.brands.$get()
+      const res = await client.products.brands.$get({ query: {} })
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.success).toBe(true)
@@ -495,7 +494,7 @@ describe('Product Routes', () => {
         withAuth(token)
       )
 
-      const res = await client.products.brands.$get()
+      const res = await client.products.brands.$get({ query: {} })
       expect(res.status).toBe(200)
       const data = await res.json()
       if (!data.success) throw new Error('brands failed')
@@ -503,8 +502,51 @@ describe('Product Routes', () => {
     })
 
     it('does not require authentication', async () => {
-      const res = await client.products.brands.$get()
+      const res = await client.products.brands.$get({ query: {} })
       expect(res.status).toBe(200)
+    })
+
+    // Route-level guard: service coverage alone would miss a dropped `category`
+    // in the routes.ts destructuring or the getDistinctBrands call.
+    it('scopes brands to the requested tab', async () => {
+      const token = contributorToken
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum Vitamine C',
+            brand: 'Brand-Skincare',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token)
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Shampoo Doux',
+            brand: 'Brand-Haircare',
+            category: 'haircare',
+            kind: 'shampoo',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token)
+      )
+
+      const res = await client.products.brands.$get({ query: { category: 'haircare' } })
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      if (!data.success) throw new Error('brands failed')
+      expect(data.data).toEqual(['Brand-Haircare'])
+    })
+
+    it('rejects unknown category value', async () => {
+      const res = await client.products.brands.$get({
+        query: { category: 'nope' as never },
+      })
+      expect(res.status as number).toBe(400)
     })
   })
 
@@ -885,6 +927,51 @@ describe('Product Routes', () => {
 
       expect(res.status as number).toBe(HTTP_STATUS.OK)
     })
+
+    // Route-level guard: service coverage alone would miss a dropped `category`
+    // in the routes.ts destructuring or the searchProducts call.
+    it('scopes results to the requested tab', async () => {
+      const token = contributorToken
+      await client.products.$post(
+        {
+          json: {
+            name: 'Sérum Kératine',
+            brand: 'Brand-Skincare',
+            category: 'skincare',
+            kind: 'serum',
+            unit: 'pump',
+          },
+        },
+        withAuth(token)
+      )
+      await client.products.$post(
+        {
+          json: {
+            name: 'Shampoing Kératine',
+            brand: 'Brand-Haircare',
+            category: 'haircare',
+            kind: 'shampoo',
+            unit: 'bottle',
+          },
+        },
+        withAuth(token)
+      )
+
+      const res = await client.products.search.$get({
+        query: { q: 'keratine', category: 'haircare' },
+      })
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      if (!data.success) throw new Error('search failed')
+      expect(data.data.items.map((p) => p.name)).toEqual(['Shampoing Kératine'])
+    })
+
+    it('rejects unknown category value', async () => {
+      const res = await client.products.search.$get({
+        query: { q: 'keratine', category: 'nope' as never },
+      })
+      expect(res.status as number).toBe(400)
+    })
   })
 
   describe('GET /products/by-ids', () => {
@@ -1130,9 +1217,9 @@ describe('Product Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
     })
 
-    // The inci write rule (comma-or-short) is enforced at the schema layer when
-    // inci is present in the body. A notes-only edit omits inci, so it never
-    // re-validates an untouched legacy value (see service test for preservation).
+    // inci write rule (comma-or-short) is only enforced when inci is present in the body.
+    // A notes-only edit omits inci, so it never re-validates an untouched legacy value
+    // (see service test for preservation).
     it('rejects a non-conforming inci sent in the patch body', async () => {
       const token = contributorToken
 
@@ -1219,9 +1306,9 @@ describe('Product Routes', () => {
     })
 
     it('should return 403 for a contributor (admin-only DELETE, route guard)', async () => {
-      // requireAdmin on the DELETE route blocks a contributor with 'forbidden'
-      // before the handler; the service-layer unauthorized_access check remains
-      // as the backstop. Documented boundary: contributors create/edit, not delete.
+      // requireAdmin blocks a contributor with 'forbidden' before the handler;
+      // the service-layer unauthorized_access check is the backstop.
+      // Boundary: contributors create/edit, not delete.
       const createRes = await client.products.$post(
         { json: VALID_PRODUCT },
         withAuth(contributorToken)

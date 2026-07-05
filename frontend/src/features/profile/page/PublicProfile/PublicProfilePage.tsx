@@ -115,10 +115,9 @@ export function PublicProfilePage({ username }: PublicProfilePageProps) {
         </section>
       )}
 
-      {/* Layer ②: public collections (le payload porte-produits) — reserved for
-          the public-collections spec (#8). Cleanly absent until then. */}
+      {/* Reserved for public collections. Keep absent until the payload exists. */}
 
-      {/* Layer ③: recent trail (posts then reviews, §18). Each self-hides when empty. */}
+      {/* Recent trail self-hides when empty. */}
       <ProfilePostsSection username={username} />
       <ProfileReviewsSection username={username} />
 

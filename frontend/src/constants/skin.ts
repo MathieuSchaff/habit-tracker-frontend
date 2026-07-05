@@ -46,7 +46,7 @@ export const POST_TONE_LABELS: Record<PostTone, string> = {
   'coup-de-gueule': 'Coup de gueule',
 }
 
-// Feed ordering: by recency or by closeness — never by reactions/popularity (#3).
+// Feed ordering: by recency or closeness, never by reactions/popularity.
 export const FEED_ORDER_LABELS: Record<FeedOrder, string> = {
   recency: 'Récent',
   similarity: 'Affinité',

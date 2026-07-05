@@ -1,40 +1,25 @@
-import { type ReactNode, useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useCaptureDismiss } from '@/hooks/useCaptureDismiss'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
+import { useScrollActiveOptionIntoView } from '@/hooks/useScrollActiveOptionIntoView'
+import type { ComboboxController } from './useCombobox'
 import './ComboboxPrimitive.css'
+
+export type { ComboboxSection, ComboboxSectionItem } from './useCombobox'
 
 interface ComboboxAriaProps {
   listboxId: string
   activeDescendant: string | undefined
 }
 
-export interface ComboboxSectionItem {
-  id: string | number
-  render: ReactNode
-  onSelect: () => void
-}
-
-export interface ComboboxSection {
-  id: string
-  label: string
-  items: ComboboxSectionItem[]
-}
-
 interface ComboboxPrimitiveProps<T> {
-  items: T[]
-  sections?: ComboboxSection[]
-  isOpen: boolean
-  onClose: () => void
-  onSelect: (item: T) => void
+  combobox: ComboboxController<T>
   renderItem: (item: T, index: number, isActive: boolean) => ReactNode
-  highlightedIndex: number
-  setHighlightedIndex: (index: number) => void
   inputValue: string
-  onKeyDown?: (e: React.KeyboardEvent) => void
-  isLoading?: boolean
-  isError?: boolean
+  /** Stale (placeholder) results shown while a newer query is in flight. */
+  isUpdating?: boolean
   onRetry?: () => void
   errorMessage?: string
   emptyMessage?: string
@@ -48,18 +33,10 @@ interface ComboboxPrimitiveProps<T> {
 }
 
 export function ComboboxPrimitive<T>({
-  items,
-  sections,
-  isOpen,
-  onClose,
-  onSelect,
+  combobox,
   renderItem,
-  highlightedIndex,
-  setHighlightedIndex,
   inputValue,
-  onKeyDown,
-  isLoading,
-  isError,
+  isUpdating,
   onRetry,
   errorMessage = 'Erreur de recherche',
   emptyMessage = 'Aucun résultat',
@@ -70,6 +47,21 @@ export function ComboboxPrimitive<T>({
   isLoadingMore,
   children,
 }: ComboboxPrimitiveProps<T>) {
+  const {
+    items,
+    sections,
+    sectionEntries,
+    totalEntries,
+    isOpen,
+    isLoading,
+    isError,
+    listboxRendered,
+    highlightedIndex,
+    dismiss,
+    onSelect,
+    handleKeyDown,
+  } = combobox
+
   const listboxId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -85,23 +77,14 @@ export function ComboboxPrimitive<T>({
     if (dialog) setPortalTarget(dialog)
   }, [])
 
-  // Flat index space across sections + main items for keyboard nav.
-  const sectionEntries = useMemo(() => (sections ?? []).flatMap((s) => s.items), [sections])
-  const totalEntries = items.length + sectionEntries.length
-
   // totalEntries in deps so flip recalculates as async results stream in.
   useFlipPlacement(containerRef, dropdownRef, isOpen, [totalEntries])
 
   // useCaptureDismiss (not useClickOutside): portaled dropdown sits over real click targets.
   // Multi-ref: both trigger container and portaled dropdown count as "inside".
-  useCaptureDismiss([containerRef, dropdownRef], onClose, { enabled: isOpen })
+  useCaptureDismiss([containerRef, dropdownRef], dismiss, { enabled: isOpen })
 
-  useEffect(() => {
-    if (highlightedIndex >= 0 && isOpen) {
-      const element = document.getElementById(`${listboxId}-option-${highlightedIndex}`)
-      element?.scrollIntoView({ block: 'nearest' })
-    }
-  }, [highlightedIndex, isOpen, listboxId])
+  useScrollActiveOptionIntoView(highlightedIndex, isOpen, listboxId)
 
   // useEffectEvent: read onLoadMore fresh without re-subscribing the observer on every
   // parent render (caller passes an inline arrow whose identity changes each render).
@@ -125,49 +108,16 @@ export function ComboboxPrimitive<T>({
     return () => observer.disconnect()
   }, [isOpen, hasMore])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Parent runs first so it can intercept Tab.
-    onKeyDown?.(e)
-    if (e.defaultPrevented) return
-
-    if (!isOpen) return
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setHighlightedIndex(highlightedIndex < totalEntries - 1 ? highlightedIndex + 1 : 0)
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setHighlightedIndex(highlightedIndex > 0 ? highlightedIndex - 1 : totalEntries - 1)
-        break
-      case 'Enter':
-        if (highlightedIndex >= 0) {
-          // Sections occupy indices 0..sectionEntries.length-1; main items follow.
-          if (highlightedIndex < sectionEntries.length) {
-            const sectionEntry = sectionEntries[highlightedIndex]
-            if (sectionEntry) {
-              e.preventDefault()
-              sectionEntry.onSelect()
-            }
-          } else {
-            const itemIdx = highlightedIndex - sectionEntries.length
-            if (items[itemIdx]) {
-              e.preventDefault()
-              onSelect(items[itemIdx])
-            }
-          }
-        }
-        break
-      case 'Escape':
-        e.preventDefault()
-        onClose()
-        break
-    }
-  }
+  // Flat keyboard index offset of each section (sections precede main items).
+  let sectionOffset = 0
+  const sectionOffsets = (sections ?? []).map((s) => {
+    const offset = sectionOffset
+    sectionOffset += s.items.length
+    return offset
+  })
 
   const activeDescendant =
-    highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
+    listboxRendered && highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: wrapper for input navigation
@@ -194,12 +144,12 @@ export function ComboboxPrimitive<T>({
                   id={listboxId}
                   ref={itemsRef}
                   role="listbox"
-                  className="combobox-primitive__items"
+                  className={`combobox-primitive__items${isUpdating ? ' combobox-primitive__items--updating' : ''}`}
                   aria-label="Suggestions"
+                  aria-busy={isUpdating || undefined}
                 >
                   {sections?.map((section, sIdx) => {
-                    let baseIdx = 0
-                    for (let i = 0; i < sIdx; i++) baseIdx += sections[i].items.length
+                    const baseIdx = sectionOffsets[sIdx] ?? 0
                     const labelId = `${listboxId}-section-${section.id}`
                     return (
                       // biome-ignore lint/a11y/useSemanticElements: ARIA listbox group pattern needs role=group; <fieldset> is form-only
@@ -255,15 +205,17 @@ export function ComboboxPrimitive<T>({
                     )
                   })}
                   {hasMore && (
-                    <div
-                      ref={sentinelRef}
-                      className="combobox-primitive__sentinel"
-                      aria-hidden="true"
-                    >
+                    <>
+                      <div
+                        ref={sentinelRef}
+                        className="combobox-primitive__sentinel"
+                        aria-hidden="true"
+                      />
+                      {/* Outside the aria-hidden sentinel so its role=status announces. */}
                       {isLoadingMore && (
                         <output className="combobox-primitive__status">Chargement…</output>
                       )}
-                    </div>
+                    </>
                   )}
                   {totalEntries === 0 && !footer && inputValue.trim() !== '' && (
                     <output className="combobox-primitive__empty">{emptyMessage}</output>
@@ -276,9 +228,11 @@ export function ComboboxPrimitive<T>({
           portalTarget
         )}
 
-      {/* role="alert" on the error block already announces; stay silent here on error to avoid a double read. */}
+      {/* role="alert" (error), the loading role=status and the empty-state output already
+          announce; stay silent in those states to avoid double or contradictory reads,
+          and don't advertise arrow keys when there is nothing to navigate. */}
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        {isOpen && !isError
+        {isOpen && !isError && !isLoading && totalEntries > 0
           ? `${totalEntries} résultats disponibles. Utilisez les flèches pour naviguer.`
           : ''}
       </span>

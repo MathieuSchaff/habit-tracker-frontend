@@ -15,7 +15,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // Deliberately NOT keyed on bare vitamine C (belongs to anti-age/eclat) or
 // vitamine E (ubiquitous stabilizer) — those overlap other claims and would
 // re-introduce the broad firing this unwire removes. Absorbs the former
-// `protection` antioxidant double-tag (folded 2026-06-13).
+// `protection` antioxidant double-tag.
 export const ANTI_OXYDANT_POSITION_RE =
   /anti[-\s]?oxyd|antioxid|f[eé]rulique|ferulic|resv[eé]ratrol|id[eé]b[eé]none|ubiquinone|coenzyme\s?q.?10|\bq10\b|ergothion[eé]ine|polyph[eé]nol/i
 

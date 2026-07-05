@@ -2,8 +2,7 @@ import { expect, test } from '@playwright/test'
 
 // Native <dialog> + showModal() provides the focus trap and initial focus
 // behavior — but jsdom doesn't honor it, so these guarantees can only be
-// verified in a real browser. See ROADMAP.md Phase 4 (FilterDrawer focus
-// trap & focus initial).
+// verified in a real browser.
 
 test.describe('FilterDrawer — focus trap (real browser only)', () => {
   test.beforeEach(async ({ page }) => {

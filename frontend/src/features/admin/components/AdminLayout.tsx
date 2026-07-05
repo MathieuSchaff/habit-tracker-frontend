@@ -1,6 +1,5 @@
 import { Link, Outlet } from '@tanstack/react-router'
 import {
-  Bug,
   Flag,
   Gauge,
   PackageCheck,
@@ -17,8 +16,8 @@ import '@/features/admin/admin.css'
 import { adminLabels } from '../constants'
 
 export function AdminLayout() {
-  // Dashboard + Utilisateurs are account/structure surfaces → admin-only. A
-  // contributor (« modérateur ») sees the content surfaces: Signalements + Corrections (ADR-0006).
+  // Dashboard + Utilisateurs are account/structure surfaces, so admin-only.
+  // Contributors see the content surfaces: Signalements + Corrections.
   const isAdmin = useAuthStore((state) => state.role === 'admin')
   return (
     <div className="admin-shell">
@@ -57,16 +56,6 @@ export function AdminLayout() {
             >
               <UserCheck size={16} aria-hidden="true" />
               <span>{adminLabels.navRoleRequests}</span>
-            </Link>
-          )}
-          {isAdmin && (
-            <Link
-              to="/admin/errors"
-              className="admin-sidebar__link"
-              activeProps={{ className: 'admin-sidebar__link is-active' }}
-            >
-              <Bug size={16} aria-hidden="true" />
-              <span>{adminLabels.navErrors}</span>
             </Link>
           )}
           {isAdmin && (

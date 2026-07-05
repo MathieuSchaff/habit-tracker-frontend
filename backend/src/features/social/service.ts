@@ -14,9 +14,9 @@ import { profiles, userDermoProfiles } from '../../db/schema/auth/users'
 
 export type SimilarProfile = { username: string; band: SimilarityBand }
 
-// Shared core of both the passive ranking (#1) and the active concern search
-// (#6). Ranks the discoverable cohort by skin similarity to the viewer; surfaces
-// the ordinal band only, never the score (#1 zéro-chiffre). Cross-user reads are
+// Shared core of both passive ranking and active concern search. Ranks the
+// discoverable cohort by skin similarity to the viewer; surfaces the ordinal band
+// only, never the score. Cross-user reads are
 // gated by RLS, but the master gate (discoverable + profile_public +
 // NOT force-privated) is also filtered explicitly because the owner pool bypasses
 // RLS — same defense-in-depth as getPublicProfileByUsername. The viewer's own row
@@ -83,19 +83,18 @@ async function rankDiscoverableCohort(
       // not localeCompare, so the order never depends on the server locale.
       .sort((a, b) => b.score - a.score || (a.username < b.username ? -1 : 1))
       .map(({ username, score }) => ({ username, band: similarityBand(score) }))
-      // éloigné never surfaces — only proche / tres-proche are shown, never a
-      // negative label (#5 calme). A diverse cohort is mostly éloigné by design.
+      // éloigné never surfaces; a diverse cohort is mostly éloigné by design.
       .filter((profile) => profile.band !== 'eloigne')
   )
 }
 
-// Passive lens (#1): everyone like the viewer, ranked by similarity.
+// Passive lens: everyone like the viewer, ranked by similarity.
 export function rankSimilarProfiles(db: DB, viewerUserId: string): Promise<SimilarProfile[]> {
   return rankDiscoverableCohort(db, viewerUserId)
 }
 
-// Active lens (#6): people who share the searched concern's clinical bucket
-// (rosacée also finds couperose/flushs), still ranked by similarity to the viewer.
+// Active lens: people who share the searched concern's clinical bucket,
+// still ranked by similarity to the viewer.
 export function searchProfilesByConcern(
   db: DB,
   concern: SkinConcern,

@@ -186,6 +186,34 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     expect(screen.getByText(/Niacinamide 10% \+ Zinc 1%/)).toBeInTheDocument()
   })
 
+  it('scopes ingredient search to the active domain tab', async () => {
+    // Spy on the type param, then fall through to the default fixture handler.
+    const searchTypes: (string | null)[] = []
+    server.use(
+      http.get('*/api/ingredients/search', ({ request }) => {
+        searchTypes.push(new URL(request.url).searchParams.get('type'))
+        return undefined
+      })
+    )
+
+    const user = userEvent.setup()
+    renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await openFilterDrawer(user)
+    const dialog = await screen.findByRole('dialog')
+
+    const combo = within(dialog).getByRole('combobox', { name: /Ingrédient/i })
+    await user.type(combo, 'ceramide')
+
+    // Skincare tab: the haircare homonym must not leak into the dropdown.
+    await within(dialog).findByRole('option', { name: 'Céramide NP' })
+    expect(within(dialog).queryByRole('option', { name: 'Céramide 2' })).not.toBeInTheDocument()
+
+    expect(searchTypes.length).toBeGreaterThan(0)
+    expect(new Set(searchTypes)).toEqual(new Set(['skincare']))
+  })
+
   it('renders chips with count=0 as disabled and ignores click', async () => {
     const user = userEvent.setup()
     const { router } = renderProducts()
@@ -240,9 +268,8 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
   })
 })
 
-// Live preview count (filter-drawer.md §6): apply button reflects in-flight count,
-// draft clears on close, preview/main share queryKey on apply (cache hit).
-describe('ProductsPage — live preview count (§6 of filter-drawer.md)', () => {
+// Apply button reflects in-flight count, draft clears on close, and preview/main share the query key.
+describe('ProductsPage — live preview count', () => {
   it('updates the apply button text live as the user toggles chips in the drawer', async () => {
     const user = userEvent.setup()
     renderProducts()

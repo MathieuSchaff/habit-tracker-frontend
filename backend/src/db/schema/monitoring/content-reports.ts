@@ -32,8 +32,8 @@ export const contentReports = pgTable(
     status: reportStatusEnum('status').notNull().default('open'),
     reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true, mode: 'string' }),
-    // Escalation is orthogonal to status (ADR-0006 S3): a report stays open while
-    // escalated, then resolves normally. escalatedBy = the moderator who handed it up.
+    // Escalation is orthogonal to status: a report stays open while escalated,
+    // then resolves normally.
     escalatedAt: timestamp('escalated_at', { withTimezone: true, mode: 'string' }),
     escalatedBy: uuid('escalated_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
@@ -48,7 +48,7 @@ export const contentReports = pgTable(
     ...tenantPolicies('content_reports', t.reporterId),
     // The queue is owned by the moderator (admin∨contributor). Under prod RLS the
     // base tenant policies only expose a reporter's own rows, so a contributor saw
-    // an empty queue. This grants the moderation read+update surface (ADR-0006 S3).
+    // an empty queue. This grants the moderation read+update surface.
     ...moderationPolicies('content_reports'),
   ]
 ).enableRLS()

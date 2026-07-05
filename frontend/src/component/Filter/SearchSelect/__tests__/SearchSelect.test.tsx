@@ -205,6 +205,23 @@ describe('SearchSelect — keyboard', () => {
     expect(input.value).toBe('')
   })
 
+  it('ignores Enter while composing (IME): no toggle, query kept', async () => {
+    const onToggle = vi.fn()
+    const user = userEvent.setup()
+    renderSelect(<SearchSelect {...baseProps} onToggle={onToggle} />)
+    const input = screen.getByRole('combobox') as HTMLInputElement
+    await user.type(input, 'nia')
+    await user.keyboard('{ArrowDown}')
+
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+    expect(onToggle).not.toHaveBeenCalled()
+    expect(input.value).toBe('nia')
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onToggle).toHaveBeenCalledWith('niacinamide')
+  })
+
   it('Enter while closed re-opens the dropdown', async () => {
     const user = userEvent.setup()
     renderSelect()

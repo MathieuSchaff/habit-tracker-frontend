@@ -105,9 +105,8 @@ export const profiles = pgTable(
       to: appRuntimeRole,
       using: sql`${t.profilePublic} AND NOT ${t.forcedPrivateByAdmin}`,
     }),
-    // #7: a public review is a signed artifact, so its author's pseudonym must
-    // surface even if their master flag stays false. moderation_status='visible'
-    // so a fully-moderated user stops surfacing here too. Force-private still wins.
+    // A public review is a signed artifact, so its author's pseudonym must surface
+    // even if their master flag stays false. Force-private still wins.
     pgPolicy('profiles_select_for_public_review', {
       as: 'permissive',
       for: 'select',
@@ -178,16 +177,14 @@ export const userDermoProfiles = pgTable(
     skinTypesPublic: boolean('skin_types_public').notNull().default(false),
     fitzpatrickPublic: boolean('fitzpatrick_public').notNull().default(false),
     skinConcernsPublic: boolean('skin_concerns_public').notNull().default(false),
-    // Consent to be matched by the skin-similarity engine. Opt-in, off by
-    // default; only effective under the master profile_public gate. Distinct
-    // from the *_public display flags (decision-map #5).
+    // Consent to be matched by the skin-similarity engine. Opt-in, off by default;
+    // only effective under the master profile_public gate. Distinct from display flags.
     discoverable: boolean('discoverable').notNull().default(false),
     ...timestamps,
   },
   (t) => [
     check('user_dermo_profiles_fitzpatrick_range', sql`${t.fitzpatrickType} BETWEEN 1 AND 6`),
-    // Partial GIN over the opt-in cohort only, for the concern people-search (#6
-    // array-overlap filter). Tiny: indexes just the discoverable rows.
+    // Partial GIN over the opt-in cohort only. Tiny: indexes just the discoverable rows.
     index('user_dermo_profiles_discoverable_concerns_gin')
       .using('gin', t.skinConcerns)
       .where(sql`${t.discoverable}`),
@@ -221,7 +218,7 @@ export const userDermoProfiles = pgTable(
           AND r.moderation_status = 'visible'
       )`,
     }),
-    // Exposes opt-in rows to the similarity engine (social #5/ADR 0012). Same
+    // Exposes opt-in rows to the similarity engine (ADR-0012). Same
     // master gate as _select_public (profile_public + not force-privated), plus
     // the discoverable consent. No SECURITY DEFINER wrapper: the inner read hits
     // only `profiles`, whose policies never reference user_dermo_profiles, so no

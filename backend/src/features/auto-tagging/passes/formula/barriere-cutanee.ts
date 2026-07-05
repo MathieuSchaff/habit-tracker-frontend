@@ -4,12 +4,12 @@ import { matchesNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Positioning gate for `barriere-cutanee` (re-emits an algo-derm slug, ADR-0004, R5).
+// Positioning gate for `barriere-cutanee` (re-emits an algo-derm slug, ADR-0004).
 // algo-derm fires on ubiquitous barrier actives (ceramides, panthenol) in any context —
-// P=0.333, R=0.130 (recall-broken: it under-fires badly). The user-facing barrier-repair
-// positioning lives in the name/claim. Two clean clusters cover it: réparateur/réparatrice
+// the user-facing barrier-repair positioning lives in the name/claim.
+// Two clean clusters cover it: réparateur/réparatrice
 // (a French dermo product-category name — baume/crème réparatrice) and explicit
-// barrier/barrière name-level combinations. Gold set: P 0.333→1.000, R 0.130→0.783.
+// barrier/barrière name-level combinations.
 // Distinct from reparation-cutanee (wound/post-procedure) and the ceramides actif-class.
 // Exported so `reparateur` (algo-derm ≡ barriere-cutanee, same signal) re-emits
 // off the identical positioning vocabulary instead of a drifting copy.

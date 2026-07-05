@@ -9,7 +9,7 @@ import { withRlsContext } from './rls-context.middleware'
 // Factored so the four guards cannot silently drift across the admin/moderation/role-request
 // routers. Per-route authz (requireAdmin/requireContentModerator) stays inline at each route:
 // these routers share mount prefixes, so a blanket authz guard would leak onto siblings
-// (Hono co-mount trap, ADR-0006 S1). Mutates and returns the app so chaining preserves AppType.
+// and block contributor-reachable routes. Mutates and returns the app so chaining preserves AppType.
 export const applyAuthedGuards = (app: Hono<AppEnv>): Hono<AppEnv> => {
   app.use('*', rateLimiterFunc)
   app.use('*', requireJwtAuth)

@@ -288,8 +288,8 @@ describe('POST /admin/moderation/* + public read filters', () => {
     expect(replyRes.status as number).toBe(HTTP_STATUS.FORBIDDEN)
   })
 
-  // S1 (ADR-0006): contributor (« modérateur ») wields the reversible content
-  // moderation subset. The review path also proves the new user_product_reviews
+  // Contributors can use the reversible content moderation subset.
+  // The review path also proves the new user_product_reviews
   // RLS policy fires under app.role='contributor' (else the UPDATE touches 0 rows → 404).
   it('contributor hides a review (200) and it drops from public reviews', async () => {
     const { productSlug, reviewId } = await setupProductAndReview({ userId })
@@ -373,8 +373,8 @@ describe('POST /admin/moderation/* + public read filters', () => {
     expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
   })
 
-  // S2 (ADR-0006): catalog-sheet hide opens to the moderator (contributor). The
-  // route guard + service persistence are proven here; the RLS public-absence
+  // Catalog-sheet hide opens to moderators. The route guard + service persistence
+  // are proven here; the RLS public-absence
   // (anon/user can't SELECT hidden, contributor can) lives in catalog-rls.test.ts —
   // this harness runs as the table owner and bypasses RLS.
   it('contributor hides a product sheet (200) and restores it', async () => {

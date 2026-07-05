@@ -20,11 +20,10 @@ import { rankSimilarProfiles } from './service'
 // query regardless of order so a prolific cohort can't unbound the response.
 const FEED_CAP = 60
 
-// The capstone read (#36): deliberate Posts from the viewer's similar cohort.
-// Source = rankSimilarProfiles (same discoverable-gated, RLS-covered cohort as
-// "people like me"), so the feed never widens visibility beyond the opt-in set.
+// Deliberate posts from the viewer's similar cohort. Source = rankSimilarProfiles,
+// so the feed never widens visibility beyond the opt-in set.
 // Filtered by tone (one at a time) and optional concern (bucket-expanded), ordered
-// by recency or similarity — never by reactions (#3). No activity firehose (#15).
+// by recency or similarity, never by reactions.
 export async function feed(
   db: DB,
   viewerUserId: string,
@@ -67,7 +66,7 @@ export async function feed(
   const items: SocialFeedItemView[] = rows.flatMap((row) => {
     const authorBand = bandByUsername.get(row.authorUsername as string)
     // The author is a cohort member, so the band is always present. Skip defensively
-    // rather than emit 'eloigne' — the one band the feed must never surface (#5 calme).
+    // rather than emit 'eloigne'.
     if (!authorBand) return []
     return [{ ...toSurfaceView(row), authorBand }]
   })

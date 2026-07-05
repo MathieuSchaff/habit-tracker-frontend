@@ -9,7 +9,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // so its absence is meaningful here and vacuous on leave-on formulas (a serum is
 // trivially soap-free). algo-derm fires the label catalogue-wide (>80%, non-
 // discriminating) and stays allow:false; the claim is re-emitted here, kind-gated
-// (same drop+replace boundary as ADR-0004 / the R5 positioning gates).
+// (same drop+replace boundary as ADR-0004 positioning gates).
 const CLEANSING_KINDS = new Set<ProductKind>(['cleanser', 'body-wash', 'body-scrub'])
 
 // True soap = alkali-metal salt of a fatty acid (saponified oil). The salt names

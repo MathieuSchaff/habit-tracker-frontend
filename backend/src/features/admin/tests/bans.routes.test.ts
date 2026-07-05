@@ -418,10 +418,9 @@ describe('POST /admin/users/:id/bans', () => {
   })
 })
 
-// S4 (ADR-0006): the contributor (« modérateur ») wields the reversible, content-scoped
-// bans (scope !== 'global'); 'global' (account lockout) stays admin-only. These route-level
-// tests run as the table-owner `app` (BYPASSRLS), so they exercise the app-level guard +
-// handler scope gate; the DB-level RLS backstop is proven in tests/integration/user-bans-rls.
+// Contributors can manage reversible, content-scoped bans. Global account lockout
+// stays admin-only. These route-level tests run as the table-owner `app` (BYPASSRLS),
+// so they exercise the app-level guard + handler scope gate; DB-level RLS has its own test.
 describe('Contributor (modérateur) content-scoped bans', () => {
   let client: TestClient
   let targetId: string

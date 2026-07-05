@@ -31,17 +31,15 @@ export const publicProfileRoutes = app
     if (!view) return c.json(err('not_found'), HTTP_STATUS.NOT_FOUND)
     return c.json(ok(view), HTTP_STATUS.OK)
   })
-  // Recent public reviews sample for the porte-produits profile (#7/T4). The
-  // service gards collapse unknown/non-public users to an empty list (anti-enum:
-  // same shape as a public user with no reviews).
+  // Unknown/non-public users collapse to an empty list, same shape as a public
+  // user with no reviews.
   .get('/:username/reviews', zValidator('param', usernameParam), async (c) => {
     const db = c.get('db')
     const { username } = c.req.valid('param')
     const reviews = await listPublicReviewsByUser(db, username)
     return c.json(ok(reviews), HTTP_STATUS.OK)
   })
-  // Recent posts sample for the porte-produits profile (#7/T5). Same anti-enum
-  // master gate as the reviews trail: unknown/non-public users collapse to [].
+  // Same master gate as the reviews trail: unknown/non-public users collapse to [].
   .get('/:username/posts', zValidator('param', usernameParam), async (c) => {
     const db = c.get('db')
     const { username } = c.req.valid('param')

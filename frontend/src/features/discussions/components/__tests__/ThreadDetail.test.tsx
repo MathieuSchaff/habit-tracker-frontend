@@ -9,8 +9,7 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => children,
 }))
 
-// Spy on the reactable wiring — the T6 integration seam — without pulling in the
-// row's own queries (it has its own suite).
+// Spy on the reactable wiring without pulling in the row's own queries.
 const reactionRowSpy = vi.hoisted(() => vi.fn())
 vi.mock('@/features/social/components/ReactionRow/ReactionRow', () => ({
   ReactionRow: (props: { reactableType: string; reactableId: string }) => {

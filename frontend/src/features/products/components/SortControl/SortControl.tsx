@@ -9,6 +9,7 @@ import './SortControl.css'
 type SortOption = { value: ProductSort; label: string }
 
 const SORT_OPTIONS: SortOption[] = [
+  { value: 'relevance', label: 'Pertinence' },
   { value: 'random', label: 'Découverte' },
   { value: 'name', label: 'Nom (A-Z)' },
   { value: 'price_asc', label: 'Prix croissant' },
@@ -19,10 +20,13 @@ const SORT_OPTIONS: SortOption[] = [
 type Props = {
   value: ProductSort
   onChange: (sort: ProductSort) => void
+  // Relevance only makes sense while a free-text q is active.
+  hasQuery?: boolean
   compact?: boolean
 }
 
-export function SortControl({ value, onChange, compact = false }: Props) {
+export function SortControl({ value, onChange, hasQuery = false, compact = false }: Props) {
+  const options = hasQuery ? SORT_OPTIONS : SORT_OPTIONS.filter((o) => o.value !== 'relevance')
   const current = SORT_OPTIONS.find((o) => o.value === value) ?? SORT_OPTIONS[0]
 
   return (
@@ -53,7 +57,7 @@ export function SortControl({ value, onChange, compact = false }: Props) {
         )}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" ariaLabel="Options de tri">
-        {SORT_OPTIONS.map((opt) => (
+        {options.map((opt) => (
           <DropdownMenu.Item key={opt.value} onSelect={() => onChange(opt.value)}>
             {/* Raw button: DropdownMenu.Item clones role/styles onto child; <Button> would shadow them. */}
             <button type="button" className="sort-control__item">

@@ -37,7 +37,7 @@ const userIdParam = z.object({ userId: z.uuid() })
 
 // Blanket guards (rate limit/JWT/not-banned/RLS) via applyAuthedGuards.
 // Authz is per-route, not blanket: content moderation opens to admin or contributor,
-// while force-private and catalog-hide stay admin-only, they share this router (ADR-0006 S1).
+// while force-private and catalog-hide stay admin-only.
 const app = applyAuthedGuards(new Hono<AppEnv>())
 
 export const adminModerationRoutes = app

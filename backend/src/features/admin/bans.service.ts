@@ -65,7 +65,7 @@ export async function createBan(
   return { success: true, data: row }
 }
 
-// Returns null when the ban is absent; caller falls through to liftBan's not_found path (ADR-0006 S4).
+// Returns null when the ban is absent; caller falls through to liftBan's not_found path.
 export async function getBanScope(db: Database, banId: string): Promise<BanScope | null> {
   const [row] = await db
     .select({ scope: userBans.scope })

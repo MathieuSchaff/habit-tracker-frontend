@@ -4,14 +4,11 @@ import { matchesNamePositioning } from './pass-helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
-// Positioning gate for `cernes-poches`. Was a union gate (name/claim OR INCI fallback:
-// caffeine/peptide/matrixyl/argireline in top-12, kind eye-cream) → gold P=0.744, R=1.0.
-// Corpus measurement (gold 50 + 4165): every gold positive fires via name (29/29), none via
-// INCI-only, and all 10 gold FP fired through the INCI fallback — eye-creams with incidental
+// Positioning gate for `cernes-poches`. Name/claim is the reliable signal.
+// The old INCI fallback caught eye-creams with incidental
 // peptides/caffeine that lead apaisant/hydratant/anti-rides (snail, day-eye-protect, lash
-// booster, eye butter, cica), positioned for other concerns. Dropping the fallback: gold
-// P 0.744→1.0, R 1.0 held, F1→1.0; corpus fire 86→74 (the 12 INCI-only rows were doctrinally
-// wrong). A concern reports marketed positioning, not actant presence (ADR-0004, R5).
+// booster, eye butter, cica), positioned for other concerns.
+// A concern reports marketed positioning, not actant presence (ADR-0004).
 
 // Unambiguous positioning tokens — fire on naming alone.
 const CERNES_UNAMBIGUOUS_RE =

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/admin/users_/$userId')({
   beforeLoad: requireModeratorOrRedirect,
   // userBans is the mandatory entity (content-only slice). users() is admin-only PII
   // enrichment (403 for a contributor); prefetchQuery, not ensureQueryData, so a failed
-  // enrichment degrades in-page (page reads it via useQuery, `!user` fallback), not fatal (ADR-0006 S4).
+  // enrichment degrades in-page (page reads it via useQuery, `!user` fallback), not fatal.
   loader: ({ context, params }) => {
     const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(adminQueries.userBans(params.userId)),

@@ -2,6 +2,7 @@ import type {
   CreateUserProductInput,
   PublicProductReviewsResponse,
   PublicProfileReviewsResponse,
+  PublicReviewView,
   UpdateUserProductInput,
   UpdateUserProductReviewInput,
 } from '@aurore/shared'
@@ -299,6 +300,71 @@ export async function upsertUserProductReview(
   return result
 }
 
+// Shared review/reviewer projection for both public review surfaces. Keeping the
+// column list and the ratings-masking rule in one place stops the product-page
+// and profile-page queries from drifting apart.
+const publicReviewColumns = {
+  id: userProductReviews.id,
+  tolerance: userProductReviews.tolerance,
+  efficacy: userProductReviews.efficacy,
+  sensoriality: userProductReviews.sensoriality,
+  stability: userProductReviews.stability,
+  mixability: userProductReviews.mixability,
+  valueForMoney: userProductReviews.valueForMoney,
+  ratingsPublic: userProductReviews.ratingsPublic,
+  comment: userProductReviews.comment,
+  createdAt: userProductReviews.createdAt,
+  username: profiles.username,
+  profilePublic: profiles.profilePublic,
+  skinTypes: userDermoProfiles.skinTypes,
+  fitzpatrickType: userDermoProfiles.fitzpatrickType,
+  skinTypesPublic: userDermoProfiles.skinTypesPublic,
+  fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
+}
+
+type PublicReviewRow = Pick<
+  typeof userProductReviews.$inferSelect,
+  | 'id'
+  | 'tolerance'
+  | 'efficacy'
+  | 'sensoriality'
+  | 'stability'
+  | 'mixability'
+  | 'valueForMoney'
+  | 'ratingsPublic'
+  | 'comment'
+  | 'createdAt'
+> &
+  Pick<typeof profiles.$inferSelect, 'username' | 'profilePublic'> & {
+    // Nullable regardless of column: userDermoProfiles is a LEFT JOIN.
+    skinTypes: (typeof userDermoProfiles.$inferSelect)['skinTypes'] | null
+    fitzpatrickType: (typeof userDermoProfiles.$inferSelect)['fitzpatrickType'] | null
+    skinTypesPublic: (typeof userDermoProfiles.$inferSelect)['skinTypesPublic'] | null
+    fitzpatrickPublic: (typeof userDermoProfiles.$inferSelect)['fitzpatrickPublic'] | null
+  }
+
+function toPublicReviewView(row: PublicReviewRow): PublicReviewView {
+  const showRatings = row.ratingsPublic
+  return {
+    id: row.id,
+    tolerance: showRatings ? row.tolerance : null,
+    efficacy: showRatings ? row.efficacy : null,
+    sensoriality: showRatings ? row.sensoriality : null,
+    stability: showRatings ? row.stability : null,
+    mixability: showRatings ? row.mixability : null,
+    valueForMoney: showRatings ? row.valueForMoney : null,
+    comment: row.comment,
+    createdAt: row.createdAt,
+    reviewer: {
+      username: row.username as string,
+      profilePublic: row.profilePublic,
+      // skinTypesPublic is null when no dermo row (LEFT JOIN); treat as false.
+      skinTypes: row.skinTypesPublic ? (row.skinTypes ?? null) : null,
+      fitzpatrickType: row.fitzpatrickPublic ? (row.fitzpatrickType ?? null) : null,
+    },
+  }
+}
+
 // ADR 0005: RLS filters non-public rows; ratings exposed only when author opted in.
 // Aurore never computes or aggregates scores.
 export async function listPublicReviewsForProduct(
@@ -306,24 +372,7 @@ export async function listPublicReviewsForProduct(
   slug: string
 ): Promise<PublicProductReviewsResponse> {
   const rows = await db
-    .select({
-      id: userProductReviews.id,
-      tolerance: userProductReviews.tolerance,
-      efficacy: userProductReviews.efficacy,
-      sensoriality: userProductReviews.sensoriality,
-      stability: userProductReviews.stability,
-      mixability: userProductReviews.mixability,
-      valueForMoney: userProductReviews.valueForMoney,
-      ratingsPublic: userProductReviews.ratingsPublic,
-      comment: userProductReviews.comment,
-      createdAt: userProductReviews.createdAt,
-      username: profiles.username,
-      profilePublic: profiles.profilePublic,
-      skinTypes: userDermoProfiles.skinTypes,
-      fitzpatrickType: userDermoProfiles.fitzpatrickType,
-      skinTypesPublic: userDermoProfiles.skinTypesPublic,
-      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
-    })
+    .select(publicReviewColumns)
     .from(userProductReviews)
     .innerJoin(userProducts, eq(userProducts.id, userProductReviews.userProductId))
     .innerJoin(products, eq(products.id, userProducts.productId))
@@ -344,37 +393,15 @@ export async function listPublicReviewsForProduct(
     .orderBy(desc(userProductReviews.createdAt))
     .limit(50)
 
-  const reviews = rows.map((row) => {
-    const showRatings = row.ratingsPublic
-    return {
-      id: row.id,
-      tolerance: showRatings ? row.tolerance : null,
-      efficacy: showRatings ? row.efficacy : null,
-      sensoriality: showRatings ? row.sensoriality : null,
-      stability: showRatings ? row.stability : null,
-      mixability: showRatings ? row.mixability : null,
-      valueForMoney: showRatings ? row.valueForMoney : null,
-      comment: row.comment,
-      createdAt: row.createdAt,
-      // skinTypesPublic is null when no dermo row (LEFT JOIN); treat as false.
-      reviewer: {
-        username: row.username as string,
-        profilePublic: row.profilePublic,
-        skinTypes: row.skinTypesPublic ? (row.skinTypes ?? null) : null,
-        fitzpatrickType: row.fitzpatrickPublic ? (row.fitzpatrickType ?? null) : null,
-      },
-    }
-  })
-
-  return { reviews }
+  return { reviews: rows.map(toPublicReviewView) }
 }
 
 // Profile-surface mirror of listPublicReviewsForProduct, keyed on the author's
-// username with the product made explicit. Same gards (public + visible +
+// username with the product made explicit. Same guards (public + visible +
 // comment non-empty + not force-privated) plus the master profilePublic gate
 // (the product page shows public reviews even from non-public profiles; a
 // profile page must not). Same ratings-null projection. Recent capped sample,
-// never a wall (#7 calme).
+// never a wall.
 const PROFILE_REVIEWS_SAMPLE_CAP = 12
 
 export async function listPublicReviewsByUser(
@@ -383,22 +410,7 @@ export async function listPublicReviewsByUser(
 ): Promise<PublicProfileReviewsResponse> {
   const rows = await db
     .select({
-      id: userProductReviews.id,
-      tolerance: userProductReviews.tolerance,
-      efficacy: userProductReviews.efficacy,
-      sensoriality: userProductReviews.sensoriality,
-      stability: userProductReviews.stability,
-      mixability: userProductReviews.mixability,
-      valueForMoney: userProductReviews.valueForMoney,
-      ratingsPublic: userProductReviews.ratingsPublic,
-      comment: userProductReviews.comment,
-      createdAt: userProductReviews.createdAt,
-      username: profiles.username,
-      profilePublic: profiles.profilePublic,
-      skinTypes: userDermoProfiles.skinTypes,
-      fitzpatrickType: userDermoProfiles.fitzpatrickType,
-      skinTypesPublic: userDermoProfiles.skinTypesPublic,
-      fitzpatrickPublic: userDermoProfiles.fitzpatrickPublic,
+      ...publicReviewColumns,
       productSlug: products.slug,
       productName: products.name,
     })
@@ -424,27 +436,10 @@ export async function listPublicReviewsByUser(
     .orderBy(desc(userProductReviews.createdAt))
     .limit(PROFILE_REVIEWS_SAMPLE_CAP)
 
-  const reviews = rows.map((row) => {
-    const showRatings = row.ratingsPublic
-    return {
-      id: row.id,
-      tolerance: showRatings ? row.tolerance : null,
-      efficacy: showRatings ? row.efficacy : null,
-      sensoriality: showRatings ? row.sensoriality : null,
-      stability: showRatings ? row.stability : null,
-      mixability: showRatings ? row.mixability : null,
-      valueForMoney: showRatings ? row.valueForMoney : null,
-      comment: row.comment,
-      createdAt: row.createdAt,
-      product: { slug: row.productSlug, name: row.productName },
-      reviewer: {
-        username: row.username as string,
-        profilePublic: row.profilePublic,
-        skinTypes: row.skinTypesPublic ? (row.skinTypes ?? null) : null,
-        fitzpatrickType: row.fitzpatrickPublic ? (row.fitzpatrickType ?? null) : null,
-      },
-    }
-  })
+  const reviews = rows.map((row) => ({
+    ...toPublicReviewView(row),
+    product: { slug: row.productSlug, name: row.productName },
+  }))
 
   return { reviews }
 }

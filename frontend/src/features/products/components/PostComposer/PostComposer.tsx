@@ -15,10 +15,8 @@ import './PostComposer.css'
 
 const TONE_OPTIONS = POST_TONES.map((value) => ({ value, label: POST_TONE_LABELS[value] }))
 
-// Product-anchored composer (T5b): no title (a Post is read inline), the product
-// is the implicit anchor (#24 rien ne flotte is satisfied), and the tone is a
-// facet — an exclusive ChipGroup, not an object. Collapsed to a button until
-// opened (calme). Announces on publish (a11y #37).
+// Product is the implicit anchor here, so the composer can stay compact.
+// Tone is an exclusive facet, not a free-text category.
 export function PostComposer({ productId, slug }: { productId: string; slug: string }) {
   const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')

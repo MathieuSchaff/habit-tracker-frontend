@@ -428,7 +428,7 @@ function productSearchMatch(q: string) {
   }
 }
 
-// Flat additive filter dispatch — cyclomatic == number of optional filters; splitting relocates
+// Flat additive filter dispatch. Cyclomatic == number of optional filters; splitting relocates
 // the count without improving clarity. Behaviour covered by listProducts filter tests.
 function buildListConditions(filters: ListProductsFilters, database: Database): SQL[] {
   const conditions: SQL[] = []
@@ -511,7 +511,7 @@ function buildListConditions(filters: ListProductsFilters, database: Database): 
   }
 
   // filters is a discriminated union on category; the merged tagType spans all domains, so the
-  // parallel lookup defeats narrowing. Tag fields are all string | undefined — cast is sound.
+  // parallel lookup defeats narrowing. Tag fields are all string | undefined, so the cast is sound.
   // routine_moment only exists in the skincare tuple; the special-case is a no-op elsewhere.
   const tagFilters = filters as unknown as Record<string, string | undefined>
   for (const tagType of PRODUCT_TAG_CATEGORIES_BY_DOMAIN[filters.category]) {
@@ -544,7 +544,6 @@ function buildListConditions(filters: ListProductsFilters, database: Database): 
 
   return conditions
 }
-// just for the clarity
 type ProductMeta = {
   matchesByProduct: Map<string, string[]>
   tagsByProduct: Map<string, ProductSummary['tags']>
@@ -666,6 +665,9 @@ export async function listProducts(
         return [sql`${products.priceCents} DESC NULLS LAST`]
       case 'newest':
         return [sql`${products.createdAt} DESC NULLS LAST`]
+      case 'name':
+        return [products.name]
+      // relevance (and unset sort): rank by match when q is present, else name.
       default: {
         if (!filters.q) return [products.name]
         const match = productSearchMatch(filters.q)
@@ -760,10 +762,16 @@ export async function getFilterOptions(
     tagCounts,
   }
 }
-export async function getDistinctBrands(database: Database = db): Promise<string[]> {
+export async function getDistinctBrands(
+  database: Database = db,
+  category?: ProductDomainTab
+): Promise<string[]> {
   const rows = await database
     .selectDistinct({ brand: products.brand })
     .from(products)
+    .where(
+      category ? inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[category]]) : undefined
+    )
     .orderBy(asc(products.brand))
   return rows.map((r) => r.brand)
 }
@@ -834,12 +842,20 @@ export async function getProductsByIds(
 }
 
 export async function searchProducts(
-  filters: { q: string; limit?: number; offset?: number },
+  filters: { q: string; limit?: number; offset?: number; category?: ProductDomainTab },
   database: Database = db
 ): Promise<ProductSearchPage> {
   const limit = filters.limit ?? 8
   const offset = filters.offset ?? 0
   const match = productSearchMatch(filters.q.trim())
+  // Same domain scoping as listProducts: the dropdown must agree with the
+  // "Voir tous les résultats" page it links to.
+  const where = filters.category
+    ? and(
+        match.condition,
+        inArray(products.category, [...PRODUCT_DOMAIN_DB_CATEGORIES[filters.category]])
+      )
+    : match.condition
   const rows = await database
     .select({
       id: products.id,
@@ -849,7 +865,7 @@ export async function searchProducts(
       slug: products.slug,
     })
     .from(products)
-    .where(match.condition)
+    .where(where)
     .limit(limit + 1)
     .offset(offset)
     .orderBy(match.rank, match.similarityDesc, products.name)

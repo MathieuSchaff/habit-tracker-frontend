@@ -18,6 +18,7 @@ import {
   createProduct,
   deleteProduct,
   findSimilarProducts,
+  getDistinctBrands,
   getFilterOptions,
   getProductById,
   getProductBySlug,
@@ -78,9 +79,9 @@ describe('Product Service', () => {
       expect(makeProduct('Vitamine D3', 'Solgar')).rejects.toThrow(ProductError)
     })
 
-    // Auto-tag pipeline runs inline at create. `type-serum` is emitted by
-    // pass 3 (kind-tag-detection) deterministically for any skincare serum —
-    // proves the wiring without depending on INCI parsing.
+    // Auto-tag pipeline runs inline at create. `type-serum` is emitted
+    // deterministically by pass 3 (kind-tag-detection) for any skincare serum,
+    // so this proves the wiring without depending on INCI parsing.
     it('writes auto-tags when matching defs exist', async () => {
       await testDb.insert(productTagTypes).values({
         slug: 'type-serum',
@@ -100,7 +101,7 @@ describe('Product Service', () => {
     })
 
     // Fail-soft contract: when no product_tags_defs exist for the slugs the
-    // orchestrator emits, write silently inserts zero rows — never throws.
+    // orchestrator emits, write silently inserts zero rows instead of throwing.
     // Product creation must still succeed.
     it('fails soft when no tag defs exist (product still returned)', async () => {
       const product = await makeProduct('Serum Orphan', 'No Defs', 'serum')
@@ -307,6 +308,47 @@ describe('Product Service', () => {
           testDb
         )
         expect(result.items.map((p) => p.name)).toEqual(['Sérum', 'Le Sérum'])
+      })
+
+      it('should order by relevance when sort=relevance with q', async () => {
+        await makeProduct('Le Sérum', 'BrandA')
+        await makeProduct('Sérum', 'BrandC')
+        const result = await listProducts(
+          { category: 'skincare', q: 'serum', sort: 'relevance', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Sérum', 'Le Sérum'])
+      })
+
+      it('should sort alphabetically when sort=name is explicit even with q', async () => {
+        await makeProduct('Sérum', 'BrandC')
+        await makeProduct('Le Sérum', 'BrandA')
+        const result = await listProducts(
+          { category: 'skincare', q: 'serum', sort: 'name', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Le Sérum', 'Sérum'])
+      })
+
+      it('should keep an explicit sort=newest even with q', async () => {
+        await makeProduct('Sérum', 'BrandC')
+        await new Promise((r) => setTimeout(r, 5))
+        await makeProduct('Le Sérum', 'BrandA')
+        const result = await listProducts(
+          { category: 'skincare', q: 'serum', sort: 'newest', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Le Sérum', 'Sérum'])
+      })
+
+      it('should fall back to name order when sort=relevance without q', async () => {
+        await makeProduct('Sérum', 'BrandC')
+        await makeProduct('Le Sérum', 'BrandA')
+        const result = await listProducts(
+          { category: 'skincare', sort: 'relevance', page: 1, limit: 20 },
+          testDb
+        )
+        expect(result.items.map((p) => p.name)).toEqual(['Le Sérum', 'Sérum'])
       })
 
       it('should return empty when q matches nothing', async () => {
@@ -921,6 +963,45 @@ describe('Product Service', () => {
       expect(result.items[0]?.brand).toBe('Avène')
     })
 
+    // escapeLike() regression guards: %, _ and \ in q must match literally,
+    // never as LIKE wildcards.
+    it('should treat % in q as a literal, not a match-all wildcard', async () => {
+      await makeProduct('Niacinamide 10%', 'The Ordinary')
+      // Contains "10" without the literal %: matches iff % degrades to a wildcard.
+      await makeProduct('Vitamine 100', 'BrandB')
+      const result = await searchProducts({ q: '10%' }, testDb)
+      expect(result.items.map((p) => p.name)).toEqual(['Niacinamide 10%'])
+    })
+
+    it('should treat _ in q as a literal, not a single-char wildcard', async () => {
+      await makeProduct('Formule A_B', 'BrandA')
+      await makeProduct('Formule AXB', 'BrandB')
+      const result = await searchProducts({ q: 'A_B' }, testDb)
+      expect(result.items.map((p) => p.name)).toEqual(['Formule A_B'])
+    })
+
+    it('should not throw on a backslash in q', async () => {
+      await makeProduct('Crème hydratante', 'BrandB')
+      const result = await searchProducts({ q: 'a\\b' }, testDb)
+      expect(result.items).toHaveLength(0)
+    })
+
+    it('should scope results to the domain tab when category is set', async () => {
+      await makeProduct('Sérum Kératine', 'BrandA')
+      await makeProduct('Shampoing Kératine', 'BrandB', 'shampoo', 'bottle', {
+        category: 'haircare',
+      })
+
+      const skincare = await searchProducts({ q: 'keratine', category: 'skincare' }, testDb)
+      expect(skincare.items.map((p) => p.name)).toEqual(['Sérum Kératine'])
+
+      const haircare = await searchProducts({ q: 'keratine', category: 'haircare' }, testDb)
+      expect(haircare.items.map((p) => p.name)).toEqual(['Shampoing Kératine'])
+
+      const unscoped = await searchProducts({ q: 'keratine' }, testDb)
+      expect(unscoped.items).toHaveLength(2)
+    })
+
     it('should expose hasMore + nextOffset for pagination', async () => {
       for (let i = 0; i < 5; i++) {
         await makeProduct(`Vitamin C v${i}`, 'BrandX')
@@ -933,6 +1014,17 @@ describe('Product Service', () => {
       const page2 = await searchProducts({ q: 'vitamin', limit: 3, offset: 3 }, testDb)
       expect(page2.items).toHaveLength(2)
       expect(page2.hasMore).toBe(false)
+    })
+  })
+
+  describe('getDistinctBrands', () => {
+    it('should scope brands to the domain tab when category is set', async () => {
+      await makeProduct('Sérum', 'SkinBrand')
+      await makeProduct('Shampoing', 'HairBrand', 'shampoo', 'bottle', { category: 'haircare' })
+
+      expect(await getDistinctBrands(testDb, 'skincare')).toEqual(['SkinBrand'])
+      expect(await getDistinctBrands(testDb, 'haircare')).toEqual(['HairBrand'])
+      expect(await getDistinctBrands(testDb)).toEqual(['HairBrand', 'SkinBrand'])
     })
   })
 

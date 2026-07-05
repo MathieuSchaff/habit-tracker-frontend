@@ -33,6 +33,44 @@ describe('productsSearchSchema — sort', () => {
   it('rejects unknown sort values', () => {
     expect(() => productsSearchSchema.parse({ sort: 'alphabetical' })).toThrow()
   })
+
+  it('defaults sort to relevance when q is present', () => {
+    expect(productsSearchSchema.parse({ q: 'serum' }).sort).toBe('relevance')
+  })
+
+  it('keeps an explicit sort alongside q', () => {
+    expect(productsSearchSchema.parse({ q: 'serum', sort: 'price_asc' }).sort).toBe('price_asc')
+  })
+
+  it('heals relevance back to newest when q is absent', () => {
+    expect(productsSearchSchema.parse({ sort: 'relevance' }).sort).toBe('newest')
+  })
+
+  // TanStack round-trips validateSearch output through the URL and re-validates.
+  it('is idempotent on its own output', () => {
+    const first = productsSearchSchema.parse({ q: 'serum' })
+    expect(productsSearchSchema.parse(first)).toEqual(first)
+  })
+})
+
+// Invalid q from a shared/hand-crafted URL degrades to the plain list; a throw here
+// would bubble past the route and replace the whole app shell with GlobalError.
+describe('productsSearchSchema — q resilience', () => {
+  it('drops a whitespace-only q instead of throwing', () => {
+    const parsed = productsSearchSchema.parse({ q: '   ' })
+    expect(parsed.q).toBeUndefined()
+    expect(parsed.sort).toBe('newest')
+  })
+
+  it('drops a q longer than 100 chars instead of throwing', () => {
+    expect(productsSearchSchema.parse({ q: 'x'.repeat(101) }).q).toBeUndefined()
+  })
+
+  it('trims and keeps a valid padded q', () => {
+    const parsed = productsSearchSchema.parse({ q: '  serum  ' })
+    expect(parsed.q).toBe('serum')
+    expect(parsed.sort).toBe('relevance')
+  })
 })
 
 describe('productsSearchSchema — priceMin / priceMax', () => {

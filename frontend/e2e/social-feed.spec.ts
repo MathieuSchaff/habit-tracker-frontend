@@ -2,9 +2,8 @@ import { expect, test } from '@playwright/test'
 
 import { loginAsSeed } from './helpers/auth'
 
-// T7 capstone feed. The feed's filtering/ordering correctness is pinned by the
-// backend route test; this spec is the UI oracle: the screen is auth-gated, the
-// page composes, and the tone tab is URL-bound (drives the query → re-render).
+// Feed filtering/ordering correctness is pinned by the backend route test.
+// This spec checks that the screen is auth-gated and the tone tab drives the URL.
 // Only the internal /api/social/feed is mocked (deterministic cards regardless of
 // seed social data); auth, profile and reactions hit the real e2e stack.
 
@@ -114,7 +113,7 @@ test.describe('Feed — authenticated (mocked feed payload)', () => {
 
     // Default order is `recency` (stripped); selecting `similarity` lands in the URL.
     await expect(page).toHaveURL(/order=similarity/, { timeout: 10_000 })
-    // Affinity sort names its bounded scope so the label doesn't over-promise (T7-3).
+    // Affinity sort names its bounded scope so the label doesn't over-promise.
     await expect(page.getByText(/parmi les publications récentes/i)).toBeVisible()
     await expect(page.getByText(PRINCIPAL_POST.content)).toBeVisible()
   })

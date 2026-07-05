@@ -36,7 +36,7 @@ describe('algo-derm-detection', () => {
     // - niacinamide → matifiant (allow:false — algo-derm path; sensoriel
     //   detector lives in passes/formula/ and keys on absorbent powders)
     // - gentle ingredients → would normally fire peaux-atopiques
-    // Hypoallergenique is reactivated (T1.11) so it's no longer in this list.
+    // Hypoallergenique is intentionally not in this disabled list.
     const inci = 'Aqua, Glycerin, Sodium Hyaluronate, Niacinamide, Phenoxyethanol'
     const tags = detectAutoTags(inci, 'serum')
     const slugs = new Set(tags.map((t) => t.slug))
@@ -101,50 +101,7 @@ describe('algo-derm-detection', () => {
     expect(bypassed.length).toBeGreaterThanOrEqual(baseline.length)
   })
 
-  test('TAG_CONFIG counts match calibration (T1: sans-X family added)', () => {
-    // Calibration evolved: sans-parfum (0.7), grossesse-compatible (0.75),
-    // deshydratation (0.85) flipped to allow=true; purifiant flipped to
-    // allow=false (R2 dedup — its trigger is a strict subset of sebo-regulateur);
-    // hypoallergenique flipped to allow=true (T1.11 — confidenceFloor 0.85 + coverageFloor 0.7);
-    // non_irritant added (T2 — algo-derm computed tag, confidenceFloor 0.85 + coverageFloor 0.7);
-    // sans_sulfates / sans_silicones / sans_huiles_essentielles /
-    // sans_huiles_minerales / sans_allergenes_parfumants added (T1 absence family,
-    // coverageFloor 0.7, same gate as `sans_parfum`).
-    // keratolytique row removed 2026-05-09 (round 2 audit: pharmacology subset
-    // of AHA + BHA + RETINOIDS actif_class clusters; product-side noise).
-    // peaux_atopiques / repulpant / matifiant rows removed 2026-05-13 (A4 —
-    // re-emitted from passes/formula/, algo-derm candidates fall through as
-    // `unmapped`). purifiant + sans_savon are the only allow:false rows left.
-    // 2026-05-14 v7: vegan + grossesse_risque added (migrated from formula passes).
-    // 2026-05-24 audit A2/A4/vegan: sans_alcool_denature added (allow:true, abs
-    // family gate 0.7); keratolytique added as explicit allow:false (no slug —
-    // redundant with actif-class clusters); vegan flipped allow:true→false (INCI
-    // absence ≠ vegan claim; brand-cert pass is now the sole source). Net: allow
-    // unchanged (29), drop 2→4 (purifiant, sans_savon, keratolytique, vegan).
-    // 2026-06-03 R5: rougeurs-vasculaires flipped allow:true→false (mechanism
-    // over-fires P=0.025; re-emitted by formula:rougeurs-vasculaires-name on
-    // positioning). Net: allow 29→28, drop 4→5. Then hyperpigmentation /
-    // eclat-teint-uniforme / pores-sebum / deshydratation flipped the same way
-    // (same mechanism≠positioning defect, re-emitted by formula name passes).
-    // Net: allow 28→24, drop 5→9. Then the 4 remaining concerns (acne-imperfections,
-    // anti-age, barriere-cutanee, apaisant) flipped the same way (sized + adversarially
-    // verified, re-emitted by formula name passes). Net: allow 24→20, drop 9→13.
-    // 2026-06-13: protection / anti-oxydant / reparateur flipped allow:true→false
-    // (benefit-confidence 0.5 floor was a coverage proxy, not a precision gate;
-    // algo-derm fires the antioxidant/barrier axes on ~1300 products regardless of
-    // positioning). protection folded into anti-oxydant (genuine UV meaning stays
-    // on formula:protection); anti-oxydant + reparateur re-emitted by formula name
-    // passes. Net: allow 20→17, drop 13→16.
-    // 2026-06-13: peau-grasse / peau-seche flipped allow:true→false. Their 0.85
-    // confidence floor read a benefit-axis confidence inflated corpus-wide by the
-    // v13-v17 scoring evolution (26% / 25% of skincare, two opposites both firing
-    // on half the catalogue = noise, no gold set to calibrate). Re-emitted by
-    // formula:peau-grasse-name / formula:peau-seche-name on the explicit
-    // marketed-for phrase. Net: allow 17→15, drop 16→18.
-    // 2026-06-21 (v17→v21 re-vendor): algo-derm dropped the `protection` (v19) and
-    // `reparateur` (v20) duplicate candidates upstream; their now-dead allow:false
-    // mappings removed from TAG_CONFIG. The UV/antioxidant and barrier signals stay
-    // on formula:protection / anti-oxydant / formula:reparateur-name. Net: drop 18→16.
+  test('TAG_CONFIG counts match calibration', () => {
     // Hard-counted to flag any accidental flip in TAG_CONFIG.
     const allow = Object.values(TAG_CONFIG).filter((r) => r.allow)
     const drop = Object.values(TAG_CONFIG).filter((r) => !r.allow)
@@ -191,9 +148,9 @@ describe('algo-derm-detection', () => {
     for (const slug of baselineSlugs) expect(slugs.has(slug)).toBe(true)
   })
 
-  test('R2 dedup: purifiant never emitted, sebo-regulateur still emitted on shared trigger', () => {
+  test('purifiant never emitted, sebo-regulateur still emitted on shared trigger', () => {
     // Salicylic acid fires both purifiant and sebo-regulateur in algo-derm;
-    // after R2, only sebo-regulateur should make it through.
+    // only sebo-regulateur should make it through.
     const inci = 'Aqua, Salicylic Acid, Niacinamide, Glycerin'
     const slugs = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
     expect(slugs.has(S.PURIFIANT)).toBe(false)

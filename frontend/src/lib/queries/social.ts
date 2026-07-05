@@ -40,8 +40,8 @@ export const socialQueries = {
       placeholderData: keepPreviousData,
     }),
 
-  // The capstone feed (T7): deliberate Posts from the similar cohort, tone-filtered
-  // and concern-scoped, ordered by recency or similarity — never reactions.
+  // Deliberate posts from the similar cohort, ordered by recency or similarity.
+  // Reactions never affect feed order.
   feed: (params: { tone: PostTone; order: FeedOrder; concern?: SkinConcern }) =>
     queryOptions({
       queryKey: ['social', 'feed', params] as const,
@@ -64,8 +64,8 @@ export const socialQueries = {
 // One feed item: a surface post plus the author's ordinal closeness band.
 export type FeedItem = ApiData<typeof api.social.feed.$get>['posts'][number]
 
-// The signed reactor list for one Reactable — who reacted, by kind, plus the
-// viewer's own kinds. Never a count (ADR-0013).
+// The signed reactor list for one Reactable: who reacted, by kind, plus the
+// viewer's own kinds. Never a count.
 export type ReactionList = ApiData<typeof api.social.reactions.$get>
 
 export const reactionKeys = {
@@ -111,9 +111,8 @@ export function useToggleReaction(reactableType: ReactableType, reactableId: str
   })
 }
 
-// Product-anchored composer (T5b): the product is the implicit anchor, so the
-// caller only supplies content + tone. On success the product's posts surface is
-// invalidated so the new post appears (no feed amplification — that is T7).
+// The product is the implicit anchor, so the caller only supplies content + tone.
+// On success, only product/profile post surfaces refresh.
 export function useCreatePost(productId: string, slug: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -121,8 +120,7 @@ export function useCreatePost(productId: string, slug: string) {
       const res = await api.social.posts.$post({
         json: { content: input.content, tone: input.tone, productId },
       })
-      // throwIfNotOk preserves the backend code + Retry-After (429) on the ApiError
-      // instead of swallowing it behind a generic message (loader-resilience P1).
+      // Preserve backend code + Retry-After instead of hiding it behind a generic message.
       await throwIfNotOk(res, 'post_creation_failed')
       const json = await res.json()
       if (!json.success) throw new Error('error' in json ? String(json.error) : 'Request failed')

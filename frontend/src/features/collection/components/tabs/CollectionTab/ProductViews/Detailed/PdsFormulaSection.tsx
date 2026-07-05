@@ -35,7 +35,7 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
     enabled: !!user,
   })
 
-  // §4 "À noter": contextual notes when user prefs intersect formula signals.
+  // Contextual notes appear when user prefs intersect formula signals.
   const fragranceNote =
     dermoProfile?.skinTypes?.includes('peau-sensible') &&
     fullProduct?.ingredients &&
@@ -103,7 +103,7 @@ export function PdsFormulaSection({ p }: PdsFormulaSectionProps) {
         </p>
       ) : null}
 
-      {/* §4 À noter - warm inline callout, render only on trigger. */}
+      {/* Render only when there is something personal to note. */}
       {fragranceNote && (
         <div className="pds-note" role="note">
           <Sparkles size={14} className="pds-note-icon" aria-hidden="true" />

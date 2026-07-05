@@ -23,9 +23,7 @@ import { SkinPortraitCard } from '../../components/SkinPortraitCard/SkinPortrait
 import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
 import { PreferenceSettings } from '../../tabs/PreferencesTab/PreferenceSettings'
 import './ProfileDashboard.css'
-
-export const PROFILE_TABS = ['profile', 'preferences', 'account', 'people'] as const
-type ProfileTab = (typeof PROFILE_TABS)[number]
+import type { ProfileTab } from './tabs'
 
 const routeApi = getRouteApi('/_authenticated/profile')
 
@@ -35,7 +33,8 @@ export const ProfileDashboard = () => {
   const updateProfile = useUpdateProfile()
   const announce = useAnnounce()
   // Tab lives in the URL so HomeHub doorways can deep-link straight to it (e.g.
-  // "Activer la découverte" → account tab where the discoverable toggle sits).
+  // the "Activer la découverte" doorway lands on the account tab where the
+  // discoverable toggle sits).
   const { tab: activeTab } = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
   const [editingSection, setEditingSection] = useState<CompletionStep | null>(null)
