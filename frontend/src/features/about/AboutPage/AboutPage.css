@@ -23,6 +23,8 @@
   --measure: 62ch;
   background: var(--bg-page);
   color: var(--text-primary);
+  min-height: calc(100vh - var(--nav-height));
+  /* biome-ignore lint/suspicious/noDuplicateProperties: vh fallback for browsers without dvh */
   min-height: calc(100dvh - var(--nav-height));
   padding: var(--space-12) 0 var(--space-20);
 }

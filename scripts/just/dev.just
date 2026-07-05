@@ -42,17 +42,42 @@ _db-guard:
     {{COMPOSE_DEV}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '${APP_RUNTIME_PASSWORD}'" >/dev/null
     printf "{{GREEN}}✓ DB restaurée depuis snapshot{{NC}}\n"
 
-# Prod-like profiling: Caddy HTTP/2 + zstd/gzip + immutable assets over a prod
-# build, /api → backend. Prod nginx currently serves gzip only; this is closer
-# than `vite preview`, not an exact transport replica. Needs backend up
-# (`just dev-d`); open https://localhost:8443 and accept the self-signed cert.
+# Prod-like LCP/transport profiling: the REAL edge nginx (HTTP/2 + TLS + prod
+# template) in front of the prod frontend nginx.conf (gzip + immutable assets),
+# /api → the running dev backend. Faithful browser-facing transport, unlike
+# `vite preview` (HTTP/1.1, no compression, no cache headers). Prereq: `just dev-d`.
+# Open https://localhost and accept the self-signed cert. Teardown: `just profile-prod-down`.
 profile-prod: ts-build
-    cd frontend && bunx vite build
-    docker run --rm -p 8443:8443 \
-        --add-host host.docker.internal:host-gateway \
-        -v {{justfile_directory()}}/frontend/dist:/srv:ro \
-        -v {{justfile_directory()}}/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
-        caddy:latest
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "$(docker ps -q -f name=app_api -f status=running)" ]; then
+        printf "{{RED}}app_api absent — run 'just dev-d' first (profiling reuses the dev backend).{{NC}}\n"
+        exit 1
+    fi
+    cd frontend && bunx vite build && cd ..
+    # Self-signed cert at the path reload-certs.sh probes; without it the edge
+    # renders an HTTP-only fallback (no HTTP/2 → LCP numbers are meaningless).
+    if [ ! -f .profile-certs/live/localhost/fullchain.pem ]; then
+        mkdir -p .profile-certs/live/localhost
+        openssl req -x509 -newkey rsa:2048 -sha256 -days 365 -nodes \
+            -keyout .profile-certs/live/localhost/privkey.pem \
+            -out .profile-certs/live/localhost/fullchain.pem \
+            -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,DNS:www.localhost"
+    fi
+    {{COMPOSE_PROFILE}} up -d
+    # Join the dev backend to the profiling network as `api` so the prod template's
+    # `upstream api { server api:3000 }` resolves without editing the template.
+    docker network connect --alias api aurore-profile_profilenet app_api 2>/dev/null || true
+    # Flush nginx's negative DNS cache (resolver valid=30s), else /api 502s for ~30s
+    # because the edge tried to resolve `api` before the network attach landed.
+    docker exec aurore_profile_edge nginx -s reload 2>/dev/null || true
+    printf "{{GREEN}}✓ Profiling up → https://localhost (accept the self-signed cert). Down: just profile-prod-down{{NC}}\n"
+
+# Tear down the LCP profiling stack + detach the dev backend from its network
+profile-prod-down:
+    docker network disconnect aurore-profile_profilenet app_api 2>/dev/null || true
+    {{COMPOSE_PROFILE}} down
+    @printf "{{GREEN}}✓ Profiling stack down{{NC}}\n"
 
 # Full clean + install + types + docker (preserves pgdata)
 dev-fresh: ts-clean install-deps ts-build
@@ -133,13 +158,6 @@ reinstall-backend:
     {{COMPOSE_DEV}} build --no-cache api
     {{COMPOSE_DEV}} up -d
     @printf "{{GREEN}}✓ Backend reinstalled{{NC}}\n"
-
-# Full frontend rebuild (volumes + image)
-reinstall-frontend:
-    {{COMPOSE_DEV}} down
-    {{COMPOSE_DEV}} build --no-cache frontend
-    {{COMPOSE_DEV}} up -d
-    @printf "{{GREEN}}✓ Frontend reinstalled{{NC}}\n"
 
 # Watch TypeScript (generates types for editor)
 ts-check:

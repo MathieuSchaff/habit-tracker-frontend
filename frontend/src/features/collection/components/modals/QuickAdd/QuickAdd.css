@@ -1,5 +1,7 @@
 .qa-modal {
   max-width: 500px;
+  max-height: calc(100vh - 2rem);
+  /* biome-ignore lint/suspicious/noDuplicateProperties: vh fallback for browsers without dvh */
   max-height: calc(100dvh - 2rem);
   display: flex;
   flex-direction: column;

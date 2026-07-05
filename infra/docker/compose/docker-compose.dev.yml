@@ -1,14 +1,9 @@
-# =========================
-# Configuration DEV (surcharges)
-# Utilisation: docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml up
-#
-# Dev containers run TypeScript source directly.
-# `just dev` runs `ts-build` first as a host-side typecheck + route generation preflight.
-# =========================
+# Dev overlay. Containers run TypeScript source directly.
+# `just dev` runs `ts-build` first (host-side typecheck + route generation preflight).
 
 services:
   db:
-    # Port exposé pour accès direct depuis l'hôte (DBeaver, pgAdmin, etc.)
+    # Exposed for host DB tools (DBeaver, pgAdmin).
     ports:
       - "5432:5432"
 
@@ -20,7 +15,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
 
     volumes:
-      # Bind mounts ciblés: Vite lit le code/config du host, les deps restent dans l'image.
+      # Bind-mount source from host; deps stay in the image.
       - ../../../package.json:/app/package.json:ro
       - ../../../bun.lock:/app/bun.lock:ro
       - ../../../tsconfig.json:/app/tsconfig.json:ro
@@ -56,7 +51,7 @@ services:
       - "5173:5173"
 
     volumes:
-      # Bind mounts ciblés: le code vient du host, les deps restent dans l'image.
+      # Bind-mount source from host; deps stay in the image.
       - ../../../package.json:/app/package.json:ro
       - ../../../bun.lock:/app/bun.lock:ro
 
@@ -88,10 +83,10 @@ services:
       retries: 3
       start_period: 10s
 
-  # Désactive nginx en dev (accès direct à l'API et au frontend)
+  # No nginx in dev; reach API and frontend directly.
   nginx:
     profiles: ["disabled"]
 
-  # Désactive certbot en dev (pas besoin de SSL en local)
+  # No certbot in dev; no local SSL.
   certbot:
     profiles: ["disabled"]

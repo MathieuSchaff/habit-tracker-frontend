@@ -1,10 +1,6 @@
-# =========================
-# Configuration E2E (overlay sur dev)
-# Usage: just e2e-up  (voir scripts/just/_vars.just)
-#
-# - Swap DB dev (volume persistant) → DB tmpfs avec creds testpassword
-# - Ports hôte isolés (5434/3001/5174) pour coexister avec just dev
-# =========================
+# E2E overlay on dev (`just e2e-up`).
+# Swaps the persistent dev DB for a tmpfs DB, and isolates host ports
+# (5434/3001/5174) so it runs next to `just dev`.
 
 services:
   db:

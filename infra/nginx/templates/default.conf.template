@@ -1,29 +1,39 @@
-# Rendered at container start by reload-certs.sh via envsubst.
-# ${DOMAIN} comes from the nginx service environment (.env.prod → docker-compose).
+# reload-certs.sh only replaces ${DOMAIN}; nginx $variables must stay literal.
 
+# Keep API and static budgets separate. A cold SPA load once throttled /api/auth/refresh.
+# Bursts must stay generous because mobile networks can share one public IP.
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=static_limit:10m rate=30r/s;
+# Return 429 for throttling; 503 looks like nginx or the backend is down.
+limit_req_status 429;
+
+# Needed with `resolve`; Docker can give api/frontend new IPs after restarts.
+resolver 127.0.0.11 valid=30s ipv6=off;
 
 upstream api {
-    server api:3000;
+    zone api 64k;
+    server api:3000 resolve;
 }
 
 upstream frontend {
-    server frontend:80;
+    zone frontend 64k;
+    server frontend:80 resolve;
 }
-
-# ----------------------------------------------------------
-# Bloc HTTP (port 80) — ACME challenge + redirect to HTTPS.
-# ----------------------------------------------------------
+# link to check the directives of the core module
+# https://nginx.org/en/docs/http/ngx_http_core_module.html
+# Bloc HTTP (port 80) and ACME challenge + redirect to HTTPS.
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${DOMAIN} www.${DOMAIN};
     server_tokens off;
 
+    # if let's encrypt ask for the http://aurore-app.fr/.well-known/acme-challenge/abc123
+    # nginx will give back this /var/www/certbot/.well-known/acme-challenge/abc123
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
-    # Docker healthcheck only — keeps port 80 reachable for the daemon probe.
+    # Docker healthcheck. it keeps port 80 reachable so we know if nginx is up
     location /nginx-health {
         access_log off;
         return 200 "ok";
@@ -31,15 +41,11 @@ server {
     }
 
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://${DOMAIN}$request_uri;
     }
 }
 
-# ----------------------------------------------------------
-# Loopback health for the Docker healthcheck. The probe sends Host: 127.0.0.1,
-# which never matches server_name ${DOMAIN} — without its own block it hits the
-# default_server (444) and nginx reports unhealthy.
-# ----------------------------------------------------------
+ # Local Docker healthcheck: prevents Host: 127.0.0.1 from hitting the 444 default_server.
 server {
     listen 80;
     server_name 127.0.0.1 localhost;
@@ -52,9 +58,9 @@ server {
     }
 }
 
-# ----------------------------------------------------------
-# Bloc HTTPS (port 443) — production traffic.
-# ----------------------------------------------------------
+# Handle HTTPS for our domain on port 443)
+# https://nginx.org/en/docs/http/configuring_https_servers.html
+
 server {
     listen 443 ssl;
     http2 on;
@@ -65,13 +71,22 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
     ssl_protocols TLSv1.2 TLSv1.3;
+    # https://docs.openssl.org/3.0/man1/openssl-ciphers/
+    # Generated with : https://configurator.tlsref.org/ ( config nginx intermediate)
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
-
+    # HSTS, tells browser to come only wiht https on future connexions
+    # for one year, always come back on https on this domain
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # Don't try to guess which type of files, if it's image, don't treat it as javascript, don't interpret
     add_header X-Content-Type-Options "nosniff" always;
+    # Don't allow my website to be in a iframe
+    # it prevent clickjacking
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
     add_header X-Frame-Options "DENY" always;
+    # decide if other website receive the full url.
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
     # Sources: self bundle/API, self-hosted fonts, inline styles (React), Bunny CDN + Google account avatars.
     add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.b-cdn.net https://*.googleusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;
 
@@ -82,7 +97,7 @@ server {
     }
 
     location /api/ {
-        limit_req zone=api_limit burst=20 nodelay;
+        limit_req zone=api_limit burst=40 nodelay;
         # Backend bodyLimit is 1 MiB; allow that through (it returns a clean JSON error) and
         # block grossly oversized bodies here at the edge.
         client_max_body_size 2m;
@@ -98,7 +113,7 @@ server {
     }
 
     location / {
-        limit_req zone=api_limit burst=50 nodelay;
+        limit_req zone=static_limit burst=100 nodelay;
 
         proxy_pass http://frontend;
         proxy_http_version 1.1;
@@ -107,9 +122,26 @@ server {
     }
 }
 
-# ----------------------------------------------------------
-# Default server — rejects unknown Host headers (CSO pass2 #6).
-# ----------------------------------------------------------
+# Canonical host: serve the certificate for www, then redirect to the apex domain.
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name www.${DOMAIN};
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    return 301 https://${DOMAIN}$request_uri;
+}
+
+# Reject requests that do not match our domain.
 server {
     listen 80 default_server;
     listen 443 ssl default_server;

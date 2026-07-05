@@ -1,13 +1,12 @@
 import '_vars.just'
-import 'audit/main.just'
 
 # Database recipes.
 # TARGET=dev (default) | prod. Confirmation interactive sur prod :
 #   - write : tape 'PROD'
 #   - destructive (TRUNCATE) : tape 'I DESTROY PROD'
 #
-# Dev-only par design (schémas locaux, GUI, snapshot dev) :
-#   db-push, db-generate, db-studio, db-snapshot, db-snapshot-load, db-snapshot-reset
+# Dev-only par design (schémas locaux, snapshot dev) :
+#   db-push, db-generate, db-snapshot, db-snapshot-load, db-snapshot-reset
 
 # ─── Schema (dev-only, host-running) ────────────────────────────────────────
 
@@ -16,17 +15,14 @@ import 'audit/main.just'
 db-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     case "$TARGET" in
         dev)  ENV_FILE="../.env.dev" ;;
         prod) ENV_FILE="../.env.prod" ;;
         *)    printf "{{RED}}TARGET invalide: dev|prod (got '$TARGET'){{NC}}\n"; exit 1 ;;
     esac
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠ PROD MIGRATE — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    if [ "$TARGET" = prod ]; then confirm_prod "MIGRATE"; fi
     printf "{{CYAN}}Applying migrations ($TARGET)...{{NC}}\n"
     cd backend && set -a && source "$ENV_FILE" && set +a && bun run src/db/migrate.ts
 
@@ -42,11 +38,6 @@ db-push:
     @printf "{{CYAN}}Schema sync (push)...{{NC}}\n"
     cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit push
 
-# Launch Drizzle Studio GUI (dev-only, localhost)
-[group('db')]
-db-studio:
-    @printf "{{CYAN}}Launching Drizzle Studio on http://localhost:4983{{NC}}\n"
-    cd backend && set -a && source ../.env.dev && set +a && bunx drizzle-kit studio --port 4983
 
 # ─── Stats (read-only) ──────────────────────────────────────────────────────
 
@@ -71,11 +62,7 @@ db-seed:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠ PROD SEED — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    if [ "$TARGET" = prod ]; then confirm_prod "SEED"; fi
     LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
     mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Pushing CORE seed deltas (idempotent, $TARGET)...{{NC}}\n"
@@ -92,6 +79,7 @@ db-seed-update:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
+    if [ "$TARGET" = prod ]; then confirm_prod "SEED UPDATE"; fi
     LOG="{{justfile_directory()}}/.audit-out/db/seed.log"
     mkdir -p "$(dirname "$LOG")"
     printf "{{CYAN}}Updating existing CORE seed entries ($TARGET)...{{NC}}\n"
@@ -118,10 +106,8 @@ db-seed-reset:
     target_compose
     printf "{{YELLOW}}⚠ ATTENTION: --reset will TRUNCATE products + ingredients + tag relations!\n"
     printf "  If the target DB has more products than the JS seed, the guard will refuse unless SEED_FORCE_RESET=1.{{NC}}\n"
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠⚠ PROD RESET — tape 'I DESTROY PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "I DESTROY PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    if [ "$TARGET" = prod ]; then
+        confirm_prod "RESET" "I DESTROY PROD"
     else
         read -r -p "Confirm full DB reset? [y/N] " C
         [ "$C" = "y" ] || exit 1
@@ -138,10 +124,8 @@ db-clean:
     TARGET="${TARGET:-dev}"
     target_compose
     printf "{{YELLOW}}⚠ ATTENTION: All data will be deleted!{{NC}}\n"
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠⚠ PROD WIPE — tape 'I DESTROY PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "I DESTROY PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
+    if [ "$TARGET" = prod ]; then
+        confirm_prod "WIPE" "I DESTROY PROD"
     else
         read -r -p "Confirm local DB wipe? [y/N] " C
         [ "$C" = "y" ] || exit 1
@@ -187,11 +171,7 @@ db-restore file:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠⚠ PROD RESTORE from {{file}} — tape 'I DESTROY PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "I DESTROY PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    if [ "$TARGET" = prod ]; then confirm_prod "RESTORE from {{file}}" "I DESTROY PROD"; fi
     printf "{{CYAN}}Restoring {{file}} ($TARGET)...{{NC}}\n"
     # Détecter chiffrement + gzip automatiquement
     case "{{file}}" in
@@ -304,11 +284,7 @@ db-catalogue-load:
     [ -n "$OWNER_ID" ] || { printf "{{RED}}❌ admin %s not found — run TARGET=%s just db-prod-admin first{{NC}}\n" "$OWNER_EMAIL" "$TARGET"; exit 1; }
     N=$($COMPOSE exec -T db psql -U app -d appdb -tAc "SELECT count(*) FROM products")
     [ "$N" = "0" ] || { printf "{{RED}}❌ products already has %s rows — refusing to clobber{{NC}}\n" "$N"; exit 1; }
-    if [ "$TARGET" = "prod" ]; then
-        printf "{{RED}}⚠ PROD CATALOGUE LOAD — tape 'PROD' pour confirmer{{NC}}\n"
-        read -r -p "> " C
-        [ "$C" = "PROD" ] || { printf "{{RED}}abandon{{NC}}\n"; exit 1; }
-    fi
+    if [ "$TARGET" = prod ]; then confirm_prod "CATALOGUE LOAD"; fi
     # Dump owns the full catalogue: truncate every dump-written table safe from
     # user-data cascade (NOT products/ingredients — guard proves them empty, their
     # CASCADE wipes user rows) so a pre-seed/ingest write can't dup-abort the load.

@@ -214,6 +214,13 @@
   transition: all var(--transition-fast);
 }
 
+/* >=16px on phones prevents iOS Safari focus auto-zoom (fluid root makes 1rem < 16px). */
+@media (--sm-only) {
+  .coll-priceinput input {
+    font-size: var(--input-font-size);
+  }
+}
+
 .coll-priceinput input:hover {
   border-color: var(--border-strong);
 }
@@ -228,6 +235,15 @@
 .coll-priceinput input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* >=16px on mobile prevents iOS Safari focus auto-zoom; desktop keeps 0.9375rem. */
+@media (--sm-only) {
+  .coll-select .select-wrapper select,
+  .coll-select select,
+  .coll-priceinput input {
+    font-size: var(--input-font-size);
+  }
 }
 
 .coll-priceinput-suffix {

@@ -105,7 +105,7 @@ input,
 textarea,
 select {
   font-family: inherit;
-  font-size: inherit;
+  font-size: var(--input-font-size);
   color: inherit;
   accent-color: var(--color-primary);
 

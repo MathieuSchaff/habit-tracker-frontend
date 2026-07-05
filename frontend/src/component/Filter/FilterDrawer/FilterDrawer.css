@@ -15,6 +15,7 @@
 
 .filter-drawer::backdrop {
   background: var(--overlay);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 
@@ -153,7 +154,7 @@
 }
 
 /* Toggle "Selon mon profil" sits above accordions as a global super-filter;
-   flattened to match accordion rows — the base .toggle card border/radius reads as an odd inset box here. */
+   flattened to match accordion rows. The base .toggle card border/radius reads as an odd inset box here. */
 .filter-drawer__body > .toggle {
   background: var(--bg-card);
   padding: var(--space-4) var(--space-5);
@@ -285,7 +286,7 @@
 
 .filter-drawer__body .search-select__input {
   padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 1.25rem);
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   border-width: 1.5px;
   background-color: var(--bg-card);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' opacity='0.55'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>");

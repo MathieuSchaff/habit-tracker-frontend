@@ -38,9 +38,15 @@ Most test commands print only in the terminal. These commands also write files:
 | `just test-frontend-coverage` | `frontend/coverage/` |
 | `just e2e` | `frontend/test-results/` on failures; `frontend/playwright-report/` when a report is opened or generated |
 | `just test-bench` | `/tmp/aurore-backend-test.log` and `/tmp/aurore-backend-test.time` |
+| `just ts-build && cd frontend && ANALYZE=1 bunx vite build` | `frontend/stats.html` (bundle treemap), `frontend/dist/analyze-data.md` (rolldown report) |
 
-These paths are local outputs and are ignored by Git. `just artifacts` lists them with sizes and
-`just artifacts-clean` removes them.
+These paths are local outputs and are ignored by Git. Clean them all with:
+
+```bash
+rm -rf .audit-out backend/coverage frontend/coverage frontend/test-results \
+    frontend/playwright-report frontend/blob-report frontend/.playwright \
+    frontend/stats.html frontend/dist/analyze-data.md
+```
 
 ## Backend Tests
 

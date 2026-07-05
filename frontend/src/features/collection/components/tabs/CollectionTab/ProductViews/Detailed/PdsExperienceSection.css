@@ -86,7 +86,7 @@
   border: 1px solid var(--border-default);
   background: var(--bg-muted);
   font-family: inherit;
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   line-height: var(--leading-normal);
   color: var(--text-primary);
   resize: vertical;

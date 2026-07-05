@@ -80,6 +80,8 @@ frontend/.playwright/
 # Docker (local volumes)
 # =========================
 pgdata/
+# Self-signed localhost cert for `just profile-prod` (never committed)
+.profile-certs/
 
 # =========================
 !backend/src/db/seed/docs/

@@ -10,13 +10,10 @@ import 'scripts/just/test.just'
 import 'scripts/just/e2e.just'
 import 'scripts/just/db.just'
 import 'scripts/just/audit/main.just'
-import 'scripts/just/artifacts.just'
 import 'scripts/just/data.just'
 import 'scripts/just/images.just'
 import 'scripts/just/inci.just'
 import 'scripts/just/quality.just'
 import 'scripts/just/ops.just'
-
-# Show available commands
-help:
-    @just --list
+import 'scripts/just/monitoring.just'
+import? 'scripts/local.just'

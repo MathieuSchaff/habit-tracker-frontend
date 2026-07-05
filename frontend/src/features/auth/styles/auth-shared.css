@@ -92,6 +92,13 @@
   padding: var(--space-2) var(--space-1);
 }
 
+/* >=16px on phones prevents iOS Safari focus auto-zoom (fluid root makes 1rem < 16px). */
+@media (--sm-only) {
+  .auth-field__input {
+    font-size: var(--input-font-size);
+  }
+}
+
 .auth-field__input::placeholder {
   color: var(--text-muted);
   font-weight: normal;

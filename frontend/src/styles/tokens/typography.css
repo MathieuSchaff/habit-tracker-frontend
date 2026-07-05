@@ -5,6 +5,10 @@
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
+
+  /* Form controls: >=16px on phones prevents iOS Safari focus auto-zoom. Desktop uses
+     --text-sm; the phone value is overridden below (see @media --sm-only). */
+  --input-font-size: var(--text-sm);
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
@@ -32,4 +36,13 @@
 
   --font-features-display: "kern" 1, "liga" 1, "onum" 1, "pnum" 1;
   --font-features-sans: "kern" 1, "liga" 1, "cv01" 1, "cv11" 1;
+}
+
+@media (--sm-only) {
+  :root {
+    /* Absolute, NOT 1rem: root type is fluid (clamp 0.875-1.125rem in reset.css), so on
+       phones 1rem is ~14px, still under iOS's 16px auto-zoom threshold. max() keeps it
+       >=16px while honouring a larger root if the user scales text up. */
+    --input-font-size: max(16px, 1rem);
+  }
 }

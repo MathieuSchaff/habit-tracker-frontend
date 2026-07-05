@@ -34,7 +34,7 @@
 textarea.article-editor-form__content-textarea {
   height: 480px;
   font-family: monospace;
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   resize: vertical;
 }
 

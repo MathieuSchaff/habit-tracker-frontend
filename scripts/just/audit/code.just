@@ -6,21 +6,18 @@ audit-code:
     set +e
     mkdir -p .audit-out
     printf "{{ CYAN }}=== knip (dead code/exports/deps) ==={{ NC }}\n"
-    DATABASE_URL=postgres://x bunx knip --reporter compact 2>&1 | tee .audit-out/knip.txt
+    just knip 2>&1 | tee .audit-out/knip.txt
     printf "{{ CYAN }}=== biome (lint + unused locals) ==={{ NC }}\n"
-    bunx biome check . 2>&1 | tee .audit-out/biome.txt
+    just lint 2>&1 | tee .audit-out/biome.txt
     printf "{{ CYAN }}=== tsc -b (types) ==={{ NC }}\n"
     bunx tsc -b --pretty false 2>&1 | tee .audit-out/tsc.txt
     printf "{{ CYAN }}=== madge (cycles) ==={{ NC }}\n"
-    bunx madge --circular --extensions ts,tsx --exclude '(dist|node_modules|db/seed/data)/' backend/src frontend/src shared/src 2>&1 | tee .audit-out/cycles.txt
+    just cycles 2>&1 | tee .audit-out/cycles.txt
     printf "{{ CYAN }}=== fallow health (complexity/CRAP) ==={{ NC }}\n"
     npx fallow health 2>&1 | tee .audit-out/health.txt
     printf "{{ CYAN }}=== fallow dupes ==={{ NC }}\n"
     npx fallow dupes 2>&1 | tee .audit-out/dupes.txt
     printf "{{ CYAN }}=== react-doctor (React patterns/a11y/perf) ==={{ NC }}\n"
-    cd frontend && npx --yes react-doctor@0.4.0 --diff false --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
+    # Version comes from frontend/package.json (react-doctor dependency) — no pin here.
+    cd frontend && npx react-doctor --verbose --no-score 2>&1 | tee ../.audit-out/react-doctor.txt; cd ..
     printf "{{ GREEN }}Done. Rapports → .audit-out/{{ NC }}\n"
-
-# Flag likely low-value comments (heuristic, no edits). ts/tsx/js/jsx/mjs/cjs/css. Report → .audit-out/comments.txt
-audit-comments dirs="backend/src frontend/src shared/src":
-    bun scripts/audit-comments.ts {{dirs}}

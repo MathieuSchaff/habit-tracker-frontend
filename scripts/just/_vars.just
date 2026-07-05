@@ -9,7 +9,11 @@ NC     := '\033[0m'
 
 export COMPOSE_DEV  := "docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml --env-file .env.dev -p aurore"
 export COMPOSE_PROD := "docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.prod.yml --env-file .env.prod -p aurore"
+# Observability overlay. Same project (-p aurore) so it shares aurore_appnet, but a
+# separate compose file so its lifecycle is independent of the app stack.
+export COMPOSE_MON := "docker compose -f infra/docker/compose/docker-compose.monitoring.yml --env-file .env.prod -p aurore"
 COMPOSE_TEST := "docker compose -f infra/docker/compose/docker-compose.test.yml -p aurore-test"
+COMPOSE_PROFILE := "docker compose -f infra/docker/compose/docker-compose.profile.yml -p aurore-profile"
 COMPOSE_E2E  := "docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.dev.yml -f infra/docker/compose/docker-compose.e2e.yml --env-file .env.dev -p aurore-e2e"
 
 # Committed seed snapshot, restored by db-* and e2e-up.

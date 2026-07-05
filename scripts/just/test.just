@@ -24,18 +24,11 @@ test-db-up:
 test-db-down:
     {{COMPOSE_TEST}} down
 
-# Reset test DB from scratch (down + up)
-test-db-reset: test-db-down test-db-up
-
 # Seed CORE into test DB — requires test-db-up
 test-db-seed:
     @printf "{{CYAN}}Seeding CORE into test DB...{{NC}}\n"
     cd backend && export $(grep -v '^\#' ../.env.dev | xargs) && DATABASE_URL={{TEST_DB_URL}} APP_DATABASE_URL={{APP_TEST_DB_URL}} bun run src/db/seed/seeders/seed-core.ts --reset
     @printf "{{GREEN}}✓ CORE seed done on test DB{{NC}}\n"
-
-# Launch Drizzle Studio (GUI) for test DB
-test-db-studio:
-    cd backend && DATABASE_URL="{{TEST_DB_URL}}" bunx drizzle-kit studio --port 4982
 
 # ─────────────────────────── Run once ───────────────────────────
 
@@ -70,14 +63,6 @@ test-watch: test-db-up
 # Watch backend tests — DB assumed up, optional filter
 test-dev-watch args="":
     cd backend && DATABASE_URL={{TEST_DB_URL}} APP_DATABASE_URL={{APP_TEST_DB_URL}} bun test --watch {{args}}
-
-# Watch frontend tests
-test-frontend-watch:
-    cd frontend && bunx vitest
-
-# Launch Vitest with web UI
-test-frontend-ui:
-    cd frontend && bunx vitest --ui
 
 # ──────────────────── Coverage (feeds fallow health --coverage) ────────────────────
 

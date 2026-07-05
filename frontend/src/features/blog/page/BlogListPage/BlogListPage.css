@@ -115,7 +115,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-full);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   color: var(--text-primary);
   line-height: 1.4;
   transition:

@@ -2,11 +2,13 @@
   padding-inline: var(--page-gutter);
   display: flex;
   flex-direction: column;
+  min-height: calc(100vh - var(--nav-height));
+  /* biome-ignore lint/suspicious/noDuplicateProperties: vh fallback for browsers without dvh */
   min-height: calc(100dvh - var(--nav-height));
   background: var(--bg-page);
 }
 
-/* scope gutter overrides to the layout, not :root — global :root leaks onto
+/* scope gutter overrides to the layout, not :root. global :root leaks onto
    the homepage when this route's CSS chunk loads (e.g. nav hover preload) */
 @media (--xs) {
   .list-page-layout {

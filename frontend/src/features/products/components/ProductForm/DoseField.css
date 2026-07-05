@@ -26,7 +26,7 @@
   border: 0;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   color: var(--text-primary);
   text-align: right;
   -moz-appearance: textfield;
@@ -54,7 +54,7 @@
   background: oklch(from var(--color-primary) l c h / 0.06);
   padding: var(--space-2) calc(var(--space-4) + 0.75rem) var(--space-2) var(--space-4);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   color: var(--text-primary);
   cursor: pointer;
   background-image:

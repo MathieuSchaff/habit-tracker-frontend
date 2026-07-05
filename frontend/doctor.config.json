@@ -94,8 +94,7 @@
       {
         "files": [
           "src/component/Dialog/DialogPrimitive.tsx",
-          "src/component/Filter/FilterDrawer/FilterDrawer.tsx",
-          "src/features/tasks/components/TaskItem.tsx"
+          "src/component/Filter/FilterDrawer/FilterDrawer.tsx"
         ],
         "rules": ["react-doctor/no-noninteractive-element-interactions"]
       },
@@ -108,8 +107,6 @@
           "src/component/Input/ChipGroup/ChipGroup.tsx",
           "src/features/profile/tabs/SkinTab/DermoProfileForm.tsx",
           "src/features/profile/tabs/PreferencesTab/PreferenceSettings.tsx",
-          "src/features/tasks/page/TasksPage.tsx",
-          "src/features/tasks/components/TaskItem.tsx",
           "src/features/collection/components/tabs/CollectionTab/parts/CollectionFiltersSheet.tsx"
         ],
         "rules": ["react-doctor/control-has-associated-label"]
@@ -122,7 +119,6 @@
           "src/features/home/components/primitives/IngredientCard.tsx",
           "src/features/profile/components/ProfileAvatar/ProfileAvatar.tsx",
           "src/features/profile/components/SkinPortraitCard/SkinPortraitCard.tsx",
-          "src/features/tasks/components/TaskItem.tsx",
           "src/component/Feedback/app/DemoBanner/DemoBanner.tsx",
           "src/features/products/comparison/components/DiffSection.tsx"
         ],
@@ -167,10 +163,7 @@
         "rules": ["react-doctor/no-derived-useState", "react-doctor/no-derived-state"]
       },
       {
-        "files": [
-          "src/features/products/components/ProductForm/SlugEditModal.tsx",
-          "src/features/tasks/components/TaskItem.tsx"
-        ],
+        "files": ["src/features/products/components/ProductForm/SlugEditModal.tsx"],
         "rules": ["react-doctor/no-derived-useState"]
       },
       {
@@ -283,10 +276,6 @@
           "src/features/products/components/skeletons/ProductsGridSkeleton/ProductsGridSkeleton.tsx"
         ],
         "rules": ["react-doctor/prefer-tag-over-role"]
-      },
-      {
-        "files": ["src/features/admin/components/AdminErrorsPage.tsx"],
-        "rules": ["react-doctor/prefer-useReducer"]
       },
       {
         "files": ["src/lib/queries/products.ts"],

@@ -1,12 +1,9 @@
-# =========================
-# Configuration PROD (surcharges)
-# Utilisation: docker compose -f infra/docker/compose/docker-compose.yml -f infra/docker/compose/docker-compose.prod.yml up -d
-# =========================
+# Prod overlay.
 
 services:
   db:
     restart: unless-stopped
-    # Loopback seulement (pas internet) : joignable par tunnel SSH pour GUI/admin (dev_readonly).
+    # Loopback only. Reach via SSH tunnel for GUI/admin (dev_readonly).
     ports:
       - "127.0.0.1:5432:5432"
     mem_limit: 512m
@@ -26,7 +23,7 @@ services:
       target: prod
 
     restart: unless-stopped
-    # Laisse le handler SIGTERM drainer (cap interne 8s) avant le SIGKILL Docker.
+    # Let the SIGTERM handler drain (8s internal cap) before Docker's SIGKILL.
     stop_grace_period: 15s
     mem_limit: 512m
     cpus: "1.0"
@@ -41,7 +38,7 @@ services:
       PORT: 3000
       LOG_LEVEL: info
 
-    # Expose uniquement dans le réseau Docker (pas sur l'hôte)
+    # Docker network only, not the host.
     expose:
       - "3000"
 

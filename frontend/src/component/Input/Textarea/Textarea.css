@@ -24,7 +24,7 @@
   width: 100%;
   padding: var(--space-3) var(--space-4);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--input-font-size);
   color: var(--text-primary);
   background-color: var(--bg-page);
   border: var(--border-width) solid var(--border-default);

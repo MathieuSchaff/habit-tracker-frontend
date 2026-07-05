@@ -1,32 +1,16 @@
-# =========================
-# Configuration de base commune à dev et prod
-# =========================
-# Explication:
-# Services isolés: db, api, frontend, nginx, certbot
-# Il y a 3 storage volumes qui sont persistants même quand on restart un conteneur
-# 1 network privé, comme ça les conteneurs peuvent communiquer entre eux.
-# En dev, docker-compose.dev.yml ajoute les bind mounts de code source.
-#
+# Base config shared by dev and prod. Dev overlay adds source bind mounts.
 services:
-  # =========================
-  # Base de données PostgreSQL
-  # PostgreSQL 18 serveur
-  # Ca crée un volume appelé pgdata qui contient les fichiers de la db
-  # Est monté dans /var/lib/docker/volumes sur l'ordi
-  # =========================
   db:
     # digest-pinned for reproducibility; bump consciously (Postgres on-disk format).
     image: postgres:18@sha256:52e6ffd11fddd081ae63880b635b2a61c14008c17fc98cdc7ce5472265516dd0
     container_name: app_db
     # Default CMD is "postgres"; keep it first or the container won't boot.
     command: ["postgres", "-c", "log_min_duration_statement=500"]
-    # Au final : DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: appdb
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      # https://hub.docker.com/_/postgres
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
@@ -37,10 +21,6 @@ services:
     networks:
       - appnet
 
-  # =========================
-  # API Backend (Bun + Hono)
-  # Build via infra/docker/images/backend/Dockerfile
-  # =========================
   api:
     container_name: app_api
     build:
@@ -48,7 +28,7 @@ services:
       dockerfile: infra/docker/images/backend/Dockerfile
     depends_on:
       db:
-        condition: service_healthy # Attends que la DB soit "en forme" avant de démarrer
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/appdb
       APP_DATABASE_URL: postgres://app_runtime:${APP_RUNTIME_PASSWORD}@db:5432/appdb
@@ -72,23 +52,16 @@ services:
     networks:
       - appnet
 
-  # =========================
-  # Frontend React (Vite)
-  # Build via infra/docker/images/frontend/Dockerfile
-  # =========================
   frontend:
     container_name: app_frontend
     build:
       context: ../../..
       dockerfile: infra/docker/images/frontend/Dockerfile
     depends_on:
-      - api # On a besoin de l'API pour que le site serve à quelque chose
+      - api
     networks:
       - appnet
 
-  # =========================
-  # Reverse Proxy (Nginx)
-  # =========================
   nginx:
     # 1.30.2-alpine, digest-pinned (CVE-2026-42945 "NGINX Rift" fixed in >=1.30.1). Bump digest to update.
     image: nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
@@ -111,9 +84,6 @@ services:
     networks:
       - appnet
 
-  # =========================
-  # Certbot (Let's Encrypt)
-  # =========================
   certbot:
     # v5.6.0, digest-pinned (was floating :latest).
     image: certbot/certbot@sha256:0107d084c225631fc64a8313e19adb07275f7296fde338f7dfa93986c80b2e3e
@@ -133,17 +103,11 @@ services:
     networks:
       - appnet
 
-# =========================
-# Volumes persistants
-# =========================
 volumes:
   pgdata:
   certbot_data:
   certbot_www:
 
-# =========================
-# Réseau Docker privé
-# =========================
 networks:
   appnet:
     driver: bridge

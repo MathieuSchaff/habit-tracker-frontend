@@ -15,12 +15,8 @@
     right: 0;
     padding-bottom: env(safe-area-inset-bottom, 0);
     height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0));
-    background: radial-gradient(
-      circle at top,
-      oklch(from var(--color-sidebar-bg) 28% 0.04 h),
-      var(--color-sidebar-bg)
-    );
-    border-top: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
+    border-top: 1px solid #314338;
+    background: #07140d;
     z-index: var(--z-modal);
     align-items: stretch;
     box-shadow: 0 -10px 40px oklch(0% 0 0 / 0.3);
@@ -36,15 +32,17 @@
     flex-direction: column;
     gap: 0.25rem;
     max-height: 85dvh;
-    background: oklch(from var(--color-sidebar-bg) l c h / 0.98);
+    background: #07140d;
+    -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
-    border-top: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
+    border-top: 1px solid #314338;
     border-radius: 2rem 2rem 0 0;
     padding: 1rem var(--space-4) calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 2rem));
     box-shadow: var(--shadow-pop);
   }
 
   .bottom-nav__sheet::backdrop {
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
   }
 
@@ -52,11 +50,45 @@
     content: "";
     width: 32px;
     height: 4px;
-    background: oklch(from var(--color-sidebar-bg) 60% 0.02 h);
+    background: #d0c5aa;
     border-radius: 10px;
     margin: 0 auto 1.5rem;
     display: block;
     opacity: 0.4;
+  }
+
+  @supports (background: oklch(20% 0.05 145deg)) {
+    .bottom-nav {
+      background: var(--color-sidebar-bg);
+      border-top: 1px solid var(--color-sidebar-item-hover, #314338);
+    }
+
+    .bottom-nav__sheet {
+      background: var(--color-sidebar-bg);
+      border-top: 1px solid var(--color-sidebar-item-hover, #314338);
+    }
+  }
+
+  @supports (background: oklch(from white l c h)) {
+    .bottom-nav {
+      background:
+        radial-gradient(
+          circle at top,
+          oklch(from var(--color-sidebar-bg) 28% 0.04 h),
+          oklch(from var(--color-sidebar-bg) l c h / 0) 70%
+        ),
+        var(--color-sidebar-bg);
+      border-top: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
+    }
+
+    .bottom-nav__sheet {
+      background: oklch(from var(--color-sidebar-bg) l c h / 0.98);
+      border-top: 1px solid oklch(from var(--color-sidebar-bg) 35% 0.05 h);
+    }
+
+    .bottom-nav__sheet::before {
+      background: oklch(from var(--color-sidebar-bg) 60% 0.02 h);
+    }
   }
 
   .bottom-nav__tab {
@@ -105,6 +137,17 @@
   .bottom-nav__tab--cta:disabled {
     cursor: default;
     opacity: 0.6;
+  }
+
+  /* This theme's nav bg is a light orange; the accent (mango) used for the CTA and the
+     active tab collapses to near-zero contrast against it. Force those foregrounds to
+     white like the other tabs, and drop the accent glow that reads as an orange halo. */
+  [data-theme="light"][data-variant="terracota"] .bottom-nav__tab--cta,
+  [data-theme="light"][data-variant="terracota"] .bottom-nav__tab--active,
+  [data-theme="light"][data-variant="terracota"] .bottom-nav__tab[aria-current="page"],
+  [data-theme="light"][data-variant="terracota"] .bottom-nav__tab--sheet-open {
+    color: oklch(100% 0 0);
+    filter: none;
   }
 
   .bottom-nav__sheet-link,

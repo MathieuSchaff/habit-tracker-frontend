@@ -29,6 +29,12 @@
   overscroll-behavior: contain;
   min-height: 0;
   padding: var(--space-1) 0;
+  transition: opacity var(--transition-fast) ease;
+}
+
+/* Stale placeholder results while a newer query is in flight. */
+.combobox-primitive__items--updating {
+  opacity: 0.55;
 }
 
 .combobox-primitive__footer {

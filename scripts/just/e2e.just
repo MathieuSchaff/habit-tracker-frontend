@@ -24,10 +24,6 @@ e2e-reset:
     {{COMPOSE_E2E}} down
     just e2e-up
 
-# E2E stack logs
-e2e-logs:
-    {{COMPOSE_E2E}} logs -f
-
 # Run Playwright — lance just e2e-up automatiquement si la stack n'est pas déjà up
 e2e:
     cd frontend && bunx playwright test

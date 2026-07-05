@@ -3,47 +3,62 @@ import path from 'node:path'
 import babel from '@rolldown/plugin-babel'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import { bundleAnalyzerPlugin } from 'rolldown/experimental'
-import { visualizer } from 'rollup-plugin-visualizer'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin, type UserConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
 
-// https://vitejs.dev/config/
-// https://tanstack.com/router/latest/docs/framework/react/installation/with-vite
-export default defineConfig({
-  plugins: [
-    // Dev-only (apply: 'serve'). Inspect per-plugin transforms at /__inspect/ — useful to
-    // debug the custom transformIndexHtml plugins below.
-    Inspect(),
-    // Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
-    tanstackRouter({
-      target: 'react',
-      autoCodeSplitting: true,
-      routesDirectory: './src/routes',
-      generatedRouteTree: './src/routeTree.gen.ts',
-      quoteStyle: 'single',
-      // string pattern, not RegExp: router-generator schema is z.string() only
-      routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
-    }),
-    react(),
-    // React Compiler runs via Babel; plugin-react 6 dropped its inline babel option.
-    // Scope to app source so node_modules isn't transformed.
-    babel({
-      include: /src\/.*\.[jt]sx?$/,
-      presets: [reactCompilerPreset()],
-    }),
+// Keep this file separate until the Vite 8/Rolldown setup replaces the main config.
 
-    // Body font (DM Sans 400 latin) ships via @fontsource CSS, so the browser only
-    // discovers it after parsing the eager CSS (HTML→CSS→woff2, 2 hops). Preload it
-    // by its real hashed name from the bundle to cut a render-blocking hop. Build-only.
-    {
-      name: 'preload-body-font',
-      transformIndexHtml(html, ctx) {
+// Finds the eager stylesheet tag for an emitted empty CSS asset so it can be removed.
+const EMPTY_CSS_LINK_PATTERN = (href: string) =>
+  new RegExp(
+    `\\s*<link\\b(?=[^>]*\\brel=(?:"stylesheet"|'stylesheet'))(?=[^>]*\\bhref=(?:"${escapeRegExp(
+      href
+    )}"|'${escapeRegExp(href)}'))[^>]*>`,
+    'g'
+  )
+
+// Escapes an emitted asset path before injecting it into a RegExp.
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+// Normalizes Rolldown asset sources so CSS can be inspected as text.
+function assetText(asset: { source: string | Uint8Array }) {
+  return typeof asset.source === 'string' ? asset.source : new TextDecoder().decode(asset.source)
+}
+
+// Builds the public asset URL while preserving static-preview relative bases.
+function withBase(base: string, emittedFile: string) {
+  const file = emittedFile.replace(/^\/+/, '')
+
+  if (base === '') return file
+  if (base === './') return `./${file}`
+
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`
+  return `${normalizedBase}${file}`
+}
+
+function preloadBodyFont(): Plugin {
+  let base = '/'
+
+  return {
+    name: 'aurore:preload-body-font',
+    apply: 'build',
+    configResolved(config) {
+      base = config.base
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
         if (!ctx.bundle) return html
+
+        // Fontsource hides the body font behind CSS; preload the real hashed file.
+        // Keep this aligned with the import in `src/main.tsx`.
         const font = Object.keys(ctx.bundle).find(
-          (f) => f.includes('dm-sans-latin-400-normal') && f.endsWith('.woff2')
+          (file) => file.includes('dm-sans-latin-400-normal') && file.endsWith('.woff2')
         )
         if (!font) return html
+
         return {
           html,
           tags: [
@@ -53,7 +68,7 @@ export default defineConfig({
                 rel: 'preload',
                 as: 'font',
                 type: 'font/woff2',
-                href: `/${font}`,
+                href: withBase(base, font),
                 crossorigin: '',
               },
               injectTo: 'head-prepend',
@@ -62,87 +77,167 @@ export default defineConfig({
         }
       },
     },
-    // Vite reserves a CSS file per chunk that imports CSS, decided early from imports.
-    // After tree-shaking some end up empty (vendor with no CSS, schema deep-imports that
-    // dropped their component CSS). An empty eager <link> still render-blocks first paint
-    // for zero bytes, so strip the <link> from the HTML. Build-only.
-    // Keep the (empty) asset though: the same CSS can be a lazy chunk's __vitePreload dep,
-    // so deleting it 404s that preload at runtime. A served 0-byte 200 is harmless.
-    // Tracks vitejs/vite#11672 (CSS slot reserved pre-tree-shake); delete if Vite ships a native fix.
-    {
-      name: 'strip-empty-css',
-      transformIndexHtml(html, ctx) {
+  }
+}
+
+function stripEmptyEagerCssLinks(): Plugin {
+  let base = '/'
+
+  return {
+    name: 'aurore:strip-empty-eager-css-links',
+    apply: 'build',
+    configResolved(config) {
+      base = config.base
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
         if (!ctx.bundle) return html
-        let out = html
-        for (const [name, asset] of Object.entries(ctx.bundle)) {
-          if (!name.endsWith('.css')) continue
-          const source = 'source' in asset && typeof asset.source === 'string' ? asset.source : ''
-          if (source.trim() !== '') continue
-          out = out.replace(
-            new RegExp(
-              `\\s*<link[^>]*href="/${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`
-            ),
-            ''
-          )
+
+        let transformedHtml = html
+        for (const [fileName, bundledFile] of Object.entries(ctx.bundle)) {
+          if (bundledFile.type !== 'asset' || !fileName.endsWith('.css')) continue
+          if (assetText(bundledFile).trim() !== '') continue
+
+          // Strip only the eager HTML link. Lazy preloads may still need the asset.
+          const href = withBase(base, fileName)
+          transformedHtml = transformedHtml.replace(EMPTY_CSS_LINK_PATTERN(href), '')
         }
-        return out
+
+        return transformedHtml
       },
     },
-    // Bundle treemap with gzip/brotli size estimates. Production nginx currently serves gzip;
-    // brotli remains useful as a comparison. Gated behind ANALYZE so normal/prod builds don't
-    // emit stats.html. Must stay last. Run: ANALYZE=1 vite build
-    Boolean(process.env.ANALYZE) &&
-      visualizer({
-        filename: './stats.html',
-        template: 'treemap',
-        gzipSize: true,
-        brotliSize: true,
+  }
+}
+
+function enabled(value: string | undefined) {
+  return value === '1' || value === 'true'
+}
+
+export default defineConfig(async ({ command, mode, isPreview }): Promise<UserConfig> => {
+  // Config files need `loadEnv`; `import.meta.env` is not ready here.
+  const fileEnv = loadEnv(mode, process.cwd(), '')
+  const apiUrl = process.env.VITE_API_URL ?? fileEnv.VITE_API_URL ?? 'http://api:3000'
+  const analyze = enabled(process.env.ANALYZE ?? fileEnv.ANALYZE)
+  // Preview also uses `serve`, but Inspect should stay dev-only.
+  const devServer = command === 'serve' && isPreview !== true
+
+  let visualizerPlugin: Plugin | false = false
+
+  if (analyze) {
+    // Rolldown's builtin bundleAnalyzerPlugin never emits under `vite build` (the native
+    // plugin isn't wired into Vite's build pipeline), so bundle analysis comes from the
+    // Vite DevTools Rolldown panel instead. visualizer stays for the gzip/brotli treemap.
+    const visualizerModule = 'rollup-plugin-visualizer'
+    const { visualizer } = await import(visualizerModule)
+
+    visualizerPlugin = visualizer({
+      filename: './stats.html',
+      template: 'treemap',
+      gzipSize: true,
+      brotliSize: true,
+    }) as Plugin
+  }
+
+  return {
+    plugins: [
+      devServer && Inspect(),
+
+      // TanStack Router must run before React so route splitting sees source files.
+      tanstackRouter({
+        target: 'react',
+        autoCodeSplitting: true,
+        routesDirectory: './src/routes',
+        generatedRouteTree: './src/routeTree.gen.ts',
+        quoteStyle: 'single',
+        routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
       }),
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    host: '0.0.0.0',
-    allowedHosts: true,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL ?? 'http://api:3000',
-        changeOrigin: true,
+      react(),
+
+      // React Compiler still runs through Babel; keep it scoped to app code.
+      babel({
+        include: /src[\\/].*\.[jt]sx?$/,
+        presets: [reactCompilerPreset()],
+      }),
+
+      preloadBodyFont(),
+      stripEmptyEagerCssLinks(),
+      visualizerPlugin,
+    ],
+
+    resolve: {
+      alias: {
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
-  },
-  build: {
-    rolldownOptions: {
-      // Native Rolldown analyzer (experimental). MD report tuned for code review of chunk
-      // splitting — complements visualizer's gzip/brotli treemap. Gated behind ANALYZE,
-      // emits dist/analyze-data.md. rolldown is Vite 8's engine: phantom dep, version-locked.
-      plugins: process.env.ANALYZE ? [bundleAnalyzerPlugin({ format: 'md' })] : [],
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/'))
-            return 'react'
-          if (id.includes('node_modules/@tanstack/')) return 'tanstack'
-          if (id.includes('node_modules/zod/')) return 'forms'
-          // Route-scoped (/profile, products/new) — keep out of the eager vendor chunk
-          if (id.includes('node_modules/react-easy-crop/')) return undefined
-          // Keep markdown/katex out — they are lazy-loaded per route, don't force them into a shared chunk
-          if (
-            id.includes('node_modules/katex/') ||
-            id.includes('node_modules/react-markdown/') ||
-            id.includes('node_modules/remark') ||
-            id.includes('node_modules/rehype') ||
-            id.includes('node_modules/micromark') ||
-            id.includes('node_modules/mdast') ||
-            id.includes('node_modules/hast') ||
-            id.includes('node_modules/unified/')
-          )
-            return undefined
-          if (id.includes('node_modules/')) return 'vendor'
+
+    css: {
+      // Devtools should point at source CSS, not PostCSS output.
+      devSourcemap: true,
+    },
+
+    // DevTools keeps a server alive, so a plain `vite build` never exits (breaks
+    // profile-prod and CI). Enable it only where it's wanted: the dev server and
+    // ANALYZE builds (the latter records a Rolldown session, then holds for browsing).
+    devtools: { enabled: devServer || analyze },
+
+    server: {
+      host: true,
+      port: 5173,
+      strictPort: true,
+
+      // Do not use `allowedHosts: true`; it opens the dev server to DNS rebinding.
+      proxy: {
+        '/api': {
+          target: apiUrl,
+          changeOrigin: true,
         },
       },
     },
-  },
+
+    preview: {
+      host: true,
+      port: 4173,
+      strictPort: true,
+    },
+
+    build: {
+      // Gzip size reporting is useful for analysis, not for every build.
+      reportCompressedSize: analyze,
+      rolldownOptions: {
+        output: {
+          // Keep only stable shared groups explicit. Route-only deps should stay lazy.
+          codeSplitting: {
+            groups: [
+              {
+                name: 'react',
+                test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+                priority: 40,
+              },
+              {
+                name: 'tanstack',
+                // Router and Query are app-wide. Recheck this before adding route-only TanStack deps.
+                test: /node_modules[\\/]@tanstack[\\/]/,
+                priority: 30,
+              },
+              {
+                name: 'forms',
+                test: /node_modules[\\/]zod[\\/]/,
+                priority: 20,
+              },
+              {
+                name: 'vendor',
+                test: /node_modules[\\/]/,
+                priority: 10,
+                minShareCount: 2,
+                minSize: 20 * 1024,
+                entriesAware: true,
+                entriesAwareMergeThreshold: 10 * 1024,
+              },
+            ],
+          },
+        },
+      },
+    },
+  }
 })

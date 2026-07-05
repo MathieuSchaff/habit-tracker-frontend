@@ -57,7 +57,6 @@ Add `just e2e` when the change touches a real browser flow.
 | `just ts-check`  | TypeScript watch mode (host)       |
 | `just ts-build`  | Generate types and TanStack routes |
 | `just ts-verify` | One-shot type check (host)         |
-| `just diagnose`  | Check types and container state    |
 
 ### Quality & tests
 
@@ -65,11 +64,9 @@ Add `just e2e` when the change touches a real browser flow.
 | :------------------- | :---------------------------------- |
 | `just audit-code`    | Full local audit, reports in `.audit-out/` |
 | `just lint-fix`      | Fix style with Biome                |
-| `just format`        | Format code                         |
 | `just test`          | Backend + frontend tests            |
 | `just test-backend`  | Backend tests (isolated DB)         |
 | `just test-frontend` | Vitest frontend tests               |
-| `just test-db-reset` | Reset the test DB from scratch      |
 
 See [`TESTING.md`](TESTING.md) for the quick map of backend, frontend and E2E test layers.
 
@@ -122,7 +119,6 @@ Useful commands:
 | `just db-generate`                  | Generate a SQL migration file      |
 | `just db-migrate`                   | Apply migrations locally           |
 | `just db-push`                      | Sync schema without migration      |
-| `just db-studio`                    | Drizzle UI (http://localhost:4983) |
 | `just db-seed`                      | Push CORE catalog seed (idempotent) |
 | `just db-reset`                     | Wipe + migrate + seed              |
 | `just db-backup`                    | Backup to `./backups/`             |
@@ -130,6 +126,34 @@ Useful commands:
 | `just db-snapshot`                  | Dump DB → `data.sql` (dev source of truth) |
 | `just db-snapshot-load`             | Reload `data.sql` (⚠ truncates tables)     |
 | `just db-snapshot-reset`            | Clean + migrate + load `data.sql`          |
+
+### One-liners (no recipe)
+
+Simple commands kept out of the justfile on purpose. Dev containers have pinned
+names `app_api`, `app_db`, `app_frontend`; the E2E stack uses `e2e_api`, `e2e_db`,
+`e2e_frontend`.
+
+```bash
+# Containers
+docker ps --filter name=app_             # container status + health
+docker logs -f app_api                   # follow logs (any container name above)
+docker exec -it app_frontend /bin/sh     # shell into a container
+docker stats --no-stream                 # resource usage
+docker rmi aurore-frontend aurore-api    # drop project images (force rebuild)
+just dev-down && just dev                # restart the dev stack
+
+# Quality
+bunx biome format --write .              # format only (`just lint-fix` includes it)
+npx fallow audit --format compact        # new issues vs main
+npx fallow dupes                         # duplication scan
+npx fallow health                        # complexity scan
+
+# GUIs & watch modes
+cd frontend && bunx vitest               # frontend tests, watch mode
+cd frontend && bunx vitest --ui          # frontend tests, web UI
+(cd backend && set -a && . ../.env.dev && set +a && bunx drizzle-kit studio --port 4983)
+(cd backend && DATABASE_URL=postgres://app:testpassword@localhost:5433/appdb_test bunx drizzle-kit studio --port 4982)
+```
 
 ## Vendored `algo-derm`
 
@@ -189,4 +213,4 @@ just clean && just dev-fresh  # ⚠ destroys ALL Docker data incl. the local DB 
 1. Create `.env.prod` from `.env.prod.example` and fill **every** secret — the API validates env at boot (`backend/src/config/env.ts`) and crash-loops if any required var is missing.
 2. Run `just prod` to start services.
 3. Run `just prod-migrate` to apply migrations (execs into the running api container).
-4. Run `just ssl-init <domain> <email>` to generate the SSL certificate.
+4. Run `just ssl-init <apex-domain> <email>` to generate the SSL certificate for the apex and `www` hostnames.

@@ -1,18 +1,35 @@
 # infra/keys/
 
-Clés publiques versionnées dans le repo. **Aucune clé privée ne doit jamais être committée ici** — c'est par construction (lecture-seule) mais à rappeler.
+Public keys tracked in the repository.
+
+**No private key must ever be committed here.** This folder is meant to contain public, read-only keys only, but this rule is still worth repeating.
 
 ## `aurore-backup.pub.asc`
 
-Clé publique GPG utilisée par `just db-backup-prod` pour chiffrer les dumps DB avant écriture disque sur le VPS. Importée sur le VPS au moment du déploiement initial.
+This is the public GPG key used by `just db-backup-prod` to encrypt database dumps before they are written to disk on the VPS.
 
-- **Recipient** : `backup@aurore.local`
-- **Algorithme** : RSA 4096
-- **Expiration** : aucune (rotation manuelle si besoin)
-- **Clé privée** : stockée **uniquement** dans le password manager personnel. Jamais sur le VPS, jamais sur disque local, jamais dans le repo.
+The key is imported on the VPS during the initial deployment.
 
-Versionner la pub key est sûr : elle ne permet que de **chiffrer** vers ce recipient, pas de déchiffrer. La rendre lisible par tout cloneur du repo simplifie le bootstrap d'un nouveau VPS et n'ajoute aucune surface d'attaque.
+- **Recipient**: `backup@aurore.local`
+- **Algorithm**: RSA 4096
+- **Expiration**: none, manual rotation if needed
+- **Private key**: stored **only** in the personal password manager. Never on the VPS, never on local disk, and never in the repository.
 
-## En cas de perte de la priv key
+It is safe to version the public key. It can only be used to **encrypt** data for this recipient. It cannot decrypt anything.
 
-C'est un risque assumé. Conséquence : les backups existants chiffrés avec cette pub key deviennent définitivement illisibles. Procédure de récupération : générer une nouvelle keypair, remplacer `aurore-backup.pub.asc`, ré-importer sur le VPS, démarrer une nouvelle génération de backups. Les anciens dumps sont perdus.
+Making this public key available to anyone who clones the repository makes it easier to bootstrap a new VPS, and it does not add a real attack surface.
+
+## If the private key is lost
+
+This is an accepted risk.
+
+If the private key is lost, all existing backups encrypted with this public key become permanently unreadable.
+
+Recovery procedure:
+
+1. Generate a new GPG key pair.
+2. Replace `aurore-backup.pub.asc` in the repository.
+3. Import the new public key on the VPS.
+4. Start creating new backups with the new key.
+
+Old encrypted dumps are lost.

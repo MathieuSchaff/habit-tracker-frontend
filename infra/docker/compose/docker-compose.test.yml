@@ -1,7 +1,4 @@
-# =========================
-# Configuration pour les TESTS uniquement
-# Utilisation: docker compose -f infra/docker/compose/docker-compose.test.yml up -d
-# =========================
+# Standalone test DB (`docker compose -f docker-compose.test.yml up -d`).
 
 services:
   db-test:
@@ -19,7 +16,7 @@ services:
       retries: 20
     networks:
       - testnet
-    # Pas de volume = données perdues au redémarrage (voulu pour les tests)
+    # tmpfs: DB data is wiped on restart (wanted for tests).
     tmpfs:
       - /var/lib/postgresql
     volumes:

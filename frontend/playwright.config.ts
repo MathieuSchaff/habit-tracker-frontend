@@ -1,8 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// E2E tourne contre la stack `just e2e-up` (Docker, frontend sur :5174, DB tmpfs seedée).
-// Ports isolés (5174/3001/5434) — coexiste avec just dev (5173/3000/5432).
-// webServer lance just e2e-up automatiquement si :5174 ne répond pas.
+// To launch it : just e2e-up
+// Ports are (5174/3001/5434). It coexiste with dev (5173/3000/5432).
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -18,6 +17,17 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    // Cross-engine compat matrix. WebKit is the iOS proxy. Mobile bug reports
+    // (transparent nav, demo CTA) can only be reproduced/guarded there.
+    // WebKit needs system deps: sudo npx playwright install-deps webkit
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
   webServer: {

@@ -70,6 +70,13 @@
   color: var(--text-primary);
 }
 
+/* >=16px on mobile prevents iOS Safari focus auto-zoom; desktop keeps 0.9rem. */
+@media (--sm-only) {
+  .coll-search-wrapper .input-wrapper input.coll-search-input {
+    font-size: var(--input-font-size);
+  }
+}
+
 .coll-search-wrapper .input-wrapper input.coll-search-input::placeholder {
   color: var(--text-muted);
 }

@@ -1,4 +1,6 @@
 .detail-page-layout {
+  min-height: calc(100vh - var(--nav-height));
+  /* biome-ignore lint/suspicious/noDuplicateProperties: vh fallback for browsers without dvh */
   min-height: calc(100dvh - var(--nav-height));
   background: var(--bg-page);
   overflow-x: hidden;

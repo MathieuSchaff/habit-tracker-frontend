@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import * as routerMod from '@tanstack/react-router'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -5,6 +8,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDemo, useLogout } from '@/lib/queries/auth'
 import { useAuthStore } from '@/store/auth'
 import { BottomNav } from '../BottomNav'
+
+const css = readFileSync(
+  join(process.cwd(), 'src/component/Header/BottomNav/BottomNav.css'),
+  'utf8'
+)
+const navigate = vi.fn()
 
 vi.mock('@/lib/queries/auth', () => ({
   useLogout: vi.fn(),
@@ -24,6 +33,10 @@ function setRouterState(pathname: string) {
   vi.spyOn(routerMod, 'useRouterState').mockReturnValue(pathname as never)
 }
 
+function setNavigate() {
+  vi.mocked(routerMod.useNavigate).mockReturnValue(navigate as never)
+}
+
 // Selector-aware: the component reads both `!!s.accessToken` and `s.bootRefreshPending`,
 // so a flat boolean mock would feed the wrong value to the second selector.
 function setAuthState(isAuthenticated: boolean) {
@@ -37,6 +50,7 @@ describe('BottomNav', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setRouterState('/collection/')
+    setNavigate()
     setAuthState(false)
     vi.mocked(useLogout).mockReturnValue({
       mutate: vi.fn(),
@@ -100,6 +114,45 @@ describe('BottomNav', () => {
     fireEvent.click(screen.getByRole('button', { name: /Essayer Aurore/ }))
 
     expect(mutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('navigates to collection after the demo mutation succeeds', () => {
+    const mutate = vi.fn((_input: undefined, opts?: { onSuccess?: () => void }) =>
+      opts?.onSuccess?.()
+    )
+    vi.mocked(useDemo).mockReturnValue({
+      mutate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useDemo>)
+    setAuthState(false)
+    render(<BottomNav />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Essayer Aurore/ }))
+
+    expect(navigate).toHaveBeenCalledWith({ to: '/collection' })
+  })
+
+  it('keeps parseable background fallbacks before relative oklch mobile nav colors', () => {
+    const navBlock = css.slice(
+      css.indexOf('  .bottom-nav {'),
+      css.indexOf('  .bottom-nav__sheet {')
+    )
+    const sheetBlock = css.slice(
+      css.indexOf('  .bottom-nav__sheet {'),
+      css.indexOf('  .bottom-nav__sheet::backdrop')
+    )
+    const relativeColorSupport = css.indexOf('@supports (background: oklch(from white l c h))')
+    const relativeNavBlock = css.slice(
+      css.indexOf('    .bottom-nav {', relativeColorSupport),
+      css.indexOf('    .bottom-nav__sheet {', relativeColorSupport)
+    )
+
+    expect(navBlock.indexOf('background: #07140d;')).toBeGreaterThanOrEqual(0)
+    expect(sheetBlock.indexOf('background: #07140d;')).toBeGreaterThanOrEqual(0)
+    expect(relativeColorSupport).toBeGreaterThan(navBlock.indexOf('background: #07140d;'))
+    expect(relativeColorSupport).toBeGreaterThan(sheetBlock.indexOf('background: #07140d;'))
+    expect(relativeNavBlock).toContain('radial-gradient(')
+    expect(relativeNavBlock).toContain('var(--color-sidebar-bg);')
   })
 
   it('hides the demo entry when authenticated', () => {

@@ -9,17 +9,34 @@
   color: var(--text-primary);
 }
 
+/* Full-height sheet: no idle gap above it on mobile. iOS Safari needs a definite
+   height (not just max-height) to resolve the flex:1 scroll body; without it the body
+   expands past the sheet and the lower sections are clipped with no scroll (Chrome
+   honours max-height here, iOS does not). max-height is re-stated because the base
+   .dialog-sheet caps at 90dvh and would clamp height back down. The sheet itself must
+   not scroll (.pds-scroll owns scrolling) else nested touch-scroll fights. Desktop
+   reverts to a shrink-to-content centered modal (see --sm below). */
+.dialog-sheet.pds-sheet {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
 /* Desktop: the sheet becomes a centered rounded modal framed by a hairline ring
-   (Sheet.css @media --sm). Drop the bottom-sheet's 3px primary top accent there —
+   (Sheet.css @media --sm). Drop the bottom-sheet's 3px primary top accent there:
    its square corners clash with the card radius. */
 @media (--sm) {
   .dialog-sheet.pds-sheet {
     border-top: none;
+    /* Centered modal: shrink to content up to max-height (Sheet.css), not a forced 90dvh. */
+    height: auto;
   }
 }
 
 .pds-scroll {
   flex: 1;
+  /* iOS Safari: without this the flex child refuses to shrink and can't scroll. */
+  min-height: 0;
   overflow-y: auto;
   padding: var(--space-4) var(--space-5) var(--space-10);
   display: flex;
@@ -97,7 +114,7 @@
   outline-offset: 2px;
 }
 
-/* Shared empty state — PdsFormulaSection and StatusHistory. */
+/* Shared empty state for PdsFormulaSection and StatusHistory. */
 .pds-empty-msg {
   font-size: 0.8125rem;
   color: var(--text-muted);

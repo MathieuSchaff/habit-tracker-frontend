@@ -1,0 +1,50 @@
+# Local prod-like LCP / transport profiling stack (`just profile-prod`).
+#
+# Reproduces the real browser-facing transport, which `vite preview` cannot:
+#   edge nginx (HTTP/2 + TLS + the production template)
+#     -> frontend nginx (prod nginx.conf: gzip + immutable asset caching, host-built dist)
+#     -> /api proxied to the running dev backend (app_api)
+#
+# app_api is joined to `profilenet` with the `api` alias at runtime by the recipe,
+# so the production nginx template (`upstream api { server api:3000 }`) stays verbatim.
+#
+# Prereq: `just dev-d` (provides app_api + seeded db). The recipe generates a
+# self-signed localhost cert into ./.profile-certs before boot; without it
+# reload-certs.sh renders an HTTP-only fallback (no HTTP/2 -> LCP numbers are moot).
+services:
+  frontend:
+    container_name: aurore_profile_frontend
+    image: nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
+    volumes:
+      - ../../../frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../../../frontend/dist:/usr/share/nginx/html:ro
+    expose:
+      - "80"
+    networks:
+      - profilenet
+
+  edge:
+    container_name: aurore_profile_edge
+    image: nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
+    depends_on:
+      - frontend
+    environment:
+      DOMAIN: localhost
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../nginx/templates:/etc/nginx/templates:ro
+      - ../../nginx/reload-certs.sh:/reload-certs.sh:ro
+      - ../../../.profile-certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
+    command: ["/bin/sh", "/reload-certs.sh"]
+    networks:
+      - profilenet
+
+volumes:
+  certbot_www:
+
+networks:
+  profilenet:
+    driver: bridge

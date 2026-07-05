@@ -4,7 +4,8 @@ pre-commit:
       run: |
         react_doctor_output=$(mktemp "${TMPDIR:-/tmp}/react-doctor-hook.XXXXXX")
 
-        if cd frontend && bunx react-doctor@0.4.0 --staged --blocking error > "$react_doctor_output" 2>&1; then
+        # Version resolved from frontend/package.json dependency (no pin) — keep in sync is automatic.
+        if cd frontend && bunx react-doctor --staged --blocking error > "$react_doctor_output" 2>&1; then
           rm -f "$react_doctor_output"
         else
           rm -f "$react_doctor_output"

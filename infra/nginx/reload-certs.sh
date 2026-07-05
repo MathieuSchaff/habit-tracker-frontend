@@ -30,7 +30,7 @@ render() {
         cat > "$OUT" <<EOF
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${DOMAIN} www.${DOMAIN};
     server_tokens off;
 
     location /.well-known/acme-challenge/ {
