@@ -59,17 +59,6 @@ image-patch-urls:
     $COMPOSE exec -w /app/backend api bun run src/images/maintenance/patch-urls.ts \
         $([ -z "${APPLY:-}" ] && echo "--dry" || true)
 
-# Audit Bunny ⇄ DB (products/ + blog/) : orphelins, refs cassées, reachability échantillon. Read-only.
-[group('images')]
-image-audit:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    printf "{{CYAN}}Audit images Bunny ⇄ DB ($TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/images/audit/bunny.ts
-
 # Dump JSON des orphelins (consommable par delete-bunny.ts manuel). Read-only.
 [group('images')]
 image-dump-orphans:
