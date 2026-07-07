@@ -12,34 +12,14 @@ import type { SelectOption } from '@/component/Input/Select/Select'
 import { Select } from '@/component/Input/Select/Select'
 import { Textarea } from '@/component/Input/Textarea/Textarea'
 import { RichText } from '@/component/Typography/RichText/RichText'
-import { useCreateArticle, useUpdateArticle } from '@/lib/queries/articles'
+import {
+  type ArticleData,
+  type ArticleFormData,
+  useArticleFormSubmit,
+} from '@/features/blog/hooks/useArticleFormSubmit'
 import './ArticleEditorForm.css'
 
-import { ARTICLE_FORM_ERRORS } from './ArticleEditorForm.constants'
-
 const MarkdownContent = lazy(() => import('@/component/Typography/RichText/MarkdownContent'))
-
-type ArticleData = {
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  category: BlogCategory
-  coverImageUrl: string | null
-  publishedAt: string | null
-}
-
-type FormData = {
-  title: string
-  category: BlogCategory | ''
-  slug: string
-  excerpt: string
-  coverImageUrl: string
-  publishedAt: string
-  content: string
-}
-
-type FormErrors = Partial<Record<keyof FormData | 'global', string>>
 
 type ArticleEditorFormProps =
   | {
@@ -69,7 +49,7 @@ const CATEGORY_OPTIONS: ReadonlyArray<SelectOption<BlogCategory>> = BLOG_CATEGOR
 )
 
 export function ArticleEditorForm({ mode, article, onSuccess, onCancel }: ArticleEditorFormProps) {
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<ArticleFormData>({
     title: article?.title ?? '',
     category: article?.category ?? '',
     slug: article?.slug ?? '',
@@ -78,79 +58,22 @@ export function ArticleEditorForm({ mode, article, onSuccess, onCancel }: Articl
     publishedAt: article?.publishedAt ? article.publishedAt.slice(0, 16) : '',
     content: article?.content ?? '',
   })
-  const [errors, setErrors] = useState<FormErrors>({})
   const [previewContent, setPreviewContent] = useState(false)
   // Set when the user edits the slug; only read in the title handler, never in render.
   const slugTouched = useRef(mode === 'edit')
 
-  const createArticle = useCreateArticle()
-  const updateArticle = useUpdateArticle()
-  const isPending = createArticle.isPending || updateArticle.isPending
+  const { handleSubmit, errors, clearFieldError, isPending, submitLabel } = useArticleFormSubmit(
+    mode === 'create' ? { mode, form, onSuccess } : { mode, article, form, onSuccess }
+  )
 
-  function set<K extends keyof FormData>(key: K, value: FormData[K]) {
+  function set<K extends keyof ArticleFormData>(key: K, value: ArticleFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
-    setErrors((prev) => ({ ...prev, [key]: undefined }))
+    clearFieldError(key)
   }
 
   function handleTitleChange(value: string) {
     set('title', value)
     if (!slugTouched.current) set('slug', toSlug(value))
-  }
-
-  function validate(): FormErrors {
-    const e: FormErrors = {}
-    if (!form.title.trim()) e.title = ARTICLE_FORM_ERRORS.title
-    if (!form.category) e.category = ARTICLE_FORM_ERRORS.category
-    if (!form.content.trim()) e.content = ARTICLE_FORM_ERRORS.content
-    return e
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs)
-      return
-    }
-
-    const data = {
-      title: form.title.trim(),
-      category: form.category as BlogCategory,
-      slug: form.slug.trim() || undefined,
-      excerpt: form.excerpt.trim() || undefined,
-      coverImageUrl: form.coverImageUrl.trim() || undefined,
-      publishedAt: form.publishedAt ? `${form.publishedAt}:00Z` : null,
-      content: form.content,
-    }
-
-    if (mode === 'create') {
-      createArticle.mutate(data, {
-        onSuccess: (result) => onSuccess(result.category, result.slug),
-        onError: (err) => {
-          const msg = (err as Error).message.toLowerCase()
-          setErrors(
-            msg.includes('slug')
-              ? { slug: 'Ce slug est déjà utilisé' }
-              : { global: 'Création impossible. Réessaie.' }
-          )
-        },
-      })
-    } else {
-      updateArticle.mutate(
-        { slug: article.slug, data },
-        {
-          onSuccess: (result) => onSuccess(result.category, result.slug),
-          onError: (err) => {
-            const msg = (err as Error).message.toLowerCase()
-            setErrors(
-              msg.includes('slug')
-                ? { slug: 'Ce slug est déjà utilisé' }
-                : { global: 'Mise à jour impossible. Réessaie.' }
-            )
-          },
-        }
-      )
-    }
   }
 
   return (
@@ -242,11 +165,7 @@ export function ArticleEditorForm({ mode, article, onSuccess, onCancel }: Articl
         />
       )}
 
-      <FormActions
-        onCancel={onCancel}
-        isPending={isPending}
-        submitLabel={mode === 'create' ? "Créer l'article" : 'Enregistrer'}
-      />
+      <FormActions onCancel={onCancel} isPending={isPending} submitLabel={submitLabel} />
     </form>
   )
 }

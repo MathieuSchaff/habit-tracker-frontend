@@ -20,11 +20,15 @@ export async function requireAuth({
   accessToken,
 }: RequireAuthOptions): Promise<void> {
   const store = useAuthStore.getState()
+  // Router context can be one render behind a just-completed auth mutation.
+  // Trust the live store too so demo/login SPA navigations do not immediately
+  // fall back to the refresh-cookie path.
+  const liveAccessToken = accessToken ?? store.accessToken
 
-  if (!accessToken || isExpired()) {
+  if (!liveAccessToken || isExpired()) {
     const result = await ensureFresh(queryClient)
     // Cooldown + no token = never had a session, redirect. Cooldown + expired token = let 401 interceptor recover.
-    if (result === 'failed' || (result === 'cooldown' && !accessToken)) {
+    if (result === 'failed' || (result === 'cooldown' && !liveAccessToken)) {
       clearAndRedirect(store, queryClient, href)
     }
     return

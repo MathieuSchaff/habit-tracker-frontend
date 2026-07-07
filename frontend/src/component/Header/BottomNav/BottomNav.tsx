@@ -31,20 +31,20 @@ export function BottomNav() {
   const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
   const logout = useLogout()
   const demo = useDemo()
-  // Keep the tab busy across the demo POST and the full-page hand-off (mirrors the hero CTA).
+  // Keep the tab busy across the demo POST and protected-route navigation (mirrors the hero CTA).
   const [redirecting, setRedirecting] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // Native <dialog> (via Sheet) traps Tab, closes on Esc, and restores focus to the trigger.
   const closeSheet = useCallback(() => setSheetOpen(false), [])
   const toggleSheet = () => setSheetOpen((prev) => !prev)
 
-  // Demo flips auth, which unmounts the marketing shell; a hard load lands on the
-  // auth-gated /collection where the "keep your data" signup banner lives.
+  // Keep the fresh access token in memory. A hard reload would make the first
+  // /collection boot depend on the refresh cookie path before the user sees the app.
   const startDemo = () =>
     demo.mutate(undefined, {
       onSuccess: () => {
         setRedirecting(true)
-        window.location.assign('/collection')
+        navigate({ to: '/collection' })
       },
     })
 

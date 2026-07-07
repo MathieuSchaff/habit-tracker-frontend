@@ -9,7 +9,6 @@ import { createTestUser } from '../../../tests/helpers/test-factories'
 import { verifyAccessToken, verifyRefreshToken } from '../jwt.utils'
 import { findValidRefreshToken } from '../refresh-token.service'
 import { login } from '../service'
-// import { unsafeEmail, unsafePassword } from '../../../tests/helpers/unsafe'
 import { createCtx, testDb } from './auth-test.setup'
 
 setupDbTests()

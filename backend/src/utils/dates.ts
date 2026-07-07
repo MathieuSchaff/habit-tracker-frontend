@@ -13,10 +13,6 @@ export function normalizeInstant(value: string): string {
   return new Date(value).toISOString()
 }
 
-export function todayCalendarUTC(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
 // Extract the calendar-date portion (UTC) from an ISO instant, never local tz.
 export function instantToCalendar(iso: string): string {
   return iso.slice(0, 10)
@@ -28,7 +24,7 @@ export function calendarToInstant(yyyymmdd: string): string {
 }
 
 // Calendar date (YYYY-MM-DD, UTC) `months` before today. Day overflow rolls
-// forward per JS Date normalization — fine for the coarse relative dates seed uses.
+// forward per JS Date normalization, fine for the coarse relative dates seed uses.
 export function calendarMonthsAgoUTC(months: number): string {
   const now = new Date()
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - months, now.getUTCDate()))

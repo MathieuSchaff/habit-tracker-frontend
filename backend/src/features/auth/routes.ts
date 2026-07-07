@@ -78,12 +78,45 @@ function checkResendLimit(userId: string): boolean {
   return true
 }
 
+// Prod: the browser Origin must equal FRONTEND_URL exactly. Dev: a real phone reaches
+// the Vite server by LAN IP, so its Origin (http://192.168.x.x:5173) never matches
+// FRONTEND_URL (localhost). Bodyless auth POSTs (demo/logout/refresh) send no JSON
+// content-type, so Hono csrf falls back to the Origin check and 403s them. Accept
+// same-port private-network origins in non-prod only; prod stays strict.
+const DEV_FRONTEND_PORT = (() => {
+  try {
+    return new URL(env.FRONTEND_URL).port
+  } catch {
+    return ''
+  }
+})()
+
+const isPrivateHost = (host: string): boolean =>
+  host === 'localhost' ||
+  host === '::1' ||
+  host.endsWith('.local') ||
+  /^127\./.test(host) ||
+  /^10\./.test(host) ||
+  /^192\.168\./.test(host) ||
+  /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+
+const isTrustedCsrfOrigin = (origin: string): boolean => {
+  if (origin === env.FRONTEND_URL) return true
+  if (env.NODE_ENV === 'production' || !origin) return false
+  try {
+    const u = new URL(origin)
+    return u.protocol === 'http:' && u.port === DEV_FRONTEND_PORT && isPrivateHost(u.hostname)
+  } catch {
+    return false
+  }
+}
+
 const app = new Hono<AppEnv>()
 
 app.use('*', rateLimiterFunc)
 // In-process tests have no Origin header; csrf would 403 every POST.
 if (env.NODE_ENV !== 'test') {
-  app.use('*', csrf({ origin: (origin) => origin === env.FRONTEND_URL }))
+  app.use('*', csrf({ origin: isTrustedCsrfOrigin }))
 }
 
 // auth tables (users, refresh_tokens, email_verifications) are outside RLS: auth
@@ -111,10 +144,8 @@ export const jwtAuthRoutes = app
       return c.json(err(result.error), errorToStatus(result.error, authErrorMapping))
     }
 
-    // Reject banned users at login rather than letting them authenticate and
-    // be redirected after hey are authenticated
-    // so avoid race condition
-    // withAdminRls bypass the rls so it is visible when not authenticated
+    // Check the ban before issuing tokens, to avoid a login-then-redirect race.
+    // withAdminRls bypasses RLS since there's no authenticated session yet.
     const ban = await withAdminRls((tx) => isUserBanned(tx, result.data.user.id, 'global', false))
     if (ban) {
       return c.json(
@@ -313,7 +344,7 @@ export const jwtAuthRoutes = app
       const result = await resetPassword(ctx, token, password as RawPassword)
 
       if (!isApiSuccess(result)) {
-        // invalid/expired token → 400 (mirror /verify-email); server_error → 500. A distinct
+        // invalid/expired token gives 400 (mirror /verify-email); server_error gives 500. A distinct
         // invalid-vs-expired code is safe: token-holder-only, no enum oracle.
         return c.json(err(result.error), errorToStatus(result.error, resetPasswordErrorMapping))
       }

@@ -86,29 +86,20 @@ function validateLists(markdown: string): string[] {
 function validateTables(markdown: string): string[] {
   const issues: string[] = []
   const lines = markdown.split('\n')
+  const isTableLine = (line: string) => line.trim().startsWith('|')
 
-  const tableLineIndices: number[] = []
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim().startsWith('|')) {
-      tableLineIndices.push(i)
+    // Only a block's header row (a `|` line not preceded by one) needs the
+    // separator check; interior data rows never match the separator regex.
+    if (!isTableLine(lines[i]) || (i > 0 && isTableLine(lines[i - 1]))) {
+      continue
     }
-  }
 
-  if (tableLineIndices.length === 0) {
-    return issues
-  }
-
-  for (let i = 0; i < tableLineIndices.length - 1; i++) {
-    const headerIdx = tableLineIndices[i]
-    const nextIdx = tableLineIndices[i + 1]
-
-    if (nextIdx === headerIdx + 1) {
-      const separatorLine = lines[nextIdx].trim()
-      if (!separatorLine.match(/^\|[\s\-|]*\|$/)) {
-        issues.push(`⚠️  Tableau à ligne ${headerIdx + 1}: ligne de séparation invalide`)
-        issues.push(`   Reçu: "${separatorLine.substring(0, 60)}..."`)
-        issues.push(`   Attendu: |---|---|---|`)
-      }
+    const separatorLine = lines[i + 1]?.trim() ?? ''
+    if (!separatorLine.match(/^\|[\s\-|]*\|$/)) {
+      issues.push(`⚠️  Tableau à ligne ${i + 1}: ligne de séparation invalide`)
+      issues.push(`   Reçu: "${separatorLine.substring(0, 60)}..."`)
+      issues.push(`   Attendu: |---|---|---|`)
     }
   }
 

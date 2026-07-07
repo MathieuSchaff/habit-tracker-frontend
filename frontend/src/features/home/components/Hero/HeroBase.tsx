@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import collectionPreview from '../../../../assets/hero/preview-collection.webp'
@@ -7,19 +8,19 @@ import { HeroShell } from './HeroShell'
 
 export function HeroBase() {
   const demo = useDemo()
-  // Keep spinning through the demo POST and the full-page hand-off below.
+  const navigate = useNavigate()
+  // Keep spinning through the demo POST and protected-route navigation below.
   const [redirecting, setRedirecting] = useState(false)
 
   // Primary CTA delivers value before commitment: one-click demo seeds a
   // populated collection, then the in-app banner offers to keep it via signup.
-  // Demo success flips auth, which unmounts this marketing hero and drops any
-  // SPA navigate; a hard load reliably lands on the auth-gated /collection where
-  // the "keep your data" signup banner lives.
+  // Stay in the SPA so the access token returned by /auth/demo is still present
+  // for the first protected-route check.
   const startDemo = () =>
     demo.mutate(undefined, {
       onSuccess: () => {
         setRedirecting(true)
-        window.location.assign('/collection')
+        navigate({ to: '/collection' })
       },
     })
 

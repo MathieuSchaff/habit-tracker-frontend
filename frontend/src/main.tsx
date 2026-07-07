@@ -7,7 +7,7 @@ import { createRouter, type ParsedLocation, RouterProvider } from '@tanstack/rea
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { reportError } from './lib/errorReporter'
+import { initFaro } from './lib/observability/faro'
 import { queryClient } from './lib/queryClient'
 import { resolveTransitionType } from './lib/transitions/resolveTransitionType'
 import { routeTree } from './routeTree.gen'
@@ -45,10 +45,10 @@ const viewTransition = {
 
 // startViewTransition snapshots then synchronously re-renders the whole page
 // before animating; on slow CPUs that freezes the main thread ~840ms per nav. We
-// only pay that for the transitions that earn it — the list<->detail hero morph
+// only pay that for the transitions that earn it: the list and detail hero morph
 // (shared-element) and the detail tab swap. Every other nav (section fades,
 // generic fallback) skips VT and stays instant. Mobile (<=767px) / reduced-motion
-// skip everything. See view-transitions-mobile.md.
+// skip everything.
 const skipViewTransition = window.matchMedia('(max-width: 767px), (prefers-reduced-motion: reduce)')
 const KEEP_VT_TYPES = new Set(['shared-element', 'tab-switch'])
 
@@ -68,7 +68,7 @@ const router = createRouter({
     queryClient,
     auth: { isAuthenticated: false, accessToken: null },
   } satisfies RouterContext,
-  // Vite injects route CSS as <style> on dev hover-preload → repaint flash on the current
+  // Vite injects route CSS as <style> on dev hover-preload, causing a repaint flash on the current
   // page. Prod ships one bundled chunk per route, so keep intent prefetch there only.
   defaultPreload: import.meta.env.PROD ? 'intent' : false,
   defaultPreloadStaleTime: 0,
@@ -100,15 +100,7 @@ function InnerApp() {
   )
 }
 
-// Safety net for promise rejections escaping every other handler; logs to backend without surfacing to user.
-window.addEventListener('unhandledrejection', (e) => {
-  const err = e.reason instanceof Error ? e.reason : new Error(String(e.reason))
-  reportError(err, { source: 'unhandledrejection' })
-})
-window.addEventListener('error', (e) => {
-  if (!e.error) return
-  reportError(e.error as Error, { source: 'window.error' })
-})
+initFaro()
 
 // biome-ignore lint: root will be here
 const rootElement = document.getElementById('root')!
