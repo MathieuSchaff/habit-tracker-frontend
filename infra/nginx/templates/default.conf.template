@@ -88,7 +88,8 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
     # Sources: self bundle/API, self-hosted fonts, inline styles (React), Bunny CDN + Google account avatars.
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.b-cdn.net https://*.googleusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;
+    # connect-src also allows the Faro RUM collector (browser POSTs telemetry to Grafana Cloud EU).
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.b-cdn.net https://*.googleusercontent.com; connect-src 'self' https://faro-collector-prod-eu-west-2.grafana.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;
 
     location /nginx-health {
         access_log off;
