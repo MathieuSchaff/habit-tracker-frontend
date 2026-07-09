@@ -93,6 +93,8 @@ scripts/*
 !scripts/*.sh
 # =========================
 backend/src/db/seed/output/
+backend/src/output
+backend/src/images/output/
 backend/tmp/
 
 # Test results (generated in CI)

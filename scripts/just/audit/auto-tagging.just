@@ -109,7 +109,7 @@ audit-actif-class:
         -w /app/backend api bun run src/features/auto-tagging/runners/audit/actif-class.ts \
         | tee "$(audit_out audit-actif-class)"
 
-# Audit AHA/BHA/PHA manual overrides. Env: CSV_OUT, CSV_DIR, LIMIT, APPLY (destructive), APPLY_FROM_CSV.
+# Audit AHA/BHA/PHA manual overrides. Env: CSV_OUT, CSV_DIR, LIMIT, WRITE (destructive), APPLY_FROM_CSV.
 [group('audit')]
 audit-aha-bha-pha:
     #!/usr/bin/env bash
@@ -117,8 +117,8 @@ audit-aha-bha-pha:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
-    if [ -n "${APPLY:-}" ]; then
-        printf "{{RED}}⚠ APPLY mode ($TARGET) — DELETE pairs from ${APPLY_FROM_CSV:-?}{{NC}}\n"
+    if [ -n "${WRITE:-}" ]; then
+        printf "{{RED}}⚠ WRITE mode ($TARGET) — DELETE pairs from ${APPLY_FROM_CSV:-?}{{NC}}\n"
         if [ "$TARGET" = prod ]; then confirm_prod "DESTRUCTIVE (aha-bha-pha)"; fi
     else
         printf "{{CYAN}}Audit AHA/BHA/PHA overrides read-only ($TARGET) → .audit-out/db/audit-aha-bha-pha.$TARGET.md{{NC}}\n"
@@ -127,7 +127,7 @@ audit-aha-bha-pha:
         ${CSV_OUT:+-e CSV_OUT="$CSV_OUT"} \
         ${CSV_DIR:+-e CSV_DIR="$CSV_DIR"} \
         ${LIMIT:+-e LIMIT="$LIMIT"} \
-        ${APPLY:+-e APPLY="$APPLY"} \
+        ${WRITE:+-e APPLY=1} \
         ${APPLY_FROM_CSV:+-e APPLY_FROM_CSV="$APPLY_FROM_CSV"} \
         -w /app/backend api bun run src/features/auto-tagging/runners/audit/aha-bha-pha-overrides.ts \
         | tee "$(audit_out audit-aha-bha-pha)"

@@ -127,6 +127,14 @@ Useful commands:
 | `just db-snapshot-load`             | Reload `data.sql` (⚠ truncates tables)     |
 | `just db-snapshot-reset`            | Clean + migrate + load `data.sql`          |
 
+For product catalogue imports, see [`CATALOGUE_SEEDING.md`](CATALOGUE_SEEDING.md).
+
+| Command                                      | Description                                      |
+| :------------------------------------------- | :----------------------------------------------- |
+| `just ingest-catalogue path/to/products.jsonl` | Dry-run a bulk product lot through `createProduct` |
+| `WRITE=1 just catalogue-apply path/to/products.jsonl` | Apply a dev lot, run catalogue audits, refresh snapshot |
+| `just catalogue-gate`                        | Run DB + CDN audits, then refresh `data.sql`     |
+
 ### One-liners (no recipe)
 
 Simple commands kept out of the justfile on purpose. Dev containers have pinned

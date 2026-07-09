@@ -2,7 +2,7 @@ import '_vars.just'
 
 # Data ingest (sources externes) + maintenance produits (dédup, audits).
 # Tous les paramètres via env vars (préfixées avant `just`).
-# TARGET=dev (default) | prod. Confirmation interactive si TARGET=prod + WRITE/APPLY.
+# TARGET=dev (default) | prod. Confirmation interactive si TARGET=prod + WRITE.
 #
 # Exemples:
 #   WRITE=1 just ingest-peta                          # dev write
@@ -17,14 +17,8 @@ ingest-peta:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-peta)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Ingest PETA cruelty-free ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/peta-cruelty-free/main.ts \
+    data_run "Ingest PETA cruelty-free" src/db/seed/ingest/peta-cruelty-free/main.ts \
         ${REFRESH:+--refresh} \
-        ${WRITE:+--write} \
         ${STRICT_PRUNE:+--strict-prune}
 
 # Dump Open Beauty Facts (~17 MB) → agrège claims vegan/cruelty-free/naturel par marque (≥THRESHOLD) → brand_certifications. Env: DOWNLOAD, WRITE, THRESHOLD (déf 0.5), NO_WHITELIST.
@@ -33,20 +27,15 @@ ingest-obf:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (ingest-obf)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Ingest OBF brand labels ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/obf-brand-labels/main.ts \
+    data_run "Ingest OBF brand labels" src/db/seed/ingest/obf-brand-labels/main.ts \
         ${DOWNLOAD:+--download} \
-        ${WRITE:+--write} \
         ${THRESHOLD:+--threshold "$THRESHOLD"} \
         ${NO_WHITELIST:+--no-whitelist}
 
 # Récupère des INCI propres sur INCIDecoder pour les produits à INCI faible. 4 phases séquentielles:
 #   crawl = liste produits/marque · match = associe aux tiens · fetch = récupère INCI · apply = écrit en DB.
 # Usage: just ingest-incidecoder crawl  (puis match, fetch, apply)  ·  TARGET=prod … apply
+[doc("Récupère des INCI propres sur INCIDecoder pour les produits à INCI faible (crawl|match|fetch|apply)")]
 [group('ingest')]
 ingest-incidecoder phase:
     #!/usr/bin/env bash
@@ -62,54 +51,78 @@ ingest-incidecoder phase:
     printf "{{CYAN}}Ingest INCIDecoder phase {{phase}} ($TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/db/seed/ingest/incidecoder/main.ts --{{phase}}
 
+# Bulk-create products from a JSONL lot via createProduct (validation + cleanInci + auto-tag).
+# Arg = path relative to backend/. Env: WRITE (sans = dry-run), CLASSIFICATIONS (verdicts json),
+# SEED_OWNER_EMAIL (owner, défaut seed@seed.com — must pre-exist, never created here),
+# ALLOW_PARTIAL (accepte un lot avec blockers — sinon GATE A: exit 1, rien d'écrit).
+# Run record → backend/tmp/data-runs/<lot>-<ts>/ (plan.json, apply.jsonl).
+# TARGET=prod from the laptop aborts (assert_prod_stack in _lib.sh) — for real prod
+# run via `just prod-ssh 'TARGET=prod WRITE=1 just ingest-catalogue …'`.
+# Runbook: docs/CATALOGUE_SEEDING.md.
+[doc("Bulk-create products from a JSONL lot via createProduct (validation + cleanInci + auto-tag). Env: WRITE, ALLOW_PARTIAL, CLASSIFICATIONS, SEED_OWNER_EMAIL")]
+[group('ingest')]
+ingest-catalogue jsonl:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    data_run "Ingest catalogue {{jsonl}}" src/db/seed/ingest/catalogue/main.ts {{jsonl}} \
+        ${ALLOW_PARTIAL:+--allow-partial} \
+        ${CLASSIFICATIONS:+--classifications "$CLASSIFICATIONS"}
+
+# GATE B: full DB audit + CDN⇄DB audit, then snapshot — snapshot ne tourne QUE si
+# tout passe (un dep en exit 1 → data.sql non régénéré). Le catalogue ne ship jamais
+# avec une DB dev rouge ni des images externes/cassées. Dev-only (db-snapshot lit la dev DB).
+[doc("GATE B: full DB audit + CDN⇄DB audit, then snapshot. Dev-only")]
+[group('catalog')]
+catalogue-gate: audit-db-full audit-cdn db-snapshot
+
+# Happy path catalogue: write du lot (Gate A) puis catalogue-gate (Gate B + snapshot).
+# Mêmes env que ingest-catalogue (SEED_OWNER_EMAIL, ALLOW_PARTIAL, CLASSIFICATIONS).
+# Dev-only comme catalogue-gate — prod reste `just prod-ssh '… just ingest-catalogue …'`.
+[doc("Happy path catalogue: write du lot (Gate A) puis catalogue-gate (Gate B + snapshot). Dev-only")]
+[group('catalog')]
+catalogue-apply jsonl:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ "${TARGET:-dev}" = prod ]; then
+        printf 'catalogue-apply est dev-only (db-snapshot lit la dev DB).\n' >&2
+        printf "Prod: just prod-ssh 'TARGET=prod WRITE=1 just ingest-catalogue <lot>'\n" >&2
+        exit 1
+    fi
+    WRITE=1 just ingest-catalogue {{jsonl}}
+    just catalogue-gate
+
 # ─── Maintenance produits ───────────────────────────────────────────────────
 # audit = rapport seul · dedupe = édite les fichiers seed · scan = lit un dump DB. Aucun n'écrit la DB live.
 
-# Repère le même produit en plusieurs tailles dans les .seed.ts (-400ml, -recharge…) → garde la canonique, supprime les variantes. Édite les seed. Env: APPLY (sans = dry-run).
+# Repère le même produit en plusieurs tailles dans les .seed.ts (-400ml, -recharge…) → garde la canonique, supprime les variantes. Édite les seed. Env: WRITE (sans = dry-run).
 [group('catalog')]
 catalog-dedupe:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (dedupe variants)"; fi
-    MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
-    printf "{{CYAN}}Dedupe product variants ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/dedupe-product-variants.ts \
-        ${APPLY:+--write}
+    data_run "Dedupe product variants" src/db/seed/maintenance/dedupe-product-variants.ts
 
-# Drop intra-file volume-variant dups in seed (keep largest volume). Pre-req: audit-imported-products. Env: APPLY (sans = dry-run).
+# Drop intra-file volume-variant dups in seed (keep largest volume). Pre-req: audit-imported-products. Env: WRITE (sans = dry-run).
 [group('catalog')]
 catalog-canonicalize:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (canonicalize volume variants)"; fi
-    MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
-    printf "{{CYAN}}Canonicalize volume variants ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/canonicalize-volume-variants.ts \
-        ${APPLY:+--write}
+    data_run "Canonicalize volume variants" src/db/seed/maintenance/canonicalize-volume-variants.ts
 
-# Append slug-tail to colliding (name,brand) seed entries w/o volume suffix. Env: APPLY (sans = dry-run).
+# Append slug-tail to colliding (name,brand) seed entries w/o volume suffix. Env: WRITE (sans = dry-run).
 [group('catalog')]
 catalog-disambiguate:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${APPLY:-}" ]; then confirm_prod "WRITE (disambiguate product names)"; fi
-    MODE=$([ -n "${APPLY:-}" ] && echo "APPLY" || echo "dry-run")
-    printf "{{CYAN}}Disambiguate product names ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/disambiguate-product-names.ts \
-        ${APPLY:+--write}
+    data_run "Disambiguate product names" src/db/seed/maintenance/disambiguate-product-names.ts
 
 # Scanne un dump SQL (COPY ou INSERT/--inserts) → 4 signaux de doublons:
 #   slug avec faute · kits/lots · INCI quasi-identiques même marque · paires base+recharge.
 # Arg = path relatif backend/ (déf = snapshot commité), ex: just catalog-scan-dups src/db/my-dump.sql
+[doc("Scanne un dump SQL → 4 signaux de doublons (slug avec faute, kits/lots, INCI quasi-identiques, base+recharge). Read-only")]
 [group('catalog')]
 catalog-scan-dups backup="src/db/snapshot/data.sql":
     #!/usr/bin/env bash
@@ -123,48 +136,33 @@ catalog-scan-dups backup="src/db/snapshot/data.sql":
 # Backfill ingredients.canonical_key from algo-derm evidence (substance identity).
 # Re-run after a fresh `db-seed`/`db-reset` (seed leaves it NULL) or an algo-derm bump.
 # Env: WRITE (sans = dry-run). Persist with `db-snapshot` after.
+[doc("Backfill ingredients.canonical_key from algo-derm evidence. Env: WRITE (sans = dry-run)")]
 [group('catalog')]
 catalog-backfill-canonical-key:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (backfill canonical_key)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Backfill canonical_key ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/backfill-canonical-key.ts \
-        ${WRITE:+--write}
+    data_run "Backfill canonical_key" src/db/seed/maintenance/backfill-canonical-key.ts
 
 # Rewrite products.inci to governed canonical form (algo-derm cleanInci → canonical).
 # Shares normalizeInci with the create/update write path. Env: WRITE (sans = dry-run).
 # Persist with `db-snapshot` after a WRITE.
+[doc("Rewrite products.inci to governed canonical form (algo-derm cleanInci). Env: WRITE (sans = dry-run)")]
 [group('catalog')]
 catalog-normalize-inci:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (normalize inci)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Normalize products.inci ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/normalize-product-inci.ts \
-        ${WRITE:+--write}
+    data_run "Normalize products.inci" src/db/seed/maintenance/normalize-product-inci.ts
 
 # Soft-hide products that are bundles (coffret/kit/lot-de-N), not a standalone formula.
 # Slug regex shared with catalog-scan-dups. Idempotent — safe to re-run after new imports.
-# Env: WRITE (sans = dry-run). TARGET=prod from the laptop still hits dev (exec is local,
-# not ssh) — for real prod run via `just prod-ssh 'TARGET=prod WRITE=1 just catalog-hide-kit-packs'`.
+# Env: WRITE (sans = dry-run). TARGET=prod from the laptop aborts (assert_prod_stack) —
+# for real prod run via `just prod-ssh 'TARGET=prod WRITE=1 just catalog-hide-kit-packs'`.
+[doc("Soft-hide bundle products (coffret/kit/lot-de-N). Idempotent. Env: WRITE (sans = dry-run)")]
 [group('catalog')]
 catalog-hide-kit-packs:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (hide kit/pack products)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Hide kit/pack products ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/hide-kit-pack-products.ts \
-        ${WRITE:+--write}
+    data_run "Hide kit/pack products" src/db/seed/maintenance/hide-kit-pack-products.ts

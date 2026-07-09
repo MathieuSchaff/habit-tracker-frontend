@@ -13,6 +13,14 @@ const inciBase = noHtml(z.string().max(5000)).refine(
   { message: 'inci must be a comma-separated ingredient list' }
 )
 
+// Only accept slugs the service would store verbatim (slugify() output shape).
+// Anything else gets silently rewritten on insert/update, so stored ≠ submitted:
+// slug-keyed consumers (auto-tag backfill, external links, re-ingest) then miss the row.
+const stableSlug = z
+  .string()
+  .max(100)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug must be lowercase alphanumeric with single hyphens')
+
 const isKindValidForCategory = (d: { category: string; kind: string }): boolean => {
   const validKinds = PRODUCT_KINDS[d.category as keyof typeof PRODUCT_KINDS]
   return validKinds ? Object.values(validKinds).includes(d.kind as never) : false
@@ -25,7 +33,7 @@ export const createProductSchema = z
     category: z.enum(PRODUCT_CATEGORY_VALUES),
     kind: z.string().min(1).max(100),
     unit: z.enum(PRODUCT_UNIT_VALUES),
-    slug: z.string().max(100).optional(),
+    slug: stableSlug.optional(),
     inci: inciBase.optional(),
     description: noHtml(z.string().max(5000)).optional(),
     totalAmount: z.number().int().min(1).optional(),
@@ -45,7 +53,7 @@ export const updateProductSchema = z
     category: z.enum(PRODUCT_CATEGORY_VALUES).optional(),
     kind: z.string().min(1).max(100).optional(),
     unit: z.enum(PRODUCT_UNIT_VALUES).optional(),
-    slug: z.string().max(100).optional(),
+    slug: stableSlug.optional(),
     inci: inciBase.nullable().optional(),
     description: noHtml(z.string().max(5000)).nullable().optional(),
     totalAmount: z.number().int().min(1).nullable().optional(),
