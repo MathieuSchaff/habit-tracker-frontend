@@ -5750,53 +5750,6 @@
       "notes": "soin calmant/apaisant (lead) | protection: absent — no protection claim; non-protection lead"
     },
     {
-      "productSlug": "garancia-coffret-eclair-de-lune-la-foudroyante-30ml-stick-solaire-invisible-15g-offert-305531",
-      "kind": "sunscreen",
-      "category": "solaire",
-      "present": ["protection"],
-      "absent": [],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["protection"],
-      "notes": "protection: present (recall FN) — sunscreen — UV protection is the lead"
-    },
-    {
-      "productSlug": "garancia-coffret-larmes-de-fantome-10ml-patchs-en-silicone-offerts-304323",
-      "kind": "patch",
-      "category": "skincare",
-      "present": [],
-      "absent": ["cernes-poches"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["cernes-poches"],
-      "notes": "cernes-poches: absent — desc vide, coffret roll-on, aucun signal cernes/poches"
-    },
-    {
-      "productSlug": "garancia-coffret-mysterieuses-mille-et-une-nuits-30ml-mysterieuses-mille-et-un-jour-10ml-offert-304276",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["protection"],
-      "notes": "protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)"
-    },
-    {
-      "productSlug": "garancia-coffret-mysterieux-repulpant-30ml-pschitt-magique-visage-30ml-offert-304292",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [
-        "enzymes-exfoliants",
-        "hyaluronic-acid",
-        "peptides",
-        "polyphenols",
-        "texture-legere",
-        "vitamin-e"
-      ],
-      "absent": [],
-      "annotatedAt": "2026-05-09",
-      "sampledFor": ["enzymes-exfoliants"],
-      "notes": "BACILLUS FERMENT (enzyme exfoliant signal); SODIUM HYALURONATE; DIPEPTIDE DIAMINOBUTYROYL BENZYLAMIDE DIACETATE (Syn-Ake) + ACETYL HEXAPEPTIDE-8 (peptides); ARNICA+CITRUS (polyphenols); TOCOPHEROL."
-    },
-    {
       "productSlug": "garancia-diabolique-glacon-gelee-cristalline-hydro-energisante-repulpante-anti-pollution-40g-249763",
       "kind": "moisturizer",
       "category": "skincare",
@@ -9224,16 +9177,6 @@
       "notes": "nourrissant lipidique/baume (lead nutrition/barriere)"
     },
     {
-      "productSlug": "mary-may-seoul-edition-hand-cream-trio-set",
-      "kind": "hand-cream",
-      "category": "bodycare",
-      "present": [],
-      "absent": ["protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["protection"],
-      "notes": "protection: absent — no protection claim; non-protection lead"
-    },
-    {
       "productSlug": "mary-may-tranexamic-acid-glutathion-eye-cream",
       "kind": "eye-cream",
       "category": "skincare",
@@ -11429,16 +11372,6 @@
       "notes": "reparation-cutanee: absent — soothing/neighbor lead, repair co-mention"
     },
     {
-      "productSlug": "purito-centella-unscented-mini-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["rougeurs-vasculaires"],
-      "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — kit centella apaisant sensibles ; pas claim rougeur",
-      "sampledFor": ["rougeurs-vasculaires"]
-    },
-    {
       "productSlug": "purito-cica-clearing-bb-cream",
       "kind": "moisturizer",
       "category": "skincare",
@@ -12815,16 +12748,6 @@
       "sampledFor": ["rougeurs-vasculaires", "eclat-teint-uniforme"]
     },
     {
-      "productSlug": "skin1004-madagascar-centella-travel-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["hyperpigmentation"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation"],
-      "notes": "kit centella apaisant"
-    },
-    {
       "productSlug": "skin1004-mummy-pack",
       "kind": "moisturizer",
       "category": "skincare",
@@ -12956,16 +12879,6 @@
       "notes": "toner cica réparateur, arbutine non positionné, éclat générique"
     },
     {
-      "productSlug": "some-by-mi-aha-bha-pha-30-days-miracle-ac-sos-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["apaisant", "pores-sebum"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "pores-sebum"],
-      "notes": "kit acne AHA/BHA/PHA (lead acne/exfoliant)"
-    },
-    {
       "productSlug": "some-by-mi-aha-bha-pha-30-days-miracle-acne-clear-body-cleanser",
       "kind": "moisturizer",
       "category": "skincare",
@@ -13033,16 +12946,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: present — éclaircir la peau terne, brightening"
-    },
-    {
-      "productSlug": "some-by-mi-galactomyces-brightening-trial-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["eclat-teint-uniforme", "protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["eclat-teint-uniforme", "protection"],
-      "notes": "eclat-teint: absent — kit/bundle, pas un produit unique | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "some-by-mi-galactomyces-glutathione-brightening-cream",
@@ -13223,16 +13126,6 @@
       "notes": "HYALURONATE DE SODIUM; ACÉTYL HEXAPEPTIDE-8 visible; 'Retinol Intense' name confirms retinoids (INCI truncated before retinol). | anti-age: present (recall FN) — rétinal, algo n'a pas tagué | protection: absent — no protection claim; non-protection lead"
     },
     {
-      "productSlug": "some-by-mi-retinol-intense-trial-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": ["anti-age"],
-      "absent": ["apaisant"],
-      "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) | apaisant: lead anti-age retinol",
-      "sampledFor": ["apaisant"]
-    },
-    {
       "productSlug": "some-by-mi-spirulina-pdrn-spirulina-soothing-sherbet-mask",
       "kind": "mask",
       "category": "skincare",
@@ -13241,25 +13134,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant"],
       "notes": "soin calmant/apaisant (lead)"
-    },
-    {
-      "productSlug": "some-by-mi-super-match-pore-care-starter-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": ["hyaluronic-acid", "polyphenols"],
-      "absent": [
-        "aha",
-        "ceramides",
-        "enzymes-exfoliants",
-        "peptides",
-        "retinoids",
-        "tyrosinase-inhibitors",
-        "vitamin-c",
-        "vitamin-e"
-      ],
-      "annotatedAt": "2026-05-10",
-      "sampledFor": ["hyaluronic-acid"],
-      "notes": "Multi-product KIT (cleansing gel + clay mask + toner + serum) concatenated INCI. Camellia sinensis dominant + sodium hyaluronate. Acide capryloyl salicylique (BHA pattern) + acide lactobionique (PHA) appear in sub-products only — bha/pha unrated. Sensoriels unrated (composite product)."
     },
     {
       "productSlug": "some-by-mi-super-match-pore-clean-clay-mask",
@@ -13340,16 +13214,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["protection"],
       "notes": "protection: absent — no protection claim; non-protection lead"
-    },
-    {
-      "productSlug": "some-by-mi-yuja-niacin-anti-blemish-starter-kit",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["pores-sebum"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
     },
     {
       "productSlug": "some-by-mi-yuja-niacin-brightening-moisture-gel-cream",
@@ -15336,16 +15200,6 @@
     },
     {
       "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-500ml-275113",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-lot-de-2-x-500ml-248023",
       "kind": "cleanser",
       "category": "skincare",
       "present": [],
