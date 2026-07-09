@@ -1,8 +1,14 @@
-import { BrevoClient } from '@getbrevo/brevo'
+import { BrevoClient, BrevoError } from '@getbrevo/brevo'
 
 import { env } from '../../config/env'
 import { logger } from '../../lib/logger'
 
+function brevoErrorMeta(e: unknown): { errName: string; statusCode?: number } {
+  if (e instanceof BrevoError) {
+    return { errName: e.name, statusCode: e.statusCode } // e typé → e.statusCode OK
+  }
+  return { errName: e instanceof Error ? e.name : 'UnknownError' }
+}
 export async function sendVerificationEmail(to: string, verificationUrl: string): Promise<void> {
   const client = new BrevoClient({ apiKey: env.BREVO_API_KEY })
 
@@ -20,7 +26,7 @@ export async function sendVerificationEmail(to: string, verificationUrl: string)
       `,
     })
   } catch (e) {
-    logger.error({ err: e }, 'Failed to send verification email')
+    logger.error(brevoErrorMeta(e), 'Failed to send verification email')
   }
 }
 
@@ -42,7 +48,7 @@ export async function sendAlreadyRegisteredEmail(to: string): Promise<void> {
       `,
     })
   } catch (e) {
-    logger.error({ err: e }, 'Failed to send already-registered email')
+    logger.error(brevoErrorMeta(e), 'Failed to send already-registered email')
   }
 }
 
@@ -62,7 +68,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
       `,
     })
   } catch (e) {
-    logger.error({ err: e }, 'Failed to send password-reset email')
+    logger.error(brevoErrorMeta(e), 'Failed to send password-reset email')
   }
 }
 
@@ -80,6 +86,6 @@ export async function sendAccountLockedEmail(to: string): Promise<void> {
       `,
     })
   } catch (e) {
-    logger.error({ err: e }, 'Failed to send account-locked email')
+    logger.error(brevoErrorMeta(e), 'Failed to send account-locked email')
   }
 }

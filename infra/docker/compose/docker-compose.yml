@@ -48,6 +48,11 @@ services:
       # Prod catalogue owner, read by the db-prod-admin seeder. Empty in dev.
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # OTel traces/metrics. Empty endpoint = SDK stays off (see instrumentation.ts gate).
+      # For Grafana Cloud: endpoint = OTLP gateway, headers = "Authorization=Basic <base64 id:token>".
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-aurore-api}
 
     networks:
       - appnet

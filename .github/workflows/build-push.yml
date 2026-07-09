@@ -42,6 +42,11 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.target }}
+          # VITE_* baked into the frontend build (ignored by the api image). Faro
+          # collector URL comes from a repo secret; empty secret = telemetry off.
+          build-args: |
+            VITE_FARO_URL=${{ secrets.VITE_FARO_URL }}
+            VITE_APP_VERSION=${{ github.sha }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.OWNER }}/aurore-${{ matrix.name }}:${{ github.sha }}

@@ -61,7 +61,14 @@ export async function globalErrorHandler(error: Error, c: Context<AppEnv>) {
   if ('status' in error && typeof (error as HttpError).status === 'number') {
     const httpError = error as HttpError
     const status = httpError.status as ContentfulHttpStatus
-    logger.warn({ err: httpError, path: c.req.path, method: c.req.method }, 'HTTP error')
+    // 4xx = client mistake → info, kept local only (dropped at Alloy, which ships >= warn).
+    // 5xx = real server problem → error, shipped to Grafana Cloud.
+    const logHttpError = status >= 500 ? logger.error : logger.info
+    logHttpError.call(
+      logger,
+      { err: httpError, path: c.req.path, method: c.req.method },
+      'HTTP error'
+    )
     // Don't leak arbitrary error messages (libs/framework) to clients in prod; keep them server-side.
     return c.json(
       err('http_error', process.env.NODE_ENV === 'development' ? httpError.message : undefined),

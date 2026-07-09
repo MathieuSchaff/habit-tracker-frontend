@@ -22,6 +22,12 @@ RUN bun x tsc -b backend/tsconfig.build.json --force
 # Typecheck + Vite build
 WORKDIR /app/frontend
 ENV NODE_ENV=production
+# Faro RUM/analytics collector URL, baked at build time (import.meta.env). Empty =
+# initFaro() returns null → no telemetry. For Grafana Cloud: Frontend Observability app URL.
+ARG VITE_FARO_URL=""
+ARG VITE_APP_VERSION="prod"
+ENV VITE_FARO_URL=${VITE_FARO_URL}
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 RUN bun run build
 
 # 1.30.2-alpine, digest-pinned (CVE-2026-42945 fixed in >=1.30.1). Bump digest to update.

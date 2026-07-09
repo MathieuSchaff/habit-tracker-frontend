@@ -1,28 +1,11 @@
-# Observability overlay (Phase 1: logs/errors). Separate lifecycle — `just mon-up`
-# brings it up; `just deploy` never touches it (no --remove-orphans).
-# Shares the app network (external aurore_appnet) so later exporters can reach app_db.
-# Grafana is loopback-only; reach it via `just mon-tunnel`.
+# Observability overlay. Only the Alloy agent runs on the VPS; logs/metrics/traces
+# are stored + viewed in Grafana Cloud (no local Loki/Grafana, no data volume).
+# Separate lifecycle — `just deploy` never touches it. Shares the app network so a
+# later exporter could reach app_db.
 
 services:
-  loki:
-    image: grafana/loki:3.3.0
-    container_name: app_loki
-    restart: unless-stopped
-    command: ["-config.file=/etc/loki/loki-config.yml"]
-    volumes:
-      - ../../monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
-      - loki_data:/loki
-    mem_limit: 512m
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - appnet
-
   alloy:
-    image: grafana/alloy:v1.5.0
+    image: grafana/alloy:v1.17.1@sha256:4f6ddc56ffdcf8a6316748fc5162972e20cb301523cac1bb4a31957df733ae9b
     container_name: app_alloy
     restart: unless-stopped
     command:
@@ -30,40 +13,18 @@ services:
       - --storage.path=/var/lib/alloy/data
       - --server.http.listen-addr=0.0.0.0:12345
       - /etc/alloy/config.alloy
-    volumes:
-      - ../../monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - alloy_data:/var/lib/alloy/data
-    depends_on:
-      - loki
-    mem_limit: 256m
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - appnet
-
-  grafana:
-    image: grafana/grafana:11.4.0
-    container_name: app_grafana
-    restart: unless-stopped
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env.prod}
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_ANALYTICS_REPORTING_ENABLED: "false"
-      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # Grafana Cloud Loki push endpoint + credentials (from .env.prod).
+      # url looks like https://logs-prod-012.grafana.net/loki/api/v1/push
+      GRAFANA_CLOUD_LOKI_URL: ${GRAFANA_CLOUD_LOKI_URL:?set GRAFANA_CLOUD_LOKI_URL in .env.prod}
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER:?set GRAFANA_CLOUD_LOKI_USER in .env.prod}
+      GRAFANA_CLOUD_API_TOKEN: ${GRAFANA_CLOUD_API_TOKEN:?set GRAFANA_CLOUD_API_TOKEN in .env.prod}
     volumes:
-      - ../../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - loki
-    # Loopback only — SSH-tunnel access, never exposed publicly.
-    ports:
-      - "127.0.0.1:3001:3000"
+      # compose lives in infra/docker/compose, config in infra/docker/monitoring → one `..`.
+      - ../monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # positions/WAL only — NOT log storage. Tiny. Logs live in Grafana Cloud.
+      - alloy_data:/var/lib/alloy/data
     mem_limit: 256m
     logging:
       driver: json-file
@@ -74,8 +35,6 @@ services:
       - appnet
 
 volumes:
-  loki_data:
-  grafana_data:
   alloy_data:
 
 networks:
