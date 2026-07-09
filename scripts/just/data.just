@@ -155,14 +155,14 @@ catalog-normalize-inci:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     data_run "Normalize products.inci" src/db/seed/maintenance/normalize-product-inci.ts
 
-# Soft-hide products that are bundles (coffret/kit/lot-de-N), not a standalone formula.
+# Soft-hide (default) or delete bundles (coffret/kit/gift-set/trio-set/lot-de-N), not standalone formulas.
 # Slug regex shared with catalog-scan-dups. Idempotent — safe to re-run after new imports.
-# Env: WRITE (sans = dry-run). TARGET=prod from the laptop aborts (assert_prod_stack) —
-# for real prod run via `just prod-ssh 'TARGET=prod WRITE=1 just catalog-hide-kit-packs'`.
-[doc("Soft-hide bundle products (coffret/kit/lot-de-N). Idempotent. Env: WRITE (sans = dry-run)")]
+# Env: WRITE (omit for dry-run), DELETE (hard delete instead of soft-hide). TARGET=prod from the laptop
+# aborts (assert_prod_stack) — for real prod run via `just prod-ssh 'TARGET=prod WRITE=1 DELETE=1 just catalog-hide-kit-packs'`.
+[doc("Soft-hide/delete bundle products (coffret/kit/gift-set/trio-set/lot-de-N). Idempotent. Env: WRITE (omit for dry-run), DELETE")]
 [group('catalog')]
 catalog-hide-kit-packs:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    data_run "Hide kit/pack products" src/db/seed/maintenance/hide-kit-pack-products.ts
+    data_run "Hide kit/pack products" src/db/seed/maintenance/hide-kit-pack-products.ts ${DELETE:+--delete}
