@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -90,7 +91,7 @@ describe('Profile Routes', () => {
       const data = await res.json()
       if (!data.success) throw new Error('expected ok')
 
-      // passwordHash / password are not in the typed response — assert via untyped lookup
+      // passwordHash / password are not in the typed response, so assert via untyped lookup
       const raw = data.data as Record<string, unknown>
       expect(raw.passwordHash).toBeUndefined()
       expect(raw.password).toBeUndefined()
@@ -280,24 +281,15 @@ describe('Profile Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'nope' }),
-      })
-
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject request with invalid token', async () => {
-      const res = await authPatch(app, '/api/profile', 'invalid.token.here', { username: 'nope' })
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: '/api/profile',
+      body: { username: 'nope' },
     })
 
     // Defense-in-depth: profileUpdateSchema is .strict() so the route layer
     // already rejects unknown keys with 400. This service-level test bypasses
-    // zod to lock the explicit whitelist in updateProfile — a future schema
+    // zod to lock the explicit whitelist in updateProfile, so a future schema
     // loosen-up must not become a moderation-flag escalation.
     it('updateProfile service ignores moderation columns when called with extras', async () => {
       const { eq } = await import('drizzle-orm')
@@ -336,7 +328,7 @@ describe('Profile Routes', () => {
       // Moderation + privacy flags untouched (defaults from signup).
       expect(row?.forcedPrivateByAdmin).toBe(false) // default false, but attacker tried to confirm-clear; semantically untouched
       expect(row?.forcedPrivateReason).toBeNull()
-      expect(row?.profilePublic).toBe(false) // signup default — proves the malicious 'true' did not land
+      expect(row?.profilePublic).toBe(false) // signup default, proves the malicious 'true' did not land
     })
   })
 
@@ -353,10 +345,7 @@ describe('Profile Routes', () => {
       expect(data.data.totalProducts).toBe(0)
     })
 
-    it('rejects unauthenticated request', async () => {
-      const res = await app.request('/api/profile/stats')
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'GET', path: '/api/profile/stats' })
   })
 
   describe('GET /profile/preferences', () => {
@@ -373,10 +362,7 @@ describe('Profile Routes', () => {
       expect(data.data.criteriaWeights.tolerance).toBe(1)
     })
 
-    it('rejects unauthenticated request', async () => {
-      const res = await app.request('/api/profile/preferences')
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'GET', path: '/api/profile/preferences' })
   })
 
   describe('PATCH /profile/preferences', () => {
@@ -415,13 +401,10 @@ describe('Profile Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('rejects unauthenticated request', async () => {
-      const res = await app.request('/api/profile/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ criteriaWeights: { tolerance: 5 } }),
-      })
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: '/api/profile/preferences',
+      body: { criteriaWeights: { tolerance: 5 } },
     })
   })
 })

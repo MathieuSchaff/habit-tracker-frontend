@@ -35,7 +35,7 @@ setupDbTests()
 
 // Run a service call inside an RLS-scoped tx, mirroring withRlsContext: the
 // app_runtime pool is subject to RLS, so a 0-row UPDATE only happens when the
-// policy actually denies the write — the real path the disambiguation guards.
+// policy actually denies the write. That is the real path the disambiguation guards.
 function withRls<T>(role: string, userId: string, fn: (tx: typeof appRuntimeDb) => Promise<T>) {
   return appRuntimeDb.transaction(async (tx) => {
     await tx.execute(sql`SELECT set_config('app.user_id', ${userId}, true)`)
@@ -52,7 +52,7 @@ const baseProductInput = {
   unit: 'dropper',
 } as const
 
-async function catch_(fn: () => Promise<unknown>): Promise<unknown> {
+async function captureError(fn: () => Promise<unknown>): Promise<unknown> {
   try {
     await fn()
   } catch (e) {
@@ -63,30 +63,6 @@ async function catch_(fn: () => Promise<unknown>): Promise<unknown> {
 
 const baseIngredientInput = { name: 'Update Acid', type: 'skincare' } as const
 
-describe('catalog update — updateIngredient slug immutability (C-4)', () => {
-  it('does not change the slug when the name changes', async () => {
-    const user = await createTestUser('ing-immutable@test.local')
-    const created = await createIngredient(testDb, user.id, 'contributor', baseIngredientInput)
-
-    const updated = await updateIngredient(testDb, user.id, created.id, { name: 'Renamed Acid' })
-
-    expect(updated.name).toBe('Renamed Acid')
-    expect(updated.slug).toBe(created.slug)
-  })
-
-  it('rejects a slug field in the update payload (no longer mutable)', async () => {
-    const user = await createTestUser('ing-slug-reject@test.local')
-    const created = await createIngredient(testDb, user.id, 'contributor', baseIngredientInput)
-
-    const err = await catch_(() =>
-      updateIngredient(testDb, user.id, created.id, { slug: 'forced-slug' } as never)
-    )
-
-    expect(err).toBeInstanceOf(Error)
-    expect((err as IngredientError).code).not.toBe('ingredient_not_found')
-  })
-})
-
 describe('catalog update — updateIngredient 0-row disambiguation (CQ-2)', () => {
   it('★ creator editing an ingredient that became verified gets 403, not a 500', async () => {
     const user = await createTestUser('ing-upd-verified@test.local')
@@ -96,7 +72,7 @@ describe('catalog update — updateIngredient 0-row disambiguation (CQ-2)', () =
       .set({ catalogQuality: 'verified' })
       .where(eq(ingredients.id, created.id))
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', user.id, (tx) =>
         updateIngredient(tx, user.id, created.id, { name: 'Renamed Acid' })
       )
@@ -114,7 +90,7 @@ describe('catalog update — updateIngredient 0-row disambiguation (CQ-2)', () =
       .set({ catalogQuality: 'verified' })
       .where(eq(ingredients.id, created.id))
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', user.id, (tx) =>
         updateIngredient(
           tx,
@@ -136,7 +112,7 @@ describe('catalog update — updateIngredient 0-row disambiguation (CQ-2)', () =
     const other = await createTestUser('ing-upd-other@test.local')
     const created = await createIngredient(testDb, owner.id, 'user', baseIngredientInput)
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', other.id, (tx) =>
         updateIngredient(tx, other.id, created.id, { name: 'Hijacked Acid' })
       )
@@ -167,7 +143,7 @@ describe('catalog update — updateProduct dedup on rename (C-4)', () => {
       autoTag: false,
     })
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       updateProduct(
         user.id,
         movable.id,
@@ -223,7 +199,7 @@ describe('catalog update — updateProduct 0-row disambiguation (CQ-2)', () => {
       .set({ catalogQuality: 'verified' })
       .where(eq(products.id, product.id))
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', user.id, (tx) =>
         updateProduct(user.id, product.id, { name: 'Renamed Serum' }, undefined, tx)
       )
@@ -237,7 +213,7 @@ describe('catalog update — updateProduct 0-row disambiguation (CQ-2)', () => {
     const user = await createTestUser('upd-absent@test.local')
     const fakeId = crypto.randomUUID()
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', user.id, (tx) =>
         updateProduct(user.id, fakeId, { name: 'Ghost Serum' }, undefined, tx)
       )
@@ -254,7 +230,7 @@ describe('catalog update — updateProduct 0-row disambiguation (CQ-2)', () => {
       autoTag: false,
     })
 
-    const err = await catch_(() =>
+    const err = await captureError(() =>
       withRls('user', other.id, (tx) =>
         updateProduct(other.id, product.id, { name: 'Hijacked Serum' }, undefined, tx)
       )

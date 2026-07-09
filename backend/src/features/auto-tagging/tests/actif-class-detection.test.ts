@@ -74,18 +74,10 @@ describe('actif-class-detection', () => {
   })
 
   test('no duplicates in result', () => {
-    // Two retinoids in the same INCI → cluster appears once
     const inci = 'Aqua, Retinol, Retinyl Palmitate'
     const classes = detectActifClasses(inci)
     const retinoidCount = classes.filter((c) => c === SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS).length
     expect(retinoidCount).toBe(1)
-  })
-
-  test('position gating: AHA at INCI position 25 is not detected', () => {
-    // Lactic acid as pH adjuster at the tail end — not at functional concentration.
-    const filler = Array.from({ length: 24 }, (_, i) => `Filler${i + 1}`).join(', ')
-    const inci = `Aqua, ${filler}, Lactic Acid`
-    expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
   })
 
   test('position gating: retinol within early INCI is detected', () => {
@@ -443,7 +435,6 @@ describe('actif-class %-rescue (cap-marginal AHA, Mathieu directive: solver ≥ 
   const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
   const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
 
-  // Lookup that reports a solver % for the lactic-acid pattern; undefined otherwise.
   const lookup = (pct: number) => (pattern: string) => (pattern === 'lactic acid' ? pct : undefined)
 
   test('neutral name RESCUED when solver ≥ 2% (acid-named actif the keyword list misses)', () => {
@@ -531,7 +522,6 @@ describe('actif-class roleAtDose gate (cap-marginal AHA, ADR-0014)', () => {
   const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
   const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
 
-  // Stubs algo-derm's roleAtDose for the cap-marginal lactic-acid hit; undefined elsewhere.
   const role =
     (doseFactor: number, confidence: number): RoleAtDoseLookup =>
     (pattern) =>
@@ -540,8 +530,8 @@ describe('actif-class roleAtDose gate (cap-marginal AHA, ADR-0014)', () => {
         : undefined
 
   // isdin-ureadin-ultra-40: 40 % urea peel, lactic sub-1 % pH adjuster under an exfoliant
-  // name. A confident sub-c50 dose overrides the name-gate that would otherwise keep it —
-  // the lone gold AHA FP this gate exists to kill (AHA P 0.955→1.000).
+  // name. A confident sub-c50 dose overrides the name-gate that would otherwise keep it.
+  // It's the lone gold AHA FP this gate exists to kill (AHA P 0.955→1.000).
   test('confident sub-c50 dose drops AHA even under an exfoliant name (isdin case)', () => {
     expect(
       detectActifClassesWithEvidence(

@@ -6,7 +6,7 @@ import { loginAsSeed, registerFreshUser } from './helpers/auth'
 const SEED_EMAIL = 'seed@seed.com'
 const SEED_PASSWORD = 'Azerty123!seed'
 
-// Random unique email per signup to avoid collisions across runs — snapshot-once
+// Random unique email per signup to avoid collisions across runs: snapshot-once
 // seed keeps prior signups in the DB.
 function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`
@@ -190,9 +190,8 @@ test.describe('Auth — demo', () => {
 
     await page.getByRole('button', { name: /Essayer la démo/i }).click()
 
-    // /demo seeds tasks + a full collection + reviews in one awaited transaction
-    // before returning the session; under parallel workers on the tmpfs DB this
-    // can run ~20s, so the nav wait needs headroom above 15s.
+    // The /demo seed itself is fast (~200ms); the headroom over the 15s default absorbs
+    // Firefox boot + nav lag under full-suite parallel contention, not seed weight.
     await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
     await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible()
     await expect(page.getByText('Mode démo')).toBeVisible()
@@ -203,7 +202,7 @@ test.describe('Auth — demo', () => {
 
     await page.getByRole('button', { name: /Essayer la démo/i }).click()
 
-    // Same heavy demo seed as above — allow headroom over the 15s default.
+    // Same headroom as above, for Firefox contention, not seed weight.
     await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
     await expect(page.getByText('Mode démo')).toBeVisible()
   })
@@ -237,7 +236,7 @@ test.describe('Auth — demo', () => {
 })
 
 // Cold-load boot optimization (feature B1): an anonymous visitor must not pay for the
-// blocking /auth/refresh probe. The non-httpOnly aurore_session cookie gates it — present
+// blocking /auth/refresh probe. The non-httpOnly aurore_session cookie gates it: present
 // after login, gone after logout. These tests pin the observable contract end-to-end.
 test.describe('Auth — session hint (cold-load probe gate)', () => {
   test('anonymous boot skips the refresh probe and sets no hint cookie', async ({
@@ -249,13 +248,15 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
       if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
     })
 
-    await page.goto('/products')
-    // /api/products resolves only after the root beforeLoad ran, so by here any probe
-    // would already have fired — a clean signal that boot finished.
-    await page.waitForResponse(
+    // Arm the wait before navigating: on firefox/webkit the GET resolves during goto(), so a
+    // waitForResponse set up afterwards misses it. /api/products only fires after the root
+    // beforeLoad ran. Catching it is a clean signal that boot finished.
+    const productsLoaded = page.waitForResponse(
       (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
       { timeout: 15_000 }
     )
+    await page.goto('/products')
+    await productsLoaded
 
     expect(await sessionHint(context)).toBeUndefined()
     expect(refreshCalls).toEqual([])
@@ -297,6 +298,9 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
     await expect(menu).toBeVisible()
     await menu.getByRole('menuitem', { name: 'Déconnexion' }).click()
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 15_000 })
+    // Let the logout redirect fully commit before navigating away, else goto('/products')
+    // races a still-in-flight nav back to /auth/login (webkit throws, firefox aborts).
+    await expect(page.getByRole('heading', { name: 'Connexion' })).toBeVisible()
 
     expect(await sessionHint(context)).toBeUndefined()
 
@@ -304,11 +308,14 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
     page.on('request', (r) => {
       if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
     })
-    await page.goto('/products')
-    await page.waitForResponse(
+    // Arm the wait before goto (see the anonymous-boot case): firefox/webkit resolve the GET
+    // during navigation, so a post-goto waitForResponse misses it.
+    const productsLoaded = page.waitForResponse(
       (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
       { timeout: 15_000 }
     )
+    await page.goto('/products')
+    await productsLoaded
     expect(refreshCalls).toEqual([])
   })
 })
@@ -343,8 +350,8 @@ test.describe('Auth — optimistic boot (cold load, logged in)', () => {
 
   test('cold load on /admin rejects an authenticated non-admin to home', async ({ page }) => {
     // A freshly registered user is role=user: authenticated but NOT authorized. Once the probe
-    // resolves the role guard must reject to / — the authorization property, complementary to the
-    // "admin not ejected" liveness test above and distinct from the anonymous → /auth/login path.
+    // resolves the role guard must reject to /, the authorization property, complementary to the
+    // "admin not ejected" liveness test above and distinct from the anonymous to /auth/login path.
     // Guards against a future change that lets a hint user through while pending (escalation).
     await registerFreshUser(page)
 

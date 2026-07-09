@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@aurore/shared'
 
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth, expectRoleMatrix } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import {
-  setupAndLogin,
   setupAndLoginAdmin,
   setupAndLoginContributor,
 } from '../../../tests/helpers/route-test-helpers'
@@ -250,16 +250,10 @@ describe('Product Tags Routes', () => {
       expect(data.data[0]?.productTagId).toBe(tag.id)
     })
 
-    it('should reject an unauthenticated request', async () => {
-      const product = await createProduct(client, contributorToken)
-
-      const res = await app.request(`/api/products/${product.id}/tags`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tags: [] }),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PUT',
+      path: `/api/products/${crypto.randomUUID()}/tags`,
+      body: { tags: [] },
     })
 
     it('should return 400 for a non-UUID productId', async () => {
@@ -275,7 +269,7 @@ describe('Product Tags Routes', () => {
       const product = await createProduct(client, contributorToken)
 
       const res = await client.products[':productId'].tags.$put(
-        // @ts-expect-error — missing required tags field; testing schema rejection
+        // @ts-expect-error missing required tags field, testing schema rejection
         { param: { productId: product.id }, json: {} },
         withAuth(contributorToken)
       )
@@ -347,44 +341,21 @@ describe('Product Tags Routes', () => {
   })
 
   describe('PUT /products/:productId/tags — role enforcement', () => {
-    it('403 for a plain user', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const product = await createProduct(client, contributorToken)
-      const tag = await createProductTag(client, adminToken, {
-        label: 'Hydratant',
-        tagType: 'concern',
-      })
-      const res = await client.products[':productId'].tags.$put(
-        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(userToken)
-      )
-      expectStatus(res, HTTP_STATUS.FORBIDDEN)
-    })
-
-    it('200 for a contributor', async () => {
-      const product = await createProduct(client, contributorToken)
-      const tag = await createProductTag(client, adminToken, {
-        label: 'Hydratant',
-        tagType: 'concern',
-      })
-      const res = await client.products[':productId'].tags.$put(
-        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(contributorToken)
-      )
-      expectStatus(res, HTTP_STATUS.OK)
-    })
-
-    it('200 for an admin', async () => {
-      const product = await createProduct(client, contributorToken)
-      const tag = await createProductTag(client, adminToken, {
-        label: 'Hydratant',
-        tagType: 'concern',
-      })
-      const res = await client.products[':productId'].tags.$put(
-        { param: { productId: product.id }, json: { tags: [{ tagId: tag.id }] } },
-        withAuth(adminToken)
-      )
-      expectStatus(res, HTTP_STATUS.OK)
-    })
+    expectRoleMatrix(
+      () => app,
+      async () => {
+        const product = await createProduct(client, contributorToken)
+        const tag = await createProductTag(client, adminToken, {
+          label: 'Hydratant',
+          tagType: 'concern',
+        })
+        return {
+          method: 'PUT',
+          path: `/api/products/${product.id}/tags`,
+          body: { tags: [{ tagId: tag.id }] },
+        }
+      },
+      { user: HTTP_STATUS.FORBIDDEN, contributor: HTTP_STATUS.OK, admin: HTTP_STATUS.OK }
+    )
   })
 })

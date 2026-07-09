@@ -9,6 +9,7 @@ import type { AppEnv } from '../../../app-env'
 import { profiles, userDermoProfiles } from '../../../db/schema/auth/users'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { loginAndGetToken } from '../../../tests/helpers/route-test-helpers'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -60,9 +61,9 @@ describe('GET /api/social/profiles/search', () => {
     return data.data
   }
 
-  it('rejects an unauthenticated request', async () => {
-    const res = await app.request('/api/social/profiles/search?concern=rosacee')
-    expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+  expectRequiresAuth(() => app, {
+    method: 'GET',
+    path: '/api/social/profiles/search?concern=rosacee',
   })
 
   it('returns an empty list when no discoverable peer matches the concern', async () => {

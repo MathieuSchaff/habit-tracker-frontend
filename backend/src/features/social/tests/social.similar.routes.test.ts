@@ -9,6 +9,7 @@ import type { AppEnv } from '../../../app-env'
 import { profiles, userDermoProfiles } from '../../../db/schema/auth/users'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { loginAndGetToken } from '../../../tests/helpers/route-test-helpers'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -63,10 +64,7 @@ describe('GET /api/social/similar', () => {
     return data.data
   }
 
-  it('rejects an unauthenticated request — "people like me" needs a viewer', async () => {
-    const res = await app.request('/api/social/similar')
-    expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-  })
+  expectRequiresAuth(() => app, { method: 'GET', path: '/api/social/similar' })
 
   it('returns an empty cohort for a viewer with no discoverable peers', async () => {
     const token = await seedViewer({ skinConcerns: ['rosacee'] })
@@ -89,8 +87,8 @@ describe('GET /api/social/similar', () => {
 
     const data = await fetchSimilar(token)
     expect(data.profiles).toEqual([{ username: 'peer-pub', band: 'tres-proche' }])
-    // Doctrine zéro-chiffre: the row carries exactly { username, band } — no
-    // score or any other field can ride along (shape assert beats a digit regex).
+    // Doctrine zéro-chiffre: the row carries exactly { username, band }, no
+    // score or other field rides along (shape assert beats a digit regex).
     expect(Object.keys(data.profiles[0]).sort()).toEqual(['band', 'username'])
     expect(['tres-proche', 'proche']).toContain(data.profiles[0].band)
   })
@@ -187,7 +185,7 @@ describe('GET /api/social/similar', () => {
   it('never lists the viewer in their own cohort, even when discoverable', async () => {
     const viewer = await createTestUser('viewer@social.test', 'Azerty123!')
     const token = await loginAndGetToken(app, 'viewer@social.test', 'Azerty123!')
-    // Viewer is themselves public + discoverable — they still must not self-list.
+    // Viewer is public + discoverable too, but must not self-list.
     await testDb
       .update(profiles)
       .set({ username: 'viewer-pub', profilePublic: true })

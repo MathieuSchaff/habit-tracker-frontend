@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import {
   createTestEnv,
   signupAndGetToken,
@@ -61,10 +62,7 @@ describe('Upload Routes', () => {
   })
 
   describe('POST /api/uploads/avatar', () => {
-    it('rejects unauthenticated requests', async () => {
-      const res = await app.request('/api/uploads/avatar', { method: 'POST' })
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/uploads/avatar' })
 
     it('uploads a valid 1024×1024 WebP and updates user', async () => {
       const { token } = await signupAndGetToken(
@@ -133,7 +131,7 @@ describe('Upload Routes', () => {
 
     it('returns 400 for invalid image format regardless of slug existence', async () => {
       const token = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
-      // PNG header — fails WebP validation before any DB/CDN work
+      // PNG header, fails WebP validation before any DB/CDN work
       const blob = new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0])], {
         type: 'image/webp',
       })

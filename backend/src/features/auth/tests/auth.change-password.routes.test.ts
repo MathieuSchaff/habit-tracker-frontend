@@ -3,12 +3,16 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@aurore/shared'
 
 import { setupDbTests } from '../../../tests/db-setup'
-import { createTestClient, type TestClient } from '../../../tests/helpers/createTestClient'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
+import { createTestEnv, type TestClient } from '../../../tests/helpers/createTestClient'
 import { unsafeEmail } from '../../../tests/helpers/unsafe'
+
+type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 
 setupDbTests()
 
 describe('Auth Routes > POST /auth/change-password', () => {
+  let app: TestApp
   let client: TestClient
 
   const email = unsafeEmail('change-pwd@example.com')
@@ -16,7 +20,7 @@ describe('Auth Routes > POST /auth/change-password', () => {
   const newPassword = 'NewPassword456!'
 
   beforeAll(async () => {
-    client = await createTestClient()
+    ;({ app, client } = await createTestEnv())
   })
 
   // Signup no longer establishes a session (ADR 0009): sign up, then log in to get
@@ -107,14 +111,9 @@ describe('Auth Routes > POST /auth/change-password', () => {
     if (!refreshData.success) expect(refreshData.error).toBe('invalid_token')
   })
 
-  it('should reject unauthenticated request', async () => {
-    const res = await client.auth['change-password'].$post({
-      json: {
-        currentPassword: oldPassword,
-        newPassword: 'AnotherPassword123!',
-      },
-    })
-
-    expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+  expectRequiresAuth(() => app, {
+    method: 'POST',
+    path: '/api/auth/change-password',
+    body: { currentPassword: oldPassword, newPassword: 'AnotherPassword123!' },
   })
 })

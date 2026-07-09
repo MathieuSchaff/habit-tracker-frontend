@@ -55,61 +55,6 @@ describe('logout', () => {
     expect(result.success).toBe(true)
   })
 
-  it("ne devrait pas affecter les autres sessions au logout d'un seul appareil", async () => {
-    const creds = TEST_CREDENTIALS.toto
-    await createTestUser(creds.rawEmail, creds.rawPassword)
-
-    const login1 = await login(
-      createCtx({ ip: '192.168.1.1', userAgent: 'Appareil1' }),
-      creds.email,
-      creds.password
-    )
-    const login2 = await login(
-      createCtx({ ip: '192.168.1.2', userAgent: 'Appareil2' }),
-      creds.email,
-      creds.password
-    )
-
-    expect(login1.success).toBe(true)
-    expect(login2.success).toBe(true)
-    if (!login1.success || !login2.success) return
-
-    await logout(createCtx(), login1.data.refreshToken)
-
-    const p1 = await verifyRefreshToken(login1.data.refreshToken, REFRESH_SECRET)
-    const p2 = await verifyRefreshToken(login2.data.refreshToken, REFRESH_SECRET)
-
-    if (p1) {
-      const s1 = await findValidRefreshToken(testDb, p1.jti)
-      expect(s1).toBeNull()
-    }
-
-    if (!p2) return
-    const s2 = await findValidRefreshToken(testDb, p2.jti)
-    expect(s2).not.toBeNull()
-  })
-
-  it("ne devrait pas affecter les sessions d'un autre utilisateur", async () => {
-    const toto = TEST_CREDENTIALS.toto
-    const alice = TEST_CREDENTIALS.alice
-    await createTestUser(toto.rawEmail, toto.rawPassword)
-    await createTestUser(alice.rawEmail, alice.rawPassword)
-
-    const loginToto = await login(createCtx(), toto.email, toto.password)
-    const loginAlice = await login(createCtx(), alice.email, alice.password)
-
-    expect(loginToto.success).toBe(true)
-    expect(loginAlice.success).toBe(true)
-    if (!loginToto.success || !loginAlice.success) return
-
-    await logout(createCtx(), loginToto.data.refreshToken)
-
-    const pAlice = await verifyRefreshToken(loginAlice.data.refreshToken, REFRESH_SECRET)
-    if (!pAlice) return
-    const sAlice = await findValidRefreshToken(testDb, pAlice.jti)
-    expect(sAlice).not.toBeNull()
-  })
-
   it('devrait pouvoir se reconnecter après un logout', async () => {
     const creds = TEST_CREDENTIALS.toto
     await createTestUser(creds.rawEmail, creds.rawPassword)

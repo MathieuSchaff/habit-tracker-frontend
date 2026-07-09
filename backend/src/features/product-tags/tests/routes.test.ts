@@ -3,13 +3,10 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@aurore/shared'
 
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth, expectRoleMatrix } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import {
-  setupAndLogin,
-  setupAndLoginAdmin,
-  setupAndLoginContributor,
-} from '../../../tests/helpers/route-test-helpers'
+import { setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 type ApiErrorBody = { success: false; error: string }
@@ -112,7 +109,7 @@ describe('Product Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['product-tags'].$post(
-        // @ts-expect-error — missing required label; testing schema rejection
+        // @ts-expect-error: missing required label, testing schema rejection
         { json: { tagType: 'skin_type' } },
         withAuth(token)
       )
@@ -120,52 +117,18 @@ describe('Product Tag Routes', () => {
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/product-tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(VALID_TAG),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject request with invalid token', async () => {
-      const res = await client['product-tags'].$post(
-        { json: VALID_TAG },
-        withAuth('invalid.token.here')
-      )
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/product-tags', body: VALID_TAG })
 
     describe('role enforcement', () => {
-      it('403 for a plain user', async () => {
-        const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-        const res = await client['product-tags'].$post(
-          { json: { label: 'X', tagType: 'concern' } },
-          withAuth(userToken)
-        )
-        expectStatus(res, HTTP_STATUS.FORBIDDEN)
-      })
-
-      it('403 for a contributor', async () => {
-        const contribToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
-        const res = await client['product-tags'].$post(
-          { json: { label: 'X', tagType: 'concern' } },
-          withAuth(contribToken)
-        )
-        expectStatus(res, HTTP_STATUS.FORBIDDEN)
-      })
-
-      it('201 for an admin', async () => {
-        const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
-        const res = await client['product-tags'].$post(
-          { json: { label: 'X', tagType: 'concern' } },
-          withAuth(adminToken)
-        )
-        expectStatus(res, HTTP_STATUS.CREATED)
-      })
+      expectRoleMatrix(
+        () => app,
+        { method: 'POST', path: '/api/product-tags', body: { label: 'X', tagType: 'concern' } },
+        {
+          user: HTTP_STATUS.FORBIDDEN,
+          contributor: HTTP_STATUS.FORBIDDEN,
+          admin: HTTP_STATUS.CREATED,
+        }
+      )
     })
   })
 
@@ -305,14 +268,10 @@ describe('Product Tag Routes', () => {
       expect(body.error).toBe('tag_already_exists')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/api/product-tags/${crypto.randomUUID()}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'X' }),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: `/api/product-tags/${crypto.randomUUID()}`,
+      body: { label: 'X' },
     })
   })
 
@@ -385,12 +344,9 @@ describe('Product Tag Routes', () => {
       expect(body.error).toBe('tag_not_found')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/api/product-tags/${crypto.randomUUID()}`, {
-        method: 'DELETE',
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'DELETE',
+      path: `/api/product-tags/${crypto.randomUUID()}`,
     })
   })
 })

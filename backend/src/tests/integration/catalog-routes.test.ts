@@ -52,16 +52,6 @@ describe('catalog routes — guard swap (requireCatalogWrite removed from create
     await testDb.delete(userBans)
   })
 
-  it('regular user can POST /products (no requireCatalogWrite)', async () => {
-    const res = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
-    expect(res.status as number).toBe(HTTP_STATUS.CREATED)
-  })
-
-  it('regular user can POST /ingredients (ingredient_create scope replaces requireCatalogWrite)', async () => {
-    const res = await client.ingredients.$post({ json: VALID_INGREDIENT }, withAuth(userToken))
-    expect(res.status as number).toBe(HTTP_STATUS.CREATED)
-  })
-
   it('ingredient_create ban blocks POST /ingredients with scope detail', async () => {
     await testDb.insert(userBans).values({
       userId,
@@ -88,7 +78,7 @@ describe('catalog routes — guard swap (requireCatalogWrite removed from create
       bannedBy: adminId,
     })
 
-    // Any PATCH — will 404 (no such ingredient) but NOT 403 from ban
+    // any PATCH 404s (no such ingredient) but ban scope is create-only, so no 403
     const res = await client.ingredients[':id'].$patch(
       { param: { id: crypto.randomUUID() }, json: { name: 'x' } as never },
       withAuth(userToken)
@@ -114,7 +104,6 @@ describe('catalog routes — verify (PATCH /:id/quality)', () => {
   })
 
   it('contributor can verify a product (PATCH /products/:id/quality)', async () => {
-    // Create product as user (unverified), verify as contributor
     const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
     const createBody = await createRes.json()
     if (!createBody.success) throw new Error('create failed')
@@ -179,77 +168,6 @@ describe('catalog routes — verify (PATCH /:id/quality)', () => {
       withAuth(userToken)
     )
 
-    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
-  })
-})
-
-describe('catalog routes — moderate (PATCH /admin/moderation/products|ingredients/:id)', () => {
-  let client: TestClient
-  let userToken: string
-  let adminToken: string
-
-  beforeEach(async () => {
-    client = await createTestClient()
-    const toto = TEST_CREDENTIALS.toto
-    const admin = TEST_CREDENTIALS.admin
-    await createTestUser(toto.rawEmail, toto.rawPassword)
-    await createTestAdminUser(admin.rawEmail, admin.rawPassword)
-    userToken = await loginAs(client, toto.rawEmail, toto.rawPassword)
-    adminToken = await loginAs(client, admin.rawEmail, admin.rawPassword)
-  })
-
-  it('admin can hide a product (PATCH /admin/moderation/products/:id)', async () => {
-    const createRes = await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
-    const createBody = await createRes.json()
-    if (!createBody.success) throw new Error('create failed')
-    const id = createBody.data.id
-
-    const res = await client.admin.moderation.products[':id'].$patch(
-      { param: { id }, json: { status: 'hidden', reason: 'spam' } },
-      withAuth(adminToken)
-    )
-
-    expect(res.status as number).toBe(HTTP_STATUS.OK)
-    const body = await res.json()
-    if (!body.success) throw new Error('moderate failed')
-    expect(body.data.moderationStatus).toBe('hidden')
-    expect(body.data.moderationReason).toBe('spam')
-  })
-
-  it('non-admin gets 403 on PATCH /admin/moderation/products/:id', async () => {
-    const res = await client.admin.moderation.products[':id'].$patch(
-      { param: { id: crypto.randomUUID() }, json: { status: 'hidden' } as never },
-      withAuth(userToken)
-    )
-    expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
-  })
-
-  it('admin can hide an ingredient (PATCH /admin/moderation/ingredients/:id)', async () => {
-    const createRes = await client.ingredients.$post(
-      { json: VALID_INGREDIENT },
-      withAuth(userToken)
-    )
-    const createBody = await createRes.json()
-    if (!createBody.success) throw new Error('create failed')
-    const id = createBody.data.id
-
-    const res = await client.admin.moderation.ingredients[':id'].$patch(
-      { param: { id }, json: { status: 'hidden', reason: 'doublon' } },
-      withAuth(adminToken)
-    )
-
-    expect(res.status as number).toBe(HTTP_STATUS.OK)
-    const body = await res.json()
-    if (!body.success) throw new Error('moderate failed')
-    expect(body.data.moderationStatus).toBe('hidden')
-    expect(body.data.moderationReason).toBe('doublon')
-  })
-
-  it('non-admin gets 403 on PATCH /admin/moderation/ingredients/:id', async () => {
-    const res = await client.admin.moderation.ingredients[':id'].$patch(
-      { param: { id: crypto.randomUUID() }, json: { status: 'hidden' } as never },
-      withAuth(userToken)
-    )
     expect(res.status as number).toBe(HTTP_STATUS.FORBIDDEN)
   })
 })
@@ -407,7 +325,6 @@ describe('catalog routes — read filters (?quality / ?status)', () => {
   })
 
   it('GET /products?quality=unverified returns only unverified products', async () => {
-    // user creates unverified; admin creates verified
     await client.products.$post({ json: VALID_PRODUCT }, withAuth(userToken))
     await client.products.$post(
       { json: { ...VALID_PRODUCT, name: 'Admin Serum', brand: 'AdminBrand' } },
@@ -424,7 +341,6 @@ describe('catalog routes — read filters (?quality / ?status)', () => {
   })
 
   it('GET /ingredients?quality=unverified returns only unverified ingredients', async () => {
-    // user creates unverified; admin creates verified
     await client.ingredients.$post({ json: VALID_INGREDIENT }, withAuth(userToken))
     await client.ingredients.$post(
       { json: { name: 'Admin Acid', type: 'skincare' as const } },

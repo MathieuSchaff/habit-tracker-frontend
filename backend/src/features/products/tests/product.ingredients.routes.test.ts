@@ -6,14 +6,10 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth, expectRoleMatrix } from '../../../tests/helpers/authz-matrix'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
 import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
-import { expectStatus } from '../../../tests/helpers/expectStatus'
-import {
-  setupAndLogin,
-  setupAndLoginAdmin,
-  setupAndLoginContributor,
-} from '../../../tests/helpers/route-test-helpers'
+import { setupAndLoginContributor } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 
 async function createProduct(client: TestClient, token: string) {
@@ -37,12 +33,10 @@ describe('Product Ingredients Routes', () => {
   let app: Hono<AppEnv>
   let client: TestClient
   let contributorToken: string
-  let adminToken: string
 
   beforeEach(async () => {
     ;({ app, client } = await createTestEnv())
     contributorToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
-    adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
   })
 
   describe('GET /products/:productId/ingredients', () => {
@@ -298,14 +292,10 @@ describe('Product Ingredients Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const fakeId = crypto.randomUUID()
-      const res = await client.products[':productId'].ingredients.$post({
-        param: { productId: fakeId },
-        json: { ingredientId: crypto.randomUUID() },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'POST',
+      path: `/api/products/${crypto.randomUUID()}/ingredients`,
+      body: { ingredientId: crypto.randomUUID() },
     })
   })
 
@@ -437,13 +427,10 @@ describe('Product Ingredients Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products[':productId'].ingredients[':ingredientId'].$patch({
-        param: { productId: crypto.randomUUID(), ingredientId: crypto.randomUUID() },
-        json: { notes: 'X' },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: `/api/products/${crypto.randomUUID()}/ingredients/${crypto.randomUUID()}`,
+      body: { notes: 'X' },
     })
   })
 
@@ -573,12 +560,9 @@ describe('Product Ingredients Routes', () => {
       expect(data.error).toBe('product_ingredient_not_found')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products[':productId'].ingredients[':ingredientId'].$delete({
-        param: { productId: crypto.randomUUID(), ingredientId: crypto.randomUUID() },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'DELETE',
+      path: `/api/products/${crypto.randomUUID()}/ingredients/${crypto.randomUUID()}`,
     })
   })
 
@@ -710,42 +694,25 @@ describe('Product Ingredients Routes', () => {
       }
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products[':productId'].ingredients.$put({
-        param: { productId: crypto.randomUUID() },
-        json: { ingredients: [] },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PUT',
+      path: `/api/products/${crypto.randomUUID()}/ingredients`,
+      body: { ingredients: [] },
     })
   })
 
   describe('PUT /products/:productId/ingredients — role enforcement', () => {
-    let product: { id: string }
-    beforeEach(async () => {
-      product = await createProduct(client, contributorToken)
-    })
-    it('403 for a plain user', async () => {
-      const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-      const res = await client.products[':productId'].ingredients.$put(
-        { param: { productId: product.id }, json: { ingredients: [] } },
-        withAuth(userToken)
-      )
-      expectStatus(res, HTTP_STATUS.FORBIDDEN)
-    })
-    it('200 for a contributor', async () => {
-      const res = await client.products[':productId'].ingredients.$put(
-        { param: { productId: product.id }, json: { ingredients: [] } },
-        withAuth(contributorToken)
-      )
-      expectStatus(res, HTTP_STATUS.OK)
-    })
-    it('200 for an admin', async () => {
-      const res = await client.products[':productId'].ingredients.$put(
-        { param: { productId: product.id }, json: { ingredients: [] } },
-        withAuth(adminToken)
-      )
-      expectStatus(res, HTTP_STATUS.OK)
-    })
+    expectRoleMatrix(
+      () => app,
+      async () => {
+        const product = await createProduct(client, contributorToken)
+        return {
+          method: 'PUT',
+          path: `/api/products/${product.id}/ingredients`,
+          body: { ingredients: [] },
+        }
+      },
+      { user: HTTP_STATUS.FORBIDDEN, contributor: HTTP_STATUS.OK, admin: HTTP_STATUS.OK }
+    )
   })
 })

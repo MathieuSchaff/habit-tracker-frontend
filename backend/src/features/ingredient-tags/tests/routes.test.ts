@@ -5,13 +5,10 @@ import { HTTP_STATUS } from '@aurore/shared'
 import { createIngredient } from '../../../features/ingredients/service'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth, expectRoleMatrix } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
-import {
-  setupAndLogin,
-  setupAndLoginAdmin,
-  setupAndLoginContributor,
-} from '../../../tests/helpers/route-test-helpers'
+import { setupAndLoginAdmin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { addTagToIngredient } from '../service'
@@ -99,7 +96,7 @@ describe('Ingredient Tag Routes', () => {
       )
 
       expectStatus(res, HTTP_STATUS.CONFLICT)
-      // Errors thrown by route handlers bypass the typed response — read raw.
+      // Errors thrown by route handlers bypass the typed response, read raw.
       const body = (await res.json()) as unknown as ApiErrorBody
       expect(body.success).toBe(false)
       expect(body.error).toBe('tag_already_exists')
@@ -109,7 +106,7 @@ describe('Ingredient Tag Routes', () => {
       const token = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
 
       const res = await client['ingredient-tags'].$post(
-        // @ts-expect-error — missing required label; testing schema rejection
+        // @ts-expect-error missing required label, testing schema rejection
         { json: { tagType: 'effect' } },
         withAuth(token)
       )
@@ -117,43 +114,18 @@ describe('Ingredient Tag Routes', () => {
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/ingredient-tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(VALID_TAG),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/ingredient-tags', body: VALID_TAG })
 
     describe('role enforcement', () => {
-      it('403 for a plain user', async () => {
-        const userToken = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-        const res = await client['ingredient-tags'].$post(
-          { json: { label: 'X', tagType: 'effect' } },
-          withAuth(userToken)
-        )
-        expectStatus(res, HTTP_STATUS.FORBIDDEN)
-      })
-
-      it('403 for a contributor', async () => {
-        const contribToken = await setupAndLoginContributor(app, TEST_CREDENTIALS.contributor)
-        const res = await client['ingredient-tags'].$post(
-          { json: { label: 'X', tagType: 'effect' } },
-          withAuth(contribToken)
-        )
-        expectStatus(res, HTTP_STATUS.FORBIDDEN)
-      })
-
-      it('201 for an admin', async () => {
-        const adminToken = await setupAndLoginAdmin(app, TEST_CREDENTIALS.admin)
-        const res = await client['ingredient-tags'].$post(
-          { json: { label: 'X', tagType: 'effect' } },
-          withAuth(adminToken)
-        )
-        expectStatus(res, HTTP_STATUS.CREATED)
-      })
+      expectRoleMatrix(
+        () => app,
+        { method: 'POST', path: '/api/ingredient-tags', body: { label: 'X', tagType: 'effect' } },
+        {
+          user: HTTP_STATUS.FORBIDDEN,
+          contributor: HTTP_STATUS.FORBIDDEN,
+          admin: HTTP_STATUS.CREATED,
+        }
+      )
     })
   })
 
@@ -272,16 +244,16 @@ describe('Ingredient Tag Routes', () => {
         { json: { label: 'Premier', slug: 'premier' } },
         withAuth(token)
       )
-      const r2 = await client['ingredient-tags'].$post(
+      const secondRes = await client['ingredient-tags'].$post(
         { json: { label: 'Deuxième' } },
         withAuth(token)
       )
-      const r2Data = await r2.json()
-      if (!r2Data.success) throw new Error('create tag failed')
-      const t2 = r2Data.data
+      const secondData = await secondRes.json()
+      if (!secondData.success) throw new Error('create tag failed')
+      const secondTag = secondData.data
 
       const res = await client['ingredient-tags'][':id'].$patch(
-        { param: { id: t2.id }, json: { label: 'Premier', slug: 'premier' } },
+        { param: { id: secondTag.id }, json: { label: 'Premier', slug: 'premier' } },
         withAuth(token)
       )
 
@@ -290,14 +262,10 @@ describe('Ingredient Tag Routes', () => {
       expect(body.error).toBe('tag_already_exists')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/api/ingredient-tags/${crypto.randomUUID()}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'X' }),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: `/api/ingredient-tags/${crypto.randomUUID()}`,
+      body: { name: 'X' },
     })
   })
 
@@ -346,12 +314,9 @@ describe('Ingredient Tag Routes', () => {
       expectStatus(res, HTTP_STATUS.NOT_FOUND)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request(`/api/ingredient-tags/${crypto.randomUUID()}`, {
-        method: 'DELETE',
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'DELETE',
+      path: `/api/ingredient-tags/${crypto.randomUUID()}`,
     })
   })
 

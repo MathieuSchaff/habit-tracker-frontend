@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { HTTP_STATUS } from '@aurore/shared'
 
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { expectStatus } from '../../../tests/helpers/expectStatus'
 import {
@@ -138,7 +139,7 @@ describe('Ingredient Routes', () => {
       const token = contributorToken
 
       const res = await client.ingredients.$post(
-        // @ts-expect-error — missing required name; testing schema rejection
+        // @ts-expect-error missing required name, testing schema rejection
         { json: { description: 'orphan' } },
         withAuth(token)
       )
@@ -146,20 +147,10 @@ describe('Ingredient Routes', () => {
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/ingredients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(VALID_INGREDIENT),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject request with invalid token', async () => {
-      const res = await createIngredient(client, 'invalid.token.here', VALID_INGREDIENT)
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'POST',
+      path: '/api/ingredients',
+      body: VALID_INGREDIENT,
     })
 
     it('should reject invalid slug formats and malicious strings', async () => {
@@ -301,7 +292,7 @@ describe('Ingredient Routes', () => {
 
     it('rejects when slugs param is missing', async () => {
       const res = await client.ingredients['by-slugs'].$get({
-        // @ts-expect-error — missing required slugs; testing schema rejection
+        // @ts-expect-error missing required slugs, testing schema rejection
         query: {},
       })
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
@@ -415,7 +406,7 @@ describe('Ingredient Routes', () => {
       const created = createData.data
 
       const res = await client.ingredients[':id'].$patch(
-        // @ts-expect-error — hackerField rejected by strict schema
+        // @ts-expect-error hackerField rejected by strict schema
         { param: { id: created.id }, json: { hackerField: 'oops' } },
         withAuth(token)
       )
@@ -423,15 +414,10 @@ describe('Ingredient Routes', () => {
       expectStatus(res, HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const fakeId = crypto.randomUUID()
-      const res = await app.request(`/api/ingredients/${fakeId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: 'X' }),
-      })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: `/api/ingredients/${crypto.randomUUID()}`,
+      body: { description: 'X' },
     })
   })
 
@@ -516,11 +502,9 @@ describe('Ingredient Routes', () => {
       expect(body.error).toBe('ingredient_delete_failed')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const fakeId = crypto.randomUUID()
-      const res = await app.request(`/api/ingredients/${fakeId}`, { method: 'DELETE' })
-
-      expectStatus(res, HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'DELETE',
+      path: `/api/ingredients/${crypto.randomUUID()}`,
     })
   })
 

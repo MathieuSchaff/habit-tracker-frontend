@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import type { TestClient } from '../../../tests/helpers/createTestClient'
 import { createTestEnv, withAuth } from '../../../tests/helpers/createTestClient'
 import {
@@ -124,20 +125,7 @@ describe('Product Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products.$post({ json: VALID_PRODUCT })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject request with invalid token', async () => {
-      const res = await client.products.$post(
-        { json: VALID_PRODUCT },
-        withAuth('invalid.token.here')
-      )
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/products', body: VALID_PRODUCT })
   })
 
   describe('role enforcement (records)', () => {
@@ -1208,13 +1196,10 @@ describe('Product Routes', () => {
       expect(res.status as number).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products[':id'].$patch({
-        param: { id: crypto.randomUUID() },
-        json: { brand: 'X' },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: `/api/products/${crypto.randomUUID()}`,
+      body: { brand: 'X' },
     })
 
     // inci write rule (comma-or-short) is only enforced when inci is present in the body.
@@ -1342,12 +1327,9 @@ describe('Product Routes', () => {
       expect(data.error).toBe('product_not_found')
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.products[':id'].$delete({
-        param: { id: crypto.randomUUID() },
-      })
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'DELETE',
+      path: `/api/products/${crypto.randomUUID()}`,
     })
   })
 })

@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -33,10 +34,7 @@ describe('Dermo Profile Routes', () => {
       expect(data.data).toBeNull()
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/profile/dermo')
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'GET', path: '/api/profile/dermo' })
   })
 
   describe('PATCH /profile/dermo', () => {
@@ -91,8 +89,8 @@ describe('Dermo Profile Routes', () => {
       expect(data.data?.fitzpatrickType).toBe(3)
     })
 
-    // zValidator failures return 400 from middleware, which isn't reflected
-    // in the typed response — fall back to authPatch for these.
+    // zValidator failures return 400 from middleware, not reflected in the
+    // typed response, so use authPatch here instead.
     it('should reject more than 3 skin types', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       const res = await authPatch(app, '/api/profile/dermo', token, {
@@ -155,13 +153,10 @@ describe('Dermo Profile Routes', () => {
       expect(dataAlice.data?.skinTypes).toEqual(['peau-grasse'])
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await app.request('/api/profile/dermo', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skinTypes: ['dry'] }),
-      })
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: '/api/profile/dermo',
+      body: { skinTypes: ['dry'] },
     })
   })
 })

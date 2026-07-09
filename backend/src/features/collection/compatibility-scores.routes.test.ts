@@ -4,31 +4,33 @@ import { HTTP_STATUS } from '@aurore/shared'
 
 import { testDb } from '../../tests/db.test.config'
 import { setupDbTests } from '../../tests/db-setup'
+import { expectRequiresAuth } from '../../tests/helpers/authz-matrix'
 import {
-  createTestClient,
+  createTestEnv,
   signupAndGetToken,
   type TestClient,
   withAuth,
 } from '../../tests/helpers/createTestClient'
 import { createProduct } from '../products/service'
 
+type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
+
 setupDbTests()
 
 const SOME_UUID = '00000000-0000-0000-0000-000000000000'
 
 describe('POST /collection/compatibility-scores', () => {
+  let app: TestApp
   let client: TestClient
 
   beforeEach(async () => {
-    client = await createTestClient()
+    ;({ app, client } = await createTestEnv())
   })
 
-  it('rejects an unauthenticated request', async () => {
-    const res = await client.collection['compatibility-scores'].$post({
-      json: { productIds: [SOME_UUID] },
-    })
-
-    expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
+  expectRequiresAuth(() => app, {
+    method: 'POST',
+    path: '/api/collection/compatibility-scores',
+    body: { productIds: [SOME_UUID] },
   })
 
   it('rejects an empty productIds list', async () => {

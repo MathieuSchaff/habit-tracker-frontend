@@ -61,6 +61,12 @@ export async function assertWithinSubmissionRateLimit(
 ): Promise<void> {
   if (role === 'admin' || role === 'contributor') return
 
+  // Same doctrine as the HTTP limiters (rateLimiter.ts skipLimiter): non-prod skips the cap.
+  // Scoped to 'development' only: e2e runs NODE_ENV=development and creates >10 products as
+  // one seed user across 3 browser projects, tripping the 10/hr cap. Tests run NODE_ENV=test
+  // and need it enforced to assert product_rate_limited.
+  if (process.env.NODE_ENV === 'development') return
+
   const rows = await database.execute(
     sql`SELECT hr, day FROM ${sql.identifier(countFn)}(${userId})`
   )

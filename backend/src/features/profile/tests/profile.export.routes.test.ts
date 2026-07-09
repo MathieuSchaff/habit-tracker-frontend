@@ -9,6 +9,7 @@ import type { AppEnv } from '../../../app-env'
 import { securityEvents } from '../../../db/schema/monitoring/security-events'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestApp } from '../../../tests/helpers/createTestApp'
 import { authGet, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -50,10 +51,7 @@ describe('GET /profile/export', () => {
     resetExportRateLimit()
   })
 
-  it('rejects unauthenticated request', async () => {
-    const res = await app.request('/api/profile/export')
-    expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-  })
+  expectRequiresAuth(() => app, { method: 'GET', path: '/api/profile/export' })
 
   it('returns 200 with attachment headers for an authenticated user', async () => {
     const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)

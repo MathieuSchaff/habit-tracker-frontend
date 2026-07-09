@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-// All specs target unauthenticated paths — list, detail, filters, sort, search.
+// All specs target unauthenticated paths: list, detail, filters, sort, search.
 // Auth-gated surfaces (Add to collection modal, Créer button, profile toggle)
 // require a `storageState` setup.
 
@@ -115,7 +115,6 @@ test.describe('Products page', () => {
     await expect(page).toHaveURL(/[?&]q=mask/)
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    // Active filter chip surfaces the live query.
     await expect(page.getByRole('button', { name: /Retirer le filtre.*mask/i })).toBeVisible()
   })
 
@@ -131,7 +130,7 @@ test.describe('Products page', () => {
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
     await expect(drawer).toBeVisible()
 
-    // "Zone" is an essential, default-open tag group — no accordion expand needed.
+    // "Zone" is an essential, default-open tag group, so no accordion expand needed.
     const zoneGroup = drawer.getByRole('group', { name: 'Options pour Zone' })
     const zoneChip = zoneGroup.getByRole('button', { name: /^Visage/ })
     await expect(zoneChip).toBeVisible()
@@ -159,8 +158,7 @@ test.describe('Products page', () => {
       .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
 
-    // Price lives in a collapsed <details> accordion; expand it before filling.
-    await drawer.getByRole('heading', { name: 'Prix' }).click()
+    // Price renders flat in the drawer (no accordion), self-labelled by its <legend>.
     const minInput = drawer.getByLabel('Prix minimum en euros')
     await minInput.fill('50')
     await minInput.press('Enter')
@@ -219,7 +217,6 @@ test.describe('Products page', () => {
       .click()
     const drawer = page.getByRole('dialog', { name: 'Filtres' })
 
-    await drawer.getByRole('heading', { name: 'Prix' }).click()
     // Min > Max yields zero rows on any tab.
     await drawer.getByLabel('Prix minimum en euros').fill('99999')
     await drawer.getByLabel('Prix maximum en euros').fill('100000')

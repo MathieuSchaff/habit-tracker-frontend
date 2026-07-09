@@ -33,7 +33,7 @@ describe('isAvoidEligibleCategory', () => {
 })
 
 // grossesse-avoid signals migrated to algo-derm (pass 1 via grossesse_risque
-// MAPPED_TAG). computeAvoidCandidates no longer handles pregnancy detection —
+// MAPPED_TAG). computeAvoidCandidates no longer handles pregnancy detection;
 // see algo-derm-detection.test.ts and auto-tag-orchestrator-parity.test.ts for
 // end-to-end coverage of the avoid path.
 describe('computeAvoidCandidates — grossesse category guard', () => {
@@ -85,20 +85,6 @@ describe('computeAvoidCandidates — cross-signal stack irritation (X1)', () => 
   test('retinoid alone (no AHA/BHA) → no stack avoid', () => {
     const got = computeAvoidCandidates('Aqua, Glycerin, Retinol', 'serum', 'skincare')
     expect(got.find((c) => c.source === 'cross-signal')).toBeUndefined()
-  })
-})
-
-describe('computeAvoidCandidates — combined signals', () => {
-  // grossesse-avoid now comes from pass 1 (algo-derm grossesse_risque).
-  // computeAvoidCandidates still handles cross-signal avoid (stack irritation).
-  test('retinol + glycolic leave-on → cross-signal stack-irritation avoid (peau-sensible)', () => {
-    const got = computeAvoidCandidates(
-      'Aqua, Glycerin, Retinol, Glycolic Acid',
-      'serum',
-      'skincare'
-    )
-    const sources = got.map((c) => c.source)
-    expect(sources).toContain('cross-signal')
   })
 })
 

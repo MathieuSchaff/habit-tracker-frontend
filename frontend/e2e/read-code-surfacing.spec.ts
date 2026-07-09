@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-// Read-code surfacing (étape 2): a 429 on a list read must show the rate-limit retry window,
-// not the misleading "empty catalogue" state — proving the queryFn keeps the backend code +
-// retryAfter on the ApiError. Oracle for the read-code-surfacing chantier; see
-// docs/conventions/error-handling.md §"Known gap".
+// A 429 on a list read must show the rate-limit retry window, not the misleading
+// "empty catalogue" state: the queryFn must keep the backend code and retryAfter
+// on the ApiError. Oracle for this effort; see docs/conventions/error-handling.md §"Known gap".
 test.describe('Rate-limit surfacing — 429 shows a retry message', () => {
   test('products list 429 renders "Trop de requêtes" with the retry delay', async ({ page }) => {
     // 429 only the catalogue list endpoint; detail/search/etc. stay live.
@@ -24,7 +23,11 @@ test.describe('Rate-limit surfacing — 429 shows a retry message', () => {
 
     await page.goto('/products')
 
-    await expect(page.getByText('Trop de requêtes')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/réessayez dans 42\s*s/)).toBeVisible()
+    // EmptyState mirrors its message into the app-level aria-live region, so 'Trop de requêtes'
+    // now matches two nodes. Assert the visible empty-state nodes (heading + subtitle) directly.
+    await expect(page.getByRole('heading', { name: 'Trop de requêtes' })).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(page.locator('.empty-state__subtitle')).toHaveText(/réessayez dans 42\s*s/)
   })
 })

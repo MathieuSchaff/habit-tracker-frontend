@@ -121,9 +121,10 @@ export function FilterDrawer<T extends string>({
     }
   }
 
-  // Native <dialog> blocks focus escape but doesn't cycle Tab at the boundaries; wrap explicitly.
+  // Firefox lets focus escape <dialog> via phantom tabbables and doesn't wrap Tab at the edges.
+  // Trap it ourselves; `summary` keeps accordion triggers reachable.
   const FOCUSABLE_SELECTOR =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
   const handleTabTrap = (e: React.KeyboardEvent<HTMLDialogElement>) => {
     if (e.key !== 'Tab') return
     const dialog = dialogRef.current
@@ -132,16 +133,18 @@ export function FilterDrawer<T extends string>({
       (el) => el.offsetParent !== null || el === document.activeElement
     )
     if (focusables.length === 0) return
-    const first = focusables[0]
-    const last = focusables[focusables.length - 1]
-    const active = document.activeElement as HTMLElement | null
-    if (e.shiftKey && active === first) {
-      e.preventDefault()
-      last?.focus()
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault()
-      first?.focus()
+    e.preventDefault()
+    const idx = focusables.indexOf(document.activeElement as HTMLElement)
+    let nextIdx: number
+    if (idx === -1) {
+      // Focus was on a phantom node (e.g. scroll container); re-enter at the near end.
+      nextIdx = e.shiftKey ? focusables.length - 1 : 0
+    } else {
+      nextIdx = e.shiftKey
+        ? (idx - 1 + focusables.length) % focusables.length
+        : (idx + 1) % focusables.length
     }
+    focusables[nextIdx]?.focus()
   }
 
   const titleId = useId()
@@ -232,7 +235,7 @@ export function FilterDrawer<T extends string>({
               ? 'Appliquer'
               : `Voir ${previewCount} produit${previewCount > 1 ? 's' : ''}`}
           </Button>
-          {/* Button label is an accessible name (read on focus, never re-announced on change) — mirror the count in a live region (WCAG 4.1.3). */}
+          {/* Button label is read once on focus, never re-announced on change, so mirror the count in a live region (WCAG 4.1.3). */}
           <div className="sr-only" aria-live="polite" aria-atomic="true">
             {previewCount === undefined
               ? ''

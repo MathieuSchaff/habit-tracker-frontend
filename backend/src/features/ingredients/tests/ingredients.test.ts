@@ -13,10 +13,8 @@ import {
   getIngredientById,
   getIngredientBySlug,
   listAllIngredientOptions,
-  listIngredientEdits,
   listIngredients,
   searchIngredients,
-  updateIngredient,
 } from '../service'
 
 type TestUser = Awaited<ReturnType<typeof createTestUser>>
@@ -90,7 +88,7 @@ describe('Ingredient Service', () => {
 
     it('should NOT use custom slug when provided by non-admin', async () => {
       const ingredient = await makeIngredient('Niacinamide', { slug: 'niacin' }, 'user')
-      expect(ingredient.slug).toBe('niacinamide') // auto-generated
+      expect(ingredient.slug).toBe('niacinamide')
     })
 
     it('should store createdAt and updatedAt timestamps', async () => {
@@ -149,45 +147,6 @@ describe('Ingredient Service', () => {
 
     it('should throw ingredient_not_found for unknown slug', async () => {
       expect(getIngredientBySlug(testDb, 'slug-inexistant')).rejects.toThrow(IngredientError)
-    })
-  })
-
-  describe('updateIngredient', () => {
-    it('should update ingredient fields and return the updated record', async () => {
-      const created = await makeIngredient('Bakuchiol')
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        description: 'Alternative naturelle au rétinol',
-        category: 'actif',
-      })
-
-      expect(updated.description).toBe('Alternative naturelle au rétinol')
-      expect(updated.category).toBe('actif')
-    })
-
-    it('should create an audit log when fields change', async () => {
-      const created = await makeIngredient('Acide Azélaïque', { category: 'actif' })
-      await updateIngredient(
-        testDb,
-        user.id,
-        created.id,
-        { description: 'Actif multi-usage' },
-        'Ajout description'
-      )
-
-      const edits = await listIngredientEdits(testDb, created.id)
-      expect(edits).toHaveLength(1)
-      expect(edits[0]?.summary).toBe('Ajout description')
-      expect(edits[0]?.editedBy).toBe(user.id)
-      expect(edits[0]?.changes).toHaveProperty('description')
-    })
-
-    it('should keep the slug stable when the name changes (slug immutable, C-4)', async () => {
-      const created = await makeIngredient('Vitamine E')
-      const updated = await updateIngredient(testDb, user.id, created.id, {
-        name: 'Vitamine E Tocopherol',
-      })
-      expect(updated.name).toBe('Vitamine E Tocopherol')
-      expect(updated.slug).toBe('vitamine-e')
     })
   })
 

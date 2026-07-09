@@ -6,13 +6,12 @@ import { eq } from 'drizzle-orm'
 
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
-import {
-  createTestClient,
-  type TestClient,
-  withAuth,
-} from '../../../tests/helpers/createTestClient'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
+import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
 import { createTestUser } from '../../../tests/helpers/test-factories'
+
+type TestApp = Awaited<ReturnType<typeof createTestEnv>>['app']
 
 function extractCookie(res: { headers: Headers }): string {
   return res.headers.get('Set-Cookie') ?? ''
@@ -29,10 +28,11 @@ async function loginAndGetCookies(client: TestClient, email: string, password: s
 setupDbTests()
 
 describe('Auth Routes (browser)', () => {
+  let app: TestApp
   let client: TestClient
 
   beforeEach(async () => {
-    client = await createTestClient()
+    ;({ app, client } = await createTestEnv())
   })
 
   describe('POST /auth/signup', () => {
@@ -201,10 +201,8 @@ describe('Auth Routes (browser)', () => {
     })
 
     it('should reject empty body', async () => {
-      // Intentional contract violation: signup expects {email, password}; we
-      // verify the validator rejects an empty body with 400.
       const res = await client.auth.signup.$post({
-        // @ts-expect-error — exercising the validator with an empty body
+        // @ts-expect-error: exercising the validator with an empty body
         json: {},
       })
 
@@ -322,7 +320,7 @@ describe('Auth Routes (browser)', () => {
 
     it('should reject empty body', async () => {
       const res = await client.auth.login.$post({
-        // @ts-expect-error — exercising the validator with an empty body
+        // @ts-expect-error: exercising the validator with an empty body
         json: {},
       })
 
@@ -520,21 +518,7 @@ describe('Auth Routes (browser)', () => {
       expect(logoutHint).not.toContain('aurore_session=1') // cleared
     })
 
-    it('should reject logout without access token', async () => {
-      const res = await client.auth.logout.$post({})
-
-      // Middleware-issued 401 is outside the route's inferred status union.
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject logout with invalid access token', async () => {
-      const res = await client.auth.logout.$post(
-        {},
-        { headers: { Authorization: 'Bearer invalid.token.here' } }
-      )
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/auth/logout' })
 
     it('should invalidate refresh token after logout', async () => {
       const creds = TEST_CREDENTIALS.toto
@@ -632,21 +616,7 @@ describe('Auth Routes (browser)', () => {
       expect(data.data.userId).toBeDefined()
     })
 
-    it('should reject unauthenticated request', async () => {
-      const res = await client.auth.session.$get()
-
-      // Middleware-issued 401 is outside the route's inferred status union.
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
-
-    it('should reject request with invalid access token', async () => {
-      const res = await client.auth.session.$get(
-        {},
-        { headers: { Authorization: 'Bearer invalid.token.here' } }
-      )
-
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'GET', path: '/api/auth/session' })
 
     it('should reject request with expired/revoked access token after logout', async () => {
       const creds = TEST_CREDENTIALS.toto
@@ -779,11 +749,7 @@ describe('Auth Routes (browser)', () => {
       expect(data.success).toBe(true)
     })
 
-    it('should return 401 when not authenticated', async () => {
-      const res = await client.auth['resend-verification'].$post({})
-      // Middleware-issued 401 is outside the route's inferred status union.
-      expect(res.status as number).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'POST', path: '/api/auth/resend-verification' })
 
     it('should return too_many_requests (429) after 3 requests in the same hour', async () => {
       const creds = TEST_CREDENTIALS.alice

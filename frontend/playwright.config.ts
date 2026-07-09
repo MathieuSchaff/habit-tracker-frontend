@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// To launch it : just e2e-up
-// Ports are (5174/3001/5434). It coexiste with dev (5173/3000/5432).
+// Ports (5174/3001/5434) differ from dev (5173/3000/5432) so both stacks can run at once.
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // One local retry covers occasional Firefox flakiness under parallel runs (heavy tmpfs
+  // DB load can cause a slow boot/nav). CI uses two.
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5174',

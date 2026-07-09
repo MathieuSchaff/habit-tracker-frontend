@@ -12,6 +12,7 @@ import { products } from '../../../db/schema/products/products'
 import { socialPosts } from '../../../db/schema/social/posts'
 import { testDb } from '../../../tests/db.test.config'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { loginAndGetToken } from '../../../tests/helpers/route-test-helpers'
 import { createTestUser } from '../../../tests/helpers/test-factories'
@@ -94,10 +95,7 @@ describe('GET /api/social/feed', () => {
     return data.data
   }
 
-  it('rejects an unauthenticated request — the feed needs a viewer', async () => {
-    const res = await app.request('/api/social/feed')
-    expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-  })
+  expectRequiresAuth(() => app, { method: 'GET', path: '/api/social/feed' })
 
   it('returns an empty feed for a viewer with no discoverable cohort', async () => {
     const token = await seedViewer()

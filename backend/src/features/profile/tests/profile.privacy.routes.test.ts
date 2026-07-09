@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 
 import type { AppEnv } from '../../../app-env'
 import { setupDbTests } from '../../../tests/db-setup'
+import { expectRequiresAuth } from '../../../tests/helpers/authz-matrix'
 import { createTestEnv, type TestClient, withAuth } from '../../../tests/helpers/createTestClient'
 import { authPatch, setupAndLogin } from '../../../tests/helpers/route-test-helpers'
 import { TEST_CREDENTIALS } from '../../../tests/helpers/test-credentials'
@@ -45,10 +46,7 @@ describe('Privacy Settings Routes', () => {
       })
     })
 
-    it('rejects unauthenticated request', async () => {
-      const res = await app.request('/api/profile/privacy-settings')
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
-    })
+    expectRequiresAuth(() => app, { method: 'GET', path: '/api/profile/privacy-settings' })
 
     it('returns distinct settings per user', async () => {
       const tokenToto = await setupAndLogin(app, TEST_CREDENTIALS.toto)
@@ -97,21 +95,6 @@ describe('Privacy Settings Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.OK)
       const data = await res.json()
       if (!data.success) throw new Error('expected ok')
-      expect(data.data.aiConsent).toBe(true)
-    })
-
-    it('updates both fields at once', async () => {
-      const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
-
-      const res = await client.profile['privacy-settings'].$patch(
-        { json: { profilePublic: true, aiConsent: true } },
-        withAuth(token)
-      )
-
-      expect(res.status).toBe(HTTP_STATUS.OK)
-      const data = await res.json()
-      if (!data.success) throw new Error('expected ok')
-      expect(data.data.profilePublic).toBe(true)
       expect(data.data.aiConsent).toBe(true)
     })
 
@@ -168,13 +151,10 @@ describe('Privacy Settings Routes', () => {
       expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     })
 
-    it('rejects unauthenticated request', async () => {
-      const res = await app.request('/api/profile/privacy-settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profilePublic: true }),
-      })
-      expect(res.status).toBe(HTTP_STATUS.UNAUTHORIZED)
+    expectRequiresAuth(() => app, {
+      method: 'PATCH',
+      path: '/api/profile/privacy-settings',
+      body: { profilePublic: true },
     })
 
     it('updates each profile-table sub-flag independently', async () => {
