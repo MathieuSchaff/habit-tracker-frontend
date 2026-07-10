@@ -236,6 +236,12 @@
   box-shadow: 0 1px 2px oklch(from var(--color-primary) l c h / 0.08);
 }
 
+/* --color-primary-deeper is tuned for light pills; in dark themes it reads dark-on-dark.
+   Neutral label restores contrast — border + active fill still carry the brand. */
+[data-theme="dark"] .filter-drawer__body .chip:not(.chip--active) {
+  color: var(--text-primary);
+}
+
 .filter-drawer__body .chip:not(.chip--active):hover:not(:disabled) {
   background: oklch(from var(--color-primary) l c h / 0.1);
   border-color: var(--color-primary);

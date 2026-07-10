@@ -10,9 +10,9 @@ export interface TabOption<T extends string> {
   label: string
   icon?: React.ReactNode
   badge?: string | number
-  /** Underline variant only - tint applied to label + indicator when active. */
+  /** Underline variant only. */
   color?: string
-  /** Underline variant only - renders the tab at reduced opacity (e.g. empty shelf). */
+  /** Underline variant only. */
   dimmed?: boolean
 }
 
@@ -28,12 +28,11 @@ interface TabsProps<T extends string> {
    * per-option color, scroll-snap when combined with `scrollable`.
    */
   variant?: TabsVariant
-  /** Underline variant only - enables horizontal overflow + scroll-snap for many tabs. */
+  /** Underline variant only. */
   scrollable?: boolean
   className?: string
   containerClassName?: string
   idPrefix?: string
-  /** Accessible name for the tablist (role="tablist" aria-label). */
   ariaLabel?: string
   /**
    * Set to false when tabs control navigation/filtering without associated tabpanel elements.
@@ -58,7 +57,7 @@ export const Tabs = <T extends string>({
 
   const listRef = useRef<HTMLDivElement>(null)
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
-  const [underline, setUnderline] = useState<{ left: number; width: number } | null>(null)
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null)
 
   // Measure-based indicator: aligns with the active tab's actual box (labels vary in width).
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when tab list changes
@@ -68,7 +67,7 @@ export const Tabs = <T extends string>({
     if (!btn || !list) return
     const btnRect = btn.getBoundingClientRect()
     const listRect = list.getBoundingClientRect()
-    setUnderline({
+    setIndicator({
       left: btnRect.left - listRect.left + list.scrollLeft,
       width: btnRect.width,
     })
@@ -107,9 +106,7 @@ export const Tabs = <T extends string>({
     if (nextIndex !== null) {
       e.preventDefault()
       onTabChange(options[nextIndex].id)
-      const tablist = e.currentTarget
-      const tabs = tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]')
-      tabs[nextIndex]?.focus()
+      btnRefs.current[options[nextIndex].id]?.focus()
     }
   }
 
@@ -131,7 +128,7 @@ export const Tabs = <T extends string>({
       <div
         ref={listRef}
         className={clsx(
-          variant === 'underline' ? 'underline-tabs' : 'icon-tabs',
+          variant === 'underline' ? 'underline-tabs' : 'pill-tabs',
           scrollable && 'tabs-scrollable',
           containerClassName
         )}
@@ -141,14 +138,6 @@ export const Tabs = <T extends string>({
         style={{ '--active-tab-color': activeColor } as CSSProperties}
         {...dragHandlers}
       >
-        {variant === 'pill' && underline && (
-          <div
-            className="tabs-indicator"
-            aria-hidden="true"
-            style={{ transform: `translateX(${underline.left}px)`, width: underline.width }}
-          />
-        )}
-
         {options.map((option) => {
           const isActive = activeTab === option.id
           const tintStyle =
@@ -165,8 +154,8 @@ export const Tabs = <T extends string>({
               role="tab"
               id={`${idPrefix}-${option.id}`}
               className={clsx(
-                variant === 'underline' ? 'underline-tab' : 'icon-tab',
-                isActive && (variant === 'underline' ? 'underline-tab-active' : 'icon-tab-active'),
+                variant === 'underline' ? 'underline-tab' : 'pill-tab',
+                isActive && (variant === 'underline' ? 'underline-tab-active' : 'pill-tab-active'),
                 variant === 'underline' && option.dimmed && !isActive && 'underline-tab-dimmed'
               )}
               style={tintStyle}
@@ -189,14 +178,11 @@ export const Tabs = <T extends string>({
           )
         })}
 
-        {variant === 'underline' && underline && (
+        {indicator && (
           <span
-            className="underline-tabs-indicator"
+            className={variant === 'underline' ? 'underline-tabs-indicator' : 'tabs-indicator'}
             aria-hidden="true"
-            style={{
-              transform: `translateX(${underline.left}px)`,
-              width: underline.width,
-            }}
+            style={{ transform: `translateX(${indicator.left}px)`, width: indicator.width }}
           />
         )}
       </div>

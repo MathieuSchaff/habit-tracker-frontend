@@ -16,7 +16,7 @@
   transition: background var(--transition-base);
 
   &:hover {
-    background: oklch(from var(--color-sidebar-bg) calc(l + 0.08) c h);
+    background: var(--color-sidebar-item-hover);
   }
 
   &:focus-visible {

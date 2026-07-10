@@ -6,7 +6,10 @@
   display: none;
 }
 
-@media (--mobile) {
+/* PWA-only: the bottom nav is reserved for standalone (installed) mode. On mobile web the
+   Header collapses to a top app-bar instead — a fixed bottom bar jumps as the browser URL
+   bar shows/hides. */
+@media (--mobile) and (display-mode: standalone) {
   .bottom-nav {
     display: flex;
     position: fixed;

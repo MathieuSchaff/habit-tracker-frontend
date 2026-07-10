@@ -4,10 +4,10 @@ import { FileText, LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
 
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { Skeleton } from '@/component/Feedback/ui/Skeleton/Skeleton'
+import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar/ProfileAvatar'
+import { useLogout } from '@/lib/queries/auth'
 import { profileQueries } from '@/lib/queries/profile'
-import { ProfileAvatar } from '../../../features/profile/components/ProfileAvatar/ProfileAvatar'
-import { useLogout } from '../../../lib/queries/auth'
-import { useAuthStore } from '../../../store/auth'
+import { useAuthStore } from '@/store/auth'
 import './UserMenu.css'
 
 interface UserMenuProps {

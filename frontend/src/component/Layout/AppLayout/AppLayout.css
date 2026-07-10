@@ -19,7 +19,21 @@
   }
 }
 
+/* Mobile web: the fixed top app-bar (Header.css) is out of flow, so offset the content by its
+   height. Banner + content sit below the bar; the fixed bar overlays the top gap. */
 @media (--mobile) {
+  .app-layout {
+    padding-top: var(--nav-height);
+  }
+}
+
+/* Standalone PWA hands mobile nav to the BottomNav: no top bar (Header is hidden), so drop the
+   top offset and instead clear the bottom bar. */
+@media (--mobile) and (display-mode: standalone) {
+  .app-layout {
+    padding-top: 0;
+  }
+
   .content {
     padding-bottom: calc(var(--bottom-nav-height, 4.5rem) + env(safe-area-inset-bottom, 0));
   }

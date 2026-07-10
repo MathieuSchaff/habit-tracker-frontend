@@ -157,55 +157,53 @@ function ProductsHeaderImpl({
 
   return (
     <>
-      <div className="products-header__top">
-        <div className="products-header__top-inner">
-          <div className="list-page-layout__header-info">
-            <h2 className="list-page-layout__title">Produits</h2>
-            <span
-              className="list-page-layout__meta"
-              aria-live="polite"
-              aria-busy={isPlaceholderData || undefined}
-            >
-              <strong>{total}</strong>{' '}
-              {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
-            </span>
-          </div>
+      <div className="products-header__top-inner">
+        <div className="list-page-layout__header-info">
+          <h2 className="list-page-layout__title">Produits</h2>
+          <span
+            className="list-page-layout__meta"
+            aria-live="polite"
+            aria-busy={isPlaceholderData || undefined}
+          >
+            <strong>{total}</strong>{' '}
+            {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
+          </span>
+        </div>
 
-          <div className="products-header__tools">
-            <SortControl value={sort} onChange={onSortChange} hasQuery={hasQuery} compact />
-            <ButtonLink
-              to="/products/new"
-              variant="ghost"
-              size="md"
-              className="products-header__icon-btn"
-              aria-label="Créer un produit"
-              title="Créer un produit"
-            >
-              <Plus size={16} aria-hidden="true" />
-            </ButtonLink>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              onClick={onOpenDrawer}
-              onPointerEnter={onFilterIntent}
-              onFocus={onFilterIntent}
-              className="list-filter-btn"
-              aria-label={
-                effectiveFilterCount > 0
-                  ? `Filtrer (${effectiveFilterCount} actif${effectiveFilterCount > 1 ? 's' : ''})`
-                  : 'Filtrer'
-              }
-            >
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              <span>Filtrer</span>
-              {effectiveFilterCount > 0 && (
-                <span className="list-filter-btn__count" aria-hidden="true">
-                  {effectiveFilterCount}
-                </span>
-              )}
-            </Button>
-          </div>
+        <div className="products-header__tools">
+          <SortControl value={sort} onChange={onSortChange} hasQuery={hasQuery} compact />
+          <ButtonLink
+            to="/products/new"
+            variant="ghost"
+            size="md"
+            className="products-header__icon-btn"
+            aria-label="Créer un produit"
+            title="Créer un produit"
+          >
+            <Plus size={16} aria-hidden="true" />
+          </ButtonLink>
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={onOpenDrawer}
+            onPointerEnter={onFilterIntent}
+            onFocus={onFilterIntent}
+            className="list-filter-btn"
+            aria-label={
+              effectiveFilterCount > 0
+                ? `Filtrer (${effectiveFilterCount} actif${effectiveFilterCount > 1 ? 's' : ''})`
+                : 'Filtrer'
+            }
+          >
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            <span>Filtrer</span>
+            {effectiveFilterCount > 0 && (
+              <span className="list-filter-btn__count" aria-hidden="true">
+                {effectiveFilterCount}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
 

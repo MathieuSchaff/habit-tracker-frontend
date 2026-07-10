@@ -140,12 +140,66 @@ export function IngredientsPage() {
 
   return (
     <ListPageLayout className="ingredients-page">
-      <ListPageLayout.Header
-        title="Ingrédients"
-        isLoading={isPlaceholderData}
-        meta={isLoading && total === 0 ? undefined : `${total} ingrédient${total > 1 ? 's' : ''}`}
-        actions={
-          <>
+      <ListPageLayout.Header fullBleed>
+        <div className="ingredients-header__top">
+          <div className="list-page-layout__header-info">
+            <h2 className="list-page-layout__title">Ingrédients</h2>
+            {(!isLoading || total > 0) && (
+              <span
+                className="list-page-layout__meta"
+                aria-live="polite"
+                aria-busy={isPlaceholderData || undefined}
+              >
+                {total} ingrédient{total > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          <div className="ingredients-header__tools">
+            <ButtonLink
+              to="/ingredients/new"
+              variant="ghost"
+              size="md"
+              className="ingredients-header__icon-btn"
+              aria-label="Créer un ingrédient"
+              title="Créer un ingrédient"
+            >
+              <Plus size={16} aria-hidden="true" />
+            </ButtonLink>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={() => setDrawerOpen(true)}
+              className="list-filter-btn"
+              aria-label={
+                filterCount > 0
+                  ? `Filtrer (${filterCount} actif${filterCount > 1 ? 's' : ''})`
+                  : 'Filtrer'
+              }
+            >
+              <SlidersHorizontal size={14} aria-hidden="true" />
+              <span>Filtrer</span>
+              {filterCount > 0 && (
+                <span className="list-filter-btn__count" aria-hidden="true">
+                  {filterCount}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div className="ingredients-header__toolbar">
+          <Tabs
+            options={DOMAIN_TAB_OPTIONS}
+            activeTab={type}
+            onTabChange={handleDomainChange}
+            variant="underline"
+            scrollable
+            ariaLabel="Domaine d'ingrédient"
+          />
+
+          <div className="ingredients-header__search">
             <SearchCombobox
               label="Rechercher un ingrédient"
               queryFn={ingredientQueries.searchInfinite}
@@ -157,39 +211,9 @@ export function IngredientsPage() {
               })}
               onSelect={(slug) => navigate({ to: '/ingredients/$slug', params: { slug } })}
             />
-            <div className="list-header__actions-group">
-              <Button
-                type="button"
-                variant="primary"
-                size="md"
-                onClick={() => setDrawerOpen(true)}
-                className="list-filter-btn"
-              >
-                <SlidersHorizontal size={14} />
-                <span>Filtrer</span>
-                {filterCount > 0 && <span className="list-filter-btn__count">{filterCount}</span>}
-              </Button>
-              <ButtonLink
-                to="/ingredients/new"
-                variant="primary"
-                size="md"
-                className="list-filter-btn"
-              >
-                <Plus size={14} />
-                <span>Créer</span>
-              </ButtonLink>
-            </div>
-          </>
-        }
-      />
-
-      <Tabs
-        options={DOMAIN_TAB_OPTIONS}
-        activeTab={type}
-        onTabChange={handleDomainChange}
-        variant="underline"
-        ariaLabel="Domaine d'ingrédient"
-      />
+          </div>
+        </div>
+      </ListPageLayout.Header>
 
       <ActiveFiltersBar
         activeTags={activeTags}

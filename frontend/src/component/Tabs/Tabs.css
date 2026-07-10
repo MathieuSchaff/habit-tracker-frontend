@@ -1,93 +1,91 @@
-.tabs-wrapper {
-  padding: 0;
-  width: 100%;
-}
-
-/* Variant: pill - equal-width segmented control. */
-.icon-tabs {
-  display: flex;
-  background: var(--color-primary);
-  padding: 4px;
-  border-radius: var(--radius-full);
-  gap: 0;
-  border: 1px solid var(--color-primary);
-  position: relative;
-  overflow: hidden;
-}
-
-.tabs-indicator {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 0;
-  background: var(--bg-card);
-  border-radius: var(--radius-full);
-  box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15);
-  transition:
-    transform 0.3s var(--ease-standard),
-    width 0.3s var(--ease-standard);
-  z-index: 1;
-}
-
-.icon-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-2);
-  font-size: var(--text-xs);
-  font-weight: var(--font-bold);
-  color: color-mix(in oklch, var(--color-primary-text) 70%, transparent);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: color var(--transition-base) ease;
-  border-radius: 10px;
-  position: relative;
-  z-index: 2;
-  min-height: 40px;
-  white-space: nowrap;
-}
-
-/* Below 380px the pill segmented control overflows ("Compte" tab clipped).
-   Shrink gap + padding before resorting to min-width:0, which would break the
-   indicator measurement on wider viewports. */
-@media (max-width: 379px) {
-  .icon-tab {
-    gap: var(--space-1);
-    padding-inline: var(--space-1);
-  }
-}
-
-.icon-tab:hover {
-  color: var(--color-primary-text);
-}
-
-.icon-tab-active,
-.icon-tab-active:hover {
-  color: var(--color-primary);
-}
-
-.tab-badge {
-  background: var(--color-primary);
-  color: var(--color-primary-text);
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 100px;
-  font-weight: var(--font-bold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-tab:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-}
-
-/* Variant: underline - horizontal list, per-tab color, measure-based rule. */
 @layer components {
+  .tabs-wrapper {
+    padding: 0;
+    width: 100%;
+  }
+
+  .pill-tabs {
+    display: flex;
+    background: var(--color-primary);
+    padding: var(--space-1);
+    border-radius: var(--radius-full);
+    gap: 0;
+    border: var(--border-width) solid var(--color-primary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tabs-indicator {
+    position: absolute;
+    top: var(--space-1);
+    bottom: var(--space-1);
+    left: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-full);
+    box-shadow: 0 1px 3px oklch(0% 0 0 / 0.15);
+    transition:
+      transform var(--transition-slow) var(--ease-standard),
+      width var(--transition-slow) var(--ease-standard);
+    z-index: 1;
+  }
+
+  .pill-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    color: color-mix(in oklch, var(--color-primary-text) 70%, transparent);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color var(--transition-base) ease;
+    border-radius: var(--radius-md);
+    position: relative;
+    z-index: 2;
+    min-height: var(--space-10);
+    white-space: nowrap;
+  }
+
+  /* Below 380px the pill segmented control overflows ("Compte" tab clipped).
+     Shrink gap + padding before resorting to min-width:0, which would break the
+     indicator measurement on wider viewports. */
+  @media (max-width: 379px) {
+    .pill-tab {
+      gap: var(--space-1);
+      padding-inline: var(--space-1);
+    }
+  }
+
+  .pill-tab:hover {
+    color: var(--color-primary-text);
+  }
+
+  .pill-tab-active,
+  .pill-tab-active:hover {
+    color: var(--color-primary);
+  }
+
+  .tab-badge {
+    background: var(--color-primary);
+    color: var(--color-primary-text);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    font-weight: var(--font-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pill-tab:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
   .underline-tabs {
     --active-tab-color: var(--color-primary);
     position: relative;
@@ -135,7 +133,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 12px 14px;
+    padding: var(--space-3) 14px;
     border: 0;
     background: transparent;
     color: var(--text-muted);
@@ -179,7 +177,7 @@
     padding: 0 6px;
     font-size: var(--text-xs);
     font-variant-numeric: tabular-nums;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     transition:
       background var(--transition-fast) ease,
       color var(--transition-fast) ease;
@@ -200,15 +198,21 @@
     transition:
       transform 280ms var(--ease-soft-bounce),
       width 280ms var(--ease-soft-bounce),
-      background-color 200ms ease;
+      background-color var(--transition-base) ease;
     pointer-events: none;
   }
 
   @media (--sm-only) {
+    /* Sub-token nudge: phone gets a hair more type, a hair less padding.
+       The token steps (2px type, 4px space) overshoot "very slight". */
+    .pill-tab {
+      font-size: calc(var(--text-xs) + 1px);
+      padding-block: 6px;
+    }
     .underline-tab {
-      padding: 12px;
-      font-size: var(--text-sm);
+      padding: 10px;
       min-height: 44px;
+      font-size: calc(var(--text-sm) + 1px);
     }
     .underline-tab > span:not(.tab-badge) {
       max-width: 120px;

@@ -1,7 +1,5 @@
-/* Products page header: content aligned on rail, sits within the page gutter. */
 .products-page {
   --products-rail: 72rem;
-  /* Roomier minimum so the grid keeps 2-col at tablet and 3-col at desktop rather than packing 4. */
   --list-grid-min: 300px;
 }
 
@@ -15,28 +13,15 @@
   gap: var(--space-4);
 }
 
-.products-header__count strong {
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-.products-header__toolbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-elevated);
-}
-
 .products-header__toolbar-inner {
   max-width: var(--products-rail);
   margin-inline: auto;
   width: 100%;
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
 }
 
-/* Override Tabs.css width: 100% to natural width. */
 .products-header__toolbar-inner .tabs-wrapper {
   flex-shrink: 0;
   width: auto;
@@ -60,7 +45,6 @@
   min-height: 38px;
 }
 
-/* Collapsible filter chips strip */
 .products-chips-collapsible {
   border-top: var(--rule-section);
   border-bottom: var(--rule-section);
@@ -146,7 +130,6 @@
   overflow: hidden;
 }
 
-/* Floating sticky filter pill - appears when toolbar scrolls off. */
 .products-floating-filter {
   position: fixed;
   right: 0;
@@ -215,24 +198,9 @@
   border: 2px solid var(--color-primary);
 }
 
-/* Mobile */
 @media (--mobile) {
-  .products-header__top {
-    padding: var(--space-4) var(--space-4) var(--space-2);
-  }
-
   .products-header__top-inner {
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
-  .products-header__title {
-    font-size: 1.75rem;
-  }
-
-  .products-header__tools {
-    width: 100%;
-    justify-content: flex-end;
+    padding: var(--space-2);
   }
 
   .products-header__tools > .button.primary {
@@ -240,7 +208,7 @@
   }
 
   .products-header__toolbar {
-    padding: 10px var(--space-4);
+    padding: 0 var(--space-2);
   }
 
   .products-header__toolbar-inner {
