@@ -132,9 +132,11 @@
     gap: var(--space-2);
   }
 
+  /* Single column: hint copy lengths are very uneven (the Saint Graal line is far longer),
+     so a 3-col grid wrapped it into ragged, unequal-height cards. Stacking reads calmer. */
   .first-empty-hints {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--space-2);
     margin-top: var(--space-8);
     text-align: left;
@@ -168,9 +170,6 @@
     }
     .first-empty-title {
       font-size: 1.5rem;
-    }
-    .first-empty-hints {
-      grid-template-columns: 1fr;
     }
   }
 
