@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { getRouteApi, useNavigate } from '@tanstack/react-router'
+import { getRouteApi, useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
+import { useCallback } from 'react'
 
 import { BackButton } from '@/component/Button/BackButton'
 import { Button } from '@/component/Button/Button'
@@ -17,8 +18,20 @@ export function ProductEditPage() {
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const currentTags = product.tags
   const navigate = useNavigate()
+  const router = useRouter()
+  const canGoBack = useCanGoBack()
   const isAdmin = useAuthStore((s) => s.role === 'admin')
   const deleteProduct = useDeleteProduct()
+
+  // Pop the edit entry instead of pushing the detail route, so the history stack doesn't grow
+  // into a product↔edit ping-pong. Fall back to the detail route on deep-link (no in-app history).
+  const handleBack = useCallback(() => {
+    if (canGoBack) {
+      router.history.back()
+    } else {
+      navigate({ to: '/products/$slug', params: { slug } })
+    }
+  }, [canGoBack, router, navigate, slug])
 
   function handleDelete() {
     if (!confirm(`Supprimer « ${product.name} » ? Cette action est irréversible.`)) return
@@ -31,9 +44,7 @@ export function ProductEditPage() {
   return (
     <DetailPageLayout banner>
       <PageTopActions>
-        <BackButton to="/products/$slug" params={{ slug }}>
-          Retour
-        </BackButton>
+        <BackButton onClick={handleBack}>Retour</BackButton>
         {isAdmin && (
           <Button variant="danger-ghost" onClick={handleDelete} loading={deleteProduct.isPending}>
             <Trash2 size={16} />
