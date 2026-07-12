@@ -64,56 +64,58 @@ export function AdminSuggestedEditsPage() {
       {data.items.length === 0 ? (
         <p className="admin-table__empty">{adminLabels.emptySuggestedEdits}</p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Corrections proposées</caption>
-          <thead>
-            <tr>
-              <th>Cible</th>
-              <th>Champ</th>
-              <th>Valeur proposée</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((e) => (
-              <tr key={e.id}>
-                <td>
-                  <code className="admin-target-code">
-                    {e.targetType}#{e.targetId.slice(0, 8)}
-                  </code>
-                </td>
-                <td>{e.field}</td>
-                <td>{e.proposedValue}</td>
-                <td>
-                  <span className="admin-pill">{e.status}</span>
-                </td>
-                <td>
-                  {e.status === 'pending' && (
-                    <div className="admin-actions-inline">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={pendingId === e.id && review.isPending}
-                        onClick={() => handleReview(e.id, 'accepted')}
-                      >
-                        Accepter
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={pendingId === e.id && review.isPending}
-                        onClick={() => handleReview(e.id, 'rejected')}
-                      >
-                        Refuser
-                      </Button>
-                    </div>
-                  )}
-                </td>
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Corrections proposées</caption>
+            <thead>
+              <tr>
+                <th>Cible</th>
+                <th>Champ</th>
+                <th>Valeur proposée</th>
+                <th>Statut</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.items.map((e) => (
+                <tr key={e.id}>
+                  <td>
+                    <code className="admin-target-code">
+                      {e.targetType}#{e.targetId.slice(0, 8)}
+                    </code>
+                  </td>
+                  <td>{e.field}</td>
+                  <td>{e.proposedValue}</td>
+                  <td>
+                    <span className="admin-pill">{e.status}</span>
+                  </td>
+                  <td>
+                    {e.status === 'pending' && (
+                      <div className="admin-actions-inline">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          loading={pendingId === e.id && review.isPending}
+                          onClick={() => handleReview(e.id, 'accepted')}
+                        >
+                          Accepter
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          loading={pendingId === e.id && review.isPending}
+                          onClick={() => handleReview(e.id, 'rejected')}
+                        >
+                          Refuser
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {dialog}
     </section>

@@ -98,66 +98,68 @@ export function AdminRoleRequestsPage() {
       {data.items.length === 0 ? (
         <p className="admin-table__empty">{adminLabels.emptyRoleRequests}</p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Demandes de rôle modérateur</caption>
-          <thead>
-            <tr>
-              <th>Demandeur</th>
-              <th>Motivation</th>
-              <th>Lien</th>
-              <th>Date</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <code className="admin-target-code">{r.userId.slice(0, 8)}</code>
-                </td>
-                <td>{r.motivation}</td>
-                <td>
-                  {r.motivationLink ? (
-                    <a href={r.motivationLink} target="_blank" rel="noreferrer noopener">
-                      Lien
-                    </a>
-                  ) : (
-                    '—'
-                  )}
-                </td>
-                <td>
-                  <Time iso={r.createdAt} relative />
-                </td>
-                <td>
-                  <span className="admin-pill">{roleRequestStatusLabels[r.status]}</span>
-                </td>
-                <td>
-                  {r.status === 'pending' && (
-                    <div className="admin-actions-inline">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={pendingId === r.id && review.isPending}
-                        onClick={() => handleApprove(r.id)}
-                      >
-                        Approuver
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={pendingId === r.id && review.isPending}
-                        onClick={() => handleReject(r.id)}
-                      >
-                        Refuser
-                      </Button>
-                    </div>
-                  )}
-                </td>
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Demandes de rôle modérateur</caption>
+            <thead>
+              <tr>
+                <th>Demandeur</th>
+                <th>Motivation</th>
+                <th>Lien</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.items.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    <code className="admin-target-code">{r.userId.slice(0, 8)}</code>
+                  </td>
+                  <td>{r.motivation}</td>
+                  <td>
+                    {r.motivationLink ? (
+                      <a href={r.motivationLink} target="_blank" rel="noreferrer noopener">
+                        Lien
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td>
+                    <Time iso={r.createdAt} relative />
+                  </td>
+                  <td>
+                    <span className="admin-pill">{roleRequestStatusLabels[r.status]}</span>
+                  </td>
+                  <td>
+                    {r.status === 'pending' && (
+                      <div className="admin-actions-inline">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          loading={pendingId === r.id && review.isPending}
+                          onClick={() => handleApprove(r.id)}
+                        >
+                          Approuver
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          loading={pendingId === r.id && review.isPending}
+                          onClick={() => handleReject(r.id)}
+                        >
+                          Refuser
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {dialog}
     </section>

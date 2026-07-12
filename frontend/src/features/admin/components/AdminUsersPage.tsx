@@ -43,53 +43,57 @@ export function AdminUsersPage() {
           {search ? adminLabels.emptyUsersFiltered : adminLabels.emptyUsers}
         </p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Liste des utilisateurs</caption>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Rôle</th>
-              <th>Vérifié</th>
-              <th>Forçage privé</th>
-              <th>Créé</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map((u) => (
-              <tr key={u.id}>
-                <td>
-                  <Link
-                    to="/admin/users/$userId"
-                    params={{ userId: u.id }}
-                    className="admin-table__row-link"
-                  >
-                    {u.email}
-                  </Link>
-                </td>
-                <td>
-                  <span className={rolePillClass(u.role)}>{roleLabels[u.role]}</span>
-                </td>
-                <td>{u.emailVerifiedAt ? 'Oui' : 'Non'}</td>
-                <td>
-                  {u.forcedPrivateByAdmin ? (
-                    <span className="admin-pill admin-pill--banned">{adminLabels.pillForced}</span>
-                  ) : (
-                    <em>—</em>
-                  )}
-                </td>
-                <td>
-                  <Time iso={u.createdAt} style="short" />
-                </td>
-                <td>
-                  <Link to="/admin/users/$userId" params={{ userId: u.id }}>
-                    Détails
-                  </Link>
-                </td>
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Liste des utilisateurs</caption>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Vérifié</th>
+                <th>Forçage privé</th>
+                <th>Créé</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u) => (
+                <tr key={u.id}>
+                  <td>
+                    <Link
+                      to="/admin/users/$userId"
+                      params={{ userId: u.id }}
+                      className="admin-table__row-link"
+                    >
+                      {u.email}
+                    </Link>
+                  </td>
+                  <td>
+                    <span className={rolePillClass(u.role)}>{roleLabels[u.role]}</span>
+                  </td>
+                  <td>{u.emailVerifiedAt ? 'Oui' : 'Non'}</td>
+                  <td>
+                    {u.forcedPrivateByAdmin ? (
+                      <span className="admin-pill admin-pill--banned">
+                        {adminLabels.pillForced}
+                      </span>
+                    ) : (
+                      <em>—</em>
+                    )}
+                  </td>
+                  <td>
+                    <Time iso={u.createdAt} style="short" />
+                  </td>
+                  <td>
+                    <Link to="/admin/users/$userId" params={{ userId: u.id }}>
+                      Détails
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   )

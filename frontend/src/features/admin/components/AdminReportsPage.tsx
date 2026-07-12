@@ -140,134 +140,136 @@ export function AdminReportsPage() {
       {items.length === 0 ? (
         <p className="admin-table__empty">{adminLabels.emptyReports}</p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Liste des signalements à modérer</caption>
-          <thead>
-            <tr>
-              <th>Cible</th>
-              <th>Raison</th>
-              <th>Signalé par</th>
-              <th>Signalé</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((r) => {
-              const isExpanded = expandedId === r.id
-              const reporterEmail = reporterEmailById.get(r.reporterId) ?? null
-              const canPreview = r.targetType !== 'profile'
-              const targetUser =
-                isAdmin && r.targetType === 'profile' ? userById.get(r.targetId) : null
-              return (
-                <Fragment key={r.id}>
-                  <tr>
-                    <td>
-                      {targetUser ? (
-                        <div className="admin-target-snapshot">
-                          <span className="admin-target-snapshot__email">{targetUser.email}</span>
-                          <span className="admin-target-snapshot__meta">
-                            <span className={rolePillClass(targetUser.role)}>
-                              {roleLabels[targetUser.role]}
-                            </span>
-                            {targetUser.forcedPrivateByAdmin && (
-                              <span className="admin-pill admin-pill--banned">
-                                {adminLabels.pillForced}
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Liste des signalements à modérer</caption>
+            <thead>
+              <tr>
+                <th>Cible</th>
+                <th>Raison</th>
+                <th>Signalé par</th>
+                <th>Signalé</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((r) => {
+                const isExpanded = expandedId === r.id
+                const reporterEmail = reporterEmailById.get(r.reporterId) ?? null
+                const canPreview = r.targetType !== 'profile'
+                const targetUser =
+                  isAdmin && r.targetType === 'profile' ? userById.get(r.targetId) : null
+                return (
+                  <Fragment key={r.id}>
+                    <tr>
+                      <td>
+                        {targetUser ? (
+                          <div className="admin-target-snapshot">
+                            <span className="admin-target-snapshot__email">{targetUser.email}</span>
+                            <span className="admin-target-snapshot__meta">
+                              <span className={rolePillClass(targetUser.role)}>
+                                {roleLabels[targetUser.role]}
                               </span>
-                            )}
-                          </span>
-                        </div>
-                      ) : (
-                        <code className="admin-target-code">
-                          {r.targetType}#{r.targetId.slice(0, 8)}
-                        </code>
-                      )}
-                    </td>
-                    <td>{r.reason}</td>
-                    <td>{isAdmin ? (reporterEmail ?? <em>—</em>) : <em>—</em>}</td>
-                    <td>
-                      <Time iso={r.createdAt} relative />
-                    </td>
-                    <td>
-                      <span className={`admin-pill admin-pill--${r.status}`}>{r.status}</span>
-                      {r.escalatedAt && (
-                        <span className="admin-pill admin-pill--escalated">Escaladé</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="admin-actions-inline">
-                        {canPreview && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setExpandedId(isExpanded ? null : r.id)}
-                            aria-expanded={isExpanded}
-                          >
-                            {isExpanded ? 'Replier' : 'Voir'}
-                          </Button>
+                              {targetUser.forcedPrivateByAdmin && (
+                                <span className="admin-pill admin-pill--banned">
+                                  {adminLabels.pillForced}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        ) : (
+                          <code className="admin-target-code">
+                            {r.targetType}#{r.targetId.slice(0, 8)}
+                          </code>
                         )}
-                        {isAdmin && r.targetType === 'profile' && (
-                          <Link
-                            to="/admin/users/$userId"
-                            params={{ userId: r.targetId }}
-                            className="admin-table__row-link"
-                          >
-                            Voir le profil
-                          </Link>
+                      </td>
+                      <td>{r.reason}</td>
+                      <td>{isAdmin ? (reporterEmail ?? <em>—</em>) : <em>—</em>}</td>
+                      <td>
+                        <Time iso={r.createdAt} relative />
+                      </td>
+                      <td>
+                        <span className={`admin-pill admin-pill--${r.status}`}>{r.status}</span>
+                        {r.escalatedAt && (
+                          <span className="admin-pill admin-pill--escalated">Escaladé</span>
                         )}
-                        {r.status === 'open' && (
-                          <>
+                      </td>
+                      <td>
+                        <div className="admin-actions-inline">
+                          {canPreview && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              loading={pendingId === r.id && resolve.isPending}
-                              onClick={() => handleResolve(r.id, 'resolved')}
+                              onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                              aria-expanded={isExpanded}
                             >
-                              Résoudre
+                              {isExpanded ? 'Replier' : 'Voir'}
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              loading={pendingId === r.id && resolve.isPending}
-                              onClick={() => handleResolve(r.id, 'dismissed')}
+                          )}
+                          {isAdmin && r.targetType === 'profile' && (
+                            <Link
+                              to="/admin/users/$userId"
+                              params={{ userId: r.targetId }}
+                              className="admin-table__row-link"
                             >
-                              Rejeter
-                            </Button>
-                            {!r.escalatedAt && (
+                              Voir le profil
+                            </Link>
+                          )}
+                          {r.status === 'open' && (
+                            <>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                loading={escalatingId === r.id && escalate.isPending}
-                                onClick={() => handleEscalate(r.id)}
+                                loading={pendingId === r.id && resolve.isPending}
+                                onClick={() => handleResolve(r.id, 'resolved')}
                               >
-                                Escalader
+                                Résoudre
                               </Button>
-                            )}
-                          </>
-                        )}
-                        {r.status !== 'open' && (
-                          <em className="admin-reports-meta">
-                            par {reporterEmailById.get(r.reviewedBy ?? '') ?? '—'}
-                          </em>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                  {isExpanded && canPreview && (
-                    <tr>
-                      <td colSpan={6} className="admin-preview-cell">
-                        <ContentPreviewPanel
-                          targetType={r.targetType as Exclude<ReportTargetType, 'profile'>}
-                          targetId={r.targetId}
-                        />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                loading={pendingId === r.id && resolve.isPending}
+                                onClick={() => handleResolve(r.id, 'dismissed')}
+                              >
+                                Rejeter
+                              </Button>
+                              {!r.escalatedAt && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  loading={escalatingId === r.id && escalate.isPending}
+                                  onClick={() => handleEscalate(r.id)}
+                                >
+                                  Escalader
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          {r.status !== 'open' && (
+                            <em className="admin-reports-meta">
+                              par {reporterEmailById.get(r.reviewedBy ?? '') ?? '—'}
+                            </em>
+                          )}
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </Fragment>
-              )
-            })}
-          </tbody>
-        </table>
+                    {isExpanded && canPreview && (
+                      <tr>
+                        <td colSpan={6} className="admin-preview-cell">
+                          <ContentPreviewPanel
+                            targetType={r.targetType as Exclude<ReportTargetType, 'profile'>}
+                            targetId={r.targetId}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
       {dialog}
     </section>

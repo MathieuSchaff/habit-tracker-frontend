@@ -154,68 +154,72 @@ export function AdminCatalogPage() {
       {items.length === 0 ? (
         <p className="admin-table__empty">{adminLabels.emptyCatalogQueue}</p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Fiches catalogue à modérer</caption>
-          <thead>
-            <tr>
-              <th>Fiche</th>
-              <th>Qualité</th>
-              <th>Auteur</th>
-              <th>Soumis</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => {
-              const isHidden = item.moderationStatus === 'hidden'
-              return (
-                <tr key={item.id}>
-                  <td>
-                    <strong>{item.name}</strong>
-                    {item.brand && <span className="admin-reports-meta"> · {item.brand}</span>}
-                  </td>
-                  <td>
-                    <span className={`admin-pill admin-pill--${item.catalogQuality}`}>
-                      {item.catalogQuality === 'verified' ? 'Vérifiée' : 'Non vérifiée'}
-                    </span>
-                  </td>
-                  <td>
-                    {item.authorUsername ? (
-                      <span>{item.authorUsername}</span>
-                    ) : (
-                      <code className="admin-target-code">{item.authorId?.slice(0, 8) ?? '—'}</code>
-                    )}
-                  </td>
-                  <td>
-                    <Time iso={item.createdAt} relative />
-                  </td>
-                  <td>
-                    <div className="admin-actions-inline">
-                      {item.catalogQuality === 'unverified' && !isHidden && (
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Fiches catalogue à modérer</caption>
+            <thead>
+              <tr>
+                <th>Fiche</th>
+                <th>Qualité</th>
+                <th>Auteur</th>
+                <th>Soumis</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => {
+                const isHidden = item.moderationStatus === 'hidden'
+                return (
+                  <tr key={item.id}>
+                    <td>
+                      <strong>{item.name}</strong>
+                      {item.brand && <span className="admin-reports-meta"> · {item.brand}</span>}
+                    </td>
+                    <td>
+                      <span className={`admin-pill admin-pill--${item.catalogQuality}`}>
+                        {item.catalogQuality === 'verified' ? 'Vérifiée' : 'Non vérifiée'}
+                      </span>
+                    </td>
+                    <td>
+                      {item.authorUsername ? (
+                        <span>{item.authorUsername}</span>
+                      ) : (
+                        <code className="admin-target-code">
+                          {item.authorId?.slice(0, 8) ?? '—'}
+                        </code>
+                      )}
+                    </td>
+                    <td>
+                      <Time iso={item.createdAt} relative />
+                    </td>
+                    <td>
+                      <div className="admin-actions-inline">
+                        {item.catalogQuality === 'unverified' && !isHidden && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            loading={verify.isPending && verify.variables?.id === item.id}
+                            onClick={() => handleVerify(item.id, item.name)}
+                          >
+                            Vérifier
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          loading={verify.isPending && verify.variables?.id === item.id}
-                          onClick={() => handleVerify(item.id, item.name)}
+                          loading={moderate.isPending && moderate.variables?.id === item.id}
+                          onClick={() => handleHide(item.id, item.name, isHidden)}
                         >
-                          Vérifier
+                          {isHidden ? 'Restaurer' : 'Masquer'}
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        loading={moderate.isPending && moderate.variables?.id === item.id}
-                        onClick={() => handleHide(item.id, item.name, isHidden)}
-                      >
-                        {isHidden ? 'Restaurer' : 'Masquer'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
       {dialog}
     </section>

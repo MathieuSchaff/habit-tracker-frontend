@@ -62,74 +62,76 @@ export function AdminSecurityEventsPage() {
       {items.length === 0 ? (
         <p className="admin-table__empty">{adminLabels.emptySecurityEvents}</p>
       ) : (
-        <table className="admin-table">
-          <caption className="sr-only">Événements de sécurité (hits des gardes d'entrée)</caption>
-          <thead>
-            <tr>
-              <th>Sévérité</th>
-              <th>Type</th>
-              <th>Champ</th>
-              <th>Route</th>
-              <th>Quand</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((e) => {
-              const isExpanded = expandedId === e.id
-              return (
-                <Fragment key={e.id}>
-                  <tr>
-                    <td>
-                      <span className={`admin-pill admin-pill--${e.severity}`}>
-                        {SEVERITY_LABELS[e.severity]}
-                      </span>
-                    </td>
-                    <td>
-                      <code className="admin-target-code">{e.eventType}</code>
-                    </td>
-                    <td>{e.field}</td>
-                    <td>
-                      <code className="admin-target-code">{e.route}</code>
-                    </td>
-                    <td>
-                      <Time iso={e.createdAt} relative />
-                    </td>
-                    <td>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedId(isExpanded ? null : e.id)}
-                        aria-expanded={isExpanded}
-                      >
-                        {isExpanded ? 'Replier' : 'Voir'}
-                      </Button>
-                    </td>
-                  </tr>
-                  {isExpanded && (
+        <div className="admin-table-scroll">
+          <table className="admin-table">
+            <caption className="sr-only">Événements de sécurité (hits des gardes d'entrée)</caption>
+            <thead>
+              <tr>
+                <th>Sévérité</th>
+                <th>Type</th>
+                <th>Champ</th>
+                <th>Route</th>
+                <th>Quand</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((e) => {
+                const isExpanded = expandedId === e.id
+                return (
+                  <Fragment key={e.id}>
                     <tr>
-                      <td colSpan={6} className="admin-preview-cell">
-                        <div className="admin-error-detail">
-                          <p className="admin-reports-meta">
-                            Utilisateur{' '}
-                            <Link
-                              to="/admin/users/$userId"
-                              params={{ userId: e.userId }}
-                              className="admin-table__row-link"
-                            >
-                              {e.userId.slice(0, 8)}
-                            </Link>
-                          </p>
-                          <pre className="admin-error-trace">{e.payload}</pre>
-                        </div>
+                      <td>
+                        <span className={`admin-pill admin-pill--${e.severity}`}>
+                          {SEVERITY_LABELS[e.severity]}
+                        </span>
+                      </td>
+                      <td>
+                        <code className="admin-target-code">{e.eventType}</code>
+                      </td>
+                      <td>{e.field}</td>
+                      <td>
+                        <code className="admin-target-code">{e.route}</code>
+                      </td>
+                      <td>
+                        <Time iso={e.createdAt} relative />
+                      </td>
+                      <td>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedId(isExpanded ? null : e.id)}
+                          aria-expanded={isExpanded}
+                        >
+                          {isExpanded ? 'Replier' : 'Voir'}
+                        </Button>
                       </td>
                     </tr>
-                  )}
-                </Fragment>
-              )
-            })}
-          </tbody>
-        </table>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={6} className="admin-preview-cell">
+                          <div className="admin-error-detail">
+                            <p className="admin-reports-meta">
+                              Utilisateur{' '}
+                              <Link
+                                to="/admin/users/$userId"
+                                params={{ userId: e.userId }}
+                                className="admin-table__row-link"
+                              >
+                                {e.userId.slice(0, 8)}
+                              </Link>
+                            </p>
+                            <pre className="admin-error-trace">{e.payload}</pre>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   )
