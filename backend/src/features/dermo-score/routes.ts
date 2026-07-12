@@ -30,10 +30,13 @@ const app = new Hono<AppEnv>()
 app.use('*', optionalJwtAuth)
 app.use('*', withRlsContext)
 
-export const dermoScoreRoutes = app.get(
-  '/:slug/dermo-score',
-  zValidator('param', slugParam),
-  async (c) => {
+export const dermoScoreRoutes = app
+  /**
+   * @summary Product dermo score
+   * @description Compute the dermo score for a product by slug. Personalized when a valid bearer is supplied.
+   * @tag dermo-score
+   */
+  .get('/:slug/dermo-score', zValidator('param', slugParam), async (c) => {
     const database = c.get('db')
     const userId = c.get('userId') ?? null
     const { slug } = c.req.valid('param')
@@ -45,5 +48,4 @@ export const dermoScoreRoutes = app.get(
       return c.json(err(outcome.reason), HTTP_STATUS.NOT_FOUND)
     }
     return c.json(ok(outcome.assessment), HTTP_STATUS.OK)
-  }
-)
+  })

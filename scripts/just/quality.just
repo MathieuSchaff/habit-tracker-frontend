@@ -25,3 +25,7 @@ cycles:
 # Test prod CSP against prod build, locally, no Docker (builds dist, serves w/ nginx CSP, headless chromium, fails on violation). Test-only.
 test-csp:
     cd frontend && bunx vite build && bun e2e/csp/check.ts
+
+# Regenerate the OpenAPI spec from the backend AppType (static ts-morph analysis, no runtime). Serve it via the dev API at /api/docs.
+docs:
+    cd backend && bunx @rcmade/hono-docs generate --config ./hono-docs.ts

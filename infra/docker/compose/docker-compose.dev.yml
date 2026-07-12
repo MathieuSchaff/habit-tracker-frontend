@@ -24,6 +24,8 @@ services:
       - ../../../backend/src:/app/backend/src
       - ../../../backend/drizzle:/app/backend/drizzle:ro
       - ../../../backend/tsconfig.json:/app/backend/tsconfig.json:ro
+      # Generated OpenAPI spec (host-built by `just docs`), served dev-only at /api/docs.
+      - ../../../backend/openapi:/app/backend/openapi:ro
       # Writable scratch (ingest scrapers cache here). /app/backend is image-owned (root),
       # so without a host-backed mount the runtime user (1000) can't mkdir tmp → EACCES.
       - ../../../backend/tmp:/app/backend/tmp

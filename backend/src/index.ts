@@ -112,6 +112,24 @@ const routes = app
   .route('/api/admin/suggested-edits', adminSuggestedEditsRoutes)
   .route('/api/suggested-edits', suggestedEditsRoutes)
 
+// Dev-only API reference. Kept off `routes` (AppType) so it never leaks into
+// the RPC client type; the spec is generated at build time by `just docs`.
+if (Bun.env.NODE_ENV !== 'production') {
+  const specPath = './openapi/openapi.json'
+  app.get('/api/openapi.json', async (c) => {
+    const file = Bun.file(specPath)
+    if (!(await file.exists())) return c.json({ error: 'spec_not_generated' }, 404)
+    return new Response(file, { headers: { 'content-type': 'application/json' } })
+  })
+  app.get('/api/docs', (c) =>
+    c.html(
+      `<!doctype html><html><head><meta charset="utf-8"><title>Aurore API</title></head>
+<body><script id="api-reference" data-url="/api/openapi.json"></script>
+<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script></body></html>`
+    )
+  )
+}
+
 app.notFound((c) => c.json({ success: false, error: 'not_found' }, 404))
 
 export type AppType = typeof routes

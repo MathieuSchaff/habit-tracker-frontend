@@ -129,3 +129,6 @@ reports/
 .db-fixes/*
 !.db-fixes/README.md
 
+
+# Generated OpenAPI spec (regenerate with `just docs`)
+backend/openapi/

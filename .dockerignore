@@ -53,6 +53,12 @@ README.md
 *.md
 
 # ==========================================
+# OpenAPI docs tooling (dev-only, host-run via `just docs`)
+# ==========================================
+backend/hono-docs.ts
+backend/openapi
+
+# ==========================================
 # Bases de données locales
 # ==========================================
 *.sqlite
