@@ -2,8 +2,9 @@
 
 /**
  * hide-kit-pack-products.ts — soft-hide (default) or delete products that are
- * bundles (gift coffrets, kits, bulk "lot de N" packs) rather than a standalone
- * formula. Slug-pattern match shared with scan-db-duplicates.ts (_kit-pack-pattern.ts).
+ * bundles (gift coffrets, kits, bulk "lot de N" packs) or samples (échantillon,
+ * sachet, mini, travel-size, tiny 1-5ml) rather than a standalone formula.
+ * Match logic shared with scan-db-duplicates.ts (_kit-pack-pattern.ts).
  * Idempotent: only touches rows still 'visible', safe to re-run as new
  * scraped products land in the catalogue.
  *
@@ -19,22 +20,22 @@ import { nowISO } from '../../../utils/dates'
 import { db } from '../..'
 import { withAdminRls } from '../../rls'
 import { products } from '../../schema/products'
-import { KIT_PACK_RE } from './_kit-pack-pattern'
+import { isBundleOrSample } from './_kit-pack-pattern'
 
 const WRITE = process.argv.includes('--write')
 const DELETE = process.argv.includes('--delete')
-const REASON = 'pack/kit/coffret — not a standalone product'
+const REASON = 'pack/kit/coffret/sample — not a standalone product'
 
 async function main() {
   const rows = await db
-    .select({ id: products.id, slug: products.slug })
+    .select({ id: products.id, slug: products.slug, name: products.name })
     .from(products)
     .where(eq(products.moderationStatus, 'visible'))
 
-  const matches = rows.filter((r) => KIT_PACK_RE.test(r.slug))
+  const matches = rows.filter((r) => isBundleOrSample(r.slug, r.name))
 
   console.log(`visible products: ${rows.length}`)
-  console.log(`kit/pack matches: ${matches.length}`)
+  console.log(`kit/pack/sample matches: ${matches.length}`)
   for (const m of matches) console.log(`  ${m.slug}`)
 
   const action = DELETE ? 'delete' : 'hide'
