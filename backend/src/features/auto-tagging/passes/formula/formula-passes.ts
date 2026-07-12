@@ -54,6 +54,7 @@ import {
   detectRepulpant,
   detectRougeursVasculairesFromName,
   detectSansSavon,
+  detectSeboRegulateurFromName,
   detectSemiOcclusif,
   detectSolaireTags,
   detectStepNettoyage1,
@@ -156,6 +157,11 @@ export const FORMULA_PASSES: readonly Pass[] = [
   namePass(
     'formula:pores-sebum-name',
     (c) => detectPoresSebumFromName(c.name, c.description),
+    PORES_SEBUM_POSITION_RE
+  ),
+  namePass(
+    'formula:sebo-regulateur-name',
+    (c) => detectSeboRegulateurFromName(c.name, c.description),
     PORES_SEBUM_POSITION_RE
   ),
   namePass(

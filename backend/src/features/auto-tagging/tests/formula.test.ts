@@ -30,6 +30,7 @@ import {
   detectRepulpant,
   detectRougeursVasculairesFromName,
   detectSansSavon,
+  detectSeboRegulateurFromName,
   detectSemiOcclusif,
   detectSolaireTags,
   detectStepNettoyage1,
@@ -492,6 +493,20 @@ describe('detectPoresSebumFromName', () => {
   })
   test('does not fire on empty name/desc', () => {
     expect(detectPoresSebumFromName(null, null)).toEqual([])
+  })
+})
+
+describe('detectSeboRegulateurFromName', () => {
+  const SR = [S.SEBO_REGULATEUR]
+  test('fires on sebum/mattifying positioning', () => {
+    expect(detectSeboRegulateurFromName('Fluide Matifiant', 'régule le sébum')).toEqual(SR)
+  })
+  test('does not fire on a sunscreen without sebum positioning', () => {
+    // The FP class the gate closes: sebum-control actives (Silica) present, no positioning.
+    expect(detectSeboRegulateurFromName('Huile Solaire Satinée', 'SPF 30')).toEqual([])
+  })
+  test('does not fire on empty name/desc', () => {
+    expect(detectSeboRegulateurFromName(null, null)).toEqual([])
   })
 })
 

@@ -102,7 +102,11 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // Skin effects
   // Soothing actives are too common; the formula pass requires soothing positioning.
   apaisant: { auroreSlug: S.APAISANT, confidenceFloor: 0.5, allow: false },
-  'sebo-regulateur': { auroreSlug: S.SEBO_REGULATEUR, confidenceFloor: 0.5, allow: true },
+  // Sebum-control actives (Triethyl Citrate, Silica, niacinamide) fire regardless of
+  // positioning, so this stuck to sunscreens/oils/anti-aging. Re-emitted by the formula
+  // name pass (formula:sebo-regulateur-name), which requires sebum/mattifying wording —
+  // same doctrine as pores-sebum / apaisant / the other effect tags.
+  'sebo-regulateur': { auroreSlug: S.SEBO_REGULATEUR, confidenceFloor: 0.5, allow: false },
   // Antioxidant actives are common stabilizers; user-facing antioxidant claims
   // come from explicit positioning or unambiguous hero ingredients.
   'anti-oxydant': { auroreSlug: S.ANTI_OXYDANT, confidenceFloor: 0.5, allow: false },

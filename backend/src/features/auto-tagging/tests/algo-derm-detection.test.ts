@@ -105,8 +105,8 @@ describe('algo-derm-detection', () => {
     // Hard-counted to flag any accidental flip in TAG_CONFIG.
     const allow = Object.values(TAG_CONFIG).filter((r) => r.allow)
     const drop = Object.values(TAG_CONFIG).filter((r) => !r.allow)
-    expect(allow.length).toBe(15)
-    expect(drop.length).toBe(16)
+    expect(allow.length).toBe(14)
+    expect(drop.length).toBe(17)
   })
 
   test('T2 non_irritant: recognized gentle INCI emits non-irritant', () => {
@@ -148,13 +148,15 @@ describe('algo-derm-detection', () => {
     for (const slug of baselineSlugs) expect(slugs.has(slug)).toBe(true)
   })
 
-  test('purifiant never emitted, sebo-regulateur still emitted on shared trigger', () => {
-    // Salicylic acid fires both purifiant and sebo-regulateur in algo-derm;
-    // only sebo-regulateur should make it through.
+  test('purifiant + sebo-regulateur gated out of the algo-derm layer (both allow:false)', () => {
+    // Salicylic acid fires both in algo-derm regardless of positioning. purifiant was
+    // always dropped; sebo-regulateur is now allow:false too — re-emitted only by the
+    // formula name pass when sebum/mattifying wording is present. A bare INCI with no
+    // positioning must emit neither at this layer.
     const inci = 'Aqua, Salicylic Acid, Niacinamide, Glycerin'
     const slugs = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
     expect(slugs.has(S.PURIFIANT)).toBe(false)
-    expect(slugs.has(S.SEBO_REGULATEUR)).toBe(true)
+    expect(slugs.has(S.SEBO_REGULATEUR)).toBe(false)
   })
 
   test('dropCounts hook: populates `<reason>:<tagId>` when provided', () => {

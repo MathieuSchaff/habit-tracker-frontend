@@ -19,3 +19,18 @@ export function detectPoresSebumFromName(
 ): SkincareProductTagSlug[] {
   return matchesNamePositioning(name, description, PORES_SEBUM_POSITION_RE) ? [S.PORES_SEBUM] : []
 }
+
+// `sebo-regulateur` (skin_effect) is the effect twin of `pores-sebum` (concern):
+// same sebum lexical field, so it shares PORES_SEBUM_POSITION_RE. algo-derm fired it
+// straight from sebum-control actives (Triethyl Citrate, Silica, niacinamide) with no
+// positioning gate — the lone allow:true effect tag — so it stuck to sunscreens, oils,
+// anti-aging creams that merely contain such an active. Gated here like every sibling
+// effect/concern tag: the marketed-for wording must be present.
+export function detectSeboRegulateurFromName(
+  name: string | null | undefined,
+  description: string | null | undefined
+): SkincareProductTagSlug[] {
+  return matchesNamePositioning(name, description, PORES_SEBUM_POSITION_RE)
+    ? [S.SEBO_REGULATEUR]
+    : []
+}

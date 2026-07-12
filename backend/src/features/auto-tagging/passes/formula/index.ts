@@ -44,7 +44,11 @@ export { detectPeauGrasseFromName, PEAU_GRASSE_POSITION_RE } from './peau-grasse
 export { detectPeauNormale } from './peau-normale'
 export { detectPeauSecheFromName, PEAU_SECHE_POSITION_RE } from './peau-seche'
 export { detectPigmentsVerts } from './pigments-verts'
-export { detectPoresSebumFromName, PORES_SEBUM_POSITION_RE } from './pores-sebum'
+export {
+  detectPoresSebumFromName,
+  detectSeboRegulateurFromName,
+  PORES_SEBUM_POSITION_RE,
+} from './pores-sebum'
 export { detectPrebiotique } from './prebiotique'
 export { detectProtection } from './protection'
 export { detectReparateurFromName } from './reparateur'
