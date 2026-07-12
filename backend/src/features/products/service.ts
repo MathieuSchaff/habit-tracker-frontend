@@ -50,7 +50,7 @@ import { escapeLike } from '../../lib/helpers'
 import { buildChanges, logEdit, productEditConfig } from '../../lib/logs'
 import { normalizeInci } from '../../lib/normalize-inci'
 import { nowISO } from '../../utils/dates'
-import { writeTagsForProductFailSoft } from '../auto-tagging'
+import { type OrchestratorProductFields, writeTagsForProductFailSoft } from '../auto-tagging'
 import { listTagsByProduct } from '../product-tags/service'
 import { ProductError } from './product-error'
 import { listIngredientsByProduct } from './product-ingredients/product-ingredients.service'
@@ -226,8 +226,7 @@ const TRACKED_FIELDS = [
   'priceCents',
 ] as const
 
-// Any change to these can shift the detected tag set. Keep in sync with OrchestratorInput
-// in backend/src/features/auto-tagging/orchestrator.ts.
+// Any change to these can shift the detected tag set.
 const AUTOTAG_INPUT_FIELDS = [
   'inci',
   'kind',
@@ -236,7 +235,20 @@ const AUTOTAG_INPUT_FIELDS = [
   'texture',
   'name',
   'description',
-] as const satisfies readonly (typeof TRACKED_FIELDS)[number][]
+] as const satisfies readonly Extract<
+  (typeof TRACKED_FIELDS)[number],
+  keyof OrchestratorProductFields
+>[]
+
+// A field added to OrchestratorProductFields but missing above would silently
+// stop re-tagging on edits to that column.
+type MissingAutotagInputField = Exclude<
+  keyof OrchestratorProductFields,
+  (typeof AUTOTAG_INPUT_FIELDS)[number]
+>
+const _autotagInputFieldsCoverOrchestratorInput: [MissingAutotagInputField] extends [never]
+  ? true
+  : MissingAutotagInputField = true
 
 function isColumnLike(obj: unknown): obj is { name: string } {
   return (

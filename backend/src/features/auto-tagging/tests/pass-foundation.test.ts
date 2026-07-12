@@ -88,8 +88,9 @@ describe('mergeProposal — precedence', () => {
 
   test('avoid wins over secondary, replacing source', () => {
     const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))
+    // Return value = merge verdict (accepted), the signal the trace sink relays.
+    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))).toBe(true)
+    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))).toBe(true)
     expect(byTag.get(S.RETINOIDS)).toEqual({
       tagSlug: S.RETINOIDS,
       relevance: 'avoid',
@@ -107,7 +108,7 @@ describe('mergeProposal — precedence', () => {
   test('avoid stays when followed by secondary (no demotion)', () => {
     const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
     mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))
+    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))).toBe(false)
     expect(byTag.get(S.RETINOIDS)).toEqual({
       tagSlug: S.RETINOIDS,
       relevance: 'avoid',

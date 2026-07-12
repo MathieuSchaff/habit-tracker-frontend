@@ -3,6 +3,25 @@
   "rulesetVersion": "products-branch@c0f5b16c",
   "annotations": [
     {
+      "productSlug": "111skin-cryo-revitalising-moisturiser",
+      "kind": "moisturizer",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["cernes-poches"]
+    },
+    {
+      "productSlug": "a-derma-dermalibour-cica-gel-moussant-assainissant-200ml-275256",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "a-derma-exomega-control-baume-emollient-anti-grattage",
       "kind": "moisturizer",
       "category": "skincare",
@@ -11,6 +30,26 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyperpigmentation"],
       "notes": "baume émollient atopique"
+    },
+    {
+      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-500ml-275113",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
       "productSlug": "a-derma-exomega-control-lait-emollient-anti-grattage",
@@ -38,7 +77,7 @@
       "present": ["cernes-poches"],
       "absent": ["apaisant", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "pores-sebum", "cernes-poches"],
+      "sampledFor": ["apaisant", "cernes-poches", "pores-sebum"],
       "notes": "patch yeux hydratant/raffermissant anti-poches (pas lead apaisant) | cernes-poches: present (recall FN) — réduit poches, estompe cernes"
     },
     {
@@ -75,8 +114,8 @@
       "present": [],
       "absent": ["anti-age", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | reparation-cutanee: absent — repair co-mention, no lesion language",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | reparation-cutanee: absent — repair co-mention, no lesion language"
     },
     {
       "productSlug": "abib-heartleaf-calming-toner-skin-booster",
@@ -134,8 +173,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque apaisant peaux stressées (heartleaf)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque apaisant peaux stressées (heartleaf)"
     },
     {
       "productSlug": "abib-pore-cleansing-oil-heartleaf-oil-wash",
@@ -202,8 +241,8 @@
       "present": [],
       "absent": ["acne-imperfections", "pores-sebum", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: absent — anti-taches (hyperpigmentation) | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["pores-sebum", "protection"]
+      "sampledFor": ["pores-sebum", "protection"],
+      "notes": "acne: absent — anti-taches (hyperpigmentation) | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "acm-duolys-a-serum-intensif-anti-rides",
@@ -221,8 +260,8 @@
       "present": ["protection"],
       "absent": ["anti-age", "eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: absent — vit C/E antioxydant anti-âge, pas lead radiance | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)",
-      "sampledFor": ["eclat-teint-uniforme", "protection"]
+      "sampledFor": ["eclat-teint-uniforme", "protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: absent — vit C/E antioxydant anti-âge, pas lead radiance | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
       "productSlug": "acm-duolys-ecran-solaire-anti-age-spf50",
@@ -270,7 +309,7 @@
       "present": ["apaisant", "rougeurs-vasculaires"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "lead anti-rougeurs (apaisant) | apaisant: ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — soin anti-rougeurs Rosakalm, positionné rosacée"
     },
     {
@@ -280,8 +319,8 @@
       "present": ["acne-imperfections"],
       "absent": ["eczema-atopie"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: present — Sebionex anti-imperfections [recall: algo a raté] | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné hydratation",
-      "sampledFor": ["eczema-atopie"]
+      "sampledFor": ["eczema-atopie"],
+      "notes": "acne: present — Sebionex anti-imperfections [recall: algo a raté] | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné hydratation"
     },
     {
       "productSlug": "acm-sebionex-gel-solaire-matifiant-spf50",
@@ -310,8 +349,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "aderma-biology-ac-eau-micellaire-nettoyante-purifiante-bio",
@@ -320,8 +358,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "aderma-biology-ac-gel-moussant-purifiant-bio",
@@ -330,8 +367,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "aderma-biology-ac-perfect-fluide-anti-imperfections-bio",
@@ -340,8 +376,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "aderma-biology-creme-legere-dermatologique-hydratante",
@@ -487,6 +522,16 @@
       "notes": "cica/reparation barriere (lead barriere)"
     },
     {
+      "productSlug": "aderma-exomega-control-gel-moussant-anti-grattage",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "aderma-exomega-control-spray-emollient-anti-grattage",
       "kind": "body-lotion",
       "category": "bodycare",
@@ -537,6 +582,15 @@
       "notes": "protection: present (recall FN) — sunscreen — UV protection is the lead"
     },
     {
+      "productSlug": "aderma-protect-x-trem-stick-invisible-spf50",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["protection"]
+    },
+    {
       "productSlug": "aderma-stick-levres",
       "kind": "lip-care",
       "category": "skincare",
@@ -563,7 +617,7 @@
       "present": ["apaisant"],
       "absent": ["hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "apaisant"],
+      "sampledFor": ["apaisant", "hyperpigmentation"],
       "notes": "toner cica hydratant apaisant | apaisant: soin calmant/apaisant (lead)"
     },
     {
@@ -573,8 +627,8 @@
       "present": ["apaisant"],
       "absent": ["acne-imperfections"],
       "annotatedAt": "2026-05-24",
-      "notes": "acne: absent — apaisant/barrière (cica) ; niacinamide | apaisant: soin calmant/apaisant (lead)",
-      "sampledFor": ["apaisant"]
+      "sampledFor": ["apaisant"],
+      "notes": "acne: absent — apaisant/barrière (cica) ; niacinamide | apaisant: soin calmant/apaisant (lead)"
     },
     {
       "productSlug": "aestura-atobarrier-365-cera-hyaluronic-ampoule",
@@ -583,8 +637,8 @@
       "present": [],
       "absent": ["acne-imperfections", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: absent — réparation barrière/hydratation ; niacinamide | reparation-cutanee: absent — repair-of-barrier → barriere axis (Fork 2)",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "acne: absent — réparation barrière/hydratation ; niacinamide | reparation-cutanee: absent — repair-of-barrier → barriere axis (Fork 2)"
     },
     {
       "productSlug": "aestura-derma-uv-365-vita-c-radiance-sunscreen",
@@ -631,8 +685,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — mist corps anti-imperfections/sébum (acné)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — mist corps anti-imperfections/sébum (acné)"
     },
     {
       "productSlug": "aestura-theracne-365-soothing-active-moisturizer",
@@ -651,8 +705,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — hydratant éclat/teint",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — hydratant éclat/teint"
     },
     {
       "productSlug": "air-repair-super-hydrating-eye-cream",
@@ -661,8 +715,8 @@
       "present": ["cernes-poches"],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — contour yeux cernes/poches | cernes-poches: present — claim explicite cernes+poches",
-      "sampledFor": ["rougeurs-vasculaires", "cernes-poches"]
+      "sampledFor": ["cernes-poches", "rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — contour yeux cernes/poches | cernes-poches: present — claim explicite cernes+poches"
     },
     {
       "productSlug": "allies-of-skin-azelaic-kojic-advanced-clarifying-serum",
@@ -672,6 +726,15 @@
       "absent": [],
       "annotatedAt": "2026-05-24",
       "notes": "acne: present — acide azélaïque 10%"
+    },
+    {
+      "productSlug": "allies-of-skin-retinal-0-05-peptides-repair-night-cream-12ml",
+      "kind": "moisturizer",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["retinoids"]
     },
     {
       "productSlug": "anua-3-ceramide-panthenol-moisture-barrier-cream",
@@ -690,8 +753,8 @@
       "present": [],
       "absent": ["acne-imperfections", "protection"],
       "annotatedAt": "2026-05-24",
-      "notes": "acne: absent — barrière/hydratation ; niacinamide | protection: absent — 'fonction protectrice/defense' = endogenous barrier reinforcement -> barriere, not external protection (C)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "acne: absent — barrière/hydratation ; niacinamide | protection: absent — 'fonction protectrice/defense' = endogenous barrier reinforcement -> barriere, not external protection (C)"
     },
     {
       "productSlug": "anua-azelaic-10-hyaluron-redness-soothing-pad",
@@ -710,8 +773,8 @@
       "present": ["acne-imperfections"],
       "absent": ["reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: present — acide azélaïque 10% + imperfections | reparation-cutanee: absent — repair-of-barrier → barriere axis (Fork 2)",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "acne: present — acide azélaïque 10% + imperfections | reparation-cutanee: absent — repair-of-barrier → barriere axis (Fork 2)"
     },
     {
       "productSlug": "anua-bha-2-gentle-exfoliating-toner",
@@ -740,8 +803,8 @@
       "present": [],
       "absent": ["acne-imperfections", "protection"],
       "annotatedAt": "2026-05-24",
-      "notes": "acne: absent — nom dit 'blemish' mais masque vita-C éclat ; STRICT -> pas d'actif anti-acné | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "acne: absent — nom dit 'blemish' mais masque vita-C éclat ; STRICT -> pas d'actif anti-acné | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
       "productSlug": "anua-heartleaf-70-intense-calming-cream",
@@ -799,8 +862,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — toner apaisant heartleaf ; rougeurs = propriété actif (flip ABSENT)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — toner apaisant heartleaf ; rougeurs = propriété actif (flip ABSENT)"
     },
     {
       "productSlug": "anua-heartleaf-80-moisture-soothing-ampoule",
@@ -819,8 +882,8 @@
       "present": ["rougeurs-vasculaires"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: present — 'Red Spot', cible rougeurs visibles (positionnement produit)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: present — 'Red Spot', cible rougeurs visibles (positionnement produit)"
     },
     {
       "productSlug": "anua-heartleaf-deep-pore-cleansing-foam",
@@ -962,7 +1025,7 @@
       "present": ["deshydratation"],
       "absent": ["hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "deshydratation"],
+      "sampledFor": ["deshydratation", "hyperpigmentation"],
       "notes": "masque hydratant PDRN/HA | deshydratation: soin HA, hydratation (lead, rate par l'algo)"
     },
     {
@@ -1001,8 +1064,8 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué ; eclat-teint: absent — rétinol+niacinamide hyperpig/rides/pores, lead anti-âge/hyperpig",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué ; eclat-teint: absent — rétinol+niacinamide hyperpig/rides/pores, lead anti-âge/hyperpig"
     },
     {
       "productSlug": "anua-rice-70-glow-collagen-mask",
@@ -1011,8 +1074,8 @@
       "present": [],
       "absent": ["acne-imperfections", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: absent — éclat/radiance ; niacinamide",
-      "sampledFor": ["pores-sebum"]
+      "sampledFor": ["pores-sebum"],
+      "notes": "acne: absent — éclat/radiance ; niacinamide"
     },
     {
       "productSlug": "anua-rice-70-glow-milky-toner",
@@ -1061,9 +1124,9 @@
       "kind": "patch",
       "category": "skincare",
       "present": [],
-      "absent": ["pores-sebum", "eclat-teint-uniforme", "reparation-cutanee"],
+      "absent": ["eclat-teint-uniforme", "pores-sebum", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "eclat-teint-uniforme", "reparation-cutanee"],
+      "sampledFor": ["eclat-teint-uniforme", "pores-sebum", "reparation-cutanee"],
       "notes": "eclat-teint: absent — patch anti-bouton acné | reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
     },
     {
@@ -1102,8 +1165,8 @@
       "present": ["anti-age"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — bakuchiol (alternative rétinol) | barriere: sérum bakuchiol anti-âge",
-      "sampledFor": ["barriere-cutanee"]
+      "sampledFor": ["barriere-cutanee"],
+      "notes": "anti-age: present — bakuchiol (alternative rétinol) | barriere: sérum bakuchiol anti-âge"
     },
     {
       "productSlug": "aroma-zone-serum-vitamine-c-10-astaxanthine",
@@ -1160,7 +1223,7 @@
       "kind": "sunscreen",
       "category": "solaire",
       "present": ["barriere-cutanee"],
-      "absent": ["rougeurs-vasculaires", "protection"],
+      "absent": ["protection", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["barriere-cutanee", "protection"],
       "notes": "Cicalfate crème réparatrice protectrice (barrière) | rougeurs-vasculaires: absent — Cicalfate protectrice réparateur | protection: absent — 'fonction protectrice/defense' = endogenous barrier reinforcement -> barriere, not external protection (C)"
@@ -1190,12 +1253,12 @@
         "pha",
         "polyphenols",
         "retinoids",
+        "rougeurs-vasculaires",
         "texture-legere",
         "texture-riche",
         "tyrosinase-inhibitors",
         "vitamin-c",
-        "vitamin-e",
-        "rougeurs-vasculaires"
+        "vitamin-e"
       ],
       "annotatedAt": "2026-05-10",
       "sampledFor": ["fini-mat"],
@@ -1315,8 +1378,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "avene-cleanance-eau-micellaire-visage-yeux",
@@ -1325,8 +1387,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "avene-cleanance-hydra-creme-apaisante",
@@ -1345,8 +1406,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "avene-cleanance-masque-detox-50ml",
@@ -1365,8 +1425,8 @@
       "present": ["acne-imperfections", "pores-sebum"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: present — gamme Cleanance + acide salicylique | pores-sebum: Cleanance désincrustant peaux grasses + salicylic = nettoyage sébo/pore",
-      "sampledFor": ["pores-sebum"]
+      "sampledFor": ["pores-sebum"],
+      "notes": "acne: present — gamme Cleanance + acide salicylique | pores-sebum: Cleanance désincrustant peaux grasses + salicylic = nettoyage sébo/pore"
     },
     {
       "productSlug": "avene-cleanance-spf50-ultra-leger-anti-imperfections",
@@ -1387,6 +1447,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — poudre correcteur de teint = maquillage"
+    },
+    {
+      "productSlug": "avene-couvrance-stick-correcteur-vert",
+      "kind": "spot-treatment",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["fini-mat"]
     },
     {
       "productSlug": "avene-creme-sans-parfum-spf50-fini-invisible",
@@ -1485,8 +1554,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — anti-âge HA/niacinamide",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — anti-âge HA/niacinamide"
     },
     {
       "productSlug": "avene-hyaluron-activ-procedure-creme-lifting",
@@ -1495,8 +1564,8 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — anti-âge lifting",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — anti-âge lifting"
     },
     {
       "productSlug": "avene-hyaluron-activ-procedure-creme-lifting-0-1-retinal",
@@ -1514,8 +1583,8 @@
       "present": ["anti-age"],
       "absent": ["cernes-poches"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | cernes-poches: absent — anti-âge rides/ridules micro-lift, pas cernes/poches",
-      "sampledFor": ["cernes-poches"]
+      "sampledFor": ["cernes-poches"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | cernes-poches: absent — anti-âge rides/ridules micro-lift, pas cernes/poches"
     },
     {
       "productSlug": "avene-hyaluron-activ-procedure-creme-yeux-levres",
@@ -1534,6 +1603,15 @@
       "absent": [],
       "annotatedAt": "2026-05-09",
       "notes": "SODIUM HYALURONATE + ACETYL HEXAPEPTIDE-8 visible. 7-ingredient formula = very light."
+    },
+    {
+      "productSlug": "avene-hydrance-boost-serum-hydratant",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["texture-legere"]
     },
     {
       "productSlug": "avene-hydrance-creme-peaux-sensibles-a-seches",
@@ -1584,6 +1662,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant"],
       "notes": "soin calmant/apaisant (lead)"
+    },
+    {
+      "productSlug": "avene-perfecteur-ultra-fluid-peaux-sensibles-spf50",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "avene-rosamed-antirougeurs-spf50",
@@ -1892,8 +1979,8 @@
       "present": [],
       "absent": ["acne-imperfections", "pores-sebum", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: absent — éclat/apaisant ; niacinamide | reparation-cutanee: absent — soothing/neighbor lead despite damage vocab",
-      "sampledFor": ["pores-sebum", "reparation-cutanee"]
+      "sampledFor": ["pores-sebum", "reparation-cutanee"],
+      "notes": "acne: absent — éclat/apaisant ; niacinamide | reparation-cutanee: absent — soothing/neighbor lead despite damage vocab"
     },
     {
       "productSlug": "axis-y-panthenol-10-skin-smoothing-shield-cream",
@@ -2011,8 +2098,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — essence hydratante/éclat",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — essence hydratante/éclat"
     },
     {
       "productSlug": "beauty-of-joseon-light-on-serum-centella-vita-c",
@@ -2060,8 +2147,8 @@
       "present": ["anti-age", "cernes-poches"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | cernes-poches: present (recall FN) — atténue cernes et poches",
-      "sampledFor": ["cernes-poches"]
+      "sampledFor": ["cernes-poches"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | cernes-poches: present (recall FN) — atténue cernes et poches"
     },
     {
       "productSlug": "beauty-of-joseon-revive-serum-ginseng-snail-mucin",
@@ -2270,8 +2357,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "bioderma-sebium-hydra-cleanser",
@@ -2280,8 +2366,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "bioderma-sebium-sensitive",
@@ -2290,8 +2375,16 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
+    },
+    {
+      "productSlug": "biologique-recherche-amniotique-vg",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["aha"]
     },
     {
       "productSlug": "bye-bye-blackhead-30-days-miracle-green-tea-tox-bubble-cleanser",
@@ -2302,6 +2395,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté)"
+    },
+    {
+      "productSlug": "cattier-lait-corps-revitalisant-fleur-de-cerisier-carthame",
+      "kind": "body-lotion",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["enzymes-exfoliants"]
     },
     {
       "productSlug": "celdyque-azelaic-acid-12-serum",
@@ -2378,10 +2480,10 @@
       "productSlug": "cicabiafine-baume-multi-reparateur-apaisant",
       "kind": "moisturizer",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "baume multi-réparateur (barrière) | apaisant: cica reparateur+apaisant explicite (double barriere)"
     },
     {
@@ -2399,10 +2501,10 @@
       "kind": "foot-cream",
       "category": "skincare",
       "present": [],
-      "absent": ["rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — crème pieds secs | reparation-cutanee: absent — dryness-state ('pieds très secs'), no lesion language → secheresse axis; brand≠decide (§3.1) [user flip]",
-      "sampledFor": ["rougeurs-vasculaires", "reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee", "rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — crème pieds secs | reparation-cutanee: absent — dryness-state ('pieds très secs'), no lesion language → secheresse axis; brand≠decide (§3.1) [user flip]"
     },
     {
       "productSlug": "cicabiafine-creme-reconstituante-apaisante",
@@ -2421,8 +2523,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — douche surgras peaux sèches",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — douche surgras peaux sèches"
     },
     {
       "productSlug": "cicabiafine-lait-hydratant-corporel-peaux-seches",
@@ -2431,8 +2533,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "cicabiafine-lait-hydratant-corporel-quotidien",
@@ -2441,8 +2542,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "clarins-baume-corps-super-hydratant-beurre-de-karite",
@@ -2479,9 +2579,9 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": [],
-      "absent": ["pores-sebum", "eczema-atopie"],
+      "absent": ["eczema-atopie", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "eczema-atopie"],
+      "sampledFor": ["eczema-atopie", "pores-sebum"],
       "notes": "eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné anti-âge"
     },
     {
@@ -2499,9 +2599,9 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": [],
-      "absent": ["hyperpigmentation", "barriere-cutanee", "eczema-atopie"],
+      "absent": ["barriere-cutanee", "eczema-atopie", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "barriere-cutanee", "eczema-atopie"],
+      "sampledFor": ["barriere-cutanee", "eczema-atopie", "hyperpigmentation"],
       "notes": "émulsion fermeté anti-âge | barriere: lead anti-âge raffermissant | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné anti-âge"
     },
     {
@@ -2551,8 +2651,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — baume lèvres hydratant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — baume lèvres hydratant"
     },
     {
       "productSlug": "clarins-hydra-essentiel-ha2-creme-riche-desalterante",
@@ -2599,13 +2699,13 @@
         "peptides",
         "pha",
         "polyphenols",
+        "protection",
         "retinoids",
         "tyrosinase-inhibitors",
-        "vitamin-c",
-        "protection"
+        "vitamin-c"
       ],
       "annotatedAt": "2026-05-10",
-      "sampledFor": ["vitamin-e", "protection"],
+      "sampledFor": ["protection", "vitamin-e"],
       "notes": "protection: absent — no protection claim; non-protection lead"
     },
     {
@@ -2675,8 +2775,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "clarins-sos-primer-rose-attenue-les-signes-de-fatigue",
@@ -2762,9 +2861,9 @@
       "kind": "spot-treatment",
       "category": "skincare",
       "present": [],
-      "absent": ["eclat-teint-uniforme", "cernes-poches"],
+      "absent": ["cernes-poches", "eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["eclat-teint-uniforme", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — correcteur/anti-cernes maquillage (couleur au choix) | cernes-poches: absent — correcteur teinté (couvrance/Blurring Blender/CN shades): masquage pigment ≠ traitement (règle color-correction)"
     },
     {
@@ -2859,9 +2958,9 @@
       "kind": "eye-cream",
       "category": "skincare",
       "present": [],
-      "absent": ["reparation-cutanee", "cernes-poches"],
+      "absent": ["cernes-poches", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["reparation-cutanee", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "reparation-cutanee"],
       "notes": "reparation-cutanee: absent — renewal/anti-age lead (Fork 3) | cernes-poches: absent — anti-âge rides-only, pas de claim cernes/poches"
     },
     {
@@ -2871,8 +2970,8 @@
       "present": ["anti-age"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — granactive, algo n'a pas tagué | barriere: lead anti-rides ('repair'=rides)",
-      "sampledFor": ["barriere-cutanee"]
+      "sampledFor": ["barriere-cutanee"],
+      "notes": "anti-age: present (recall FN) — granactive, algo n'a pas tagué | barriere: lead anti-rides ('repair'=rides)"
     },
     {
       "productSlug": "clinique-smart-clinical-repair-serum-correcteur-anti-rides",
@@ -2900,8 +2999,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "colibri-antioxidant-serum",
@@ -2930,8 +3028,8 @@
       "present": ["protection"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
       "productSlug": "colibri-vitamin-c15-booster",
@@ -2953,13 +3051,31 @@
       "notes": "niacinamide 15% positionné taches/pigment (flag: niacinamide seul) | reparation-cutanee: absent — cica name, soothing lead (Fork 1)"
     },
     {
+      "productSlug": "cos-de-baha-az20-cream",
+      "kind": "moisturizer",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["tyrosinase-inhibitors"]
+    },
+    {
+      "productSlug": "cos-de-baha-azelaic-acid-10-serum",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["tyrosinase-inhibitors"]
+    },
+    {
       "productSlug": "cosrx-5-pdrn-b5-vital-soothing-toner",
       "kind": "toner",
       "category": "skincare",
       "present": ["apaisant"],
-      "absent": ["pores-sebum", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["apaisant", "eclat-teint-uniforme", "pores-sebum"],
       "notes": "soin calmant/apaisant (lead) ; eclat-teint: absent — toner apaisant barrière rougeurs"
     },
     {
@@ -2986,9 +3102,9 @@
       "kind": "toner",
       "category": "skincare",
       "present": ["apaisant"],
-      "absent": ["deshydratation", "rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["deshydratation", "reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "deshydratation", "rougeurs-vasculaires", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "deshydratation", "reparation-cutanee", "rougeurs-vasculaires"],
       "notes": "Calming Liquid, tonique apaisant peaux acneiques (lead apaisant; exfo leger secondaire) [flag] | deshydratation: acne/imperfection/exfo (lead) | rougeurs-vasculaires: absent — tonique acné apaisant BHA/PHA | reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
     },
     {
@@ -3018,17 +3134,17 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque mucine hydratant/cicatrisant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque mucine hydratant/cicatrisant"
     },
     {
       "productSlug": "cosrx-advanced-snail-peptide-eye-cream",
       "kind": "eye-cream",
       "category": "skincare",
       "present": [],
-      "absent": ["deshydratation", "cernes-poches"],
+      "absent": ["cernes-poches", "deshydratation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["deshydratation", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "deshydratation"],
       "notes": "anti-age/eclat (lead) | cernes-poches: absent — mucine/peptides sans positionnement cernes/poches (mécanisme≠claim)"
     },
     {
@@ -3058,8 +3174,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "cosrx-alpha-arbutin-2-discoloration-care-serum",
@@ -3098,8 +3213,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — BHA pores/comédons (acné)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — BHA pores/comédons (acné)"
     },
     {
       "productSlug": "cosrx-cica-calming-true-sheet-mask",
@@ -3197,8 +3312,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — BHA/AHA pores",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — BHA/AHA pores"
     },
     {
       "productSlug": "cosrx-oil-free-ultra-moisturizing-lotion",
@@ -3207,8 +3322,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "cosrx-one-step-moisture-up-pad",
@@ -3239,6 +3353,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — fini éclatant glaze = fini cosmétique/texture, lead hydratation"
+    },
+    {
+      "productSlug": "cosrx-peptide-132-ultra-perfect-hair-bonding-oil-serum",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["peptides"]
     },
     {
       "productSlug": "cosrx-propolis-light-ampoule",
@@ -3341,10 +3464,10 @@
       "kind": "oil",
       "category": "skincare",
       "present": ["anti-age"],
-      "absent": ["hyperpigmentation", "rougeurs-vasculaires", "eclat-teint-uniforme", "protection"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation", "protection", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) · hp: huile rétinol anti-âge, 0 positionnement pigment | rougeurs-vasculaires: absent — huile rétinol anti-âge ; eclat-teint: absent — huile rétinol anti-âge, 'teint inégal' secondaire | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["rougeurs-vasculaires", "eclat-teint-uniforme", "protection"]
+      "sampledFor": ["eclat-teint-uniforme", "protection", "rougeurs-vasculaires"],
+      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) · hp: huile rétinol anti-âge, 0 positionnement pigment | rougeurs-vasculaires: absent — huile rétinol anti-âge ; eclat-teint: absent — huile rétinol anti-âge, 'teint inégal' secondaire | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "cosrx-the-vitamin-c-13-serum",
@@ -3362,8 +3485,8 @@
       "present": [],
       "absent": ["anti-age", "apaisant", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | apaisant: lead vit C eclat | rougeurs-vasculaires: absent — vit C éclat",
-      "sampledFor": ["apaisant", "rougeurs-vasculaires"]
+      "sampledFor": ["apaisant", "rougeurs-vasculaires"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | apaisant: lead vit C eclat | rougeurs-vasculaires: absent — vit C éclat"
     },
     {
       "productSlug": "cosrx-triple-hyaluronic-moisture-ampoule",
@@ -3372,8 +3495,17 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — HA hydratation",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — HA hydratation"
+    },
+    {
+      "productSlug": "cyla-creme-filante",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["barriere-cutanee"]
     },
     {
       "productSlug": "dear-klairs-all-day-airy-mineral-sunscreen",
@@ -3459,10 +3591,10 @@
       "productSlug": "dear-klairs-rich-moist-soothing-tencel-sheet-mask",
       "kind": "mask",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": ["deshydratation", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant", "deshydratation", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "barriere-cutanee", "deshydratation", "reparation-cutanee"],
       "notes": "masque céramide 'renforcer la barrière' (claim barrière explicite) | apaisant: soin calmant/apaisant (lead) | deshydratation: apaisant peaux sensibles (lead apaisant) | reparation-cutanee: absent — soothing/neighbor lead despite damage vocab"
     },
     {
@@ -3502,6 +3634,7 @@
       "present": ["anti-age", "retinoids", "vitamin-c", "vitamin-e"],
       "absent": [
         "aha",
+        "apaisant",
         "bha",
         "ceramides",
         "enzymes-exfoliants",
@@ -3512,11 +3645,10 @@
         "polyphenols",
         "texture-legere",
         "texture-riche",
-        "tyrosinase-inhibitors",
-        "apaisant"
+        "tyrosinase-inhibitors"
       ],
       "annotatedAt": "2026-05-10",
-      "sampledFor": ["retinoids", "apaisant"],
+      "sampledFor": ["apaisant", "retinoids"],
       "notes": "Retinol pos-10, ascorbyl tetraisopalmitate + sodium ascorbyl phosphate, tocopherol. Glycine soja oil pos-6 → veg-oil exclusion → texture-legere absent. Lactic acid pos-35 = pH adjuster. | anti-age: present (recall FN) — rétinol, algo n'a pas tagué | apaisant: lead anti-age retinol"
     },
     {
@@ -3638,6 +3770,16 @@
       "notes": "protection: absent — no protection claim; non-protection lead"
     },
     {
+      "productSlug": "dermalogica-daily-superfoliant",
+      "kind": "exfoliant",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "dermalogica-ultracalming-cleanser",
       "kind": "cleanser",
       "category": "skincare",
@@ -3684,17 +3826,17 @@
       "present": ["anti-age"],
       "absent": ["hyperpigmentation", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) · hp: rétinoïdes nuit anti-âge (≠ pigment) | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) · hp: rétinoïdes nuit anti-âge (≠ pigment) | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "dermeden-creme-mains-action-globale",
       "kind": "hand-cream",
       "category": "bodycare",
       "present": [],
-      "absent": ["pores-sebum", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "pores-sebum"],
       "notes": "eclat-teint: absent — crème mains, prévient taches = hyperpig au plus"
     },
     {
@@ -3782,8 +3924,8 @@
       "present": ["anti-age", "cernes-poches"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | cernes-poches: present (recall FN) — cible rides, taches, cernes",
-      "sampledFor": ["cernes-poches"]
+      "sampledFor": ["cernes-poches"],
+      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | cernes-poches: present (recall FN) — cible rides, taches, cernes"
     },
     {
       "productSlug": "dexeryl-creme-secheresses-cutanees",
@@ -3822,8 +3964,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "dexeryl-essentiel-lait-nourrissant",
@@ -3852,8 +3993,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — lait nourrissant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — lait nourrissant"
     },
     {
       "productSlug": "dexeryl-specific-brulures-et-coups-de-soleil",
@@ -3882,8 +4023,18 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — réparateur atopique anti-démangeaisons",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — réparateur atopique anti-démangeaisons"
+    },
+    {
+      "productSlug": "dexyane-protective-cleansing-oil",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
       "productSlug": "dr-althea-345-relief-cream",
@@ -3912,8 +4063,8 @@
       "present": [],
       "absent": ["anti-age", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | rougeurs-vasculaires: absent — vit C illuminateur/teint",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | rougeurs-vasculaires: absent — vit C illuminateur/teint"
     },
     {
       "productSlug": "dr-althea-oasis-soothing-mask",
@@ -3941,8 +4092,8 @@
       "present": ["rougeurs-vasculaires"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: present — azélaïque 10% + rosacée + réduit rougeurs : positionnement rougeurs/rosacée",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: present — azélaïque 10% + rosacée + réduit rougeurs : positionnement rougeurs/rosacée"
     },
     {
       "productSlug": "dr-ceuracle-cica-regen-92-toner",
@@ -3959,9 +4110,9 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": ["apaisant"],
-      "absent": ["rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "rougeurs-vasculaires", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "reparation-cutanee", "rougeurs-vasculaires"],
       "notes": "Soothing Gel 95% centella, soulage peaux irritees (lead apaisant) | rougeurs-vasculaires: absent — gel centella apaisant peaux abîmées ; pas claim rougeur | reparation-cutanee: absent — soothing/neighbor lead despite damage vocab"
     },
     {
@@ -4049,9 +4200,9 @@
       "kind": "lip-care",
       "category": "skincare",
       "present": [],
-      "absent": ["hyperpigmentation", "pores-sebum", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation", "pores-sebum"],
       "notes": "vit K cernes/rougeurs vasculaire, pas mélanine ; eclat-teint: absent — huile vita-K, lead nourrissant/cernes/vascularité, teint radieux secondaire"
     },
     {
@@ -4080,17 +4231,17 @@
         "aha",
         "anti-age",
         "bha",
+        "eclat-teint-uniforme",
         "enzymes-exfoliants",
         "fini-mat",
         "peptides",
         "pha",
         "retinoids",
         "texture-legere",
-        "texture-riche",
-        "eclat-teint-uniforme"
+        "texture-riche"
       ],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["polyphenols", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "polyphenols"],
       "notes": "ACIDE ASCORBIQUE pos-1; TOCOPHEROL; SODIUM HYALURONATE; ROSMARINUS OFFICINALIS (polyphenol); CERAMIDE NP; ACIDE TRANEXAMIQUE (tyrosinase). Powder ampoule, light texture. [adjust] texture-legere absent: powder ampoule top 1 = ACIDE ASCORBIQUE actif, not aqueous base (detector requires water/glycerin top 3). | anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: absent — vit C ampoule multi-claim (brightening/hyperpig/anti-âge), pas de lead teint unique"
     },
     {
@@ -4130,8 +4281,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "dr-ceuracle-tea-tree-purifine-95-essence",
@@ -4140,8 +4290,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "dr-ceuracle-tea-tree-purifine-cleansing-foam",
@@ -4150,8 +4299,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "dr-ceuracle-tea-tree-purifine-soothing-mask",
@@ -4239,11 +4387,11 @@
         "fini-mat",
         "peptides",
         "pha",
+        "protection",
         "retinoids",
         "texture-riche",
         "tyrosinase-inhibitors",
-        "vitamin-c",
-        "protection"
+        "vitamin-c"
       ],
       "annotatedAt": "2026-05-11",
       "sampledFor": ["polyphenols", "protection"],
@@ -4263,10 +4411,10 @@
       "productSlug": "dr-idriss-left-un-red-calmback-cream-apaisante",
       "kind": "moisturizer",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "crème apaisante barrière, céramides + zinc PCA (claim barrière explicite, lead retenu) | apaisant: soin calmant/apaisant (lead)"
     },
     {
@@ -4293,10 +4441,10 @@
       "productSlug": "dr-idriss-the-depuffer-serum-roller-anti-gonflements",
       "kind": "serum",
       "category": "skincare",
-      "present": ["apaisant", "rougeurs-vasculaires", "cernes-poches"],
+      "present": ["apaisant", "cernes-poches", "rougeurs-vasculaires"],
       "absent": ["eczema-atopie"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "rougeurs-vasculaires", "eczema-atopie", "cernes-poches"],
+      "sampledFor": ["apaisant", "cernes-poches", "eczema-atopie", "rougeurs-vasculaires"],
       "notes": "rouleau anti-rougeurs+degonflant, soulage rougeurs transitoires (anti-rougeurs co-lead) [flag] | rougeurs-vasculaires: present — anti-rougeurs explicite (roller anti-rougeurs, soulage rougeurs transitoires) | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné contour yeux | cernes-poches: present (recall FN) — minimise poches sous-oculaires (dégonflant)"
     },
     {
@@ -4362,7 +4510,7 @@
       "productSlug": "dr-jart-cicapair-intensive-soothing-repair-cream",
       "kind": "moisturizer",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": ["pores-sebum", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant", "barriere-cutanee", "pores-sebum"],
@@ -4383,12 +4531,12 @@
       "kind": "serum",
       "category": "skincare",
       "present": ["barriere-cutanee"],
-      "absent": ["hyperpigmentation", "eclat-teint-uniforme", "reparation-cutanee"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
       "sampledFor": [
-        "hyperpigmentation",
         "barriere-cutanee",
         "eclat-teint-uniforme",
+        "hyperpigmentation",
         "reparation-cutanee"
       ],
       "notes": "cica réparateur rougeurs | barriere: Cicapair masque sérum réparateur (barrière) ; eclat-teint: absent — cica réparateur apaisant | reparation-cutanee: absent — cica name, soothing lead (Fork 1)"
@@ -4400,8 +4548,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — Cicapair cleanser centella apaisant ; pas de claim rougeur frontal",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — Cicapair cleanser centella apaisant ; pas de claim rougeur frontal"
     },
     {
       "productSlug": "dr-jart-cicapair-serum-reparateur-apaisant",
@@ -4438,10 +4586,10 @@
         "pha",
         "polyphenols",
         "retinoids",
+        "rougeurs-vasculaires",
         "texture-riche",
         "tyrosinase-inhibitors",
-        "vitamin-c",
-        "rougeurs-vasculaires"
+        "vitamin-c"
       ],
       "annotatedAt": "2026-05-10",
       "sampledFor": ["texture-legere"],
@@ -4502,9 +4650,9 @@
       "kind": "primer",
       "category": "skincare",
       "present": ["pores-sebum"],
-      "absent": ["rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "rougeurs-vasculaires", "reparation-cutanee"],
+      "sampledFor": ["pores-sebum", "reparation-cutanee", "rougeurs-vasculaires"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté) | rougeurs-vasculaires: absent — base lissante pores | reparation-cutanee: absent — renewal/anti-age lead (Fork 3)"
     },
     {
@@ -4614,6 +4762,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["deshydratation"],
       "notes": "nettoyant/demaquillant/savon (support)"
+    },
+    {
+      "productSlug": "dr-sams-flawless-brightly-eye-serum",
+      "kind": "eye-cream",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["texture-riche"]
     },
     {
       "productSlug": "dr-sams-flawless-brightly-serum",
@@ -4756,8 +4913,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — émollient anti-grattage atopique",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — émollient anti-grattage atopique"
     },
     {
       "productSlug": "ducray-dexyane-creme-barriere-isolante-100ml-275473",
@@ -4826,8 +4983,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "ducray-melascreen-fluide-antitaches-protecteur-spf50-50-ml-275589",
@@ -4900,6 +5056,16 @@
       "notes": "Embryolisse Les Hydratants (lead, rate par l'algo)"
     },
     {
+      "productSlug": "embryolisse-les-nettoyants-lait-creme-moussant-200ml-259245",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "embryolisse-mascara-soin-courbe-et-definition-noir-8ml-233886",
       "kind": "moisturizer",
       "category": "skincare",
@@ -4926,8 +5092,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "embryolisse-serum-anti-imperfections-30ml-233885",
@@ -4936,8 +5101,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "embryolisse-serum-capsules-eclat-30ml-304314",
@@ -4975,11 +5139,11 @@
       "category": "skincare",
       "present": [
         "ceramides",
+        "eclat-teint-uniforme",
         "polyphenols",
         "texture-legere",
         "tyrosinase-inhibitors",
-        "vitamin-e",
-        "eclat-teint-uniforme"
+        "vitamin-e"
       ],
       "absent": [],
       "annotatedAt": "2026-05-25",
@@ -5179,6 +5343,15 @@
       "sampledFor": ["ceramides"]
     },
     {
+      "productSlug": "etude-house-moistfull-collagen-toner",
+      "kind": "toner",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["deshydratation"]
+    },
+    {
       "productSlug": "etude-house-soon-jung-ph-5-5-relief-toner",
       "kind": "toner",
       "category": "skincare",
@@ -5225,8 +5398,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — SPF apaisant sensibles",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — SPF apaisant sensibles"
     },
     {
       "productSlug": "etude-house-soonjung-relief-toner",
@@ -5385,7 +5558,7 @@
       "present": ["apaisant", "rougeurs-vasculaires"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "soin jour anti-rougeurs SPF (apaisant) | apaisant: ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — Anti-Rougeurs Soin de Jour, lead rougeurs (SPF non-excluant)"
     },
     {
@@ -5528,6 +5701,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyperpigmentation"],
       "notes": "anti-âge éclat, 0 claim pigment (lead must be pigment); thiamidol non positionné — ancien recall FN écarté"
+    },
+    {
+      "productSlug": "eucerin-hyaluron-filler-3x-effect-soin-de-jour-spf15-recharge",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["hyaluronic-acid"]
     },
     {
       "productSlug": "eucerin-hyaluron-filler-creme-mains-spf30",
@@ -5676,8 +5858,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — SPF anti-âge",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — SPF anti-âge"
     },
     {
       "productSlug": "eucerin-urearepair-30-creme-corps",
@@ -5726,8 +5908,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "garancia-a-la-belle-etoile-creme-supreme-de-nuit-regeneratrice-visage-et-cou-40ml-249786",
@@ -5872,6 +6053,7 @@
       "present": ["hyaluronic-acid", "peptides", "texture-legere", "vitamin-e"],
       "absent": [
         "aha",
+        "barriere-cutanee",
         "bha",
         "ceramides",
         "enzymes-exfoliants",
@@ -5881,11 +6063,10 @@
         "retinoids",
         "texture-riche",
         "tyrosinase-inhibitors",
-        "vitamin-c",
-        "barriere-cutanee"
+        "vitamin-c"
       ],
       "annotatedAt": "2026-05-10",
-      "sampledFor": ["peptides", "barriere-cutanee"],
+      "sampledFor": ["barriere-cutanee", "peptides"],
       "notes": "Hydrolyzed HA + sodium HA. Oligopeptide-1 pos-9, tocopherol pos-8. Helianthus annuus seed oil pos-12 (past 8) — texture-legere passes. Croton lechleri not in polyphenol patterns. | barriere: booster EGF anti-âge"
     },
     {
@@ -5895,8 +6076,8 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)"
     },
     {
       "productSlug": "garancia-l-appel-de-la-foret-serum-double-phase-eclat-jeunesse-booster-de-vitamine-c-30ml-249769",
@@ -5935,8 +6116,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "garancia-que-mes-rougeurs-disparaissent-creme-de-nuit-concentree-anti-age-50ml-249754",
@@ -6054,8 +6234,8 @@
       "present": [],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "",
-      "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s). | barriere: sérum niacinamide peaux grasses (ubiquité)",
-      "sampledFor": ["barriere-cutanee"]
+      "sampledFor": ["barriere-cutanee"],
+      "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s). | barriere: sérum niacinamide peaux grasses (ubiquité)"
     },
     {
       "productSlug": "geek-gorgeous-c-glow",
@@ -6064,7 +6244,7 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "",
-      "sampledFor": ["vitamin-c", "protection"],
+      "sampledFor": ["protection", "vitamin-c"],
       "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s). | anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
@@ -6086,6 +6266,15 @@
       "annotatedAt": "",
       "sampledFor": ["aha", "bha"],
       "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s)."
+    },
+    {
+      "productSlug": "geek-gorgeous-ha-5-light",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["hyaluronic-acid"]
     },
     {
       "productSlug": "geek-gorgeous-happier-barrier",
@@ -6142,8 +6331,8 @@
       "present": [],
       "absent": ["reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s). | reparation-cutanee: absent — repair co-mention, no lesion language",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "Added from Geek & Gorgeous product with structured % concentration claim(s). | reparation-cutanee: absent — repair co-mention, no lesion language"
     },
     {
       "productSlug": "haruharu-black-rice-bakuchiol-eye-cream",
@@ -6209,8 +6398,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "haruharu-wonder-black-rice-10-hyaluronic-cream",
@@ -6378,8 +6566,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "im-from-fig-enzyme-powder-cleanser",
@@ -6472,6 +6659,15 @@
       "notes": "soin calmant/apaisant (lead)"
     },
     {
+      "productSlug": "im-from-rice-cream",
+      "kind": "moisturizer",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["rougeurs-vasculaires"]
+    },
+    {
       "productSlug": "im-from-rice-sheet-mask",
       "kind": "mask",
       "category": "skincare",
@@ -6488,8 +6684,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "im-from-rice-toner-pad",
@@ -6498,8 +6693,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — pads hydratant/éclat riz",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — pads hydratant/éclat riz"
     },
     {
       "productSlug": "im-from-rice-whip-facial-cleanser",
@@ -6633,8 +6828,18 @@
       "present": ["anti-age", "barriere-cutanee"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | barriere: rétinol+cica, régénère barrière explicite (cica-repair) [flag]",
-      "sampledFor": ["barriere-cutanee"]
+      "sampledFor": ["barriere-cutanee"],
+      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | barriere: rétinol+cica, régénère barrière explicite (cica-repair) [flag]"
+    },
+    {
+      "productSlug": "isdin-acniben-mousse-nettoyante-purifiante-pour-peaux-grasses-150-ml-236208",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
       "productSlug": "isdin-acniben-night-concentrate-serum-de-nuit-anti-imperfections-27-ml-244679",
@@ -6647,6 +6852,15 @@
       "notes": "eclat-teint: absent — acné nuit"
     },
     {
+      "productSlug": "isdin-acniben-on-the-spot-gel-15-ml-235903",
+      "kind": "spot-treatment",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["aha"]
+    },
+    {
       "productSlug": "isdin-eryfotona-night-serum-de-nuit-reparateur-50-ml-244725",
       "kind": "sunscreen",
       "category": "solaire",
@@ -6655,6 +6869,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyperpigmentation", "protection"],
       "notes": "réparation nuit photo-âge, 0 pigment | protection: absent — post-exposure repair (after-sun/night/self-tanner) != protection (E)"
+    },
+    {
+      "productSlug": "isdin-fotoprotector-body-lotion-spray-spf50-250ml-305760",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["apaisant"]
     },
     {
       "productSlug": "isdin-fotoprotector-coverage-fond-de-teint-pearl-spf50-30ml-302723",
@@ -6707,6 +6930,15 @@
       "notes": "protection: present — sunscreen — UV protection is the lead"
     },
     {
+      "productSlug": "isdin-fotoprotector-mineral-baby-creme-solaire-visage-pour-enfants-spf50-50ml-268185",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["rougeurs-vasculaires"]
+    },
+    {
       "productSlug": "isdin-fotoultra-100-activ-unify-color-spf50-50ml-244461",
       "kind": "sunscreen",
       "category": "solaire",
@@ -6730,7 +6962,7 @@
       "productSlug": "isdin-fotoultra-redness-creme-solaire-anti-rougeurs-spf-50-50-ml-244689",
       "kind": "sunscreen",
       "category": "solaire",
-      "present": ["apaisant", "rougeurs-vasculaires", "protection"],
+      "present": ["apaisant", "protection", "rougeurs-vasculaires"],
       "absent": [],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant", "protection"],
@@ -6793,8 +7025,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "isdin-isdinceutics-flavo-c-forte-serum-visage-illuminateur-vitamine-c-5-3ml-244667",
@@ -6803,8 +7034,8 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "isdin-isdinceutics-flavo-c-melatonin-serum-visage-nuit-reparateur-antioxydant-vitamine-c-10-x-2ml-232777",
@@ -6885,7 +7116,7 @@
       "present": ["pha", "texture-legere", "tyrosinase-inhibitors", "vitamin-e"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["tyrosinase-inhibitors", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "tyrosinase-inhibitors"],
       "notes": "TRANEXAMIC ACID + 4-BUTYLRESORCINOL (tyrosinase); GLUCONOLACTONE pos-3 (pha); TOCOPHEROL+TOCOPHERYL ACETATE. Mandelic acid pos-13 (past cap) — aha unrated. ; eclat-teint: absent — anti-taches tranexamic/mandelic = hyperpig"
     },
     {
@@ -6895,8 +7126,8 @@
       "present": ["anti-age"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "isdin-isdinceutics-retinal-smooth-serum-anti-age-au-retinadehyde-50-ml-244733",
@@ -6978,14 +7209,24 @@
       "notes": "keratose-pilaire: absent — urée 30% zones épaissies/durillons (callosités), domaine distinct"
     },
     {
+      "productSlug": "isdin-ureadin-ultra-40-gel-huile-exfoliant-intense-40-d-uree-30-ml-235644",
+      "kind": "exfoliant",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "isdn-retinal-eyes-serum-contour-des-yeux-20ml-303430",
       "kind": "eye-cream",
       "category": "skincare",
       "present": ["anti-age"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "isispharma-cicapro-cream-spf50-40ml-307609",
@@ -6998,6 +7239,15 @@
       "notes": "ecran (support, SPF lead)"
     },
     {
+      "productSlug": "isispharma-duo-anti-taches-pigmentaires-300803",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["hyperpigmentation"]
+    },
+    {
       "productSlug": "isispharma-geneskin-lift-serum-liftant-28ml-274244",
       "kind": "serum",
       "category": "skincare",
@@ -7006,6 +7256,15 @@
       "annotatedAt": "2026-05-09",
       "sampledFor": ["peptides"],
       "notes": "RETINYL PALMITATE visible; SODIUM HYALURONATE; SILICA pos-7 (fini-mat). Peptides unrated (INCI truncated). DB tags peptides."
+    },
+    {
+      "productSlug": "isispharma-glyco-a-peeling-corps-200ml-274264",
+      "kind": "body-scrub",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["keratose-pilaire"]
     },
     {
       "productSlug": "isispharma-glyco-a-post-peeling-creme-apaisante-reparatrice-40ml-274262",
@@ -7047,13 +7306,23 @@
       "notes": "Cleanser → sensoriels unrated. Glycolic pos-16 + salicylic pos-17 = past cap 10, trace in rinse-off → AHA/BHA absent. Tocopherol + ascorbyl tetraisopalmitate present. Glycyrrhiza glabra not in tyrosinase patterns (ubiquitous, excluded by mechanism)."
     },
     {
+      "productSlug": "isispharma-neotone-gel-nettoyant-exfoliant-taches-pigmentaires-40ml-302129",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "isispharma-neotone-radiance-spf50-fluide-intensif-protecteur-taches-brunes-30ml-278100",
       "kind": "sunscreen",
       "category": "solaire",
       "present": ["eclat-teint-uniforme"],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "pores-sebum"],
       "notes": "eclat-teint: present — SPF non-excluant, Neotone Radiance anti-taches (non teinté)"
     },
     {
@@ -7083,8 +7352,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "isispharma-neotone-serum-intensif-taches-brunes-localisees-30ml-269487",
@@ -7177,6 +7445,15 @@
       "notes": "protection: present (recall FN) — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
+      "productSlug": "isispharma-teen-derm-a-z-soin-intense-anti-imperfections-anti-marques-30ml-274268",
+      "kind": "spot-treatment",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["acne-imperfections"]
+    },
+    {
       "productSlug": "isispharma-teen-derm-gel-gel-nettoyant-exfoliant-40ml-302145",
       "kind": "cleanser",
       "category": "skincare",
@@ -7231,9 +7508,9 @@
       "kind": "balm",
       "category": "skincare",
       "present": [],
-      "absent": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation"],
       "notes": "baume kératolytique urée, hydratation peau sèche ; eclat-teint: absent — baume kératolytique urée, hydratation, pas teint"
     },
     {
@@ -7253,8 +7530,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — after-sun, pas de claim rougeur",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — after-sun, pas de claim rougeur"
     },
     {
       "productSlug": "isispharma-uveblock-spf50-sun-serum-triple-action-28ml-302073",
@@ -7280,10 +7557,10 @@
       "productSlug": "isispharma-xerolan-spray-emollient-reparateur-apaisant-150ml-266908",
       "kind": "mist",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "Xerolan spray émollient réparateur (barrière) | apaisant: soin peaux sensibles/atopiques apaisant (lead)"
     },
     {
@@ -7393,8 +7670,8 @@
       "present": ["anti-age"],
       "absent": ["reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "anti-age: present (recall FN) — rétinol, algo n'a pas tagué | reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
     },
     {
       "productSlug": "isntree-hyper-vitamin-c23-serum",
@@ -7403,8 +7680,8 @@
       "present": [],
       "absent": ["anti-age", "eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: absent — vit C 23% multi-claim (hyperpig/anti-âge/radiance) sans lead teint unique",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: absent — vit C 23% multi-claim (hyperpig/anti-âge/radiance) sans lead teint unique"
     },
     {
       "productSlug": "isntree-mugwort-calming-ampoule-1",
@@ -7433,8 +7710,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — toner apaise imperfections/unifie teint ; pas claim rougeur frontal",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — toner apaise imperfections/unifie teint ; pas claim rougeur frontal"
     },
     {
       "productSlug": "isntree-onion-newpair-spot-patch-basic",
@@ -7473,7 +7750,7 @@
       "present": ["apaisant"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "masque calmant rose (apaisant) | apaisant: soin calmant/apaisant (lead)"
     },
     {
@@ -7513,8 +7790,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — sérum apaisant tea tree/centella sensibles/imperfections",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — sérum apaisant tea tree/centella sensibles/imperfections"
     },
     {
       "productSlug": "jumiso-all-day-vitamin-brightening-balancing-facial-serum",
@@ -7599,17 +7876,17 @@
       "productSlug": "jumiso-d-panthenol-barrier-soothing-cream-sca_clone_freegift",
       "kind": "moisturizer",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "D-Panthenol barrier cream (lead) | apaisant: soin calmant/apaisant (lead)"
     },
     {
       "productSlug": "jumiso-d-panthenol-barrier-soothing-serum",
       "kind": "serum",
       "category": "skincare",
-      "present": ["barriere-cutanee", "apaisant"],
+      "present": ["apaisant", "barriere-cutanee"],
       "absent": ["pores-sebum", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant", "barriere-cutanee", "pores-sebum", "reparation-cutanee"],
@@ -7669,6 +7946,16 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum", "protection"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté) | protection: absent — no protection claim; non-protection lead"
+    },
+    {
+      "productSlug": "jumiso-pore-purifying-salicylic-acid-foaming-cleanser",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
       "productSlug": "jumiso-snail-mucin-95-peptide-facial-essence",
@@ -7823,6 +8110,16 @@
       "annotatedAt": "2026-05-11",
       "sampledFor": ["texture-legere"],
       "notes": "TOCOPHEROL; sunscreen \"fluide\" — top 3 AQUA/DIBUTYL ADIPATE/UV filter, no heavy oil top 8. SILICA pos-13 past fini-mat cap 8."
+    },
+    {
+      "productSlug": "kreme-gelee-fraiche-nettoyante-demaquillante",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
       "productSlug": "kreme-huile-apaisante-sos-apaisante-bio",
@@ -8009,8 +8306,8 @@
       "present": ["acne-imperfections"],
       "absent": ["hyperpigmentation", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "notes": "acne: present — Effaclar AZ = acide azélaïque [recall: algo a raté] · hp: Effaclar AZ azélaïque acné",
-      "sampledFor": ["pores-sebum"]
+      "sampledFor": ["pores-sebum"],
+      "notes": "acne: present — Effaclar AZ = acide azélaïque [recall: algo a raté] · hp: Effaclar AZ azélaïque acné"
     },
     {
       "productSlug": "la-roche-posay-effaclar-duo-m-22-patchs-anti-imperfections",
@@ -8019,8 +8316,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "la-roche-posay-effaclar-eau-micellaire",
@@ -8047,13 +8343,13 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": ["fini-mat", "texture-legere"],
-      "absent": ["barriere-cutanee", "rougeurs-vasculaires", "eclat-teint-uniforme"],
+      "absent": ["barriere-cutanee", "eclat-teint-uniforme", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
       "sampledFor": [
-        "fini-mat",
         "barriere-cutanee",
-        "rougeurs-vasculaires",
-        "eclat-teint-uniforme"
+        "eclat-teint-uniforme",
+        "fini-mat",
+        "rougeurs-vasculaires"
       ],
       "notes": "ZEA MAYS STARCH pos-6 = mattifying. Effaclar H = oily/combination skin moisturizer, light formula. | barriere: hydratant compensateur peaux grasses post-acné, pas lead barrière | rougeurs-vasculaires: absent — hydratant peaux grasses acné ; eclat-teint: absent — crème compensatrice peaux acné asséchées"
     },
@@ -8094,8 +8390,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — sérum HA anti-rides",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — sérum HA anti-rides"
     },
     {
       "productSlug": "la-roche-posay-hyalu-b5-serum-suractive-50ml",
@@ -8111,14 +8407,14 @@
       "productSlug": "la-roche-posay-hyalu-b5-serum-yeux",
       "kind": "eye-cream",
       "category": "skincare",
-      "present": ["deshydratation", "cernes-poches"],
-      "absent": ["rougeurs-vasculaires", "reparation-cutanee"],
+      "present": ["cernes-poches", "deshydratation"],
+      "absent": ["reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
       "sampledFor": [
+        "cernes-poches",
         "deshydratation",
-        "rougeurs-vasculaires",
         "reparation-cutanee",
-        "cernes-poches"
+        "rougeurs-vasculaires"
       ],
       "notes": "soin HA reparateur-hydratant (lead, rate par l'algo) | rougeurs-vasculaires: absent — anti-âge yeux | reparation-cutanee: absent — renewal/anti-age lead (Fork 3) | cernes-poches: present — complexe anti-cernes 10% nommé (caféine/niacinamide/HEPES)"
     },
@@ -8133,14 +8429,22 @@
       "notes": "protection: present (recall FN) — sunscreen — UV protection is the lead"
     },
     {
+      "productSlug": "la-roche-posay-hydraphase-ha-uv-spf25-riche",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["pores-sebum"]
+    },
+    {
       "productSlug": "la-roche-posay-lipikar-gel-lavant",
       "kind": "body-wash",
       "category": "bodycare",
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "la-roche-posay-lipikar-gel-lavant-apaisant-recharge",
@@ -8199,8 +8503,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "la-roche-posay-lipikar-lait-urea-10-hydratant-triple-action-400ml",
@@ -8213,14 +8516,22 @@
       "notes": "soin hydratant, hydratation (lead, rate par l'algo)"
     },
     {
+      "productSlug": "la-roche-posay-lipikar-surgras-creme-lavante",
+      "kind": "body-wash",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["eczema-atopie"]
+    },
+    {
       "productSlug": "la-roche-posay-lipikar-surgras-creme-lavante-recharge",
       "kind": "body-wash",
       "category": "bodycare",
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "la-roche-posay-lipikar-xerand-creme-mains-reparatrice",
@@ -8229,8 +8540,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — crème mains réparatrice sèches",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — crème mains réparatrice sèches"
     },
     {
       "productSlug": "la-roche-posay-lotion-apaisante",
@@ -8260,6 +8571,15 @@
       ],
       "annotatedAt": "2026-05-10",
       "sampledFor": ["pha"]
+    },
+    {
+      "productSlug": "la-roche-posay-mela-b3-serum",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["bha"]
     },
     {
       "productSlug": "la-roche-posay-pure-vitamin-c12-serum",
@@ -8449,8 +8769,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — lait toilette bébé",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — lait toilette bébé"
     },
     {
       "productSlug": "la-rosee-lait-solaire-a-l-huile-d-abricot-bebe-enfants-spf50",
@@ -8481,6 +8801,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["deshydratation"],
       "notes": "soin hydratant, hydratation (lead, rate par l'algo)"
+    },
+    {
+      "productSlug": "la-rosee-recharge-gel-nettoyant-anti-imperfections",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["pha"]
     },
     {
       "productSlug": "la-rosee-serum-visage-repulpant",
@@ -8681,8 +9010,8 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
       "productSlug": "laneige-water-bank-blue-hyaluronic-cleansing-foam",
@@ -8771,8 +9100,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — soin capillaire",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — soin capillaire"
     },
     {
       "productSlug": "les-secrets-de-loly-serum-de-finition-multi-protection",
@@ -8831,17 +9160,16 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "lierac-hydragenist-le-serum-rehydratant",
       "kind": "serum",
       "category": "skincare",
-      "present": ["hyaluronic-acid", "pha", "texture-legere", "deshydratation"],
+      "present": ["deshydratation", "hyaluronic-acid", "pha", "texture-legere"],
       "absent": [],
       "annotatedAt": "2026-05-09",
-      "sampledFor": ["texture-legere", "deshydratation"],
+      "sampledFor": ["deshydratation", "texture-legere"],
       "notes": "GLUCONOLACTONE pos-8 (pha); SODIUM HYALURONATE pos-11 (ha). Light serum. | deshydratation: soin HA reparateur-hydratant (lead, rate par l'algo)"
     },
     {
@@ -8891,8 +9219,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) ; eclat-teint: present — nom 'Radiance Protocol', 'redonner éclat'",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) ; eclat-teint: present — nom 'Radiance Protocol', 'redonner éclat'"
     },
     {
       "productSlug": "lierac-sunissime-fluide-solaire-teinte-dore-spf30",
@@ -8955,6 +9283,15 @@
       "notes": "baume regard anti-âge (rides/poches) | cernes-poches: present (recall FN) — réduit poches et cernes"
     },
     {
+      "productSlug": "loccitane-immortelle-huile-demaquillante-200ml",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["vitamin-e"]
+    },
+    {
       "productSlug": "loccitane-immortelle-huile-jeunesse-30ml",
       "kind": "oil",
       "category": "skincare",
@@ -8997,11 +9334,11 @@
         "fini-mat",
         "pha",
         "polyphenols",
+        "reparation-cutanee",
         "retinoids",
         "texture-riche",
         "tyrosinase-inhibitors",
-        "vitamin-c",
-        "reparation-cutanee"
+        "vitamin-c"
       ],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyaluronic-acid", "reparation-cutanee"],
@@ -9054,8 +9391,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — nettoyant pores/apaisant (heartleaf), pas rougeur",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — nettoyant pores/apaisant (heartleaf), pas rougeur"
     },
     {
       "productSlug": "mary-may-houttuynia-cordata-tea-tree-serum",
@@ -9064,8 +9401,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — sérum pores/apaisant antibactérien (heartleaf/acné)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — sérum pores/apaisant antibactérien (heartleaf/acné)"
     },
     {
       "productSlug": "mary-may-hyaluronic-panthenol-hydra-mask",
@@ -9104,8 +9441,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "mary-may-marine-collagen-serum",
@@ -9124,8 +9460,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "mary-may-retinol-0-1-bakuchiol-cica-serum",
@@ -9187,6 +9522,15 @@
       "notes": "protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
+      "productSlug": "mary-may-vegan-low-ph-hyaluronic-gel-cleanser",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["ceramides"]
+    },
+    {
       "productSlug": "mary-may-vegan-peptide-bakuchiol-sun-stick-spf50-pa",
       "kind": "moisturizer",
       "category": "skincare",
@@ -9216,8 +9560,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — baume démaquillant, hydratant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — baume démaquillant, hydratant"
     },
     {
       "productSlug": "mary-may-vitamine-b5-bifida-toner",
@@ -9236,7 +9580,7 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "pores-sebum"],
       "notes": "eclat-teint: present — glutathion illuminer peaux ternes"
     },
     {
@@ -9254,12 +9598,12 @@
       "kind": "toner",
       "category": "skincare",
       "present": [
+        "eclat-teint-uniforme",
         "peptides",
         "pha",
         "polyphenols",
         "texture-legere",
-        "tyrosinase-inhibitors",
-        "eclat-teint-uniforme"
+        "tyrosinase-inhibitors"
       ],
       "absent": [
         "aha",
@@ -9274,7 +9618,7 @@
         "vitamin-e"
       ],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["tyrosinase-inhibitors", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "tyrosinase-inhibitors"],
       "notes": "eclat-teint: present — glutathion+arbutine illuminer le teint"
     },
     {
@@ -9284,8 +9628,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — 'illuminer teint terne', 'teint radieux et uniforme' = lead radiance+teint (+ hyperpig)",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — 'illuminer teint terne', 'teint radieux et uniforme' = lead radiance+teint (+ hyperpig)"
     },
     {
       "productSlug": "medicube-azelaic-acid-16-bb-calming-serum",
@@ -9334,8 +9678,8 @@
       "present": ["anti-age"],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | rougeurs-vasculaires: absent — rétinol anti-âge",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | rougeurs-vasculaires: absent — rétinol anti-âge"
     },
     {
       "productSlug": "medicube-deep-vita-c-ampoule-2-0",
@@ -9350,10 +9694,10 @@
       "productSlug": "medicube-glutathione-glow-serum",
       "kind": "serum",
       "category": "skincare",
-      "present": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "present": ["eclat-teint-uniforme", "hyperpigmentation"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation"],
       "notes": "glutathion + 'uniformiser le teint'/taches ; eclat-teint: present — nom 'Glow', 'peau éclatante et uniforme', 'teint terne', 'irrégularités du teint' = lead radiance+teint"
     },
     {
@@ -9380,12 +9724,12 @@
         "hyaluronic-acid",
         "peptides",
         "polyphenols",
+        "reparation-cutanee",
         "retinoids",
         "texture-riche",
         "tyrosinase-inhibitors",
         "vitamin-c",
-        "vitamin-e",
-        "reparation-cutanee"
+        "vitamin-e"
       ],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["bha", "reparation-cutanee"],
@@ -9398,8 +9742,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — booster régénération",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — booster régénération"
     },
     {
       "productSlug": "medicube-pdrn-pink-cica-soothing-toner",
@@ -9418,8 +9762,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "medicube-pdrn-pink-glutathione-serum-mist",
@@ -9448,8 +9791,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "medicube-red-cream-2-0",
@@ -9537,8 +9879,8 @@
       "present": ["anti-age", "cernes-poches"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — peptides + rejuvenating (ridules, poches) | cernes-poches: present — atténue poches et ridules | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["cernes-poches", "protection"]
+      "sampledFor": ["cernes-poches", "protection"],
+      "notes": "anti-age: present — peptides + rejuvenating (ridules, poches) | cernes-poches: present — atténue poches et ridules | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "medik8-advanced-night-restore-cream",
@@ -9547,8 +9889,8 @@
       "present": ["anti-age"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — peptides + lutte signes de l'âge (vs night-ceramide=barrière, absent) | protection: absent — 'fonction protectrice/defense' = endogenous barrier reinforcement -> barriere, not external protection (C)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present — peptides + lutte signes de l'âge (vs night-ceramide=barrière, absent) | protection: absent — 'fonction protectrice/defense' = endogenous barrier reinforcement -> barriere, not external protection (C)"
     },
     {
       "productSlug": "medik8-c-tetra-lipid-vitamin-c-radiance-cream",
@@ -9662,8 +10004,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — sérum hydratant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — sérum hydratant"
     },
     {
       "productSlug": "medik8-intelligent-retinol-3tr-supercharged-serum",
@@ -9690,8 +10032,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — tonique exfoliant éclat",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — tonique exfoliant éclat"
     },
     {
       "productSlug": "medik8-r-retinoate-day-night-cream",
@@ -9700,8 +10042,8 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) ; eclat-teint: absent — anti-âge rétinoate",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: present — rétinoïde (actif anti-âge structurel) ; eclat-teint: absent — anti-âge rétinoate"
     },
     {
       "productSlug": "medik8-retinol-3tr-serum",
@@ -9722,14 +10064,34 @@
       "notes": "anti-age: present — rétinoïde (actif anti-âge structurel)"
     },
     {
+      "productSlug": "medik8-surface-radiance-cleanse",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "medik8-surface-radiance-cleanse-gel",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": ["aha"],
+      "absent": [],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "medik8-total-moisture-daily-facial-cream",
       "kind": "moisturizer",
       "category": "skincare",
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — hydratant céramides barrière",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — hydratant céramides barrière"
     },
     {
       "productSlug": "meme-creme-visage",
@@ -9738,8 +10100,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — hydratant sensibles/atopiques",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — hydratant sensibles/atopiques"
     },
     {
       "productSlug": "missha-3d-mascara",
@@ -9765,6 +10127,25 @@
       "sampledFor": ["texture-riche"]
     },
     {
+      "productSlug": "missha-airy-fit-sheet-mask-tea-tree",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["polyphenols"]
+    },
+    {
+      "productSlug": "missha-amazon-red-clay-pore-mask",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "missha-artemisia-calming-ampoule",
       "kind": "serum",
       "category": "skincare",
@@ -9781,8 +10162,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — contour yeux poches/cernes",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — contour yeux poches/cernes"
     },
     {
       "productSlug": "missha-cicadin-ph-blemish-bubble-foam-cleanser",
@@ -9791,8 +10172,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "missha-creamy-latte-cleansing-foam-cacao",
@@ -9851,8 +10231,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque revitalisant ginseng",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque revitalisant ginseng"
     },
     {
       "productSlug": "missha-speedy-solution-firming-gel-eye-patch",
@@ -9963,7 +10343,7 @@
       "kind": "mask",
       "category": "skincare",
       "present": [],
-      "absent": ["reparation-cutanee", "aha"],
+      "absent": ["aha", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["reparation-cutanee"],
       "notes": "reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
@@ -9995,8 +10375,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "missha-time-revolution-the-first-essence-mask",
@@ -10066,8 +10445,8 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
       "productSlug": "missha-vita-c-plus-spot-correcting-concentrate-ampoule",
@@ -10230,8 +10609,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "mixsoon-daily-mask-pack",
@@ -10250,8 +10628,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — pads grain/teint/pores",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — pads grain/teint/pores"
     },
     {
       "productSlug": "mixsoon-glacier-water-hyaluronic-acid-serum",
@@ -10302,8 +10680,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — pads HA hydratant apaisant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — pads HA hydratant apaisant"
     },
     {
       "productSlug": "mixsoon-soybean-milk-pad",
@@ -10336,6 +10714,33 @@
       "notes": "protection: absent — no protection claim; non-protection lead"
     },
     {
+      "productSlug": "murad-heartleaf-soothing-body-cleanser",
+      "kind": "body-wash",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["eczema-atopie"]
+    },
+    {
+      "productSlug": "murad-new-retinol-youth-renewal-eye-serum",
+      "kind": "eye-cream",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["retinoids"]
+    },
+    {
+      "productSlug": "murad-vita-c-glycolic-serum-deluxe-travel-size",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["tyrosinase-inhibitors"]
+    },
+    {
       "productSlug": "mustela-creme-nourrissante-cold-cream-a-la-cire-d-abeille-bio",
       "kind": "moisturizer",
       "category": "skincare",
@@ -10362,8 +10767,26 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — gel lavant bébé",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — gel lavant bébé"
+    },
+    {
+      "productSlug": "naturium-phyto-glow-lip-balm-crimson",
+      "kind": "lip-care",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["texture-riche"]
+    },
+    {
+      "productSlug": "naturium-the-brightener-vitamin-c-brightening-body-wash",
+      "kind": "body-wash",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["enzymes-exfoliants"]
     },
     {
       "productSlug": "neutraderm-brume-d-eau-soin-apaisant",
@@ -10431,7 +10854,7 @@
       "present": ["cernes-poches"],
       "absent": [],
       "annotatedAt": "",
-      "sampledFor": ["hyaluronic-acid", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "hyaluronic-acid"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | cernes-poches: present (recall FN) — anti-cernes anti-poches"
     },
     {
@@ -10441,7 +10864,7 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["ceramides", "hyaluronic-acid", "vitamin-c", "eclat-teint-uniforme"],
+      "sampledFor": ["ceramides", "eclat-teint-uniforme", "hyaluronic-acid", "vitamin-c"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) ; eclat-teint: present — Radiance Intense vit C 15%"
     },
     {
@@ -10451,7 +10874,7 @@
       "present": [],
       "absent": ["anti-age", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["retinoids", "tyrosinase-inhibitors", "vitamin-c", "reparation-cutanee"],
+      "sampledFor": ["reparation-cutanee", "retinoids", "tyrosinase-inhibitors", "vitamin-c"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | anti-age: absent — éclaircissante anti-taches, rétinol encapsulé secondaire (hyperpig) | reparation-cutanee: absent — detector FP (ubiquitous active), no repair positioning"
     },
     {
@@ -10469,9 +10892,9 @@
       "kind": "serum",
       "category": "skincare",
       "present": [],
-      "absent": ["deshydratation", "pores-sebum", "eczema-atopie"],
+      "absent": ["deshydratation", "eczema-atopie", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["deshydratation", "pores-sebum", "tyrosinase-inhibitors", "eczema-atopie"],
+      "sampledFor": ["deshydratation", "eczema-atopie", "pores-sebum", "tyrosinase-inhibitors"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | deshydratation: cica/reparation barriere (lead barriere) | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné exfoliant/acide"
     },
     {
@@ -10490,7 +10913,7 @@
       "present": [],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "",
-      "sampledFor": ["peptides", "barriere-cutanee"],
+      "sampledFor": ["barriere-cutanee", "peptides"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | barriere: sérum brume éclat (radiance)"
     },
     {
@@ -10500,7 +10923,7 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "",
-      "sampledFor": ["ceramides", "vitamin-c", "protection"],
+      "sampledFor": ["ceramides", "protection", "vitamin-c"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | protection: absent — no protection claim; non-protection lead"
     },
     {
@@ -10508,14 +10931,14 @@
       "kind": "serum",
       "category": "skincare",
       "present": [
+        "deshydratation",
         "hyaluronic-acid",
         "peptides",
         "polyphenols",
         "texture-legere",
         "tyrosinase-inhibitors",
         "vitamin-c",
-        "vitamin-e",
-        "deshydratation"
+        "vitamin-e"
       ],
       "absent": [
         "aha",
@@ -10528,7 +10951,7 @@
         "texture-riche"
       ],
       "annotatedAt": "2026-05-10",
-      "sampledFor": ["tyrosinase-inhibitors", "deshydratation"],
+      "sampledFor": ["deshydratation", "tyrosinase-inhibitors"],
       "notes": "5-HA serum + multi-peptide complex. Acetyl hexapeptide-8, palmitoyl tripeptide-1, etc. Ascorbyl palmitate, tocopherol, alpha-arbutin, camellia sinensis. Lactic/glycolic acid copolymer pos-41 (past cap, also copolymer not free acid) → AHA absent. | deshydratation: soin HA, hydratation (lead, rate par l'algo)"
     },
     {
@@ -10568,7 +10991,7 @@
       "present": ["apaisant"],
       "absent": [],
       "annotatedAt": "",
-      "sampledFor": ["tyrosinase-inhibitors", "apaisant"],
+      "sampledFor": ["apaisant", "tyrosinase-inhibitors"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | apaisant: ligne anti-rougeurs (lead)"
     },
     {
@@ -10595,7 +11018,7 @@
       "present": ["cernes-poches"],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["peptides", "pores-sebum", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "peptides", "pores-sebum"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | cernes-poches: present — anti-poches anti-cernes"
     },
     {
@@ -10605,7 +11028,7 @@
       "present": [],
       "absent": ["anti-age", "rougeurs-vasculaires"],
       "annotatedAt": "",
-      "sampledFor": ["ceramides", "tyrosinase-inhibitors", "vitamin-c", "rougeurs-vasculaires"],
+      "sampledFor": ["ceramides", "rougeurs-vasculaires", "tyrosinase-inhibitors", "vitamin-c"],
       "notes": "Added from Nooance product with structured % concentration claim(s). | anti-age: absent — brightening/anti-taches (hyperpigmentation) | rougeurs-vasculaires: absent — anti-taches (taches rouges = post-acné, pas vasculaire)"
     },
     {
@@ -10615,7 +11038,7 @@
       "present": ["apaisant", "rougeurs-vasculaires"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "lead anti-rougeurs (apaisant), défenses barrière secondaire [flag] | apaisant: ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — Sensidiane AR+ = anti-redness Noreva"
     },
     {
@@ -10756,8 +11179,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — pads pores/sébum",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — pads pores/sébum"
     },
     {
       "productSlug": "numbuzin-no-5-vitamin-concentrated-serum",
@@ -10784,9 +11207,9 @@
       "kind": "mask",
       "category": "skincare",
       "present": [],
-      "absent": ["deshydratation", "pores-sebum", "eclat-teint-uniforme"],
+      "absent": ["deshydratation", "eclat-teint-uniforme", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["deshydratation", "pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["deshydratation", "eclat-teint-uniforme", "pores-sebum"],
       "notes": "[flag] sleeping mask hydrate+nourrit mais cible peaux ternes (eclat-led) ; eclat-teint: absent — sleep mask hydratation/récup, teint radieux incident"
     },
     {
@@ -10846,8 +11269,8 @@
       "present": [],
       "absent": ["anti-age", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | reparation-cutanee: absent — repair co-mention, no lesion language",
-      "sampledFor": ["reparation-cutanee"]
+      "sampledFor": ["reparation-cutanee"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | reparation-cutanee: absent — repair co-mention, no lesion language"
     },
     {
       "productSlug": "numbuzin-no5-vitamin-niacinamide-concentrated-pad",
@@ -10856,18 +11279,18 @@
       "present": [],
       "absent": ["anti-age", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "numbuzin-no5-vitamin-spotlight-sheet-mask",
       "kind": "mask",
       "category": "skincare",
       "present": [],
-      "absent": ["anti-age", "rougeurs-vasculaires", "protection"],
+      "absent": ["anti-age", "protection", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | rougeurs-vasculaires: absent — masque éclat/taches | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["rougeurs-vasculaires", "protection"]
+      "sampledFor": ["protection", "rougeurs-vasculaires"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | rougeurs-vasculaires: absent — masque éclat/taches | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "numbuzin-no9-nad-pdrn-glow-boosting-toner",
@@ -10878,6 +11301,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyperpigmentation"],
       "notes": "toner glow, 0 positionnement pigment"
+    },
+    {
+      "productSlug": "nuxe-spray-solaire-delicieux-haute-protection-spf50-visage-et-corps-150ml-g2",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["polyphenols"]
     },
     {
       "productSlug": "nuxe-sun-shampooing-douche-apres-soleil-750ml-280424",
@@ -10930,6 +11362,15 @@
       "notes": "ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — Instant Calm Redness Serum, lead rougeurs"
     },
     {
+      "productSlug": "pai-landmark-edition-rosehip-oil-15ml",
+      "kind": "oil",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["reparation-cutanee"]
+    },
+    {
       "productSlug": "pai-system-d-calm-schisandra-ceramide-eye-serum",
       "kind": "eye-cream",
       "category": "skincare",
@@ -10966,8 +11407,8 @@
       "present": ["anti-age"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "patyka-bio-creme-lactee-hydra-apaisante",
@@ -11090,8 +11531,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — SPF teintée unifiant teint",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — SPF teintée unifiant teint"
     },
     {
       "productSlug": "patyka-creme-solaire-visage-spf50-bio",
@@ -11210,17 +11651,16 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "patyka-serum-repulpant-acide-hyaluronique-bio-vegan",
       "kind": "serum",
       "category": "skincare",
       "present": ["deshydratation"],
-      "absent": ["pores-sebum", "eczema-atopie"],
+      "absent": ["eczema-atopie", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["deshydratation", "pores-sebum", "eczema-atopie"],
+      "sampledFor": ["deshydratation", "eczema-atopie", "pores-sebum"],
       "notes": "[flag] serum repulpant HA (name hydra-plumping) mais positionne anti-age global | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné anti-âge"
     },
     {
@@ -11281,6 +11721,15 @@
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
       "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation)"
+    },
+    {
+      "productSlug": "prequel-multi-acid-milk-peel-aha-exfoliating-solution",
+      "kind": "exfoliant",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["enzymes-exfoliants"]
     },
     {
       "productSlug": "prequel-multi-purpose-skin-protectant-skin-utility-gel",
@@ -11376,10 +11825,10 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": ["protection"],
-      "absent": ["rougeurs-vasculaires", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — BB crème barrière/sensibles, pas rougeur ; eclat-teint: absent — BB cream fini éclatant = maquillage | protection: present — stated SPF = UV-protection claim (skincare co-lead doesn't demote)",
-      "sampledFor": ["rougeurs-vasculaires", "eclat-teint-uniforme", "protection"]
+      "sampledFor": ["eclat-teint-uniforme", "protection", "rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — BB crème barrière/sensibles, pas rougeur ; eclat-teint: absent — BB cream fini éclatant = maquillage | protection: present — stated SPF = UV-protection claim (skincare co-lead doesn't demote)"
     },
     {
       "productSlug": "purito-deep-foaming-cleanser",
@@ -11418,8 +11867,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — essence revitalisante",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — essence revitalisante"
     },
     {
       "productSlug": "purito-mighty-bamboo-panthenol-cream",
@@ -11448,8 +11897,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "purito-seoul-facial-scrub-cleanser-oat",
@@ -11547,23 +11995,23 @@
       "kind": "serum",
       "category": "skincare",
       "present": ["apaisant"],
-      "absent": ["barriere-cutanee", "rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["barriere-cutanee", "reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant", "rougeurs-vasculaires", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "barriere-cutanee", "reparation-cutanee", "rougeurs-vasculaires"],
       "notes": "sérum centella apaisant rougeurs (apaisant) | apaisant: soin calmant/apaisant (lead) | rougeurs-vasculaires: absent — cica/centella apaisant ; rougeurs = propriété actif (flip ABSENT) | reparation-cutanee: absent — cica name, soothing lead (Fork 1)"
     },
     {
       "productSlug": "purito-seoul-wonder-releaf-centella-serum-unscented",
       "kind": "serum",
       "category": "skincare",
-      "present": ["hyaluronic-acid", "peptides", "polyphenols", "texture-legere", "apaisant"],
-      "absent": ["pores-sebum", "eclat-teint-uniforme", "reparation-cutanee"],
+      "present": ["apaisant", "hyaluronic-acid", "peptides", "polyphenols", "texture-legere"],
+      "absent": ["eclat-teint-uniforme", "pores-sebum", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
       "sampledFor": [
         "apaisant",
         "ceramides",
-        "pores-sebum",
         "eclat-teint-uniforme",
+        "pores-sebum",
         "reparation-cutanee"
       ],
       "notes": "SODIUM HYALURONATE; PALMITOYL TETRAPEPTIDE-7+HEXAPEPTIDE-12+TRIPEPTIDE-1+DIPEPTIDE-10; CENTELLA ASIATICA+MADECASSOSIDE. Ceramides unrated (truncated INCI). | apaisant: soin calmant/apaisant (lead) ; eclat-teint: absent — cica apaisant | reparation-cutanee: absent — cica name, soothing lead (Fork 1)"
@@ -11655,8 +12103,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "pyunkang-yul-black-tea-enriched-cream",
@@ -11665,8 +12112,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "pyunkang-yul-black-tea-revitalizing-mask",
@@ -11754,8 +12200,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — spot acné centella/tea tree apaisant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — spot acné centella/tea tree apaisant"
     },
     {
       "productSlug": "pyunkang-yul-calming-mask-pack",
@@ -11784,7 +12230,7 @@
       "present": ["apaisant"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant"],
+      "sampledFor": ["apaisant", "barriere-cutanee"],
       "notes": "brume apaisante hydratante (apaisant) | apaisant: soin calmant/apaisant (lead)"
     },
     {
@@ -11821,7 +12267,7 @@
       "productSlug": "pyunkang-yul-calming-relief-gel-wash-off-pack",
       "kind": "mask",
       "category": "skincare",
-      "present": ["hyaluronic-acid", "pha", "polyphenols", "apaisant"],
+      "present": ["apaisant", "hyaluronic-acid", "pha", "polyphenols"],
       "absent": [
         "aha",
         "bha",
@@ -11837,7 +12283,7 @@
         "vitamin-e"
       ],
       "annotatedAt": "2026-05-11",
-      "sampledFor": ["pha", "apaisant"],
+      "sampledFor": ["apaisant", "pha"],
       "notes": "GLUCONOLACTONE pos-10 (PHA within rinse-off cap 20); CURCUMA LONGA pos-19 (polyphenol full-scan); SODIUM HYALURONATE + variants. Kind corrected 2026-05-11 (was moisturizer): wash-off pack = rinse-off mask, texture-legere correctly suppressed. | apaisant: soin calmant/apaisant (lead)"
     },
     {
@@ -11901,6 +12347,15 @@
       "notes": "[flag] brume hydratante mais lead rafraichissant/apaisant"
     },
     {
+      "productSlug": "pyunkang-yul-sleeping-mask",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["hyaluronic-acid"]
+    },
+    {
       "productSlug": "pyunkang-yul-ultimate-calming-solution-ampoule",
       "kind": "serum",
       "category": "skincare",
@@ -11924,7 +12379,7 @@
       "productSlug": "pyunkang-yul-ultimate-calming-solution-toner",
       "kind": "toner",
       "category": "skincare",
-      "present": ["ceramides", "hyaluronic-acid", "texture-legere", "vitamin-e", "apaisant"],
+      "present": ["apaisant", "ceramides", "hyaluronic-acid", "texture-legere", "vitamin-e"],
       "absent": [
         "aha",
         "bha",
@@ -11939,8 +12394,17 @@
         "vitamin-c"
       ],
       "annotatedAt": "2026-05-11",
-      "sampledFor": ["ceramides", "apaisant"],
+      "sampledFor": ["apaisant", "ceramides"],
       "notes": "CERAMIDE + CERAMIDE EOP; SODIUM HYALURONATE multiple; TOCOPHEROL; toner aqueux top 3 EAU/GLYCERINE/PHELLODENDRON, no heavy oil top 8. | apaisant: soin calmant/apaisant (lead)"
+    },
+    {
+      "productSlug": "real-barrier-extreme-essence-toner",
+      "kind": "toner",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["peptides"]
     },
     {
       "productSlug": "receutics-clear-skin-cleanser",
@@ -12037,6 +12501,7 @@
         "anti-age",
         "bha",
         "ceramides",
+        "eclat-teint-uniforme",
         "enzymes-exfoliants",
         "fini-mat",
         "hyaluronic-acid",
@@ -12044,11 +12509,10 @@
         "pha",
         "retinoids",
         "texture-riche",
-        "tyrosinase-inhibitors",
-        "eclat-teint-uniforme"
+        "tyrosinase-inhibitors"
       ],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["vitamin-e", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "vitamin-e"],
       "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) ; eclat-teint: absent — sérum antioxydant vit C"
     },
     {
@@ -12067,7 +12531,7 @@
       "present": ["keratose-pilaire"],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["aha", "retinoids", "keratose-pilaire"],
+      "sampledFor": ["aha", "keratose-pilaire", "retinoids"],
       "notes": "Added from Remedy Science product with structured % concentration claim(s). | rougeurs-vasculaires: absent — body bumps (kératose), pas rougeurs | keratose-pilaire: present — 'improve keratosis pilaris' (body bumps), KP nommé"
     },
     {
@@ -12087,8 +12551,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — cleanser céramides, barrière",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — cleanser céramides, barrière"
     },
     {
       "productSlug": "remedy-daily-defense",
@@ -12097,7 +12561,7 @@
       "present": [],
       "absent": ["anti-age", "rougeurs-vasculaires"],
       "annotatedAt": "",
-      "sampledFor": ["vitamin-c", "rougeurs-vasculaires"],
+      "sampledFor": ["rougeurs-vasculaires", "vitamin-c"],
       "notes": "Added from Remedy Science product with structured % concentration claim(s). | anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | rougeurs-vasculaires: absent — vit C éclat/soothing"
     },
     {
@@ -12125,9 +12589,9 @@
       "kind": "hand-cream",
       "category": "bodycare",
       "present": [],
-      "absent": ["hyperpigmentation", "eczema-atopie"],
+      "absent": ["eczema-atopie", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["retinoids", "eczema-atopie"],
+      "sampledFor": ["eczema-atopie", "retinoids"],
       "notes": "Added from Remedy Science product with structured % concentration claim(s). · hp: hand-cream multi-claim; 'brightens discoloration' 1/4 (flip→P) | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné anti-âge"
     },
     {
@@ -12151,6 +12615,15 @@
       "notes": "Added from Remedy Science product with structured % concentration claim(s)."
     },
     {
+      "productSlug": "remedy-skin-healthy-aging",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["ceramides"]
+    },
+    {
       "productSlug": "repair-beauty-advanced-repair-foot-masks-mint-tea-tree",
       "kind": "foot-cream",
       "category": "skincare",
@@ -12167,8 +12640,8 @@
       "present": ["cernes-poches"],
       "absent": ["anti-age", "hyperpigmentation", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — patchs yeux HA+niacinamide (cernes/poches), pas actif anti-âge · hp: patchs yeux HA hydratation (cf anti-age) | cernes-poches: present (recall FN) — atténue cernes, dégonfle poches | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["cernes-poches", "protection"]
+      "sampledFor": ["cernes-poches", "protection"],
+      "notes": "anti-age: absent — patchs yeux HA+niacinamide (cernes/poches), pas actif anti-âge · hp: patchs yeux HA hydratation (cf anti-age) | cernes-poches: present (recall FN) — atténue cernes, dégonfle poches | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "respire-deodorant-24h-roll-on-figue-fraiche",
@@ -12205,6 +12678,26 @@
       "notes": "ZEA MAYS STARCH pos-2 (fini-mat absorbent); roll-on aqueux léger top 3 AQUA/STARCH/GLYCERIN."
     },
     {
+      "productSlug": "respire-gel-nettoyant-purifiant",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
+      "productSlug": "respire-masque-stick-peau-nette",
+      "kind": "mask",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "respire-soin-nettoyant-visage-stick",
       "kind": "cleanser",
       "category": "skincare",
@@ -12233,6 +12726,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant"],
       "notes": "gel douche surgras (support)"
+    },
+    {
+      "productSlug": "roge-cavailles-huile-de-douche-veloutante-750ml-284308",
+      "kind": "body-wash",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["fini-mat"]
     },
     {
       "productSlug": "round-lab-1025-dokdo-ampule",
@@ -12281,8 +12783,8 @@
       "present": [],
       "absent": ["anti-age", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | rougeurs-vasculaires: absent — gel apaisant/hydratant (échauffements solaires)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | rougeurs-vasculaires: absent — gel apaisant/hydratant (échauffements solaires)"
     },
     {
       "productSlug": "round-lab-birch-juice-moisturizing-toner",
@@ -12291,8 +12793,8 @@
       "present": [],
       "absent": ["anti-age", "hyperpigmentation", "protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) · hp: toner hydratant | protection: absent — no protection claim; non-protection lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) · hp: toner hydratant | protection: absent — no protection claim; non-protection lead"
     },
     {
       "productSlug": "round-lab-birch-moisture-tone-up-sunscreen",
@@ -12410,8 +12912,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age", "deshydratation"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | deshydratation: [flag] gel-creme polyglutamique hydrate mais lead eclat/vit C ; eclat-teint: present — illuminant vit C uniformiser le teint",
-      "sampledFor": ["deshydratation", "eclat-teint-uniforme"]
+      "sampledFor": ["deshydratation", "eclat-teint-uniforme"],
+      "notes": "anti-age: absent — vit C antioxydant/éclat, pas de positionnement anti-âge (STRICT) | deshydratation: [flag] gel-creme polyglutamique hydrate mais lead eclat/vit C ; eclat-teint: present — illuminant vit C uniformiser le teint"
     },
     {
       "productSlug": "serum-mela-b3",
@@ -12427,7 +12929,7 @@
       "productSlug": "shiseido-benefiance-contour-des-yeux-anti-rides",
       "kind": "eye-cream",
       "category": "skincare",
-      "present": ["hyaluronic-acid", "peptides", "polyphenols", "vitamin-e", "cernes-poches"],
+      "present": ["cernes-poches", "hyaluronic-acid", "peptides", "polyphenols", "vitamin-e"],
       "absent": [
         "aha",
         "bha",
@@ -12441,17 +12943,17 @@
         "vitamin-c"
       ],
       "annotatedAt": "2026-05-10",
-      "sampledFor": ["polyphenols", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "polyphenols"],
       "notes": "Eye cream, alphabetical Korean INCI. Heavy formula chemically: beeswax + microcrystalline wax + paraffin + petrolatum + mineral oil. texture-riche removed 2026-05-11: alphabetical ordering makes position-based detection meaningless (known algorithmic limit, see AUTO-TAGS.md). Palmitoyl tetra/tri-peptide, sodium acetylated hyaluronate, camellia sinensis + curcuma longa. | cernes-poches: present — réduit rides et cernes"
     },
     {
       "productSlug": "sk-ii-brightening-derm-revival-mask",
       "kind": "mask",
       "category": "skincare",
-      "present": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "present": ["eclat-teint-uniforme", "hyperpigmentation"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation"],
       "notes": "masque 'Brightening' + taches (positionnement pigment) ; eclat-teint: present — taches brunes et teint terne → éclat cristallin"
     },
     {
@@ -12461,8 +12963,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — lotion apaisante peaux sèches/irritées (apaisant, pas rougeur)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — lotion apaisante peaux sèches/irritées (apaisant, pas rougeur)"
     },
     {
       "productSlug": "skin1004-hyalu-cica-blue-serum",
@@ -12555,17 +13057,16 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "skin1004-madagascar-centella-light-cleansing-oil",
       "kind": "cleanser",
       "category": "skincare",
       "present": [],
-      "absent": ["apaisant", "rougeurs-vasculaires", "reparation-cutanee"],
+      "absent": ["apaisant", "reparation-cutanee", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "rougeurs-vasculaires", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "reparation-cutanee", "rougeurs-vasculaires"],
       "notes": "huile demaquillante (support) | rougeurs-vasculaires: absent — huile démaquillante | reparation-cutanee: absent — rinse-off support format"
     },
     {
@@ -12625,8 +13126,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — crème cica apaisant/barrière sensibles",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — crème cica apaisant/barrière sensibles"
     },
     {
       "productSlug": "skin1004-madagascar-centella-retinol-0-2-boosting-shot-ampoule",
@@ -12704,8 +13205,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — vit C/niacinamide/TXA illuminer le teint",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — vit C/niacinamide/TXA illuminer le teint"
     },
     {
       "productSlug": "skin1004-madagascar-centella-tone-brightening-capsule-cream",
@@ -12744,8 +13245,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | rougeurs-vasculaires: absent — tonique brightening teint ; eclat-teint: present — brightening vit C/niacinamide unifier le teint",
-      "sampledFor": ["rougeurs-vasculaires", "eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme", "rougeurs-vasculaires"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) | rougeurs-vasculaires: absent — tonique brightening teint ; eclat-teint: present — brightening vit C/niacinamide unifier le teint"
     },
     {
       "productSlug": "skin1004-mummy-pack",
@@ -12784,8 +13285,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque pores/grain",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque pores/grain"
     },
     {
       "productSlug": "skinfood-acorn-pore-peptide-pad",
@@ -12879,6 +13380,15 @@
       "notes": "toner cica réparateur, arbutine non positionné, éclat générique"
     },
     {
+      "productSlug": "sol-de-janeiro-bom-dia-bright-cream",
+      "kind": "body-lotion",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["hyperpigmentation"]
+    },
+    {
       "productSlug": "some-by-mi-aha-bha-pha-30-days-miracle-acne-clear-body-cleanser",
       "kind": "moisturizer",
       "category": "skincare",
@@ -12897,6 +13407,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["hyperpigmentation"],
       "notes": "brume corps acides, 0 positionnement pigment"
+    },
+    {
+      "productSlug": "some-by-mi-aha-bha-pha-miracle-calming-body-lotion",
+      "kind": "body-lotion",
+      "category": "bodycare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["keratose-pilaire"]
     },
     {
       "productSlug": "some-by-mi-beta-panthenol-repair-body-cream",
@@ -12925,7 +13444,7 @@
       "present": ["barriere-cutanee"],
       "absent": ["apaisant", "reparation-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "apaisant", "reparation-cutanee"],
+      "sampledFor": ["apaisant", "barriere-cutanee", "reparation-cutanee"],
       "notes": "sérum beta-panthénol fortifie/répare barrière (lead) | apaisant: lead reparation/fortification barriere panthenol (apaisee = effet secondaire) [flag] | reparation-cutanee: absent — repair-of-barrier → barriere axis (Fork 2)"
     },
     {
@@ -13083,8 +13602,8 @@
       "present": ["anti-age"],
       "absent": ["barriere-cutanee", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | barriere: lead anti-âge rétinol/bakuchiol",
-      "sampledFor": ["barriere-cutanee", "pores-sebum"]
+      "sampledFor": ["barriere-cutanee", "pores-sebum"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué | barriere: lead anti-âge rétinol/bakuchiol"
     },
     {
       "productSlug": "some-by-mi-retinol-intense-advanced-triple-action-eye-cream",
@@ -13093,8 +13612,8 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — rétinol eye anti-âge cernes",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — rétinol eye anti-âge cernes"
     },
     {
       "productSlug": "some-by-mi-retinol-intense-daily-mask",
@@ -13112,8 +13631,8 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — rétinol/bakuchiol anti-âge rides",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: present (recall FN) — rétinal, algo n'a pas tagué ; eclat-teint: absent — rétinol/bakuchiol anti-âge rides"
     },
     {
       "productSlug": "some-by-mi-retinol-intense-sheetmask",
@@ -13192,8 +13711,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "some-by-mi-yuja-niacin-30-days-miracle-brightening-toner",
@@ -13202,7 +13720,7 @@
       "present": ["hyperpigmentation"],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "barriere-cutanee"],
+      "sampledFor": ["barriere-cutanee", "hyperpigmentation"],
       "notes": "'Brightening' + arbutine/niacinamide/glutathion unifie teint | barriere: toner brightening niacinamide (hyperpig)"
     },
     {
@@ -13255,7 +13773,7 @@
       "present": ["anti-age"],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["retinoids", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "retinoids"],
       "notes": "Added from SVR product with structured % concentration claim(s). | anti-age: present — rétinoïde (actif anti-âge structurel) ; eclat-teint: absent — rétinol resurfaçant rides/pores"
     },
     {
@@ -13285,7 +13803,7 @@
       "present": ["cernes-poches"],
       "absent": [],
       "annotatedAt": "",
-      "sampledFor": ["vitamin-c", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "vitamin-c"],
       "notes": "Added from SVR product with structured % concentration claim(s). | cernes-poches: present — corriger cernes+poches (entrée canonique)"
     },
     {
@@ -13305,8 +13823,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "svr-c20-biotic-regenerating-radiance-cream",
@@ -13365,7 +13882,7 @@
       "present": ["barriere-cutanee"],
       "absent": ["hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "barriere-cutanee"],
+      "sampledFor": ["barriere-cutanee", "hyperpigmentation"],
       "notes": "SPF cica réparateur | barriere: Cicavit+ SPF50 réparateur (barrière, variant SPF)"
     },
     {
@@ -13411,10 +13928,10 @@
       "productSlug": "svr-clairial-ampoule",
       "kind": "serum",
       "category": "skincare",
-      "present": ["hyaluronic-acid", "texture-legere", "vitamin-c", "protection"],
+      "present": ["hyaluronic-acid", "protection", "texture-legere", "vitamin-c"],
       "absent": [],
       "annotatedAt": "2026-05-09",
-      "sampledFor": ["vitamin-c", "protection"],
+      "sampledFor": ["protection", "vitamin-c"],
       "notes": "ASCORBYL TETRAISOPALMITATE pos-6 (stable vit-c); SODIUM HYALURONATE. Light ampoule. | protection: present (recall FN) — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
@@ -13434,10 +13951,10 @@
       "present": [
         "hyaluronic-acid",
         "polyphenols",
+        "protection",
         "texture-legere",
         "tyrosinase-inhibitors",
-        "vitamin-e",
-        "protection"
+        "vitamin-e"
       ],
       "absent": [
         "aha",
@@ -13452,7 +13969,7 @@
         "vitamin-c"
       ],
       "annotatedAt": "2026-05-11",
-      "sampledFor": ["tyrosinase-inhibitors", "protection"],
+      "sampledFor": ["protection", "tyrosinase-inhibitors"],
       "notes": "TOCOPHEROL ACETATE + TOCOPHEROL; SODIUM HYALURONATE; ETHYLHEXYL FERULATE pos-49 (polyphenol via P1 ferulate pattern); UNDECYLENOYL PHENYLALANINE + DIACETYL BOLDINE (tyrosinase); SILICA pos-9 + BORON NITRIDE pos-10 + ALUMINA + sodium polyacrylate (matifying complex anti-tache, fini-mat present chimiquement); fluide aqueux top 3. [adjust] fini-mat absent: SILICA pos-9 past cap top 8 (per detector strict, follow position rule comme betaine salicylate annotation philosophy). | protection: present (recall FN) — sunscreen — UV protection is the lead"
     },
     {
@@ -13501,6 +14018,15 @@
       "notes": "cernes-poches: present (recall FN) — corrige rides, cernes et poches"
     },
     {
+      "productSlug": "svr-eau-solaire-sun-secure-spf30",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["protection"]
+    },
+    {
       "productSlug": "svr-filler-biotic",
       "kind": "eye-cream",
       "category": "skincare",
@@ -13521,6 +14047,16 @@
       "notes": "cernes-poches: present — desc scrape nomme ridules+cernes (vs [20] canonique rides-only)"
     },
     {
+      "productSlug": "svr-gel-moussant-sebiaclear-recharge",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "svr-physiopure-gelee-moussante",
       "kind": "cleanser",
       "category": "skincare",
@@ -13537,7 +14073,7 @@
       "present": [],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pha", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "pha"],
       "notes": "Added from SVR product with structured % concentration claim(s). ; eclat-teint: absent — correcteur imperfections/marques = acné"
     },
     {
@@ -13557,7 +14093,7 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "",
-      "sampledFor": ["tyrosinase-inhibitors", "rougeurs-vasculaires"],
+      "sampledFor": ["rougeurs-vasculaires", "tyrosinase-inhibitors"],
       "notes": "Added from SVR product with structured % concentration claim(s). | rougeurs-vasculaires: absent — azélaïque+zinc+salicylique anti-imperfections (acné, sans claim rosacée)"
     },
     {
@@ -13567,8 +14103,8 @@
       "present": [],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s). ; eclat-teint: absent — SPF matifiant anti-imperfections acné",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "Added from SVR product with structured % concentration claim(s). ; eclat-teint: absent — SPF matifiant anti-imperfections acné"
     },
     {
       "productSlug": "svr-sebiaclear-gel-flash-4h",
@@ -13616,8 +14152,8 @@
       "present": [],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s). ; eclat-teint: absent — lotion lissante désincrustante sébum",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "Added from SVR product with structured % concentration claim(s). ; eclat-teint: absent — lotion lissante désincrustante sébum"
     },
     {
       "productSlug": "svr-sebiaclear-serum",
@@ -13626,7 +14162,7 @@
       "present": [],
       "absent": ["deshydratation", "protection"],
       "annotatedAt": "",
-      "sampledFor": ["pha", "deshydratation", "protection"],
+      "sampledFor": ["deshydratation", "pha", "protection"],
       "notes": "Added from SVR product with structured % concentration claim(s). | deshydratation: acne/imperfection/exfo (lead) | protection: absent — no protection claim; non-protection lead"
     },
     {
@@ -13646,18 +14182,18 @@
       "present": ["apaisant", "rougeurs-vasculaires"],
       "absent": [],
       "annotatedAt": "",
-      "notes": "Added from SVR product with structured % concentration claim(s). | apaisant: ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — Sensifine AR = soin anti-rougeurs SVR",
-      "sampledFor": ["apaisant"]
+      "sampledFor": ["apaisant"],
+      "notes": "Added from SVR product with structured % concentration claim(s). | apaisant: ligne anti-rougeurs (lead) | rougeurs-vasculaires: present — Sensifine AR = soin anti-rougeurs SVR"
     },
     {
       "productSlug": "svr-sensifine-ar-creme-spf50",
       "kind": "sunscreen",
       "category": "skincare",
-      "present": ["rougeurs-vasculaires", "protection"],
+      "present": ["protection", "rougeurs-vasculaires"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: present — Sensifine AR SPF50 (SPF non-excluant) | protection: present (recall FN) — sunscreen — UV protection is the lead",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "rougeurs-vasculaires: present — Sensifine AR SPF50 (SPF non-excluant) | protection: present (recall FN) — sunscreen — UV protection is the lead"
     },
     {
       "productSlug": "svr-sensifine-ar-creme-teintee",
@@ -13762,17 +14298,25 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
+    },
+    {
+      "productSlug": "svr-sun-secure-creme-spf50",
+      "kind": "sunscreen",
+      "category": "solaire",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["reparateur"]
     },
     {
       "productSlug": "svr-sun-secure-lait-apres-soleil-hydratant",
       "kind": "after-sun",
       "category": "solaire",
       "present": [],
-      "absent": ["hyperpigmentation", "pores-sebum", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "pores-sebum", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation", "pores-sebum"],
       "notes": "après-soleil apaisant, niacinamide incident, 0 positionnement pigment ; eclat-teint: absent — after-sun apaisant/hydratant, aucun claim eclat/teint"
     },
     {
@@ -13792,8 +14336,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "svr-sun-secure-spray-spf50",
@@ -13802,8 +14345,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "svr-topialyse-barriere-creme-isolante",
@@ -13888,10 +14430,10 @@
       "kind": "body-lotion",
       "category": "bodycare",
       "present": [],
-      "absent": ["rougeurs-vasculaires", "keratose-pilaire"],
+      "absent": ["keratose-pilaire", "rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s). | rougeurs-vasculaires: absent — lissant anti-rugosités, hydratation | keratose-pilaire: absent — anti-rugosités + poils incarnés, lissant, KP non nommé",
-      "sampledFor": ["rougeurs-vasculaires", "keratose-pilaire"]
+      "sampledFor": ["keratose-pilaire", "rougeurs-vasculaires"],
+      "notes": "Added from SVR product with structured % concentration claim(s). | rougeurs-vasculaires: absent — lissant anti-rugosités, hydratation | keratose-pilaire: absent — anti-rugosités + poils incarnés, lissant, KP non nommé"
     },
     {
       "productSlug": "svr-xerial-50-extreme-creme-pieds",
@@ -13900,8 +14442,8 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s).",
-      "sampledFor": ["pores-sebum"]
+      "sampledFor": ["pores-sebum"],
+      "notes": "Added from SVR product with structured % concentration claim(s)."
     },
     {
       "productSlug": "svr-xerial-dm-psoriasis-dispositif-medical",
@@ -13910,8 +14452,8 @@
       "present": [],
       "absent": ["keratose-pilaire"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s). | keratose-pilaire: absent — psoriasis (dispositif médical), domaine distinct",
-      "sampledFor": ["keratose-pilaire"]
+      "sampledFor": ["keratose-pilaire"],
+      "notes": "Added from SVR product with structured % concentration claim(s). | keratose-pilaire: absent — psoriasis (dispositif médical), domaine distinct"
     },
     {
       "productSlug": "svr-xerial-fissures-crevasses-reparateur",
@@ -13920,8 +14462,8 @@
       "present": ["barriere-cutanee"],
       "absent": [],
       "annotatedAt": "",
-      "notes": "Added from SVR product with structured % concentration claim(s). | barriere: soin réparateur isolant fissures/crevasses (barrière)",
-      "sampledFor": ["barriere-cutanee"]
+      "sampledFor": ["barriere-cutanee"],
+      "notes": "Added from SVR product with structured % concentration claim(s). | barriere: soin réparateur isolant fissures/crevasses (barrière)"
     },
     {
       "productSlug": "svr-xerial-gel-lavant",
@@ -13938,9 +14480,9 @@
       "kind": "foot-cream",
       "category": "bodycare",
       "present": [],
-      "absent": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "absent": ["eclat-teint-uniforme", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "eclat-teint-uniforme"],
+      "sampledFor": ["eclat-teint-uniforme", "hyperpigmentation"],
       "notes": "masque pieds kératolytique urée ; eclat-teint: absent — exfoliant pieds urée"
     },
     {
@@ -14011,8 +14553,8 @@
       "present": ["cernes-poches"],
       "absent": ["hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from The Ordinary product with structured % concentration claim(s). · hp: caféine cernes/poches vasculaire | cernes-poches: present — réduit poches, cernes (caféine)",
-      "sampledFor": ["cernes-poches"]
+      "sampledFor": ["cernes-poches"],
+      "notes": "Added from The Ordinary product with structured % concentration claim(s). · hp: caféine cernes/poches vasculaire | cernes-poches: present — réduit poches, cernes (caféine)"
     },
     {
       "productSlug": "the-ordinary-glycolic-acid-7-toning-solution",
@@ -14104,7 +14646,7 @@
       "present": [],
       "absent": ["barriere-cutanee"],
       "annotatedAt": "",
-      "sampledFor": ["peptides", "barriere-cutanee"],
+      "sampledFor": ["barriere-cutanee", "peptides"],
       "notes": "Added from The Ordinary product with structured % concentration claim(s). | barriere: sérum Matrixyl rides/fermeté (anti-âge)"
     },
     {
@@ -14134,8 +14676,8 @@
       "present": [],
       "absent": ["eclat-teint-uniforme"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from The Ordinary product with structured % concentration claim(s). ; eclat-teint: absent — niacinamide blemish/sébum, pas lead radiance",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "Added from The Ordinary product with structured % concentration claim(s). ; eclat-teint: absent — niacinamide blemish/sébum, pas lead radiance"
     },
     {
       "productSlug": "the-ordinary-niacinamide-5-face-body-emulsion",
@@ -14326,9 +14868,9 @@
       "kind": "serum",
       "category": "skincare",
       "present": [],
-      "absent": ["pores-sebum", "eczema-atopie"],
+      "absent": ["eczema-atopie", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum", "tyrosinase-inhibitors", "eczema-atopie"],
+      "sampledFor": ["eczema-atopie", "pores-sebum", "tyrosinase-inhibitors"],
       "notes": "Added from Theramid product with structured % concentration claim(s). | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné exfoliant/acide"
     },
     {
@@ -14354,9 +14896,9 @@
       "kind": "toner",
       "category": "skincare",
       "present": [],
-      "absent": ["hyperpigmentation", "apaisant", "eczema-atopie"],
+      "absent": ["apaisant", "eczema-atopie", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "apaisant", "eczema-atopie"],
+      "sampledFor": ["apaisant", "eczema-atopie", "hyperpigmentation"],
       "notes": "toner hydratant, glabridine incident | apaisant: lead hydratant/barriere (panthenol ubiquite) | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné anti-âge"
     },
     {
@@ -14366,8 +14908,8 @@
       "present": [],
       "absent": ["eczema-atopie"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from Theramid product with structured % concentration claim(s). | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné barrière/céramide",
-      "sampledFor": ["eczema-atopie"]
+      "sampledFor": ["eczema-atopie"],
+      "notes": "Added from Theramid product with structured % concentration claim(s). | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné barrière/céramide"
     },
     {
       "productSlug": "theramid-clinical-vitamin-a",
@@ -14423,8 +14965,8 @@
       "present": [],
       "absent": ["cernes-poches"],
       "annotatedAt": "",
-      "notes": "Added from Theramid product with structured % concentration claim(s). | cernes-poches: absent — antioxydant/barrière, hors zone+concern (mislabel manual)",
-      "sampledFor": ["cernes-poches"]
+      "sampledFor": ["cernes-poches"],
+      "notes": "Added from Theramid product with structured % concentration claim(s). | cernes-poches: absent — antioxydant/barrière, hors zone+concern (mislabel manual)"
     },
     {
       "productSlug": "theramid-niacinamide-glow-cream",
@@ -14470,7 +15012,7 @@
       "present": [],
       "absent": [],
       "annotatedAt": "",
-      "sampledFor": ["aha"],
+      "sampledFor": ["pha"],
       "notes": "Added from Theramid product with structured % concentration claim(s)."
     },
     {
@@ -14480,8 +15022,8 @@
       "present": ["protection"],
       "absent": [],
       "annotatedAt": "",
-      "notes": "Added from Theramid product with structured % concentration claim(s). | protection: present (recall FN) — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "Added from Theramid product with structured % concentration claim(s). | protection: present (recall FN) — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
       "productSlug": "theramid-time-reverse-beauty-sleep-mask",
@@ -14560,8 +15102,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque apaisant centella ; rougeurs = propriété actif (flip ABSENT)",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque apaisant centella ; rougeurs = propriété actif (flip ABSENT)"
     },
     {
       "productSlug": "torriden-cellmazing-firming-gel-mask",
@@ -14570,8 +15112,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — masque fermeté/collagène",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — masque fermeté/collagène"
     },
     {
       "productSlug": "torriden-cellmazing-vitamin-c-mask",
@@ -14580,8 +15122,8 @@
       "present": ["eclat-teint-uniforme"],
       "absent": ["anti-age"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — multi-vit C unifier le teint, estomper taches",
-      "sampledFor": ["eclat-teint-uniforme"]
+      "sampledFor": ["eclat-teint-uniforme"],
+      "notes": "anti-age: absent — brightening/anti-taches (hyperpigmentation) ; eclat-teint: present — multi-vit C unifier le teint, estomper taches"
     },
     {
       "productSlug": "torriden-dive-in-hyaluronic-acid-soothing-cream",
@@ -14622,6 +15164,15 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["deshydratation"],
       "notes": "Torriden Dive-In, HA bas PM hydratation (lead, rate par l'algo)"
+    },
+    {
+      "productSlug": "torriden-dive-in-serum",
+      "kind": "serum",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["ceramides"]
     },
     {
       "productSlug": "torriden-dive-in-soothing-cream",
@@ -14680,8 +15231,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "uriage-hyseac-serum-peau-neuve-booster-anti-imperfections",
@@ -14809,8 +15359,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — déodorant",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — déodorant"
     },
     {
       "productSlug": "vichy-deodorant-mineral-mgo-48h",
@@ -14829,8 +15379,8 @@
       "present": [],
       "absent": ["rougeurs-vasculaires"],
       "annotatedAt": "2026-05-25",
-      "notes": "rougeurs-vasculaires: absent — eau micellaire peaux sensibles, support",
-      "sampledFor": ["rougeurs-vasculaires"]
+      "sampledFor": ["rougeurs-vasculaires"],
+      "notes": "rougeurs-vasculaires: absent — eau micellaire peaux sensibles, support"
     },
     {
       "productSlug": "vichy-laboratories-aqualia-thermal-eye-cream",
@@ -14847,9 +15397,9 @@
       "kind": "eye-cream",
       "category": "skincare",
       "present": ["bha", "peptides", "vitamin-c"],
-      "absent": ["pores-sebum", "cernes-poches"],
+      "absent": ["cernes-poches", "pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["bha", "pores-sebum", "cernes-poches"],
+      "sampledFor": ["bha", "cernes-poches", "pores-sebum"],
       "notes": "CAPRYLOYL SALICYLIC ACID pos-9 (bha); ACETYL TETRAPEPTIDE-9 pos-1; ASCORBYL GLUCOSIDE pos-5. vitamin-e unrated (truncated). | cernes-poches: absent — anti-âge rides/fermeté pro-collagène, pas cernes/poches"
     },
     {
@@ -14878,8 +15428,8 @@
       "present": ["anti-age", "protection"],
       "absent": [],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: present — explicit protect-verb vs external aggressor (oxidative/photo-aging/pollution)"
     },
     {
       "productSlug": "vichy-laboratories-mineral-89-boosting-cream",
@@ -14896,7 +15446,7 @@
       "kind": "moisturizer",
       "category": "skincare",
       "present": ["deshydratation", "pores-sebum"],
-      "absent": ["hyperpigmentation", "apaisant"],
+      "absent": ["apaisant", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant", "deshydratation", "hyperpigmentation", "pores-sebum"],
       "notes": "soin hydratant matifiant | apaisant: lead hydratant matifiant | deshydratation: Mineral 89 gel-creme hydratant (lead) | pores-sebum: Mineral 89 Moisture Matte: hydratant matifiant peaux mixtes à grasses"
@@ -14967,9 +15517,9 @@
       "kind": "eye-cream",
       "category": "skincare",
       "present": [],
-      "absent": ["hyperpigmentation", "cernes-poches"],
+      "absent": ["cernes-poches", "hyperpigmentation"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["hyperpigmentation", "cernes-poches"],
+      "sampledFor": ["cernes-poches", "hyperpigmentation"],
       "notes": "eye-cream anti-âge collagène | cernes-poches: absent — anti-âge fermeté/lissant, pas cernes/poches"
     },
     {
@@ -14999,7 +15549,7 @@
       "present": ["fini-mat", "texture-legere"],
       "absent": ["deshydratation"],
       "annotatedAt": "2026-05-09",
-      "sampledFor": ["vitamin-e", "deshydratation"],
+      "sampledFor": ["deshydratation", "vitamin-e"],
       "notes": "SILICA pos-3+PERLITE (fini-mat). SPF50 eye serum = light. HA/peptides/vitamin-e unrated (truncated). | deshydratation: ecran (support, SPF lead)"
     },
     {
@@ -15009,8 +15559,7 @@
       "present": [],
       "absent": ["pores-sebum"],
       "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"],
-      "notes": ""
+      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "vichy-liftactiv-specialist-b3-serum",
@@ -15029,8 +15578,8 @@
       "present": ["anti-age"],
       "absent": ["protection"],
       "annotatedAt": "2026-05-25",
-      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)",
-      "sampledFor": ["protection"]
+      "sampledFor": ["protection"],
+      "notes": "anti-age: present — gamme positionnée anti-âge (base vit C) | protection: absent — antioxidant actif-class present but NO protect claim — lead is brightening/anti-age (B2/B3: ingredient/label != claim)"
     },
     {
       "productSlug": "vichy-mineral-89-creme-boost-hydratation-100h-texture-riche",
@@ -15117,6 +15666,16 @@
       "notes": "cernes-poches: present (recall FN) — cernes et poches réduites (soin ménopause yeux)"
     },
     {
+      "productSlug": "vichy-normaderm-phytosolution-gel-purifiant-intense",
+      "kind": "cleanser",
+      "category": "skincare",
+      "present": [],
+      "absent": ["aha"],
+      "annotatedAt": "2026-06-19",
+      "sampledFor": ["aha"],
+      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
+    },
+    {
       "productSlug": "vichy-normaderm-probio-bha-serum-anti-imperfections",
       "kind": "serum",
       "category": "skincare",
@@ -15165,8 +15724,26 @@
       "present": [],
       "absent": ["keratose-pilaire"],
       "annotatedAt": "2026-05-25",
-      "notes": "Added from SVR product with structured % concentration claim(s). | keratose-pilaire: absent — urée 10% peaux sèches/squameuses 'croco', xérose pas KP",
-      "sampledFor": ["keratose-pilaire"]
+      "sampledFor": ["keratose-pilaire"],
+      "notes": "Added from SVR product with structured % concentration claim(s). | keratose-pilaire: absent — urée 10% peaux sèches/squameuses 'croco', xérose pas KP"
+    },
+    {
+      "productSlug": "yepoda-the-mini-glow-hero",
+      "kind": "oil",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["anti-age"]
+    },
+    {
+      "productSlug": "yepoda-the-mini-mist-have",
+      "kind": "mist",
+      "category": "skincare",
+      "present": [],
+      "absent": [],
+      "annotatedAt": "",
+      "sampledFor": ["texture-legere"]
     },
     {
       "productSlug": "yuja-niacin-anti-blemish-daily-mask",
@@ -15177,196 +15754,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — taches brunes/blemish/arbutine = hyperpig+acné"
-    },
-    {
-      "productSlug": "a-derma-dermalibour-cica-gel-moussant-assainissant-200ml-275256",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "a-derma-exomega-control-gel-moussant-emollient-anti-grattage-500ml-275113",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "aderma-exomega-control-gel-moussant-anti-grattage",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "dexyane-protective-cleansing-oil",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "embryolisse-les-nettoyants-lait-creme-moussant-200ml-259245",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "isdin-acniben-mousse-nettoyante-purifiante-pour-peaux-grasses-150-ml-236208",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "jumiso-pore-purifying-salicylic-acid-foaming-cleanser",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "kreme-gelee-fraiche-nettoyante-demaquillante",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "respire-gel-nettoyant-purifiant",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "svr-gel-moussant-sebiaclear-recharge",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "vichy-normaderm-phytosolution-gel-purifiant-intense",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "isdin-ureadin-ultra-40-gel-huile-exfoliant-intense-40-d-uree-30-ml-235644",
-      "kind": "exfoliant",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "missha-amazon-red-clay-pore-mask",
-      "kind": "mask",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "respire-masque-stick-peau-nette",
-      "kind": "mask",
-      "category": "skincare",
-      "present": [],
-      "absent": ["aha"],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "isispharma-neotone-gel-nettoyant-exfoliant-taches-pigmentaires-40ml-302129",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": ["aha"],
-      "absent": [],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "medik8-surface-radiance-cleanse",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": ["aha"],
-      "absent": [],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "medik8-surface-radiance-cleanse-gel",
-      "kind": "cleanser",
-      "category": "skincare",
-      "present": ["aha"],
-      "absent": [],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
-    },
-    {
-      "productSlug": "dermalogica-daily-superfoliant",
-      "kind": "exfoliant",
-      "category": "skincare",
-      "present": ["aha"],
-      "absent": [],
-      "annotatedAt": "2026-06-19",
-      "sampledFor": ["aha"],
-      "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     }
   ]
 }

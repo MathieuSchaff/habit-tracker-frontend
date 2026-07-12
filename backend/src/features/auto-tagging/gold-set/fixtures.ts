@@ -42,6 +42,7 @@ export const GOLD_SET_FOCUS_TAGS = [
   'keratose-pilaire',
   'eczema-atopie',
   'reparation-cutanee',
+  'reparateur',
   'cernes-poches',
   'aha',
   'bha',

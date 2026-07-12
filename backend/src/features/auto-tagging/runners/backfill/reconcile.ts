@@ -14,20 +14,17 @@
 //   bun run …/runners/backfill/reconcile.ts --slug <s> # single product
 //
 // Env: LIMIT (cap product count).
-import type { ProductKind, ProductTexture } from '@aurore/shared'
-
 import { eq, ne } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
-import { brandCertifications, productTagLinks, productTagTypes } from '../../../../db/schema'
-import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
-import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
-import { resolveTagRows } from '../../lib/resolve-tag-rows'
-import { detectAllAutoTags } from '../../orchestrator'
+import { productTagLinks } from '../../../../db/schema'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import { writeTagsForProduct } from '../../write'
 import { fetchEligibleProducts } from '../audit/db'
 import { parseWriteSlugArgs } from '../cli-args'
+import { diffReconcileProduct } from './reconcile-diff'
 
 const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
@@ -61,17 +58,8 @@ if (WRITE) {
   process.exit(0)
 }
 
-const certRows = await db.select().from(brandCertifications)
-const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-
-const tagDefs = await db
-  .select({ id: productTagTypes.id, slug: productTagTypes.slug, tagType: productTagTypes.tagType })
-  .from(productTagTypes)
-const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
-const tagIdToSlug = new Map(tagDefs.map((t) => [t.id, t.slug]))
-
-const claimsByProduct = await fetchPercentClaimsByProduct(prods.map((p) => p.id))
-const concentrationsByProduct = await fetchKnownConcentrationsByProduct(prods.map((p) => p.id))
+const bundle = await loadAutoTagFetchBundle(prods.map((p) => p.id))
+const tagIdToSlug = new Map([...bundle.tagSlugToInfo].map(([slug, t]) => [t.id, slug]))
 
 const storedAutoTagRows = await db
   .select({
@@ -110,44 +98,26 @@ const relDirection = new Map<string, number>()
 const delBySlug = new Map<string, number>()
 
 for (const p of prods) {
-  const pairs = detectAllAutoTags(
-    {
-      inci: p.inci,
-      kind: p.kind as ProductKind,
-      category: p.category,
-      brand: p.brand,
-      texture: p.texture as ProductTexture | null,
-      name: p.name,
-      description: p.description,
-      percentClaims: claimsByProduct.get(p.id) ?? [],
-      knownConcentrations: concentrationsByProduct.get(p.id),
-    },
-    { brandCertifications: brandCertMap }
-  )
-
-  // Same seam as the writers: withholds eczema-atopie, drops domain-ineligible
+  // Same kernel as the writers: withholds eczema-atopie, drops domain-ineligible
   // types, so the parity delta matches exactly what would be persisted.
-  const { rows } = resolveTagRows(pairs, p, tagSlugToInfo)
-  const desiredTagRelevance = new Map(rows.map((r) => [r.tagId, r.relevance]))
+  const { rows } = computeTagRowsForProduct(p, bundle)
+  const diff = diffReconcileProduct({
+    want: new Map(rows.map((r) => [r.tagId, r.relevance])),
+    stored: storedByProduct.get(p.id) ?? new Map(),
+    manual: manualByProduct.get(p.id) ?? new Set(),
+  })
 
-  const persistedTagRelevance = storedByProduct.get(p.id) ?? new Map<string, string>()
-  const manualHave = manualByProduct.get(p.id) ?? new Set<string>()
-  for (const [tagId, rel] of desiredTagRelevance) {
-    const h = persistedTagRelevance.get(tagId)
-    if (h === undefined) {
-      if (manualHave.has(tagId)) manualShadowed++
-      else netInsert++
-    } else if (h !== rel) {
-      relChanged++
-      relDirection.set(`${h}→${rel}`, (relDirection.get(`${h}→${rel}`) ?? 0) + 1)
-    }
+  netInsert += diff.inserts.length
+  manualShadowed += diff.manualShadowed.length
+  netDelete += diff.deletes.length
+  relChanged += diff.relChanges.length
+  for (const c of diff.relChanges) {
+    const direction = `${c.from}→${c.to}`
+    relDirection.set(direction, (relDirection.get(direction) ?? 0) + 1)
   }
-  for (const [tagId] of persistedTagRelevance) {
-    if (!desiredTagRelevance.has(tagId)) {
-      netDelete++
-      const s = tagIdToSlug.get(tagId) ?? tagId
-      delBySlug.set(s, (delBySlug.get(s) ?? 0) + 1)
-    }
+  for (const tagId of diff.deletes) {
+    const s = tagIdToSlug.get(tagId) ?? tagId
+    delBySlug.set(s, (delBySlug.get(s) ?? 0) + 1)
   }
 }
 

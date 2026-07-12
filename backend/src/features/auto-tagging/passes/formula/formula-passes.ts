@@ -23,6 +23,7 @@ import {
   APAISANT_POSITION_RE,
   BARRIERE_EXCLUSION_RE,
   BARRIERE_POSITION_RE,
+  CAMOUFLAGE_RE,
   CERNES_EXCLUSION_RE,
   CERNES_POSITION_RE,
   DESHYDRATATION_EXCLUSION_RE,
@@ -72,10 +73,11 @@ import {
   PIGMENT_EXCLUSION_RE,
   PIGMENT_POSITION_RE,
   PORES_SEBUM_POSITION_RE,
+  REDNESS_POSITION_RE,
   REPARATION_EXCLUSION_RE,
   REPARATION_POSITION_RE,
 } from '.'
-import { matchNamePositioning } from './pass-helpers'
+import { matchNamePositioning } from './name-positioning'
 
 function formulaPass(
   name: string,
@@ -133,8 +135,11 @@ export const FORMULA_PASSES: readonly Pass[] = [
   formulaPass('formula:eczema-atopie-name', (c) =>
     detectEczemaAtopieFromName(c.name, c.description)
   ),
-  formulaPass('formula:rougeurs-vasculaires-name', (c) =>
-    detectRougeursVasculairesFromName(c.name, c.description)
+  namePass(
+    'formula:rougeurs-vasculaires-name',
+    (c) => detectRougeursVasculairesFromName(c.name, c.description),
+    REDNESS_POSITION_RE,
+    CAMOUFLAGE_RE
   ),
   namePass(
     'formula:hyperpigmentation-name',

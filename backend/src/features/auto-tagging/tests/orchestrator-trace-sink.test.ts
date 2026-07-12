@@ -35,6 +35,21 @@ describe('detectAllAutoTags — trace sink', () => {
     expect(snapshotSlugs.sort()).toEqual(final.map((p) => p.tagSlug).sort())
   })
 
+  it('aligns one merge verdict per proposal on every pass', () => {
+    let sawAccepted = false
+    detectAllAutoTags(
+      input,
+      {},
+      {
+        onPass: (_name, proposals, outcomes) => {
+          expect(outcomes.length).toBe(proposals.length)
+          if (outcomes.includes(true)) sawAccepted = true
+        },
+      }
+    )
+    expect(sawAccepted).toBe(true)
+  })
+
   it('populates the sink dropCounts via the algo-derm gate', () => {
     const dropCounts = new Map<string, number>()
     detectAllAutoTags(input, {}, { dropCounts })

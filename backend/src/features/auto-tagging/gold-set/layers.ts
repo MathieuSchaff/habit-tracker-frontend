@@ -30,6 +30,9 @@ export const FOCUS_TAG_LAYER = {
   'keratose-pilaire': 'formula',
   'eczema-atopie': 'formula',
   'reparation-cutanee': 'formula',
+  // Reuses the barriere-cutanee detector verbatim; measured separately so its
+  // quality is no longer only inherited.
+  reparateur: 'formula',
   'cernes-poches': 'formula',
   // Re-emitted by formula name/claim positioning passes.
   'rougeurs-vasculaires': 'formula',

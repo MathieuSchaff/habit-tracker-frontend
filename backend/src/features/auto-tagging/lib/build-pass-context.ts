@@ -1,6 +1,6 @@
 // Builds a `PassContext` once per product (ADR-0001).
 //
-// §D.3 hoist: split INCI + analyze once, shared across all passes.
+// Split INCI and analyze once, shared across all passes.
 //
 // Marketing preamble is stripped before splitINCI so position-rules
 // (top-8 butter/wax for texture-riche, etc.) don't fire on prose chunks
@@ -49,10 +49,8 @@ export function buildPassContext(
     name: product.name ?? null,
     description: product.description ?? null,
     percentClaims: product.percentClaims,
-    knownConcentrations: product.knownConcentrations,
     brandCertifications: options.brandCertifications,
     hasInci,
-    cleanedInci,
     ingredients,
     normalizedIngredients,
     assessment,

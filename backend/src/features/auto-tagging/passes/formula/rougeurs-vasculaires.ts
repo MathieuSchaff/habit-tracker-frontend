@@ -10,7 +10,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // This pass emits only when the product names a redness condition and is not
 // color-correcting makeup. Generic centella soothing and azelaic exfoliants are
 // left as incidental-claim-vs-lead-positioning boundaries.
-const REDNESS_POSITION_RE = /rougeur|rosac|couperos|\bflush|redness/i
+export const REDNESS_POSITION_RE = /rougeur|rosac|couperos|\bflush|redness/i
 
 // Color-correcting / camouflage makeup (green primers, CC creams, tone-up) neutralizes
 // redness optically rather than targeting the concern. Tokens are recall-safe: each
@@ -18,7 +18,7 @@ const REDNESS_POSITION_RE = /rougeur|rosac|couperos|\bflush|redness/i
 // (real tinted anti-redness care — Sensifine AR, Roséliane, Rosaliac AR) and `estompe`
 // ("les rougeurs s'estompent" = redness fades, a treatment outcome — Clinique Redness
 // Solutions). A green primer still matches via `primer`/`vert`.
-const CAMOUFLAGE_RE =
+export const CAMOUFLAGE_RE =
   /color.?correct|correcteur de couleur|camoufl|primer|\bvert\b|tone.?up|\bcc\b/i
 
 export function detectRougeursVasculairesFromName(

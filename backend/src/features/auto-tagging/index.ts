@@ -4,6 +4,8 @@
 // features/products/service.ts). Internal runners and tests import from the
 // concrete module paths.
 
-export { detectAllAutoTags } from './orchestrator'
+export { buildOrchestratorInput, type OrchestratorProductFields } from './lib/orchestrator-input'
+export type { AutoTagSource } from './lib/pass-types'
+export { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from './orchestrator'
 export { partitionEczemaReview } from './passes/formula'
 export { writeTagsForProductFailSoft } from './write'

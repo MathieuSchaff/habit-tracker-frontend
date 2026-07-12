@@ -16,7 +16,6 @@ describe('isGoldSetFocusTag', () => {
 
   test('returns false for tags outside the focus scope', () => {
     expect(isGoldSetFocusTag('peau-grasse')).toBe(false)
-    expect(isGoldSetFocusTag('reparateur')).toBe(false)
     expect(isGoldSetFocusTag('not-a-real-slug')).toBe(false)
   })
 })

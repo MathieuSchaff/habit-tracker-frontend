@@ -31,7 +31,7 @@ const S = SKINCARE_PRODUCT_TAG_SLUGS
 // Calibration version guard. Fails fast at module load to prevent silent drift
 // when a new algo-derm tarball changes tag semantics. Bump after re-running
 // `just audit-auto-tags` and confirming per-tag floors still hold.
-const CALIBRATED_FOR_TAG_DEFS_VERSION = 22
+const CALIBRATED_FOR_TAG_DEFS_VERSION = 23
 
 if (TAG_DEFS_VERSION !== CALIBRATED_FOR_TAG_DEFS_VERSION) {
   throw new Error(
@@ -116,7 +116,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // peau-mixte excluded: too noisy on neutral hydrators.
   // peaux_sensibles: strict computed variant, excludes sulfate/formaldehyde_donor/
   // isothiazolinone (the mapped peau-sensible tolerates them; axis gate only).
-  peaux_sensibles: { auroreSlug: S.PEAU_SENSIBLE, confidenceFloor: 0.5, allow: true },
+  'peaux-sensibles': { auroreSlug: S.PEAU_SENSIBLE, confidenceFloor: 0.5, allow: true },
   // Skin-type tags need explicit marketed-for wording; benefit-axis confidence
   // makes opposite audiences fire too broadly.
   'peau-grasse': { auroreSlug: S.PEAU_GRASSE, confidenceFloor: 0.85, allow: false },
@@ -124,33 +124,33 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
 
   // Absence tags (detected_absence): algo-derm sets confidence = min(coverage, 0.95).
   // Gate on coverageFloor only; confidenceFloor is redundant for absence tags.
-  sans_parfum: { auroreSlug: S.SANS_PARFUM, coverageFloor: 0.7, allow: true },
-  sans_sulfates: { auroreSlug: S.SANS_SULFATES, coverageFloor: 0.7, allow: true },
-  sans_silicones: { auroreSlug: S.SANS_SILICONES, coverageFloor: 0.7, allow: true },
-  sans_huiles_essentielles: {
+  'sans-parfum': { auroreSlug: S.SANS_PARFUM, coverageFloor: 0.7, allow: true },
+  'sans-sulfates': { auroreSlug: S.SANS_SULFATES, coverageFloor: 0.7, allow: true },
+  'sans-silicones': { auroreSlug: S.SANS_SILICONES, coverageFloor: 0.7, allow: true },
+  'sans-huiles-essentielles': {
     auroreSlug: S.SANS_HUILES_ESSENTIELLES,
     coverageFloor: 0.7,
     allow: true,
   },
-  sans_huiles_minerales: {
+  'sans-huiles-minerales': {
     auroreSlug: S.SANS_HUILES_MINERALES,
     coverageFloor: 0.7,
     allow: true,
   },
-  sans_allergenes_parfumants: {
+  'sans-allergenes-parfumants': {
     auroreSlug: S.SANS_ALLERGENES_PARFUMANTS,
     coverageFloor: 0.7,
     allow: true,
   },
   // Denatured alcohol is a chronic drying irritant; its absence matters for
-  // sensitive/atopic skin unlike sans_savon.
-  sans_alcool_denature: {
+  // sensitive/atopic skin unlike sans-savon.
+  'sans-alcool-denature': {
     auroreSlug: S.SANS_ALCOOL_DENATURE,
     coverageFloor: 0.7,
     allow: true,
   },
   // Fires on > 80 % of corpus, not discriminating.
-  sans_savon: { auroreSlug: S.SANS_SAVON, coverageFloor: 1.0, allow: false },
+  'sans-savon': { auroreSlug: S.SANS_SAVON, coverageFloor: 1.0, allow: false },
 
   // Fires on allergenicity.risk < 0.30 + no fragrance/EO/allergen flags.
   // Floors require strong axis confidence and substantial INCI coverage before
@@ -168,7 +168,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // Fires on irritation.risk < 0.35. Mirrors hypoallergenique floors.
   // No skipIf: declarationOnlyRisk is allergenicity-specific (Annex III traces)
   // and has no irritation-axis equivalent in algo-derm.
-  non_irritant: {
+  'non-irritant': {
     auroreSlug: S.NON_IRRITANT,
     confidenceFloor: 0.85,
     coverageFloor: 0.7,
@@ -192,7 +192,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // Explicit avoid signal: fires on retinoids, hydroquinone, formaldehyde donors,
   // BHA leave-on, oxybenzone/homosalate, risky EOs. Migrated from formula pass.
   // coverageFloor: 0; missing a contraindication is worse than a false positive.
-  grossesse_risque: {
+  'grossesse-risque': {
     auroreSlug: S.GROSSESSE_COMPATIBLE,
     relevance: 'avoid',
     coverageFloor: 0,

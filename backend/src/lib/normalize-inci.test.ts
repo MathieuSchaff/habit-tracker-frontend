@@ -17,8 +17,8 @@ describe('normalizeInci', () => {
   })
 
   test('passes unknown tokens through unchanged (never silently dropped)', () => {
-    const r = normalizeInci('Glycerin, Extrait de Lavande, Niacinamide')
-    expect(r.value).toContain('Extrait de Lavande')
+    const r = normalizeInci('Glycerin, Fictus Plantus Extract, Niacinamide')
+    expect(r.value).toContain('Fictus Plantus Extract')
     expect(r.tokensAfter).toBe(3)
   })
 

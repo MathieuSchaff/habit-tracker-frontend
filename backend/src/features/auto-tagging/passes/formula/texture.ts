@@ -2,7 +2,7 @@ import type { ProductKind, ProductTexture } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { resolveIngredients } from '../../lib/ingredient-resolver'
-import { inciWindow } from './pass-helpers'
+import { inciWindow } from './name-positioning'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 

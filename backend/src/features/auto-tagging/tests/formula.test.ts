@@ -142,6 +142,16 @@ describe('detectSolaireTags — sanity', () => {
   test('zinc oxide in cica cream (skincare) → not flagged', () => {
     expect(detectSolaireTags('Aqua, Zinc Oxide, Centella', 'moisturizer', 'skincare')).toEqual([])
   })
+
+  test('modern filters via long-form INCI names → filtres-chimiques', () => {
+    const tags = detectSolaireTags(
+      'Aqua, Ethylhexyl Triazone, Bis-Ethylhexyloxyphenol Methoxyphenyl Triazine, Diethylamino Hydroxybenzoyl Hexyl Benzoate',
+      'sunscreen',
+      'solaire'
+    )
+    expect(tags).toContain(S.FILTRES_CHIMIQUES)
+    expect(tags).not.toContain(S.FILTRES_MINERAUX)
+  })
 })
 
 describe('detectPrebiotique — sanity', () => {

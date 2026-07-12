@@ -143,7 +143,7 @@ export const SKINCARE_PRODUCT_TAG_DEFS = [
     label: 'Nettoyant',
     category: 'product_type_v2',
   },
-  { key: 'TYPE_TONER', slug: 'type-toner', label: 'Toner', category: 'product_type_v2' },
+  { key: 'TYPE_TONER', slug: 'type-toner', label: 'Toner / Essence', category: 'product_type_v2' },
   { key: 'TYPE_MIST', slug: 'type-mist', label: 'Mist / Brume', category: 'product_type_v2' },
   {
     key: 'TYPE_SERUM',

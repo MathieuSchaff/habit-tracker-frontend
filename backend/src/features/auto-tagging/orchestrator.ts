@@ -28,8 +28,16 @@ const AUTO_TAG_ELIGIBLE_CATEGORIES_SET: ReadonlySet<string> = new Set(AUTO_TAG_E
 export interface AutoTagTraceSink {
   // Wired into ctx so the algo-derm gate records each dropped candidate.
   dropCounts?: Map<string, number>
-  // One call per pass, in registry order, with the pass's raw proposals.
-  onPass?: (name: string, proposals: readonly AutoTagProposal[]) => void
+  // One call per pass, in registry order, after the pass's proposals merged.
+  // outcomes[i] is mergeProposal's verdict for proposals[i] (true = became the
+  // byTag entry); the pre-promote winner for a slug is its LAST accepted
+  // proposal. Readers derive won/superseded from this event order — never from
+  // object identity, which the merge does not guarantee.
+  onPass?: (
+    name: string,
+    proposals: readonly AutoTagProposal[],
+    outcomes: readonly boolean[]
+  ) => void
   // Called once after all passes merge, before primaryPromote mutates byTag.
   onMerged?: (byTag: ReadonlyMap<SkincareProductTagSlug, AutoTagProposal>) => void
 }
@@ -52,8 +60,8 @@ export function detectAllAutoTags(
   for (const pass of AUTO_TAG_PASSES) {
     const prior = [...byTag.values()]
     const proposals = pass.run(ctx, prior)
-    sink?.onPass?.(pass.name, proposals)
-    for (const proposal of proposals) mergeProposal(byTag, proposal)
+    const outcomes = proposals.map((proposal) => mergeProposal(byTag, proposal))
+    sink?.onPass?.(pass.name, proposals, outcomes)
   }
   sink?.onMerged?.(byTag)
   primaryPromote(byTag, product.kind)

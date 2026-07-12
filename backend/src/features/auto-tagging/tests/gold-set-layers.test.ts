@@ -16,7 +16,7 @@ describe('gold-set layer taxonomy', () => {
     }
   })
 
-  test('focus tags split 12 actif-class / 16 formula / 1 algo-derm / 0 brand-cert', () => {
+  test('focus tags split 12 actif-class / 17 formula / 1 algo-derm / 0 brand-cert', () => {
     const counts: Record<string, number> = {
       'algo-derm': 0,
       'actif-class': 0,
@@ -24,7 +24,7 @@ describe('gold-set layer taxonomy', () => {
       formula: 0,
     }
     for (const tag of GOLD_SET_FOCUS_TAGS) counts[FOCUS_TAG_LAYER[tag]]++
-    expect(counts).toEqual({ 'algo-derm': 1, 'actif-class': 12, 'brand-cert': 0, formula: 16 })
+    expect(counts).toEqual({ 'algo-derm': 1, 'actif-class': 12, 'brand-cert': 0, formula: 17 })
   })
 
   test('layerOf resolves representative tags', () => {
@@ -34,6 +34,7 @@ describe('gold-set layer taxonomy', () => {
     expect(layerOf('keratose-pilaire')).toBe('formula')
     expect(layerOf('eczema-atopie')).toBe('formula')
     expect(layerOf('reparation-cutanee')).toBe('formula')
+    expect(layerOf('reparateur')).toBe('formula')
     expect(layerOf('cernes-poches')).toBe('formula')
     expect(layerOf('rougeurs-vasculaires')).toBe('formula')
     expect(layerOf('hyperpigmentation')).toBe('formula')
@@ -71,7 +72,7 @@ describe('summarizeByLayer', () => {
 
   test('reports structural focusTagCount per layer regardless of metrics presence', () => {
     const byLayer = Object.fromEntries(summarizeByLayer([]).map((l) => [l.layer, l.focusTagCount]))
-    expect(byLayer).toEqual({ 'algo-derm': 1, 'actif-class': 12, 'brand-cert': 0, formula: 16 })
+    expect(byLayer).toEqual({ 'algo-derm': 1, 'actif-class': 12, 'brand-cert': 0, formula: 17 })
   })
 
   test('rolls up rated counts plus macro/micro for a populated layer', () => {

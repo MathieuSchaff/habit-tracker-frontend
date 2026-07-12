@@ -1,7 +1,7 @@
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
 import { BARRIERE_EXCLUSION_RE, BARRIERE_POSITION_RE } from './barriere-cutanee'
-import { matchesNamePositioning } from './pass-helpers'
+import { matchesNamePositioning } from './name-positioning'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 

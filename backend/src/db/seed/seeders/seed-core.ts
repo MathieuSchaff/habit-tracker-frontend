@@ -1,9 +1,19 @@
-import { type ProductKind, SKINCARE_INGREDIENT_CATEGORY_VALUES } from '@aurore/shared'
+import {
+  type ProductCategory,
+  type ProductKind,
+  type ProductTexture,
+  SKINCARE_INGREDIENT_CATEGORY_VALUES,
+} from '@aurore/shared'
 
 import slugify from '@sindresorhus/slugify'
 import { count, eq, sql } from 'drizzle-orm'
 
-import { detectAllAutoTags, partitionEczemaReview } from '../../../features/auto-tagging'
+import {
+  type AutoTagSource,
+  buildOrchestratorInput,
+  detectAllAutoTags,
+  partitionEczemaReview,
+} from '../../../features/auto-tagging'
 import { addTagToIngredient } from '../../../features/ingredient-tags/service'
 import { createIngredient } from '../../../features/ingredients/service'
 import { addTagToProduct } from '../../../features/product-tags/service'
@@ -260,22 +270,28 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       ])
     )
 
-    const secondaryBySource: Record<string, number> = {
+    // Exhaustive by construction: a new AutoTagSource fails compilation here
+    // instead of vanishing from the seed stats.
+    const zeroBySource = (): Record<AutoTagSource, number> => ({
       'algo-derm': 0,
       'actif-class': 0,
       kind: 0,
       formula: 0,
       'cross-signal': 0,
-      'percent-claim': 0,
+      interaction: 0,
+      concentration: 0,
       brand: 0,
-    }
+      'percent-claim': 0,
+    })
     // `'cross-signal'` source overlaps between secondary and avoid streams —
     // disambiguate by AutoTagPair.relevance.
-    const avoidBySource: Record<string, number> = {
-      'algo-derm': 0,
-      'cross-signal': 0,
-      interaction: 0,
-    }
+    const secondaryBySource = zeroBySource()
+    const avoidBySource = zeroBySource()
+    const formatBySource = (counts: Record<AutoTagSource, number>): string =>
+      Object.entries(counts)
+        .filter(([, n]) => n > 0)
+        .map(([source, n]) => `${source} ${n}`)
+        .join(' · ')
     const autoSecondaryPairs: {
       slug: string
       tagSlug: string
@@ -315,16 +331,22 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       const inci = (product as { inci?: string | null }).inci
       const name = (product as { name?: string | null }).name
       const description = (product as { description?: string | null }).description
+      const texture = (product as { texture?: ProductTexture | null }).texture
+      // knownConcentrations stays absent at seed time (product_ingredients rows
+      // do not exist yet); the post-seed backfill supplies dose-gated emissions.
       const pairs = detectAllAutoTags(
-        {
-          inci,
-          kind: product.kind as ProductKind,
-          category: product.category,
-          brand: product.brand,
-          name,
-          description,
-          percentClaims: percentClaimsByProduct.get(product.slug) ?? [],
-        },
+        buildOrchestratorInput(
+          {
+            inci,
+            kind: product.kind as ProductKind,
+            category: product.category as ProductCategory,
+            brand: product.brand,
+            texture: texture ?? null,
+            name: name ?? null,
+            description: description ?? null,
+          },
+          { percentClaims: percentClaimsByProduct.get(product.slug) ?? [] }
+        ),
         { brandCertifications: brandCertMap }
       )
       const { kept, withheld } = partitionEczemaReview(pairs, description)
@@ -337,7 +359,7 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       }
       for (const p of kept) {
         if (p.relevance === 'avoid') {
-          avoidBySource[p.source] = (avoidBySource[p.source] ?? 0) + 1
+          avoidBySource[p.source] += 1
           avoidPairs.push({
             slug: product.slug,
             tagSlug: p.tagSlug,
@@ -345,7 +367,7 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
             source: p.source,
           })
         } else {
-          secondaryBySource[p.source] = (secondaryBySource[p.source] ?? 0) + 1
+          secondaryBySource[p.source] += 1
           autoSecondaryPairs.push({
             slug: product.slug,
             tagSlug: p.tagSlug,
@@ -357,12 +379,12 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
     }
     if (autoSecondaryPairs.length > 0) {
       console.log(
-        `🏷  Backfill auto-tags: +${autoSecondaryPairs.length} pair(s) (algo-derm ${secondaryBySource['algo-derm']} · actif-class ${secondaryBySource['actif-class']} · kind ${secondaryBySource.kind} · formula ${secondaryBySource.formula} · cross-signal ${secondaryBySource['cross-signal']} · percent-claim ${secondaryBySource['percent-claim']} · brand ${secondaryBySource.brand})`
+        `🏷  Backfill auto-tags: +${autoSecondaryPairs.length} pair(s) (${formatBySource(secondaryBySource)})`
       )
     }
     if (avoidPairs.length > 0) {
       console.log(
-        `🛡  Backfill avoid: +${avoidBySource['algo-derm']} grossesse · +${avoidBySource['cross-signal']} stack-irritation · +${avoidBySource.interaction} interaction`
+        `🛡  Backfill avoid: +${avoidPairs.length} pair(s) (${formatBySource(avoidBySource)})`
       )
     }
     if (eczemaReviewQueue.length > 0) {

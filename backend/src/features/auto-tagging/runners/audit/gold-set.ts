@@ -2,7 +2,7 @@
 // (~260 products). Read-only on DB.
 //
 // Annotations: gold-set/annotations.json (loaded via fixtures.ts).
-// Focus tags: GOLD_SET_FOCUS_TAGS (15 tags).
+// Focus tags: GOLD_SET_FOCUS_TAGS (gold-set/fixtures.ts).
 //
 // Pipeline per product:
 //   1. detectAllAutoTags: orchestrator emission set.
@@ -28,8 +28,6 @@ import { inArray, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
-import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
-import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
 import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
 import { summarizeByLayer } from '../../gold-set/layers'
 import {
@@ -38,9 +36,11 @@ import {
   microAverage,
   type PerTagMetrics,
 } from '../../gold-set/metrics'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
 import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
+import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import type { TagEvidence } from '../../lib/pass-types'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from '../../orchestrator'
+import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
 import { pad, rpad } from '../fmt'
 
@@ -96,20 +96,20 @@ async function main() {
         slug: products.slug,
         name: products.name,
         description: products.description,
+        brand: products.brand,
         kind: products.kind,
         category: products.category,
         inci: products.inci,
+        texture: products.texture,
       })
       .from(products)
       .where(inArray(products.slug, annotated))
   })
 
-  const productIds = dbProducts.map((p) => p.id)
-  const claimsByProduct = await fetchPercentClaimsByProduct(productIds)
-  // The bench was the only orchestrator caller omitting concentrations; pass them for
-  // parity with write.ts/runners so dose-gated emissions (R4 peau-sensible) are measured
-  // faithfully once such a tag enters GOLD_SET_FOCUS_TAGS. No focus-tag impact today.
-  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(productIds)
+  // Same fetch bundle as the writers: the bench measures the inputs intake
+  // actually feeds the orchestrator (brand certs and texture used to be
+  // omitted here — no focus-tag impact, but the gap was silent).
+  const bundle = await loadAutoTagFetchBundle(dbProducts.map((p) => p.id))
 
   // Every annotated slug must exist in DB; missing = stale gold set (renamed/deleted product).
   const dbBySlug = new Map<string, (typeof dbProducts)[number]>()
@@ -161,18 +161,9 @@ async function main() {
       for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
     }
 
-    const orchPairs = detectAllAutoTags({
-      inci: p.inci,
-      kind: p.kind as ProductKind,
-      category: p.category,
-      // name/description are load-bearing: positioning passes (rougeurs-vasculaires,
-      // eczema-atopie, protection SPF, absence-claims) read them. Omitting them made
-      // the bench blind to every name-based pass (gold-set ↔ intake gap, backlog §20).
-      name: p.name,
-      description: p.description,
-      percentClaims: claimsByProduct.get(p.id) ?? [],
-      knownConcentrations: concentrationsByProduct.get(p.id),
-    })
+    // Raw emission (`pairs`), not the persist-filtered `rows`: the bench measures
+    // the detectors; eczema withholding is an ingest policy, not a prediction.
+    const { pairs: orchPairs } = computeTagRowsForProduct(p, bundle)
     const emittedSlugs = new Set<string>()
     const evidenceBySlug = new Map<string, TagEvidence>()
     for (const pair of orchPairs) {

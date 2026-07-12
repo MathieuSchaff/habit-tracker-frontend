@@ -165,4 +165,22 @@ describe('formula pass field binds', () => {
   test('absence-claims reads name/description text', () => {
     expect(runPass('formula:absence-claims-text', absenceText)).toContain(S.SANS_PARFUM)
   })
+
+  // Regression: this row used to be a plain formulaPass, so audits showed no trigger.
+  test('rougeurs-vasculaires-name emits name-positioning evidence', () => {
+    const ctx = makeCtx({
+      kind: 'moisturizer',
+      category: 'skincare',
+      name: 'Crème Anti-Rougeurs',
+    })
+    const pass = FORMULA_PASSES.find((p) => p.name === 'formula:rougeurs-vasculaires-name')
+    if (!pass) throw new Error('missing rougeurs-vasculaires-name pass')
+    const proposals = pass.run(ctx, [])
+    expect(proposals.map((p) => p.tagSlug)).toContain(S.ROUGEURS_VASCULAIRES)
+    expect(proposals[0]?.evidence).toEqual({
+      matchedToken: 'Rougeur',
+      sourceField: 'name',
+      rule: 'name-positioning',
+    })
+  })
 })

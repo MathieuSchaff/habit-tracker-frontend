@@ -7,8 +7,7 @@
 // annotator can pick up where they left off.
 //
 // Sampling strategy
-// For each focus tag (16 total: 9 actif-class clusters, 4 sensoriels T1,
-// 3 acid clusters), we draw:
+// For each focus tag (GOLD_SET_FOCUS_TAGS, gold-set/fixtures.ts), we draw:
 //   - POSITIVES_PER_TAG products that currently carry the tag in DB. Picked
 //     to span product kinds so the metric isn't dominated by serum-only.
 //   - NEGATIVES_PER_TAG products that currently lack the tag but share the
@@ -39,8 +38,7 @@ import type { ProductKind } from '@aurore/shared'
 import { inArray } from 'drizzle-orm'
 
 import { db } from '../../../db'
-import { withAdminRls } from '../../../db/rls'
-import { products, productTagLinks, productTagTypes } from '../../../db/schema'
+import { productTagLinks, productTagTypes } from '../../../db/schema'
 import {
   GOLD_SET_FOCUS_TAGS,
   GOLD_SET_SCHEMA_VERSION,
@@ -50,7 +48,7 @@ import {
   loadGoldSet,
   serializeGoldSet,
 } from '../gold-set/fixtures'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../orchestrator'
+import { fetchEligibleProducts } from './audit/db'
 import { pad, rpad } from './fmt'
 
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 70)
@@ -114,26 +112,6 @@ function logHeader(): void {
     `   target=${SAMPLE_SIZE} · positives_per_tag=${POSITIVES_PER_TAG} · negatives_per_tag=${NEGATIVES_PER_TAG} · seed=${SEED}`
   )
   console.log(`   out=${GOLD_SET_PATH}\n`)
-}
-
-async function fetchEligibleProducts(): Promise<{ all: ProductRow[]; eligible: ProductRow[] }> {
-  // Elevate in-tx so the sample reads the full catalogue (see db/rls.ts).
-  const all = await withAdminRls((tx) =>
-    tx
-      .select({
-        id: products.id,
-        slug: products.slug,
-        name: products.name,
-        brand: products.brand,
-        kind: products.kind,
-        category: products.category,
-        inci: products.inci,
-      })
-      .from(products)
-      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-  )
-  const eligible = all.filter((p) => !!p.inci?.trim())
-  return { all, eligible }
 }
 
 // Filtered to focus tags only; other tags are irrelevant for sampling.
@@ -343,7 +321,9 @@ async function main() {
   validateParams()
   logHeader()
 
-  const { all, eligible } = await fetchEligibleProducts()
+  const all = await fetchEligibleProducts()
+  // Only products with an INCI can be annotated; the sampler draws from those.
+  const eligible = all.filter((p) => !!p.inci?.trim())
   logCorpus(all.length, eligible.length)
 
   const tagsByProduct = await fetchTagsByProduct()

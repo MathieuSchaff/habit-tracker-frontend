@@ -1,6 +1,6 @@
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
-import { matchesNamePositioning } from './pass-helpers'
+import { matchesNamePositioning } from './name-positioning'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 

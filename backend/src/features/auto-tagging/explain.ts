@@ -1,10 +1,11 @@
 // Read-only trace of the auto-tag pipeline for a single INCI.
 //
 // Reads the orchestrator's one dispatch through the AutoTagTraceSink: per-pass
-// proposals (onPass), the pre-promote merge snapshot (onMerged), and algo-derm
-// drop reasons (dropCounts). `final` IS detectAllAutoTags' own return value, so
-// the trace cannot fork from it. explainInci adds only interpretation on top:
-// merge won/superseded outcomes and primary-promotion events.
+// proposals + merge verdicts (onPass) and algo-derm drop reasons (dropCounts).
+// `final` IS detectAllAutoTags' own return value, so the trace cannot fork from
+// it. explainInci adds only interpretation on top: the pre-promote winner per
+// slug (last accepted proposal, derived from the sink's event order — never
+// from object identity) and primary-promotion events.
 
 import type { SkincareProductTagSlug } from '@aurore/shared'
 
@@ -77,36 +78,52 @@ export function explainInci(
 
   // dropCounts records gated candidates without affecting pass output (includeDropped stays off).
   const dropCounts = new Map<string, number>()
-  const rawLayers: { name: string; proposals: readonly AutoTagProposal[] }[] = []
-  let winnerBySlug = new Map<SkincareProductTagSlug, AutoTagProposal>()
-  const relevanceBefore = new Map<SkincareProductTagSlug, AutoTagRelevance>()
+  const rawLayers: {
+    name: string
+    proposals: readonly AutoTagProposal[]
+    outcomes: readonly boolean[]
+  }[] = []
 
   const final = detectAllAutoTags(input, options, {
     dropCounts,
-    onPass(name, proposals) {
-      if (proposals.length > 0) rawLayers.push({ name, proposals })
-    },
-    onMerged(byTag) {
-      // Snapshot before promotion: primaryPromote replaces entries with fresh
-      // objects, breaking the reference equality used for won/superseded below.
-      winnerBySlug = new Map(byTag)
-      for (const [slug, p] of byTag) relevanceBefore.set(slug, p.relevance)
+    onPass(name, proposals, outcomes) {
+      if (proposals.length > 0) rawLayers.push({ name, proposals, outcomes })
     },
   })
 
+  // Pre-promote winner per slug = the LAST accepted proposal (sink contract),
+  // identified by event order. Its relevance is the pre-promote relevance the
+  // promotion detection below compares against.
+  let scanIdx = 0
+  const winnerIdxBySlug = new Map<SkincareProductTagSlug, number>()
+  const winnerBySlug = new Map<
+    SkincareProductTagSlug,
+    { relevance: AutoTagRelevance; source: AutoTagSource }
+  >()
+  for (const layer of rawLayers) {
+    layer.proposals.forEach((p, i) => {
+      if (layer.outcomes[i]) {
+        winnerIdxBySlug.set(p.tagSlug, scanIdx)
+        winnerBySlug.set(p.tagSlug, { relevance: p.relevance, source: p.source })
+      }
+      scanIdx++
+    })
+  }
+
   const promotions: ExplainPromotion[] = []
   for (const p of final) {
-    const before = relevanceBefore.get(p.tagSlug)
+    const before = winnerBySlug.get(p.tagSlug)?.relevance
     if (before && before !== p.relevance && p.relevance === 'primary') {
       promotions.push({ tagSlug: p.tagSlug, from: before })
     }
   }
 
+  let projIdx = 0
   const layers: ExplainLayer[] = rawLayers.map((layer) => ({
     name: layer.name,
     proposals: layer.proposals.map((p) => {
+      const proposalWon = winnerIdxBySlug.get(p.tagSlug) === projIdx++
       const winner = winnerBySlug.get(p.tagSlug)
-      const proposalWon = winner === p
       return {
         tagSlug: p.tagSlug,
         relevance: p.relevance,
@@ -114,9 +131,7 @@ export function explainInci(
         ...(p.confidence !== undefined ? { confidence: p.confidence } : {}),
         ...(p.evidence ? { evidence: p.evidence } : {}),
         outcome: proposalWon ? ('won' as const) : ('superseded' as const),
-        ...(proposalWon || !winner
-          ? {}
-          : { supersededBy: { relevance: winner.relevance, source: winner.source } }),
+        ...(proposalWon || !winner ? {} : { supersededBy: winner }),
       }
     }),
   }))

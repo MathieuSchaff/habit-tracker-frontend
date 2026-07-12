@@ -1,7 +1,10 @@
 // Merge + primary-promotion logic for the auto-tag pipeline (ADR-0001).
 //
 // `mergeProposal`: avoid > primary > secondary. Higher-relevance replaces lower;
-// equal-relevance keeps the first seen (stable source attribution).
+// equal-relevance keeps the first seen (stable source attribution). Returns
+// whether the proposal became the byTag entry — the pre-promote winner for a
+// slug is its LAST accepted proposal, the contract the trace sink relays to
+// explainInci (which must never infer outcomes from object identity).
 //
 // `primaryPromote` runs once after all passes, mutates in place, never adds slugs.
 // Two promotion rules:
@@ -29,11 +32,13 @@ export const CONCERN_PRIMARY_CONFIDENCE_FLOOR = 0.7
 export function mergeProposal(
   byTag: Map<SkincareProductTagSlug, AutoTagProposal>,
   proposal: AutoTagProposal
-): void {
+): boolean {
   const existing = byTag.get(proposal.tagSlug)
   if (!existing || RELEVANCE_RANK[proposal.relevance] > RELEVANCE_RANK[existing.relevance]) {
     byTag.set(proposal.tagSlug, proposal)
+    return true
   }
+  return false
 }
 
 export function primaryPromote(

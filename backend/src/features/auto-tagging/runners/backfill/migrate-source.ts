@@ -14,22 +14,16 @@
 //   --write   apply UPDATEs (default = dry-run, reports per-source counts)
 //   LIMIT     cap the product set for debugging
 
-import type { ProductKind, ProductTexture, TagSource } from '@aurore/shared'
+import type { TagSource } from '@aurore/shared'
 
-import { inArray, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
-import {
-  brandCertifications,
-  products,
-  productTagLinks,
-  productTagTypes,
-} from '../../../../db/schema'
-import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
-import { fetchPercentClaimsByProduct } from '../../../../lib/fetch-percent-claims'
-import { detectAllAutoTags } from '../..'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
+import { productTagLinks } from '../../../../db/schema'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
+import { fetchEligibleProducts } from '../audit/db'
 
 const WRITE = process.argv.includes('--write')
 const LIMIT = process.env.LIMIT ? Number.parseInt(process.env.LIMIT, 10) : null
@@ -38,55 +32,22 @@ const CHUNK = 500
 async function main() {
   console.log(`🏷  Migrate tag_products.source (${WRITE ? 'WRITE' : 'DRY-RUN'})\n`)
 
-  // Admin RLS elevation: products_select_visible hides non-`visible` rows from
-  // app_runtime; without it the source migration silently skips moderated products.
-  const allProducts = await withAdminRls((tx) =>
-    tx
-      .select({
-        id: products.id,
-        slug: products.slug,
-        name: products.name,
-        description: products.description,
-        brand: products.brand,
-        kind: products.kind,
-        inci: products.inci,
-        category: products.category,
-        texture: products.texture,
-      })
-      .from(products)
-      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-  )
+  // fetchEligibleProducts elevates RLS in-tx: products_select_visible hides
+  // non-`visible` rows from app_runtime; without it the source migration
+  // silently skips moderated products.
+  const allProducts = await fetchEligibleProducts()
 
   const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
-
-  const [certRows, claimsByProduct, tagDefs, concentrationsByProduct] = await Promise.all([
-    db.select().from(brandCertifications),
-    fetchPercentClaimsByProduct(subset.map((p) => p.id)),
-    db.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
-    fetchKnownConcentrationsByProduct(subset.map((p) => p.id)),
-  ])
-
-  const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-  const tagSlugToId = new Map(tagDefs.map((t) => [t.slug, t.id]))
+  const bundle = await loadAutoTagFetchBundle(subset.map((p) => p.id))
 
   const orchestratorSource = new Map<string, TagSource>()
   for (const p of subset) {
-    const pairs = detectAllAutoTags(
-      {
-        inci: p.inci,
-        kind: p.kind as ProductKind,
-        category: p.category,
-        brand: p.brand,
-        texture: p.texture as ProductTexture | null,
-        name: p.name,
-        description: p.description,
-        percentClaims: claimsByProduct.get(p.id) ?? [],
-        knownConcentrations: concentrationsByProduct.get(p.id),
-      },
-      { brandCertifications: brandCertMap }
-    )
+    // Source rewrite reads the raw emission (`pairs`), not the persist-filtered
+    // `rows`: it only relabels rows that already exist, never inserts, so the
+    // domain/eczema filter must not shrink the match set.
+    const { pairs } = computeTagRowsForProduct(p, bundle)
     for (const pair of pairs) {
-      const tagId = tagSlugToId.get(pair.tagSlug)
+      const tagId = bundle.tagSlugToInfo.get(pair.tagSlug)?.id
       if (!tagId) continue
       orchestratorSource.set(`${p.id}::${tagId}`, pair.source)
     }

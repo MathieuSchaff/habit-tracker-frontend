@@ -1,13 +1,17 @@
-import type { ProductFormulaPreviewInput } from '@aurore/shared'
+import type { ProductFormulaPreviewInput, ProductKind } from '@aurore/shared'
 
 import { normalize, splitINCI, stripPreamble } from 'algo-derm'
 import { buildAliasIndex, lookupIngredient, MERGED_EVIDENCE_DB } from 'algo-derm/engine'
-import { inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 
 import type { DB } from '../../db/index'
 import { ingredients } from '../../db/schema/ingredients/ingredients'
-import { detectAllAutoTags } from '../auto-tagging'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../auto-tagging/orchestrator'
+import { brandCertifications, normalizeBrand } from '../../db/schema/products/brand-certifications'
+import {
+  AUTO_TAG_ELIGIBLE_CATEGORIES,
+  buildOrchestratorInput,
+  detectAllAutoTags,
+} from '../auto-tagging'
 
 // Built once on first call — `MERGED_EVIDENCE_DB` is immutable at runtime.
 let aliasIndex: ReturnType<typeof buildAliasIndex> | null = null
@@ -111,18 +115,34 @@ export async function previewProductFormula(
     }
   })
 
-  // detectAllAutoTags is pure / DB-free. Field mapping mirrors AUTOTAG_INPUT_FIELDS in service.ts.
   const autoTagEligible = AUTO_TAG_ELIGIBLE_SET.has(input.category)
+  const brand = input.brand?.trim() ? input.brand : null
+
+  // The brand pass needs the certification row, else vegan/cruelty-free/
+  // bio-naturel silently vanish from the preview while intake would emit them.
+  // percentClaims/knownConcentrations stay absent: no product_ingredients rows
+  // exist before submit.
+  const certRows =
+    autoTagEligible && brand
+      ? await db
+          .select()
+          .from(brandCertifications)
+          .where(eq(brandCertifications.brandNormalized, normalizeBrand(brand)))
+      : []
+
   const suggestedTags = autoTagEligible
-    ? detectAllAutoTags({
-        inci: input.inci,
-        kind: input.kind as never,
-        category: input.category,
-        brand: input.brand ?? null,
-        texture: input.texture ?? null,
-        name: input.name ?? null,
-        description: input.description ?? null,
-      })
+    ? detectAllAutoTags(
+        buildOrchestratorInput({
+          inci: input.inci,
+          kind: input.kind as ProductKind,
+          category: input.category,
+          brand,
+          texture: input.texture ?? null,
+          name: input.name ?? null,
+          description: input.description ?? null,
+        }),
+        { brandCertifications: new Map(certRows.map((r) => [r.brandNormalized, r])) }
+      )
     : []
 
   return { tokens, suggestedTags, autoTagEligible }

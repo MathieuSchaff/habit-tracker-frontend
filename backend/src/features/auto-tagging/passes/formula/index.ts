@@ -54,7 +54,11 @@ export {
   REPARATION_POSITION_RE,
 } from './reparation-cutanee'
 export { detectRepulpant } from './repulpant'
-export { detectRougeursVasculairesFromName } from './rougeurs-vasculaires'
+export {
+  CAMOUFLAGE_RE,
+  detectRougeursVasculairesFromName,
+  REDNESS_POSITION_RE,
+} from './rougeurs-vasculaires'
 export { detectSansSavon } from './sans-savon'
 export { detectSolaireTags } from './solaire'
 export { detectStepNettoyage1 } from './step-nettoyage-1'

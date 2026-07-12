@@ -8,18 +8,14 @@
 // missing) are silently dropped; keeps the runtime path resilient when new
 // orchestrator rules ship before the seed catches up.
 
-import type { ProductKind, ProductTexture } from '@aurore/shared'
-
 import { and, eq, ne } from 'drizzle-orm'
 
 import { db } from '../../db'
 import type { DB } from '../../db/index'
-import { brandCertifications, products, productTagLinks, productTagTypes } from '../../db/schema'
-import { fetchKnownConcentrationsByProduct } from '../../lib/fetch-known-concentrations'
-import { fetchPercentClaimsByProduct } from '../../lib/fetch-percent-claims'
+import { products, productTagLinks } from '../../db/schema'
 import { logger } from '../../lib/logger'
-import { resolveTagRows } from './lib/resolve-tag-rows'
-import { detectAllAutoTags } from './orchestrator'
+import { loadAutoTagFetchBundle } from './lib/fetch-auto-tag-bundle'
+import { computeTagRowsForProduct } from './lib/orchestrator-input'
 
 interface WriteTagsResult {
   inserted: number
@@ -47,45 +43,10 @@ export async function writeTagsForProduct(
 
   if (!product) return { inserted: 0, detected: 0 }
 
-  // Sequential, not Promise.all: when `database` is a transaction these reads
-  // share one connection, and Bun's SQL pipelines concurrent statements then
-  // misroutes their result sets; an empty tag-defs read silently drops every
-  // tag (rows=0) while the DELETE still wipes existing rows. The reconcile /
-  // backfill runners pass a tx (withAdminRls), so the fan-out must be serial.
-  const certRows = await database.select().from(brandCertifications)
-  const percentClaims =
-    (await fetchPercentClaimsByProduct([productId], database)).get(productId) ?? []
-  const knownConcentrations =
-    (await fetchKnownConcentrationsByProduct([productId], database)).get(productId) ?? {}
-  const tagDefs = await database
-    .select({
-      id: productTagTypes.id,
-      slug: productTagTypes.slug,
-      tagType: productTagTypes.tagType,
-    })
-    .from(productTagTypes)
-
-  const brandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-  const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
-
-  const pairs = detectAllAutoTags(
-    {
-      inci: product.inci,
-      kind: product.kind as ProductKind,
-      category: product.category,
-      brand: product.brand,
-      texture: product.texture as ProductTexture | null,
-      name: product.name,
-      description: product.description,
-      percentClaims,
-      knownConcentrations,
-    },
-    { brandCertifications: brandCertMap }
-  )
-
-  // Withhold eczema-atopie on a contraindicating description, resolve slugs to
-  // tag ids, drop domain-ineligible tag types. Shared with backfill/reconcile.
-  const { rows: resolved } = resolveTagRows(pairs, product, tagSlugToInfo)
+  // Loader reads run serially so a tx `database` stays safe (Bun single-conn
+  // pipelining) — see fetch-auto-tag-bundle.ts.
+  const bundle = await loadAutoTagFetchBundle([productId], database)
+  const { pairs, rows: resolved } = computeTagRowsForProduct(product, bundle)
   const rows = resolved.map((r) => ({
     productId: product.id,
     productTagId: r.tagId,

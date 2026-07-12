@@ -32,31 +32,17 @@
 //   INCLUDE_DROPPED 1: surface allow:false tags in report (no writes)
 //   LIMIT           int: cap product count
 
-import type { ProductCategory, ProductKind, ProductTexture } from '@aurore/shared'
-
-import { inArray, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import type { Transaction } from '../../../../db/index'
 import { withAdminRls } from '../../../../db/rls'
-import {
-  brandCertifications,
-  products,
-  productTagLinks,
-  productTagTypes,
-} from '../../../../db/schema'
-import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
-import {
-  fetchPercentClaimsByProduct,
-  type PercentClaim,
-} from '../../../../lib/fetch-percent-claims'
-import { resolveTagRows } from '../../lib/resolve-tag-rows'
-import {
-  AUTO_TAG_ELIGIBLE_CATEGORIES,
-  type AutoTagSource,
-  detectAllAutoTags,
-} from '../../orchestrator'
+import { productTagLinks } from '../../../../db/schema'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import { type AutoTagFetchBundle, computeTagRowsForProduct } from '../../lib/orchestrator-input'
+import type { AutoTagSource } from '../../orchestrator'
 import { TAG_CONFIG } from '../../passes/algo-derm-detection'
+import { fetchEligibleProducts } from '../audit/db'
 import { parseWriteSlugArgs } from '../cli-args'
 import { type Candidate, type ClassifyResult, classifyCandidates, type Relevance } from './classify'
 
@@ -65,25 +51,7 @@ const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRI
 const INCLUDE_DROPPED = process.env.INCLUDE_DROPPED === '1'
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 
-interface ProductRow {
-  id: string
-  slug: string
-  name: string
-  description: string | null
-  brand: string
-  kind: ProductKind
-  inci: string | null
-  category: ProductCategory
-  texture: ProductTexture | null
-}
-
-interface TagInfo {
-  id: string
-  tagType: string
-}
-
-// Map key = lower(trim(brand)) via normalizeBrand, same as brandNormalized PK in seed.
-type BrandCertMap = Map<string, typeof brandCertifications.$inferSelect>
+type ProductRow = Awaited<ReturnType<typeof fetchEligibleProducts>>[number]
 
 // Only product_type_v2 primaries count as "auto": concern primaries must not
 // block V2 from firing on products V1 already touched (see classify.ts gate).
@@ -108,34 +76,6 @@ function logHeader(): void {
   )
 }
 
-async function fetchProductsAndCerts(): Promise<{
-  allProducts: ProductRow[]
-  brandCertMap: BrandCertMap
-}> {
-  // Admin RLS elevation: products_select_visible hides non-`visible` rows from the
-  // app_runtime role, so a plain read silently skips products in moderation and
-  // under-covers the backfill. The write path already elevates; the read must match.
-  return withAdminRls(async (tx) => {
-    const allProducts = await tx
-      .select({
-        id: products.id,
-        slug: products.slug,
-        name: products.name,
-        description: products.description,
-        brand: products.brand,
-        kind: products.kind,
-        inci: products.inci,
-        category: products.category,
-        texture: products.texture,
-      })
-      .from(products)
-      .where(inArray(products.category, [...AUTO_TAG_ELIGIBLE_CATEGORIES]))
-    const certRows = await tx.select().from(brandCertifications)
-    const brandCertMap: BrandCertMap = new Map(certRows.map((r) => [r.brandNormalized, r]))
-    return { allProducts, brandCertMap }
-  })
-}
-
 function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
   const subset = SLUG_ARG
     ? allProducts.filter((p) => p.slug === SLUG_ARG)
@@ -146,22 +86,6 @@ function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
     throw new Error(`Product slug "${SLUG_ARG}" not found in DB (or not in an eligible category)`)
   }
   return subset
-}
-
-async function fetchTagInfo(): Promise<{
-  tagSlugToInfo: Map<string, TagInfo>
-  tagIdToType: Map<string, string>
-}> {
-  const tagDefs = await db
-    .select({
-      id: productTagTypes.id,
-      slug: productTagTypes.slug,
-      tagType: productTagTypes.tagType,
-    })
-    .from(productTagTypes)
-  const tagSlugToInfo = new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
-  const tagIdToType = new Map(tagDefs.map((t) => [t.id, t.tagType]))
-  return { tagSlugToInfo, tagIdToType }
 }
 
 // Loads tagType per tagId to distinguish curated primaries from V1 auto primaries.
@@ -197,10 +121,7 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
 // to the current product_tags_defs (legacy slug remap).
 function detectCandidates(
   subset: ProductRow[],
-  claimsByProduct: Map<string, PercentClaim[]>,
-  concentrationsByProduct: Map<string, Record<string, number>>,
-  tagSlugToInfo: Map<string, TagInfo>,
-  brandCertMap: BrandCertMap
+  bundle: AutoTagFetchBundle
 ): {
   candidateMap: Map<string, Candidate>
   noInci: number
@@ -208,32 +129,17 @@ function detectCandidates(
 } {
   const candidateMap = new Map<string, Candidate>()
   let noInci = 0
-  // partitionEczemaReview withholds eczema-atopie when the description names atopy
-  // under a contraindication (inverted claim); withheld products surface for manual review.
+  // computeTagRowsForProduct withholds eczema-atopie when the description names
+  // atopy under a contraindication (inverted claim); withheld products surface
+  // for manual review.
   const eczemaReviewQueue: { slug: string; name: string; description: string }[] = []
   for (const p of subset) {
     if (!p.inci?.trim()) noInci++
 
-    const pairs = detectAllAutoTags(
-      {
-        inci: p.inci,
-        kind: p.kind,
-        category: p.category,
-        brand: p.brand,
-        texture: p.texture,
-        name: p.name,
-        description: p.description,
-        percentClaims: claimsByProduct.get(p.id) ?? [],
-        knownConcentrations: concentrationsByProduct.get(p.id),
-      },
-      {
-        ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
-        includeDropped: INCLUDE_DROPPED,
-        brandCertifications: brandCertMap,
-      }
-    )
-
-    const { rows, withheld } = resolveTagRows(pairs, p, tagSlugToInfo)
+    const { rows, withheld } = computeTagRowsForProduct(p, bundle, {
+      ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
+      includeDropped: INCLUDE_DROPPED,
+    })
     if (withheld) {
       eczemaReviewQueue.push({
         slug: p.slug,
@@ -364,21 +270,17 @@ async function main() {
   validateParams()
   logHeader()
 
-  const { allProducts, brandCertMap } = await fetchProductsAndCerts()
+  // fetchEligibleProducts elevates RLS in-tx: products_select_visible hides
+  // non-`visible` rows from app_runtime, and a plain read would silently
+  // under-cover the backfill. The write path elevates too; the read must match.
+  const allProducts = await fetchEligibleProducts()
   const subset = narrowSubset(allProducts)
-  const claimsByProduct = await fetchPercentClaimsByProduct(subset.map((p) => p.id))
-  const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
-  const { tagSlugToInfo, tagIdToType } = await fetchTagInfo()
+  const bundle = await loadAutoTagFetchBundle(subset.map((p) => p.id))
+  const tagIdToType = new Map([...bundle.tagSlugToInfo.values()].map((t) => [t.id, t.tagType]))
   const { existingMap, productsWithCuratedPrimary, manualPairs } =
     await fetchExistingState(tagIdToType)
 
-  const { candidateMap, noInci, eczemaReviewQueue } = detectCandidates(
-    subset,
-    claimsByProduct,
-    concentrationsByProduct,
-    tagSlugToInfo,
-    brandCertMap
-  )
+  const { candidateMap, noInci, eczemaReviewQueue } = detectCandidates(subset, bundle)
   const result = classifyCandidates(
     candidateMap,
     existingMap,

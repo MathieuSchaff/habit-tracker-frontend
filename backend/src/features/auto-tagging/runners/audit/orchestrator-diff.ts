@@ -12,7 +12,7 @@
 //   BASELINE    optional : prior snapshot CSV; switches to diff mode
 //   LIMIT       optional : cap product count (debug)
 
-import type { ProductKind } from '@aurore/shared'
+import { type ProductKind, relevanceValues, tagSourceValues } from '@aurore/shared'
 
 import {
   type AutoTagPair,
@@ -26,6 +26,13 @@ import { fetchEligibleProducts } from './db'
 const CSV_OUT = process.env.CSV_OUT
 const BASELINE = process.env.BASELINE
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
+
+// Baseline CSVs outlive schema changes — validate enum columns on read
+// instead of blind-casting a stale snapshot into the diff.
+const RELEVANCE_SET: ReadonlySet<string> = new Set(relevanceValues)
+const AUTO_TAG_SOURCE_SET: ReadonlySet<string> = new Set(
+  tagSourceValues.filter((s) => s !== 'manual')
+)
 
 export interface Row {
   productSlug: string
@@ -243,6 +250,16 @@ async function readSnapshot(path: string): Promise<Row[]> {
     const cols = lines[i].split(',')
     if (cols.length !== 6) {
       throw new Error(`BASELINE row ${i + 1} malformed (expected 6 cols, got ${cols.length})`)
+    }
+    if (!RELEVANCE_SET.has(cols[4])) {
+      throw new Error(
+        `BASELINE row ${i + 1}: unknown relevance "${cols[4]}" — stale snapshot? Regenerate it.`
+      )
+    }
+    if (!AUTO_TAG_SOURCE_SET.has(cols[5])) {
+      throw new Error(
+        `BASELINE row ${i + 1}: unknown source "${cols[5]}" — stale snapshot? Regenerate it.`
+      )
     }
     rows.push({
       productSlug: cols[0],

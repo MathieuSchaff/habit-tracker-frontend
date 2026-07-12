@@ -56,7 +56,7 @@ export interface AutoTagPair {
   evidence?: TagEvidence
 }
 
-// Built once per product; hoisted INCI work shared across every pass (§D.3 hoist).
+// Built once per product; hoisted INCI work shared across every pass.
 export interface PassContext {
   readonly inci: string | null | undefined
   readonly kind: ProductKind
@@ -66,11 +66,9 @@ export interface PassContext {
   readonly name: string | null | undefined
   readonly description: string | null | undefined
   readonly percentClaims: readonly PercentClaimEvidence[] | undefined
-  readonly knownConcentrations: Record<string, number> | undefined
   readonly brandCertifications: BrandCertificationLookup | undefined
 
   readonly hasInci: boolean
-  readonly cleanedInci: string
   readonly ingredients: readonly string[]
   readonly normalizedIngredients: readonly string[]
   readonly assessment: ProductAssessment | undefined
