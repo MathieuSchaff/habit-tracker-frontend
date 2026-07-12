@@ -9,12 +9,18 @@
  * Guardrail (see normalizeInci): keep the original when cleaning halves the
  * token count. Unknown tokens (FR / exotic) pass through unchanged.
  *
+ * Scoped to skincare-eligible categories: non-skincare rows (supplements,
+ * dental, fibres) carry usage prose in `inci`, not ingredients — normalizing
+ * them fabricates plausible-looking INCI from garbage.
+ *
  * Usage:
  *   bun run src/db/seed/maintenance/normalize-product-inci.ts          # dry-run
  *   bun run src/db/seed/maintenance/normalize-product-inci.ts --write  # apply
  */
 
-import { eq, isNotNull } from 'drizzle-orm'
+import type { ProductCategory } from '@aurore/shared'
+
+import { and, eq, inArray, isNotNull } from 'drizzle-orm'
 
 import { normalizeInci } from '../../../lib/normalize-inci'
 import { db } from '../..'
@@ -23,11 +29,15 @@ import { products } from '../../schema/products'
 
 const WRITE = process.argv.includes('--write')
 
+// Mirrors AUTO_TAG_ELIGIBLE_CATEGORIES (auto-tagging/orchestrator); kept local to
+// avoid pulling the tagging engine into a seed script.
+const NORMALIZE_CATEGORIES: ProductCategory[] = ['skincare', 'solaire', 'bodycare']
+
 async function main() {
   const rows = await db
     .select({ id: products.id, slug: products.slug, inci: products.inci })
     .from(products)
-    .where(isNotNull(products.inci))
+    .where(and(isNotNull(products.inci), inArray(products.category, NORMALIZE_CATEGORIES)))
 
   const updates: { id: string; before: string; after: string }[] = []
   let skippedGuardrail = 0

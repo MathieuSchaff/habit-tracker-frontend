@@ -34,11 +34,19 @@ import { createProduct } from '../../../../features/products/service'
 import { db } from '../../..'
 import { withAdminRls } from '../../../rls'
 import { products } from '../../../schema'
+import {
+  type AppliedImportedProductClassification,
+  applyImportedProductClassification,
+} from './reconcile-product-classification'
 
 const WRITE = process.argv.includes('--write')
 const ALLOW_PARTIAL = process.argv.includes('--allow-partial')
 
 type Verdict = 'DROP' | Partial<CreateProductInput>
+type ClassificationReconciliation = {
+  line: number
+  slug: string | null
+} & AppliedImportedProductClassification
 
 // Mirror of the SQL norm() the products_name_brand_unique_visible index uses
 // (migration 0081): lower(trim(regexp_replace($1, '\s+', ' ', 'g'))).
@@ -103,6 +111,7 @@ async function main() {
   let dupInLot = 0
   let dupInDb = 0
   const blockers: { line: number; slug: string | null; reason: string }[] = []
+  const classificationReconciliations: ClassificationReconciliation[] = []
   const candidates: { slug: string; input: CreateProductInput }[] = []
   const seenSlugs = new Set<string>()
   const seenNameBrand = new Set<string>()
@@ -121,7 +130,9 @@ async function main() {
       dropped++
       continue
     }
-    const merged = verdict ? { ...row, ...verdict } : row
+    // Explicit catalogue verdicts remain authoritative over automatic import repair.
+    const prepared = applyImportedProductClassification(row, verdictKey, verdict)
+    const merged = prepared.row
     const parsed = createProductSchema.safeParse(merged)
     if (!parsed.success) {
       invalid++
@@ -166,6 +177,13 @@ async function main() {
     seenSlugs.add(effectiveSlug)
     seenNameBrand.add(nameBrand)
     candidates.push({ slug: effectiveSlug, input: parsed.data })
+    if (prepared.reconciliation) {
+      classificationReconciliations.push({
+        line: i + 1,
+        slug: verdictKey,
+        ...prepared.reconciliation,
+      })
+    }
   }
 
   console.log(`\n📊 Lot : ${rows.length} lignes`)
@@ -174,6 +192,7 @@ async function main() {
   console.log(`   dup name+brand DB  : ${dupInDb}`)
   console.log(`   dup intra-lot      : ${dupInLot}`)
   console.log(`   DROP (verdicts)    : ${dropped}`)
+  console.log(`   kinds réconciliés  : ${classificationReconciliations.length}`)
   console.log(`   invalides          : ${invalid}\n`)
 
   // Machine-readable run record: plan.json always, apply.jsonl on write.
@@ -196,9 +215,11 @@ async function main() {
           dupInDb,
           dupInLot,
           dropped,
+          classificationReconciliations: classificationReconciliations.length,
           invalid,
         },
         blockers,
+        classificationReconciliations,
       },
       null,
       2

@@ -47,6 +47,33 @@ describe('createProduct — auto-tag opt-out', () => {
     expect((await autoLinks(product.id)).length).toBeGreaterThan(0)
   })
 
+  it('keeps an explicit classification even when the name looks like a sunscreen', async () => {
+    const user = await createTestUser()
+    const product = await createProduct(
+      user.id,
+      'admin',
+      {
+        name: 'Relief Sun : Rice + Probiotics SPF50+ PA++++',
+        brand: 'Beauty of Joseon',
+        kind: 'moisturizer',
+        unit: 'tube',
+        category: 'skincare',
+        inci: RICH_INCI,
+      },
+      testDb
+    )
+    expect(product.category).toBe('skincare')
+    expect(product.kind).toBe('moisturizer')
+
+    const links = await testDb
+      .select({ slug: productTagTypes.slug, relevance: productTagLinks.relevance })
+      .from(productTagLinks)
+      .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+      .where(eq(productTagLinks.productId, product.id))
+    expect(links).toContainEqual({ slug: 'type-hydratant', relevance: 'primary' })
+    expect(links.map((l) => l.slug)).not.toContain('type-solaire')
+  })
+
   it('skips auto-tagging when autoTag is false', async () => {
     const user = await createTestUser()
     const product = await createProduct(

@@ -233,12 +233,13 @@ const RULES: KindRule[] = [
     forbidden:
       /\bcorps\b|\bbody\b|\bcheveux\b|\bcapi[ll]?aire\b|\bcuir\s+chevelu\b|\bscalp\b|\bshampo+ing?\b|\bshampoo\b|\bdouche\b|\bshower\b|\bl[èe]vres?\b|\blip\b|\byeux\b|\beye\b|\bmains?\b|\bhand\b|\bpieds?\b|\bfoot\b|\bp[eé]eling\b|\bmousse\s+cr[eé]pitante|\bautobronzant|\bapr[eèé]s[-\s]?soleil|\bafter[-\s]?sun|\bspf\d|\bsolaire\b|\bsunscreen\b/i,
     expected: 'cleanser',
-    // Cleansing balms/oils keep their kind (admin's call); exfoliants/masks/patches too.
+    // A cleansing oil rinses off → cleanser (matches the ingest reconciler, which
+    // flips kind=oil cleansing names). Cleansing balms keep their kind (dual-use,
+    // admin's call); exfoliants/masks/patches too.
     okIfKindIn: new Set<ProductKind>([
       'cleanser',
       'body-wash',
       'balm',
-      'oil',
       'exfoliant',
       'mask',
       'patch',
