@@ -64,19 +64,23 @@ export function ProductInfoTab() {
   const { copied, copy } = useCopyToClipboard()
 
   const handleCopyIngredients = useCallback(() => {
-    if (!product.ingredients?.length) return
-    const text = product.ingredients
-      .map((ing) => {
-        const conc = formatConcentration(
-          ing.concentrationValue,
-          ing.concentrationUnit,
-          ing.concentrationPer
-        )
-        return conc ? `${ing.ingredientName} (${conc})` : ing.ingredientName
-      })
-      .join(', ')
+    if (!product.ingredients?.length && !product.inci) return
+    const ingredientsText =
+      product.ingredients
+        ?.map((ing) => {
+          const conc = formatConcentration(
+            ing.concentrationValue,
+            ing.concentrationUnit,
+            ing.concentrationPer
+          )
+          return conc ? `${ing.ingredientName} (${conc})` : ing.ingredientName
+        })
+        .join(', ') ?? ''
+    const text = [ingredientsText, product.inci ? `Full ingredient list: ${product.inci}` : '']
+      .filter(Boolean)
+      .join('\n\n')
     void copy(text)
-  }, [product.ingredients, copy])
+  }, [product.ingredients, copy, product.inci])
 
   const user = useAuthStore((s) => s.user)
 
@@ -139,10 +143,6 @@ export function ProductInfoTab() {
       />
 
       {product.inci && (
-        <FormulaReading slug={slug} userKey={user?.id ?? null} profileSlugs={profileSlugs} />
-      )}
-
-      {product.inci && (
         <details className="product-section product-inci">
           <summary className="product-inci__summary">
             <span>Composition INCI complète</span>
@@ -152,6 +152,9 @@ export function ProductInfoTab() {
         </details>
       )}
 
+      {product.inci && (
+        <FormulaReading slug={slug} userKey={user?.id ?? null} profileSlugs={profileSlugs} />
+      )}
       {hasIngredients && (
         <div className="product-section">
           <SectionHeader title="Ingrédients" count={product.ingredients.length}>
