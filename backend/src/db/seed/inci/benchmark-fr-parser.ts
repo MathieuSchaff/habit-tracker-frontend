@@ -129,36 +129,25 @@ for (const { slug, inci, category } of rows) {
 await sql.end()
 
 console.log('\n=== Match-rate (alias index hits / total ingredients) ===\n')
-console.log(
-  'bucket'.padEnd(15),
-  'prods'.padStart(7),
-  'ings'.padStart(7),
-  'legacy'.padStart(8),
-  'new'.padStart(8),
-  'Δ%'.padStart(7)
+console.table(
+  Object.values(buckets).map((b) => ({
+    bucket: b.name,
+    prods: b.prodCount,
+    ings: b.ingTotal,
+    legacy: `${((100 * b.legacyMatch) / b.ingTotal).toFixed(1)}%`,
+    new: `${((100 * b.newMatch) / b.ingTotal).toFixed(1)}%`,
+    'Δ%': `+${((100 * (b.newMatch - b.legacyMatch)) / b.ingTotal).toFixed(1)}`,
+  }))
 )
-for (const b of Object.values(buckets)) {
-  const legPct = ((100 * b.legacyMatch) / b.ingTotal).toFixed(1)
-  const newPct = ((100 * b.newMatch) / b.ingTotal).toFixed(1)
-  const delta = ((100 * (b.newMatch - b.legacyMatch)) / b.ingTotal).toFixed(1)
-  console.log(
-    b.name.padEnd(15),
-    String(b.prodCount).padStart(7),
-    String(b.ingTotal).padStart(7),
-    `${legPct}%`.padStart(8),
-    `${newPct}%`.padStart(8),
-    `+${delta}`.padStart(7)
-  )
-}
 
 console.log('\n=== Full-coverage products (every ingredient matched) ===\n')
-for (const b of Object.values(buckets)) {
-  const legPct = ((100 * b.legacyFullCov) / b.prodCount).toFixed(1)
-  const newPct = ((100 * b.newFullCov) / b.prodCount).toFixed(1)
-  console.log(
-    `  ${b.name.padEnd(15)}  legacy ${legPct}% (${b.legacyFullCov}/${b.prodCount})  →  new ${newPct}% (${b.newFullCov}/${b.prodCount})`
-  )
-}
+console.table(
+  Object.values(buckets).map((b) => ({
+    bucket: b.name,
+    legacy: `${((100 * b.legacyFullCov) / b.prodCount).toFixed(1)}% (${b.legacyFullCov}/${b.prodCount})`,
+    new: `${((100 * b.newFullCov) / b.prodCount).toFixed(1)}% (${b.newFullCov}/${b.prodCount})`,
+  }))
+)
 
 console.log('\n=== Example FR products with biggest gains (≥5 newly-matched) ===\n')
 for (const ex of exampleGains) {

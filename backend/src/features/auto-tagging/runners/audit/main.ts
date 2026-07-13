@@ -27,7 +27,7 @@
 
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { TAG_CONFIG, type TagRule } from '../../passes/algo-derm-detection'
-import { pad, rpad } from '../fmt'
+import { rpad } from '../fmt'
 import { runCheck } from './check'
 import {
   BENEFITS_OUT,
@@ -69,23 +69,25 @@ function reportCoverage(state: AuditState, subsetLen: number): void {
 
 function reportPerTag(state: AuditState): void {
   console.log(`📋 Par tag (trié par hit DESC)`)
-  console.log(
-    `   ${pad('tag_slug', 28)} ${rpad('hit', 6)} ${rpad('agree', 6)} ${rpad('new', 6)} ${rpad('avg', 8)} ${rpad('min', 6)} ${rpad('max', 6)} ${rpad('rule', 14)}`
-  )
-  console.log(
-    `   ${'─'.repeat(28)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(8)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(14)}`
-  )
   const ruleBySlug = new Map<string, TagRule>()
   for (const r of Object.values(TAG_CONFIG)) if (r.auroreSlug) ruleBySlug.set(r.auroreSlug, r)
 
   const sorted = [...state.tagFreq.entries()].sort((a, b) => b[1].hit - a[1].hit)
-  for (const [slug, s] of sorted) {
+  const rows = sorted.map(([slug, s]) => {
     const r = ruleBySlug.get(slug)
     const tag = r ? formatRule(r) : '?'
-    console.log(
-      `   ${pad(slug, 28)} ${rpad(String(s.hit), 6)} ${rpad(String(s.agree), 6)} ${rpad(String(s.new), 6)} ${rpad((s.sumConf / s.hit).toFixed(3), 8)} ${rpad(s.minConf.toFixed(2), 6)} ${rpad(s.maxConf.toFixed(2), 6)} ${rpad(tag, 14)}`
-    )
-  }
+    return {
+      tag_slug: slug,
+      hit: s.hit,
+      agree: s.agree,
+      new: s.new,
+      avg: (s.sumConf / s.hit).toFixed(3),
+      min: s.minConf.toFixed(2),
+      max: s.maxConf.toFixed(2),
+      rule: tag,
+    }
+  })
+  if (rows.length > 0) console.table(rows)
 }
 
 function reportSilentTags(state: AuditState): void {
@@ -109,15 +111,17 @@ function reportPerCategory(state: AuditState): void {
       continue
     }
     console.log(`\n   ── ${cat} ── (${inciCount} avec INCI)`)
-    console.log(`   ${pad('tag_slug', 28)} ${rpad('hit', 6)} ${rpad('rate', 7)} ${rpad('avg', 8)}`)
-    console.log(`   ${'─'.repeat(28)} ${'─'.repeat(6)} ${'─'.repeat(7)} ${'─'.repeat(8)}`)
     const sortedCat = [...bucket.entries()].sort((a, b) => b[1].hit - a[1].hit)
-    for (const [slug, s] of sortedCat) {
+    const rows = sortedCat.map(([slug, s]) => {
       const rate = s.hit / inciCount
-      console.log(
-        `   ${pad(slug, 28)} ${rpad(String(s.hit), 6)} ${rpad(`${(rate * 100).toFixed(1)}%`, 7)} ${rpad((s.sumConf / s.hit).toFixed(3), 8)}`
-      )
-    }
+      return {
+        tag_slug: slug,
+        hit: s.hit,
+        rate: `${(rate * 100).toFixed(1)}%`,
+        avg: (s.sumConf / s.hit).toFixed(3),
+      }
+    })
+    console.table(rows)
   }
 }
 
@@ -146,16 +150,17 @@ function reportInteractions(state: AuditState): void {
   )
   if (state.interactionFreq.size === 0) return
   const sorted = [...state.interactionFreq.entries()].sort((a, b) => b[1].count - a[1].count)
-  console.log(`\n   ${pad('id', 36)} ${rpad('count', 6)} ${rpad('adj', 7)} ${rpad('evL', 4)} axes`)
-  console.log(
-    `   ${'─'.repeat(36)} ${'─'.repeat(6)} ${'─'.repeat(7)} ${'─'.repeat(4)} ${'─'.repeat(40)}`
-  )
-  for (const [id, s] of sorted) {
+  const rows = sorted.map(([id, s]) => {
     const adjStr = (s.adjustment >= 0 ? '+' : '') + s.adjustment.toFixed(2)
-    console.log(
-      `   ${pad(id, 36)} ${rpad(String(s.count), 6)} ${rpad(adjStr, 7)} ${rpad(s.evidenceLevel, 4)} ${s.axes.join(',')}`
-    )
-  }
+    return {
+      id,
+      count: s.count,
+      adj: adjStr,
+      evL: s.evidenceLevel,
+      axes: s.axes.join(','),
+    }
+  })
+  console.table(rows)
 }
 
 // Aggregate breakdown of why tags didn't fire; see algo-derm-detection.ts:DropReason.
@@ -193,9 +198,7 @@ function reportDrops(state: AuditState): void {
     console.log(`\n   ${reason} · total=${total}`)
     const sorted = [...bucket.entries()].sort((a, b) => b[1] - a[1])
     const topN = Math.min(15, sorted.length)
-    for (const [tagId, n] of sorted.slice(0, topN)) {
-      console.log(`   ${rpad(String(n), 5)} × ${tagId}`)
-    }
+    console.table(sorted.slice(0, topN).map(([tagId, n]) => ({ tagId, count: n })))
     if (sorted.length > topN) {
       console.log(`   … (${sorted.length - topN} tags additionnels)`)
     }
@@ -237,26 +240,16 @@ function dumpBudgets(state: AuditState): void {
 async function dumpBenefits(state: AuditState): Promise<void> {
   console.log(`\n📈 DUMP_BENEFITS — per-axis benefit-score distributions`)
   console.log(`   sample = one product × axis (eligible category, non-empty INCI)`)
-  console.log(
-    `\n   ${pad('axis', 22)} ${rpad('n', 6)} ${rpad('min', 7)} ${rpad('P25', 7)} ${rpad('P50', 7)} ${rpad('P75', 7)} ${rpad('P85', 7)} ${rpad('P90', 7)} ${rpad('P95', 7)} ${rpad('max', 7)} ${rpad('mean', 7)}`
+  console.table(
+    BENEFIT_AXES.map((axis) => buildQuantileRow(axis, state.benefitSamples.get(axis) ?? []))
   )
-  console.log(
-    `   ${'─'.repeat(22)} ${'─'.repeat(6)} ${'─'.repeat(7).repeat(1)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)}`
-  )
-  for (const axis of BENEFIT_AXES) {
-    const xs = state.benefitSamples.get(axis) ?? []
-    printQuantileRow(axis, xs)
-  }
 
   console.log(`\n   ── Per category ──`)
   for (const cat of AUTO_TAG_ELIGIBLE_CATEGORIES) {
     const bucket = state.benefitSamplesByCategory.get(cat)
     if (!bucket) continue
     console.log(`\n   ${cat}`)
-    for (const axis of BENEFIT_AXES) {
-      const xs = bucket.get(axis) ?? []
-      printQuantileRow(axis, xs)
-    }
+    console.table(BENEFIT_AXES.map((axis) => buildQuantileRow(axis, bucket.get(axis) ?? [])))
   }
 
   if (BENEFITS_OUT) {
@@ -333,18 +326,39 @@ function quantile(sortedAsc: number[], q: number): number {
   return valueLo + (valueHi - valueLo) * (pos - lowerIdx)
 }
 
-function printQuantileRow(axis: string, xs: number[]): void {
+function buildQuantileRow(axis: string, xs: number[]) {
   if (xs.length === 0) {
-    console.log(`   ${pad(axis, 22)} ${rpad('0', 6)} ${rpad('—', 7).repeat(9)}`)
-    return
+    return {
+      axis,
+      n: 0,
+      min: '—',
+      P25: '—',
+      P50: '—',
+      P75: '—',
+      P85: '—',
+      P90: '—',
+      P95: '—',
+      max: '—',
+      mean: '—',
+    }
   }
   const sorted = [...xs].sort((a, b) => a - b)
   const mean = xs.reduce((s, v) => s + v, 0) / xs.length
   const min = sorted[0] ?? 0
   const max = sorted[sorted.length - 1] ?? 0
-  console.log(
-    `   ${pad(axis, 22)} ${rpad(String(xs.length), 6)} ${rpad(min.toFixed(3), 7)} ${rpad(quantile(sorted, 0.25).toFixed(3), 7)} ${rpad(quantile(sorted, 0.5).toFixed(3), 7)} ${rpad(quantile(sorted, 0.75).toFixed(3), 7)} ${rpad(quantile(sorted, 0.85).toFixed(3), 7)} ${rpad(quantile(sorted, 0.9).toFixed(3), 7)} ${rpad(quantile(sorted, 0.95).toFixed(3), 7)} ${rpad(max.toFixed(3), 7)} ${rpad(mean.toFixed(3), 7)}`
-  )
+  return {
+    axis,
+    n: xs.length,
+    min: min.toFixed(3),
+    P25: quantile(sorted, 0.25).toFixed(3),
+    P50: quantile(sorted, 0.5).toFixed(3),
+    P75: quantile(sorted, 0.75).toFixed(3),
+    P85: quantile(sorted, 0.85).toFixed(3),
+    P90: quantile(sorted, 0.9).toFixed(3),
+    P95: quantile(sorted, 0.95).toFixed(3),
+    max: max.toFixed(3),
+    mean: mean.toFixed(3),
+  }
 }
 
 function pct(n: number, d: number): string {

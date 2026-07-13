@@ -19,6 +19,7 @@ import {
 
 import { and, eq } from 'drizzle-orm'
 
+import { freqTable } from '../../../lib/report'
 import { db } from '../..'
 import { withAdminRls } from '../../rls'
 import { products, productTagLinks, productTagTypes } from '../../schema'
@@ -60,10 +61,7 @@ async function main() {
     byTagType.set(v.tagType, (byTagType.get(v.tagType) ?? 0) + 1)
   }
   console.log(`Found ${violations.length} violation(s) across ${byTagType.size} tagType(s):`)
-  for (const [tagType, count] of [...byTagType.entries()].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${tagType}: ${count}`)
-  }
-  console.log()
+  console.table(freqTable(byTagType, byTagType.size, 'tagType'))
 
   if (!WRITE) {
     console.log('[dry-run] would delete the above tag_products rows')

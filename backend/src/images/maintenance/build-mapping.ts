@@ -108,13 +108,7 @@ const summary = {
 }
 
 console.log('→ summary')
-console.log(`  mapped (CDN ∩ DB):              ${summary.mapped}`)
-console.log(`  CDN orphans (no DB slug):       ${summary.cdnOrphans}`)
-console.log(`  local orphans (no DB slug):     ${summary.localOrphans}`)
-console.log(`  local pending upload (not CDN): ${summary.localPendingUpload}`)
-console.log(`  products without CDN:           ${summary.productsNoCdn}`)
-console.log(`    — no image_url:               ${summary.productsNoCdnNoUrl}`)
-console.log(`    — external image_url:         ${summary.productsNoCdnExternal}`)
+console.table(summary)
 
 if (cdnOrphans.length > 0) {
   console.log(`\n→ CDN orphan samples (first 10):`)

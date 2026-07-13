@@ -218,15 +218,17 @@ const strippedViaNormalize = stripped.filter((r) => r.via === 'normalize')
 const strippedViaTokenSet = stripped.filter((r) => r.via === 'token-set')
 
 console.log('\n=== DRY RUN: Image → S3 mapping ===\n')
-console.log(`Images found:          ${imageFiles.length}`)
-console.log(`  exact match:         ${exact.length}`)
-console.log(`  match after strip:   ${stripped.length}`)
-console.log(`    via normalize:     ${strippedViaNormalize.length}`)
-console.log(`    via token-set:     ${strippedViaTokenSet.length}`)
-console.log(`  orphans (no match):  ${orphans.length}`)
-console.log(`\nProducts total:        ${allProductData.length}`)
-console.log(`  with image:          ${matchedSlugs.size}`)
-console.log(`  without image:       ${productsWithoutImage.length}`)
+console.table({
+  'images found': imageFiles.length,
+  'exact match': exact.length,
+  'match after strip': stripped.length,
+  '  via normalize': strippedViaNormalize.length,
+  '  via token-set': strippedViaTokenSet.length,
+  'orphans (no match)': orphans.length,
+  'products total': allProductData.length,
+  'with image': matchedSlugs.size,
+  'without image': productsWithoutImage.length,
+})
 
 if (VERBOSE) {
   if (strippedViaTokenSet.length > 0) {

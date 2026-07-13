@@ -193,17 +193,15 @@ async function main() {
     )
     claimed.sort((a, b) => b.total - a.total)
     console.log('📋 Marques claimées (verbose) :')
-    for (const r of claimed) {
-      const flags = [
-        r.vegan.claim ? `vegan(${r.vegan.count}/${r.total})` : '',
-        r.crueltyFree.claim ? `cf(${r.crueltyFree.count}/${r.total})` : '',
-        r.naturalCertified.claim ? `nat(${r.naturalCertified.count}/${r.total})` : '',
-      ]
-        .filter(Boolean)
-        .join(' · ')
-      console.log(`   ${r.obfSlug.padEnd(30)} ${flags}`)
-    }
-    console.log()
+    if (claimed.length > 0)
+      console.table(
+        claimed.map((r) => ({
+          slug: r.obfSlug,
+          vegan: r.vegan.claim ? `${r.vegan.count}/${r.total}` : '',
+          cf: r.crueltyFree.claim ? `${r.crueltyFree.count}/${r.total}` : '',
+          nat: r.naturalCertified.claim ? `${r.naturalCertified.count}/${r.total}` : '',
+        }))
+      )
   }
 
   // Load existing brand_certifications + build merge plan

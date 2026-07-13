@@ -296,12 +296,7 @@ function inciTokens(inci: string | undefined): string[] {
 }
 
 function jaccardArr(a: string[], b: string[]): number {
-  const A = new Set(a)
-  const B = new Set(b)
-  if (A.size === 0 && B.size === 0) return 0
-  let inter = 0
-  for (const x of A) if (B.has(x)) inter++
-  return inter / (A.size + B.size - inter)
+  return jaccardSet(new Set(a), new Set(b))
 }
 
 function jaccardSet<T>(a: Set<T>, b: Set<T>): number {
@@ -451,9 +446,9 @@ function semanticNumbers(name: string): Set<string> {
   return out
 }
 
-function tintTokens(name: string, brand: string): Set<string> {
+function matchWords(name: string, brand: string, words: Set<string>): Set<string> {
   const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/)) if (TINT_WORDS.has(tok)) out.add(tok)
+  for (const tok of stripName(name, brand).split(/\s+/)) if (words.has(tok)) out.add(tok)
   return out
 }
 
@@ -463,37 +458,6 @@ function sizeMmTokens(name: string): Set<string> {
   const out = new Set<string>()
   const norm = deburr(name).replace(/[,]/g, '.')
   for (const m of norm.matchAll(/(\d+(?:\.\d+)?)\s*mm\b/g)) out.add(`${m[1]}mm`)
-  return out
-}
-
-function colorTokens(name: string, brand: string): Set<string> {
-  const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/)) if (COLOR_WORDS.has(tok)) out.add(tok)
-  return out
-}
-
-function audienceTokens(name: string, brand: string): Set<string> {
-  const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/)) if (AUDIENCE_WORDS.has(tok)) out.add(tok)
-  return out
-}
-
-function modelVariantTokens(name: string, brand: string): Set<string> {
-  const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/))
-    if (MODEL_VARIANT_WORDS.has(tok)) out.add(tok)
-  return out
-}
-
-function scentTokens(name: string, brand: string): Set<string> {
-  const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/)) if (SCENT_WORDS.has(tok)) out.add(tok)
-  return out
-}
-
-function benefitTokens(name: string, brand: string): Set<string> {
-  const out = new Set<string>()
-  for (const tok of stripName(name, brand).split(/\s+/)) if (BENEFIT_WORDS.has(tok)) out.add(tok)
   return out
 }
 
@@ -530,25 +494,37 @@ function classifyPair(a: UnifiedProductSeed, b: UnifiedProductSeed): ClassifyRes
   const flags: string[] = []
   const numDiff = symmetricDiff(semanticNumbers(a.name), semanticNumbers(b.name))
   if (numDiff.size > 0) flags.push(`num-diff:${[...numDiff].join(',')}`)
-  const tintDiff = symmetricDiff(tintTokens(a.name, a.brand), tintTokens(b.name, b.brand))
+  const tintDiff = symmetricDiff(
+    matchWords(a.name, a.brand, TINT_WORDS),
+    matchWords(b.name, b.brand, TINT_WORDS)
+  )
   if (tintDiff.size > 0) flags.push(`tint-diff:${[...tintDiff].join(',')}`)
   const sizeMmDiff = symmetricDiff(sizeMmTokens(a.name), sizeMmTokens(b.name))
   if (sizeMmDiff.size > 0) flags.push(`size-mm:${[...sizeMmDiff].join(',')}`)
-  const colorDiff = symmetricDiff(colorTokens(a.name, a.brand), colorTokens(b.name, b.brand))
+  const colorDiff = symmetricDiff(
+    matchWords(a.name, a.brand, COLOR_WORDS),
+    matchWords(b.name, b.brand, COLOR_WORDS)
+  )
   if (colorDiff.size > 0) flags.push(`color-diff:${[...colorDiff].join(',')}`)
   const audienceDiff = symmetricDiff(
-    audienceTokens(a.name, a.brand),
-    audienceTokens(b.name, b.brand)
+    matchWords(a.name, a.brand, AUDIENCE_WORDS),
+    matchWords(b.name, b.brand, AUDIENCE_WORDS)
   )
   if (audienceDiff.size > 0) flags.push(`audience-diff:${[...audienceDiff].join(',')}`)
   const modelDiff = symmetricDiff(
-    modelVariantTokens(a.name, a.brand),
-    modelVariantTokens(b.name, b.brand)
+    matchWords(a.name, a.brand, MODEL_VARIANT_WORDS),
+    matchWords(b.name, b.brand, MODEL_VARIANT_WORDS)
   )
   if (modelDiff.size > 0) flags.push(`model-variant:${[...modelDiff].join(',')}`)
-  const scentDiff = symmetricDiff(scentTokens(a.name, a.brand), scentTokens(b.name, b.brand))
+  const scentDiff = symmetricDiff(
+    matchWords(a.name, a.brand, SCENT_WORDS),
+    matchWords(b.name, b.brand, SCENT_WORDS)
+  )
   if (scentDiff.size > 0) flags.push(`scent-diff:${[...scentDiff].join(',')}`)
-  const benefitDiff = symmetricDiff(benefitTokens(a.name, a.brand), benefitTokens(b.name, b.brand))
+  const benefitDiff = symmetricDiff(
+    matchWords(a.name, a.brand, BENEFIT_WORDS),
+    matchWords(b.name, b.brand, BENEFIT_WORDS)
+  )
   if (benefitDiff.size > 0) flags.push(`benefit-diff:${[...benefitDiff].join(',')}`)
   const tintLetterDiff = symmetricDiff(tintLetterTokens(a.name), tintLetterTokens(b.name))
   if (tintLetterDiff.size > 0) flags.push(`tint-letter:${[...tintLetterDiff].join(',')}`)
@@ -966,24 +942,22 @@ async function main(): Promise<void> {
     files: importedAudits,
   }
 
-  console.log('audit-imported-products')
-  console.log(`  active products          : ${report.summary.activeProducts}`)
-  console.log(
-    `  imported files/products  : ${report.summary.importedFiles}/${report.summary.importedProducts}`
-  )
-  console.log(`  empty descriptions       : ${report.summary.emptyDescription}`)
-  console.log(`  missing keyIngredients   : ${report.summary.missingKeyIngredients}`)
-  console.log(`  suspicious name casing   : ${report.summary.suspiciousNameCasing}`)
   const tier = (t: DupTier): number =>
     report.crossSourceDuplicates.filter((p) => p.tier === t).length
-  console.log(
-    `  cross-source dup pairs   : ${report.crossSourceDuplicates.length} (auto:${tier('auto-merge')} review:${tier('review')} weak:${tier('weak')})`
-  )
-  console.log(`  intra-source dup pairs   : ${report.intraSourceDuplicates.length}`)
-  console.log(`  imported prods w/ dup    : ${report.summary.semanticDuplicateProducts}`)
-  console.log(`  unindexed imported files : ${report.summary.unindexedImportedFiles}`)
-  console.log(`  unreferenced seed files  : ${report.summary.unreferencedProductFiles}`)
-  console.log(`  import errors           : ${report.importErrors.length}`)
+  console.log('audit-imported-products')
+  console.table({
+    'active products': report.summary.activeProducts,
+    'imported files/products': `${report.summary.importedFiles}/${report.summary.importedProducts}`,
+    'empty descriptions': report.summary.emptyDescription,
+    'missing keyIngredients': report.summary.missingKeyIngredients,
+    'suspicious name casing': report.summary.suspiciousNameCasing,
+    'cross-source dup pairs': `${report.crossSourceDuplicates.length} (auto:${tier('auto-merge')} review:${tier('review')} weak:${tier('weak')})`,
+    'intra-source dup pairs': report.intraSourceDuplicates.length,
+    'imported prods w/ dup': report.summary.semanticDuplicateProducts,
+    'unindexed imported files': report.summary.unindexedImportedFiles,
+    'unreferenced seed files': report.summary.unreferencedProductFiles,
+    'import errors': report.importErrors.length,
+  })
 
   if (WRITE) {
     if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true })

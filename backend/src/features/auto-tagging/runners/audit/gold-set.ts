@@ -42,7 +42,6 @@ import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import type { TagEvidence } from '../../lib/pass-types'
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
-import { pad, rpad } from '../fmt'
 
 const GOLD_SET_PATH =
   process.env.GOLD_SET_PATH ??
@@ -248,17 +247,21 @@ async function main() {
   }
 
   console.log(`📋 Per-tag metrics`)
-  console.log(
-    `   ${pad('tag', 22)} ${rpad('rated', 5)} ${rpad('TP', 4)} ${rpad('FP', 4)} ${rpad('FN', 4)} ${rpad('TN', 4)} ${rpad('P', 6)} ${rpad('R', 6)} ${rpad('F1', 6)} ${rpad('Brier', 6)} ${rpad('ECE', 6)}`
+  console.table(
+    perTag.map((tagMetrics) => ({
+      tag: tagMetrics.tagSlug,
+      rated: String(tagMetrics.rated),
+      TP: String(tagMetrics.tp),
+      FP: String(tagMetrics.fp),
+      FN: String(tagMetrics.fn),
+      TN: String(tagMetrics.tn),
+      P: fmt(tagMetrics.precision),
+      R: fmt(tagMetrics.recall),
+      F1: fmt(tagMetrics.f1),
+      Brier: fmt(tagMetrics.brier),
+      ECE: fmt(tagMetrics.ece),
+    }))
   )
-  console.log(
-    `   ${'─'.repeat(22)} ${'─'.repeat(5)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
-  )
-  for (const tagMetrics of perTag) {
-    console.log(
-      `   ${pad(tagMetrics.tagSlug, 22)} ${rpad(String(tagMetrics.rated), 5)} ${rpad(String(tagMetrics.tp), 4)} ${rpad(String(tagMetrics.fp), 4)} ${rpad(String(tagMetrics.fn), 4)} ${rpad(String(tagMetrics.tn), 4)} ${rpad(fmt(tagMetrics.precision), 6)} ${rpad(fmt(tagMetrics.recall), 6)} ${rpad(fmt(tagMetrics.f1), 6)} ${rpad(fmt(tagMetrics.brier), 6)} ${rpad(fmt(tagMetrics.ece), 6)}`
-    )
-  }
 
   const macro = macroAverage(perTag)
   const micro = microAverage(perTag)
@@ -271,19 +274,22 @@ async function main() {
 
   // Layer with 0 focus tags is unmeasured: target for gold-set expansion.
   console.log(`\n🧱 Par couche`)
-  console.log(
-    `   ${pad('couche', 12)} ${rpad('tags', 4)} ${rpad('rated', 5)} ${rpad('P', 6)} ${rpad('R', 6)} ${rpad('F1', 6)} ${rpad('Brier', 6)} ${rpad('ECE', 6)}`
+  console.table(
+    summarizeByLayer(perTag).map((l) => {
+      const flag =
+        l.focusTagCount === 0 ? '  ← non couvert' : l.rated === 0 ? '  ← 0 produit rated' : ''
+      return {
+        couche: `${l.layer}${flag}`,
+        tags: String(l.focusTagCount),
+        rated: String(l.rated),
+        P: fmt(l.macro.precision),
+        R: fmt(l.macro.recall),
+        F1: fmt(l.macro.f1),
+        Brier: fmt(l.macro.brier),
+        ECE: fmt(l.macro.ece),
+      }
+    })
   )
-  console.log(
-    `   ${'─'.repeat(12)} ${'─'.repeat(4)} ${'─'.repeat(5)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
-  )
-  for (const l of summarizeByLayer(perTag)) {
-    const flag =
-      l.focusTagCount === 0 ? '  ← non couvert' : l.rated === 0 ? '  ← 0 produit rated' : ''
-    console.log(
-      `   ${pad(l.layer, 12)} ${rpad(String(l.focusTagCount), 4)} ${rpad(String(l.rated), 5)} ${rpad(fmt(l.macro.precision), 6)} ${rpad(fmt(l.macro.recall), 6)} ${rpad(fmt(l.macro.f1), 6)} ${rpad(fmt(l.macro.brier), 6)} ${rpad(fmt(l.macro.ece), 6)}${flag}`
-    )
-  }
 
   const unrated = perTag.filter((m) => m.rated === 0).map((m) => m.tagSlug)
   if (unrated.length > 0) {

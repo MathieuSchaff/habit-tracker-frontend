@@ -26,7 +26,6 @@ import { and, eq, isNotNull } from 'drizzle-orm'
 import { withAdminRls } from '../../../../db/rls'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
-import { pad, rpad } from '../fmt'
 
 const JSON_OUT = process.env.JSON_OUT
 const SLUG_FILTER = process.env.SLUG
@@ -265,17 +264,20 @@ async function main() {
     })
     .sort((a, b) => b.n - a.n)
 
-  console.log(`📋 Per-slug  (MAE/RMSE in % points · CI cov = known ∈ CI)`)
-  console.log(
-    `   ${pad('slug', 28)} ${rpad('n', 4)} ${rpad('nSol', 4)} ${rpad('known', 14)} ${rpad('MAEs', 7)} ${rpad('RMSEs', 7)} ${rpad('MAEβ', 7)} ${rpad('CIs', 6)} ${rpad('CIβ', 6)}`
-  )
-  console.log(
-    `   ${'─'.repeat(28)} ${'─'.repeat(4)} ${'─'.repeat(4)} ${'─'.repeat(14)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(7)} ${'─'.repeat(6)} ${'─'.repeat(6)}`
-  )
-  for (const slugStat of slugStats) {
-    const range = `${fmt(slugStat.knownMin)}–${fmt(slugStat.knownMax)}`
-    console.log(
-      `   ${pad(slugStat.slug, 28)} ${rpad(String(slugStat.n), 4)} ${rpad(String(slugStat.nSolver), 4)} ${rpad(range, 14)} ${rpad(fmt(slugStat.solverMAE), 7)} ${rpad(fmt(slugStat.solverRMSE), 7)} ${rpad(fmt(slugStat.meanMAE), 7)} ${rpad(fmt(slugStat.solverCICov), 6)} ${rpad(fmt(slugStat.betaCICov), 6)}`
+  if (slugStats.length > 0) {
+    console.log(`📋 Per-slug  (MAE/RMSE in % points · CI cov = known ∈ CI)`)
+    console.table(
+      slugStats.map((slugStat) => ({
+        slug: slugStat.slug,
+        n: slugStat.n,
+        nSol: slugStat.nSolver,
+        known: `${fmt(slugStat.knownMin)}–${fmt(slugStat.knownMax)}`,
+        MAEs: fmt(slugStat.solverMAE),
+        RMSEs: fmt(slugStat.solverRMSE),
+        MAEβ: fmt(slugStat.meanMAE),
+        CIs: fmt(slugStat.solverCICov),
+        CIβ: fmt(slugStat.betaCICov),
+      }))
     )
   }
 
@@ -293,15 +295,17 @@ async function main() {
   const outliers = [...allSolver].sort((a, b) => b.absSolverErr - a.absSolverErr).slice(0, 20)
   if (outliers.length > 0) {
     console.log(`\n🔥 Top ${outliers.length} solver outliers`)
-    console.log(
-      `   ${pad('product', 36)} ${pad('ingredient', 22)} ${rpad('known', 7)} ${rpad('solver', 7)} ${rpad('err', 7)} ${rpad('meanβ', 7)} ${rpad('CIβ', 14)}`
+    console.table(
+      outliers.map((o) => ({
+        product: o.productSlug,
+        ingredient: o.ingredientSlug,
+        known: fmt(o.knownPct),
+        solver: fmt(o.solverMeanPct),
+        err: fmt(o.absSolverErr),
+        meanβ: fmt(o.meanPct),
+        CIβ: `[${fmt(o.ciLowPct)}, ${fmt(o.ciHighPct)}]`,
+      }))
     )
-    for (const o of outliers) {
-      const betaCI = `[${fmt(o.ciLowPct)}, ${fmt(o.ciHighPct)}]`
-      console.log(
-        `   ${pad(o.productSlug, 36)} ${pad(o.ingredientSlug, 22)} ${rpad(fmt(o.knownPct), 7)} ${rpad(fmt(o.solverMeanPct), 7)} ${rpad(fmt(o.absSolverErr), 7)} ${rpad(fmt(o.meanPct), 7)} ${rpad(betaCI, 14)}`
-      )
-    }
   }
 
   if (JSON_OUT) {

@@ -178,11 +178,14 @@ async function main() {
 
   if (patternFreq.size > 0) {
     console.log(`📈 Fréquence par pattern (toutes tiers)`)
-    const sorted = [...patternFreq.entries()].sort((a, b) => b[1] - a[1])
-    for (const [pat, n] of sorted) {
-      const tier = (TIER_A_PATTERNS as readonly string[]).includes(pat) ? 'A' : 'B'
-      console.log(`   ${rpad(String(n), 4)} × ${padTrunc(pat, 20)} (Tier ${tier})`)
-    }
+    const freqRows = [...patternFreq.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([pattern, count]) => ({
+        count,
+        pattern,
+        tier: (TIER_A_PATTERNS as readonly string[]).includes(pattern) ? 'A' : 'B',
+      }))
+    console.table(freqRows)
     console.log()
   }
 

@@ -49,7 +49,6 @@ import {
   serializeGoldSet,
 } from '../gold-set/fixtures'
 import { fetchEligibleProducts } from './audit/db'
-import { pad, rpad } from './fmt'
 
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 70)
 const POSITIVES_PER_TAG = Number(process.env.POSITIVES_PER_TAG ?? 4)
@@ -202,18 +201,21 @@ function logCorpus(allLen: number, eligibleLen: number): void {
 
 function logPoolsTable({ poolsByTag, kindFreqByTag }: PoolsState): void {
   console.log(`📋 Pools par tag`)
-  console.log(`   ${pad('tag', 24)} ${rpad('+', 5)} ${rpad('-', 5)} ${pad('dominant kind', 16)}`)
-  console.log(`   ${'─'.repeat(24)} ${'─'.repeat(5)} ${'─'.repeat(5)} ${'─'.repeat(16)}`)
+  const rows: Array<{ tag: GoldSetFocusTag; '+': number; '-': number; 'dominant kind': string }> =
+    []
   for (const tag of GOLD_SET_FOCUS_TAGS) {
     const pools = poolsByTag.get(tag)
     const freq = kindFreqByTag.get(tag)
     if (!pools || !freq) continue
     const dom = pickDominantKind(freq) ?? '—'
-    console.log(
-      `   ${pad(tag, 24)} ${rpad(String(pools.positives.length), 5)} ${rpad(String(pools.negatives.length), 5)} ${pad(dom, 16)}`
-    )
+    rows.push({
+      tag,
+      '+': pools.positives.length,
+      '-': pools.negatives.length,
+      'dominant kind': dom,
+    })
   }
-  console.log()
+  console.table(rows)
 }
 
 // sampledFor accumulates every tag that selected the same product (multi-tag products).

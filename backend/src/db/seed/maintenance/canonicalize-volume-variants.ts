@@ -190,7 +190,7 @@ for (const [relFile, filePairs] of byFile) {
   }
 
   const toDrop: Entry[] = []
-  console.log(`\n${relFile}`)
+  const fileRows: Array<{ action: string; slug: string; volumeMl: number | string }> = []
 
   for (const [_root, slugs] of groups) {
     if (slugs.length < 2) continue
@@ -207,12 +207,17 @@ for (const [relFile, filePairs] of byFile) {
     const drops = items.slice(1).map((x) => x.e)
     if (drops.length === 0) continue
 
-    console.log(`  KEEP ${keep.slug} (${items[0]?.vol ?? '?'}ml)`)
+    fileRows.push({ action: 'KEEP', slug: keep.slug, volumeMl: items[0]?.vol ?? '?' })
     for (const d of items.slice(1)) {
-      console.log(`  drop ${d.e.slug} (${d.vol ?? '?'}ml)`)
+      fileRows.push({ action: 'drop', slug: d.e.slug, volumeMl: d.vol ?? '?' })
     }
     toDrop.push(...drops)
     totalDropped += drops.length
+  }
+
+  if (fileRows.length > 0) {
+    console.log(`\n${relFile}`)
+    console.table(fileRows)
   }
 
   if (WRITE && toDrop.length > 0) {

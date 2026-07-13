@@ -37,6 +37,7 @@ import { eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
+import { freqTable } from '../../../../lib/report'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
 import { fetchEligibleProducts } from './db'
 
@@ -297,10 +298,7 @@ async function main() {
   const byTag: Record<TargetSlug, number> = { aha: 0, bha: 0, pha: 0 }
   for (const o of overrides) byTag[o.tagSlug]++
   console.log(`📦 Par cluster`)
-  for (const slug of TARGET_SLUGS) {
-    console.log(`   ${slug.toUpperCase().padEnd(4)} ${byTag[slug]}`)
-  }
-  console.log()
+  console.table(byTag)
 
   const buckets: Record<TargetSlug, [number, number, number, number]> = {
     aha: [0, 0, 0, 0],
@@ -316,14 +314,12 @@ async function main() {
     else b[2]++
   }
   console.log(`📐 Position buckets`)
-  console.log(`   slug  10–14  15–19   20+   orphan`)
-  for (const slug of TARGET_SLUGS) {
-    const [near, mid, deep, orphan] = buckets[slug]
-    console.log(
-      `   ${slug.padEnd(4)} ${String(near).padStart(5)}  ${String(mid).padStart(5)}  ${String(deep).padStart(4)}  ${String(orphan).padStart(6)}`
-    )
-  }
-  console.log()
+  console.table(
+    TARGET_SLUGS.map((slug) => {
+      const [near, mid, deep, orphan] = buckets[slug]
+      return { slug, '10–14': near, '15–19': mid, '20+': deep, orphan }
+    })
+  )
 
   const byTagIng = new Map<TargetSlug, Map<string, number>>()
   for (const o of overrides) {
@@ -338,9 +334,7 @@ async function main() {
     const ingMap = byTagIng.get(slug)
     if (!ingMap) continue
     console.log(`🧪 ${slug.toUpperCase()} top ingredients`)
-    const top = [...ingMap.entries()].sort((a, b) => b[1] - a[1])
-    for (const [ing, n] of top) console.log(`   ${String(n).padStart(5)} × ${ing}`)
-    console.log()
+    console.table(freqTable(ingMap, ingMap.size, 'ingredient'))
   }
 
   const byTagKind = new Map<TargetSlug, Map<string, number>>()
@@ -356,9 +350,7 @@ async function main() {
     const kindMap = byTagKind.get(slug)
     if (!kindMap) continue
     console.log(`📦 ${slug.toUpperCase()} top kinds`)
-    const top = [...kindMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
-    for (const [k, n] of top) console.log(`   ${String(n).padStart(5)} × ${k}`)
-    console.log()
+    console.table(freqTable(kindMap, 5, 'kind'))
   }
 
   overrides.sort((a, b) => {
@@ -371,9 +363,7 @@ async function main() {
   const counts: Record<Verdict, number> = { delete: 0, keep: 0, borderline: 0 }
   for (const v of verdicts) counts[v]++
   console.log(`🧮 Auto-classification`)
-  console.log(`   delete       ${counts.delete}`)
-  console.log(`   keep         ${counts.keep}`)
-  console.log(`   borderline   ${counts.borderline}\n`)
+  console.table(counts)
 
   if (CSV_OUT) {
     const lines = [csvHeader()]

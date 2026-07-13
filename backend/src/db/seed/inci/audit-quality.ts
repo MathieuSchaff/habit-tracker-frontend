@@ -7,6 +7,8 @@ import { SQL } from 'bun'
 import { normalize, splitINCI } from 'algo-derm'
 import { buildAliasIndex, lookupIngredient, MERGED_EVIDENCE_DB } from 'algo-derm/engine'
 
+import { freqTable } from '../../../lib/report'
+
 const aliasIndex = buildAliasIndex(MERGED_EVIDENCE_DB)
 
 const FR_MARKERS =
@@ -111,20 +113,15 @@ for (const [name, list] of Object.entries(pathologyLists) as Array<
     )
 }
 
-function topN(map: Map<string, number>, n: number) {
-  return Array.from(map.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, n)
-}
 console.log(`\n${'='.repeat(70)}`)
 console.log('2. Top unmatched tokens (after normalize) — opportunity for parser/evidence')
 console.log('='.repeat(70))
 console.log('\n  FR products — top 40 unmatched')
-for (const [tok, count] of topN(unmatchedFR, 40))
-  console.log(`    ${String(count).padStart(4)} × ${tok}`)
+const frUnmatched = freqTable(unmatchedFR, 40, 'token')
+if (frUnmatched.length > 0) console.table(frUnmatched)
 console.log('\n  non-FR products — top 40 unmatched')
-for (const [tok, count] of topN(unmatchedNonFR, 40))
-  console.log(`    ${String(count).padStart(4)} × ${tok}`)
+const nonFrUnmatched = freqTable(unmatchedNonFR, 40, 'token')
+if (nonFrUnmatched.length > 0) console.table(nonFrUnmatched)
 
 console.log(`\n${'='.repeat(70)}`)
 console.log('3. Worst-match skincare products (≥10 ings, sorted by ratio asc)')
@@ -157,7 +154,9 @@ const brandRows = Array.from(byBrand.entries())
   .filter(([, v]) => v.count >= 5)
   .map(([brand, v]) => ({ brand, count: v.count, ratio: v.matched / v.totalIngs }))
   .sort((a, b) => a.ratio - b.ratio)
-console.log('\n  prods  ratio   brand')
-for (const { brand, count, ratio } of brandRows.slice(0, 30)) {
-  console.log(`  ${String(count).padStart(5)}  ${(ratio * 100).toFixed(1).padStart(5)}%  ${brand}`)
-}
+const brandTable = brandRows.slice(0, 30).map(({ brand, count, ratio }) => ({
+  prods: count,
+  ratio: `${(ratio * 100).toFixed(1)}%`,
+  brand,
+}))
+if (brandTable.length > 0) console.table(brandTable)

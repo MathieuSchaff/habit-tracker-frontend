@@ -71,8 +71,7 @@ async function main() {
 
   if (guardrailDrops.length > 0) {
     console.log(`\n=== Guardrail drops (${guardrailDrops.length} of ${skippedGuardrail}) ===`)
-    for (const d of guardrailDrops)
-      console.log(`  ${d.slug}  tokens=${d.tokensBefore} → ${d.tokensAfter}`)
+    console.table(guardrailDrops)
   }
 
   if (!WRITE) {

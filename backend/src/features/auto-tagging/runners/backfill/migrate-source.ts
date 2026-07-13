@@ -81,17 +81,20 @@ async function main() {
     updatesBySource.set(detected, pendingPairs)
   }
 
-  console.log(`📊 Produits scannés       : ${subset.length}`)
-  console.log(`   Rows existantes         : ${existing.length}`)
-  console.log(`   Déjà au bon source      : ${alreadyCorrect}`)
-  console.log(`   À garder 'manual'       : ${stayManual}`)
-  let total = 0
-  for (const [src, pairs] of updatesBySource) {
-    console.log(`   À mettre à jour ${src.padEnd(14)} : ${pairs.length}`)
-    total += pairs.length
+  console.log('📊 Bilan du scan')
+  console.table({
+    'Produits scannés': subset.length,
+    'Rows existantes': existing.length,
+    'Déjà au bon source': alreadyCorrect,
+    "À garder 'manual'": stayManual,
+  })
+  const updates = [...updatesBySource].map(([source, pairs]) => ({ source, count: pairs.length }))
+  const total = updates.reduce((sum, u) => sum + u.count, 0)
+  if (updates.length > 0) {
+    console.log('À mettre à jour par source')
+    console.table(updates)
   }
-  console.log(`   ────`)
-  console.log(`   Total UPDATE            : ${total}\n`)
+  console.log(`Total UPDATE : ${total}\n`)
 
   if (!WRITE) {
     console.log('Dry-run. Re-run avec --write pour appliquer.')

@@ -49,7 +49,7 @@ import {
   ACTIF_CLASS_DEFS,
   detectActifClassesWithEvidence,
 } from '../../passes/actif-class-detection'
-import { pad, rpad } from '../fmt'
+import { pad } from '../fmt'
 import { fetchEligibleProducts } from './db'
 
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
@@ -242,20 +242,20 @@ async function main() {
   console.log(`   ${withInci} avec INCI exploitable · ${totalEmitted} paires émises\n`)
 
   console.log(`📋 Par cluster (trié par hit DESC)`)
-  console.log(
-    `   ${pad('cluster', 24)} ${rpad('hit', 6)} ${rpad('agree', 6)} ${rpad('new', 6)} ${rpad('only_db', 8)} ${rpad('agree%', 7)}`
-  )
-  console.log(
-    `   ${'─'.repeat(24)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(6)} ${'─'.repeat(8)} ${'─'.repeat(7)}`
-  )
 
   const sorted = [...stats.entries()].sort((a, b) => b[1].hit - a[1].hit)
-  for (const [slug, stat] of sorted) {
+  const coverageRows = sorted.map(([slug, stat]) => {
     const agreePct = stat.hit === 0 ? '—' : `${((stat.agree / stat.hit) * 100).toFixed(0)} %`
-    console.log(
-      `   ${pad(slug, 24)} ${rpad(String(stat.hit), 6)} ${rpad(String(stat.agree), 6)} ${rpad(String(stat.new), 6)} ${rpad(String(stat.manualOnly), 8)} ${rpad(agreePct, 7)}`
-    )
-  }
+    return {
+      cluster: slug,
+      hit: stat.hit,
+      agree: stat.agree,
+      new: stat.new,
+      only_db: stat.manualOnly,
+      'agree%': agreePct,
+    }
+  })
+  console.table(coverageRows)
 
   console.log(`\n📋 Top 3 kinds par cluster`)
   for (const [slug, stat] of sorted) {
@@ -286,15 +286,12 @@ async function main() {
     if (justesse.length === 0) {
       console.log(`   (aucun hit sur un produit annoté)`)
     } else {
-      console.log(`   ${pad('cluster', 24)} ${rpad('TP', 5)} ${rpad('FP', 5)} ${rpad('P', 6)}`)
-      console.log(`   ${'─'.repeat(24)} ${'─'.repeat(5)} ${'─'.repeat(5)} ${'─'.repeat(6)}`)
-      for (const [slug, s] of justesse) {
+      const justesseRows = justesse.map(([slug, s]) => {
         const rated = s.goldTP + s.goldFP
         const prec = rated === 0 ? '—' : (s.goldTP / rated).toFixed(2)
-        console.log(
-          `   ${pad(slug, 24)} ${rpad(String(s.goldTP), 5)} ${rpad(String(s.goldFP), 5)} ${rpad(prec, 6)}`
-        )
-      }
+        return { cluster: slug, TP: s.goldTP, FP: s.goldFP, P: prec }
+      })
+      console.table(justesseRows)
     }
   }
 

@@ -105,15 +105,14 @@ async function main() {
     ORDER BY 2 DESC, 1
   `)
 
-  let repoint = 0
-  let dedup = 0
-  for (const r of plan) {
-    const rp = Number(r.repoint)
-    const dd = Number(r.dedup)
-    repoint += rp
-    dedup += dd
-    console.log(`  ${r.hair} → repoint ${rp}${dd ? `, dedup ${dd}` : ''}`)
-  }
+  const planRows = [...plan].map((r) => ({
+    hair: r.hair,
+    repoint: Number(r.repoint),
+    dedup: Number(r.dedup),
+  }))
+  const repoint = planRows.reduce((s, r) => s + r.repoint, 0)
+  const dedup = planRows.reduce((s, r) => s + r.dedup, 0)
+  if (planRows.length > 0) console.table(planRows)
 
   const unmappedList = sql.join(
     UNMAPPED.map((s) => sql`${s}`),
@@ -132,7 +131,9 @@ async function main() {
     `\n# repoint ${repoint}, dedup ${dedup} (total ${repoint + dedup} links on ${CANON_MAP.length} shadows)`
   )
   console.log('# skipped (no correct canonical — see §9c):')
-  for (const r of skipped) console.log(`  ${r.slug} → ${r.links} links left on shadow`)
+  if (skipped.length > 0) {
+    console.table([...skipped].map((r) => ({ slug: r.slug, 'links left on shadow': r.links })))
+  }
 
   // shadows the repoint will strand: no remaining haircare usage + no RESTRICT FK (discussion_threads).
   // Such a shadow becomes a 0-usage dead row → safe to prune (cascades its tag-links/dermo).

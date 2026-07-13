@@ -109,6 +109,5 @@ for (const [brand, files] of sortedBrands) {
 writeFileSync(OUT_FILE, lines.join('\n'))
 console.log(`Wrote ${orphans.length} orphans across ${byBrand.size} brand prefixes to ${OUT_FILE}`)
 console.log('\nTop 20 brand prefixes:')
-for (const [brand, files] of sortedBrands.slice(0, 20)) {
-  console.log(`  ${brand.padEnd(20)} ${files.length}`)
-}
+if (sortedBrands.length > 0)
+  console.table(sortedBrands.slice(0, 20).map(([brand, files]) => ({ brand, count: files.length })))

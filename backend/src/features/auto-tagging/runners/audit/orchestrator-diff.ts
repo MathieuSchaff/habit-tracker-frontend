@@ -20,7 +20,7 @@ import {
   type AutoTagSource,
   detectAllAutoTags,
 } from '../../orchestrator'
-import { padTrunc, rpad } from '../fmt'
+import { rpad } from '../fmt'
 import { fetchEligibleProducts } from './db'
 
 const CSV_OUT = process.env.CSV_OUT
@@ -129,14 +129,15 @@ async function main() {
   }
   const sorted = [...byTagAction.entries()].sort((a, b) => b[1] - a[1])
   console.log(`📋 Top 20 (action × tag_slug)`)
-  console.log(`   ${padTrunc('action', 22)} ${padTrunc('tag_slug', 32)} count`)
-  console.log(`   ${'─'.repeat(22)} ${'─'.repeat(32)} ─────`)
-  for (const [actionTagKey, n] of sorted.slice(0, 20)) {
+  const topRows = sorted.slice(0, 20).map(([actionTagKey, n]) => {
     const sep = actionTagKey.indexOf(':')
-    const action = actionTagKey.slice(0, sep)
-    const tagSlug = actionTagKey.slice(sep + 1)
-    console.log(`   ${padTrunc(action, 22)} ${padTrunc(tagSlug, 32)} ${n}`)
-  }
+    return {
+      action: actionTagKey.slice(0, sep),
+      tag_slug: actionTagKey.slice(sep + 1),
+      count: n,
+    }
+  })
+  console.table(topRows)
   if (sorted.length > 20) console.log(`   … (${sorted.length - 20} buckets additionnels)`)
 
   console.log(`\n📄 Diff écrit : ${CSV_OUT} (${diff.length} lignes)\n`)
