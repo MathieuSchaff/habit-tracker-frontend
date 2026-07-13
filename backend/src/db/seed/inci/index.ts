@@ -6,14 +6,12 @@
  *   2. data/ingredients/*&#47;ingredient-slugs.ts — inline `// [INCI:] Token | desc` comments
  *
  * Excipient blocklist filters out tokens that are too common to be informative
- * (water, glycerin, denat. alcohol, EDTA…). Even when present in the index sources,
- * blocked tokens never make it into the result of inferKeyIngredients.
+ * (water, glycerin, denat. alcohol, EDTA…). buildInciIndex drops them at construction;
+ * buildExcipientSlugs rebuilds with includeExcipients to collect the slugs they resolve to.
  */
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-
-import { splitINCI } from 'algo-derm'
 
 import { ingredientData } from '../data/ingredients'
 import { INGREDIENT_SLUGS } from '../data/ingredients/ingredient-slugs'
@@ -130,8 +128,6 @@ export type IngredientDomain = 'skincare' | 'haircare' | 'dental' | 'supplements
 
 export interface InciIndexEntry {
   slug: string
-  /** Source file domain. Lets a per-product call exclude foreign-domain slugs. */
-  domain: IngredientDomain
 }
 
 export type InciIndex = Map<string, InciIndexEntry>
@@ -242,24 +238,24 @@ export function parseInciFromSlugLine(line: string): { slug: string; tokens: str
   return { slug, tokens }
 }
 
-export function buildInciIndex(): InciIndex {
+export function buildInciIndex(options: { includeExcipients?: boolean } = {}): InciIndex {
   const index: InciIndex = new Map()
   const validSlugs = new Set<string>(Object.values(INGREDIENT_SLUGS))
 
-  const add = (rawToken: string, slug: string, domain: IngredientDomain): void => {
+  const add = (rawToken: string, slug: string): void => {
     if (!validSlugs.has(slug)) return
     const norm = normalizeInciToken(rawToken)
     if (norm.length < 2) return
     if (!/^[A-Z]/.test(norm)) return
-    if (EXCIPIENT_BLOCKLIST.has(norm)) return
-    if (!index.has(norm)) index.set(norm, { slug, domain })
+    if (!options.includeExcipients && EXCIPIENT_BLOCKLIST.has(norm)) return
+    if (!index.has(norm)) index.set(norm, { slug })
   }
 
   // Source 1: slug-file inline comments first — explicit `INCI:` prefix is the most
   // predictable signal, and the file order (skincare → haircare → dental → supplements)
   // resolves shared tokens like NIACINAMIDE to the canonical skincare slug rather than
   // a domain-suffixed variant (niacinamide-hair, etc.).
-  for (const { rel, domain } of SLUG_FILES) {
+  for (const { rel } of SLUG_FILES) {
     const path = join(INGREDIENTS_ROOT, rel)
     let text: string
     try {
@@ -270,65 +266,55 @@ export function buildInciIndex(): InciIndex {
     for (const line of text.split('\n')) {
       const parsed = parseInciFromSlugLine(line)
       if (!parsed) continue
-      for (const tok of parsed.tokens) add(tok, parsed.slug, domain)
+      for (const tok of parsed.tokens) add(tok, parsed.slug)
     }
   }
 
   // Source 2: markdown `## INCI` blocks fill any token the slug-file pass missed.
-  // ingredientData lives under data/ingredients/; the type field carries the domain
-  // (skincare/haircare/dental/supplement). Map `supplement` → `supplements` to align
-  // with the SLUG_FILES key — file dir is plural, ingredient.type is singular.
   for (const ing of ingredientData) {
-    const rawType = (ing as { type?: string }).type
-    const domain: IngredientDomain =
-      rawType === 'haircare' || rawType === 'dental'
-        ? rawType
-        : rawType === 'supplement'
-          ? 'supplements'
-          : 'skincare'
-    for (const tok of parseInciFromContent(ing.content)) add(tok, ing.slug, domain)
+    for (const tok of parseInciFromContent(ing.content)) add(tok, ing.slug)
   }
 
   return index
+}
+
+/**
+ * Slugs whose canonical INCI token sits on EXCIPIENT_BLOCKLIST. Lets a *resolved* slug be
+ * dropped even when the raw token that produced it was a non-blocklisted synonym (e.g.
+ * `Polydimethylsiloxane` → dimethicone, `Gomme Xanthane` → xanthan-gum). buildInciIndex drops
+ * blocklisted tokens at construction, so we rebuild the index keeping them and collect their slugs.
+ */
+export function buildExcipientSlugs(): Set<string> {
+  const full = buildInciIndex({ includeExcipients: true })
+  const slugs = new Set<string>()
+  for (const [token, entry] of full) {
+    if (EXCIPIENT_BLOCKLIST.has(token)) slugs.add(entry.slug)
+  }
+  return slugs
+}
+
+/**
+ * Every ingredient slug → its source-file domain. Unlike the inci index (which only carries
+ * slugs that expose an INCI token), this covers the full slug set, so a slug reached by the
+ * humanised-word bridge still gets domain-filtered. First file wins on cross-domain collision.
+ */
+export function buildSlugDomainMap(): Map<string, IngredientDomain> {
+  const validSlugs = new Set<string>(Object.values(INGREDIENT_SLUGS))
+  const map = new Map<string, IngredientDomain>()
+  for (const { rel, domain } of SLUG_FILES) {
+    // Fail loud: a swallowed read would silently drop this domain's slugs, letting them
+    // bypass the category filter (cross-domain leak). A missing seed file is a bug, not a skip.
+    const text = readFileSync(join(INGREDIENTS_ROOT, rel), 'utf-8')
+    for (const m of text.matchAll(/^\s*[A-Z][A-Z0-9_]*\s*:\s*['"]([^'"]+)['"]/gm)) {
+      const slug = m[1]
+      if (validSlugs.has(slug) && !map.has(slug)) map.set(slug, domain)
+    }
+  }
+  return map
 }
 
 export function getDomainAllowlist(category: string | undefined): Set<IngredientDomain> | null {
   if (!category) return null
   const list = CATEGORY_DOMAIN_ALLOWLIST[category]
   return list ? new Set(list) : null
-}
-
-export interface InferKeyIngredientsOptions {
-  max?: number
-  /** Product category (skincare/haircare/…). Drops index entries from foreign domains. */
-  candidateCategory?: string
-}
-
-/** Match each comma-separated token in `inci` against the index. Order = INCI order. */
-export function inferKeyIngredients(
-  inci: string,
-  index: InciIndex,
-  options: InferKeyIngredientsOptions = {}
-): string[] {
-  const max = options.max ?? 8
-  if (!inci) return []
-
-  const allowed = getDomainAllowlist(options.candidateCategory)
-
-  // splitINCI protects decimal commas (1,2-Hexanediol) that a naive /[,;]/ split
-  // would shred; `;` is folded to `,` first since splitINCI only splits on commas.
-  const tokens = splitINCI(inci.replace(/;/g, ',')).map(normalizeInciToken).filter(Boolean)
-
-  const seen = new Set<string>()
-  const result: string[] = []
-  for (const tok of tokens) {
-    if (EXCIPIENT_BLOCKLIST.has(tok)) continue
-    const entry = index.get(tok)
-    if (!entry || seen.has(entry.slug)) continue
-    if (allowed && !allowed.has(entry.domain)) continue
-    seen.add(entry.slug)
-    result.push(entry.slug)
-    if (result.length >= max) break
-  }
-  return result
 }

@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import {
-  buildInciIndex,
-  EXCIPIENT_BLOCKLIST,
-  inferKeyIngredients,
-  normalizeInciToken,
-  parseInciFromContent,
-  parseInciFromSlugLine,
-} from '.'
+import { buildInciIndex, normalizeInciToken, parseInciFromContent, parseInciFromSlugLine } from '.'
 
 describe('normalizeInciToken', () => {
   it('uppercases, strips accents, collapses whitespace', () => {
@@ -92,67 +85,6 @@ describe('parseInciFromSlugLine', () => {
   it('returns null on non-slug lines', () => {
     expect(parseInciFromSlugLine('  // a comment')).toBeNull()
     expect(parseInciFromSlugLine('export const FOO = {')).toBeNull()
-  })
-})
-
-describe('inferKeyIngredients', () => {
-  const index = new Map<
-    string,
-    { slug: string; domain: 'skincare' | 'haircare' | 'dental' | 'supplements' }
-  >([
-    ['SODIUM HYALURONATE', { slug: 'sodium-hyaluronate', domain: 'skincare' }],
-    ['NIACINAMIDE', { slug: 'niacinamide', domain: 'skincare' }],
-    ['BUTYROSPERMUM PARKII BUTTER', { slug: 'shea-butter', domain: 'skincare' }],
-    ['TOCOPHEROL', { slug: 'tocopherol', domain: 'skincare' }],
-  ])
-
-  it('matches tokens in INCI string and preserves order', () => {
-    const inci = 'AQUA, GLYCERIN, NIACINAMIDE, BUTYROSPERMUM PARKII BUTTER, SODIUM HYALURONATE'
-    expect(inferKeyIngredients(inci, index)).toEqual([
-      'niacinamide',
-      'shea-butter',
-      'sodium-hyaluronate',
-    ])
-  })
-
-  it('skips excipients listed in blocklist', () => {
-    expect(EXCIPIENT_BLOCKLIST.has('AQUA')).toBe(true)
-    expect(EXCIPIENT_BLOCKLIST.has('GLYCERIN')).toBe(true)
-    const inci = 'AQUA, GLYCERIN, NIACINAMIDE'
-    expect(inferKeyIngredients(inci, index)).toEqual(['niacinamide'])
-  })
-
-  it('caps result at max', () => {
-    const big = new Map<string, { slug: string; domain: 'skincare' }>(
-      Array.from({ length: 12 }, (_, i) => [
-        `TOK${i}`,
-        { slug: `slug-${i}`, domain: 'skincare' as const },
-      ])
-    )
-    const inci = Array.from({ length: 12 }, (_, i) => `TOK${i}`).join(', ')
-    expect(inferKeyIngredients(inci, big, { max: 5 })).toHaveLength(5)
-  })
-
-  it('dedupes when same slug is hit by multiple synonyms', () => {
-    const idx = new Map<string, { slug: string; domain: 'skincare' }>([
-      ['HYALURONIC ACID', { slug: 'sodium-hyaluronate', domain: 'skincare' }],
-      ['SODIUM HYALURONATE', { slug: 'sodium-hyaluronate', domain: 'skincare' }],
-    ])
-    const inci = 'HYALURONIC ACID, SODIUM HYALURONATE'
-    expect(inferKeyIngredients(inci, idx)).toEqual(['sodium-hyaluronate'])
-  })
-
-  it('returns empty for empty INCI', () => {
-    expect(inferKeyIngredients('', index)).toEqual([])
-  })
-
-  it('keeps decimal-comma tokens intact (1,2-Hexanediol) instead of shredding them', () => {
-    const idx = new Map<string, { slug: string; domain: 'skincare' }>([
-      ['1,2-HEXANEDIOL', { slug: 'hexanediol', domain: 'skincare' }],
-      ['NIACINAMIDE', { slug: 'niacinamide', domain: 'skincare' }],
-    ])
-    const inci = 'AQUA, 1,2-Hexanediol, Niacinamide'
-    expect(inferKeyIngredients(inci, idx)).toEqual(['hexanediol', 'niacinamide'])
   })
 })
 
