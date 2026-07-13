@@ -142,8 +142,26 @@ export function ProductInfoTab() {
         categories={product.ingredients?.map((i) => i.ingredientCategory) ?? []}
       />
 
+      {product.description && (
+        <details className="product-section product-inci product-brand-copy" open>
+          <summary className="product-inci__summary">
+            <span>Texte de la marque</span>
+            <ChevronDown size={14} className="product-inci__chevron" aria-hidden="true" />
+          </summary>
+          {/* Manufacturer copy: commercial voice, not vetted by Aurore - keep it boxed off. */}
+          <div className="product-brand-copy__body">
+            <p className="product-brand-copy__note">Voix commerciale, non vérifiée par Aurore.</p>
+            <RichText className="product-description">
+              <Suspense fallback={<p>{product.description}</p>}>
+                <Markdown>{product.description}</Markdown>
+              </Suspense>
+            </RichText>
+          </div>
+        </details>
+      )}
+
       {product.inci && (
-        <details className="product-section product-inci">
+        <details className="product-section product-inci" open>
           <summary className="product-inci__summary">
             <span>Composition INCI complète</span>
             <ChevronDown size={14} className="product-inci__chevron" aria-hidden="true" />
@@ -253,24 +271,6 @@ export function ProductInfoTab() {
             <span className="sr-only"> (nouvel onglet)</span>
           </a>
         </div>
-      )}
-
-      {product.description && (
-        <details className="product-section product-inci product-brand-copy">
-          <summary className="product-inci__summary">
-            <span>Texte de la marque</span>
-            <ChevronDown size={14} className="product-inci__chevron" aria-hidden="true" />
-          </summary>
-          {/* Manufacturer copy: commercial voice, not vetted by Aurore - keep it boxed off. */}
-          <div className="product-brand-copy__body">
-            <p className="product-brand-copy__note">Voix commerciale, non vérifiée par Aurore.</p>
-            <RichText className="product-description">
-              <Suspense fallback={<p>{product.description}</p>}>
-                <Markdown>{product.description}</Markdown>
-              </Suspense>
-            </RichText>
-          </div>
-        </details>
       )}
 
       {user && (
