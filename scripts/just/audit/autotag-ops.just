@@ -84,7 +84,7 @@ autotag-reconcile *args:
         ${WRITE:+--write} \
         ${SLUG:+--slug "$SLUG"}
 
-# Explain auto-tag pipeline for one raw INCI (layers/merge/drops/promotion), or --counts catalogue aggregation. Read-only. Env: INCI, KIND (serum), CATEGORY (skincare), COUNTS=1.
+# Explain auto-tag pipeline: SLUG=<slug> traces a real product (full input: name/desc/brand/texture), INCI="..." traces one raw INCI (INCI-only, blind to name/claim passes), COUNTS=1 aggregates the catalogue. Read-only. Env: SLUG, INCI, KIND (serum), CATEGORY (skincare), COUNTS=1.
 [group('autotag')]
 autotag-explain:
     #!/usr/bin/env bash
@@ -95,9 +95,12 @@ autotag-explain:
     if [ -n "${COUNTS:-}" ]; then
         printf "{{CYAN}}Explain auto-tags — catalogue counts ($TARGET)...{{NC}}\n"
         $COMPOSE exec -w /app/backend api bun run src/features/auto-tagging/runners/explain/main.ts --counts
+    elif [ -n "${SLUG:-}" ]; then
+        printf "{{CYAN}}Explain auto-tags — product trace ($TARGET)...{{NC}}\n"
+        $COMPOSE exec -w /app/backend api bun run src/features/auto-tagging/runners/explain/main.ts --slug "$SLUG"
     else
         if [ -z "${INCI:-}" ]; then
-            printf "{{RED}}INCI requis (e.g. INCI=\"aqua, glycerin, niacinamide\" just explain-auto-tags){{NC}}\n"; exit 1
+            printf "{{RED}}SLUG ou INCI requis (SLUG=<slug> pour un vrai produit, ou INCI=\"aqua, glycerin, ...\"){{NC}}\n"; exit 1
         fi
         printf "{{CYAN}}Explain auto-tags — INCI trace ($TARGET)...{{NC}}\n"
         $COMPOSE exec -w /app/backend api bun run src/features/auto-tagging/runners/explain/main.ts \

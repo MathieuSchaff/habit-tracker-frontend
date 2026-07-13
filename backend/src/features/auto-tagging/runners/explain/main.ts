@@ -18,8 +18,10 @@ import { PRODUCT_KIND_LABELS, type ProductKind } from '@aurore/shared'
 import { eq, sql } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../../db/rls'
-import { productTagLinks, productTagTypes } from '../../../../db/schema'
+import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import { buildOrchestratorInput } from '../../lib/orchestrator-input'
 import { pad, rpad } from '../fmt'
 
 const VALID_KINDS = new Set(Object.keys(PRODUCT_KIND_LABELS))
@@ -29,21 +31,24 @@ interface Args {
   kind: string
   category: string
   inci: string
+  slug: string | null
 }
 
 function parseArgs(argv: string[]): Args {
   let kind = 'serum'
   let category = 'skincare'
   let counts = false
+  let slug: string | null = null
   const positional: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--counts') counts = true
     else if (a === '--kind') kind = argv[++i] ?? kind
     else if (a === '--category') category = argv[++i] ?? category
+    else if (a === '--slug') slug = argv[++i] ?? slug
     else if (a) positional.push(a)
   }
-  return { counts, kind, category, inci: positional.join(' ') }
+  return { counts, kind, category, inci: positional.join(' '), slug }
 }
 
 function printTrace(trace: ExplainTrace, kind: string, category: string): void {
@@ -134,6 +139,48 @@ function sortDesc(m: Map<string, number>): [string, number][] {
   return [...m.entries()].sort((a, b) => b[1] - a[1])
 }
 
+// Trace a real catalogue product. Unlike the raw-INCI mode, this feeds the full
+// OrchestratorInput (name / description / brand / texture / percent claims /
+// known concentrations) + brand certifications, so the trace matches what intake
+// actually persists — the raw-INCI mode is blind to every name/claim pass.
+// Mirrors `computeTagRowsForProduct`'s input assembly.
+async function runSlug(slug: string): Promise<void> {
+  // RLS elevation so the runner reads the product regardless of ownership, and
+  // the bundle reads stay serial on the tx connection (Bun pipelining trap).
+  const result = await withAdminRls(async (tx) => {
+    const [product] = await tx
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+        brand: products.brand,
+        kind: products.kind,
+        inci: products.inci,
+        category: products.category,
+        texture: products.texture,
+      })
+      .from(products)
+      .where(eq(products.slug, slug))
+      .limit(1)
+
+    if (!product) throw new Error(`No product with slug '${slug}'.`)
+
+    const bundle = await loadAutoTagFetchBundle([product.id], tx)
+    const input = buildOrchestratorInput(product, {
+      percentClaims: bundle.percentClaimsByProduct.get(product.id) ?? [],
+      knownConcentrations: bundle.knownConcentrationsByProduct.get(product.id),
+    })
+    console.log(`🧴 ${product.name} — slug=${slug}`)
+    return {
+      trace: explainInci(input, { brandCertifications: bundle.brandCertifications }),
+      kind: product.kind,
+      category: product.category,
+    }
+  })
+
+  printTrace(result.trace, result.kind, result.category)
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
 
@@ -142,9 +189,14 @@ async function main(): Promise<void> {
     return
   }
 
+  if (args.slug) {
+    await runSlug(args.slug)
+    return
+  }
+
   if (!args.inci.trim()) {
     throw new Error(
-      'INCI required. Usage: explain/main.ts [--kind serum] [--category skincare] "<raw INCI>"'
+      'INCI required. Usage: explain/main.ts [--slug <slug>] | [--kind serum] [--category skincare] "<raw INCI>"'
     )
   }
   if (!VALID_KINDS.has(args.kind)) {
