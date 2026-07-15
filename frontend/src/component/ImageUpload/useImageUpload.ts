@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { ensureFresh } from '@/lib/auth/freshness'
 import { queryClient } from '@/lib/queryClient'
@@ -121,6 +121,15 @@ export function useImageUpload(opts: UseImageUploadOptions) {
   // escape hatch for jsdom tests: avoids File/createObjectURL which are unavailable
   const testSourceImageRef = useRef<HTMLImageElement | null>(null)
 
+  // The hidden input is appended to document.body in pickFile; remove it on
+  // unmount so repeated mounts don't accumulate orphaned inputs.
+  useEffect(() => {
+    return () => {
+      inputRef.current?.remove()
+      inputRef.current = null
+    }
+  }, [])
+
   const acceptFile = useCallback((file: File) => {
     if (file.size > SOURCE_MAX_BYTES) {
       setState({
@@ -149,11 +158,11 @@ export function useImageUpload(opts: UseImageUploadOptions) {
       el.type = 'file'
       el.accept = 'image/jpeg,image/png,image/webp'
       el.style.display = 'none'
-      el.addEventListener('change', () => {
+      el.onchange = () => {
         const file = el.files?.[0]
         if (!file) return
         acceptFile(file)
-      })
+      }
       document.body.appendChild(el)
       inputRef.current = el
     }
