@@ -46,6 +46,20 @@ export const DOSE_SIGNAL_MIN_CONFIDENCE = 0.6
 // Qualitative only, never a % figure (vision: no number, no verdict).
 export const DOSE_SIGNAL_PHRASE = 'probablement dosé pour agir'
 
+// Neutral caveats mapped from assessment confidence factors; limitationNotes
+// carries the same facts but as dynamic English prose. unknown_ingredients is
+// deliberately unmapped — the coverage footnote already states it.
+export const CONFIDENCE_FACTOR_PHRASE: Record<string, string> = {
+  low_coverage:
+    'Formule encore peu couverte par nos données — pas assez de contexte pour en dire plus.',
+  heuristic_only:
+    'Certains signaux reposent sur le nom des ingrédients, pas sur des données consolidées.',
+}
+
+// Shown when the assessment ran but surfaced nothing: an analyzed-but-quiet
+// formula must say so, silence is reserved for errors and missing INCI.
+export const NO_SIGNAL_PHRASE = 'Rien de notable dans cette formule.'
+
 // Skin-profile slugs → risk axes that matter to that user, used to highlight
 // relevant signals without re-deriving the backend's profile mapping.
 export const PROFILE_RELEVANT_AXES: Record<string, ReadonlyArray<RiskAxis>> = {

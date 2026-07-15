@@ -6,9 +6,11 @@ import { useMemo } from 'react'
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
 import {
   BENEFIT_AXIS_PHRASE,
+  CONFIDENCE_FACTOR_PHRASE,
   DOSE_SIGNAL_MIN_CONFIDENCE,
   DOSE_SIGNAL_MIN_DOSE_FACTOR,
   DOSE_SIGNAL_PHRASE,
+  NO_SIGNAL_PHRASE,
   PROFILE_RELEVANT_AXES,
   RISK_AXIS_PHRASE,
 } from '@/constants/derm'
@@ -53,6 +55,8 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
     return axes
   }, [profileSlugs])
 
+  // Loading and errors stay silent; an assessed formula with nothing to
+  // surface must say so instead (a mute vanish reads the same as a failure).
   if (isError || !assessment) return null
 
   const { explanation, regulatoryNotes, interactions, coverage, matchedEvidence } = assessment
@@ -82,11 +86,15 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
     regulatoryNotes.length > 0 ||
     interactions.length > 0
 
-  if (!hasSignal) return null
+  const caveats = explanation.confidenceFactors
+    .map((f) => CONFIDENCE_FACTOR_PHRASE[f.factor])
+    .filter((phrase): phrase is string => !!phrase)
 
   return (
     <section className="formula-reading product-section">
       <SectionHeader title="Lecture de la formule" as="h2" />
+
+      {!hasSignal && <p className="formula-reading__empty">{NO_SIGNAL_PHRASE}</p>}
 
       {benefitDrivers.length > 0 && (
         <div className="formula-reading__group">
@@ -176,6 +184,16 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {caveats.length > 0 && (
+        <div className="formula-reading__caveats">
+          {caveats.map((phrase) => (
+            <p key={phrase} className="formula-reading__caveat">
+              {phrase}
+            </p>
+          ))}
         </div>
       )}
 

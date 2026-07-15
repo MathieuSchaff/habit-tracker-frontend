@@ -384,6 +384,14 @@ test.describe('Product detail — Lecture de la formule', () => {
           },
           { label: 'Lactic Acid', inci: 'LACTIC ACID', axes: ['brightening'], contribution: 0.4 },
         ],
+        // Caveats must coexist with signals, not only with the empty state.
+        confidenceFactors: [
+          {
+            factor: 'heuristic_only',
+            description: 'Heuristic detections are pattern-based signals.',
+            impact: 'negative',
+          },
+        ],
       },
       regulatoryNotes: [],
       interactions: [],
@@ -438,6 +446,8 @@ test.describe('Product detail — Lecture de la formule', () => {
     const tags = section.locator('.formula-reading__dose-tag')
     await expect(tags).toHaveCount(2)
     await expect(tags.first()).toHaveText('probablement dosé pour agir')
+
+    await expect(section.getByText(/reposent sur le nom des ingrédients/)).toBeVisible()
   })
 
   test('driver labels link to the ingredient page only when a slug is resolved', async ({
@@ -476,6 +486,7 @@ test.describe('Product detail — Lecture de la formule', () => {
             ingredientSlug: 'niacinamide',
           },
         ],
+        confidenceFactors: [],
       },
       regulatoryNotes: [],
       interactions: [],
@@ -502,6 +513,43 @@ test.describe('Product detail — Lecture de la formule', () => {
     )
     await expect(section.getByText('Limonene')).toBeVisible()
     await expect(section.getByRole('link', { name: 'Limonene' })).toHaveCount(0)
+  })
+
+  test('says so instead of vanishing when the assessment surfaces nothing', async ({ page }) => {
+    const slug = await findSlugWithInci(page)
+
+    // Assessment ran fine but found nothing to surface: the section must state
+    // it calmly, with the confidence caveat, rather than disappear (silence is
+    // indistinguishable from an error).
+    const assessment = {
+      explanation: {
+        topDrivers: [],
+        topBenefitDrivers: [],
+        confidenceFactors: [
+          {
+            factor: 'low_coverage',
+            description: 'Low database coverage; score reliability is reduced.',
+            impact: 'negative',
+          },
+        ],
+      },
+      regulatoryNotes: [],
+      interactions: [],
+      coverage: { matched: 1, total: 8 },
+      matchedEvidence: [],
+    }
+
+    await page.route('**/api/products/*/dermo-score', (route) =>
+      route.fulfill({ json: { data: assessment } })
+    )
+
+    await page.goto(`/products/${slug}`)
+
+    const section = page.locator('.formula-reading')
+    await expect(section).toBeVisible({ timeout: 15_000 })
+    await expect(section.getByText('Rien de notable dans cette formule')).toBeVisible()
+    await expect(section.getByText(/pas assez de contexte/)).toBeVisible()
+    await expect(section.getByText(/1 ingrédient reconnu sur 8/)).toBeVisible()
   })
 })
 
