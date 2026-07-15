@@ -54,6 +54,19 @@
   color: var(--text-muted);
 }
 
+/* Qualitative dose signal; deliberately no % figure (vision: no number). */
+.formula-reading__dose-tag {
+  display: block;
+  width: fit-content;
+  margin-top: var(--space-1);
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-subtle, var(--border-default));
+  border-radius: var(--radius-full);
+}
+
 /* Highlight a signal that intersects the reader's skin profile. */
 .formula-reading__item[data-relevant] {
   padding-left: var(--space-3);

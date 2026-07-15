@@ -320,3 +320,121 @@ test.describe('Product detail — Discussions tab', () => {
     await expect(page).toHaveURL(/\/products\?[^/]*sort=name/)
   })
 })
+
+test.describe('Product detail — dose signal (Lecture de la formule)', () => {
+  // FormulaReading only mounts when the product has an INCI.
+  async function findSlugWithInci(page: Page): Promise<string> {
+    const list = await page.request.get('/api/products?category=skincare&sort=name&limit=10')
+    expect(list.ok()).toBe(true)
+    const items = (await list.json()).data.items as Array<{ slug: string }>
+    for (const item of items) {
+      const detail = await page.request.get(`/api/products/${item.slug}`)
+      if (!detail.ok()) continue
+      if ((await detail.json()).data?.inci) return item.slug
+    }
+    throw new Error('no seed product with an INCI in the first 10 skincare products')
+  }
+
+  test('tag shows only for drivers whose roleAtDose passes the cut', async ({ page }) => {
+    const slug = await findSlugWithInci(page)
+
+    const passing = {
+      activeRole: 'exfoliant',
+      doseFactor: 0.9,
+      confidence: 0.8,
+      basis: 'concentration',
+    }
+    const failing = {
+      activeRole: 'exfoliant',
+      doseFactor: 0.2,
+      confidence: 0.8,
+      basis: 'concentration',
+    }
+    const estimate = { meanPct: 8, ciLowPct: 5, ciHighPct: 11 }
+
+    // Deterministic oracle over both driver groups: a passing benefit driver, a
+    // passing risk driver, one below the cut, and a bundle-style duplicated inci
+    // where only one occurrence passes (must stay silent). Exactly two tags.
+    const assessment = {
+      explanation: {
+        topDrivers: [
+          {
+            label: 'Salicylic Acid',
+            inci: 'SALICYLIC ACID',
+            source: 'matchedEvidence',
+            axes: ['irritation'],
+            contribution: 0.6,
+          },
+          {
+            label: 'Citric Acid',
+            inci: 'CITRIC ACID',
+            source: 'matchedEvidence',
+            axes: ['irritation'],
+            contribution: 0.5,
+          },
+        ],
+        topBenefitDrivers: [
+          {
+            label: 'Glycolic Acid',
+            inci: 'GLYCOLIC ACID',
+            axes: ['brightening'],
+            contribution: 0.8,
+          },
+          { label: 'Lactic Acid', inci: 'LACTIC ACID', axes: ['brightening'], contribution: 0.4 },
+        ],
+      },
+      regulatoryNotes: [],
+      interactions: [],
+      coverage: { matched: 4, total: 6 },
+      matchedEvidence: [
+        {
+          ingredient: 'glycolic acid',
+          inci: 'GLYCOLIC ACID',
+          concentrationEstimate: estimate,
+          roleAtDose: passing,
+        },
+        {
+          ingredient: 'lactic acid',
+          inci: 'LACTIC ACID',
+          concentrationEstimate: estimate,
+          roleAtDose: failing,
+        },
+        {
+          ingredient: 'salicylic acid',
+          inci: 'SALICYLIC ACID',
+          concentrationEstimate: estimate,
+          roleAtDose: passing,
+        },
+        {
+          ingredient: 'citric acid',
+          inci: 'CITRIC ACID',
+          concentrationEstimate: estimate,
+          roleAtDose: passing,
+        },
+        {
+          ingredient: 'citric acid',
+          inci: 'CITRIC ACID',
+          concentrationEstimate: estimate,
+          roleAtDose: failing,
+        },
+      ],
+    }
+
+    await page.route('**/api/products/*/dermo-score', (route) =>
+      route.fulfill({ json: { data: assessment } })
+    )
+
+    await page.goto(`/products/${slug}`)
+
+    const section = page.locator('.formula-reading')
+    await expect(section).toBeVisible({ timeout: 15_000 })
+    await expect(section.getByText('Lactic Acid')).toBeVisible()
+    await expect(section.getByText('Citric Acid')).toBeVisible()
+
+    // Glycolic (benefit) + Salicylic (risk) pass; Lactic is below the cut and
+    // Citric has a below-cut duplicate occurrence, so neither gets the tag.
+    const tags = section.locator('.formula-reading__dose-tag')
+    await expect(tags).toHaveCount(2)
+    await expect(tags.first()).toHaveText('probablement dosé pour agir')
+  })
+})

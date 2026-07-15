@@ -37,6 +37,15 @@ export const BENEFIT_AXIS_PHRASE: Record<BenefitAxis, string> = {
   seborrheicRegulation: 'régule le sébum',
 }
 
+// Dose signal: algo-derm emits continuous roleAtDose.doseFactor/confidence and
+// leaves the boolean "is it active" cut to the consumer (ADR-0014). Prudent
+// defaults pending gold-set calibration; prefer silence over a wrong claim.
+export const DOSE_SIGNAL_MIN_DOSE_FACTOR = 0.7
+export const DOSE_SIGNAL_MIN_CONFIDENCE = 0.6
+
+// Qualitative only, never a % figure (vision: no number, no verdict).
+export const DOSE_SIGNAL_PHRASE = 'probablement dosé pour agir'
+
 // Skin-profile slugs → risk axes that matter to that user, used to highlight
 // relevant signals without re-deriving the backend's profile mapping.
 export const PROFILE_RELEVANT_AXES: Record<string, ReadonlyArray<RiskAxis>> = {

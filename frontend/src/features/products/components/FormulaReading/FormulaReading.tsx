@@ -3,7 +3,14 @@ import { GitMerge, Info, Scale, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
-import { BENEFIT_AXIS_PHRASE, PROFILE_RELEVANT_AXES, RISK_AXIS_PHRASE } from '@/constants/derm'
+import {
+  BENEFIT_AXIS_PHRASE,
+  DOSE_SIGNAL_MIN_CONFIDENCE,
+  DOSE_SIGNAL_MIN_DOSE_FACTOR,
+  DOSE_SIGNAL_PHRASE,
+  PROFILE_RELEVANT_AXES,
+  RISK_AXIS_PHRASE,
+} from '@/constants/derm'
 import { productQueries } from '@/lib/queries/products'
 import { formatRegulatoryNotes } from './regulatoryNotes'
 import './FormulaReading.css'
@@ -32,7 +39,19 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
 
   if (isError || !assessment) return null
 
-  const { explanation, regulatoryNotes, interactions, coverage } = assessment
+  const { explanation, regulatoryNotes, interactions, coverage, matchedEvidence } = assessment
+  // roleAtDose exists only for ingredients with an authored role curve (today:
+  // exfoliants); absence means "no dose signal", not "not dosed to act".
+  // Bundle INCI can repeat one inci at different doses while rendered drivers
+  // are deduped upstream: every occurrence must pass the cut, silence otherwise.
+  const dosedInci = new Map<string, boolean>()
+  for (const m of matchedEvidence) {
+    const pass =
+      !!m.roleAtDose &&
+      m.roleAtDose.doseFactor >= DOSE_SIGNAL_MIN_DOSE_FACTOR &&
+      m.roleAtDose.confidence >= DOSE_SIGNAL_MIN_CONFIDENCE
+    dosedInci.set(m.inci, (dosedInci.get(m.inci) ?? true) && pass)
+  }
   // Keep ingredient/heuristic signals only; interaction rules render in their own
   // section with a human note (their topDrivers label is a raw rule id). Drop drivers
   // with no axis — matched evidence that carries no concern is noise here.
@@ -69,6 +88,9 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
                 <li key={d.label} className="formula-reading__item">
                   <span className="formula-reading__label">{d.label}</span>
                   {phrase && <span className="formula-reading__phrase"> — {phrase}</span>}
+                  {d.inci && dosedInci.get(d.inci) && (
+                    <span className="formula-reading__dose-tag">{DOSE_SIGNAL_PHRASE}</span>
+                  )}
                 </li>
               )
             })}
@@ -95,6 +117,9 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
                 >
                   <span className="formula-reading__label">{d.label}</span>
                   {phrase && <span className="formula-reading__phrase"> — {phrase}</span>}
+                  {d.inci && dosedInci.get(d.inci) && (
+                    <span className="formula-reading__dose-tag">{DOSE_SIGNAL_PHRASE}</span>
+                  )}
                 </li>
               )
             })}
