@@ -12,15 +12,13 @@ import { Badge } from '@/component/DataDisplay/Badge/Badge'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { RateLimitEmptyState } from '@/component/Feedback/ui/EmptyState/RateLimitEmptyState'
-import {
-  ActiveFiltersBar,
-  emptyFilters,
-  FilterDrawer,
-  type FilterValues,
-  getFilterLabel,
-} from '@/component/Filter'
+import { ActiveFiltersBar } from '@/component/Filter/ActiveFiltersBar/ActiveFiltersBar'
+import { FilterDrawer } from '@/component/Filter/FilterDrawer/FilterDrawer'
+import { emptyFilters, getFilterLabel } from '@/component/Filter/helpers'
+import type { FilterValues } from '@/component/Filter/types'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
-import { ListPageLayout } from '@/component/Layout'
+import { ListBrowseHeader } from '@/component/Layout/PageLayout/ListBrowseHeader'
+import { ListPageLayout } from '@/component/Layout/PageLayout/ListPageLayout'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { Tabs } from '@/component/Tabs/Tabs'
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
@@ -141,65 +139,62 @@ export function IngredientsPage() {
   return (
     <ListPageLayout className="ingredients-page">
       <ListPageLayout.Header fullBleed>
-        <div className="ingredients-header__top">
-          <div className="list-page-layout__header-info">
-            <h2 className="list-page-layout__title">Ingrédients</h2>
-            {(!isLoading || total > 0) && (
-              <span
-                className="list-page-layout__meta"
-                aria-live="polite"
-                aria-busy={isPlaceholderData || undefined}
-              >
+        <ListBrowseHeader
+          title="Ingrédients"
+          meta={
+            (!isLoading || total > 0) && (
+              <>
                 {total} ingrédient{total > 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-
-          <div className="ingredients-header__tools">
-            <ButtonLink
-              to="/ingredients/new"
-              variant="ghost"
-              size="md"
-              className="ingredients-header__icon-btn"
-              aria-label="Créer un ingrédient"
-              title="Créer un ingrédient"
-            >
-              <Plus size={16} aria-hidden="true" />
-            </ButtonLink>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              onClick={() => setDrawerOpen(true)}
-              className="list-filter-btn"
-              aria-label={
-                filterCount > 0
-                  ? `Filtrer (${filterCount} actif${filterCount > 1 ? 's' : ''})`
-                  : 'Filtrer'
-              }
-            >
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              <span>Filtrer</span>
-              {filterCount > 0 && (
-                <span className="list-filter-btn__count" aria-hidden="true">
-                  {filterCount}
-                </span>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="ingredients-header__toolbar">
-          <Tabs
-            options={DOMAIN_TAB_OPTIONS}
-            activeTab={type}
-            onTabChange={handleDomainChange}
-            variant="underline"
-            scrollable
-            ariaLabel="Domaine d'ingrédient"
-          />
-
-          <div className="ingredients-header__search">
+              </>
+            )
+          }
+          metaBusy={isPlaceholderData}
+          tools={
+            <>
+              <ButtonLink
+                to="/ingredients/new"
+                variant="ghost"
+                size="md"
+                className="list-browse-header__icon-btn"
+                aria-label="Créer un ingrédient"
+                title="Créer un ingrédient"
+              >
+                <Plus size={16} aria-hidden="true" />
+              </ButtonLink>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => setDrawerOpen(true)}
+                className="list-filter-btn"
+                aria-label={
+                  filterCount > 0
+                    ? `Filtrer (${filterCount} actif${filterCount > 1 ? 's' : ''})`
+                    : 'Filtrer'
+                }
+              >
+                <SlidersHorizontal size={14} aria-hidden="true" />
+                <span>Filtrer</span>
+                {filterCount > 0 && (
+                  <span className="list-filter-btn__count" aria-hidden="true">
+                    {filterCount}
+                  </span>
+                )}
+              </Button>
+            </>
+          }
+          tabs={
+            <Tabs
+              options={DOMAIN_TAB_OPTIONS}
+              activeTab={type}
+              onTabChange={handleDomainChange}
+              variant="underline"
+              scrollable
+              ariaLabel="Domaine d'ingrédient"
+              hasPanels={false}
+            />
+          }
+          search={
             <SearchCombobox
               label="Rechercher un ingrédient"
               queryFn={ingredientQueries.searchInfinite}
@@ -211,8 +206,8 @@ export function IngredientsPage() {
               })}
               onSelect={(slug) => navigate({ to: '/ingredients/$slug', params: { slug } })}
             />
-          </div>
-        </div>
+          }
+        />
       </ListPageLayout.Header>
 
       <ActiveFiltersBar
@@ -243,7 +238,7 @@ export function IngredientsPage() {
         )}
       </FilterDrawer>
 
-      <ListPageLayout.Body isSyncing={isPlaceholderData}>
+      <ListPageLayout.Body maxWidth="var(--list-browse-rail)" isSyncing={isPlaceholderData}>
         {isLoading && !isPlaceholderData ? (
           <EmptyState icon={<FlaskConical size={24} />} subtitle="Chargement..." />
         ) : items.length === 0 ? (

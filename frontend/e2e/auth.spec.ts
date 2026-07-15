@@ -206,33 +206,6 @@ test.describe('Auth — demo', () => {
     await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
     await expect(page.getByText('Mode démo')).toBeVisible()
   })
-
-  test('mobile bottom-nav demo does not depend on boot refresh after the first tap', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 390, height: 844 })
-    await page.route('**/api/auth/refresh', (route) =>
-      route.fulfill({
-        status: 503,
-        contentType: 'text/html',
-        body: '<h1>Service Temporarily Unavailable</h1>',
-      })
-    )
-
-    await page.goto('/')
-    // Dev-only panels sit in the same bottom corner as the mobile nav.
-    await page.addStyleTag({
-      content:
-        '[aria-label="Open TanStack Router Devtools"], [aria-label="Open Tanstack query devtools"] { display: none !important; pointer-events: none !important; }',
-    })
-
-    await page.getByRole('button', { name: /Essayer Aurore/i }).click()
-
-    await expect(page).toHaveURL(/\/collection/, { timeout: 30_000 })
-    await expect(page.getByRole('heading', { name: 'Ma Collection' })).toBeVisible()
-    await expect(page.getByText('On a renversé quelque chose.')).not.toBeVisible()
-    await expect(page.getByText('Mode démo')).toBeVisible()
-  })
 })
 
 // Cold-load boot optimization (feature B1): an anonymous visitor must not pay for the

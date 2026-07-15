@@ -26,7 +26,7 @@ test.describe('Loader resilience — secondary fetch degrades in-page', () => {
     await page.goto('/products?profile_filter=true')
 
     // Page renders: heading + product cards visible, and the full-page error is absent.
-    await expect(page.getByRole('heading', { name: 'Produits', level: 2 })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Produits', level: 1 })).toBeVisible({
       timeout: 15_000,
     })
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })

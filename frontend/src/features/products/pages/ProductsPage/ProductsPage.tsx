@@ -9,8 +9,9 @@ import { Button } from '@/component/Button/Button'
 import { ListPagination } from '@/component/DataDisplay/Pagination/ListPagination'
 import { EmptyState } from '@/component/Feedback/ui/EmptyState/EmptyState'
 import { RateLimitEmptyState } from '@/component/Feedback/ui/EmptyState/RateLimitEmptyState'
-import { emptyFilters, type FilterValues } from '@/component/Filter'
-import { ListPageLayout } from '@/component/Layout'
+import { emptyFilters } from '@/component/Filter/helpers'
+import type { FilterValues } from '@/component/Filter/types'
+import { ListPageLayout } from '@/component/Layout/PageLayout/ListPageLayout'
 import type { TabOption } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
 import { CollapsibleFiltersStrip } from '@/features/products/components/CollapsibleFiltersStrip/CollapsibleFiltersStrip'
@@ -44,6 +45,7 @@ import {
 } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
+import '@/component/Layout/PageLayout/ListPage.css'
 import './ProductsPage.css'
 import '@/features/products/styles/kinds.css'
 
@@ -189,6 +191,8 @@ export function ProductsPage() {
   const totalPages = Math.ceil(total / PRODUCTS_PAGE_SIZE)
   // 429 on the list read: distinguish "throttled" from "empty catalogue" (placeholder kept on paginate).
   const showRateLimit = isRateLimitError(error)
+  // Random order has no stable page sequence, so page numbers are meaningless there.
+  const showPager = totalPages > 1 && sort !== 'random'
 
   const handleSortChange = useCallback(
     (next: ProductSort) => {
@@ -291,7 +295,7 @@ export function ProductsPage() {
           onLocalFiltersChange={setDraftFilters}
         />
 
-        <ListPageLayout.Body maxWidth="72rem" isSyncing={isPlaceholderData}>
+        <ListPageLayout.Body maxWidth="var(--list-browse-rail)" isSyncing={isPlaceholderData}>
           {isLoading && !isPlaceholderData ? (
             <ProductsGridSkeleton />
           ) : items.length === 0 ? (
@@ -316,13 +320,22 @@ export function ProductsPage() {
             )
           ) : (
             <>
+              {showPager && (
+                <ListPagination
+                  className="list-pagination--top"
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={goToPage}
+                />
+              )}
+
               <ul role="list" className="list-grid">
                 {items.map((product) => (
                   <ProductCard key={product.id} product={product} onAdd={handleAddProduct} />
                 ))}
               </ul>
 
-              {totalPages > 1 && sort !== 'random' && (
+              {showPager && (
                 <ListPagination
                   currentPage={page}
                   totalPages={totalPages}

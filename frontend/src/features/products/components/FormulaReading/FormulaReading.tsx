@@ -1,14 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import { GitMerge, Info, Scale } from 'lucide-react'
+import { GitMerge, Info, Scale, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeader'
-import { PROFILE_RELEVANT_AXES, RISK_AXIS_PHRASE } from '@/constants/derm'
+import { BENEFIT_AXIS_PHRASE, PROFILE_RELEVANT_AXES, RISK_AXIS_PHRASE } from '@/constants/derm'
 import { productQueries } from '@/lib/queries/products'
 import { formatRegulatoryNotes } from './regulatoryNotes'
 import './FormulaReading.css'
 
 type RiskAxis = keyof typeof RISK_AXIS_PHRASE
+type BenefitAxis = keyof typeof BENEFIT_AXIS_PHRASE
 
 interface FormulaReadingProps {
   slug: string
@@ -38,13 +39,42 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
   const drivers = explanation.topDrivers.filter(
     (d) => d.source !== 'interaction' && d.axes.length > 0
   )
-  const hasSignal = drivers.length > 0 || regulatoryNotes.length > 0 || interactions.length > 0
+  // Benefit drivers carry no `source` and are never interaction-derived; keep all.
+  const benefitDrivers = explanation.topBenefitDrivers.filter((d) => d.axes.length > 0)
+  const hasSignal =
+    benefitDrivers.length > 0 ||
+    drivers.length > 0 ||
+    regulatoryNotes.length > 0 ||
+    interactions.length > 0
 
   if (!hasSignal) return null
 
   return (
     <section className="formula-reading product-section">
       <SectionHeader title="Lecture de la formule" as="h2" />
+
+      {benefitDrivers.length > 0 && (
+        <div className="formula-reading__group">
+          <h3 className="formula-reading__subhead">
+            <Sparkles size={13} aria-hidden="true" />
+            Points forts
+          </h3>
+          <ul role="list" className="formula-reading__list">
+            {benefitDrivers.map((d) => {
+              const phrase = (d.axes as BenefitAxis[])
+                .map((a) => BENEFIT_AXIS_PHRASE[a])
+                .filter(Boolean)
+                .join(', ')
+              return (
+                <li key={d.label} className="formula-reading__item">
+                  <span className="formula-reading__label">{d.label}</span>
+                  {phrase && <span className="formula-reading__phrase"> — {phrase}</span>}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       {drivers.length > 0 && (
         <div className="formula-reading__group">

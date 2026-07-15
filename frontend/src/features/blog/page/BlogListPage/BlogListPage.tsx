@@ -116,6 +116,7 @@ export function BlogListPage({
         title={pageTitle}
         meta={meta}
         isLoading={isPlaceholderData}
+        maxWidth="72rem"
         actions={
           isAdmin ? (
             <ButtonLink to="/blog/admin/new" variant="outline" size="sm">

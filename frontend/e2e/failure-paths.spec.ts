@@ -16,6 +16,18 @@ test.beforeEach(async ({ page }) => {
   await loginAsSeed(page)
 })
 
+// The CTA first renders the instant `user` lands, which also mounts PostComposer
+// above it — the resulting layout shift can swallow the click (mousedown/mouseup
+// split across the move). Re-click until the form is actually open.
+async function openDiscussionForm(page: Page): Promise<void> {
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Ouvrir une discussion' }).click()
+    await expect(page.getByRole('heading', { name: 'Nouvelle discussion' })).toBeVisible({
+      timeout: 2000,
+    })
+  }).toPass()
+}
+
 test.describe('Edit product — failure paths', () => {
   test('whitespace-only name surfaces custom inline error and blocks PATCH', async ({ page }) => {
     // HTML5 `required` on the input would catch a literal empty string; setting
@@ -122,7 +134,7 @@ test.describe('Discussion thread — failure paths', () => {
   test('submitting empty form is blocked by HTML5 validation, no POST', async ({ page }) => {
     await gotoFirstProductDetail(page)
     await page.getByRole('tab', { name: /Discussions/ }).click()
-    await page.getByRole('button', { name: 'Ouvrir une discussion' }).click()
+    await openDiscussionForm(page)
 
     let posted = false
     page.on('request', (req) => {
@@ -139,7 +151,7 @@ test.describe('Discussion thread — failure paths', () => {
   test('backend 500 keeps form open and preserves user input', async ({ page }) => {
     await gotoFirstProductDetail(page)
     await page.getByRole('tab', { name: /Discussions/ }).click()
-    await page.getByRole('button', { name: 'Ouvrir une discussion' }).click()
+    await openDiscussionForm(page)
 
     await page.route('**/api/products/*/discussions', async (route) => {
       if (route.request().method() === 'POST') {
@@ -169,7 +181,7 @@ test.describe('Discussion thread — failure paths', () => {
   test('successful post clears inputs and closes the form', async ({ page }) => {
     await gotoFirstProductDetail(page)
     await page.getByRole('tab', { name: /Discussions/ }).click()
-    await page.getByRole('button', { name: 'Ouvrir une discussion' }).click()
+    await openDiscussionForm(page)
 
     const title = `e2e thread ${Date.now()}`
     await page.getByLabel(/^Sujet/).fill(title)

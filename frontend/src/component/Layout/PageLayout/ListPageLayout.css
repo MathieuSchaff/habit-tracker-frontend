@@ -28,6 +28,9 @@
   gap: var(--space-1);
   padding-top: var(--space-5);
   background: var(--bg-page);
+  width: 100%;
+  max-width: var(--_header-max-width, none);
+  margin-inline: auto;
   @media (--sm) {
     gap: var(--space-4);
   }
@@ -99,24 +102,29 @@
   animation: pulse-dot 1.5s infinite ease-in-out;
 }
 
+@media (--sm) {
+  .list-page-layout__title {
+    font-size: var(--text-3xl);
+  }
+}
+
 @media (--md) {
+  /* centered only centers the mobile stack; the desktop row keeps title left /
+     actions right (actions carries flex:1) and inherits the base align-items:center */
   .list-page-layout__header--centered {
     text-align: initial;
   }
   .list-page-layout__header:not(.list-page-layout__header--full-bleed) {
     flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
     gap: var(--space-8);
     padding-block: var(--space-8) var(--space-6);
   }
 
-  .list-page-layout__header--centered {
-    justify-content: center;
-  }
-
-  .list-page-layout__title {
-    font-size: var(--text-3xl);
+  .list-page-layout__header:not(.list-page-layout__header--full-bleed):not(
+    .list-page-layout__header--centered
+  ) {
+    align-items: flex-end;
+    justify-content: space-between;
   }
 
   .list-page-layout__actions {
@@ -129,11 +137,6 @@
 
   .list-page-layout__actions > * {
     width: auto;
-  }
-
-  .list-page-layout__actions > .search-combobox {
-    max-width: 400px;
-    flex: 1;
   }
 }
 

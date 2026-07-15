@@ -6,6 +6,7 @@ import { FlaskConical, Plus, Search, SlidersHorizontal, Tag } from 'lucide-react
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button, ButtonLink } from '@/component/Button/Button'
+import { ListBrowseHeader } from '@/component/Layout/PageLayout/ListBrowseHeader'
 import type { ComboboxSection } from '@/component/Search/ComboboxPrimitive'
 import { SearchCombobox } from '@/component/Search/SearchCombobox'
 import { foldText } from '@/component/Search/text-fold'
@@ -156,27 +157,22 @@ function ProductsHeaderImpl({
   )
 
   return (
-    <>
-      <div className="products-header__top-inner">
-        <div className="list-page-layout__header-info">
-          <h2 className="list-page-layout__title">Produits</h2>
-          <span
-            className="list-page-layout__meta"
-            aria-live="polite"
-            aria-busy={isPlaceholderData || undefined}
-          >
-            <strong>{total}</strong>{' '}
-            {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
-          </span>
-        </div>
-
-        <div className="products-header__tools">
+    <ListBrowseHeader
+      title="Produits"
+      meta={
+        <>
+          <strong>{total}</strong> {hasFilters ? `produit${total > 1 ? 's' : ''}` : 'en catalogue'}
+        </>
+      }
+      metaBusy={isPlaceholderData}
+      tools={
+        <>
           <SortControl value={sort} onChange={onSortChange} hasQuery={hasQuery} compact />
           <ButtonLink
             to="/products/new"
             variant="ghost"
             size="md"
-            className="products-header__icon-btn"
+            className="list-browse-header__icon-btn"
             aria-label="Créer un produit"
             title="Créer un produit"
           >
@@ -204,48 +200,44 @@ function ProductsHeaderImpl({
               </span>
             )}
           </Button>
-        </div>
-      </div>
-
-      <div className="products-header__toolbar">
-        <div className="products-header__toolbar-inner">
-          <Tabs
-            options={tabOptions}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-            variant="underline"
-            scrollable
-            ariaLabel="Catégorie de produits"
-            hasPanels={false}
-          />
-
-          <div className="products-header__search">
-            <SearchCombobox
-              label="Rechercher un produit"
-              queryFn={(q) => productQueries.search(q, activeTab)}
-              toResult={(item) => ({
-                id: item.id,
-                slug: item.slug,
-                label: item.name,
-                sublabel: item.brand,
-              })}
-              onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
-              onFocus={() => setSearchActive(true)}
-              sections={sections}
-              onSubmitQuery={(q) => {
-                const trimmed = q.trim()
-                if (trimmed.length === 0) return
-                navigate({
-                  to: '/products',
-                  // sort reset: a fresh q defaults to relevance via productsSearchSchema.
-                  search: (prev) => ({ ...prev, q: trimmed, page: 1, sort: undefined }),
-                })
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
+        </>
+      }
+      tabs={
+        <Tabs
+          options={tabOptions}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          variant="underline"
+          scrollable
+          ariaLabel="Catégorie de produits"
+          hasPanels={false}
+        />
+      }
+      search={
+        <SearchCombobox
+          label="Rechercher un produit"
+          queryFn={(q) => productQueries.search(q, activeTab)}
+          toResult={(item) => ({
+            id: item.id,
+            slug: item.slug,
+            label: item.name,
+            sublabel: item.brand,
+          })}
+          onSelect={(slug) => navigate({ to: '/products/$slug', params: { slug } })}
+          onFocus={() => setSearchActive(true)}
+          sections={sections}
+          onSubmitQuery={(q) => {
+            const trimmed = q.trim()
+            if (trimmed.length === 0) return
+            navigate({
+              to: '/products',
+              // sort reset: a fresh q defaults to relevance via productsSearchSchema.
+              search: (prev) => ({ ...prev, q: trimmed, page: 1, sort: undefined }),
+            })
+          }}
+        />
+      }
+    >
       <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
 
       <FloatingFilterButton
@@ -254,7 +246,7 @@ function ProductsHeaderImpl({
         onClick={onOpenDrawer}
         onIntent={onFilterIntent}
       />
-    </>
+    </ListBrowseHeader>
   )
 }
 

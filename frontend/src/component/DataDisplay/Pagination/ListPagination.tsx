@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import './ListPagination.css'
 
@@ -5,15 +6,24 @@ type ListPaginationProps = {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
+  className?: string
 }
 
-export function ListPagination({ currentPage, totalPages, onPageChange }: ListPaginationProps) {
+export function ListPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className,
+}: ListPaginationProps) {
   if (totalPages <= 1) {
     return null
   }
 
   return (
-    <nav className="list-pagination" aria-label={`Page ${currentPage} sur ${totalPages}`}>
+    <nav
+      className={clsx('list-pagination', className)}
+      aria-label={`Page ${currentPage} sur ${totalPages}`}
+    >
       <button
         type="button"
         className="list-pagination__btn"

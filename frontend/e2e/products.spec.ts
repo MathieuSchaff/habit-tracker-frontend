@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test'
 test.describe('Products page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/products')
-    await expect(page.getByRole('heading', { name: 'Produits', level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Produits', level: 1 })).toBeVisible()
   })
 
   test('list renders product cards on default skincare tab', async ({ page }) => {
@@ -238,7 +238,8 @@ test.describe('Products page', () => {
   test('pagination navigates between pages', async ({ page }) => {
     await expect(page.locator('.list-card--product').first()).toBeVisible({ timeout: 15_000 })
 
-    const pageNav = page.getByRole('navigation', { name: /^Page \d+ sur \d+$/ })
+    // Top + bottom pagers share the same accessible name; target the first.
+    const pageNav = page.getByRole('navigation', { name: /^Page \d+ sur \d+$/ }).first()
     if ((await pageNav.count()) === 0) {
       test.skip(true, 'No pagination on default tab — skipping')
     }
@@ -249,7 +250,9 @@ test.describe('Products page', () => {
 
     await expect(page).toHaveURL(/[?&]page=2/)
     // Wait for the placeholder-data overlay to clear before sampling list state.
-    await expect(page.locator('.list-main--syncing')).toHaveCount(0, { timeout: 15_000 })
+    await expect(page.locator('.list-page-layout__body--syncing')).toHaveCount(0, {
+      timeout: 15_000,
+    })
 
     await expect
       .poll(async () => page.locator('.list-card__name').first().innerText(), { timeout: 15_000 })

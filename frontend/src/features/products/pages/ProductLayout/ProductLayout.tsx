@@ -21,6 +21,7 @@ import { PageTopActions, PageTopActionsRight } from '@/component/Layout/PageLayo
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
 import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
 import { productQueries } from '@/lib/queries/products'
+import { useAuthStore } from '@/store/auth'
 import '@/features/products/styles/kinds.css'
 import '@/features/products/pages/ProductInfoTab/ProductInfoTab.css'
 import './ProductLayout.css'
@@ -57,6 +58,7 @@ const TAB_OPTIONS: TabOption<ProductTab>[] = [
 export function ProductLayout() {
   const { slug } = route.useParams()
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
+  const user = useAuthStore((s) => s.user)
   const [showAddModal, setShowAddModal] = useState(false)
   const navigate = useNavigate()
   const router = useRouter()
@@ -100,16 +102,19 @@ export function ProductLayout() {
       <PageTopActions>
         <BackButton onClick={handleBack}>Produits</BackButton>
         <PageTopActionsRight>
-          <ButtonLink
-            to="/products/$slug/edit"
-            params={{ slug }}
-            variant="secondary"
-            className="action-edit"
-            aria-label="Modifier ce produit"
-          >
-            <Pencil size={14} />
-            <span className="action-edit__label">Modifier</span>
-          </ButtonLink>
+          {/* Edit route is auth-gated; hide the affordance for anon instead of a login redirect. */}
+          {user && (
+            <ButtonLink
+              to="/products/$slug/edit"
+              params={{ slug }}
+              variant="secondary"
+              className="action-edit"
+              aria-label="Modifier ce produit"
+            >
+              <Pencil size={14} />
+              <span className="action-edit__label">Modifier</span>
+            </ButtonLink>
+          )}
           <Button onClick={() => setShowAddModal(true)} variant="accent">
             <Plus size={16} />
             Ajouter à la collection

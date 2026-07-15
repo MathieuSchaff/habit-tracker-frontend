@@ -34,6 +34,7 @@ export const FILLER_SLUGS: string[] = [
   'cetearyl-alcohol',
   'behenyl-alcohol',
   'glyceryl-stearate',
+  'glyceryl-stearate-citrate',
   'peg-100-stearate',
   'ceteareth-20',
 

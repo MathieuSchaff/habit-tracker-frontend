@@ -50,6 +50,7 @@ export function FeedPage() {
         title="Le fil des semblables"
         meta="Les publications des personnes qui partagent votre peau."
         isLoading={isFetching}
+        maxWidth="640px"
       />
 
       <div className="feed-filters">

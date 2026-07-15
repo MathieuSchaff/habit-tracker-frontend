@@ -1,0 +1,76 @@
+.list-browse-header__top-inner {
+  max-width: var(--list-browse-rail);
+  margin-inline: auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.list-browse-header__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* px on purpose: tap targets must not shrink with the fluid root font-size */
+.list-browse-header__icon-btn {
+  width: 38px;
+  padding: 0;
+  min-height: 38px;
+}
+
+.list-browse-header__toolbar-inner {
+  max-width: var(--list-browse-rail);
+  margin-inline: auto;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.list-browse-header__toolbar-inner .tabs-wrapper {
+  flex-shrink: 0;
+  width: auto;
+}
+
+.list-browse-header__search {
+  flex: 0 0 auto;
+  width: clamp(220px, 28vw, 320px);
+}
+
+@media (--mobile) {
+  .list-browse-header__top-inner {
+    padding: var(--space-2);
+  }
+
+  .list-browse-header__tools > .button.primary {
+    min-height: 42px;
+  }
+
+  .list-browse-header__toolbar {
+    padding: 0 var(--space-2);
+  }
+
+  .list-browse-header__toolbar-inner {
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .list-browse-header__toolbar-inner .tabs-wrapper {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .list-browse-header__toolbar-inner .underline-tabs {
+    width: 100%;
+  }
+
+  .list-browse-header__search {
+    flex: 1 1 100%;
+    max-width: none;
+    min-width: 0;
+  }
+}

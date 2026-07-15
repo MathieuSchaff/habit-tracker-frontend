@@ -51,14 +51,12 @@ vi.mock('@/hooks/useIngredientTagFilterGroups', () => ({
 vi.mock('@/component/Search/SearchCombobox', () => ({
   SearchCombobox: () => null,
 }))
-vi.mock('@/component/Filter', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/component/Filter')>()
-  return {
-    ...actual,
-    FilterDrawer: () => null,
-    ActiveFiltersBar: () => null,
-  }
-})
+vi.mock('@/component/Filter/FilterDrawer/FilterDrawer', () => ({
+  FilterDrawer: () => null,
+}))
+vi.mock('@/component/Filter/ActiveFiltersBar/ActiveFiltersBar', () => ({
+  ActiveFiltersBar: () => null,
+}))
 
 function setQueriesByKey(map: Record<string, unknown>) {
   vi.mocked(useQuery).mockImplementation((opts: { queryKey: ReadonlyArray<unknown> }) => {

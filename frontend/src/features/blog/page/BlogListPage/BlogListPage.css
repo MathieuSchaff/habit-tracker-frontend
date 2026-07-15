@@ -236,7 +236,10 @@
 @media (--lg) {
   .blog-list-page__body {
     grid-template-columns: 16rem 1fr;
-    max-width: 72rem;
+    /* Mirror PageHeader's --space-6 padding floor: without it the body centers
+       closer to the edges than the header content whenever (100% - rail) / 2
+       drops below that gutter, and the rails drift apart (~4.5px per side). */
+    max-width: min(72rem, calc(100% - 2 * var(--space-6)));
     margin-inline: auto;
   }
 

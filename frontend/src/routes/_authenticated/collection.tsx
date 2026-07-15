@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
-import { ListPageLayout } from '@/component/Layout'
+import { ListPageLayout } from '@/component/Layout/PageLayout/ListPageLayout'
 import { CollectionSubNav } from '@/features/collection/components/CollectionSubNav'
 import { QuickAdd } from '@/features/collection/components/modals/QuickAdd/QuickAdd'
 import { CollectionAddProvider } from '@/features/collection/context/CollectionAddContext'
@@ -45,6 +45,7 @@ function CollectionLayout() {
         }
         transparent
         centered
+        maxWidth="1200px"
       />
 
       <ListPageLayout.Body maxWidth="1200px" className="coll-page-container">

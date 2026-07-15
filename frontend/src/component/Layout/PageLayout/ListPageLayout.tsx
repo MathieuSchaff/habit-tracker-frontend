@@ -21,6 +21,8 @@ interface HeaderProps {
   centered?: boolean
   /** Renders children directly and escapes root padding. */
   fullBleed?: boolean
+  /** Cap header content to the page rail so title/actions align with the body. */
+  maxWidth?: string
   children?: ReactNode
   className?: string
 }
@@ -33,11 +35,13 @@ function Header({
   transparent,
   centered,
   fullBleed,
+  maxWidth,
   children,
   className,
 }: HeaderProps) {
   return (
     <div
+      style={maxWidth ? ({ '--_header-max-width': maxWidth } as CSSProperties) : undefined}
       className={clsx(
         'list-page-layout__header',
         transparent && 'list-page-layout__header--transparent',
@@ -51,7 +55,7 @@ function Header({
       ) : (
         <>
           <div className="list-page-layout__header-info">
-            <h2 className="list-page-layout__title">
+            <h1 className="list-page-layout__title">
               {title}
               <span
                 className={clsx(
@@ -61,8 +65,10 @@ function Header({
                 aria-hidden="true"
               />
               {isLoading && <span className="sr-only">Chargement en cours</span>}
-            </h2>
-            {meta && <div className="list-page-layout__meta">{meta}</div>}
+            </h1>
+            {meta !== undefined && meta !== null && meta !== false && (
+              <div className="list-page-layout__meta">{meta}</div>
+            )}
           </div>
           {actions && <div className="list-page-layout__actions">{actions}</div>}
         </>

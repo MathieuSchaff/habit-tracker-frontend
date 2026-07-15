@@ -6,6 +6,12 @@
   padding-top: var(--space-6);
 }
 
+/* Above the grid: space goes below instead, so it clears the header, not the list. */
+.list-pagination--top {
+  padding-top: 0;
+  padding-bottom: var(--space-4);
+}
+
 .list-pagination__btn {
   display: flex;
   align-items: center;

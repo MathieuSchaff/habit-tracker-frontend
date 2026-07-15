@@ -44,6 +44,7 @@ export function useListFilters<T extends string>({
     })
   }
 
+  // Paging relies on the TanStack default resetScroll:true - do not add resetScroll:false here.
   const goToPage = (newPage: number) => {
     navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, page: newPage }) })
   }
