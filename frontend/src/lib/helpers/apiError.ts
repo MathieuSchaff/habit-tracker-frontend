@@ -35,7 +35,7 @@ export async function throwIfNotOk(res: Response, fallbackCode = 'http_error'): 
 }
 
 // Retry-after seconds off a 429 `rate_limit_exceeded` ApiError (backend envelope
-// `details.retryAfter`), for "réessayez dans Ns" UI. null when the error isn't a rate-limit.
+// `details.retryAfter`), for "retry in Ns" UI. null when the error isn't a rate-limit.
 export function isRateLimitError(err: unknown): boolean {
   return isApiError(err) && err.code === 'rate_limit_exceeded'
 }

@@ -2,18 +2,18 @@
 // One {key, slug, label, category} per tag; the legacy *_TAG_SLUGS object and
 // the taxonomy (tag-taxonomy.ts) are derived from this array.
 //
-// goal / restriction : slugs alignés sur SUPPLEMENT_INGREDIENT_TAG_SLUGS quand
-// applicable (rows DB indépendantes ingredient vs product). Quelques nouveaux
-// slugs product-only (spec §4.5) : `peau-cheveux-ongles`, `stress-anxiete`,
+// goal / restriction: slugs aligned with SUPPLEMENT_INGREDIENT_TAG_SLUGS when
+// applicable (independent DB rows for ingredient vs product). A few new
+// product-only slugs (spec §4.5): `peau-cheveux-ongles`, `stress-anxiete`,
 // `recuperation-musculaire`, `autour-sport`, `interaction-thyroide`.
 //
-// `matin-supplement` / `soir-supplement` : suffixés pour éviter la collision DB
-// avec les slugs skincare (routine_step.matin, routine_step.soir) — même
-// raison que haircare `brillance-cheveux` / `hydratation-cheveux`.
+// `matin-supplement` / `soir-supplement`: suffixed to avoid a DB collision
+// with the skincare slugs (routine_step.matin, routine_step.soir) — same
+// reason as haircare `brillance-cheveux` / `hydratation-cheveux`.
 //
-// product_type : récupère les 5 slugs historiquement placés dans
-// SKINCARE_PRODUCT_TAG_SLUGS (gelule, capsule, poudre, sirop, gummy) et en
-// ajoute 4 nouveaux (comprime, ampoule-buvable, huile-orale, spray-sublingual).
+// product_type: reuses the 5 slugs historically placed in
+// SKINCARE_PRODUCT_TAG_SLUGS (gelule, capsule, poudre, sirop, gummy) and adds
+// 4 new ones (comprime, ampoule-buvable, huile-orale, spray-sublingual).
 
 import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
 

@@ -8,7 +8,7 @@ export const TEST_CREDENTIALS = {
     rawPassword: 'Toto123!bien',
   },
 
-  // Variantes de l'email de Toto (pour tester la normalisation)
+  // Toto email variants (for testing normalization)
   totoVariants: {
     majuscules: unsafeEmail('TOTO@EXEMPLE.FR'),
     avecEspaces: unsafeEmail('  toto@exemple.fr  '),
@@ -16,7 +16,7 @@ export const TEST_CREDENTIALS = {
     accent: unsafeEmail('tôtô@exemple.fr'),
   },
 
-  // Cas qui ne doivent pas marcher / erreurs fréquentes
+  // Cases that should fail / common errors
   invalide: {
     emailInconnu: unsafeEmail('tata@introuvable.fr'),
     mauvaisMotDePasse: unsafePassword('Tata456!'),
@@ -43,7 +43,7 @@ export const TEST_CREDENTIALS = {
     rawPassword: 'Contrib123!ok',
   },
 
-  // Un autre utilisateur classique (pour les tests avec plusieurs comptes)
+  // Another regular user (for multi-account tests)
   alice: {
     email: unsafeEmail('alice.dupont@gmail.fr'),
     rawEmail: 'alice.dupont@gmail.fr',
@@ -51,7 +51,7 @@ export const TEST_CREDENTIALS = {
     rawPassword: 'ChatMiaou2025!',
   },
 
-  // Bonus : un utilisateur avec nom composé
+  // Bonus: a user with a hyphenated name
   jeanmichel: {
     email: unsafeEmail('jean-michel.durand@free.fr'),
     rawEmail: 'jean-michel.durand@free.fr',

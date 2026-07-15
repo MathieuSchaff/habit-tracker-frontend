@@ -2,10 +2,10 @@
 // One {key, slug, label, category} per tag; the legacy *_TAG_SLUGS object and
 // the taxonomy (tag-taxonomy.ts) are derived from this array.
 //
-// concern / hair_type / hair_effect : slugs alignés sur
-// HAIRCARE_INGREDIENT_TAG_SLUGS (rows DB indépendantes mais slug commun
-// → cohérence cross-entité, comme côté skincare).
-// product_type / routine_step / product_label : slugs nouveaux, scope produit.
+// concern / hair_type / hair_effect: slugs aligned with
+// HAIRCARE_INGREDIENT_TAG_SLUGS (independent DB rows but shared slug
+// → cross-entity consistency, same as skincare).
+// product_type / routine_step / product_label: new slugs, product scope.
 
 import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
 
@@ -203,9 +203,9 @@ export const HAIRCARE_PRODUCT_TAG_DEFS = [
   { key: 'FINITION', slug: 'finition', label: 'Finition', category: 'routine_step' },
 
   // Hair effect
-  // `brillance` / `hydratation` renommés -cheveux pour éviter la collision DB
-  // avec les slugs skincare (concern.brillance, routine_step.hydratation) —
-  // product_tags.slug est UNIQUE, pas (slug, tagType).
+  // `brillance` / `hydratation` renamed with -cheveux suffix to avoid a DB
+  // collision with skincare slugs (concern.brillance, routine_step.hydratation) —
+  // product_tags.slug is UNIQUE, not (slug, tagType).
   { key: 'BRILLANCE', slug: 'brillance-cheveux', label: 'Brillance', category: 'hair_effect' },
   { key: 'DOUCEUR', slug: 'douceur', label: 'Douceur', category: 'hair_effect' },
   { key: 'VOLUME', slug: 'volume', label: 'Volume', category: 'hair_effect' },

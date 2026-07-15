@@ -10,7 +10,7 @@ function ChecIngredientsSlugs() {
   for (const slug of allSlugs) {
     const association = ingredientTagMap[slug]
 
-    // On vérifie si l'entrée existe ET si elle contient au moins un tag utile
+    // check the entry exists AND has at least one useful tag
     if (association) {
       const totalTags = association.primary.length + association.secondary.length
 
@@ -20,7 +20,7 @@ function ChecIngredientsSlugs() {
         withoutTags.push(slug)
       }
     } else {
-      // Cas où le slug n'est même pas présent dans la map
+      // slug not even present in the map
       withoutTags.push(slug)
     }
   }
@@ -35,7 +35,7 @@ function ChecIngredientsSlugs() {
   }
 
   console.log('\n📊 Répartition des tags (Primary + Secondary) :')
-  // On trie par nombre de tags pour y voir plus clair
+  // sort by tag count for readability
   const sortedStats = [...withTags].sort((a, b) => b[1] - a[1])
   console.table(Object.fromEntries(sortedStats))
 }

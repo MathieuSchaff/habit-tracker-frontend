@@ -1,30 +1,25 @@
 import { ingredientData as newData } from '../data/ingredients'
 import { INGREDIENT_SLUGS } from '../data/ingredients/ingredient-slugs'
 
-/**
- * Audit de synchronisation du système d'ingrédients
- * Objectif : Zéro orphelin, Zéro doublon, Zéro contenu vide.
- */
+// Ingredient-system sync audit: zero orphans, zero dupes, zero empty content.
 function auditIngredientsSystem() {
   console.log("🛡️  LANCEMENT DE L'AUDIT DU SYSTÈME INGRÉDIENTS...\n")
 
-  // 1. Récupération des listes
   const dataSlugs = newData.map((i) => i.slug)
   const configSlugs = Object.values(INGREDIENT_SLUGS)
 
   const dataSet = new Set(dataSlugs)
   const configSet = new Set(configSlugs)
 
-  // A. Slugs manquants (Définis en config mais absents de la DATA)
+  // Defined in config but absent from data
   const missingInData = configSlugs.filter((slug) => !dataSet.has(slug))
 
-  // B. Slugs fantômes (Présents en DATA mais absents de la CONFIG)
+  // Present in data but absent from config
   const ghostSlugs = dataSlugs.filter((slug) => !configSet.has(slug))
 
-  // C. Doublons (Slugs utilisés plusieurs fois dans le fichier data)
+  // Slugs used more than once in the data file
   const duplicates = dataSlugs.filter((slug, index) => dataSlugs.indexOf(slug) !== index)
 
-  // D. Vérification de la complétude du contenu
   const incompleteEntries = newData
     .filter((i) => !i.name || !i.description || i.content.length < 50)
     .map((i) => i.slug)
@@ -45,7 +40,6 @@ function auditIngredientsSystem() {
     `ℹ️  ${missingInData.length}/${configSlugs.length} config slugs sans fiche TS (DB-only by design)`
   )
 
-  // Rapport : Doublons
   if (duplicates.length > 0) {
     console.warn(`⚠️  DOUBLONS : ${duplicates.length} slugs apparaissent plusieurs fois :`)
     console.log([...new Set(duplicates)])
@@ -53,7 +47,6 @@ function auditIngredientsSystem() {
     console.log('✅ UNIQUE : Aucun doublon dans la base de données.')
   }
 
-  // Rapport : Fantômes
   if (ghostSlugs.length > 0) {
     console.warn(
       `👻 FANTÔMES : ${ghostSlugs.length} fiches utilisent des slugs non définis en config :`
@@ -61,13 +54,11 @@ function auditIngredientsSystem() {
     console.log(ghostSlugs)
   }
 
-  // Rapport : Qualité
   if (incompleteEntries.length > 0) {
     console.error(`📝 QUALITÉ : ${incompleteEntries.length} fiches sont vides ou trop courtes :`)
     console.log(incompleteEntries)
   }
 
-  // CONCLUSION FINALE
   const isPerfect =
     duplicates.length === 0 && ghostSlugs.length === 0 && incompleteEntries.length === 0
 
@@ -78,5 +69,4 @@ function auditIngredientsSystem() {
   }
 }
 
-// Lancement
 auditIngredientsSystem()

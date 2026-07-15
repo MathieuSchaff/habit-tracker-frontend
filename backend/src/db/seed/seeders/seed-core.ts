@@ -45,8 +45,6 @@ import { seedBlog } from './seed-blog'
 import { seedTestUsers } from './seed-test-users'
 import { seedUserCollection } from './seed-user-collection'
 
-// Utilitaires de Validation
-
 // Lookup in a slug→id map after `pruneRelationshipPairs` guaranteed the key
 // exists. A miss here means the prune step is broken, so throw loudly.
 function requireId(map: Map<string, string>, key: string, entity: string): string {
@@ -134,7 +132,34 @@ function pruneRelationshipPairs<T extends Record<string, unknown>>(
   return kept
 }
 
-// Fonction Principale
+// Idempotent-mode filter: keep only pairs not already linked in DB. Pairs
+// whose slugs resolve to no id are dropped silently — pruneRelationshipPairs
+// already warned about them.
+function filterNewPairs<T extends Record<string, unknown>>(
+  idempotent: boolean,
+  pairs: T[],
+  leftSlugField: string,
+  rightSlugField: string,
+  leftMap: Map<string, string>,
+  rightMap: Map<string, string>,
+  existingPairs: Set<string>,
+  label: string
+): T[] {
+  if (!idempotent) return pairs
+  const kept = pairs.filter((pair) => {
+    const leftSlug = pair[leftSlugField]
+    const rightSlug = pair[rightSlugField]
+    if (typeof leftSlug !== 'string' || typeof rightSlug !== 'string') return false
+    const leftId = leftMap.get(leftSlug)
+    const rightId = rightMap.get(rightSlug)
+    if (!leftId || !rightId) return false
+    return !existingPairs.has(`${leftId}::${rightId}`)
+  })
+  console.log(
+    `   ${label} à insérer : ${kept.length} (${pairs.length - kept.length} déjà liés, sautés)`
+  )
+  return kept
+}
 
 // Reproduces createProduct's slug derivation for filtering (input.slug ??
 // `${name}-${brand}`, then slugify). Needed because seed product entries can
@@ -576,19 +601,16 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       'ProductTag'
     )
 
-    const productTagPairsToInsert = idempotent
-      ? prunedProductTagPairs.filter(({ slug, tagSlug }) => {
-          const pId = productSlugToId.get(slug)
-          const tId = productTagSlugToId.get(tagSlug)
-          if (!pId || !tId) return false
-          return !existingTagProductPairs.has(`${pId}::${tId}`)
-        })
-      : prunedProductTagPairs
-    if (idempotent) {
-      console.log(
-        `   ProductTags à insérer : ${productTagPairsToInsert.length} (${prunedProductTagPairs.length - productTagPairsToInsert.length} déjà liés, sautés)`
-      )
-    }
+    const productTagPairsToInsert = filterNewPairs(
+      idempotent,
+      prunedProductTagPairs,
+      'slug',
+      'tagSlug',
+      productSlugToId,
+      productTagSlugToId,
+      existingTagProductPairs,
+      'ProductTags'
+    )
 
     await seedBatch(
       'productTags',
@@ -615,20 +637,16 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       'Ingrédient'
     )
 
-    const productIngredientsToInsert = idempotent
-      ? prunedProductIngredients.filter(({ productSlug, ingredientSlug }) => {
-          if (!ingredientSlug) return false
-          const pId = productSlugToId.get(productSlug)
-          const iId = ingredientSlugToId.get(ingredientSlug)
-          if (!pId || !iId) return false
-          return !existingProductIngredientPairs.has(`${pId}::${iId}`)
-        })
-      : prunedProductIngredients
-    if (idempotent) {
-      console.log(
-        `   ProductIngredients à insérer : ${productIngredientsToInsert.length} (${prunedProductIngredients.length - productIngredientsToInsert.length} déjà liés, sautés)`
-      )
-    }
+    const productIngredientsToInsert = filterNewPairs(
+      idempotent,
+      prunedProductIngredients,
+      'productSlug',
+      'ingredientSlug',
+      productSlugToId,
+      ingredientSlugToId,
+      existingProductIngredientPairs,
+      'ProductIngredients'
+    )
 
     await seedBatch(
       'productIngredients',
@@ -658,19 +676,16 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       'IngredientTag'
     )
 
-    const ingredientTagPairsToInsert = idempotent
-      ? prunedIngredientTagPairs.filter(({ slug, tagSlug }) => {
-          const iId = ingredientSlugToId.get(slug)
-          const tId = ingredientTagSlugToId.get(tagSlug)
-          if (!iId || !tId) return false
-          return !existingTagIngredientPairs.has(`${iId}::${tId}`)
-        })
-      : prunedIngredientTagPairs
-    if (idempotent) {
-      console.log(
-        `   IngredientTags à insérer : ${ingredientTagPairsToInsert.length} (${prunedIngredientTagPairs.length - ingredientTagPairsToInsert.length} déjà liés, sautés)`
-      )
-    }
+    const ingredientTagPairsToInsert = filterNewPairs(
+      idempotent,
+      prunedIngredientTagPairs,
+      'slug',
+      'tagSlug',
+      ingredientSlugToId,
+      ingredientTagSlugToId,
+      existingTagIngredientPairs,
+      'IngredientTags'
+    )
 
     await seedBatch(
       'ingredientTags',
@@ -724,7 +739,7 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
   console.log('\n✨ Seed CORE terminé avec succès !\n')
 }
 
-// Auto-exécution si lancé directement.
+// Auto-runs when executed directly.
 //
 // Default behavior is idempotent (`shouldClean=false`) — destructive reset
 // is opt-in via `--reset`. `--no-clean` is still recognized for legacy

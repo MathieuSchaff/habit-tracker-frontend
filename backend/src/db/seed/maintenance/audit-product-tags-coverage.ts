@@ -7,21 +7,17 @@ type ProductTagGroups = {
 }
 
 function checkProductTags() {
-  // 1. Source of truth : slugs valides depuis les données produits
   const validProductSlugs = new Set(
     allProductData.filter((p) => typeof p.slug === 'string').map((p) => p.slug as string)
   )
 
-  // 2. Slugs présents dans le map de tags
   const taggedSlugs = new Set(Object.keys(allProductTagsMap))
 
-  // 3. Slugs dans le map mais absents des produits (orphelins)
+  // Slugs present in the tags map but absent from products (orphans)
   const orphanSlugs = Array.from(taggedSlugs).filter((slug) => !validProductSlugs.has(slug))
 
-  // 4. Produits sans aucune entrée dans le map
   const untaggedProducts = Array.from(validProductSlugs).filter((slug) => !taggedSlugs.has(slug))
 
-  // 5. Produits avec des groupes de tags vides
   const emptyTagGroups: Record<string, string[]> = {}
   for (const [slug, tags] of Object.entries(allProductTagsMap) as [string, ProductTagGroups][]) {
     const empty: string[] = []
@@ -31,7 +27,6 @@ function checkProductTags() {
     if (empty.length > 0) emptyTagGroups[slug] = empty
   }
 
-  // 6. Distribution : nombre de tags par produit et par groupe
   const distribution = Object.entries(allProductTagsMap).map(([slug, tags]) => {
     const t = tags as ProductTagGroups
     return {

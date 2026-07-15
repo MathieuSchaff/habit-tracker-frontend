@@ -1,537 +1,537 @@
 // Skincare ingredient slug groups. Root ingredient-slugs.ts re-exports from here.
 export const HUMECTANTS = {
-  HYDROXYETHYL_UREA: 'hydroxyethyl-urea', // INCI: Hydroxyethyl Urea | humectant puissant, améliore l'élasticité cutanée
-  GLUCOSAMINE_HCL: 'glucosamine-hcl', // INCI: Glucosamine HCl | précurseur d'acide hyaluronique, humectant doux
-  SODIUM_LACTATE: 'sodium-lactate', // INCI: Sodium Lactate | sel sodique de l'acide lactique, composant NMF
-  ALANINE: 'alanine', // INCI: Alanine | acide aminé NMF, réparateur et hydratant
-  GLYCERIN: 'glycerin', // INCI: Glycerin | humectant star
-  HYALURONIC_ACID: 'hyaluronic-acid', // INCI: Hyaluronic Acid | acide hyaluronique pur
-  SODIUM_HYALURONATE: 'sodium-hyaluronate', // INCI: Sodium Hyaluronate | sel de sodium de l'acide hyaluronique (forme la plus courante)
-  HYDROLYZED_HYALURONIC_ACID: 'hydrolyzed-hyaluronic-acid', // INCI: Hydrolyzed Hyaluronic Acid | acide hyaluronique fragmenté (pénétration profonde)
-  SODIUM_HYALURONATE_CROSSPOLYMER: 'sodium-hyaluronate-crosspolymer', // INCI: Sodium Hyaluronate Crosspolymer | forme 3D longue durée
-  SODIUM_ACETYLATED_HYALURONATE: 'sodium-acetylated-hyaluronate', // INCI: Sodium Acetylated Hyaluronate | "Super HA", haute affinité et hydratation
-  HYDROXYPROPYLTRIMONIUM_HYALURONATE: 'hydroxypropyltrimonium-hyaluronate', // INCI: Hydroxypropyltrimonium Hyaluronate | HA cationique (adhérence)
-  POTASSIUM_HYALURONATE: 'potassium-hyaluronate', // INCI: Potassium Hyaluronate | sel de potassium (hydratation continue)
-  POLYGLUTAMIC_ACID: 'polyglutamic-acid', // INCI: Polyglutamic Acid | super-humectant (plus que HA)
-  SODIUM_PCA: 'sodium-pca', // INCI: Sodium PCA | composant naturel du NMF, humectant puissant
-  ARGININE_PCA: 'arginine-pca', // INCI: Arginine PCA / PCA Arginine | humectant NMF
-  CALCIUM_PCA: 'calcium-pca', // INCI: Calcium PCA | humectant NMF
-  UREA: 'urea', // INCI: Urea | humectant + kératolytique
-  BETAINE: 'betaine', // INCI: Betaine | humectant osmolyte, souvent issu de betterave
-  PENTYLENE_GLYCOL: 'pentylene-glycol', // INCI: Pentylene Glycol | humectant + conservateur doux
-  PROPYLENE_GLYCOL: 'propylene-glycol', // INCI: Propylene Glycol | humectant/solvant
+  HYDROXYETHYL_UREA: 'hydroxyethyl-urea', // INCI: Hydroxyethyl Urea | powerful humectant, improves skin elasticity
+  GLUCOSAMINE_HCL: 'glucosamine-hcl', // INCI: Glucosamine HCl | hyaluronic acid precursor, mild humectant
+  SODIUM_LACTATE: 'sodium-lactate', // INCI: Sodium Lactate | sodium salt of lactic acid, NMF component
+  ALANINE: 'alanine', // INCI: Alanine | NMF amino acid, repairing and hydrating
+  GLYCERIN: 'glycerin', // INCI: Glycerin | star humectant
+  HYALURONIC_ACID: 'hyaluronic-acid', // INCI: Hyaluronic Acid | pure hyaluronic acid
+  SODIUM_HYALURONATE: 'sodium-hyaluronate', // INCI: Sodium Hyaluronate | sodium salt of hyaluronic acid (most common form)
+  HYDROLYZED_HYALURONIC_ACID: 'hydrolyzed-hyaluronic-acid', // INCI: Hydrolyzed Hyaluronic Acid | fragmented hyaluronic acid (deep penetration)
+  SODIUM_HYALURONATE_CROSSPOLYMER: 'sodium-hyaluronate-crosspolymer', // INCI: Sodium Hyaluronate Crosspolymer | long-lasting 3D form
+  SODIUM_ACETYLATED_HYALURONATE: 'sodium-acetylated-hyaluronate', // INCI: Sodium Acetylated Hyaluronate | "Super HA", high affinity and hydration
+  HYDROXYPROPYLTRIMONIUM_HYALURONATE: 'hydroxypropyltrimonium-hyaluronate', // INCI: Hydroxypropyltrimonium Hyaluronate | cationic HA (adherence)
+  POTASSIUM_HYALURONATE: 'potassium-hyaluronate', // INCI: Potassium Hyaluronate | potassium salt (continuous hydration)
+  POLYGLUTAMIC_ACID: 'polyglutamic-acid', // INCI: Polyglutamic Acid | super-humectant (more than HA)
+  SODIUM_PCA: 'sodium-pca', // INCI: Sodium PCA | natural NMF component, powerful humectant
+  ARGININE_PCA: 'arginine-pca', // INCI: Arginine PCA / PCA Arginine | NMF humectant
+  CALCIUM_PCA: 'calcium-pca', // INCI: Calcium PCA | NMF humectant
+  UREA: 'urea', // INCI: Urea | humectant + keratolytic
+  BETAINE: 'betaine', // INCI: Betaine | osmolyte humectant, often derived from beet
+  PENTYLENE_GLYCOL: 'pentylene-glycol', // INCI: Pentylene Glycol | humectant + mild preservative
+  PROPYLENE_GLYCOL: 'propylene-glycol', // INCI: Propylene Glycol | humectant/solvent
   GLYCERYL_GLUCOSIDE: 'glyceryl-glucoside', // INCI: Glyceryl Glucoside | humectant
-  ACETYL_GLUCOSAMINE: 'acetyl-glucosamine', // INCI: Acetyl Glucosamine | dérivé aminé du glucose, humectant + éclaircissant doux
-  SNOW_MUSHROOM: 'snow-mushroom', // INCI: Tremella Fuciformis Extract / Polysaccharide | super-humectant naturel
-  // Acides aminés NMF
-  ARGININE: 'arginine', // INCI: Arginine | acide aminé NMF, ajuste le pH
-  SERINE: 'serine', // INCI: Serine | acide aminé NMF
-  HISTIDINE: 'histidine', // INCI: Histidine | acide aminé NMF
-  LEUCINE: 'leucine', // INCI: Leucine | acide aminé NMF
-  LYSINE_HCL: 'lysine-hcl', // INCI: Lysine HCl | acide aminé NMF
-  PHENYLALANINE: 'phenylalanine', // INCI: Phenylalanine | acide aminé NMF
-  TYROSINE: 'tyrosine', // INCI: Tyrosine | acide aminé, précurseur mélanine
-  GLUTAMINE: 'glutamine', // INCI: Glutamine | acide aminé, hydratant / réparateur
-  COLLAGEN_AMINO_ACIDS: 'collagen-amino-acids', // INCI: Collagen Amino Acids | hydrolysat de collagène humectant
-  XYLITYLGLUCOSIDE: 'xylitylglucoside', // INCI: Xylitylglucoside | sucre dérivé (Aquaxyl), booste hydratation profonde
-  XYLITOL: 'xylitol', // INCI: Xylitol | humectant sucre naturel
-  ANHYDROXYLITOL: 'anhydroxylitol', // INCI: Anhydroxylitol | dérivé xylitol, équilibre hydratation
-  PCA: 'pca', // INCI: PCA | facteur d'hydratation naturel (NMF)
-  TREHALOSE: 'trehalose', // INCI: Trehalose | osmolyte protecteur, hydratant stabilisant
-  GLYCINE: 'glycine', // INCI: Glycine | acide aminé hydratant et apaisant
-  MANNITOL: 'mannitol', // INCI: Mannitol | humectant sucre, souvent utilisé dans les complexes apaisants
-  IMPERATA_CYLINDRICA_ROOT: 'imperata-cylindrica-root', // INCI: Imperata Cylindrica Root Extract | extrait herbacé osmolyte hydratant
-  DISODIUM_ACETYL_GLUCOSAMINE_PHOSPHATE: 'disodium-acetyl-glucosamine-phosphate', // INCI: Disodium Acetyl Glucosamine Phosphate | dérivé glucosamine hydratant, éclaircissant
-  ACETAMIDOETHOXYETHANOL: 'acetamidoethoxyethanol', // INCI: Acetamidoethoxyethanol (Hydromanil) | humectant biomimétique longue durée
+  ACETYL_GLUCOSAMINE: 'acetyl-glucosamine', // INCI: Acetyl Glucosamine | amino derivative of glucose, humectant + mild brightening
+  SNOW_MUSHROOM: 'snow-mushroom', // INCI: Tremella Fuciformis Extract / Polysaccharide | natural super-humectant
+  // NMF amino acids
+  ARGININE: 'arginine', // INCI: Arginine | NMF amino acid, adjusts pH
+  SERINE: 'serine', // INCI: Serine | NMF amino acid
+  HISTIDINE: 'histidine', // INCI: Histidine | NMF amino acid
+  LEUCINE: 'leucine', // INCI: Leucine | NMF amino acid
+  LYSINE_HCL: 'lysine-hcl', // INCI: Lysine HCl | NMF amino acid
+  PHENYLALANINE: 'phenylalanine', // INCI: Phenylalanine | NMF amino acid
+  TYROSINE: 'tyrosine', // INCI: Tyrosine | amino acid, melanin precursor
+  GLUTAMINE: 'glutamine', // INCI: Glutamine | amino acid, hydrating / repairing
+  COLLAGEN_AMINO_ACIDS: 'collagen-amino-acids', // INCI: Collagen Amino Acids | humectant collagen hydrolysate
+  XYLITYLGLUCOSIDE: 'xylitylglucoside', // INCI: Xylitylglucoside | sugar derivative (Aquaxyl), boosts deep hydration
+  XYLITOL: 'xylitol', // INCI: Xylitol | natural sugar humectant
+  ANHYDROXYLITOL: 'anhydroxylitol', // INCI: Anhydroxylitol | xylitol derivative, hydration balance
+  PCA: 'pca', // INCI: PCA | natural moisturizing factor (NMF)
+  TREHALOSE: 'trehalose', // INCI: Trehalose | protective osmolyte, stabilizing humectant
+  GLYCINE: 'glycine', // INCI: Glycine | hydrating and soothing amino acid
+  MANNITOL: 'mannitol', // INCI: Mannitol | sugar humectant, often used in soothing complexes
+  IMPERATA_CYLINDRICA_ROOT: 'imperata-cylindrica-root', // INCI: Imperata Cylindrica Root Extract | herbaceous extract, hydrating osmolyte
+  DISODIUM_ACETYL_GLUCOSAMINE_PHOSPHATE: 'disodium-acetyl-glucosamine-phosphate', // INCI: Disodium Acetyl Glucosamine Phosphate | glucosamine derivative, hydrating, brightening
+  ACETAMIDOETHOXYETHANOL: 'acetamidoethoxyethanol', // INCI: Acetamidoethoxyethanol (Hydromanil) | long-lasting biomimetic humectant
 } as const
 
 export const BARRIERE_EMOLLIENTS_OCCLUSIFS = {
-  CETEARYL_ALCOHOL: 'cetearyl-alcohol', // INCI: Cetearyl Alcohol | alcool gras émollient et épaississant, non asséchant
-  GLYCERYL_STEARATE: 'glyceryl-stearate', // INCI: Glyceryl Stearate | émulsifiant émollient, agent de texture
-  AVOCADO_OIL: 'avocado-oil', // INCI: Persea Gratissima (Avocado) Oil | huile d'avocat, nourrissante et régénérante
-  CERAMIDES: 'ceramides', // INCI: Ceramide (général) ou mélange (Ceramide NP, AP, EOP...)
+  CETEARYL_ALCOHOL: 'cetearyl-alcohol', // INCI: Cetearyl Alcohol | fatty alcohol, emollient and thickener, non-drying
+  GLYCERYL_STEARATE: 'glyceryl-stearate', // INCI: Glyceryl Stearate | emollient emulsifier, texture agent
+  AVOCADO_OIL: 'avocado-oil', // INCI: Persea Gratissima (Avocado) Oil | avocado oil, nourishing and regenerating
+  CERAMIDES: 'ceramides', // INCI: Ceramide (general) or blend (Ceramide NP, AP, EOP...)
   CERAMIDE_NP: 'ceramide-np', // INCI: Ceramide NP (Ceramide 3)
   CERAMIDE_AP: 'ceramide-ap', // INCI: Ceramide AP (Ceramide 6-II)
   CERAMIDE_EOP: 'ceramide-eop', // INCI: Ceramide EOP (Ceramide 1)
-  CERAMIDE_NS: 'ceramide-ns', // INCI: Ceramide NS (Ceramide 2) – moins courant
-  CHOLESTEROL: 'cholesterol', // INCI: Cholesterol | composant du NMF, très important dans les crèmes barrière
-  PHYTOSPHINGOSINE: 'phytosphingosine', // INCI: Phytosphingosine | lipide barrière, anti-microbien
-  GLYCOSPHINGOLIPIDS: 'glycosphingolipids', // INCI: Glycosphingolipids | lipides barrière, souvent avec céramides
-  SQUALANE: 'squalane', // INCI: Squalane | hydrocarbure stable issu d'olive ou de canne à sucre
-  SHEA_BUTTER: 'shea-butter', // INCI: Butyrospermum Parkii Butter | beurre de karité
-  BEEF_TALLOW: 'beef-tallow', // INCI: Tallow | graisse bovine, très occlusive
-  DIMETHICONE: 'dimethicone', // INCI: Dimethicone | silicone occlusif / lissant
-  DICAPRYLYL_ETHER: 'dicaprylyl-ether', // INCI: Dicaprylyl Ether | émollient léger, texture sèche
-  HYDROGENATED_POLYISOBUTENE: 'hydrogenated-polyisobutene', // INCI: Hydrogenated Polyisobutene | émollient synthétique
-  PALMITAMIDE_MEA: 'palmitamide-mea', // INCI: Palmitamide MEA | émollient / agent apaisant restructurant barrière
-  GLYCERYL_DIBEHENATE: 'glyceryl-dibehenate', // INCI: Glyceryl Dibehenate | émulsifiant / épaississant
-  TRIBEHENIN: 'tribehenin', // INCI: Tribehenin | émollient / épaississant
-  CIRE_ABEILLE: 'cera-alba', // INCI: Cera Alba | cire d'abeille
+  CERAMIDE_NS: 'ceramide-ns', // INCI: Ceramide NS (Ceramide 2) – less common
+  CHOLESTEROL: 'cholesterol', // INCI: Cholesterol | NMF component, very important in barrier creams
+  PHYTOSPHINGOSINE: 'phytosphingosine', // INCI: Phytosphingosine | barrier lipid, antimicrobial
+  GLYCOSPHINGOLIPIDS: 'glycosphingolipids', // INCI: Glycosphingolipids | barrier lipids, often with ceramides
+  SQUALANE: 'squalane', // INCI: Squalane | stable hydrocarbon from olive or sugarcane
+  SHEA_BUTTER: 'shea-butter', // INCI: Butyrospermum Parkii Butter | shea butter
+  BEEF_TALLOW: 'beef-tallow', // INCI: Tallow | bovine fat, very occlusive
+  DIMETHICONE: 'dimethicone', // INCI: Dimethicone | occlusive / smoothing silicone
+  DICAPRYLYL_ETHER: 'dicaprylyl-ether', // INCI: Dicaprylyl Ether | light emollient, dry texture
+  HYDROGENATED_POLYISOBUTENE: 'hydrogenated-polyisobutene', // INCI: Hydrogenated Polyisobutene | synthetic emollient
+  PALMITAMIDE_MEA: 'palmitamide-mea', // INCI: Palmitamide MEA | emollient / soothing barrier-restructuring agent
+  GLYCERYL_DIBEHENATE: 'glyceryl-dibehenate', // INCI: Glyceryl Dibehenate | emulsifier / thickener
+  TRIBEHENIN: 'tribehenin', // INCI: Tribehenin | emollient / thickener
+  CIRE_ABEILLE: 'cera-alba', // INCI: Cera Alba | beeswax
   HUILE_GRAINES_TOURNESOL: 'huile-graines-tournesol', // INCI: Helianthus Annuus (Sunflower) Seed Oil
   HUILE_D_ARGAN: 'huile-argan', // INCI: Argania Spinosa Kernel Oil
   HUILE_DE_JOJOBA: 'huile-jojoba', // INCI: Simmondsia Chinensis (Jojoba) Seed Oil
   HUILE_DE_COCO: 'huile-coco', // INCI: Cocos Nucifera (Coconut) Oil
-  HUILE_DE_RICIN: 'ricinus-communis-seed-oil', // INCI: Ricinus Communis (Castor) Seed Oil | huile de ricin
+  HUILE_DE_RICIN: 'ricinus-communis-seed-oil', // INCI: Ricinus Communis (Castor) Seed Oil | castor oil
   CAMELLIA_JAPONICA_OIL: 'camellia-japonica-seed-oil', // INCI: Camellia Japonica Seed Oil
   PRUNUS_AMYGDALUS_DULCIS_OIL: 'prunus-amygdalus-dulcis-oil', // INCI: Prunus Amygdalus Dulcis (Sweet Almond) Oil
-  BOURRACHE: 'bourrache', // INCI: Borago Officinalis Seed Oil | riche en GLA
-  HUILE_ONAGRE: 'huile-onagre', // INCI: Oenothera Biennis Oil | riche en GLA (+ EVENING_PRIMROSE_OIL)
-  EVENING_PRIMROSE_OIL: 'evening-primrose-oil', // INCI: Oenothera Biennis Oil | huile d'onagre, riche en acides gras essentiels
+  BOURRACHE: 'bourrache', // INCI: Borago Officinalis Seed Oil | rich in GLA
+  HUILE_ONAGRE: 'huile-onagre', // INCI: Oenothera Biennis Oil | rich in GLA (+ EVENING_PRIMROSE_OIL)
+  EVENING_PRIMROSE_OIL: 'evening-primrose-oil', // INCI: Oenothera Biennis Oil | evening primrose oil, rich in essential fatty acids
   HUILE_DE_PEPINS_DE_RAISIN: 'huile-de-pepins-de-raisin', // INCI: Vitis Vinifera (Grape) Seed Oil
   HUILE_DE_PEPINS_DE_FIGUE_DE_BARBARIE: 'huile-de-pepins-de-barbarie', // INCI: Opuntia Ficus-Indica Seed Oil
-  APRICOT_KERNEL_OIL: 'prunus-armeniaca-kernel-oil', // INCI: Prunus Armeniaca Kernel Oil | huile d'abricot
+  APRICOT_KERNEL_OIL: 'prunus-armeniaca-kernel-oil', // INCI: Prunus Armeniaca Kernel Oil | apricot kernel oil
   HUILE_CARTHAME: 'huile-carthame', // INCI: Carthamus Tinctorius Seed Oil SAFFLOWER_SEED_OIL
-  CERAMIDE_NG: 'ceramide-ng', // INCI: Ceramide NG | céramide renforçant barrière cutanée
-  LINOLEIC_ACID: 'linoleic-acid', // INCI: Linoleic Acid | acide gras essentiel, anti-inflammatoire barrière
-  BEURRE_CACAO: 'theobroma-cacao-butter', // INCI: Theobroma Cacao Seed Butter | beurre de cacao, nourrissant protecteur
-  OLEIC_ACID: 'oleic-acid', // INCI: Oleic Acid | acide gras oméga-9 émollient, renforce la barrière cutanée, nourrit et hydrate (idéal peaux sèches/matures)
+  CERAMIDE_NG: 'ceramide-ng', // INCI: Ceramide NG | barrier-strengthening ceramide
+  LINOLEIC_ACID: 'linoleic-acid', // INCI: Linoleic Acid | essential fatty acid, barrier anti-inflammatory
+  BEURRE_CACAO: 'theobroma-cacao-butter', // INCI: Theobroma Cacao Seed Butter | cocoa butter, nourishing and protective
+  OLEIC_ACID: 'oleic-acid', // INCI: Oleic Acid | omega-9 fatty acid emollient, strengthens the skin barrier, nourishes and hydrates (ideal for dry/mature skin)
   HUILE_SOJA: 'huile-soja',
   CAPRYLIC_CAPRIC_TRIGLYCERIDE: 'caprylic-capric-triglyceride',
   HUILE_COLZA: 'huile-colza',
   BUTYLENE_GLYCOL: 'butylene-glycol',
-  ROSEHIP_SEED_OIL: 'rosehip-seed-oil', // INCI: Rosa Canina Seed Oil | huile d'églantier, régénérante, cicatrisante, riche en vitamine A/C
-  CAMELINA_SEED_OIL: 'camelina-seed-oil', // INCI: Camelina Sativa Seed Oil | huile de cameline, oméga-3, légère et antioxydante
-  HEMP_OIL: 'cannabis-sativa-seed-oil', // INCI: Cannabis Sativa Seed Oil | huile de chanvre, riche en oméga-3/6, anti-inflammatoire, apaisante
-  HUILE_COTON: 'huile-coton', // INCI: Gossypium Herbaceum Seed Oil | huile de coton
-  ETHYLHEXYL_PALMITATE: 'ethylhexyl-palmitate', // INCI: Ethylhexyl Palmitate | émollient estérifié
-  C15_19_ALKANE: 'c15-19-alkane', // INCI: C15-19 Alkane | alcane biomimétique, émollient sec, alternative aux silicones
-  C10_18_TRIGLYCERIDES: 'c10-18-triglycerides', // INCI: C10-18 Triglycerides | triglycérides solides biomimétiques, émollient structurant
-  HELIANTHUS_ANNUUS_SEED_WAX: 'helianthus-annuus-seed-wax', // INCI: Helianthus Annuus (Sunflower) Seed Wax | cire de tournesol, agent structurant et film occlusif
-  LANOLIN_OIL: 'lanolin-oil', // INCI: Lanolin Oil | fraction huileuse de la lanoline, émollient occlusif riche
-  HYDROXYSTEARIC_ACID_10: '10-hydroxystearic-acid', // INCI: 10-Hydroxystearic Acid | acide gras hydroxylé, agoniste PPAR-α
-  PASSIFLORA_EDULIS: 'passiflora-edulis', // INCI: Passiflora Edulis Seed Oil (Passioline) | huile riche linoléique, antioxydante
-  MYROTHAMNUS_FLABELLIFOLIA: 'myrothamnus-flabellifolia', // INCI: Myrothamnus Flabellifolia Leaf/Stem Extract (Myramaze) | plante de résurrection
+  ROSEHIP_SEED_OIL: 'rosehip-seed-oil', // INCI: Rosa Canina Seed Oil | rosehip oil, regenerating, healing, rich in vitamin A/C
+  CAMELINA_SEED_OIL: 'camelina-seed-oil', // INCI: Camelina Sativa Seed Oil | camelina oil, omega-3, light and antioxidant
+  HEMP_OIL: 'cannabis-sativa-seed-oil', // INCI: Cannabis Sativa Seed Oil | hemp oil, rich in omega-3/6, anti-inflammatory, soothing
+  HUILE_COTON: 'huile-coton', // INCI: Gossypium Herbaceum Seed Oil | cottonseed oil
+  ETHYLHEXYL_PALMITATE: 'ethylhexyl-palmitate', // INCI: Ethylhexyl Palmitate | esterified emollient
+  C15_19_ALKANE: 'c15-19-alkane', // INCI: C15-19 Alkane | biomimetic alkane, dry emollient, silicone alternative
+  C10_18_TRIGLYCERIDES: 'c10-18-triglycerides', // INCI: C10-18 Triglycerides | biomimetic solid triglycerides, structuring emollient
+  HELIANTHUS_ANNUUS_SEED_WAX: 'helianthus-annuus-seed-wax', // INCI: Helianthus Annuus (Sunflower) Seed Wax | sunflower wax, structuring agent and occlusive film
+  LANOLIN_OIL: 'lanolin-oil', // INCI: Lanolin Oil | oily fraction of lanolin, rich occlusive emollient
+  HYDROXYSTEARIC_ACID_10: '10-hydroxystearic-acid', // INCI: 10-Hydroxystearic Acid | hydroxylated fatty acid, PPAR-α agonist
+  PASSIFLORA_EDULIS: 'passiflora-edulis', // INCI: Passiflora Edulis Seed Oil (Passioline) | linoleic-rich oil, antioxidant
+  MYROTHAMNUS_FLABELLIFOLIA: 'myrothamnus-flabellifolia', // INCI: Myrothamnus Flabellifolia Leaf/Stem Extract (Myramaze) | resurrection plant
 } as const
 
 export const EXFOLIANTS = {
-  GLYCOLIC_ACID: 'glycolic-acid', // INCI: Glycolic Acid | AHA star (exfoliant)
-  LACTIC_ACID: 'lactic-acid', // INCI: Lactic Acid | AHA doux + humectant
-  MANDELIC_ACID: 'mandelic-acid', // INCI: Mandelic Acid | AHA doux, antibactérien
-  MALIC_ACID: 'malic-acid', // INCI: Malic Acid | AHA pur
-  MALIC_ACID_ESTER: 'malic-acid-ester', // INCI: Malic Acid | AHA doux
-  PHA: 'pha', // Poly-Hydroxy Acid | INCI le plus courant: Gluconolactone
-  PAPAIN: 'papain', // INCI: Papain | enzyme exfoliante (papaye)
-  PROTEASE: 'protease', // INCI: Protease | enzyme exfoliante protéolytique
-  CAPRYLOYL_SALICYLIC_ACID: 'capryloyl-salicylic-acid', // INCI: Capryloyl Salicylic Acid | BHA lipophile, exfoliant doux
+  GLYCOLIC_ACID: 'glycolic-acid', // INCI: Glycolic Acid | star AHA (exfoliant)
+  LACTIC_ACID: 'lactic-acid', // INCI: Lactic Acid | mild AHA + humectant
+  MANDELIC_ACID: 'mandelic-acid', // INCI: Mandelic Acid | mild AHA, antibacterial
+  MALIC_ACID: 'malic-acid', // INCI: Malic Acid | pure AHA
+  MALIC_ACID_ESTER: 'malic-acid-ester', // INCI: Malic Acid | mild AHA
+  PHA: 'pha', // Poly-Hydroxy Acid | most common INCI: Gluconolactone
+  PAPAIN: 'papain', // INCI: Papain | exfoliating enzyme (papaya)
+  PROTEASE: 'protease', // INCI: Protease | proteolytic exfoliating enzyme
+  CAPRYLOYL_SALICYLIC_ACID: 'capryloyl-salicylic-acid', // INCI: Capryloyl Salicylic Acid | lipophilic BHA, mild exfoliant
   CITRUS_LIMON_FRUIT_WATER: 'citrus-limon-fruit-water', // INCI: Citrus Limon Fruit Water
-  SUCCINIC_ACID: 'succinic-acid', // INCI: Succinic Acid | exfoliant doux, régulateur sébum
-  AHA_ESTERS: 'aha-esters', // Esters d'AHA (acides hydroxy-carboxyliques éstérifiés) | libération prolongée
-  ESTER_ACIDE_MALIQUE: 'ester-acide-malique', // Ester d'acide malique | AHA doux à libération modérée
-  GLYCOLIDE: 'glycolide', // INCI: Glycolide | dimère cyclique de l'acide glycolique, exfoliant time-release
+  SUCCINIC_ACID: 'succinic-acid', // INCI: Succinic Acid | mild exfoliant, sebum regulator
+  AHA_ESTERS: 'aha-esters', // AHA esters (esterified hydroxy-carboxylic acids) | extended release
+  ESTER_ACIDE_MALIQUE: 'ester-acide-malique', // Malic acid ester | mild AHA with moderate release
+  GLYCOLIDE: 'glycolide', // INCI: Glycolide | cyclic dimer of glycolic acid, time-release exfoliant
 } as const
 
 export const RETINOIDES = {
-  // Formes classiques OTC / cosmétiques
-  RETINOL: 'retinol', // INCI: Retinol | vitamine A pure, 2 étapes de conversion, star OTC anti-âge
-  RETINAL: 'retinal', // INCI: Retinal / Retinaldehyde | forme plus forte, 1 étape de conversion, hype 2025-2026
-  RETINYL_PALMITATE: 'retinyl-palmitate', // INCI: Retinyl Palmitate | ester le plus courant, très doux (3 étapes), débutants / crèmes basiques
-  RETINYL_PROPIONATE: 'retinyl-propionate', // INCI: Retinyl Propionate | ester doux, un peu plus stable que palmitate, souvent dans les formules "gentle"
-  RETINYL_ACETATE: 'retinyl-acetate', // INCI: Retinyl Acetate | ester basique, faible puissance, très stable
-  RETINYL_LINOLLEATE: 'retinyl-linoleate', // INCI: Retinyl Linoleate | ester moins courant, parfois pour peaux grasses
-  // Formes modernes / next-gen OTC
-  HYDROXYPINACOLONE_RETINOATE: 'hydroxypinacolone-retinoate', // INCI: Hydroxypinacolone Retinoate | aka Granactive Retinoid / HPR, 0 étape, direct, faible irritation, très populaire
-  GRANACTIVE_RETINOID: 'granactive-retinoid', // INCI: Hydroxypinacolone Retinoate (souvent commercialisé comme ça par The Ordinary etc.)
-  RETINYL_RETINOATE: 'retinyl-retinoate', // INCI: Retinyl Retinoate | hybride retinol + acide rétinoïque, stable et plus actif
-  SODIUM_RETINOYL_HYALURONATE: 'sodium-retinoyl-hyaluronate', // INCI: Sodium Retinoyl Hyaluronate | rétinol lié à l'acide hyaluronique, hydratant + anti-âge, bonne tolérance
-  // Alternatives non-rétinoïdes (retinol-like)
-  BAKUCHIOL: 'bakuchiol', // INCI: Bakuchiol | alternatif "naturel" issu de Psoralea corylifolia, mime les effets sans irritation
+  // Classic OTC / cosmetic forms
+  RETINOL: 'retinol', // INCI: Retinol | pure vitamin A, 2-step conversion, OTC anti-aging star
+  RETINAL: 'retinal', // INCI: Retinal / Retinaldehyde | stronger form, 1-step conversion, 2025-2026 hype
+  RETINYL_PALMITATE: 'retinyl-palmitate', // INCI: Retinyl Palmitate | most common ester, very mild (3 steps), beginners / basic creams
+  RETINYL_PROPIONATE: 'retinyl-propionate', // INCI: Retinyl Propionate | mild ester, slightly more stable than palmitate, often in "gentle" formulas
+  RETINYL_ACETATE: 'retinyl-acetate', // INCI: Retinyl Acetate | basic ester, low potency, very stable
+  RETINYL_LINOLLEATE: 'retinyl-linoleate', // INCI: Retinyl Linoleate | less common ester, sometimes for oily skin
+  // Modern / next-gen OTC forms
+  HYDROXYPINACOLONE_RETINOATE: 'hydroxypinacolone-retinoate', // INCI: Hydroxypinacolone Retinoate | aka Granactive Retinoid / HPR, 0 steps, direct, low irritation, very popular
+  GRANACTIVE_RETINOID: 'granactive-retinoid', // INCI: Hydroxypinacolone Retinoate (often marketed as such by The Ordinary etc.)
+  RETINYL_RETINOATE: 'retinyl-retinoate', // INCI: Retinyl Retinoate | retinol + retinoic acid hybrid, stable and more active
+  SODIUM_RETINOYL_HYALURONATE: 'sodium-retinoyl-hyaluronate', // INCI: Sodium Retinoyl Hyaluronate | retinol bound to hyaluronic acid, hydrating + anti-aging, good tolerance
+  // Non-retinoid alternatives (retinol-like)
+  BAKUCHIOL: 'bakuchiol', // INCI: Bakuchiol | "natural" alternative from Psoralea corylifolia, mimics the effects without irritation
 
-  // Rétinoïdes prescription / médicaux (puissants, 0 étape)
-  TRETINOINE: 'tretinoine', // INCI: Tretinoin | acide rétinoïque pur, gold standard, très puissant mais irritant
-  ADAPALENE: 'adapalene', // INCI: Adapalene | rétinoïde de synthèse, anti-acné, mieux toléré que trétinoïne
-  TAZAROTENE: 'tazarotene', // INCI: Tazarotene | très puissant (souvent > trétinoïne sur rides/acné/psoriasis), prescription
-  TRIFAROTENE: 'trifarotene', // INCI: Trifarotene | 4e génération, très sélectif (RAR-γ), surtout acné visage + corps, prescription récente
-  // Moins courants mais parfois cités
-  ISOTRETINOIN: 'isotretinoin', // INCI: Isotretinoin | topique rare (plus connu oral), anti-acné sévère
-  ALITRETINOIN: 'alitretinoin', // INCI: Alitretinoin | pour eczéma chronique des mains, usage spécifique
+  // Prescription / medical retinoids (potent, 0 steps)
+  TRETINOINE: 'tretinoine', // INCI: Tretinoin | pure retinoic acid, gold standard, very potent but irritating
+  ADAPALENE: 'adapalene', // INCI: Adapalene | synthetic retinoid, anti-acne, better tolerated than tretinoin
+  TAZAROTENE: 'tazarotene', // INCI: Tazarotene | very potent (often > tretinoin on wrinkles/acne/psoriasis), prescription
+  TRIFAROTENE: 'trifarotene', // INCI: Trifarotene | 4th generation, highly selective (RAR-γ), mainly face + body acne, recent prescription
+  // Less common but sometimes cited
+  ISOTRETINOIN: 'isotretinoin', // INCI: Isotretinoin | rare topical form (better known oral), severe anti-acne
+  ALITRETINOIN: 'alitretinoin', // INCI: Alitretinoin | for chronic hand eczema, specific use
 } as const
 
 export const PEPTIDES = {
-  PALMITOYL_OLIGOPEPTIDE: 'palmitoyl-oligopeptide', // INCI: Palmitoyl Oligopeptide | peptide anti-âge, stimule la synthèse de collagène
-  ARGIRELINE: 'argireline', // INCI: Acetyl Hexapeptide-8 | peptide "Botox-like"
+  PALMITOYL_OLIGOPEPTIDE: 'palmitoyl-oligopeptide', // INCI: Palmitoyl Oligopeptide | anti-aging peptide, stimulates collagen synthesis
+  ARGIRELINE: 'argireline', // INCI: Acetyl Hexapeptide-8 | "Botox-like" peptide
   MATRIXYL_3000: 'matrixyl-3000', // INCI: Palmitoyl Tripeptide-1 + Palmitoyl Tetrapeptide-7
-  PALMITOYL_PENTAPEPTIDE_4: 'palmitoyl-pentapeptide-4', // INCI: Palmitoyl Pentapeptide-4 | Matrixyl® original
+  PALMITOYL_PENTAPEPTIDE_4: 'palmitoyl-pentapeptide-4', // INCI: Palmitoyl Pentapeptide-4 | original Matrixyl®
   PALMITOYL_TRIPEPTIDE_1: 'palmitoyl-tripeptide-1', // INCI: Palmitoyl Tripeptide-1
-  PALMITOYL_TETRAPEPTIDE_7: 'palmitoyl-tetrapeptide-7', // INCI: Palmitoyl Tetrapeptide-7 | anti-inflammatoire
-  PALMITOYL_TETRAPEPTIDE_10: 'palmitoyl-tetrapeptide-10', // INCI: Palmitoyl Tetrapeptide-10 | anti-âge
+  PALMITOYL_TETRAPEPTIDE_7: 'palmitoyl-tetrapeptide-7', // INCI: Palmitoyl Tetrapeptide-7 | anti-inflammatory
+  PALMITOYL_TETRAPEPTIDE_10: 'palmitoyl-tetrapeptide-10', // INCI: Palmitoyl Tetrapeptide-10 | anti-aging
   PALMITOYL_TRIPEPTIDE_38: 'palmitoyl-tripeptide-38', // INCI: Palmitoyl Tripeptide-38
-  COPPER_PEPTIDES: 'copper-peptides', // INCI: Copper Tripeptide-1 (GHK-Cu) | réparation / anti-âge
+  COPPER_PEPTIDES: 'copper-peptides', // INCI: Copper Tripeptide-1 (GHK-Cu) | repair / anti-aging
   ACETYL_TETRAPEPTIDE_5: 'acetyl-tetrapeptide-5', // INCI: Acetyl Tetrapeptide-5
   ACETYL_TETRAPEPTIDE_2: 'acetyl-tetrapeptide-2', // INCI: Acetyl Tetrapeptide-2
   MYRISTOYL_NONAPEPTIDE_3: 'myristoyl-nonapeptide-3', // INCI: Myristoyl Nonapeptide-3
-  ACETYL_DIPEPTIDE_1_CETYL_ESTER: 'acetyl-dipeptide-1-cetyl-ester', // INCI: Acetyl Dipeptide-1 Cetyl Ester | Calmosensine™, apaisant neurosensoriel
-  SYN_AKE: 'syn-ake', // INCI: Dipeptide Diaminobutyroyl Benzylamide Diacetate | peptide "serpent-like"
-  PDRN: 'pdrn', // Polydeoxyribonucleotide | INCI: Sodium DNA (issu de saumon)
-  PEPTIDE_COMPLEX: 'peptide-complex', // Catégorie générale
+  ACETYL_DIPEPTIDE_1_CETYL_ESTER: 'acetyl-dipeptide-1-cetyl-ester', // INCI: Acetyl Dipeptide-1 Cetyl Ester | Calmosensine™, neurosensory soothing
+  SYN_AKE: 'syn-ake', // INCI: Dipeptide Diaminobutyroyl Benzylamide Diacetate | "snake-like" peptide
+  PDRN: 'pdrn', // Polydeoxyribonucleotide | INCI: Sodium DNA (from salmon)
+  PEPTIDE_COMPLEX: 'peptide-complex', // General category
   NICOTIANA_BENTHAMIANA_OCTAPEPTIDE_30_SH_OLIGOPEPTIDE_2:
     'nicotiana-benthamiana-octapeptide-30-sh-oligopeptide-2',
   NICOTIANA_BENTHAMIANA_HEXAPEPTIDE_40_SH_POLYPEPTIDE_76:
     'nicotiana-benthamiana-hexapeptide-40-sh-polypeptide-76',
   NICOTIANA_BENTHAMIANA_HEXAPEPTIDE_40_SH_OLIGOPEPTIDE_1:
     'nicotiana-benthamiana-hexapeptide-40-sh-oligopeptide-1',
-  TETRAPEPTIDE_21: 'tetrapeptide-21', // INCI: Tetrapeptide-21 | peptide biomimétique anti-âge
-  COPPER_PALMITOYL_HEPTAPEPTIDE_14: 'copper-palmitoyl-heptapeptide-14', // INCI: Copper Palmitoyl Heptapeptide-14 | peptide cuivré
-  HEPTAPEPTIDE_15_PALMITATE: 'heptapeptide-15-palmitate', // INCI: Heptapeptide-15 Palmitate | peptide palmitoylé
-  COPPER_TRIPEPTIDE_1_PALMITAMIDE: 'copper-tripeptide-1-palmitamide', // INCI: Copper Tripeptide-1 Palmitamide | peptide cuivré lipophile
-  TRIFLUOROACETYL_TRIPEPTIDE_2: 'trifluoroacetyl-tripeptide-2', // INCI: Trifluoroacetyl Tripeptide-2 | anti-relâchement
-  TRIPEPTIDE_1: 'tripeptide-1', // INCI: Tripeptide-1 | stimulant collagène
-  ACETYL_TETRAPEPTIDE_15: 'acetyl-tetrapeptide-15', // INCI: Acetyl Tetrapeptide-15 | peptide neuro-apaisant peaux sensibles
-  ACETYL_HEXAPEPTIDE_51_AMIDE: 'acetyl-hexapeptide-51-amide', // INCI: Acetyl Hexapeptide-51 Amide | peptide modulateur immunitaire cutané
-  COPPER_LYSINATE_PROLINATE: 'copper-lysinate-prolinate', // INCI: Copper Lysinate/Prolinate | sel de cuivre de lysine+proline (Neodermyl), famille copper peptides
+  TETRAPEPTIDE_21: 'tetrapeptide-21', // INCI: Tetrapeptide-21 | biomimetic anti-aging peptide
+  COPPER_PALMITOYL_HEPTAPEPTIDE_14: 'copper-palmitoyl-heptapeptide-14', // INCI: Copper Palmitoyl Heptapeptide-14 | copper peptide
+  HEPTAPEPTIDE_15_PALMITATE: 'heptapeptide-15-palmitate', // INCI: Heptapeptide-15 Palmitate | palmitoylated peptide
+  COPPER_TRIPEPTIDE_1_PALMITAMIDE: 'copper-tripeptide-1-palmitamide', // INCI: Copper Tripeptide-1 Palmitamide | lipophilic copper peptide
+  TRIFLUOROACETYL_TRIPEPTIDE_2: 'trifluoroacetyl-tripeptide-2', // INCI: Trifluoroacetyl Tripeptide-2 | anti-sagging
+  TRIPEPTIDE_1: 'tripeptide-1', // INCI: Tripeptide-1 | collagen stimulant
+  ACETYL_TETRAPEPTIDE_15: 'acetyl-tetrapeptide-15', // INCI: Acetyl Tetrapeptide-15 | neuro-soothing peptide for sensitive skin
+  ACETYL_HEXAPEPTIDE_51_AMIDE: 'acetyl-hexapeptide-51-amide', // INCI: Acetyl Hexapeptide-51 Amide | skin immune-modulating peptide
+  COPPER_LYSINATE_PROLINATE: 'copper-lysinate-prolinate', // INCI: Copper Lysinate/Prolinate | copper salt of lysine+proline (Neodermyl), copper peptide family
 } as const
 
 export const ANTIOXYDANTS_VITAMINES = {
-  VITAMIN_C: 'vitamin-c', // Catégorie – INCI variable
-  ASCORBYL_GLUCOSIDE: 'ascorbyl-glucoside', // INCI: Ascorbyl Glucoside | dérivé stable de vitamine C
-  ASCORBYL_PALMITATE: 'ascorbyl-palmitate', // INCI: Ascorbyl Palmitate | forme liposoluble de vitamine C
-  MAGNESIUM_ASCORBYL_PHOSPHATE: 'magnesium-ascorbyl-phosphate', // INCI: Magnesium Ascorbyl Phosphate | dérivé vitamine C stable
-  SODIUM_ASCORBYL_PHOSPHATE: 'sodium-ascorbyl-phosphate', // INCI: Sodium Ascorbyl Phosphate | dérivé vitamine C
-  THREE_O_ETHYL_ASCORBIC_ACID: '3-o-ethyl-ascorbic-acid', // INCI: 3-O-Ethyl Ascorbic Acid | dérivé vitamine C stable et pénétrant
-  TOCOPHEROL: 'tocopherol', // INCI: Tocopherol | vitamine E pure
-  TOCOPHERYL_ACETATE: 'tocopheryl-acetate', // INCI: Tocopheryl Acetate | ester stable de vitamine E
-  TOCOPHERYL_GLUCOSIDE: 'tocopheryl-glucoside', // INCI: Tocopheryl Glucoside | dérivé hydrophile vitamine E
-  CYANOCOBALAMIN: 'cyanocobalamin', // INCI: Cyanocobalamin | vitamine B12
-  NAD: 'nad', // INCI: NAD+ | coenzyme antioxydant / énergie cellulaire
-  RIBOSE: 'ribose', // INCI: Ribose | sucre énergétique cellulaire
-  COQ10: 'coq10', // INCI: Ubiquinone | antioxydant mitochondrial
-  ERGOTHIONEINE: 'ergothioneine', // INCI: Ergothioneine | antioxydant puissant et stable
-  RESVERATROL: 'resveratrol', // INCI: Resveratrol | polyphénol antioxydant
-  CARNOSINE: 'carnosine', // INCI: Carnosine | dipeptide antioxydant / anti-glycation
-  GREEN_TEA: 'green-tea', // INCI: Camellia Sinensis Leaf Extract | antioxydant polyphénols
-  VACCINIUM_MYRTILLUS: 'vaccinium-myrtillus', // INCI: Vaccinium Myrtillus Fruit Extract (myrtille) | antioxydant
-  HELICHRYSE_IMMORTELLE: 'helichryse-immortelle', // INCI: Helichrysum Italicum Flower Extract | antioxydant / régénérant
-  CURCUMA_LONGA_ROOT_EXTRACT: 'curcuma-longa-root-extract', // INCI: Curcuma Longa (Turmeric) Root Extract | antioxydant
-  ROMARIN: 'romarin', // INCI: Rosmarinus Officinalis (Rosemary) Leaf Extract | antioxydant
-  SCHISANDRA: 'schisandra-sphenanthera', // INCI: Schisandra Sphenanthera Fruit Extract | adaptogène / antioxydant
-  SALVIA_MILTIORRHIZA: 'salvia-miltiorrhiza', // INCI: Salvia Miltiorrhiza Root Extract (sauge chinoise) | antioxydant
-  PANAX_GINSENG: 'panax-ginseng', // INCI: Panax Ginseng Root Extract | adaptogène / antioxydant
-  PLANKTON_EXTRACT: 'plankton-extract', // INCI: Plankton Extract | antioxydant / hydratant marin
-  ASCOPHYLLUM_NODOSUM_EXTRACT: 'ascophyllum-nodosum-extract', // INCI: Ascophyllum Nodosum Extract | algue, antioxant
-  ASPARAGOPSIS_ARMATA_EXTRACT: 'asparagopsis-armata-extract', // INCI: Asparagopsis Armata Extract | algue rouge, anti-rougeurs
-  HUILE_ARGOUSIER: 'hippophae-rhamnoides', // INCI: Hippophae Rhamnoides Fruit Oil / Extract (argousier) | riche en antioxydants
+  VITAMIN_C: 'vitamin-c', // Category – variable INCI
+  ASCORBYL_GLUCOSIDE: 'ascorbyl-glucoside', // INCI: Ascorbyl Glucoside | stable vitamin C derivative
+  ASCORBYL_PALMITATE: 'ascorbyl-palmitate', // INCI: Ascorbyl Palmitate | liposoluble form of vitamin C
+  MAGNESIUM_ASCORBYL_PHOSPHATE: 'magnesium-ascorbyl-phosphate', // INCI: Magnesium Ascorbyl Phosphate | stable vitamin C derivative
+  SODIUM_ASCORBYL_PHOSPHATE: 'sodium-ascorbyl-phosphate', // INCI: Sodium Ascorbyl Phosphate | vitamin C derivative
+  THREE_O_ETHYL_ASCORBIC_ACID: '3-o-ethyl-ascorbic-acid', // INCI: 3-O-Ethyl Ascorbic Acid | stable and penetrating vitamin C derivative
+  TOCOPHEROL: 'tocopherol', // INCI: Tocopherol | pure vitamin E
+  TOCOPHERYL_ACETATE: 'tocopheryl-acetate', // INCI: Tocopheryl Acetate | stable vitamin E ester
+  TOCOPHERYL_GLUCOSIDE: 'tocopheryl-glucoside', // INCI: Tocopheryl Glucoside | hydrophilic vitamin E derivative
+  CYANOCOBALAMIN: 'cyanocobalamin', // INCI: Cyanocobalamin | vitamin B12
+  NAD: 'nad', // INCI: NAD+ | antioxidant coenzyme / cellular energy
+  RIBOSE: 'ribose', // INCI: Ribose | cellular energy sugar
+  COQ10: 'coq10', // INCI: Ubiquinone | mitochondrial antioxidant
+  ERGOTHIONEINE: 'ergothioneine', // INCI: Ergothioneine | potent and stable antioxidant
+  RESVERATROL: 'resveratrol', // INCI: Resveratrol | antioxidant polyphenol
+  CARNOSINE: 'carnosine', // INCI: Carnosine | antioxidant / anti-glycation dipeptide
+  GREEN_TEA: 'green-tea', // INCI: Camellia Sinensis Leaf Extract | polyphenol antioxidant
+  VACCINIUM_MYRTILLUS: 'vaccinium-myrtillus', // INCI: Vaccinium Myrtillus Fruit Extract (blueberry) | antioxidant
+  HELICHRYSE_IMMORTELLE: 'helichryse-immortelle', // INCI: Helichrysum Italicum Flower Extract | antioxidant / regenerating
+  CURCUMA_LONGA_ROOT_EXTRACT: 'curcuma-longa-root-extract', // INCI: Curcuma Longa (Turmeric) Root Extract | antioxidant
+  ROMARIN: 'romarin', // INCI: Rosmarinus Officinalis (Rosemary) Leaf Extract | antioxidant
+  SCHISANDRA: 'schisandra-sphenanthera', // INCI: Schisandra Sphenanthera Fruit Extract | adaptogen / antioxidant
+  SALVIA_MILTIORRHIZA: 'salvia-miltiorrhiza', // INCI: Salvia Miltiorrhiza Root Extract (Chinese sage) | antioxidant
+  PANAX_GINSENG: 'panax-ginseng', // INCI: Panax Ginseng Root Extract | adaptogen / antioxidant
+  PLANKTON_EXTRACT: 'plankton-extract', // INCI: Plankton Extract | antioxidant / marine hydrating agent
+  ASCOPHYLLUM_NODOSUM_EXTRACT: 'ascophyllum-nodosum-extract', // INCI: Ascophyllum Nodosum Extract | algae, antioxidant
+  ASPARAGOPSIS_ARMATA_EXTRACT: 'asparagopsis-armata-extract', // INCI: Asparagopsis Armata Extract | red algae, anti-redness
+  HUILE_ARGOUSIER: 'hippophae-rhamnoides', // INCI: Hippophae Rhamnoides Fruit Oil / Extract (sea buckthorn) | rich in antioxidants
 
-  ASTAXANTHINE: 'astaxanthine', // INCI: Haematococcus Pluvialis Extract | algue riche en astaxanthine (antioxydant puissant)
+  ASTAXANTHINE: 'astaxanthine', // INCI: Haematococcus Pluvialis Extract | algae rich in astaxanthin (potent antioxidant)
   HAEMATOCOCCUS_PLUVIALIS: 'astaxanthine', // Alias
-  EPIGALLOCATECHIN_GALLATYL_GLUCOSIDE: 'egcg-glucoside', // INCI: Epigallocatechin Gallatyl Glucoside | EGCG stable
-  PUNICA_GRANATUM: 'punica-granatum', // INCI: Punica Granatum Fruit Extract | grenade, antioxydant anti-âge
+  EPIGALLOCATECHIN_GALLATYL_GLUCOSIDE: 'egcg-glucoside', // INCI: Epigallocatechin Gallatyl Glucoside | stable EGCG
+  PUNICA_GRANATUM: 'punica-granatum', // INCI: Punica Granatum Fruit Extract | pomegranate, anti-aging antioxidant
   VITAMIN_K1: 'vitamine-k1',
   FERULIC_ACID: 'ferulic-acid',
-  HIBISCUS_SABDARIFFA: 'hibiscus-sabdariffa', // INCI: Hibiscus Sabdariffa Flower Extract | antioxydant, éclat, anti-âge
-  BEET_ROOT_EXTRACT: 'beet-root-extract', // INCI: Beta Vulgaris Root Extract | betterave, bétalaïnes antioxydantes
-  GARDENIA_FRUIT_EXTRACT: 'gardenia-fruit-extract', // INCI: Gardenia Jasminoides Fruit Extract | éclaircissant / antioxydant
-  GLYCERYL_ASCORBATE: '3-glyceryl-ascorbate', // INCI: 3-O-Glyceryl Ascorbate | dérivé vitamine C stable et hydrophile
-  BENZOTRIAZOLYL_DODECYL_P_CRESOL: 'benzotriazolyl-dodecyl-p-cresol', // INCI: Benzotriazolyl Dodecyl p-Cresol (Tinogard TT) | antioxydant stabilisant de formule
-  SUPEROXIDE_DISMUTASE: 'superoxide-dismutase', // INCI: Superoxide Dismutase | enzyme antioxydante, neutralise les superoxydes
-  SOPHORA_JAPONICA_FLOWER_EXTRACT: 'sophora-japonica-flower-extract', // INCI: Sophora Japonica Flower Extract | extrait riche en flavonoïdes (rutine), antioxydant
-  ASCORBYL_TETRAISOPALMITATE: 'ascorbyl-tetraisopalmitate', // INCI: Ascorbyl Tetraisopalmitate / Tetrahexyldecyl Ascorbate (alias: THDA / VC-IP) — dérivé vitamine C liposoluble ultra-stable
-  POLYGONUM_CUSPIDATUM_EXTRACT: 'polygonum-cuspidatum-extract', // INCI: Polygonum Cuspidatum Root Extract | source naturelle de resvératrol
-  CISTUS_MONSPELIENSIS_EXTRACT: 'cistus-monspeliensis-extract', // INCI: Cistus Monspeliensis Extract | ciste, plante méditerranéenne antioxydante
-  ACETYL_ZINGERONE: 'acetyl-zingerone', // INCI: Acetyl Zingerone | antioxydant nouvelle génération (gingembre), stabilisateur Vit C
-  GENISTEIN: 'genistein', // INCI: Genistein | isoflavone soja, antioxydant phyto-œstrogène-like
-  QUERCETIN: 'quercetin', // INCI: Quercetin | flavonoïde antioxydant et anti-inflammatoire
-  SILYBIN: 'silybin', // INCI: Silybin | flavonolignane chardon-marie, anti-âge / anti-rougeurs
-  HESPERIDIN_METHYL_CHALCONE: 'hesperidin-methyl-chalcone', // INCI: Hesperidin Methyl Chalcone | flavonoïde agrumes, veinotonique
-  DIMETHYLMETHOXYCHROMANOL: 'dimethylmethoxychromanol', // INCI: Dimethylmethoxy Chromanol (Lipochroman) | antioxydant bi-mode hydro/lipo
-  TETRAHYDRODIFERULOYLMETHANE: 'tetrahydrodiferuloylmethane', // INCI: Tetrahydrodiferuloylmethane (THC) | tétrahydrocurcuminoïde, anti-pigmentation
-  NARINGENIN: 'naringenin', // INCI: Naringenin | flavonoïde agrumes, anti-rougeurs partenaire azélaïque
-  GLUCOSYLRUTIN: 'glucosylrutin', // INCI: Glucosylrutin | rutine glycosylée stable
-  RUTIN: 'rutin', // INCI: Rutin | glycoside de quercétine, antioxydant veinotonique
+  HIBISCUS_SABDARIFFA: 'hibiscus-sabdariffa', // INCI: Hibiscus Sabdariffa Flower Extract | antioxidant, radiance, anti-aging
+  BEET_ROOT_EXTRACT: 'beet-root-extract', // INCI: Beta Vulgaris Root Extract | beetroot, antioxidant betalains
+  GARDENIA_FRUIT_EXTRACT: 'gardenia-fruit-extract', // INCI: Gardenia Jasminoides Fruit Extract | brightening / antioxidant
+  GLYCERYL_ASCORBATE: '3-glyceryl-ascorbate', // INCI: 3-O-Glyceryl Ascorbate | stable and hydrophilic vitamin C derivative
+  BENZOTRIAZOLYL_DODECYL_P_CRESOL: 'benzotriazolyl-dodecyl-p-cresol', // INCI: Benzotriazolyl Dodecyl p-Cresol (Tinogard TT) | formula-stabilizing antioxidant
+  SUPEROXIDE_DISMUTASE: 'superoxide-dismutase', // INCI: Superoxide Dismutase | antioxidant enzyme, neutralizes superoxides
+  SOPHORA_JAPONICA_FLOWER_EXTRACT: 'sophora-japonica-flower-extract', // INCI: Sophora Japonica Flower Extract | flavonoid-rich extract (rutin), antioxidant
+  ASCORBYL_TETRAISOPALMITATE: 'ascorbyl-tetraisopalmitate', // INCI: Ascorbyl Tetraisopalmitate / Tetrahexyldecyl Ascorbate (alias: THDA / VC-IP) — ultra-stable liposoluble vitamin C derivative
+  POLYGONUM_CUSPIDATUM_EXTRACT: 'polygonum-cuspidatum-extract', // INCI: Polygonum Cuspidatum Root Extract | natural source of resveratrol
+  CISTUS_MONSPELIENSIS_EXTRACT: 'cistus-monspeliensis-extract', // INCI: Cistus Monspeliensis Extract | rock rose, Mediterranean antioxidant plant
+  ACETYL_ZINGERONE: 'acetyl-zingerone', // INCI: Acetyl Zingerone | next-gen antioxidant (ginger), Vit C stabilizer
+  GENISTEIN: 'genistein', // INCI: Genistein | soy isoflavone, phyto-estrogen-like antioxidant
+  QUERCETIN: 'quercetin', // INCI: Quercetin | antioxidant and anti-inflammatory flavonoid
+  SILYBIN: 'silybin', // INCI: Silybin | milk-thistle flavonolignan, anti-aging / anti-redness
+  HESPERIDIN_METHYL_CHALCONE: 'hesperidin-methyl-chalcone', // INCI: Hesperidin Methyl Chalcone | citrus flavonoid, venotonic
+  DIMETHYLMETHOXYCHROMANOL: 'dimethylmethoxychromanol', // INCI: Dimethylmethoxy Chromanol (Lipochroman) | dual hydro/lipo-mode antioxidant
+  TETRAHYDRODIFERULOYLMETHANE: 'tetrahydrodiferuloylmethane', // INCI: Tetrahydrodiferuloylmethane (THC) | tetrahydrocurcuminoid, anti-pigmentation
+  NARINGENIN: 'naringenin', // INCI: Naringenin | citrus flavonoid, anti-redness partner to azelaic acid
+  GLUCOSYLRUTIN: 'glucosylrutin', // INCI: Glucosylrutin | stable glycosylated rutin
+  RUTIN: 'rutin', // INCI: Rutin | quercetin glycoside, venotonic antioxidant
 } as const
 
 export const APAISANTS_ANTI_INFLAMMATOIRES = {
-  SODIUM_DEXTRAN_SULFATE: 'sodium-dextran-sulfate', // INCI: Sodium Dextran Sulfate | apaisant et décongestionnant vasculaire
+  SODIUM_DEXTRAN_SULFATE: 'sodium-dextran-sulfate', // INCI: Sodium Dextran Sulfate | soothing and vascular decongestant
   CENTELLA_ASIATICA: 'centella-asiatica', // INCI: Centella Asiatica Extract
-  CENTELLA_COMPLEX: 'centella-complex', // Complexe actifs Centella
-  MADECASSOSIDE: 'madecassoside', // INCI: Madecassoside | triterpène pur de Centella
-  ASIATICOSIDE: 'asiaticoside', // INCI: Asiaticoside | composé pur de Centella
+  CENTELLA_COMPLEX: 'centella-complex', // Centella active complex
+  MADECASSOSIDE: 'madecassoside', // INCI: Madecassoside | pure Centella triterpene
+  ASIATICOSIDE: 'asiaticoside', // INCI: Asiaticoside | pure Centella compound
   ALOE_VERA: 'aloe-vera', // INCI: Aloe Barbadensis Leaf Juice / Extract
-  AVENA_SATIVA: 'avena-sativa', // INCI: Avena Sativa (Oat) Kernel Extract | bêta-glucane apaisante
-  BETA_GLUCAN: 'beta-glucan', // INCI: Beta-Glucan | apaisant / immunomodulateur
-  HEARTLEAF: 'heartleaf', // INCI: Houttuynia Cordata Extract | anti-inflammatoire K-beauty
-  HEARTLEAF_WATER: 'heartleaf-water', // INCI: Houttuynia Cordata Flower/Leaf/Stem Water | distillat apaisant
-  BISABOLOL: 'bisabolol', // INCI: Bisabolol | apaisant, issu de camomille
-  ECTOIN: 'ectoin', // INCI: Ectoin | protecteur cellulaire, anti-pollution, barrière renforçante
+  AVENA_SATIVA: 'avena-sativa', // INCI: Avena Sativa (Oat) Kernel Extract | soothing beta-glucan
+  BETA_GLUCAN: 'beta-glucan', // INCI: Beta-Glucan | soothing / immunomodulator
+  HEARTLEAF: 'heartleaf', // INCI: Houttuynia Cordata Extract | K-beauty anti-inflammatory
+  HEARTLEAF_WATER: 'heartleaf-water', // INCI: Houttuynia Cordata Flower/Leaf/Stem Water | soothing distillate
+  BISABOLOL: 'bisabolol', // INCI: Bisabolol | soothing, from chamomile
+  ECTOIN: 'ectoin', // INCI: Ectoin | cell protector, anti-pollution, barrier-strengthening
   CALENDULA: 'calendula-officinalis', // INCI: Calendula Officinalis Flower Extract
-  EXTRAIT_BARDANE: 'arctium-lappa-root-extract', // INCI: Arctium Lappa Root Extract | apaisant, purifiant (Astéracées)
-  BLEUET: 'bleuet', // INCI: Centaurea Cyanus Flower Water / Extract | apaisant oculaire
+  EXTRAIT_BARDANE: 'arctium-lappa-root-extract', // INCI: Arctium Lappa Root Extract | burdock, soothing, purifying (Asteraceae)
+  BLEUET: 'bleuet', // INCI: Centaurea Cyanus Flower Water / Extract | cornflower, soothing for eyes
 
-  MAUVE: 'mauve', // INCI: Malva Sylvestris Extract | adoucissant, apaisant
-  PAQUERETTE: 'paquerette', // INCI: Bellis Perennis (Daisy) Flower Extract | apaisant / éclaircissant
-  HAMAMELIS: 'hammamelis', // INCI: Hamamelis Virginiana (Witch Hazel) Water / Extract | astringent, apaisant
-  CUCUMBER_EXTRACT: 'cucumis-sativus-fruit-extract', // INCI: Cucumis Sativus Fruit Extract | décongestionnant, apaisant
-  PORTULACA_OLERACEA: 'portulaca-oleracea', // INCI: Portulaca Oleracea Extract | anti-inflammatoire
-  RHAMNOSE: 'rhamnose', // INCI: Rhamnose | sucre, parfois anti-inflammatoire
-  MANGANESE_GLUCONATE: 'manganese-gluconate', // INCI: Manganese Gluconate | oligo-élément, apaisant
-  EAU_DE_ROSE: 'eau-de-rose', // INCI: Rosa Damascena Flower Water | apaisant, tonique
-  ROYAL_JELLY_EXTRACT: 'royal-jelly-extract', // INCI: Royal Jelly Extract | apaisant / nourrissant
-  PROPOLIS: 'propolis-extract', // INCI: Propolis Extract | apaisant / antioxydant / cicatrisant
-  ZANTHOXYLUM_BUNGEANUM: 'zanthoxylum-bungeanum', // INCI: Zanthoxylum Bungeanum Fruit Extract | poivre Sichuan, anti-démangeaisons
+  MAUVE: 'mauve', // INCI: Malva Sylvestris Extract | softening, soothing
+  PAQUERETTE: 'paquerette', // INCI: Bellis Perennis (Daisy) Flower Extract | soothing / brightening
+  HAMAMELIS: 'hammamelis', // INCI: Hamamelis Virginiana (Witch Hazel) Water / Extract | astringent, soothing
+  CUCUMBER_EXTRACT: 'cucumis-sativus-fruit-extract', // INCI: Cucumis Sativus Fruit Extract | decongestant, soothing
+  PORTULACA_OLERACEA: 'portulaca-oleracea', // INCI: Portulaca Oleracea Extract | anti-inflammatory
+  RHAMNOSE: 'rhamnose', // INCI: Rhamnose | sugar, sometimes anti-inflammatory
+  MANGANESE_GLUCONATE: 'manganese-gluconate', // INCI: Manganese Gluconate | trace element, soothing
+  EAU_DE_ROSE: 'eau-de-rose', // INCI: Rosa Damascena Flower Water | soothing, toning
+  ROYAL_JELLY_EXTRACT: 'royal-jelly-extract', // INCI: Royal Jelly Extract | soothing / nourishing
+  PROPOLIS: 'propolis-extract', // INCI: Propolis Extract | soothing / antioxidant / healing
+  ZANTHOXYLUM_BUNGEANUM: 'zanthoxylum-bungeanum', // INCI: Zanthoxylum Bungeanum Fruit Extract | Sichuan pepper, anti-itch
   COLLOIDAL_OATMEAL: 'colloidal-oatmeal',
   EXTRAIT_CAMOMILLE: 'extrait-camomille',
   EXTRAIT_EPILOBE: 'extrait-epilobe',
-  BOSWELLIA_SERRATA: 'boswellia-serrata', // INCI: Boswellia Serrata Gum/Extract | apaisant puissant
-  ZINGIBER_OFFICINALE: 'zingiber-officinale', // INCI: Zingiber Officinale Root Extract | gingembre, tonifiant/antioxydant
-  MORINDA_CITRIFOLIA: 'morinda-citrifolia', // INCI: Morinda Citrifolia Fruit Extract | Noni, protecteur/antioxydant
-  GLYCYRRHETINIC_ACID: 'glycyrrhetinic-acid', // INCI: Glycyrrhetinic Acid | acide 18-β-glycyrrhétinique (alias INN/BAN: Enoxolone), anti-inflammatoire
-  DIPOTASSIUM_GLYCYRRHIZATE: 'dipotassium-glycyrrhizate', // INCI: Dipotassium Glycyrrhizate | apaisant puissant issu de la réglisse
-  NEUTRAZEN: 'neutrazen', // INCI: (composant appaisant spécialisé) | complexe pour peaux réactives / couperose
-  SYMSITIVE: 'symsitive', // INCI: 4-t-Butylcyclohexanol | régulateur de sensibilité cutanée
-  LICOCHALCONE_A: 'licochalcone-a', // INCI: Glycyrrhiza Inflata Root Extract | antioxydant et apaisant puissant issu de la réglisse chinoise
-  ASTER_TRIPOLIUM: 'aster-tripolium', // INCI: Aster Tripolium Extract | aster maritime, apaisant et anti-rougeurs
-  SAMBUCUS_NIGRA: 'sambucus-nigra', // INCI: Sambucus Nigra Flower Extract | sureau noir, apaisant
-  DAUCUS_CAROTA: 'daucus-carota', // INCI: Daucus Carota Sativa Root Extract | carotte, apaisant
-  ARTEMISIA_ANNUA: 'artemisia-annua', // INCI: Artemisia Annua Extract | armoise apaisante (signature K-beauty)
-  GINKGO_BILOBA: 'ginkgo-biloba', // INCI: Ginkgo Biloba Leaf Extract | antioxydant / circulatoire
-  MALTOOLIGOSYL_GLUCOSIDE: 'maltooligosyl-glucoside', // INCI: Maltooligosyl Glucoside | polysaccharide apaisant biomimétique (Rosactiv 2.0)
-  METHYLHYDANTOIN_IMIDE: 'methylhydantoin-imide', // INCI: 1-Methylhydantoin-2-Imide | actif neuro-apaisant TRPV1, anti-inconfort sensoriel
-  SWERTIA_CHIRATA: 'swertia-chirata', // INCI: Swertia Chirata Extract (swertiamarine) | apaisant, gentiane himalayenne
-  SALICORNIA_HERBACEA: 'salicornia-herbacea', // INCI: Salicornia Herbacea Extract (Saliporine-8) | apaisant neuro-cosmétique
+  BOSWELLIA_SERRATA: 'boswellia-serrata', // INCI: Boswellia Serrata Gum/Extract | potent soothing agent
+  ZINGIBER_OFFICINALE: 'zingiber-officinale', // INCI: Zingiber Officinale Root Extract | ginger, toning/antioxidant
+  MORINDA_CITRIFOLIA: 'morinda-citrifolia', // INCI: Morinda Citrifolia Fruit Extract | Noni, protective/antioxidant
+  GLYCYRRHETINIC_ACID: 'glycyrrhetinic-acid', // INCI: Glycyrrhetinic Acid (alias INN/BAN: Enoxolone), anti-inflammatory
+  DIPOTASSIUM_GLYCYRRHIZATE: 'dipotassium-glycyrrhizate', // INCI: Dipotassium Glycyrrhizate | potent soothing agent from licorice
+  NEUTRAZEN: 'neutrazen', // INCI: (specialized soothing component) | complex for reactive skin / rosacea
+  SYMSITIVE: 'symsitive', // INCI: 4-t-Butylcyclohexanol | skin sensitivity regulator
+  LICOCHALCONE_A: 'licochalcone-a', // INCI: Glycyrrhiza Inflata Root Extract | potent antioxidant and soothing agent from Chinese licorice
+  ASTER_TRIPOLIUM: 'aster-tripolium', // INCI: Aster Tripolium Extract | sea aster, soothing and anti-redness
+  SAMBUCUS_NIGRA: 'sambucus-nigra', // INCI: Sambucus Nigra Flower Extract | elderflower, soothing
+  DAUCUS_CAROTA: 'daucus-carota', // INCI: Daucus Carota Sativa Root Extract | carrot, soothing
+  ARTEMISIA_ANNUA: 'artemisia-annua', // INCI: Artemisia Annua Extract | soothing mugwort (K-beauty signature)
+  GINKGO_BILOBA: 'ginkgo-biloba', // INCI: Ginkgo Biloba Leaf Extract | antioxidant / circulatory
+  MALTOOLIGOSYL_GLUCOSIDE: 'maltooligosyl-glucoside', // INCI: Maltooligosyl Glucoside | biomimetic soothing polysaccharide (Rosactiv 2.0)
+  METHYLHYDANTOIN_IMIDE: 'methylhydantoin-imide', // INCI: 1-Methylhydantoin-2-Imide | TRPV1 neuro-soothing active, sensory discomfort relief
+  SWERTIA_CHIRATA: 'swertia-chirata', // INCI: Swertia Chirata Extract (swertiamarin) | soothing, Himalayan gentian
+  SALICORNIA_HERBACEA: 'salicornia-herbacea', // INCI: Salicornia Herbacea Extract (Saliporine-8) | neurocosmetic soothing agent
 } as const
 
 export const ECLAIRCISSANTS_DEPIGMENTANTS = {
-  ALPHA_ARBUTIN: 'alpha-arbutin', // INCI: Alpha-Arbutin | anti-taches pigmentaires
-  KOJIC_ACID: 'kojic-acid', // INCI: Kojic Acid | inhibiteur de tyrosinase
-  TRANEXAMIC_ACID: 'tranexamic-acid', // INCI: Tranexamic Acid | anti-taches, anti-inflammatoire
+  ALPHA_ARBUTIN: 'alpha-arbutin', // INCI: Alpha-Arbutin | anti-dark-spot
+  KOJIC_ACID: 'kojic-acid', // INCI: Kojic Acid | tyrosinase inhibitor
+  TRANEXAMIC_ACID: 'tranexamic-acid', // INCI: Tranexamic Acid | anti-spot, anti-inflammatory
   PHENYLETHYL_RESORCINOL: 'phenylethyl-resorcinol', // INCI: Phenylethyl Resorcinol | SymWhite 377
   SEPIWHITE: 'sepiwhite', // INCI: Undecylenoyl Phenylalanine | Sepiwhite™
-  HEXYLRESORCINOL: 'hexylresorcinol', // INCI: Hexylresorcinol | éclaircissant, inhibiteur de tyrosinase
-  BUTYLRESORCINOL: 'butylresorcinol', // INCI: 4-Butylresorcinol | éclaircissant puissant, inhibiteur de tyrosinase
-  REGLISSE: 'reglisse', // INCI: Glycyrrhiza Glabra (Licorice) Root Extract | éclaircissant
-  DIACETYL_BOLDINE: 'diacetyl-boldine', // INCI: Diacetyl Boldine | éclaircissant / antioxydant
-  GLUTATHION: 'glutathion', // INCI: Glutathione | antioxydant majeur, éclaircissant
-  MELITANE: 'melitane', // INCI: Acetyl Hexapeptide-1 | peptide pro-pigmentant (auto-bronzant)
-  MELASYL: 'melasyl', // INCI: Melasyl | anti-taches pigmentaires spécifique (breveté)
-  GALLYL_GLUCOSIDE: 'gallyl-glucoside', // INCI: Gallyl Glucoside | dérivé gallique, éclaircissant antioxydant
-  IRIS_EXTRACT: 'iris-extract', // INCI: Iris Florentina Root Extract | éclaircissant naturel, dépigmentant
+  HEXYLRESORCINOL: 'hexylresorcinol', // INCI: Hexylresorcinol | brightening, tyrosinase inhibitor
+  BUTYLRESORCINOL: 'butylresorcinol', // INCI: 4-Butylresorcinol | potent brightening agent, tyrosinase inhibitor
+  REGLISSE: 'reglisse', // INCI: Glycyrrhiza Glabra (Licorice) Root Extract | brightening
+  DIACETYL_BOLDINE: 'diacetyl-boldine', // INCI: Diacetyl Boldine | brightening / antioxidant
+  GLUTATHION: 'glutathion', // INCI: Glutathione | major antioxidant, brightening
+  MELITANE: 'melitane', // INCI: Acetyl Hexapeptide-1 | pro-pigmenting peptide (self-tanning)
+  MELASYL: 'melasyl', // INCI: Melasyl | specific anti-dark-spot agent (patented)
+  GALLYL_GLUCOSIDE: 'gallyl-glucoside', // INCI: Gallyl Glucoside | gallic acid derivative, antioxidant brightening
+  IRIS_EXTRACT: 'iris-extract', // INCI: Iris Florentina Root Extract | natural brightening, depigmenting
 } as const
 
 export const ANTI_ACNE_SEBUM = {
-  AZELAIC_ACID: 'azelaic-acid', // INCI: Azelaic Acid | anti-acné, anti-rosacée, éclaircissant
-  AZELOCALM: 'azelocalm', // INCI: Azelaic Acid (variante complexée) | acide azélaïque apaisé, meilleure tolérance
-  AZECOGLYCINE: 'azecoglycine', // INCI: Azelaic Acid + Glycine | complexe anti-acné, séborégulateur synergique
+  AZELAIC_ACID: 'azelaic-acid', // INCI: Azelaic Acid | anti-acne, anti-rosacea, brightening
+  AZELOCALM: 'azelocalm', // INCI: Azelaic Acid (complexed variant) | soothed azelaic acid, better tolerance
+  AZECOGLYCINE: 'azecoglycine', // INCI: Azelaic Acid + Glycine | synergistic anti-acne sebum-regulating complex
   SALICYLIC_ACID: 'salicylic-acid', // INCI: Salicylic Acid | BHA
-  NIACINAMIDE: 'niacinamide', // INCI: Niacinamide | vitamine B3, multifonction / séborégulateur
-  ACNESYL_X_PRO: 'acnesyl-x-pro', // Complexe anti-acné multi-actif | contrôle sébum, antibactérien, anti-comédogène
-  ZINC_PCA: 'zinc-pca', // INCI: Zinc PCA | séborégulateur
-  ZINC_GLUCONATE: 'zinc-gluconate', // INCI: Zinc Gluconate | anti-inflammatoire / séborégulateur
-  ZINC_LACTATE: 'zinc-lactate', // INCI: Zinc Lactate | séborégulateur, anti-imperfections
-  ZINC_SULFATE: 'zinc-sulfate', // INCI: Zinc Sulfate | astringent, antimicrobien, séborégulateur
-  COPPER_SULFATE: 'copper-sulfate', // INCI: Copper Sulfate | antimicrobien, astringent
-  COPPER_GLUCONATE: 'copper-gluconate', // INCI: Copper Gluconate | régulateur sébum / anti-bactérien
-  COPPER_PCA: 'copper-pca', // INCI: Copper PCA | sel de cuivre du PCA, régulateur microbien et séborégulateur
-  SULFUR: 'soufre', // INCI: Sulfur | kératolytique, anti-acné
-  TEA_TREE: 'tea-tree', // INCI: Melaleuca Alternifolia Leaf Oil | antibactérien naturel
-  HYPOCHLOROUS_ACID: 'hypochlorous-acid', // INCI: Hypochlorous Acid | antiseptique doux
-  PIROCTONE_OLAMINE: 'piroctone-olamine', // INCI: Piroctone Olamine | antifongique (anti-Malassezia), anti-pelliculaire
-  COMEDOCLASTIN: 'comedoclastin', // Extrait de Silybum marianum titré (Cleanance) | anti-comédogène
-  LENS_ESCULENTA_SEED_EXTRACT: 'lens-esculenta-seed-extract', // Extrait de lentille (Oil Control) | matifiant
-  PEA_EXTRACT: 'pea-extract', // INCI: Pisum Sativum Extract | extrait de pois, matifiant / sébum
-  SARCOSINE: 'sarcosine', // INCI: Sarcosine | acide aminé anti-sébum, assainissant
-  AMMONIUM_LACTATE: 'ammonium-lactate', // INCI: Ammonium Lactate | kératolytique doux, anti-acné
-  AZELAMIDE_MEA: 'azelamide-mea', // INCI: Azelamide MEA | dérivé amide de l'acide azélaïque, anti-imperfections soluble
-  AZELAMIDOPROPYL_DIMETHYL_AMINE: 'azelamidopropyl-dimethyl-amine', // INCI: Azelamidopropyl Dimethyl Amine (Epi-On) | dérivé amine de l'acide azélaïque
+  NIACINAMIDE: 'niacinamide', // INCI: Niacinamide | vitamin B3, multi-function / sebum regulator
+  ACNESYL_X_PRO: 'acnesyl-x-pro', // Multi-active anti-acne complex | sebum control, antibacterial, anti-comedogenic
+  ZINC_PCA: 'zinc-pca', // INCI: Zinc PCA | sebum regulator
+  ZINC_GLUCONATE: 'zinc-gluconate', // INCI: Zinc Gluconate | anti-inflammatory / sebum regulator
+  ZINC_LACTATE: 'zinc-lactate', // INCI: Zinc Lactate | sebum regulator, anti-blemish
+  ZINC_SULFATE: 'zinc-sulfate', // INCI: Zinc Sulfate | astringent, antimicrobial, sebum regulator
+  COPPER_SULFATE: 'copper-sulfate', // INCI: Copper Sulfate | antimicrobial, astringent
+  COPPER_GLUCONATE: 'copper-gluconate', // INCI: Copper Gluconate | sebum regulator / antibacterial
+  COPPER_PCA: 'copper-pca', // INCI: Copper PCA | copper salt of PCA, microbial and sebum regulator
+  SULFUR: 'soufre', // INCI: Sulfur | keratolytic, anti-acne
+  TEA_TREE: 'tea-tree', // INCI: Melaleuca Alternifolia Leaf Oil | natural antibacterial
+  HYPOCHLOROUS_ACID: 'hypochlorous-acid', // INCI: Hypochlorous Acid | mild antiseptic
+  PIROCTONE_OLAMINE: 'piroctone-olamine', // INCI: Piroctone Olamine | antifungal (anti-Malassezia), anti-dandruff
+  COMEDOCLASTIN: 'comedoclastin', // Titrated Silybum marianum extract (Cleanance) | anti-comedogenic
+  LENS_ESCULENTA_SEED_EXTRACT: 'lens-esculenta-seed-extract', // Lentil extract (Oil Control) | mattifying
+  PEA_EXTRACT: 'pea-extract', // INCI: Pisum Sativum Extract | pea extract, mattifying / sebum
+  SARCOSINE: 'sarcosine', // INCI: Sarcosine | anti-sebum amino acid, cleansing
+  AMMONIUM_LACTATE: 'ammonium-lactate', // INCI: Ammonium Lactate | mild keratolytic, anti-acne
+  AZELAMIDE_MEA: 'azelamide-mea', // INCI: Azelamide MEA | amide derivative of azelaic acid, soluble anti-blemish
+  AZELAMIDOPROPYL_DIMETHYL_AMINE: 'azelamidopropyl-dimethyl-amine', // INCI: Azelamidopropyl Dimethyl Amine (Epi-On) | amine derivative of azelaic acid
 } as const
 
 export const ANTI_ROSACEE_VASOCONSTRICTEURS = {
-  BRIMONIDINE: 'brimonidine', // INCI: Brimonidine Tartrate | vasoconstricteur topique (Mirvaso®)
-  OXYMETAZOLINE: 'oxymetazoline', // INCI: Oxymetazoline HCl | vasoconstricteur topique (Rhofade®)
+  BRIMONIDINE: 'brimonidine', // INCI: Brimonidine Tartrate | topical vasoconstrictor (Mirvaso®)
+  OXYMETAZOLINE: 'oxymetazoline', // INCI: Oxymetazoline HCl | topical vasoconstrictor (Rhofade®)
   IVERMECTINE: 'ivermectine', // INCI: Ivermectin | anti-Demodex (Soolantra®)
-  METRONIDAZOLE: 'metronidazole', // INCI: Metronidazole | antibiotique / anti-inflammatoire (Rozex®)
-  ANGIOPAUSINE: 'angiopausine', // Actif spécifique Rosamed | anti-rougeurs vasculaires
-  ENDOTHELYOL: 'endothelyol', // Composant Endothelyol® | protection vasculaire / photoprotection
+  METRONIDAZOLE: 'metronidazole', // INCI: Metronidazole | antibiotic / anti-inflammatory (Rozex®)
+  ANGIOPAUSINE: 'angiopausine', // Rosamed-specific active | anti-vascular-redness
+  ENDOTHELYOL: 'endothelyol', // Endothelyol® component | vascular protection / photoprotection
 } as const
 
 export const FILTRES_UV = {
-  TITANIUM_DIOXIDE: 'titanium-dioxide', // Filtre minéral
-  ZINC_OXIDE: 'zinc-oxyde', // Filtre minéral
+  TITANIUM_DIOXIDE: 'titanium-dioxide', // Mineral filter
+  ZINC_OXIDE: 'zinc-oxyde', // Mineral filter
   BIS_ETHYLHEXYLOXYPHENOL_METHOXYPHENYL_TRIAZINE: 'bis-ethylhexyloxyphenol-methoxyphenyl-triazine', // Tinosorb S
   DIETHYLAMINO_HYDROXYBENZOYL_HEXYL_BENZOATE: 'diethylamino-hydroxybenzoyl-hexyl-benzoate', // Uvinul A Plus
   ETHYLHEXYL_TRIAZONE: 'ethylhexyl-triazone', // Uvinul T 150
-  TRIASORB: 'triasorb', // Filtre ultra-large spectre
-  IRON_OXIDE: 'oxide-de-fer', // INCI: Iron Oxides | pigments minéraux, protection lumière visible / HEV
-  DROMETRIZOLE_TRISILOXANE: 'drometrizole-trisiloxane', // INCI: Drometrizole Trisiloxane | filtre UVA photostable (Mexoryl XL)
-  BUTYL_METHOXYDIBENZOYLMETHANE: 'butyl-methoxydibenvoylmethane', // INCI: Butyl Methoxydibenzoylmethane | filtre UVA (Avobenzone)
+  TRIASORB: 'triasorb', // Ultra broad-spectrum filter
+  IRON_OXIDE: 'oxide-de-fer', // INCI: Iron Oxides | mineral pigments, visible-light / HEV protection
+  DROMETRIZOLE_TRISILOXANE: 'drometrizole-trisiloxane', // INCI: Drometrizole Trisiloxane | photostable UVA filter (Mexoryl XL)
+  BUTYL_METHOXYDIBENZOYLMETHANE: 'butyl-methoxydibenvoylmethane', // INCI: Butyl Methoxydibenzoylmethane | UVA filter (Avobenzone)
   AVOBENZONE: 'butyl-methoxydibenvoylmethane', // Alias
-  OCTOCRYLENE: 'octocrylene', // INCI: Octocrylene | filtre UVB stabilisant
-  HOMOSALATE: 'homosalate', // INCI: Homosalate | filtre UVB
-  ETHYLHEXYL_SALICYLATE: 'ethylhexyl-salicylate', // INCI: Ethylhexyl Salicylate | filtre UVB (Octisalate)
-  ISOAMYL_P_METHOXYCINNAMATE: 'isoamyl-p-methoxycinnamate', // INCI: Isoamyl p-Methoxycinnamate | filtre UVB (Amiloxate)
-  ETHYLHEXYL_METHOXYCINNAMATE: 'ethylhexyl-methoxycinnamate', // INCI: Ethylhexyl Methoxycinnamate | filtre UVB (Octinoxate)
+  OCTOCRYLENE: 'octocrylene', // INCI: Octocrylene | stabilizing UVB filter
+  HOMOSALATE: 'homosalate', // INCI: Homosalate | UVB filter
+  ETHYLHEXYL_SALICYLATE: 'ethylhexyl-salicylate', // INCI: Ethylhexyl Salicylate | UVB filter (Octisalate)
+  ISOAMYL_P_METHOXYCINNAMATE: 'isoamyl-p-methoxycinnamate', // INCI: Isoamyl p-Methoxycinnamate | UVB filter (Amiloxate)
+  ETHYLHEXYL_METHOXYCINNAMATE: 'ethylhexyl-methoxycinnamate', // INCI: Ethylhexyl Methoxycinnamate | UVB filter (Octinoxate)
   METHYLENE_BIS_BENZOTRIAZOLYL_TETRAMETHYLBUTYLPHENOL:
-    'methylene-bis-benzotriazolyl-tetramethylbutylphenol', // Tinosorb M – UVA/UVB, minéral-like
-  TRIS_BIPHENYL_TRIAZINE: 'tris-biphenyl-triazine', // Tinosorb A2B nano – large spectre
-  DIETHYLHEXYL_BUTAMIDO_TRIAZONE: 'diethylhexyl-butamido-triazone', // INCI: Diethylhexyl Butamido Triazone | Uvasorb HEB – filtre UVB/UVA large spectre, très photostable
+    'methylene-bis-benzotriazolyl-tetramethylbutylphenol', // Tinosorb M – UVA/UVB, mineral-like
+  TRIS_BIPHENYL_TRIAZINE: 'tris-biphenyl-triazine', // Tinosorb A2B nano – broad spectrum
+  DIETHYLHEXYL_BUTAMIDO_TRIAZONE: 'diethylhexyl-butamido-triazone', // INCI: Diethylhexyl Butamido Triazone | Uvasorb HEB – broad-spectrum UVB/UVA filter, very photostable
 } as const
 
 export const PROBIOTIQUES_PREBIOTIQUES_POSTBIOTIQUES = {
-  PSEUDOALTEROMONAS_FERMENT: 'pseudoalteromonas-ferment', // INCI: Pseudoalteromonas Ferment Extract | postbiotique marin, hydratant et protecteur
-  PROBIOTICS: 'probiotics', // INCI fréquent: Lactobacillus Ferment | bactéries vivantes
-  POSTBIOTICS: 'postbiotics', // INCI variable (ex: Lactobacillus Ferment Filtrate)
-  ALPHA_GLUCAN_OLIGOSACCHARIDE: 'alpha-glucan-oligosaccharide', // INCI: Alpha-Glucan Oligosaccharide | prébiotique
-  SNAIL_MUCIN: 'snail-secretion-filtrate', // INCI: Snail Secretion Filtrate | régénérant / hydratant
-  D_SENSINOSE: 'd-sensinose', // Actif postbiotique (Tolérance Control)
+  PSEUDOALTEROMONAS_FERMENT: 'pseudoalteromonas-ferment', // INCI: Pseudoalteromonas Ferment Extract | marine postbiotic, hydrating and protective
+  PROBIOTICS: 'probiotics', // Common INCI: Lactobacillus Ferment | living bacteria
+  POSTBIOTICS: 'postbiotics', // Variable INCI (e.g. Lactobacillus Ferment Filtrate)
+  ALPHA_GLUCAN_OLIGOSACCHARIDE: 'alpha-glucan-oligosaccharide', // INCI: Alpha-Glucan Oligosaccharide | prebiotic
+  SNAIL_MUCIN: 'snail-secretion-filtrate', // INCI: Snail Secretion Filtrate | regenerating / hydrating
+  D_SENSINOSE: 'd-sensinose', // Postbiotic active (Tolérance Control)
   AQUAPHILUS_DOLOMIAE_EXTRACT: 'aquaphilus-dolomiae-extract', // I-modulia (XeraCalm)
   AQUAPHILUS_DOLOMIAE_FERMENT_FILTRATE: 'aquaphilus-dolomiae-ferment-filtrate', // C+ Restore (Cicalfate+)
-  VITREOSCILLA_FERMENT: 'vitreoscilla-ferment', // INCI: Vitreoscilla Ferment | ferment bactérien apaisant, réparateur et fortifiant (postbiotique-like)
-  FRUCTOOLIGOSACCHARIDES: 'fructooligosaccharides', // INCI: Fructooligosaccharides | prébiotique, soutient le microbiote cutané
-  INULINE: 'inuline', // INCI: Cichorium Intybus Root Extract | racine de chicorée, source d'inuline prébiotique
-  MICROBIOTA_REGULATOR: 'microbiota-regulator', // Régulateur du microbiote cutané | équilibre flore bactérienne cutanée
-  MELABIOME_XP: 'melabiome-xp', // Complexe de postbiotiques et prébiotiques | rééquilibrage et protection microbiote
-  GALACTOMYCES_FERMENT_FILTRATE: 'galactomyces-ferment-filtrate', // INCI: Galactomyces Ferment Filtrate | Pitera (SK-II), ferment riche en nutriments
-  RAHNELLA_SOY_PROTEIN_FERMENT: 'rahnella-soy-protein-ferment', // INCI: Rahnella/Soy Protein Ferment | postbiotique ferment de soja (Bio-Bustyl), soutien cutané
+  VITREOSCILLA_FERMENT: 'vitreoscilla-ferment', // INCI: Vitreoscilla Ferment | soothing, repairing and fortifying bacterial ferment (postbiotic-like)
+  FRUCTOOLIGOSACCHARIDES: 'fructooligosaccharides', // INCI: Fructooligosaccharides | prebiotic, supports the skin microbiome
+  INULINE: 'inuline', // INCI: Cichorium Intybus Root Extract | chicory root, source of prebiotic inulin
+  MICROBIOTA_REGULATOR: 'microbiota-regulator', // Skin microbiome regulator | balances bacterial flora
+  MELABIOME_XP: 'melabiome-xp', // Pre/postbiotic complex | microbiome rebalancing and protection
+  GALACTOMYCES_FERMENT_FILTRATE: 'galactomyces-ferment-filtrate', // INCI: Galactomyces Ferment Filtrate | Pitera (SK-II), nutrient-rich ferment
+  RAHNELLA_SOY_PROTEIN_FERMENT: 'rahnella-soy-protein-ferment', // INCI: Rahnella/Soy Protein Ferment | soy protein ferment postbiotic (Bio-Bustyl), skin support
 } as const
 
 export const ACTIFS_ANTI_AGE_REPARATEURS = {
-  ADENOSINE: 'adenosine', // Anti-rides
-  ASIATIC_ACID: 'asiatic-acid', // INCI: Asiatic Acid | TECA (madecassic + asiaticoside + asiatic acid) – apaisant signature Centella
-  MADECASSIC_ACID: 'madecassic-acid', // INCI: Madecassic Acid | composant Centella, apaisant et réparateur
-  ALLANTOIN: 'allantoin', // INCI: Allantoin | apaisant, cicatrisant
-  PANTHENOL: 'panthenol', // INCI: Panthenol | provitamine B5, apaisant / hydratant
-  CHARDON_MARIE: 'chardon-marie', // INCI: Silybum Marianum Seed Extract | régénérant
-  HYDROXYPALMITOYL_SPHINGANINE: 'hydroxypalmitoyl-sphinganine', // INCI: Hydroxypalmitoyl Sphinganine | céramide-like, renforce barrière
-  TWO_OLEAMIDO_1_3_OCTADECANEDIOL: '2-oleamido-1-3-octadecanediol', // INCI: 2-Oleamido-1,3-Octadecanediol | lipide biomimétique réparateur
-  PROTEOGLYCAN_COMPLEX: 'proteoglycan-complex', // Complexe de protéoglycanes | structure cutanée
-  ACMELLA_OLERACEA_EXTRACT: 'acmella-oleracea-extract', // INCI: Acmella Oleracea Extract | effet liftant naturel, "Botox-like" végétal
-  PHYTIC_ACID: 'phytic-acid', // INCI: Phytic Acid | acide phytique, antioxydant et chélateur de métaux, anti-inflammatoire léger
-  CALCIUM_PANTOTHENATE: 'calcium-pantothenate', // INCI: Calcium Pantothenate | sel calcique de provitamine B5, apaisant et réparateur
-  BIOTIN: 'biotin', // INCI: Biotin | vitamine B8 topique, renforce barrière cutanée
-  HYDROLYZED_LUPINE_PROTEIN: 'hydrolyzed-lupine-protein', // INCI: Hydrolyzed Lupine Protein | peptides végétaux fermeté
-  TRIMETHOXYBENZYL_ACETYLSINAPATE: 'trimethoxybenzyl-acetylsinapate', // INCI: Trimethoxybenzyl Acetylsinapate | actif anti-glycation et photoprotecteur
-  ONOPORDUM_ACANTHIUM_EXTRACT: 'onopordum-acanthium-extract', // INCI: Onopordum Acanthium Extract | chardon argenté, anti-glycation et anti-âge
-  METHYLSILANOL_MANNURONATE: 'methylsilanol-mannuronate', // INCI: Methylsilanol Mannuronate | organosilicium topique (Algisium C), soutien cutané silicium
+  ADENOSINE: 'adenosine', // Anti-wrinkle
+  ASIATIC_ACID: 'asiatic-acid', // INCI: Asiatic Acid | TECA (madecassic + asiaticoside + asiatic acid) – signature Centella soothing agent
+  MADECASSIC_ACID: 'madecassic-acid', // INCI: Madecassic Acid | Centella component, soothing and repairing
+  ALLANTOIN: 'allantoin', // INCI: Allantoin | soothing, healing
+  PANTHENOL: 'panthenol', // INCI: Panthenol | provitamin B5, soothing / hydrating
+  CHARDON_MARIE: 'chardon-marie', // INCI: Silybum Marianum Seed Extract | regenerating
+  HYDROXYPALMITOYL_SPHINGANINE: 'hydroxypalmitoyl-sphinganine', // INCI: Hydroxypalmitoyl Sphinganine | ceramide-like, strengthens the barrier
+  TWO_OLEAMIDO_1_3_OCTADECANEDIOL: '2-oleamido-1-3-octadecanediol', // INCI: 2-Oleamido-1,3-Octadecanediol | biomimetic repairing lipid
+  PROTEOGLYCAN_COMPLEX: 'proteoglycan-complex', // Proteoglycan complex | skin structure
+  ACMELLA_OLERACEA_EXTRACT: 'acmella-oleracea-extract', // INCI: Acmella Oleracea Extract | natural lifting effect, plant "Botox-like"
+  PHYTIC_ACID: 'phytic-acid', // INCI: Phytic Acid | antioxidant and metal chelator, mild anti-inflammatory
+  CALCIUM_PANTOTHENATE: 'calcium-pantothenate', // INCI: Calcium Pantothenate | calcium salt of provitamin B5, soothing and repairing
+  BIOTIN: 'biotin', // INCI: Biotin | topical vitamin B8, strengthens the skin barrier
+  HYDROLYZED_LUPINE_PROTEIN: 'hydrolyzed-lupine-protein', // INCI: Hydrolyzed Lupine Protein | plant peptides, firmness
+  TRIMETHOXYBENZYL_ACETYLSINAPATE: 'trimethoxybenzyl-acetylsinapate', // INCI: Trimethoxybenzyl Acetylsinapate | anti-glycation and photoprotective active
+  ONOPORDUM_ACANTHIUM_EXTRACT: 'onopordum-acanthium-extract', // INCI: Onopordum Acanthium Extract | silver thistle, anti-glycation and anti-aging
+  METHYLSILANOL_MANNURONATE: 'methylsilanol-mannuronate', // INCI: Methylsilanol Mannuronate | topical organosilicon (Algisium C), silicon skin support
 } as const
 
 export const CIRCULATOIRE_DRAINAGE = {
-  ESCIN: 'escin', // INCI: Escin | issu de marron d'Inde, anti-œdème / circulatoire
-  RUSCUS_ACULEATUS: 'ruscus-aculeatus', // INCI: Ruscus Aculeatus Root Extract (fragon épineux) | veinotonique
-  CAFFEINE: 'caffeine', // INCI: Caffeine | lipolytique, décongestionnant
-  ARNICA: 'arnica', // INCI: Arnica Montana Flower Extract | anti-hématomes, circulatoire
-  CYPRES: 'cypres', // INCI: Cupressus Sempervirens | Tonifiant, circulatoire et astringent
+  ESCIN: 'escin', // INCI: Escin | from horse chestnut, anti-edema / circulatory
+  RUSCUS_ACULEATUS: 'ruscus-aculeatus', // INCI: Ruscus Aculeatus Root Extract (butcher's broom) | venotonic
+  CAFFEINE: 'caffeine', // INCI: Caffeine | lipolytic, decongestant
+  ARNICA: 'arnica', // INCI: Arnica Montana Flower Extract | anti-bruising, circulatory
+  CYPRES: 'cypres', // INCI: Cupressus Sempervirens | toning, circulatory and astringent
 } as const
 
 export const TENSIOACTIFS_NETTOYANTS = {
-  COCO_GLUCOSIDE: 'coco-glucoside', // INCI: Coco-Glucoside | tensioactif doux non-ionique
-  DECYL_GLUCOSIDE: 'decyl-glucoside', // INCI: Decyl Glucoside | tensioactif doux
-  SODIUM_LAUROYL_METHYL_ISETHIONATE: 'sodium-lauroyl-methyl-isethionate', // INCI: Sodium Lauroyl Methyl Isethionate | tensioactif doux
-  SODIUM_COCOYL_ISETHIONATE: 'sodium-cocoyl-isethionate', // INCI: Sodium Cocoyl Isethionate | tensioactif doux dérivé de coco
-  GLEDITSIA_TRIACANTHOS_SEED_EXTRACT: 'gleditsia-seed-extract', // INCI: Gleditsia Triacanthos Seed Extract | tensioactif / épaississant naturel doux
-  PEG_20_GLYCERYL_TRIISOSTEARATE: 'peg-20-glyceryl-triisostearate', // INCI: PEG-20 Glyceryl Triisostearate | émulsifiant huileux (nettoyants)
-  COCAMIDOPROPYL_HYDROXYSULTAINE: 'cocamidopropyl-hydroxysultaine', // INCI: Cocamidopropyl Hydroxysultaine | tensioactif amphotère doux
-  CAPRYLOYL_GLYCINE: 'capryloyl-glycine', // INCI: Capryloyl Glycine | amino acid alkyl amide, antimicrobien doux, séborégulateur
+  COCO_GLUCOSIDE: 'coco-glucoside', // INCI: Coco-Glucoside | mild non-ionic surfactant
+  DECYL_GLUCOSIDE: 'decyl-glucoside', // INCI: Decyl Glucoside | mild surfactant
+  SODIUM_LAUROYL_METHYL_ISETHIONATE: 'sodium-lauroyl-methyl-isethionate', // INCI: Sodium Lauroyl Methyl Isethionate | mild surfactant
+  SODIUM_COCOYL_ISETHIONATE: 'sodium-cocoyl-isethionate', // INCI: Sodium Cocoyl Isethionate | mild coco-derived surfactant
+  GLEDITSIA_TRIACANTHOS_SEED_EXTRACT: 'gleditsia-seed-extract', // INCI: Gleditsia Triacanthos Seed Extract | natural mild surfactant / thickener
+  PEG_20_GLYCERYL_TRIISOSTEARATE: 'peg-20-glyceryl-triisostearate', // INCI: PEG-20 Glyceryl Triisostearate | oily emulsifier (cleansers)
+  COCAMIDOPROPYL_HYDROXYSULTAINE: 'cocamidopropyl-hydroxysultaine', // INCI: Cocamidopropyl Hydroxysultaine | mild amphoteric surfactant
+  CAPRYLOYL_GLYCINE: 'capryloyl-glycine', // INCI: Capryloyl Glycine | amino acid alkyl amide, mild antimicrobial, sebum regulator
 } as const
 
 export const TEXTURANTS_FONCTIONNELS = {
-  SILICA: 'silica', // INCI: Silica | matifiant, texturant
-  HYDROCOLLOID: 'hydrocolloid', // INCI: Hydrocolloid | pansement occlusif
-  ZEA_MAYS_STARCH: 'zea-mays-starch', // INCI: Zea Mays Starch | amidon de maïs, texturant / absorbant
-  ORYZA_SATIVA: 'oryza-sativa', // INCI: Oryza Sativa (Rice) Starch / Extract | texturant, apaisant
-  SPHINGOMONAS_FERMENT: 'sphingomonas-ferment-extract', // INCI: Sphingomonas Ferment Extract | épaississant naturel
-  SALIX_NIGRA: 'salix-nigra', // INCI: Salix Nigra (Willow) Bark Extract | exfoliant doux / astringent
+  SILICA: 'silica', // INCI: Silica | mattifying, texturizing
+  HYDROCOLLOID: 'hydrocolloid', // INCI: Hydrocolloid | occlusive dressing
+  ZEA_MAYS_STARCH: 'zea-mays-starch', // INCI: Zea Mays Starch | corn starch, texturizing / absorbent
+  ORYZA_SATIVA: 'oryza-sativa', // INCI: Oryza Sativa (Rice) Starch / Extract | texturizing, soothing
+  SPHINGOMONAS_FERMENT: 'sphingomonas-ferment-extract', // INCI: Sphingomonas Ferment Extract | natural thickener
+  SALIX_NIGRA: 'salix-nigra', // INCI: Salix Nigra (Willow) Bark Extract | mild exfoliant / astringent
   CITRUS_AURANTIUM_DULCIS: 'citrus-aurantium-dulcis', // INCI: Citrus Aurantium Dulcis (Orange) Peel Extract / Oil
   VERVEINE: 'verveine', // INCI: Lippia Citriodora / Verbena Officinalis
-  MENTHE_POIVREE: 'menthe-poivree', // INCI: Mentha Piperita (Peppermint) Oil / Extract | rafraîchissant
-  BIOSACCHARIDE_GUM_1: 'biosaccharide-gum-1', // INCI: Biosaccharide Gum-1 | exopolysaccharride filmogène hydratant longue durée
-  AHNFELTIA_CONCINNA: 'ahnfeltia-concinna', // INCI: Ahnfeltiopsis Concinna Extract | algue rouge, hydratante et filmogène
-  CHARCOAL_POWDER: 'charcoal-powder', // INCI: Charcoal / Activated Charcoal | absorbant puissant, purifiant, détoxifiant
-  KAOLIN: 'kaolin', // INCI: Kaolin | argile minérale, absorbante, puifiante, texturante (poudre ou en suspension)
-  BENTONITE: 'bentonite', // INCI: Bentonite | argile montmorillonite, absorbante et puifiante puissante
-  CORN_STARCH_MODIFIED: 'corn-starch-modified', // INCI: Corn Starch Modified / Distarch Phosphate | amidon de maïs modifié, texturant matifiant absorbant
-  BIOSACCHARIDE_GUM_4: 'biosaccharide-gum-4', // INCI: Biosaccharide Gum-4 | polysaccharide biotechnologique anti-pollution
-  AMMONIUM_ACRYLOYLDIMETHYLTAURATE_VP_COPOLYMER: 'ammonium-acryloyldimethyltaurate-vp-copolymer', // INCI: Ammonium Acryloyldimethyltaurate/VP Copolymer | gélifiant rhéologique (Aristoflex AVC)
+  MENTHE_POIVREE: 'menthe-poivree', // INCI: Mentha Piperita (Peppermint) Oil / Extract | refreshing
+  BIOSACCHARIDE_GUM_1: 'biosaccharide-gum-1', // INCI: Biosaccharide Gum-1 | film-forming exopolysaccharide, long-lasting hydration
+  AHNFELTIA_CONCINNA: 'ahnfeltia-concinna', // INCI: Ahnfeltiopsis Concinna Extract | red algae, hydrating and film-forming
+  CHARCOAL_POWDER: 'charcoal-powder', // INCI: Charcoal / Activated Charcoal | powerful absorbent, purifying, detoxifying
+  KAOLIN: 'kaolin', // INCI: Kaolin | mineral clay, absorbent, purifying, texturizing (powder or suspension)
+  BENTONITE: 'bentonite', // INCI: Bentonite | montmorillonite clay, powerful absorbent and purifying
+  CORN_STARCH_MODIFIED: 'corn-starch-modified', // INCI: Corn Starch Modified / Distarch Phosphate | modified corn starch, mattifying absorbent texturizer
+  BIOSACCHARIDE_GUM_4: 'biosaccharide-gum-4', // INCI: Biosaccharide Gum-4 | biotech polysaccharide, anti-pollution
+  AMMONIUM_ACRYLOYLDIMETHYLTAURATE_VP_COPOLYMER: 'ammonium-acryloyldimethyltaurate-vp-copolymer', // INCI: Ammonium Acryloyldimethyltaurate/VP Copolymer | rheology gelling agent (Aristoflex AVC)
 } as const
 
 export const DIVERS_NON_CLASSES = {
-  HUMECTANTS_EMOLLIENTS_OCCLUSIFS: 'humectants-emollients-occlusifs', // Catégorie générale
-  PEPTIDES: 'peptides', // Catégorie générale
-  BIXA_ORELLANA: 'bixa-orellana', // INCI: Bixa Orellana Seed Extract / Annatto | source de bixine (colorant naturel)
+  HUMECTANTS_EMOLLIENTS_OCCLUSIFS: 'humectants-emollients-occlusifs', // General category
+  PEPTIDES: 'peptides', // General category
+  BIXA_ORELLANA: 'bixa-orellana', // INCI: Bixa Orellana Seed Extract / Annatto | source of bixin (natural dye)
   AMARANTHUS_CAUDATUS: 'amaranthus', // INCI: Amaranthus Caudatus Seed Extract
   OPHIOPOGON_JAPONICUS: 'ophiopogon-japonicus', // INCI: Ophiopogon Japonicus Root Extract (mondo grass)
-  ISOSORBIDE_DICAPRYLATE: 'isosorbide-dicaprylate', // INCI: Isosorbide Dicaprylate | hydratant lipophile intelligent
-  RICE_AMINO_ACIDS: 'rice-amino-acids', // INCI: Rice Amino Acids | acides aminés riz, conditionnants
-  HUILE_BABASSU: 'huile-babassu', // INCI: Orbignya Oleifera Seed Oil | huile babassu, émolliente légère
-  PINUS_PALUSTRIS: 'pinus-palustris', // INCI: Pinus Palustris Leaf Extract | pin, tonifiant antioxydant
-  VETIVERIA_ZIZANOIDES: 'vetiveria-zizanoides', // INCI: Vetiveria Zizanoides Root Extract | vétiver, apaisant régénérant
-  APHANIZOMENON_FLOS_AQUAE: 'aphanizomenon-flos-aquae', // INCI: Aphanizomenon Flos-Aquae Extract | algue bleue-verte nutritive
-  ULVA_LACTUCA: 'ulva-lactuca', // INCI: Ulva Lactuca Extract | laitue de mer, riche en magnésium et élastine-like (souplesse)
-  CHLORELLA_VULGARIS: 'chlorella-vulgaris', // INCI: Chlorella Vulgaris Extract | micro-algue verte, correcteur de cernes et restructurant
-  SPIRULINA_PLATENSIS: 'spirulina-platensis', // INCI: Spirulina Platensis Extract | micro-algue bleue, super-aliment riche en protéines et revitalisante
-  DUNALIELLA_SALINA: 'dunaliella-salina', // INCI: Dunaliella Salina Extract | micro-algue orangée, très riche en bêta-carotène (effet bonne mine et antioxydant)
-  CHONDRUS_CRISPUS: 'chondrus-crispus', // INCI: Chondrus Crispus Extract | mousse d'Irlande, filmogène protecteur et gélifiant naturel
-  PALMARIA_PALMATA: 'palmaria-palmata', // INCI: Palmaria Palmata Extract | Dulse, tonifiante et favorise la microcirculation (éclat du teint)
-  JANIA_RUBENS: 'jania-rubens', // INCI: Jania Rubens Extract | algue rouge calcaire, ultra-hydratante et "anti-fatigue" cellulaire
-  LAMINARIA_DIGITATA: 'laminaria-digitata', // INCI: Laminaria Digitata Extract | algue brune, reminéralisante et hydratante (riche en alginates)
-  FUCUS_VESICULOSUS: 'fucus-vesiculosus', // INCI: Fucus Vesiculosus Extract | algue brune, détoxifiante et drainante (souvent utilisée pour le contour des yeux)
-  ALARIA_ESCULENTA: 'alaria-esculenta', // INCI: Alaria Esculenta Extract | algue brune, booster de collagène et d'élastine (fermeté)
-  UNDARIA_PINNATIFIDA: 'undaria-pinnatifida', // INCI: Undaria Pinnatifida Extract | Wakamé, protecteur de la matrice extracellulaire et antioxydant
+  ISOSORBIDE_DICAPRYLATE: 'isosorbide-dicaprylate', // INCI: Isosorbide Dicaprylate | smart lipophilic humectant
+  RICE_AMINO_ACIDS: 'rice-amino-acids', // INCI: Rice Amino Acids | rice amino acids, conditioning
+  HUILE_BABASSU: 'huile-babassu', // INCI: Orbignya Oleifera Seed Oil | babassu oil, light emollient
+  PINUS_PALUSTRIS: 'pinus-palustris', // INCI: Pinus Palustris Leaf Extract | pine, toning antioxidant
+  VETIVERIA_ZIZANOIDES: 'vetiveria-zizanoides', // INCI: Vetiveria Zizanoides Root Extract | vetiver, soothing regenerating
+  APHANIZOMENON_FLOS_AQUAE: 'aphanizomenon-flos-aquae', // INCI: Aphanizomenon Flos-Aquae Extract | nutritive blue-green algae
+  ULVA_LACTUCA: 'ulva-lactuca', // INCI: Ulva Lactuca Extract | sea lettuce, rich in magnesium and elastin-like compounds (suppleness)
+  CHLORELLA_VULGARIS: 'chlorella-vulgaris', // INCI: Chlorella Vulgaris Extract | green microalgae, dark-circle corrector and restructuring
+  SPIRULINA_PLATENSIS: 'spirulina-platensis', // INCI: Spirulina Platensis Extract | blue microalgae, protein-rich superfood, revitalizing
+  DUNALIELLA_SALINA: 'dunaliella-salina', // INCI: Dunaliella Salina Extract | orange microalgae, very rich in beta-carotene (glow effect and antioxidant)
+  CHONDRUS_CRISPUS: 'chondrus-crispus', // INCI: Chondrus Crispus Extract | Irish moss, protective film-forming and natural gelling agent
+  PALMARIA_PALMATA: 'palmaria-palmata', // INCI: Palmaria Palmata Extract | Dulse, toning, promotes microcirculation (complexion radiance)
+  JANIA_RUBENS: 'jania-rubens', // INCI: Jania Rubens Extract | calcareous red algae, ultra-hydrating and cellular "anti-fatigue"
+  LAMINARIA_DIGITATA: 'laminaria-digitata', // INCI: Laminaria Digitata Extract | brown algae, remineralizing and hydrating (rich in alginates)
+  FUCUS_VESICULOSUS: 'fucus-vesiculosus', // INCI: Fucus Vesiculosus Extract | brown algae, detoxifying and draining (often used around the eye contour)
+  ALARIA_ESCULENTA: 'alaria-esculenta', // INCI: Alaria Esculenta Extract | brown algae, collagen and elastin booster (firmness)
+  UNDARIA_PINNATIFIDA: 'undaria-pinnatifida', // INCI: Undaria Pinnatifida Extract | Wakame, protects the extracellular matrix, antioxidant
   NMN: 'nmn',
-  SPINACIA_OLERACEA: 'spinacia-oleracea', // INCI: Spinacia Oleracea Leaf Extract | épinard, antioxydant anti-pollution
-  TARAXACUM_OFFICINALE: 'taraxacum-officinale', // INCI: Taraxacum Officinale Leaf Extract | pissenlit, détoxifiant anti-pollution
-  ARISTOTELIA_CHILENSIS: 'aristotelia-chilensis', // INCI: Aristotelia Chilensis Fruit Extract | maqui berry, antioxydant puissant
-  TEPHROSIA_PURPUREA: 'tephrosia-purpurea', // INCI: Tephrosia Purpurea Seed Extract | anti-pollution urbaine
-  AVENE_THERMAL_SPRING_WATER: 'avene-thermal-spring-water', // Eau thermale Avène | apaisante, anti-irritante
-  URIAGE_THERMAL_SPRING_WATER: 'uriage-thermal-spring-water', // Eau thermale Uriage | apaisante, reminéralisante naturelle
+  SPINACIA_OLERACEA: 'spinacia-oleracea', // INCI: Spinacia Oleracea Leaf Extract | spinach, anti-pollution antioxidant
+  TARAXACUM_OFFICINALE: 'taraxacum-officinale', // INCI: Taraxacum Officinale Leaf Extract | dandelion, anti-pollution detoxifier
+  ARISTOTELIA_CHILENSIS: 'aristotelia-chilensis', // INCI: Aristotelia Chilensis Fruit Extract | maqui berry, potent antioxidant
+  TEPHROSIA_PURPUREA: 'tephrosia-purpurea', // INCI: Tephrosia Purpurea Seed Extract | urban anti-pollution
+  AVENE_THERMAL_SPRING_WATER: 'avene-thermal-spring-water', // Avène thermal spring water | soothing, anti-irritant
+  URIAGE_THERMAL_SPRING_WATER: 'uriage-thermal-spring-water', // Uriage thermal spring water | soothing, naturally remineralizing
   TRIPTERYGIUM_WILFORDII_CALLUS_EXTRACT: 'tripterygium-wilfordii-callus-extract',
   MYRTUS_COMMUNIS_LEAF_EXTRACT: 'myrtus-communis-leaf-extract',
-  TASMANNIA_LANCEOLATA: 'tasmannia-lanceolata', // INCI: Tasmannia Lanceolata Fruit Extract | épice australienne, matifiante et tonifiante anti-âge
-  AQUABIOME: 'aquabiome', // Complexe d'actifs marins | protecteur du microbiome cutané marin / barrière cutanée
-  O_CYMEN_5_OL: 'o-cymen-5-ol', // INCI: o-Cymen-5-ol (Biosol) | conservateur doux antimicrobien, alternative aux parabens
-  GLYCERYL_CAPRYLATE_CAPRATE: 'glyceryl-caprylate-caprate', // INCI: Glyceryl Caprylate/Caprate | conservateur naturel multifonction, émollient
-  MELANIN: 'melanin', // INCI: Melanin | pigment biomimétique teintant et photoprotecteur (UV/HEV)
-  HYDROLYZED_YEAST_PROTEIN: 'hydrolyzed-yeast-protein', // INCI: Hydrolyzed Yeast Protein | hydrolysat de levure riche en bêta-glucane, fortifiant
+  TASMANNIA_LANCEOLATA: 'tasmannia-lanceolata', // INCI: Tasmannia Lanceolata Fruit Extract | Australian spice, mattifying and anti-aging toning
+  AQUABIOME: 'aquabiome', // Marine active complex | protects the marine skin microbiome
+  O_CYMEN_5_OL: 'o-cymen-5-ol', // INCI: o-Cymen-5-ol (Biosol) | mild antimicrobial preservative, paraben alternative
+  GLYCERYL_CAPRYLATE_CAPRATE: 'glyceryl-caprylate-caprate', // INCI: Glyceryl Caprylate/Caprate | multifunctional natural preservative, emollient
+  MELANIN: 'melanin', // INCI: Melanin | biomimetic tinting and photoprotective pigment (UV/HEV)
+  HYDROLYZED_YEAST_PROTEIN: 'hydrolyzed-yeast-protein', // INCI: Hydrolyzed Yeast Protein | beta-glucan-rich yeast hydrolysate, fortifying
 } as const
 
 export const FILLERS = {
-  // Solvants aqueux
-  AQUA: 'aqua', // INCI: Aqua (Water) | solvant universel, inerte
-  PROPANEDIOL: 'propanediol', // INCI: Propanediol | solvant/véhicule neutre
+  // Aqueous solvents
+  AQUA: 'aqua', // INCI: Aqua (Water) | universal solvent, inert
+  PROPANEDIOL: 'propanediol', // INCI: Propanediol | neutral solvent/vehicle
 
-  // Ajusteurs de pH & chélateurs
-  CITRIC_ACID: 'citric-acid', // INCI: Citric Acid | ajusteur pH, traces
-  SODIUM_HYDROXIDE: 'sodium-hydroxide', // INCI: Sodium Hydroxide | ajusteur pH, neutralisé dans la formule
-  POTASSIUM_HYDROXIDE: 'potassium-hydroxide', // INCI: Potassium Hydroxide | ajusteur pH
-  TRIETHANOLAMINE: 'triethanolamine', // INCI: Triethanolamine | ajusteur pH
-  TROMETHAMINE: 'tromethamine', // INCI: Tromethamine | ajusteur pH
-  SODIUM_CITRATE: 'sodium-citrate', // INCI: Sodium Citrate | tampon pH
-  DISODIUM_EDTA: 'disodium-edta', // INCI: Disodium EDTA | chélateur, traces, inerte cutanément
-  TETRASODIUM_EDTA: 'tetrasodium-edta', // INCI: Tetrasodium EDTA | chélateur, traces
+  // pH adjusters & chelators
+  CITRIC_ACID: 'citric-acid', // INCI: Citric Acid | pH adjuster, trace
+  SODIUM_HYDROXIDE: 'sodium-hydroxide', // INCI: Sodium Hydroxide | pH adjuster, neutralized in the formula
+  POTASSIUM_HYDROXIDE: 'potassium-hydroxide', // INCI: Potassium Hydroxide | pH adjuster
+  TRIETHANOLAMINE: 'triethanolamine', // INCI: Triethanolamine | pH adjuster
+  TROMETHAMINE: 'tromethamine', // INCI: Tromethamine | pH adjuster
+  SODIUM_CITRATE: 'sodium-citrate', // INCI: Sodium Citrate | pH buffer
+  DISODIUM_EDTA: 'disodium-edta', // INCI: Disodium EDTA | chelator, trace, skin-inert
+  TETRASODIUM_EDTA: 'tetrasodium-edta', // INCI: Tetrasodium EDTA | chelator, trace
 
-  // Épaississants / gélifiants
-  CARBOMER: 'carbomer', // INCI: Carbomer | gélifiant inerte, haute tolérance
-  XANTHAN_GUM: 'xanthan-gum', // INCI: Xanthan Gum | gélifiant inerte
-  ACRYLATES_CROSSPOLYMER: 'acrylates-c10-30-alkyl-acrylate-crosspolymer', // INCI: Acrylates/C10-30 Alkyl Acrylate Crosspolymer | gélifiant inerte
-  HYDROXYETHYLCELLULOSE: 'hydroxyethylcellulose', // INCI: Hydroxyethylcellulose | épaississant inerte
-  HYDROXYPROPYL_METHYLCELLULOSE: 'hydroxypropyl-methylcellulose', // INCI: Hydroxypropyl Methylcellulose | épaississant inerte
-  SODIUM_POLYACRYLATE: 'sodium-polyacrylate', // INCI: Sodium Polyacrylate | épaississant inerte
-  SCLEROTIUM_GUM: 'sclerotium-gum', // INCI: Sclerotium Gum | gélifiant inerte
+  // Thickeners / gelling agents
+  CARBOMER: 'carbomer', // INCI: Carbomer | inert gelling agent, high tolerance
+  XANTHAN_GUM: 'xanthan-gum', // INCI: Xanthan Gum | inert gelling agent
+  ACRYLATES_CROSSPOLYMER: 'acrylates-c10-30-alkyl-acrylate-crosspolymer', // INCI: Acrylates/C10-30 Alkyl Acrylate Crosspolymer | inert gelling agent
+  HYDROXYETHYLCELLULOSE: 'hydroxyethylcellulose', // INCI: Hydroxyethylcellulose | inert thickener
+  HYDROXYPROPYL_METHYLCELLULOSE: 'hydroxypropyl-methylcellulose', // INCI: Hydroxypropyl Methylcellulose | inert thickener
+  SODIUM_POLYACRYLATE: 'sodium-polyacrylate', // INCI: Sodium Polyacrylate | inert thickener
+  SCLEROTIUM_GUM: 'sclerotium-gum', // INCI: Sclerotium Gum | inert gelling agent
 
-  // Alcools gras & émulsifiants structurels
-  CETYL_ALCOHOL: 'cetyl-alcohol', // INCI: Cetyl Alcohol | structurel émulsion, inerte
-  STEARYL_ALCOHOL: 'stearyl-alcohol', // INCI: Stearyl Alcohol | structurel émulsion, inerte
-  BEHENYL_ALCOHOL: 'behenyl-alcohol', // INCI: Behenyl Alcohol | structurel émulsion, inerte
-  PEG_100_STEARATE: 'peg-100-stearate', // INCI: PEG-100 Stearate | émulsifiant structurel
-  CETEARETH_20: 'ceteareth-20', // INCI: Ceteareth-20 | émulsifiant structurel
+  // Fatty alcohols & structural emulsifiers
+  CETYL_ALCOHOL: 'cetyl-alcohol', // INCI: Cetyl Alcohol | emulsion structuring agent, inert
+  STEARYL_ALCOHOL: 'stearyl-alcohol', // INCI: Stearyl Alcohol | emulsion structuring agent, inert
+  BEHENYL_ALCOHOL: 'behenyl-alcohol', // INCI: Behenyl Alcohol | emulsion structuring agent, inert
+  PEG_100_STEARATE: 'peg-100-stearate', // INCI: PEG-100 Stearate | structural emulsifier
+  CETEARETH_20: 'ceteareth-20', // INCI: Ceteareth-20 | structural emulsifier
 
-  // Silicones véhicules
-  DIMETHICONOL: 'dimethiconol', // INCI: Dimethiconol | véhicule/texture inerte
-  CYCLOPENTASILOXANE: 'cyclopentasiloxane', // INCI: Cyclopentasiloxane (D5) | véhicule inerte
-  CYCLOHEXASILOXANE: 'cyclohexasiloxane', // INCI: Cyclohexasiloxane (D6) | véhicule inerte
-  PHENYL_TRIMETHICONE: 'phenyl-trimethicone', // INCI: Phenyl Trimethicone | véhicule inerte
+  // Vehicle silicones
+  DIMETHICONOL: 'dimethiconol', // INCI: Dimethiconol | inert vehicle/texture
+  CYCLOPENTASILOXANE: 'cyclopentasiloxane', // INCI: Cyclopentasiloxane (D5) | inert vehicle
+  CYCLOHEXASILOXANE: 'cyclohexasiloxane', // INCI: Cyclohexasiloxane (D6) | inert vehicle
+  PHENYL_TRIMETHICONE: 'phenyl-trimethicone', // INCI: Phenyl Trimethicone | inert vehicle
 
-  // Huiles minérales & hydrocarbures inertes
-  MINERAL_OIL: 'mineral-oil', // INCI: Mineral Oil (Paraffinum Liquidum) | occlusif inerte
-  PETROLATUM: 'petrolatum', // INCI: Petrolatum | occlusif inerte
-  ISOHEXADECANE: 'isohexadecane', // INCI: Isohexadecane | véhicule léger inerte
-  ISODODECANE: 'isododecane', // INCI: Isododecane | véhicule léger inerte
+  // Mineral oils & inert hydrocarbons
+  MINERAL_OIL: 'mineral-oil', // INCI: Mineral Oil (Paraffinum Liquidum) | inert occlusive
+  PETROLATUM: 'petrolatum', // INCI: Petrolatum | inert occlusive
+  ISOHEXADECANE: 'isohexadecane', // INCI: Isohexadecane | light inert vehicle
+  ISODODECANE: 'isododecane', // INCI: Isododecane | light inert vehicle
 
-  // Esters synthétiques véhicules
-  DICAPRYLYL_CARBONATE: 'dicaprylyl-carbonate', // INCI: Dicaprylyl Carbonate | émollient véhicule inerte
-  COCO_CAPRYLATE_CAPRATE: 'coco-caprylate-caprate', // INCI: Coco-Caprylate/Caprate | émollient véhicule inerte
+  // Synthetic vehicle esters
+  DICAPRYLYL_CARBONATE: 'dicaprylyl-carbonate', // INCI: Dicaprylyl Carbonate | inert vehicle emollient
+  COCO_CAPRYLATE_CAPRATE: 'coco-caprylate-caprate', // INCI: Coco-Caprylate/Caprate | inert vehicle emollient
 
-  // Sels ioniques inertes
-  SODIUM_CHLORIDE: 'sodium-chloride', // INCI: Sodium Chloride | sel basique, inerte
-  POTASSIUM_CHLORIDE: 'potassium-chloride', // INCI: Potassium Chloride | sel basique, inerte
+  // Inert ionic salts
+  SODIUM_CHLORIDE: 'sodium-chloride', // INCI: Sodium Chloride | basic salt, inert
+  POTASSIUM_CHLORIDE: 'potassium-chloride', // INCI: Potassium Chloride | basic salt, inert
 
-  // Émulsifiants doux
-  GLYCERYL_STEARATE_CITRATE: 'glyceryl-stearate-citrate', // INCI: Glyceryl Stearate Citrate | émulsifiant doux, biocompatible barrière
-  SUCROSE_STEARATE: 'sucrose-stearate', // INCI: Sucrose Stearate | émulsifiant ester de sucre, ultra-doux
+  // Mild emulsifiers
+  GLYCERYL_STEARATE_CITRATE: 'glyceryl-stearate-citrate', // INCI: Glyceryl Stearate Citrate | mild emulsifier, barrier-biocompatible
+  SUCROSE_STEARATE: 'sucrose-stearate', // INCI: Sucrose Stearate | sugar ester emulsifier, ultra-mild
 } as const

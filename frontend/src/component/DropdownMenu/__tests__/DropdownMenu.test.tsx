@@ -4,9 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { DropdownMenu } from '../DropdownMenu'
 
-// Tests d'oracle pour le composant DropdownMenu partagé.
-// Couvrent le contrat post-refacto Option B (DOM-order roving focus,
-// hook useClickOutside multi-ref). Tous actifs, aucun `it.skip` résiduel.
+// Oracle tests for the shared DropdownMenu component.
+// Cover the post-refactor Option B contract (DOM-order roving focus,
+// multi-ref useClickOutside hook). All active, no residual `it.skip`.
 
 function Sample({ ariaLabel = 'Test menu' }: { ariaLabel?: string } = {}) {
   return (
@@ -30,8 +30,8 @@ function Sample({ ariaLabel = 'Test menu' }: { ariaLabel?: string } = {}) {
 }
 
 async function flushFocus() {
-  // useEffect dans Content schedule un requestAnimationFrame avant le focus.
-  // act() laisse passer le RAF + microtasks.
+  // Content's useEffect schedules a requestAnimationFrame before focusing.
+  // act() lets the RAF + microtasks flush.
   await act(async () => {
     await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
   })
@@ -139,10 +139,10 @@ describe('DropdownMenu — comportement actuel', () => {
     expect(outsideClick).not.toHaveBeenCalled()
   })
 
-  // D1 — Menu porté dans un <dialog open> doit s'attacher au dialog (top layer),
-  // pas à document.body. Lecture de triggerRef hors render (useLayoutEffect),
-  // cible figée à l'ouverture pour qu'une fermeture concurrente du dialog ne
-  // téléporte pas le menu et ne perde pas le focus.
+  // D1 — a menu portaled into a <dialog open> must attach to the dialog (top
+  // layer), not document.body. triggerRef is read outside render
+  // (useLayoutEffect), target frozen at open time so a concurrent dialog close
+  // doesn't teleport the menu and lose focus.
   it('D1 — menu portalisé dans <dialog open> rejoint le dialog, pas document.body', async () => {
     const user = userEvent.setup()
     render(
@@ -186,8 +186,8 @@ describe('DropdownMenu — comportement actuel', () => {
 describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
   afterEach(() => cleanup())
 
-  // D9 — ArrowDown sur le trigger doit ouvrir le menu et focus item[0].
-  // ARIA APG Menu Button pattern. Aujourd'hui : no-op.
+  // D9 — ArrowDown on the trigger must open the menu and focus item[0].
+  // ARIA APG Menu Button pattern.
   it('D9 — ArrowDown sur trigger ouvre menu + focus item[0]', async () => {
     const user = userEvent.setup()
     render(<Sample />)
@@ -212,7 +212,7 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Item C' }))
   })
 
-  // D10 — aria-orientation="vertical" sur role="menu".
+  // D10 — aria-orientation="vertical" on role="menu".
   it('D10 — role=menu porte aria-orientation="vertical"', async () => {
     const user = userEvent.setup()
     render(<Sample />)
@@ -220,7 +220,7 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(screen.getByRole('menu')).toHaveAttribute('aria-orientation', 'vertical')
   })
 
-  // D4 — items ont tabIndex=-1 (roving tabIndex pattern).
+  // D4 — items have tabIndex=-1 (roving tabIndex pattern).
   it('D4 — chaque menuitem porte tabIndex=-1', async () => {
     const user = userEvent.setup()
     render(<Sample />)
@@ -230,9 +230,9 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     })
   })
 
-  // D2 — kb nav survit à un re-render parent. Avec DOM-order roving, la
-  // source de vérité est le DOM courant (querySelectorAll), pas un itemsRef
-  // muté par registration callbacks — plus de risque de wipe entre re-renders.
+  // D2 — kb nav survives a parent re-render. With DOM-order roving, the source
+  // of truth is the current DOM (querySelectorAll), not an itemsRef mutated by
+  // registration callbacks — no more wipe risk between re-renders.
   it('D2 — kb nav reste fonctionnelle après re-render parent', async () => {
     function Wrapper({ tick }: { tick: number }) {
       return (
@@ -252,7 +252,7 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Item B' }))
   })
 
-  // Tab ferme le menu et rend le focus au trigger.
+  // Tab closes the menu and returns focus to the trigger.
   it('Tab ferme le menu et rend le focus au trigger', async () => {
     const user = userEvent.setup()
     render(<Sample />)
@@ -268,10 +268,10 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(document.activeElement).toBe(trigger)
   })
 
-  // DOM-order roving — items à l'intérieur d'un Fragment ne sont pas
-  // « cachés » par un wrapper composant. Children.toArray + check
-  // `child.type === DropdownMenuItem` les aurait skip ; querySelectorAll
-  // les voit car le rôle est posé par cloneElement sur l'élément final.
+  // DOM-order roving — items inside a Fragment aren't "hidden" by a component
+  // wrapper. Children.toArray + a `child.type === DropdownMenuItem` check would
+  // have skipped them; querySelectorAll sees them because the role is set by
+  // cloneElement on the final element.
   it('items dans Fragment — kb nav traverse correctement', async () => {
     const user = userEvent.setup()
     render(
@@ -301,8 +301,8 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Frag B' }))
   })
 
-  // Conditional remount — un item retiré puis ajouté entre deux opens doit
-  // être pris en compte. La lecture DOM live ne porte aucun état périmé.
+  // Conditional remount — an item removed then re-added between two opens must
+  // be accounted for. The live DOM read carries no stale state.
   it("items conditionnels — kb nav reflète l'ordre DOM courant après remount", async () => {
     function Conditional({ extra }: { extra: boolean }) {
       return (
@@ -332,18 +332,18 @@ describe('DropdownMenu — contrats post-fix (D-findings shipped)', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }))
     await flushFocus()
 
-    // Sans 'Extra' : Always → Tail.
+    // Without 'Extra': Always → Tail.
     await user.keyboard('{ArrowDown}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Tail' }))
 
-    // Remount avec 'Extra' présent (sans fermer le menu).
+    // Remount with 'Extra' present (without closing the menu).
     rerender(<Conditional extra={true} />)
 
-    // Le focus est resté sur Tail (dernier item connu). End → toujours dernier.
+    // Focus stayed on Tail (last known item). End → still last.
     await user.keyboard('{End}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Tail' }))
 
-    // Home → 1er item (Always), ArrowDown → Extra (nouveau, en position 2).
+    // Home → first item (Always), ArrowDown → Extra (new, at position 2).
     await user.keyboard('{Home}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Always' }))
     await user.keyboard('{ArrowDown}')

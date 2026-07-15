@@ -60,7 +60,7 @@ describe('signup', () => {
     await createTestUser(creds.rawEmail, creds.rawPassword)
     const existing = await signup(createCtx(), creds.email, creds.password)
 
-    // Byte-identical: aucun écart de code, statut ou forme entre nouveau et existant.
+    // Byte-identical: no difference in code, status or shape between new and existing.
     expect(existing).toEqual(fresh)
     expect(existing.success).toBe(true)
   })

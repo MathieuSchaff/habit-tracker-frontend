@@ -1,38 +1,38 @@
-// Règles strictes pour tagger un ingrédient
+// Strict rules for tagging an ingredient
 //
-// Depuis le refactor de la taxonomie (avril 2026), chaque slug porte un
-// `scope` dans TAG_TAXONOMY (`ingredient` | `product` | `both`). Le test
-// `shared-schemas-vs-tags` vérifie automatiquement que tout slug utilisé
-// ici a un scope compatible avec une molécule — plus besoin de tenir une
-// liste noire à la main, TAG_TAXONOMY est la source de vérité.
+// Since the taxonomy refactor (April 2026), every slug carries a `scope` in
+// TAG_TAXONOMY (`ingredient` | `product` | `both`). The `shared-schemas-vs-tags`
+// test auto-checks that every slug used here has a scope compatible with a
+// molecule — no more hand-maintained blacklist, TAG_TAXONOMY is the source of
+// truth.
 //
-// Catégories interdites sur un ingrédient (scope = 'product') :
-//   [x] product_type   (ex: serum, creme-hydratante)
-//   [x] routine_step   (ex: matin, hydratation, emollience)
-//   [x] skin_zone      (ex: zone-visage, zone-yeux)
-//   [x] la plupart des product_label (sans-parfum, vegan, hypoallergenique…)
-//   [x] skin_effect "produit fini" (texture-riche, texture-legere)
+// Categories forbidden on an ingredient (scope = 'product'):
+//   [x] product_type   (e.g. serum, creme-hydratante)
+//   [x] routine_step   (e.g. matin, hydratation, emollience)
+//   [x] skin_zone      (e.g. zone-visage, zone-yeux)
+//   [x] most product_label (sans-parfum, vegan, hypoallergenique…)
+//   [x] "finished product" skin_effect (texture-riche, texture-legere)
 //
-// Scope = 'both' : autorisés ici parce qu'ils décrivent AUSSI une
-// propriété intrinsèque de molécule :
+// Scope = 'both': allowed here because they ALSO describe an intrinsic
+// molecular property:
 //   [v] ingredient_attribute  (actif, humectant, filtre-uv, tensioactif…)
 //   [v] skin_effect (OCCLUSIF, REPULPANT, MATIFIANT, EFFET_PROTECTEUR)
 //   [v] product_label (FILTRES_CHIMIQUES, FILTRES_MINERAUX)
 //   [v] shared_label  (COMEDOGENE, NON_COMEDOGENE)
 //   [v] concern, skin_type
 //
-// Règle `avoid` :
-//   [v] uniquement skin_type ou concern.
-//   [x] jamais d'attribut, de label, de product_type ni de routine_step.
-//   [!] exception conventionnelle : `grossesse-compatible` (scope=product)
-//       est toléré dans `avoid` pour signifier "contre-indiqué pendant
-//       la grossesse" — le test le sait.
+// `avoid` rule:
+//   [v] skin_type or concern only.
+//   [x] never an attribute, label, product_type or routine_step.
+//   [!] conventional exception: `grossesse-compatible` (scope=product) is
+//       tolerated in `avoid` to mean "contraindicated during pregnancy" —
+//       the test knows about it.
 //
-// Convention comédogénicité :
-//   - `comedogene` / `non-comedogene` sont des FAITS moléculaires →
-//     ils vont en `secondary`, jamais en `avoid`.
-//   - La contre-indication clinique correspondante se traduit par
-//     `avoid: [peau-grasse, anti-acne]` sur l'ingrédient concerné.
+// Comedogenicity convention:
+//   - `comedogene` / `non-comedogene` are molecular FACTS → they go in
+//     `secondary`, never in `avoid`.
+//   - The matching clinical contraindication is expressed as
+//     `avoid: [peau-grasse, anti-acne]` on the ingredient concerned.
 
 import { dentalTagMap } from '../ingredients/dental/ingredient-tags'
 import { haircareTagMap } from '../ingredients/haircare/ingredient-tags'
@@ -40,11 +40,11 @@ import { skincareTagMap } from '../ingredients/skincare/ingredient-tags'
 import { supplementTagMap } from '../ingredients/supplements/ingredient-tags'
 
 export interface IngredientAssociation {
-  /** Tags principaux : bénéfices majeurs prouvés de l'actif */
+  /** Primary tags: the active's major proven benefits */
   primary: string[]
-  /** Tags secondaires : bénéfices d'accompagnement ou cibles spécifiques */
+  /** Secondary tags: supporting benefits or specific targets */
   secondary: string[]
-  /** Tags d'exclusion : types de peau ou conditions où l'actif est déconseillé */
+  /** Exclusion tags: skin types or conditions where the active is not advised */
   avoid: string[]
 }
 

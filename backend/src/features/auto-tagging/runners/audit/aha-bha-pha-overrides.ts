@@ -1,7 +1,7 @@
 // Audit manual AHA / BHA / PHA tags that the detector does NOT emit.
 //
 // Read-only. The three acid clusters carry a positionCap of 10 by design
-// (acide pH-dépendant past pos 10 = pH adjuster / preservative trace, not
+// (pH-dependent acid past pos 10 = pH adjuster / preservative trace, not
 // a functional exfoliant. See AUTO-TAGS.md §"AHA / BHA / PHA, drift
 // conservée par design"). Manual annotations are concentration-agnostic
 // and tag any product that contains the molecule, so 254 manual pairs

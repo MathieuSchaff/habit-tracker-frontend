@@ -2,14 +2,13 @@
 // One {key, slug, label, category} per tag; the legacy *_TAG_SLUGS object and
 // the taxonomy (tag-taxonomy.ts) are derived from this array.
 //
-// concern / age_group / dental_effect : slugs alignés sur
-// DENTAL_INGREDIENT_TAG_SLUGS quand le sens est partagé (rows DB indépendantes,
-// scope `both` déduit — cohérence cross-entité, même pattern que skincare).
-// product_type / product_label : slugs nouveaux scope produit.
+// concern / age_group / dental_effect: slugs aligned with
+// DENTAL_INGREDIENT_TAG_SLUGS when the meaning is shared (independent DB rows,
+// scope `both` inferred — cross-entity consistency, same pattern as skincare).
+// product_type / product_label: new slugs, product scope.
 //
-// Note `gencivite` / `taches` : orthographe préservée pour aligner avec les
-// ingredient slugs existants (typo `gencivite` vs correct `gingivite` à
-// harmoniser plus tard, hors scope de l'étape §4.5).
+// Note `gencivite` / `taches`: spelling preserved to align with the
+// existing ingredient slugs (typo `gencivite` vs correct `gingivite`).
 
 import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
 
