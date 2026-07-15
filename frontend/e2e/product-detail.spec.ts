@@ -321,7 +321,7 @@ test.describe('Product detail — Discussions tab', () => {
   })
 })
 
-test.describe('Product detail — dose signal (Lecture de la formule)', () => {
+test.describe('Product detail — Lecture de la formule', () => {
   // FormulaReading only mounts when the product has an INCI.
   async function findSlugWithInci(page: Page): Promise<string> {
     const list = await page.request.get('/api/products?category=skincare&sort=name&limit=10')
@@ -436,5 +436,69 @@ test.describe('Product detail — dose signal (Lecture de la formule)', () => {
     const tags = section.locator('.formula-reading__dose-tag')
     await expect(tags).toHaveCount(2)
     await expect(tags.first()).toHaveText('probablement dosé pour agir')
+  })
+
+  test('driver labels link to the ingredient page only when a slug is resolved', async ({
+    page,
+  }) => {
+    const slug = await findSlugWithInci(page)
+
+    // Mixed rendering is the norm: resolved labels become links, unresolved
+    // ones stay deliberate plain text (never a search-page fallback).
+    const assessment = {
+      explanation: {
+        topDrivers: [
+          {
+            label: 'Salicylic Acid',
+            inci: 'Salicylic Acid',
+            source: 'matchedEvidence',
+            axes: ['irritation'],
+            contribution: 0.6,
+            ingredientSlug: 'salicylic-acid',
+          },
+          {
+            label: 'Limonene',
+            inci: 'Limonene',
+            source: 'matchedEvidence',
+            axes: ['irritation'],
+            contribution: 0.4,
+            ingredientSlug: null,
+          },
+        ],
+        topBenefitDrivers: [
+          {
+            label: 'Niacinamide',
+            inci: 'Niacinamide',
+            axes: ['brightening'],
+            contribution: 0.8,
+            ingredientSlug: 'niacinamide',
+          },
+        ],
+      },
+      regulatoryNotes: [],
+      interactions: [],
+      coverage: { matched: 3, total: 5 },
+      matchedEvidence: [],
+    }
+
+    await page.route('**/api/products/*/dermo-score', (route) =>
+      route.fulfill({ json: { data: assessment } })
+    )
+
+    await page.goto(`/products/${slug}`)
+
+    const section = page.locator('.formula-reading')
+    await expect(section).toBeVisible({ timeout: 15_000 })
+
+    await expect(section.getByRole('link', { name: 'Niacinamide' })).toHaveAttribute(
+      'href',
+      '/ingredients/niacinamide'
+    )
+    await expect(section.getByRole('link', { name: 'Salicylic Acid' })).toHaveAttribute(
+      'href',
+      '/ingredients/salicylic-acid'
+    )
+    await expect(section.getByText('Limonene')).toBeVisible()
+    await expect(section.getByRole('link', { name: 'Limonene' })).toHaveCount(0)
   })
 })

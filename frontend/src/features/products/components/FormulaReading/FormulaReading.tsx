@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { GitMerge, Info, Scale, Sparkles } from 'lucide-react'
 import { useMemo } from 'react'
 
@@ -17,6 +18,21 @@ import './FormulaReading.css'
 
 type RiskAxis = keyof typeof RISK_AXIS_PHRASE
 type BenefitAxis = keyof typeof BENEFIT_AXIS_PHRASE
+
+// Unresolved labels (~35%) are the norm, not an error: plain text on purpose,
+// never a link to an empty search page.
+function DriverLabel({ label, slug }: { label: string; slug: string | null }) {
+  if (!slug) return <span className="formula-reading__label">{label}</span>
+  return (
+    <Link
+      to="/ingredients/$slug"
+      params={{ slug }}
+      className="formula-reading__label formula-reading__label--link"
+    >
+      {label}
+    </Link>
+  )
+}
 
 interface FormulaReadingProps {
   slug: string
@@ -86,7 +102,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
                 .join(', ')
               return (
                 <li key={d.label} className="formula-reading__item">
-                  <span className="formula-reading__label">{d.label}</span>
+                  <DriverLabel label={d.label} slug={d.ingredientSlug} />
                   {phrase && <span className="formula-reading__phrase"> — {phrase}</span>}
                   {d.inci && dosedInci.get(d.inci) && (
                     <span className="formula-reading__dose-tag">{DOSE_SIGNAL_PHRASE}</span>
@@ -115,7 +131,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
                   className="formula-reading__item"
                   data-relevant={relevant || undefined}
                 >
-                  <span className="formula-reading__label">{d.label}</span>
+                  <DriverLabel label={d.label} slug={d.ingredientSlug} />
                   {phrase && <span className="formula-reading__phrase"> — {phrase}</span>}
                   {d.inci && dosedInci.get(d.inci) && (
                     <span className="formula-reading__dose-tag">{DOSE_SIGNAL_PHRASE}</span>

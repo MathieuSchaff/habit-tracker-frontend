@@ -50,6 +50,21 @@
   font-weight: var(--font-medium);
 }
 
+/* Mixed lists are the norm: subtle underline marks the clickable labels
+   without making plain-text siblings look broken. */
+.formula-reading__label--link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong, var(--border-default));
+  text-underline-offset: 2px;
+}
+
+.formula-reading__label--link:hover,
+.formula-reading__label--link:focus-visible {
+  color: var(--color-primary);
+  text-decoration-color: currentcolor;
+}
+
 .formula-reading__phrase {
   color: var(--text-muted);
 }
