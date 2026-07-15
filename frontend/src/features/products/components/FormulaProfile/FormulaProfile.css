@@ -1,0 +1,28 @@
+/* Flat on purpose, like En bref and Ingredients: catalogue facts read in the
+   page flow. Boxed cards mark voices apart (FormulaReading, brand copy). */
+.formula-profile__groups {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  margin: 0;
+}
+
+.formula-profile__label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+}
+
+.formula-profile__cell {
+  margin: 0;
+}
+
+.formula-profile__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

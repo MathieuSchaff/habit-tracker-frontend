@@ -17,6 +17,7 @@ import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeade
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
+import { FormulaProfile } from '@/features/products/components/FormulaProfile/FormulaProfile'
 import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
 import { ProductSummary } from '@/features/products/components/ProductSummary/ProductSummary'
 import { deriveKpChips } from '@/features/products/kp-chips'
@@ -141,6 +142,8 @@ export function ProductInfoTab() {
         kind={product.kind}
         categories={product.ingredients?.map((i) => i.ingredientCategory) ?? []}
       />
+
+      <FormulaProfile tags={product.tags} />
 
       {product.description && (
         <details className="product-section product-inci product-brand-copy" open>
