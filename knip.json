@@ -37,7 +37,9 @@
         "src/images/upload/*.ts",
         "src/tests/**/*.ts",
         "scripts/*.ts",
-        "**/*.test.ts"
+        "**/*.test.ts",
+        "src/instrumentation.ts",
+        "hono-docs.ts"
       ],
       "project": ["src/**/*.ts", "scripts/**/*.ts"],
       "ignoreDependencies": ["@types/bun", "pino-pretty"]
@@ -60,7 +62,12 @@
       "vite": true,
       "vitest": true,
       "playwright": true,
-      "ignoreDependencies": ["@tanstack/router-cli", "@tanstack/react-router-devtools", "katex"]
+      "ignoreDependencies": [
+        "@tanstack/router-cli",
+        "@tanstack/react-router-devtools",
+        "katex",
+        "rollup-plugin-visualizer"
+      ]
     },
     "shared": {
       "entry": ["src/index.ts", "**/*.test.ts"],

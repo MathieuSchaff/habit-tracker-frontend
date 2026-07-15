@@ -5,6 +5,7 @@
     "react-doctor/no-redundant-roles": "off"
   },
   "ignore": {
+    "files": ["**/*.test.tsx"],
     "overrides": [
       {
         "files": ["src/routes/**"],
@@ -189,6 +190,7 @@
         "files": [
           "src/component/Card/Card.tsx",
           "src/assets/icons.tsx",
+          "src/assets/product-icons.tsx",
           "src/features/home/components/sections/Section.tsx"
         ],
         "rules": ["react-doctor/no-multi-comp"]
