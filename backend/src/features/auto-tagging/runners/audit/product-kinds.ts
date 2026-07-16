@@ -14,11 +14,10 @@ import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@aurore/s
 
 import { eq } from 'drizzle-orm'
 
-import { db } from '../../../../db'
 import type { Transaction } from '../../../../db/index'
 import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
-import { parseWriteSlugArgs } from '../cli-args'
+import { exitOnError, parseWriteSlugArgs } from '../cli-args'
 
 const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 
@@ -282,16 +281,20 @@ type ProductRow = {
 }
 
 async function loadProducts(): Promise<ProductRow[]> {
-  const rows = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      brand: products.brand,
-      name: products.name,
-      kind: products.kind,
-      category: products.category,
-    })
-    .from(products)
+  // Elevated read: the WRITE path elevates too — an audit reading a
+  // products_select_visible-filtered subset would fix only visible rows.
+  const rows = await withAdminRls((tx) =>
+    tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        brand: products.brand,
+        name: products.name,
+        kind: products.kind,
+        category: products.category,
+      })
+      .from(products)
+  )
   return rows as ProductRow[]
 }
 
@@ -408,7 +411,4 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+  .catch(exitOnError)

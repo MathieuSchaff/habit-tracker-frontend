@@ -19,7 +19,9 @@ import { and, eq, ilike, inArray, or } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
-import { padTrunc, rpad } from '../fmt'
+import { exitOnError } from '../cli-args'
+import { formatPct, padTrunc, rpad } from '../fmt'
+import { mulberry32 } from '../rng'
 
 const SAMPLE_SIZE = process.env.SAMPLE_SIZE ? Number(process.env.SAMPLE_SIZE) : 30
 const SEED = process.env.SEED
@@ -77,19 +79,23 @@ async function main() {
   console.log(`🥬 Audit vegan corpus (spot-check)`)
   console.log(`   sample_size=${SAMPLE_SIZE}${SEED ? ` · seed=${SEED}` : ' · random'}\n`)
 
-  const veganRows = await db
-    .select({
-      id: products.id,
-      slug: products.slug,
-      name: products.name,
-      brand: products.brand,
-      kind: products.kind,
-      inci: products.inci,
-    })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-    .innerJoin(products, eq(productTagLinks.productId, products.id))
-    .where(eq(productTagTypes.slug, 'vegan'))
+  // Elevated read: products_select_visible would silently drop non-`visible`
+  // products from the audited corpus (see db.ts fetchEligibleProducts).
+  const veganRows = await withAdminRls((tx) =>
+    tx
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        brand: products.brand,
+        kind: products.kind,
+        inci: products.inci,
+      })
+      .from(productTagLinks)
+      .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
+      .innerJoin(products, eq(productTagLinks.productId, products.id))
+      .where(eq(productTagTypes.slug, 'vegan'))
+  )
 
   console.log(`📊 Corpus`)
   console.log(`   ${veganRows.length} produits taggés vegan (tous kinds)`)
@@ -199,7 +205,7 @@ async function main() {
   } else {
     const tierARate = tierAHits.length / sample.length
     console.log(
-      `   Tier A = ${tierAHits.length}/${sample.length} (${(tierARate * 100).toFixed(1)} %) → resserrement recommandé.`
+      `   Tier A = ${tierAHits.length}/${sample.length} (${formatPct(tierARate)}) → resserrement recommandé.`
     )
     const offendingPatterns = new Set(tierAHits.map((h) => h.pattern))
     console.log(`   Ajouter à \`ANIMAL_PATTERNS\` : ${[...offendingPatterns].join(', ')}.`)
@@ -230,11 +236,15 @@ async function pruneFalsePositives(): Promise<void> {
   const ilikeFilters = TIER_A_PATTERNS.map((p) => ilike(products.inci, `%${p}%`))
   const orFilter = ilikeFilters.length > 1 ? or(...ilikeFilters) : ilikeFilters[0]
 
-  const fpProducts = await db
-    .select({ id: products.id, slug: products.slug })
-    .from(productTagLinks)
-    .innerJoin(products, eq(productTagLinks.productId, products.id))
-    .where(and(eq(productTagLinks.productTagId, veganTagId), orFilter))
+  // Elevated read: a candidate list filtered by products_select_visible would
+  // make the prune silently skip hidden products.
+  const fpProducts = await withAdminRls((tx) =>
+    tx
+      .select({ id: products.id, slug: products.slug })
+      .from(productTagLinks)
+      .innerJoin(products, eq(productTagLinks.productId, products.id))
+      .where(and(eq(productTagLinks.productTagId, veganTagId), orFilter))
+  )
 
   console.log(`   ${fpProducts.length} produits vegan + Tier A match`)
   if (fpProducts.length === 0) {
@@ -269,27 +279,16 @@ function sampleRandom<T>(arr: readonly T[], k: number, rng: () => number): T[] {
   return out
 }
 
-// Mulberry32 PRNG; seed hashed via FNV-1a.
+// Seed string hashed via FNV-1a, then delegated to the shared mulberry32.
 function makeSeededRng(seed: string): () => number {
   let h = 2166136261 >>> 0
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i)
     h = Math.imul(h, 16777619) >>> 0
   }
-  let s = h
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0
-    let t = s
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
+  return mulberry32(h)
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-vegan-corpus.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

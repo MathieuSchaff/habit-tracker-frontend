@@ -13,3 +13,8 @@ export function padTrunc(s: string, w: number): string {
 export function rpad(s: string, w: number): string {
   return s.length >= w ? s : ' '.repeat(w - s.length) + s
 }
+
+// Ratio (0..1) as a percent string; the single format for every runner CLI.
+export function formatPct(ratio: number, digits = 1): string {
+  return `${(ratio * 100).toFixed(digits)}%`
+}

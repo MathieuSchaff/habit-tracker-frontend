@@ -13,8 +13,9 @@
 // Each flags the contradiction, not the correct kind, so an admin triages.
 // Usage: bun run .../kind-inci-coherence.ts
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
+import { exitOnError } from '../cli-args'
 
 // Broad "is any surfactant present?" net (detergents, amphoterics, soaps, FR spellings),
 // kept wide for low false positives; intentionally not shared with the anionic-only
@@ -75,15 +76,19 @@ function isWashWithoutSurfactant(p: ProductRow): boolean {
 }
 
 async function main() {
-  const rows = (await db
-    .select({
-      slug: products.slug,
-      brand: products.brand,
-      name: products.name,
-      kind: products.kind,
-      inci: products.inci,
-    })
-    .from(products)) as ProductRow[]
+  // Elevated read: products_select_visible would silently drop non-`visible`
+  // rows from a coherence audit meant to cover the whole catalogue.
+  const rows = (await withAdminRls((tx) =>
+    tx
+      .select({
+        slug: products.slug,
+        brand: products.brand,
+        name: products.name,
+        kind: products.kind,
+        inci: products.inci,
+      })
+      .from(products)
+  )) as ProductRow[]
 
   const flagged = rows.filter(isWashWithoutSurfactant)
   const washMistagged = rows.filter(leadsWithWashSurfactant)
@@ -124,7 +129,4 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+  .catch(exitOnError)

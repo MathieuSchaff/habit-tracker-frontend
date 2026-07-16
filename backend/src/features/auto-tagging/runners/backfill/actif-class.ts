@@ -16,6 +16,7 @@ import {
 import { ingredientTagMap } from '../../../../db/seed/data/ingredient-tags'
 import { ingredientTagData, productTagData } from '../../../../db/seed/data/tags'
 import { detectActifClasses } from '../../passes/actif-class-detection'
+import { exitOnError } from '../cli-args'
 
 async function main() {
   console.log('🌱 Backfill actif_class (post-snapshot reload)...\n')
@@ -42,14 +43,18 @@ async function main() {
       `✅ defs : ${productDefs.length} product_tags + ${ingredientDefs.length} ingredient_tags (actif_class)`
     )
 
-    // Re-fetch id maps after the new defs are visible in this tx.
-    const [productTagRows, ingredientTagRows, ingredientRows] = await Promise.all([
-      tx.select({ id: productTagTypes.id, slug: productTagTypes.slug }).from(productTagTypes),
-      tx
-        .select({ id: ingredientTagTypes.id, slug: ingredientTagTypes.slug })
-        .from(ingredientTagTypes),
-      tx.select({ id: ingredients.id, slug: ingredients.slug }).from(ingredients),
-    ])
+    // Re-fetch id maps after the new defs are visible in this tx. Reads run
+    // serially: Promise.all on one tx connection trips Bun's SQL pipelining and
+    // misroutes result sets (see lib/fetch-auto-tag-bundle.ts).
+    const productTagRows = await tx
+      .select({ id: productTagTypes.id, slug: productTagTypes.slug })
+      .from(productTagTypes)
+    const ingredientTagRows = await tx
+      .select({ id: ingredientTagTypes.id, slug: ingredientTagTypes.slug })
+      .from(ingredientTagTypes)
+    const ingredientRows = await tx
+      .select({ id: ingredients.id, slug: ingredients.slug })
+      .from(ingredients)
 
     const productTagIdBySlug = new Map(productTagRows.map((r) => [r.slug, r.id]))
     const ingredientTagIdBySlug = new Map(ingredientTagRows.map((r) => [r.slug, r.id]))
@@ -123,9 +128,6 @@ async function main() {
   console.log('\n✨ Backfill actif_class terminé.\n')
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('backfill-actif-class.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur fatale :', err instanceof Error ? err.message : err)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

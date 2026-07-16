@@ -6,7 +6,8 @@
 //
 //   FAIL: hit_rate > max  (regression: tag fires on too much of the corpus)
 //   FAIL: min defined and hit_rate < min  (structural tag stopped firing)
-//   WARN: tag fires but has no budget entry  (unrecorded, add one)
+//   FAIL: tag fires but has no budget entry  (explicit budget required per
+//         emitter — hardened 2026-05-13, see runners/audit/check.ts)
 //   OK: within bounds
 //
 // Why per-category: skincare/solaire/bodycare have different INCI distributions

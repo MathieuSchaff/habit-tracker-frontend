@@ -4,7 +4,7 @@
 
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { type BudgetCategory, TAG_HIT_RATE_BUDGET } from '../../passes/tag-budgets'
-import { pad, rpad } from '../fmt'
+import { formatPct, pad, rpad } from '../fmt'
 import type { AuditState } from './stats'
 
 interface CheckRow {
@@ -12,7 +12,7 @@ interface CheckRow {
   category: string
   hitRate: number
   budget: string
-  status: 'OK' | 'FAIL' | 'WARN'
+  status: 'OK' | 'FAIL'
   reason?: string
 }
 
@@ -39,8 +39,8 @@ function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRo
     }
     const budgetStr =
       budget.min !== undefined
-        ? `${(budget.min * 100).toFixed(0)}–${(budget.max * 100).toFixed(0)}%`
-        : `≤${(budget.max * 100).toFixed(0)}%`
+        ? `${(budget.min * 100).toFixed(0)}–${formatPct(budget.max, 0)}`
+        : `≤${formatPct(budget.max, 0)}`
     if (rate > budget.max) {
       rows.push({
         slug,
@@ -48,7 +48,7 @@ function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRo
         hitRate: rate,
         budget: budgetStr,
         status: 'FAIL',
-        reason: `${(rate * 100).toFixed(1)}% > ${(budget.max * 100).toFixed(0)}%`,
+        reason: `${formatPct(rate)} > ${formatPct(budget.max, 0)}`,
       })
       fails++
     } else if (budget.min !== undefined && rate < budget.min) {
@@ -58,7 +58,7 @@ function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRo
         hitRate: rate,
         budget: budgetStr,
         status: 'FAIL',
-        reason: `${(rate * 100).toFixed(1)}% < ${(budget.min * 100).toFixed(0)}%`,
+        reason: `${formatPct(rate)} < ${formatPct(budget.min, 0)}`,
       })
       fails++
     } else {
@@ -73,9 +73,9 @@ function checkCategoryTags(cat: BudgetCategory, state: AuditState, rows: CheckRo
         slug,
         category: cat,
         hitRate: 0,
-        budget: `${(b.min * 100).toFixed(0)}–${(b.max * 100).toFixed(0)}%`,
+        budget: `${(b.min * 100).toFixed(0)}–${formatPct(b.max, 0)}`,
         status: 'FAIL',
-        reason: `0% < ${(b.min * 100).toFixed(0)}% (silent required tag)`,
+        reason: `0% < ${formatPct(b.min, 0)} (silent required tag)`,
       })
       fails++
     }
@@ -91,7 +91,7 @@ export function runCheck(state: AuditState): number {
     failCount += checkCategoryTags(cat as BudgetCategory, state, rows)
   }
   rows.sort((a, b) => {
-    const order = { FAIL: 0, WARN: 1, OK: 2 }
+    const order = { FAIL: 0, OK: 1 }
     if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status]
     return b.hitRate - a.hitRate
   })
@@ -102,15 +102,14 @@ export function runCheck(state: AuditState): number {
     `   ${'─'.repeat(28)} ${'─'.repeat(10)} ${'─'.repeat(7)} ${'─'.repeat(10)} ${'─'.repeat(6)}`
   )
   for (const r of rows) {
-    const icon = r.status === 'FAIL' ? '❌' : r.status === 'WARN' ? '⚠️ ' : '✅'
+    const icon = r.status === 'FAIL' ? '❌' : '✅'
     const reason = r.reason ? ` · ${r.reason}` : ''
     console.log(
-      `   ${pad(r.slug, 28)} ${pad(r.category, 10)} ${rpad(`${(r.hitRate * 100).toFixed(1)}%`, 7)} ${rpad(r.budget, 10)} ${icon} ${r.status}${reason}`
+      `   ${pad(r.slug, 28)} ${pad(r.category, 10)} ${rpad(formatPct(r.hitRate), 7)} ${rpad(r.budget, 10)} ${icon} ${r.status}${reason}`
     )
   }
   const failingRowCount = rows.filter((r) => r.status === 'FAIL').length
-  const warns = rows.filter((r) => r.status === 'WARN').length
   const oks = rows.filter((r) => r.status === 'OK').length
-  console.log(`\n   Summary: ${oks} OK · ${warns} WARN · ${failingRowCount} FAIL`)
+  console.log(`\n   Summary: ${oks} OK · ${failingRowCount} FAIL`)
   return failCount
 }
