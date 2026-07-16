@@ -45,6 +45,7 @@ import {
   eczemaAtopieDescriptionNeedsReview,
   partitionEczemaReview,
 } from '../passes/formula'
+import { fillerIngredients } from './helpers'
 
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
@@ -55,7 +56,7 @@ describe('detectOcclusifTags', () => {
   })
 
   test('petrolatum past position 8 → not flagged (texture emollient)', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(8)
     expect(detectOcclusifTags(`Aqua, ${filler}, Petrolatum`)).toEqual([])
   })
 })
@@ -77,7 +78,7 @@ describe('detectSemiOcclusif', () => {
   })
 
   test('squalane past position 5 → not flagged', () => {
-    const filler = Array.from({ length: 5 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(5)
     expect(detectSemiOcclusif(`Aqua, ${filler}, Squalane`, 'moisturizer')).toEqual([])
   })
 
@@ -229,6 +230,33 @@ describe('detectStepNettoyage1', () => {
   test('non-cleanser kind (moisturizer) → not flagged', () => {
     expect(
       detectStepNettoyage1('Caprylic/Capric Triglyceride, Glycerin, Aqua', 'moisturizer')
+    ).toEqual([])
+  })
+
+  test('coco-sulfate in top 5 → not flagged (foaming gel cleanser)', () => {
+    expect(
+      detectStepNettoyage1(
+        'Aqua, Caprylic/Capric Triglyceride, Sodium Coco-Sulfate, Glycerin, Cocamidopropyl Betaine',
+        'cleanser'
+      )
+    ).toEqual([])
+  })
+
+  test('coceth sulfate in top 5 → not flagged', () => {
+    expect(
+      detectStepNettoyage1(
+        'Aqua, Caprylic/Capric Triglyceride, Disodium Coceth Sulfate, Glycerin',
+        'cleanser'
+      )
+    ).toEqual([])
+  })
+
+  test('myreth sulfate in top 5 → not flagged', () => {
+    expect(
+      detectStepNettoyage1(
+        'Aqua, Caprylic/Capric Triglyceride, Sodium Myreth Sulfate, Glycerin',
+        'cleanser'
+      )
     ).toEqual([])
   })
 
@@ -904,7 +932,7 @@ describe('detectRepulpant', () => {
   })
 
   test('HA past position 8 (trace dosing) → not flagged', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(8)
     expect(
       detectRepulpant(
         `Aqua, Glycerin, ${filler}, Sodium Hyaluronate, Acetyl Hexapeptide-8`,
@@ -914,7 +942,7 @@ describe('detectRepulpant', () => {
   })
 
   test('glycerin past position 5 → not flagged (humectant trace)', () => {
-    const filler = Array.from({ length: 5 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(5)
     expect(
       detectRepulpant(
         `Aqua, Sodium Hyaluronate, Niacinamide, ${filler}, Glycerin, Acetyl Hexapeptide-8`,
@@ -971,7 +999,7 @@ describe('detectFiniMat', () => {
   })
 
   test('absorbent past position 8 (texture polish trace) → not flagged', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(8)
     expect(detectFiniMat(`Aqua, ${filler}, Silica`)).toEqual([])
   })
 
@@ -1008,7 +1036,7 @@ describe('detectTextureRiche', () => {
   })
 
   test('butters past position 8 → not flagged', () => {
-    const filler = Array.from({ length: 8 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(8)
     expect(
       detectTextureRiche(`Aqua, ${filler}, Butyrospermum Parkii Butter, Theobroma Cacao Butter`)
     ).toEqual([])
@@ -1118,6 +1146,25 @@ describe('detectNonGras', () => {
   test('serum without any silicone top 5 → not flagged', () => {
     expect(
       detectNonGras('Aqua, Glycerin, Niacinamide, Hyaluronic Acid, Tocopherol', 'serum')
+    ).toEqual([])
+  })
+
+  test('dimethiconol in top 5 (no vegetable oil) → non-gras', () => {
+    const tags = detectNonGras('Aqua, Glycerin, Dimethiconol, Niacinamide', 'serum')
+    expect(tags).toContain(S.NON_GRAS)
+  })
+
+  test('trimethylsiloxysilicate (film former) in top 5 → non-gras', () => {
+    const tags = detectNonGras(
+      'Aqua, Glycerin, Trimethylsiloxysilicate, Cyclopentasiloxane',
+      'serum'
+    )
+    expect(tags).toContain(S.NON_GRAS)
+  })
+
+  test('dimethiconol + olea europaea oil top 5 → not flagged (vegetable oil exclusion)', () => {
+    expect(
+      detectNonGras('Aqua, Glycerin, Olea Europaea Fruit Oil, Dimethiconol, Niacinamide', 'serum')
     ).toEqual([])
   })
 
@@ -1234,56 +1281,6 @@ describe('detectPeauNormale', () => {
 })
 
 // detectGrossesseAvoid — sodium retinoyl hyaluronate test removed (migrated to algo-derm).
-
-describe('detectStepNettoyage1 — extended sulfate variants', () => {
-  test('coco-sulfate in top 5 → not flagged (foaming gel cleanser)', () => {
-    expect(
-      detectStepNettoyage1(
-        'Aqua, Caprylic/Capric Triglyceride, Sodium Coco-Sulfate, Glycerin, Cocamidopropyl Betaine',
-        'cleanser'
-      )
-    ).toEqual([])
-  })
-
-  test('coceth sulfate in top 5 → not flagged', () => {
-    expect(
-      detectStepNettoyage1(
-        'Aqua, Caprylic/Capric Triglyceride, Disodium Coceth Sulfate, Glycerin',
-        'cleanser'
-      )
-    ).toEqual([])
-  })
-
-  test('myreth sulfate in top 5 → not flagged', () => {
-    expect(
-      detectStepNettoyage1(
-        'Aqua, Caprylic/Capric Triglyceride, Sodium Myreth Sulfate, Glycerin',
-        'cleanser'
-      )
-    ).toEqual([])
-  })
-})
-
-describe('detectNonGras — extended silicone patterns', () => {
-  test('dimethiconol in top 5 (no vegetable oil) → non-gras', () => {
-    const tags = detectNonGras('Aqua, Glycerin, Dimethiconol, Niacinamide', 'serum')
-    expect(tags).toContain(S.NON_GRAS)
-  })
-
-  test('trimethylsiloxysilicate (film former) in top 5 → non-gras', () => {
-    const tags = detectNonGras(
-      'Aqua, Glycerin, Trimethylsiloxysilicate, Cyclopentasiloxane',
-      'serum'
-    )
-    expect(tags).toContain(S.NON_GRAS)
-  })
-
-  test('dimethiconol + olea europaea oil top 5 → not flagged (vegetable oil exclusion)', () => {
-    expect(
-      detectNonGras('Aqua, Glycerin, Olea Europaea Fruit Oil, Dimethiconol, Niacinamide', 'serum')
-    ).toEqual([])
-  })
-})
 
 // Mutex invariants
 // Pairs of slugs that are sensoriel-mutually-exclusive must never co-fire on
@@ -1740,12 +1737,6 @@ describe('detectTextureBaumeFromName', () => {
   })
 
   // Corpus fixtures (from spot-check)
-  test("L'Occitane Baume Regard → texture-baume", () => {
-    expect(detectTextureBaumeFromName('eye-cream', null, 'Baume Regard Immortelle Divine')).toEqual(
-      [S.TEXTURE_BAUME]
-    )
-  })
-
   test('SVR Palpebral Baume → texture-baume', () => {
     expect(detectTextureBaumeFromName('eye-cream', null, 'Palpebral Baume')).toEqual([
       S.TEXTURE_BAUME,

@@ -8,35 +8,10 @@ import { describe, expect, test } from 'bun:test'
 
 import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
-import { buildPassContext } from '../lib/build-pass-context'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
-import { detectAutoTags } from '../passes/algo-derm-detection'
 import { algoDermPass } from '../passes/algo-derm-pass'
-import { detectPeauNormale } from '../passes/formula/peau-normale'
 import { peauNormalePass } from '../passes/formula/peau-normale-pass'
-
-// Delegates to the production context builder so passes are tested through the
-// same seam the orchestrator uses (no drift between test and prod context).
-function makeCtx(
-  input: Pick<PassContext, 'kind' | 'category'> & {
-    inci?: string | null
-    brand?: string | null
-    name?: string | null
-    description?: string | null
-  }
-): PassContext {
-  return buildPassContext(
-    {
-      inci: input.inci ?? null,
-      kind: input.kind,
-      category: input.category,
-      brand: input.brand,
-      name: input.name,
-      description: input.description,
-    },
-    {}
-  )
-}
+import { makePassContext as makeCtx } from './helpers'
 
 describe('algoDermPass', () => {
   test('empty INCI → no proposals', () => {
@@ -44,28 +19,16 @@ describe('algoDermPass', () => {
     expect(algoDermPass.run(ctx, [])).toEqual([])
   })
 
-  test('wraps detectAutoTags output preserving slug, relevance, confidence; source = algo-derm', () => {
+  test('stamps source=algo-derm and carries a numeric confidence per proposal', () => {
     const inci = 'Aqua, Niacinamide, Ascorbic Acid, Tocopherol, Ferulic Acid, Glycerin'
     const ctx = makeCtx({ inci, kind: 'serum', category: 'skincare' })
-    const { assessment } = ctx
-    if (!assessment) throw new Error('assessment expected for non-empty INCI')
-
-    const raw = detectAutoTags(ctx.inci, ctx.kind, {
-      ...ctx.detectAutoTagsOptions,
-      assessment,
-      ingredients: [...ctx.ingredients],
-    })
     const out = algoDermPass.run(ctx, [])
 
-    expect(raw.length).toBeGreaterThan(0)
-    expect(out).toEqual(
-      raw.map((r) => ({
-        tagSlug: r.slug,
-        relevance: r.relevance,
-        source: 'algo-derm' as const,
-        confidence: r.confidence,
-      }))
-    )
+    expect(out.length).toBeGreaterThan(0)
+    for (const p of out) {
+      expect(p.source).toBe('algo-derm')
+      expect(typeof p.confidence).toBe('number')
+    }
   })
 
   test('forwards `detectAutoTagsOptions` (disableFloors surfaces extra tags)', () => {
@@ -106,12 +69,5 @@ describe('peauNormalePass', () => {
       category: 'skincare',
     })
     expect(peauNormalePass.run(ctx, [])).toEqual([])
-  })
-
-  test('matches detectPeauNormale output for the same inputs (shape parity)', () => {
-    const ctx = makeCtx({ inci: NEUTRAL_INCI, kind: 'moisturizer', category: 'skincare' })
-    const slugs = detectPeauNormale(ctx.inci, ctx.kind, new Set(), ctx.normalizedIngredients)
-    const out = peauNormalePass.run(ctx, [])
-    expect(out.map((p) => p.tagSlug)).toEqual(slugs)
   })
 })

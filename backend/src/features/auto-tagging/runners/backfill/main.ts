@@ -3,17 +3,7 @@
 // shared with `db/seed/seeders/seed-core.ts` so the two runners cannot drift on which
 // passes run or what relevance precedence applies.
 //
-// The shared orchestrator currently runs 10 ordered layers:
-//   1) algo-derm
-//   2) actif-class
-//   3) kind
-//   4) formula family (22 detectors)
-//   5) cross-signal
-//   6) percent-claim fallback
-//   7) interaction secondary
-//   8) brand labels
-//   9) avoid
-//  10) peau-normale abstention pass
+// Pass order and contents: `passes/registry.ts` (AUTO_TAG_PASSES).
 //
 // Relevance precedence: avoid > primary > secondary. When both signals fire for
 // the same (product, tag), the higher precedence wins. Detected `primary` (kind-
@@ -32,7 +22,7 @@
 //   INCLUDE_DROPPED 1: surface allow:false tags in report (no writes)
 //   LIMIT           int: cap product count
 
-import { sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import type { Transaction } from '../../../../db/index'
@@ -43,13 +33,14 @@ import { type AutoTagFetchBundle, computeTagRowsForProduct } from '../../lib/orc
 import type { AutoTagSource } from '../../orchestrator'
 import { TAG_CONFIG } from '../../passes/algo-derm-detection'
 import { fetchEligibleProducts } from '../audit/db'
-import { parseWriteSlugArgs } from '../cli-args'
+import { chunk } from '../chunk'
+import { exitOnError, parseIntEnv, parseWriteSlugArgs } from '../cli-args'
 import { type Candidate, type ClassifyResult, classifyCandidates, type Relevance } from './classify'
 
 const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
 const CONF_OVERRIDE = process.env.CONF_OVERRIDE ? Number(process.env.CONF_OVERRIDE) : null
 const INCLUDE_DROPPED = process.env.INCLUDE_DROPPED === '1'
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
+const LIMIT = parseIntEnv('LIMIT')
 
 type ProductRow = Awaited<ReturnType<typeof fetchEligibleProducts>>[number]
 
@@ -72,14 +63,14 @@ function logHeader(): void {
   console.log(
     `   mode=${WRITE ? 'WRITE' : 'DRY-RUN'} · ${allowedTagCount} algo-derm tags allow=true${
       CONF_OVERRIDE !== null ? ` · conf_override=${CONF_OVERRIDE}` : ''
-    }${SLUG_ARG ? ` · slug=${SLUG_ARG}` : ''}${LIMIT ? ` · limit=${LIMIT}` : ''}\n`
+    }${SLUG_ARG ? ` · slug=${SLUG_ARG}` : ''}${LIMIT !== null ? ` · limit=${LIMIT}` : ''}\n`
   )
 }
 
 function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
   const subset = SLUG_ARG
     ? allProducts.filter((p) => p.slug === SLUG_ARG)
-    : LIMIT
+    : LIMIT !== null
       ? allProducts.slice(0, LIMIT)
       : allProducts
   if (SLUG_ARG && subset.length === 0) {
@@ -89,7 +80,12 @@ function narrowSubset(allProducts: ProductRow[]): ProductRow[] {
 }
 
 // Loads tagType per tagId to distinguish curated primaries from V1 auto primaries.
-async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
+// Scoped to the product subset: under SLUG/LIMIT there is no reason to fold the
+// whole table.
+async function fetchExistingState(
+  tagIdToType: Map<string, string>,
+  productIds: readonly string[]
+): Promise<{
   existingMap: Map<string, Relevance>
   productsWithCuratedPrimary: Set<string>
   manualPairs: Set<string>
@@ -102,6 +98,7 @@ async function fetchExistingState(tagIdToType: Map<string, string>): Promise<{
       source: productTagLinks.source,
     })
     .from(productTagLinks)
+    .where(inArray(productTagLinks.productId, [...productIds]))
   const existingMap = new Map<string, Relevance>()
   const productsWithCuratedPrimary = new Set<string>()
   const manualPairs = new Set<string>()
@@ -161,12 +158,14 @@ function detectCandidates(
   return { candidateMap, noInci, eczemaReviewQueue }
 }
 
-function reportPlan(
-  subset: ProductRow[],
-  noInci: number,
-  candidateCount: number,
-  result: ClassifyResult
-): void {
+interface PlanStats {
+  sourceCountInsert: Record<AutoTagSource, number>
+  avoidUpserts: number
+  primaryPromotions: number
+}
+
+// Pure derivation, no printing — reportPlan renders it, main reuses it after write.
+function derivePlanStats(result: ClassifyResult): PlanStats {
   const sourceCountInsert: Record<AutoTagSource, number> = {
     'algo-derm': 0,
     'actif-class': 0,
@@ -179,7 +178,21 @@ function reportPlan(
     'percent-claim': 0,
   }
   for (const c of result.toInsert) sourceCountInsert[c.source]++
+  return {
+    sourceCountInsert,
+    avoidUpserts: result.toUpsert.length - result.primaryUpserts,
+    primaryPromotions: result.primaryInserts + result.primaryUpserts,
+  }
+}
 
+function reportPlan(
+  subset: ProductRow[],
+  noInci: number,
+  candidateCount: number,
+  result: ClassifyResult,
+  stats: PlanStats
+): void {
+  const { sourceCountInsert, avoidUpserts, primaryPromotions } = stats
   console.log(`📊 Produits : ${subset.length} scannés · ${noInci} sans INCI`)
   console.log(`   Candidats (après dédup intra-produit) : ${candidateCount}`)
   console.log(`   Déjà à jour                           : ${result.skipped}`)
@@ -193,11 +206,9 @@ function reportPlan(
   console.log(`   ├ brand          : ${sourceCountInsert.brand}`)
   console.log(`   ├ interaction    : ${sourceCountInsert.interaction}`)
   console.log(`   └ concentration  : ${sourceCountInsert.concentration}`)
-  const avoidUpserts = result.toUpsert.length - result.primaryUpserts
   if (avoidUpserts > 0) {
     console.log(`   Corrections avoid (→avoid)             : ${avoidUpserts}`)
   }
-  const primaryPromotions = result.primaryInserts + result.primaryUpserts
   if (primaryPromotions > 0) {
     console.log(`   Promotions primary (secondary→primary) : ${primaryPromotions}`)
   }
@@ -219,12 +230,11 @@ const CHUNK = 500
 // onConflictDoNothing preserves manual tags.
 async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<number> {
   let inserted = 0
-  for (let i = 0; i < toInsert.length; i += CHUNK) {
-    const chunk = toInsert.slice(i, i + CHUNK)
+  for (const batch of chunk(toInsert, CHUNK)) {
     await tx
       .insert(productTagLinks)
       .values(
-        chunk.map(({ productId, productTagId, relevance, source }) => ({
+        batch.map(({ productId, productTagId, relevance, source }) => ({
           productId,
           productTagId,
           relevance,
@@ -232,7 +242,7 @@ async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<n
         }))
       )
       .onConflictDoNothing()
-    inserted += chunk.length
+    inserted += batch.length
     if (toInsert.length > CHUNK) {
       process.stdout.write(`\r   Inséré : ${inserted}/${toInsert.length}`)
     }
@@ -245,12 +255,11 @@ async function insertNewPairs(tx: Transaction, toInsert: Candidate[]): Promise<n
 // Drizzle's set clause uses EXCLUDED.{relevance, source}.
 async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Promise<number> {
   let upserted = 0
-  for (let i = 0; i < toUpsert.length; i += CHUNK) {
-    const chunk = toUpsert.slice(i, i + CHUNK)
+  for (const batch of chunk(toUpsert, CHUNK)) {
     await tx
       .insert(productTagLinks)
       .values(
-        chunk.map(({ productId, productTagId, relevance, source }) => ({
+        batch.map(({ productId, productTagId, relevance, source }) => ({
           productId,
           productTagId,
           relevance,
@@ -261,7 +270,7 @@ async function upsertExistingPairs(tx: Transaction, toUpsert: Candidate[]): Prom
         target: [productTagLinks.productTagId, productTagLinks.productId],
         set: { relevance: sql`excluded.relevance`, source: sql`excluded.source` },
       })
-    upserted += chunk.length
+    upserted += batch.length
   }
   return upserted
 }
@@ -277,8 +286,10 @@ async function main() {
   const subset = narrowSubset(allProducts)
   const bundle = await loadAutoTagFetchBundle(subset.map((p) => p.id))
   const tagIdToType = new Map([...bundle.tagSlugToInfo.values()].map((t) => [t.id, t.tagType]))
-  const { existingMap, productsWithCuratedPrimary, manualPairs } =
-    await fetchExistingState(tagIdToType)
+  const { existingMap, productsWithCuratedPrimary, manualPairs } = await fetchExistingState(
+    tagIdToType,
+    subset.map((p) => p.id)
+  )
 
   const { candidateMap, noInci, eczemaReviewQueue } = detectCandidates(subset, bundle)
   const result = classifyCandidates(
@@ -288,7 +299,8 @@ async function main() {
     manualPairs
   )
 
-  reportPlan(subset, noInci, candidateMap.size, result)
+  const stats = derivePlanStats(result)
+  reportPlan(subset, noInci, candidateMap.size, result, stats)
 
   if (eczemaReviewQueue.length > 0) {
     console.warn(
@@ -314,15 +326,9 @@ async function main() {
     return n
   })
 
-  const avoidUpserts = result.toUpsert.length - result.primaryUpserts
-  const primaryPromotions = result.primaryInserts + result.primaryUpserts
   console.log(
-    `\n✅ ${inserted} insérées · ${avoidUpserts} corrections avoid · ${primaryPromotions} promotions primary.\n`
+    `\n✅ ${inserted} insérées · ${stats.avoidUpserts} corrections avoid · ${stats.primaryPromotions} promotions primary.\n`
   )
 }
 
-main().catch((err) => {
-  console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-  if (err instanceof Error && err.stack) console.error(err.stack)
-  process.exit(1)
-})
+main().catch(exitOnError)

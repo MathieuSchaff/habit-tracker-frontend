@@ -9,18 +9,15 @@
 import type { SkincareProductTagSlug } from '@aurore/shared'
 
 import { buildPassContext } from './lib/build-pass-context'
+import { isAutoTagEligibleCategory } from './lib/eligibility'
 import { mergeProposal, primaryPromote } from './lib/merge'
 import type { OrchestratorInput, OrchestratorOptions } from './lib/orchestrator-types'
 import type { AutoTagPair, AutoTagProposal } from './lib/pass-types'
 import { AUTO_TAG_PASSES } from './passes/registry'
 
+export { AUTO_TAG_ELIGIBLE_CATEGORIES, isAutoTagEligibleCategory } from './lib/eligibility'
 export type { OrchestratorInput, OrchestratorOptions } from './lib/orchestrator-types'
 export type { AutoTagPair, AutoTagRelevance, AutoTagSource } from './lib/pass-types'
-
-// Tuple is the source of truth for typed `inArray` queries; Set is the runtime check.
-// Haircare, dental, supplements carry no INCI-derived signal yet.
-export const AUTO_TAG_ELIGIBLE_CATEGORIES = ['skincare', 'solaire', 'bodycare'] as const
-const AUTO_TAG_ELIGIBLE_CATEGORIES_SET: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
 // Optional trace hooks. The orchestrator owns the single dispatch loop; the sink
 // lets a reader (explainInci) observe per-pass proposals, the pre-promote merge
@@ -47,7 +44,7 @@ export function detectAllAutoTags(
   options: OrchestratorOptions = {},
   sink?: AutoTagTraceSink
 ): AutoTagPair[] {
-  if (!AUTO_TAG_ELIGIBLE_CATEGORIES_SET.has(product.category)) return []
+  if (!isAutoTagEligibleCategory(product.category)) return []
 
   const baseCtx = buildPassContext(product, options)
   const ctx = sink?.dropCounts

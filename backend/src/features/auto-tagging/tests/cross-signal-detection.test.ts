@@ -66,30 +66,21 @@ describe('cross-signal-detection', () => {
     expect(tags).toEqual([])
   })
 
-  test('C5 retinoids on body-lotion → anti-age', () => {
-    const tags = detectCrossSignalTags([S.RETINOIDS], 'body-lotion')
-    expect(tags).toContain(S.ANTI_AGE)
+  // C5: retinoids on a body leave-on kind re-emit anti-age; rinse-off and
+  // non-retinoid actifs must not.
+  test.each([
+    [[S.RETINOIDS], 'body-lotion', true],
+    [[S.RETINOIDS], 'body-oil', true],
+    [[S.RETINOIDS], 'hand-cream', true],
+    [[S.RETINOIDS], 'body-wash', false],
+    [[S.HYALURONIC_ACID], 'body-lotion', false],
+  ] as const)('C5 actifs=%j on %s → anti-age=%s', (actifs, kind, expected) => {
+    const tags = detectCrossSignalTags([...actifs], kind)
+    expect(tags.includes(S.ANTI_AGE)).toBe(expected)
   })
 
-  test('C5 retinoids on body-oil → anti-age + moment-soir', () => {
-    const tags = detectCrossSignalTags([S.RETINOIDS], 'body-oil')
-    expect(tags).toContain(S.ANTI_AGE)
-    expect(tags).toContain(S.MOMENT_SOIR)
-  })
-
-  test('C5 retinoids on hand-cream → anti-age', () => {
-    const tags = detectCrossSignalTags([S.RETINOIDS], 'hand-cream')
-    expect(tags).toContain(S.ANTI_AGE)
-  })
-
-  test('C5 retinoids on body-wash (rinse-off) → no anti-age', () => {
-    const tags = detectCrossSignalTags([S.RETINOIDS], 'body-wash')
-    expect(tags).not.toContain(S.ANTI_AGE)
-  })
-
-  test('C5 no retinoids on body-lotion → no anti-age', () => {
-    const tags = detectCrossSignalTags([S.HYALURONIC_ACID], 'body-lotion')
-    expect(tags).not.toContain(S.ANTI_AGE)
+  test('C5 retinoids on body-oil also keeps moment-soir (leave-on photosensitivity)', () => {
+    expect(detectCrossSignalTags([S.RETINOIDS], 'body-oil')).toContain(S.MOMENT_SOIR)
   })
 })
 

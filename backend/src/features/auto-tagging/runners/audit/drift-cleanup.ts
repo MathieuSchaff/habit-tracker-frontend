@@ -6,6 +6,7 @@ import { and, eq } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
+import { exitOnError } from '../cli-args'
 
 const APPLY = process.env.APPLY === '1'
 
@@ -164,7 +165,6 @@ async function main() {
         console.log(`  ${count > 0 ? '✓' : '○'} ${row.product} ← ${row.tag} (${row.reason})`)
         removed += count
       } else {
-        // dry-run: check existence only
         const exists = await tx
           .select({ pId: productTagLinks.productId })
           .from(productTagLinks)
@@ -189,10 +189,6 @@ async function main() {
   if (!APPLY) console.log(`Set APPLY=1 to commit.`)
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('drift-cleanup.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

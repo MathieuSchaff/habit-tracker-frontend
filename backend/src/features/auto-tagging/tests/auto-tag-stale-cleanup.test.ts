@@ -12,7 +12,8 @@ import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { addTagToProduct } from '../../product-tags/service'
-import { createProduct, updateProduct } from '../../products/service'
+import { updateProduct } from '../../products/service'
+import { createAutoTagProduct, getTagDefBySlug, getTagLinks } from './db-helpers'
 
 const RICH_INCI =
   'Aqua, Niacinamide, Retinol, Glycerin, Tocopherol, Phenoxyethanol, Hyaluronic Acid'
@@ -26,19 +27,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
   it('drops INCI-derived auto rows when INCI is emptied; preserves manual rows', async () => {
     const user = await createTestUser()
 
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: 'Test Serum',
-        brand: 'Lab',
-        kind: 'serum',
-        unit: 'pump',
-        category: 'skincare',
-        inci: RICH_INCI,
-      },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, { name: 'Test Serum', inci: RICH_INCI })
 
     const before = await testDb
       .select()
@@ -66,24 +55,11 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     // `keratose-pilaire` is emitted by `formula/keratose-pilaire.ts` only when the
     // name/description names KP. This fixture names neither, so the orchestrator never
     // emits it — safe marker for "row the orchestrator does not own".
-    const [manualDef] = await testDb
-      .select()
-      .from(productTagTypes)
-      .where(eq(productTagTypes.slug, 'keratose-pilaire'))
-      .limit(1)
-    if (!manualDef) throw new Error('seed productTagData missing "keratose-pilaire" slug')
+    const manualDef = await getTagDefBySlug('keratose-pilaire')
     await addTagToProduct(testDb, product.id, manualDef.id, 'secondary')
 
     // Confirm the manual row landed with source = 'manual'.
-    const [manualRow] = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, manualDef.id)
-        )
-      )
+    const [manualRow] = await getTagLinks(product.id, manualDef.id)
     expect(manualRow.source).toBe('manual')
 
     // Trigger retag by emptying the INCI. updateProduct's trigger now fires
@@ -100,15 +76,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     expect(inciDerivedAfter).toHaveLength(0)
 
     // Manual row survived.
-    const manualAfter = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, manualDef.id)
-        )
-      )
+    const manualAfter = await getTagLinks(product.id, manualDef.id)
     expect(manualAfter).toHaveLength(1)
     expect(manualAfter[0].source).toBe('manual')
   })
@@ -116,19 +84,12 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
   it('swaps auto rows when INCI changes; manual row survives untouched', async () => {
     const user = await createTestUser()
 
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: 'Test Cream',
-        brand: 'Lab',
-        kind: 'moisturizer',
-        unit: 'tube',
-        category: 'skincare',
-        inci: RICH_INCI,
-      },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, {
+      name: 'Test Cream',
+      kind: 'moisturizer',
+      unit: 'tube',
+      inci: RICH_INCI,
+    })
 
     const beforeAutoIds = new Set(
       (
@@ -142,12 +103,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     )
     expect(beforeAutoIds.size).toBeGreaterThan(0)
 
-    const [manualDef] = await testDb
-      .select()
-      .from(productTagTypes)
-      .where(eq(productTagTypes.slug, 'keratose-pilaire'))
-      .limit(1)
-    if (!manualDef) throw new Error('seed productTagData missing "keratose-pilaire" slug')
+    const manualDef = await getTagDefBySlug('keratose-pilaire')
     await addTagToProduct(testDb, product.id, manualDef.id, 'secondary')
 
     // Different INCI with zero overlap on RICH_INCI's actives (no Retinol,
@@ -174,15 +130,7 @@ describe('writeTagsForProduct — stale auto-tag cleanup on INCI change', () => 
     const dropped = [...beforeAutoIds].filter((id) => !afterAutoIds.has(id))
     expect(dropped.length).toBeGreaterThan(0)
 
-    const [manualAfter] = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, manualDef.id)
-        )
-      )
+    const [manualAfter] = await getTagLinks(product.id, manualDef.id)
     expect(manualAfter).toBeDefined()
     expect(manualAfter.source).toBe('manual')
   })

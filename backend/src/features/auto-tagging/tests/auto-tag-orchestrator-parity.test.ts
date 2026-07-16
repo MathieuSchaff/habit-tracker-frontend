@@ -5,13 +5,12 @@
 //   - same input twice → identical output
 //   - eligibility honored (skincare/solaire/bodycare only)
 //   - avoid wins over secondary on intra-product dedup
-//   - empty INCI still emits kind/cross-signal-avoid tags
+//   - empty INCI still emits kind tags (avoid needs INCI-derived actifs)
 //   - representative fixture products yield the expected pair set
 //
 // If a runner ever bypasses the orchestrator (inline detection pass), this
 // test won't catch it directly — the contract is enforced by the runners
 // importing from `auto-tag-orchestrator` and nothing else for tag derivation.
-// Audit §C.5 parity goal.
 
 import { describe, expect, test } from 'bun:test'
 
@@ -286,7 +285,7 @@ describe('detectAllAutoTags — pass coverage on representative products', () =>
     expect(slugs).toContain(S.TEXTURE_CREME)
     // peau-normale is a residual pass: it abstains once algo-derm classifies skin_type
     // (peau-seche/peau-sensible here). Asserting the abstention is stable — unlike asserting it
-    // fires — and guards the pass-order-drift failure mode (README §Failure modes). Positive
+    // fires — and guards the pass-order-drift failure mode (README, "Failure modes"). Positive
     // firing is covered by its unit test + the gold-set bench, not a synthetic orchestrator fixture.
     expect(slugs).not.toContain(S.PEAU_NORMALE)
   })

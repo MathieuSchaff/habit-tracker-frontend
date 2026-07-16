@@ -1,7 +1,7 @@
 // Pass wrapper around `detectActifClasses`. ADR-0001.
 // Cross-signal and avoid passes read output via `priorSlugsBySource(prior, 'actif-class')`.
 
-import { normalize, type RoleAtDose } from 'algo-derm'
+import { normalize } from 'algo-derm'
 
 import type { AutoTagProposal, Pass, PassContext } from '../lib/pass-types'
 import {
@@ -10,40 +10,24 @@ import {
   type RoleAtDoseLookup,
 } from './actif-class-detection'
 
-// Maps a matched acid pattern (canonical lowercase fragment) to algo-derm's solver
-// concentration estimate, reusing the assessment built once per product. Lets the
-// detector second-guess cap-marginal AHA hits on dose, not just INCI position (obs 1).
-function buildConcentrationLookup(
-  assessment: PassContext['assessment']
-): ConcentrationLookup | undefined {
-  if (!assessment) return undefined
-  const byName = new Map<string, number>()
-  for (const m of assessment.matchedEvidence) {
-    const pct = m.concentrationEstimate?.solverMeanPct
-    if (pct === undefined) continue
-    for (const key of [m.inci, m.ingredient, m.evidence.inci, ...(m.evidence.aliases ?? [])]) {
-      const n = normalize(key)
-      // First write wins: canonical names registered before alias collisions.
-      if (n && !byName.has(n)) byName.set(n, pct)
-    }
-  }
-  return (pattern) => byName.get(normalize(pattern))
-}
+type MatchedEvidence = NonNullable<PassContext['assessment']>['matchedEvidence'][number]
 
-// Maps a matched acid pattern to algo-derm's dose-conditioned exfoliant-vs-pH-adjuster
-// signal (roleAtDose), keyed identically to buildConcentrationLookup. Present only on
-// ingredients with an authored role curve (today: the AHA exfoliants); absent ⇒ the
-// detector falls back to position + name. ADR-0014.
-function buildRoleAtDoseLookup(
-  assessment: PassContext['assessment']
-): RoleAtDoseLookup | undefined {
+// Maps a matched acid pattern (canonical lowercase fragment) to a per-ingredient
+// value picked off algo-derm's assessment, reusing the assessment built once per
+// product. Keys fan out over every name algo-derm knows for the ingredient;
+// first write wins (canonical names registered before alias collisions).
+function buildAssessmentLookup<V>(
+  assessment: PassContext['assessment'],
+  pick: (m: MatchedEvidence) => V | undefined
+): ((pattern: string) => V | undefined) | undefined {
   if (!assessment) return undefined
-  const byName = new Map<string, RoleAtDose>()
+  const byName = new Map<string, V>()
   for (const m of assessment.matchedEvidence) {
-    if (!m.roleAtDose) continue
+    const value = pick(m)
+    if (value === undefined) continue
     for (const key of [m.inci, m.ingredient, m.evidence.inci, ...(m.evidence.aliases ?? [])]) {
       const n = normalize(key)
-      if (n && !byName.has(n)) byName.set(n, m.roleAtDose)
+      if (n && !byName.has(n)) byName.set(n, value)
     }
   }
   return (pattern) => byName.get(normalize(pattern))
@@ -53,8 +37,18 @@ export const actifClassPass: Pass = {
   name: 'actif-class',
   run: (ctx) => {
     const out: AutoTagProposal[] = []
-    const concentrationLookup = buildConcentrationLookup(ctx.assessment)
-    const roleAtDoseLookup = buildRoleAtDoseLookup(ctx.assessment)
+    // Solver % lets the detector second-guess cap-marginal AHA hits on dose,
+    // not just INCI position (obs 1).
+    const concentrationLookup: ConcentrationLookup | undefined = buildAssessmentLookup(
+      ctx.assessment,
+      (m) => m.concentrationEstimate?.solverMeanPct
+    )
+    // Dose-conditioned exfoliant-vs-pH-adjuster signal; present only on
+    // ingredients with an authored role curve (today: the AHA exfoliants). ADR-0014.
+    const roleAtDoseLookup: RoleAtDoseLookup | undefined = buildAssessmentLookup(
+      ctx.assessment,
+      (m) => m.roleAtDose
+    )
     for (const [tagSlug, evidence] of detectActifClassesWithEvidence(
       ctx.inci,
       ctx.normalizedIngredients,

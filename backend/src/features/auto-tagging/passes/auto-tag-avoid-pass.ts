@@ -13,7 +13,6 @@ export const avoidPass: Pass = {
     const candidates = computeAvoidCandidates(
       ctx.inci,
       ctx.kind,
-      ctx.category,
       priorSlugsBySource(prior, 'actif-class'),
       ctx.assessment,
       ctx.normalizedIngredients

@@ -1,5 +1,7 @@
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
+import { matchesNamePositioning } from './name-positioning'
+
 const S = SKINCARE_PRODUCT_TAG_SLUGS
 
 // Positioning gate for `rougeurs-vasculaires` (re-emits an algo-derm slug, ADR-0004).
@@ -25,9 +27,7 @@ export function detectRougeursVasculairesFromName(
   name: string | null | undefined,
   description: string | null | undefined
 ): SkincareProductTagSlug[] {
-  const searchText = `${name ?? ''} ${description ?? ''}`
-  if (REDNESS_POSITION_RE.test(searchText) && !CAMOUFLAGE_RE.test(searchText)) {
-    return [S.ROUGEURS_VASCULAIRES]
-  }
-  return []
+  return matchesNamePositioning(name, description, REDNESS_POSITION_RE, CAMOUFLAGE_RE)
+    ? [S.ROUGEURS_VASCULAIRES]
+    : []
 }

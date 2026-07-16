@@ -17,14 +17,12 @@ import type {
   TagEvidence,
 } from './lib/pass-types'
 import {
-  AUTO_TAG_ELIGIBLE_CATEGORIES,
   detectAllAutoTags,
+  isAutoTagEligibleCategory,
   type OrchestratorInput,
   type OrchestratorOptions,
 } from './orchestrator'
 import type { DropReason } from './passes/algo-derm-detection'
-
-const ELIGIBLE: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
 interface ExplainProposal {
   tagSlug: SkincareProductTagSlug
@@ -72,7 +70,7 @@ export function explainInci(
   input: OrchestratorInput,
   options: OrchestratorOptions = {}
 ): ExplainTrace {
-  if (!ELIGIBLE.has(input.category)) {
+  if (!isAutoTagEligibleCategory(input.category)) {
     return { eligible: false, layers: [], drops: [], promotions: [], final: [] }
   }
 
@@ -118,11 +116,13 @@ export function explainInci(
     }
   }
 
-  let projIdx = 0
+  let flatIdx = 0
   const layers: ExplainLayer[] = rawLayers.map((layer) => ({
     name: layer.name,
     proposals: layer.proposals.map((p) => {
-      const proposalWon = winnerIdxBySlug.get(p.tagSlug) === projIdx++
+      // Same flat-index walk as the winner scan above; both count every proposal.
+      const idx = flatIdx++
+      const proposalWon = winnerIdxBySlug.get(p.tagSlug) === idx
       const winner = winnerBySlug.get(p.tagSlug)
       return {
         tagSlug: p.tagSlug,

@@ -13,6 +13,7 @@ import { eq } from 'drizzle-orm'
 import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
+import { exitOnError } from '../cli-args'
 
 type Bucket = 'pos-cap' | 'false-pos' | 'parse-fail'
 
@@ -156,10 +157,6 @@ async function main() {
   )
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('drift-classify.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

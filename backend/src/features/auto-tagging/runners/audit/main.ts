@@ -23,11 +23,12 @@
 //                                 calibration; per-category and per-category×kind breakdowns.
 //   BENEFITS_OUT     optional   : raw (slug,category,kind,axis,benefit,confidence) CSV
 //   DISABLE_FLOORS   optional 1 : bypass confidenceFloor/coverageFloor gates to inspect
-//                                 raw confidence distribution (skin_type tuning, §2 roadmap).
+//                                 raw confidence distribution (skin_type tuning).
 
 import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
 import { TAG_CONFIG, type TagRule } from '../../passes/algo-derm-detection'
-import { rpad } from '../fmt'
+import { exitOnError } from '../cli-args'
+import { formatPct, rpad } from '../fmt'
 import { runCheck } from './check'
 import {
   BENEFITS_OUT,
@@ -362,13 +363,9 @@ function buildQuantileRow(axis: string, xs: number[]) {
 }
 
 function pct(n: number, d: number): string {
-  return d === 0 ? '0 %' : `${((n / d) * 100).toFixed(1)} %`
+  return d === 0 ? '0%' : formatPct(n / d)
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-auto-tags.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

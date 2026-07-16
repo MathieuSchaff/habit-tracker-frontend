@@ -12,9 +12,21 @@
 // Gold targets `secondary` membership; `avoid` correctness is validated via
 // safety-net tests, not the gold set.
 
+import path from 'node:path'
+
 import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
 export const GOLD_SET_SCHEMA_VERSION = '2026-05-08' as const
+
+// Default annotations file, resolved from THIS file so consumers at different
+// directory depths (audit runners, bootstrap) cannot drift on the path.
+export const DEFAULT_GOLD_SET_PATH = path.resolve(
+  import.meta.dir,
+  '..',
+  'data',
+  'gold-set',
+  'annotations.json'
+)
 
 // Focus tags covered by this benchmark:
 //   - 9 actif-class clusters (positionCap: ∞)

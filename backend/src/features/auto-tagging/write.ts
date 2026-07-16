@@ -14,7 +14,7 @@ import { db } from '../../db'
 import type { DB } from '../../db/index'
 import { products, productTagLinks } from '../../db/schema'
 import { logger } from '../../lib/logger'
-import { loadAutoTagFetchBundle } from './lib/fetch-auto-tag-bundle'
+import { loadAutoTagFetchBundle, ORCHESTRATOR_PRODUCT_COLUMNS } from './lib/fetch-auto-tag-bundle'
 import { computeTagRowsForProduct } from './lib/orchestrator-input'
 
 interface WriteTagsResult {
@@ -27,16 +27,7 @@ export async function writeTagsForProduct(
   database: DB = db
 ): Promise<WriteTagsResult> {
   const [product] = await database
-    .select({
-      id: products.id,
-      name: products.name,
-      description: products.description,
-      brand: products.brand,
-      kind: products.kind,
-      inci: products.inci,
-      category: products.category,
-      texture: products.texture,
-    })
+    .select({ id: products.id, ...ORCHESTRATOR_PRODUCT_COLUMNS })
     .from(products)
     .where(eq(products.id, productId))
     .limit(1)
@@ -88,12 +79,7 @@ export function buildAutoTagSkipLog(productId: string, meta: AutoTagSkipMeta, er
   }
 }
 
-export async function recordAutoTagSkip(
-  _database: DB,
-  productId: string,
-  meta: AutoTagSkipMeta,
-  err: unknown
-): Promise<void> {
+export function recordAutoTagSkip(productId: string, meta: AutoTagSkipMeta, err: unknown): void {
   logger.warn(buildAutoTagSkipLog(productId, meta, err), AUTOTAG_SKIP_EVENT_KIND)
 }
 
@@ -107,6 +93,6 @@ export async function writeTagsForProductFailSoft(
   try {
     await writeTagsForProduct(productId, database)
   } catch (err) {
-    await recordAutoTagSkip(database, productId, meta, err)
+    recordAutoTagSkip(productId, meta, err)
   }
 }

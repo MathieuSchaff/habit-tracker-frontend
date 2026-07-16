@@ -100,6 +100,13 @@ function binIndex(p: number, nBins: number): number {
   return Math.min(nBins - 1, Math.floor(p * nBins))
 }
 
+// NaN when either component is NaN or both are 0 (no positives anywhere).
+function f1Score(precision: number, recall: number): number {
+  return Number.isNaN(precision) || Number.isNaN(recall) || precision + recall === 0
+    ? Number.NaN
+    : (2 * precision * recall) / (precision + recall)
+}
+
 export function computeConfusion(
   rows: readonly { predicted: boolean; label: 0 | 1 }[]
 ): ConfusionCounts {
@@ -128,10 +135,7 @@ export function computePerTagMetrics(
   const recDen = conf.tp + conf.fn
   const precision = precDen === 0 ? Number.NaN : conf.tp / precDen
   const recall = recDen === 0 ? Number.NaN : conf.tp / recDen
-  const f1 =
-    Number.isNaN(precision) || Number.isNaN(recall) || precision + recall === 0
-      ? Number.NaN
-      : (2 * precision * recall) / (precision + recall)
+  const f1 = f1Score(precision, recall)
   return {
     tagSlug,
     tp: conf.tp,
@@ -182,11 +186,7 @@ export function microAverage(metrics: readonly PerTagMetrics[]): {
   const recDen = tp + fn
   const precision = precDen === 0 ? Number.NaN : tp / precDen
   const recall = recDen === 0 ? Number.NaN : tp / recDen
-  const f1 =
-    Number.isNaN(precision) || Number.isNaN(recall) || precision + recall === 0
-      ? Number.NaN
-      : (2 * precision * recall) / (precision + recall)
-  return { precision, recall, f1 }
+  return { precision, recall, f1: f1Score(precision, recall) }
 }
 
 function meanIgnoringNaN(values: readonly number[]): number {

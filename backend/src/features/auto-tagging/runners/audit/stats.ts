@@ -3,15 +3,12 @@
 // Read-only on DB. Reporting + env dispatch live in main.ts; CHECK in check.ts.
 
 import { analyzeINCI, splitINCI } from 'algo-derm'
-import { eq } from 'drizzle-orm'
 
-import { db } from '../../../../db'
-import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
 import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
-import { fetchEligibleProducts } from './db'
+import { fetchEligibleProducts, fetchProductTagSlugsByProduct } from './db'
 import {
   BENEFITS_OUT,
   CONF_OVERRIDE,
@@ -34,7 +31,7 @@ export interface TagStat {
 // assessment.interactions = firable subset of algo-derm interaction_rules.json:
 // no profile condition (pregnant/sensitiveSkin/acneProne) and no pH condition
 // (Aurore has no estimated_ph). Covers irritation/allergenicity stacks and
-// EU-banned MI/MCI in leave-on. Audit doc §A.2 / §D.3.
+// EU-banned MI/MCI in leave-on.
 export interface InteractionStat {
   count: number
   axes: string[]
@@ -268,27 +265,10 @@ async function fetchEligibleProductSubset(): Promise<ProductRow[]> {
   return fetchEligibleProducts({ limit: LIMIT ?? undefined })
 }
 
-// Labels each emitted tag as agree (already present) vs new (proposal).
-async function fetchExistingByProduct(): Promise<Map<string, Set<string>>> {
-  const existingRows = await db
-    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-  const existingByProduct = new Map<string, Set<string>>()
-  for (const r of existingRows) {
-    let set = existingByProduct.get(r.pId)
-    if (!set) {
-      set = new Set()
-      existingByProduct.set(r.pId, set)
-    }
-    set.add(r.slug)
-  }
-  return existingByProduct
-}
-
 export async function fetchAuditStats(): Promise<{ state: AuditState; subsetLength: number }> {
   const subset = await fetchEligibleProductSubset()
-  const existingByProduct = await fetchExistingByProduct()
+  // Labels each emitted tag as agree (already present) vs new (proposal).
+  const existingByProduct = await fetchProductTagSlugsByProduct()
   const concentrationsByProduct = await fetchKnownConcentrationsByProduct(subset.map((p) => p.id))
 
   const state = initState()

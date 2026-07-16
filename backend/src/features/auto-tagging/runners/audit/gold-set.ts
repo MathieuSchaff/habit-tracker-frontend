@@ -18,8 +18,6 @@
 //   CSV_OUT          optional   : per (product, tag) prediction CSV
 //   STRICT           optional 1 : fail if any annotation has empty present AND absent
 
-import path from 'node:path'
-
 import type { ProductKind } from '@aurore/shared'
 
 import { analyzeINCI, splitINCI } from 'algo-derm'
@@ -28,7 +26,12 @@ import { inArray, sql } from 'drizzle-orm'
 import { db } from '../../../../db'
 import { products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
-import { GOLD_SET_FOCUS_TAGS, type GoldSetFocusTag, loadGoldSet } from '../../gold-set/fixtures'
+import {
+  DEFAULT_GOLD_SET_PATH,
+  GOLD_SET_FOCUS_TAGS,
+  type GoldSetFocusTag,
+  loadGoldSet,
+} from '../../gold-set/fixtures'
 import { summarizeByLayer } from '../../gold-set/layers'
 import {
   computePerTagMetrics,
@@ -36,16 +39,18 @@ import {
   microAverage,
   type PerTagMetrics,
 } from '../../gold-set/metrics'
-import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import {
+  loadAutoTagFetchBundle,
+  ORCHESTRATOR_PRODUCT_COLUMNS,
+} from '../../lib/fetch-auto-tag-bundle'
 import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
 import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import type { TagEvidence } from '../../lib/pass-types'
-import { AUTO_TAG_ELIGIBLE_CATEGORIES } from '../../orchestrator'
+import { isAutoTagEligibleCategory } from '../../orchestrator'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
+import { exitOnError } from '../cli-args'
 
-const GOLD_SET_PATH =
-  process.env.GOLD_SET_PATH ??
-  path.resolve(import.meta.dir, '..', '..', 'data', 'gold-set', 'annotations.json')
+const GOLD_SET_PATH = process.env.GOLD_SET_PATH ?? DEFAULT_GOLD_SET_PATH
 const CSV_OUT = process.env.CSV_OUT
 const STRICT = process.env.STRICT === '1'
 
@@ -90,17 +95,7 @@ async function main() {
   const dbProducts = await db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL app.role = 'admin'`)
     return tx
-      .select({
-        id: products.id,
-        slug: products.slug,
-        name: products.name,
-        description: products.description,
-        brand: products.brand,
-        kind: products.kind,
-        category: products.category,
-        inci: products.inci,
-        texture: products.texture,
-      })
+      .select({ id: products.id, slug: products.slug, ...ORCHESTRATOR_PRODUCT_COLUMNS })
       .from(products)
       .where(inArray(products.slug, annotated))
   })
@@ -122,9 +117,8 @@ async function main() {
 
   // Category must still be auto-tag eligible; gold set may outlive category changes.
   const ineligibleCategories: string[] = []
-  const eligibleSet = new Set<string>(AUTO_TAG_ELIGIBLE_CATEGORIES)
   for (const p of dbProducts) {
-    if (!eligibleSet.has(p.category)) {
+    if (!isAutoTagEligibleCategory(p.category)) {
       ineligibleCategories.push(`${p.slug} (category=${p.category})`)
     }
   }
@@ -349,10 +343,6 @@ function printGoldFindings(findings: GoldFinding[], showTrigger: boolean): void 
   if (findings.length > SAMPLE) console.log(`    … +${findings.length - SAMPLE} de plus`)
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-gold-set.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

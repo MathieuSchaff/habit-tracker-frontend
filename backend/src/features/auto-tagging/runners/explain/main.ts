@@ -20,8 +20,12 @@ import { eq, sql } from 'drizzle-orm'
 import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { type ExplainTrace, explainInci } from '../../explain'
-import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import {
+  loadAutoTagFetchBundle,
+  ORCHESTRATOR_PRODUCT_COLUMNS,
+} from '../../lib/fetch-auto-tag-bundle'
 import { buildOrchestratorInput } from '../../lib/orchestrator-input'
+import { exitOnError } from '../cli-args'
 import { pad, rpad } from '../fmt'
 
 const VALID_KINDS = new Set(Object.keys(PRODUCT_KIND_LABELS))
@@ -149,16 +153,7 @@ async function runSlug(slug: string): Promise<void> {
   // the bundle reads stay serial on the tx connection (Bun pipelining trap).
   const result = await withAdminRls(async (tx) => {
     const [product] = await tx
-      .select({
-        id: products.id,
-        name: products.name,
-        description: products.description,
-        brand: products.brand,
-        kind: products.kind,
-        inci: products.inci,
-        category: products.category,
-        texture: products.texture,
-      })
+      .select({ id: products.id, ...ORCHESTRATOR_PRODUCT_COLUMNS })
       .from(products)
       .where(eq(products.slug, slug))
       .limit(1)
@@ -212,8 +207,5 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    process.exit(1)
-  })
+  main().catch(exitOnError)
 }

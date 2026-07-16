@@ -10,25 +10,22 @@ import { IONIC_SURFACTANT_PATTERNS } from './step-nettoyage-1'
 
 // ≥ 2 butters / waxes in top 8: signals a heavy, balm-ish texture. One butter
 // alone is usually a texture polish; two means the formula is butter-driven.
-
-const BUTTER_WAX_PATTERNS = [
-  'butyrospermum parkii', // shea butter
-  'shea butter',
-  'mangifera indica', // mango butter
-  'mango butter',
-  'theobroma cacao', // cocoa butter
-  'cocoa butter',
-  'cera alba', // beeswax
-  'beeswax',
-  'cera carnauba',
-  'carnauba wax',
-  'copernicia cerifera',
-  'candelilla wax',
-  'euphorbia cerifera', // candelilla wax by INCI botanical name
-  'cera microcristallina',
-  'microcrystalline wax',
-  'cocoa seed butter',
+//
+// One group per canonical butter/wax; each inner list holds its INCI + trade
+// synonyms so 'butyrospermum parkii' + 'shea butter' count as ONE butter.
+const BUTTER_WAX_GROUPS: ReadonlyArray<readonly string[]> = [
+  ['butyrospermum parkii', 'shea butter'],
+  ['mangifera indica', 'mango butter'],
+  ['theobroma cacao', 'cocoa butter', 'cocoa seed butter'],
+  ['cera alba', 'beeswax'],
+  ['cera carnauba', 'carnauba wax', 'copernicia cerifera'],
+  ['candelilla wax', 'euphorbia cerifera'],
+  ['cera microcristallina', 'microcrystalline wax'],
 ]
+
+// Flat view for the detectors that only need presence (texture-legere veto,
+// creme vetos, gel veto).
+const BUTTER_WAX_PATTERNS = BUTTER_WAX_GROUPS.flat()
 
 const TEXTURE_RICHE_POSITION_CAP = 8
 
@@ -38,40 +35,14 @@ export function detectTextureRiche(
 ): SkincareProductTagSlug[] {
   const ingredients = resolveIngredients(inci, hoistedIngredients)
   if (ingredients.length === 0) return []
-  // Each pattern can only count once (avoid 'butyrospermum parkii' + 'shea butter'
-  // double-counting on a single ingredient that contains both substrings).
-  const matchedPatterns = new Set<string>()
+
+  const matchedGroups = new Set<number>()
   for (const ing of inciWindow(ingredients, TEXTURE_RICHE_POSITION_CAP)) {
-    for (const p of BUTTER_WAX_PATTERNS) {
-      if (matchedPatterns.has(p)) continue
-      if (ing.includes(p)) {
-        matchedPatterns.add(p)
-        break
-      }
-    }
+    const groupIdx = BUTTER_WAX_GROUPS.findIndex((group) => group.some((p) => ing.includes(p)))
+    if (groupIdx !== -1) matchedGroups.add(groupIdx)
   }
 
-  // Synonym dedup: if both 'butyrospermum parkii' and 'shea butter' matched (same
-  // ingredient), still only one butter. Group by canonical name.
-  const canonicalGroups: Array<readonly string[]> = [
-    ['butyrospermum parkii', 'shea butter'],
-    ['mangifera indica', 'mango butter'],
-    ['theobroma cacao', 'cocoa butter', 'cocoa seed butter'],
-    ['cera alba', 'beeswax'],
-    ['cera carnauba', 'carnauba wax', 'copernicia cerifera'],
-    ['candelilla wax', 'euphorbia cerifera'],
-    ['cera microcristallina', 'microcrystalline wax'],
-  ]
-  let groupHits = 0
-  for (const group of canonicalGroups) {
-    if (group.some((p) => matchedPatterns.has(p))) groupHits++
-  }
-  const groupedSynonyms = new Set(canonicalGroups.flat())
-  for (const p of matchedPatterns) {
-    if (!groupedSynonyms.has(p)) groupHits++
-  }
-
-  return groupHits >= 2 ? [S.TEXTURE_RICHE] : []
+  return matchedGroups.size >= 2 ? [S.TEXTURE_RICHE] : []
 }
 
 // Hoisted above texture-legere/non-gras so multiple detectors can compose them.

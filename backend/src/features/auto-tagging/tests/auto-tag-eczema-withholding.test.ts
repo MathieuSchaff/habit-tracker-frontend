@@ -8,29 +8,18 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 
 import { SKINCARE_PRODUCT_TAG_SLUGS } from '@aurore/shared'
 
-import { and, eq } from 'drizzle-orm'
-
-import { productTagLinks, productTagTypes } from '../../../db/schema'
+import { productTagTypes } from '../../../db/schema'
 import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
-import { createProduct } from '../../products/service'
+import { createAutoTagProduct, getTagDefBySlug, getTagLinks } from './db-helpers'
 
 const ATOPIE_SLUG = SKINCARE_PRODUCT_TAG_SLUGS.ECZEMA_ATOPIE
 
 async function eczemaRowCount(productId: string): Promise<number> {
-  const [def] = await testDb
-    .select()
-    .from(productTagTypes)
-    .where(eq(productTagTypes.slug, ATOPIE_SLUG))
-    .limit(1)
-  if (!def) throw new Error(`seed productTagData missing "${ATOPIE_SLUG}" slug`)
-  const rows = await testDb
-    .select()
-    .from(productTagLinks)
-    .where(and(eq(productTagLinks.productId, productId), eq(productTagLinks.productTagId, def.id)))
-  return rows.length
+  const def = await getTagDefBySlug(ATOPIE_SLUG)
+  return (await getTagLinks(productId, def.id)).length
 }
 
 // Atopy-named so detectEczemaAtopieFromName fires; plain INCI adds no eczema signal.
@@ -44,39 +33,25 @@ describe('writeTagsForProduct — eczema-atopie withholding (intake wiring)', ()
 
   it('withholds eczema-atopie when the description contraindicates atopy', async () => {
     const user = await createTestUser()
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: ATOPIE_NAME,
-        brand: 'Lab',
-        kind: 'moisturizer',
-        unit: 'tube',
-        category: 'skincare',
-        inci: 'Aqua, Glycerin, Phenoxyethanol',
-        description: 'Déconseillé aux peaux atopiques sévères.',
-      },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, {
+      name: ATOPIE_NAME,
+      kind: 'moisturizer',
+      unit: 'tube',
+      inci: 'Aqua, Glycerin, Phenoxyethanol',
+      description: 'Déconseillé aux peaux atopiques sévères.',
+    })
     expect(await eczemaRowCount(product.id)).toBe(0)
   })
 
   it('persists eczema-atopie for a plainly atopy-positioned product', async () => {
     const user = await createTestUser()
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: ATOPIE_NAME,
-        brand: 'Lab',
-        kind: 'moisturizer',
-        unit: 'tube',
-        category: 'skincare',
-        inci: 'Aqua, Glycerin, Phenoxyethanol',
-        description: 'Apaise les sensations de démangeaison.',
-      },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, {
+      name: ATOPIE_NAME,
+      kind: 'moisturizer',
+      unit: 'tube',
+      inci: 'Aqua, Glycerin, Phenoxyethanol',
+      description: 'Apaise les sensations de démangeaison.',
+    })
     expect(await eczemaRowCount(product.id)).toBe(1)
   })
 })

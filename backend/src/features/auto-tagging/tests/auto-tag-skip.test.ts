@@ -3,13 +3,13 @@ import { beforeEach, describe, expect, it } from 'bun:test'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
-import { createProduct } from '../../products/service'
 import {
   AUTOTAG_SKIP_EVENT_KIND,
   buildAutoTagSkipLog,
   recordAutoTagSkip,
   writeTagsForProductFailSoft,
 } from '../write'
+import { createAutoTagProduct } from './db-helpers'
 
 const FAKE_PRODUCT_ID = '00000000-0000-7000-8000-000000000001'
 
@@ -42,15 +42,14 @@ describe('recordAutoTagSkip', () => {
     })
   })
 
-  it('keeps the fail-soft reporter non-throwing', async () => {
-    await expect(
+  it('keeps the fail-soft reporter non-throwing', () => {
+    expect(() =>
       recordAutoTagSkip(
-        testDb,
         FAKE_PRODUCT_ID,
         { operation: 'create', userId: 'u1' },
         new Error('same site')
       )
-    ).resolves.toBeUndefined()
+    ).not.toThrow()
   })
 })
 
@@ -61,12 +60,7 @@ describe('writeTagsForProductFailSoft', () => {
 
   it('does not throw when the orchestrator succeeds on a healthy product', async () => {
     const user = await createTestUser()
-    const product = await createProduct(
-      user.id,
-      'admin',
-      { name: 'Test Serum', brand: 'Lab', kind: 'serum', unit: 'pump', category: 'skincare' },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, { name: 'Test Serum' })
 
     await expect(
       writeTagsForProductFailSoft(testDb, product.id, {

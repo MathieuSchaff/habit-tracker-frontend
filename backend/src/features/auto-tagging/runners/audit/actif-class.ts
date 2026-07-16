@@ -35,29 +35,22 @@
 //   LIMIT          optional: cap product count (debug)
 //   GOLD_SET_PATH  optional: alternative annotations.json (else default path)
 
-import path from 'node:path'
-
 import type { ProductKind } from '@aurore/shared'
 
-import { eq } from 'drizzle-orm'
-
-import { db } from '../../../../db'
-import { productTagLinks, productTagTypes } from '../../../../db/schema'
-import { loadGoldSet } from '../../gold-set/fixtures'
+import { DEFAULT_GOLD_SET_PATH, loadGoldSet } from '../../gold-set/fixtures'
 import type { TagEvidence } from '../../lib/pass-types'
 import {
   ACTIF_CLASS_DEFS,
   detectActifClassesWithEvidence,
 } from '../../passes/actif-class-detection'
+import { exitOnError } from '../cli-args'
 import { pad } from '../fmt'
-import { fetchEligibleProducts } from './db'
+import { fetchEligibleProducts, fetchProductTagSlugsByProduct } from './db'
+import { LIMIT } from './env'
 
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 const DUMP_DRIFT = process.env.DUMP_DRIFT === '1'
 const DUMP_NEW = process.env.DUMP_NEW === '1'
-const GOLD_SET_PATH =
-  process.env.GOLD_SET_PATH ??
-  path.resolve(import.meta.dir, '..', '..', 'data', 'gold-set', 'annotations.json')
+const GOLD_SET_PATH = process.env.GOLD_SET_PATH ?? DEFAULT_GOLD_SET_PATH
 
 // Cap on per-cluster finding lists so a noisy cluster cannot flood the report;
 // the dropped count is always printed (no silent truncation).
@@ -130,21 +123,7 @@ async function main() {
     limit: LIMIT ?? undefined,
   })
 
-  const clusterSlugs = new Set<string>(ACTIF_CLASS_DEFS.map((d) => d.slug))
-  const existingRows = await db
-    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-  const existingByProduct = new Map<string, Set<string>>()
-  for (const r of existingRows) {
-    if (!clusterSlugs.has(r.slug)) continue
-    let set = existingByProduct.get(r.pId)
-    if (!set) {
-      set = new Set()
-      existingByProduct.set(r.pId, set)
-    }
-    set.add(r.slug)
-  }
+  const existingByProduct = await fetchProductTagSlugsByProduct([...uniqueClusterSlugs])
 
   // Gold set is optional: justesse columns degrade to omitted if it can't load.
   let goldBySlug: Map<string, { present: Set<string>; absent: Set<string> }> | null = null
@@ -348,10 +327,6 @@ async function main() {
   console.log(`\n✨ Audit terminé. Aucun INSERT effectué.\n`)
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-actif-class.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

@@ -6,6 +6,6 @@
 
 export { buildOrchestratorInput, type OrchestratorProductFields } from './lib/orchestrator-input'
 export type { AutoTagSource } from './lib/pass-types'
-export { AUTO_TAG_ELIGIBLE_CATEGORIES, detectAllAutoTags } from './orchestrator'
+export { detectAllAutoTags, isAutoTagEligibleCategory } from './orchestrator'
 export { partitionEczemaReview } from './passes/formula'
 export { writeTagsForProductFailSoft } from './write'

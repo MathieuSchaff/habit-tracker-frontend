@@ -1,17 +1,17 @@
 // INCI-derived auto-tag detection for skincare products via algo-derm.
 //
-// Single source of truth for the per-tag policy used by:
-//   - `db/seed/seeders/seed-core.ts` (initial seed)
-//   - `runners/audit/main.ts` (dry-run report)
-//   - `runners/backfill/main.ts` (post-snapshot rehydrate)
+// Single source of truth for the per-tag policy. Consumed by `algoDermPass`
+// (orchestrator pass 1) and directly by the pass-1 audits
+// (`runners/audit/stats.ts`, `runners/audit/gold-set.ts`).
 //
-// `tagProduct` from algo-derm (TAG_DEFS_VERSION 7) emits 38 candidate tags.
-// 29 are mapped + kept after calibration. The rest drop: they fire on too much
-// of the corpus (`sans-savon`),
-// are re-emitted with chemistry-aware gating by a formula pass (`matifiant`,
-// `repulpant`, `eczema-atopie`), are redundant with the actif-class clusters
-// (`keratolytique` → AHA/BHA/RETINOIDS), or are false precision on a claim
-// INCI can't verify (`vegan` → brand-cert only).
+// `tagProduct` from algo-derm emits its candidate tags; `TAG_CONFIG` below
+// decides which are kept (the version guard pins the calibration — count the
+// `allow: true` entries there, not here). Dropped candidates: fire on too much
+// of the corpus (`sans-savon`), are re-emitted with chemistry-aware or
+// positioning gating by a formula pass (`matifiant`, `repulpant`,
+// `eczema-atopie`, the R5 concern gates, `sebo-regulateur`), are redundant
+// with the actif-class clusters (`keratolytique` → AHA/BHA/RETINOIDS), or are
+// false precision on a claim INCI can't verify (`vegan` → brand-cert only).
 
 import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'

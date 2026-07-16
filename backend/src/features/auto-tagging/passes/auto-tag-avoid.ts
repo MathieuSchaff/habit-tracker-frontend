@@ -1,6 +1,6 @@
-// Shared avoid-pair computation for seed-core and backfill-auto-tags.
-// Centralised so the two runners cannot drift (audit §C.5 parity goal).
-// Haircare, dental, supplements carry no INCI-derived safety signal yet.
+// Avoid-pair computation behind `avoidPass`. Category eligibility is the
+// orchestrator's gate (detectAllAutoTags early-returns before any pass runs),
+// so no category check here.
 
 import type { ProductKind, SkincareProductTagSlug } from '@aurore/shared'
 
@@ -20,25 +20,16 @@ export interface AvoidCandidate {
   source: AvoidSource
 }
 
-const AVOID_ELIGIBLE_CATEGORIES = new Set(['skincare', 'solaire', 'bodycare'])
-
-export function isAvoidEligibleCategory(category: string): boolean {
-  return AVOID_ELIGIBLE_CATEGORIES.has(category)
-}
-
 // `actifClasses`: pass precomputed to skip a redundant `detectActifClasses` call.
 // `assessment`: when provided, interaction avoid (cumulative irritation -> peau-sensible)
 // runs. Production runners must hoist `analyzeINCI` and forward it; tests can omit.
 export function computeAvoidCandidates(
   inci: string | null | undefined,
   kind: ProductKind,
-  category: string,
   actifClasses?: SkincareProductTagSlug[],
   assessment?: ProductAssessment,
   hoistedIngredients?: readonly string[]
 ): AvoidCandidate[] {
-  if (!isAvoidEligibleCategory(category)) return []
-
   const candidates: AvoidCandidate[] = []
   // Same tag from multiple sources: emit once, keep first source seen.
   // Source is stats metadata; the avoid pair itself is the same.

@@ -20,12 +20,13 @@ import {
   type AutoTagSource,
   detectAllAutoTags,
 } from '../../orchestrator'
+import { exitOnError } from '../cli-args'
 import { rpad } from '../fmt'
 import { fetchEligibleProducts } from './db'
+import { LIMIT } from './env'
 
 const CSV_OUT = process.env.CSV_OUT
 const BASELINE = process.env.BASELINE
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 
 // Baseline CSVs outlive schema changes — validate enum columns on read
 // instead of blind-casting a stale snapshot into the diff.
@@ -106,7 +107,6 @@ async function main() {
   const diff = computeDiff(baselineRows, currentRows)
   await writeDiff(CSV_OUT, diff)
 
-  // Summary
   const added = diff.filter((d) => d.action === 'added')
   const removed = diff.filter((d) => d.action === 'removed')
   const changed = diff.filter((d) => d.action === 'relevance_changed')
@@ -274,10 +274,6 @@ async function readSnapshot(path: string): Promise<Row[]> {
   return rows
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-orchestrator-diff.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

@@ -1,67 +1,40 @@
-// Shape tests for the structural passes (ADR-0001).
+// Bind tests for the structural passes (ADR-0001).
 //
-// Each test asserts the wrapper does not drop signal vs its underlying
-// detector. Detector-internal coverage lives in the per-detector test files;
-// these tests are about the Pass interface contract.
+// Each test pins a discriminating behaviour of the wrapper (field routing,
+// source stamping, guard branches) with direct expected values — never by
+// restating `pass.run ≡ asProposals(detect(...))`, which proves nothing
+// (README, "Adding a new pass"). Detector-internal coverage lives in the
+// per-detector test files.
 
 import { describe, expect, test } from 'bun:test'
 
-import { detectKindTags, SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS as S } from '@aurore/shared'
 
 import type { BrandCertification } from '../../../db/schema/products/brand-certifications'
 import { normalizeBrand } from '../../../db/schema/products/brand-certifications'
-import { buildPassContext } from '../lib/build-pass-context'
-import { asProposals } from '../lib/pass-helpers'
 import type { AutoTagProposal, PassContext } from '../lib/pass-types'
-import { detectActifClassesWithEvidence } from '../passes/actif-class-detection'
 import { actifClassPass } from '../passes/actif-class-pass'
-import { computeAvoidCandidates } from '../passes/auto-tag-avoid'
 import { avoidPass } from '../passes/auto-tag-avoid-pass'
-import { detectBrandLevelLabels } from '../passes/brand-cert-detection'
 import { brandLevelPass } from '../passes/brand-cert-pass'
-import {
-  detectCrossSignalTags,
-  detectInteractionSecondaryTags,
-} from '../passes/cross-signal-detection'
+import { detectCrossSignalTags } from '../passes/cross-signal-detection'
 import { crossSignalPass, interactionSecondaryPass } from '../passes/cross-signal-pass'
 import { kindPass } from '../passes/kind-pass'
-import { detectPercentClaimTags } from '../passes/percent-claim-detection'
 import { percentClaimPass } from '../passes/percent-claim-pass'
-
-function makeCtx(
-  input: Pick<PassContext, 'kind' | 'category'> & {
-    inci?: string | null
-    brand?: string | null
-    brandCertifications?: PassContext['brandCertifications']
-    percentClaims?: PassContext['percentClaims']
-  }
-): PassContext {
-  return buildPassContext(
-    {
-      inci: input.inci ?? null,
-      kind: input.kind,
-      category: input.category,
-      brand: input.brand,
-      percentClaims: input.percentClaims,
-    },
-    { brandCertifications: input.brandCertifications }
-  )
-}
+import { makePassContext as makeCtx } from './helpers'
 
 const ACTIF_INCI = 'Aqua, Niacinamide, Ascorbic Acid, Tocopherol, Glycerin, Squalane'
 
 describe('actifClassPass', () => {
-  test('wraps detectActifClassesWithEvidence output with source=actif-class + evidence', () => {
+  test('emits actif clusters at source=actif-class with INCI evidence', () => {
     const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'skincare' })
-    const expected = [
-      ...detectActifClassesWithEvidence(ctx.inci, ctx.normalizedIngredients, ctx.kind),
-    ].map(([tagSlug, evidence]) => ({
-      tagSlug,
-      relevance: 'secondary' as const,
-      source: 'actif-class' as const,
-      evidence,
-    }))
-    expect(actifClassPass.run(ctx, [])).toEqual(expected)
+    const out = actifClassPass.run(ctx, [])
+    const vitaminC = out.find((p) => p.tagSlug === S.VITAMIN_C)
+    expect(vitaminC).toMatchObject({
+      relevance: 'secondary',
+      source: 'actif-class',
+      evidence: { sourceField: 'inci', matchedToken: 'ascorbic acid' },
+    })
+    for (const p of out) expect(p.source).toBe('actif-class')
   })
 
   test('empty INCI → no proposals', () => {
@@ -71,9 +44,13 @@ describe('actifClassPass', () => {
 })
 
 describe('kindPass', () => {
-  test('wraps detectKindTags output with source=kind', () => {
+  test('emits kind-derived tags at source=kind', () => {
     const ctx = makeCtx({ kind: 'serum', category: 'skincare' })
-    expect(kindPass.run(ctx, [])).toEqual(asProposals(detectKindTags(ctx.kind), 'kind'))
+    expect(kindPass.run(ctx, [])).toContainEqual({
+      tagSlug: S.TYPE_SERUM,
+      relevance: 'secondary',
+      source: 'kind',
+    })
   })
 
   test('emits same tags regardless of INCI', () => {
@@ -92,20 +69,19 @@ describe('crossSignalPass', () => {
       { tagSlug: S.RETINOIDS, relevance: 'secondary', source: 'actif-class' },
       { tagSlug: S.TYPE_SERUM, relevance: 'secondary', source: 'kind' }, // ignored
     ]
-    const expected = asProposals(
-      detectCrossSignalTags([S.AHA, S.RETINOIDS], ctx.kind, ctx.inci, ctx.normalizedIngredients),
-      'cross-signal'
-    )
-    expect(crossSignalPass.run(ctx, prior)).toEqual(expected)
+    // AHA + leave-on serum → moment-soir; the kind-sourced entry must not leak in.
+    expect(crossSignalPass.run(ctx, prior)).toContainEqual({
+      tagSlug: S.MOMENT_SOIR,
+      relevance: 'secondary',
+      source: 'cross-signal',
+    })
   })
 
   test('empty prior → detector receives empty actifSlugs', () => {
     const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'skincare' })
-    const expected = asProposals(
-      detectCrossSignalTags([], ctx.kind, ctx.inci, ctx.normalizedIngredients),
-      'cross-signal'
-    )
-    expect(crossSignalPass.run(ctx, [])).toEqual(expected)
+    // Sanity that the direct detector agrees nothing fires without actifs.
+    expect(detectCrossSignalTags([], ctx.kind, ctx.inci, ctx.normalizedIngredients)).toEqual([])
+    expect(crossSignalPass.run(ctx, [])).toEqual([])
   })
 })
 
@@ -115,14 +91,13 @@ describe('interactionSecondaryPass', () => {
     expect(interactionSecondaryPass.run(ctx, [])).toEqual([])
   })
 
-  test('wraps detectInteractionSecondaryTags output with source=interaction', () => {
+  test('stamps source=interaction on every proposal', () => {
     const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'skincare' })
     if (!ctx.assessment) throw new Error('assessment expected')
-    const expected = asProposals(
-      detectInteractionSecondaryTags(ctx.assessment, ctx.kind),
-      'interaction'
-    )
-    expect(interactionSecondaryPass.run(ctx, [])).toEqual(expected)
+    for (const p of interactionSecondaryPass.run(ctx, [])) {
+      expect(p.source).toBe('interaction')
+      expect(p.relevance).toBe('secondary')
+    }
   })
 })
 
@@ -132,13 +107,19 @@ describe('percentClaimPass', () => {
     expect(percentClaimPass.run(ctx, [])).toEqual([])
   })
 
-  test('wraps detectPercentClaimTags output with source=percent-claim', () => {
-    const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'skincare' })
-    const expected = asProposals(
-      detectPercentClaimTags(ctx.inci, ctx.percentClaims),
-      'percent-claim'
-    )
-    expect(percentClaimPass.run(ctx, [])).toEqual(expected)
+  test('reads ctx.percentClaims: fragile INCI + retinol claim → retinoids', () => {
+    // Alphabetical INCI counts as fragile, unlocking the strict fallback.
+    const ctx = makeCtx({
+      inci: 'Aqua, Butylene Glycol, Cetearyl Alcohol, Dimethicone, Glycerin, Niacinamide, Phenoxyethanol',
+      kind: 'serum',
+      category: 'skincare',
+      percentClaims: [
+        { ingredientSlug: 'retinol', concentrationValue: 0.3, concentrationUnit: '%' },
+      ],
+    })
+    expect(percentClaimPass.run(ctx, [])).toEqual([
+      { tagSlug: S.RETINOIDS, relevance: 'secondary', source: 'percent-claim' },
+    ])
   })
 })
 
@@ -163,7 +144,7 @@ describe('brandLevelPass', () => {
     expect(brandLevelPass.run(ctx, [])).toEqual([])
   })
 
-  test('wraps detectBrandLevelLabels output with source=brand', () => {
+  test('routes ctx.brand through the cert lookup and stamps source=brand', () => {
     const cert = makeCert('Acme', {
       isVegan: true,
       isCrueltyFree: true,
@@ -176,13 +157,10 @@ describe('brandLevelPass', () => {
       category: 'skincare',
       brandCertifications: certs,
     })
-    const expected = asProposals(
-      detectBrandLevelLabels(ctx.brand, ctx.brandCertifications),
-      'brand'
-    )
-    expect(brandLevelPass.run(ctx, [])).toEqual(expected)
-    // Sanity: detector actually emitted something for the happy path.
-    expect(expected.length).toBeGreaterThan(0)
+    expect(brandLevelPass.run(ctx, [])).toEqual([
+      { tagSlug: S.VEGAN, relevance: 'secondary', source: 'brand' },
+      { tagSlug: S.CRUELTY_FREE, relevance: 'secondary', source: 'brand' },
+    ])
   })
 })
 
@@ -194,29 +172,17 @@ describe('avoidPass', () => {
       { tagSlug: S.RETINOIDS, relevance: 'secondary', source: 'actif-class' },
     ]
 
-    const candidates = computeAvoidCandidates(
-      ctx.inci,
-      ctx.kind,
-      ctx.category,
-      [S.AHA, S.RETINOIDS],
-      ctx.assessment,
-      ctx.normalizedIngredients
-    )
-    const expected: AutoTagProposal[] = candidates.map((c) => ({
-      tagSlug: c.tagSlug,
+    const out = avoidPass.run(ctx, prior)
+    // Retinoid + AHA on a leave-on serum = the X1 stack-irritation avoid.
+    expect(out).toContainEqual({
+      tagSlug: S.PEAU_SENSIBLE,
       relevance: 'avoid',
-      source: c.source,
-    }))
-    expect(avoidPass.run(ctx, prior)).toEqual(expected)
+      source: 'cross-signal',
+    })
     // Every proposal must be relevance=avoid; source can be any of the avoid sources.
-    for (const p of avoidPass.run(ctx, prior)) {
+    for (const p of out) {
       expect(p.relevance).toBe('avoid')
       expect(['cross-signal', 'interaction', 'concentration']).toContain(p.source)
     }
-  })
-
-  test('ineligible category → no proposals', () => {
-    const ctx = makeCtx({ inci: ACTIF_INCI, kind: 'serum', category: 'haircare' })
-    expect(avoidPass.run(ctx, [])).toEqual([])
   })
 })

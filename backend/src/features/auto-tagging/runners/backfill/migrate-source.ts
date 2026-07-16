@@ -16,7 +16,7 @@
 
 import type { TagSource } from '@aurore/shared'
 
-import { sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { withAdminRls } from '../../../../db/rls'
@@ -24,9 +24,11 @@ import { productTagLinks } from '../../../../db/schema'
 import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
 import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import { fetchEligibleProducts } from '../audit/db'
+import { chunk } from '../chunk'
+import { exitOnError, parseIntEnv, parseWriteSlugArgs } from '../cli-args'
 
-const WRITE = process.argv.includes('--write')
-const LIMIT = process.env.LIMIT ? Number.parseInt(process.env.LIMIT, 10) : null
+const { write: WRITE } = parseWriteSlugArgs()
+const LIMIT = parseIntEnv('LIMIT')
 const CHUNK = 500
 
 async function main() {
@@ -37,8 +39,9 @@ async function main() {
   // silently skips moderated products.
   const allProducts = await fetchEligibleProducts()
 
-  const subset = LIMIT ? allProducts.slice(0, LIMIT) : allProducts
-  const bundle = await loadAutoTagFetchBundle(subset.map((p) => p.id))
+  const subset = LIMIT !== null ? allProducts.slice(0, LIMIT) : allProducts
+  const subsetIds = subset.map((p) => p.id)
+  const bundle = await loadAutoTagFetchBundle(subsetIds)
 
   const orchestratorSource = new Map<string, TagSource>()
   for (const p of subset) {
@@ -53,7 +56,9 @@ async function main() {
     }
   }
 
-  // Rows the orchestrator doesn't emit stay 'manual'; matched rows get bumped to detected source.
+  // Rows the orchestrator doesn't emit stay 'manual'; matched rows get bumped to
+  // detected source. Scoped to the subset: rows outside it can never match the
+  // orchestratorSource map anyway.
   const existing = await db
     .select({
       pId: productTagLinks.productId,
@@ -61,6 +66,7 @@ async function main() {
       source: productTagLinks.source,
     })
     .from(productTagLinks)
+    .where(inArray(productTagLinks.productId, subsetIds))
 
   // Group by target source to issue one UPDATE per (source, chunk).
   const updatesBySource = new Map<TagSource, [string, string][]>()
@@ -108,10 +114,9 @@ async function main() {
   await withAdminRls(async (tx) => {
     for (const [source, pairs] of updatesBySource) {
       let done = 0
-      for (let i = 0; i < pairs.length; i += CHUNK) {
-        const chunk = pairs.slice(i, i + CHUNK)
+      for (const batch of chunk(pairs, CHUNK)) {
         const values = sql.join(
-          chunk.map(([p, t]) => sql`(${p}::uuid, ${t}::uuid)`),
+          batch.map(([p, t]) => sql`(${p}::uuid, ${t}::uuid)`),
           sql`, `
         )
         await tx.execute(sql`
@@ -119,7 +124,7 @@ async function main() {
           SET source = ${source}
           WHERE (product_id, product_tag_id) IN (${values})
         `)
-        done += chunk.length
+        done += batch.length
         process.stdout.write(`\r   ${source.padEnd(14)} : ${done}/${pairs.length}`)
       }
       console.log()
@@ -128,9 +133,6 @@ async function main() {
   console.log('\n✨ Migration source terminée.')
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('migrate-source.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur fatale :', err instanceof Error ? err.message : err)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

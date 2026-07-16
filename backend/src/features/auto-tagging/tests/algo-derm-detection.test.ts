@@ -200,35 +200,21 @@ describe('algo-derm-detection', () => {
     expect(rinseOff.has(S.SANS_SULFATES)).toBe(true)
   })
 
-  test('T1 sans-sulfates: SLS in INCI suppresses tag', () => {
-    const inci = 'Aqua, Sodium Lauryl Sulfate, Glycerin, Cocamidopropyl Betaine'
-    const slugs = new Set(detectAutoTags(inci, 'cleanser').map((t) => t.slug))
-    expect(slugs.has(S.SANS_SULFATES)).toBe(false)
-  })
-
-  test('T1 sans-silicones: dimethicone in INCI suppresses tag', () => {
-    const inci = 'Aqua, Glycerin, Dimethicone, Cyclopentasiloxane, Tocopherol'
-    const slugs = new Set(detectAutoTags(inci, 'moisturizer').map((t) => t.slug))
-    expect(slugs.has(S.SANS_SILICONES)).toBe(false)
-  })
-
-  test('T1 sans-huiles-essentielles: lavender oil suppresses tag', () => {
-    // Algo-derm `essential_oil` heuristic flags Lavandula angustifolia oil.
-    const inci = 'Aqua, Glycerin, Lavandula Angustifolia Oil, Tocopherol'
-    const slugs = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
-    expect(slugs.has(S.SANS_HUILES_ESSENTIELLES)).toBe(false)
-  })
-
-  test('T1 sans-huiles-minerales: petrolatum in INCI suppresses tag', () => {
-    const inci = 'Aqua, Petrolatum, Glycerin, Tocopherol'
-    const slugs = new Set(detectAutoTags(inci, 'moisturizer').map((t) => t.slug))
-    expect(slugs.has(S.SANS_HUILES_MINERALES)).toBe(false)
-  })
-
-  test('T1 sans-allergenes-parfumants: limonene in INCI suppresses tag', () => {
-    const inci = 'Aqua, Glycerin, Parfum, Limonene, Linalool'
-    const slugs = new Set(detectAutoTags(inci, 'serum').map((t) => t.slug))
-    expect(slugs.has(S.SANS_ALLERGENES_PARFUMANTS)).toBe(false)
+  // T1: the offending ingredient family present in INCI suppresses its absence claim.
+  // (Lavandula angustifolia rides algo-derm's `essential_oil` heuristic.)
+  test.each([
+    [S.SANS_SULFATES, 'Aqua, Sodium Lauryl Sulfate, Glycerin, Cocamidopropyl Betaine', 'cleanser'],
+    [
+      S.SANS_SILICONES,
+      'Aqua, Glycerin, Dimethicone, Cyclopentasiloxane, Tocopherol',
+      'moisturizer',
+    ],
+    [S.SANS_HUILES_ESSENTIELLES, 'Aqua, Glycerin, Lavandula Angustifolia Oil, Tocopherol', 'serum'],
+    [S.SANS_HUILES_MINERALES, 'Aqua, Petrolatum, Glycerin, Tocopherol', 'moisturizer'],
+    [S.SANS_ALLERGENES_PARFUMANTS, 'Aqua, Glycerin, Parfum, Limonene, Linalool', 'serum'],
+  ] as const)('T1 %s: offending ingredient suppresses the claim', (slug, inci, kind) => {
+    const slugs = new Set(detectAutoTags(inci, kind).map((t) => t.slug))
+    expect(slugs.has(slug)).toBe(false)
   })
 
   test('dropCounts hook: rinse-off comedogene drop labelled rinse_off_excluded', () => {

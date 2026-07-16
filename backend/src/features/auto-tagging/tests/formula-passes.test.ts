@@ -9,37 +9,11 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import {
-  type ProductKind,
-  type ProductTexture,
-  SKINCARE_PRODUCT_TAG_SLUGS as S,
-  type SkincareProductTagSlug,
-} from '@aurore/shared'
+import { SKINCARE_PRODUCT_TAG_SLUGS as S, type SkincareProductTagSlug } from '@aurore/shared'
 
-import { buildPassContext } from '../lib/build-pass-context'
 import type { PassContext } from '../lib/pass-types'
 import { FORMULA_PASSES } from '../passes/formula/formula-passes'
-
-function makeCtx(input: {
-  inci?: string | null
-  kind: ProductKind
-  category: string
-  texture?: ProductTexture | null
-  name?: string | null
-  description?: string | null
-}): PassContext {
-  return buildPassContext(
-    {
-      inci: input.inci ?? null,
-      kind: input.kind,
-      category: input.category,
-      texture: input.texture,
-      name: input.name,
-      description: input.description,
-    },
-    {}
-  )
-}
+import { makePassContext as makeCtx } from './helpers'
 
 function runPass(name: string, ctx: PassContext): readonly SkincareProductTagSlug[] {
   const pass = FORMULA_PASSES.find((p) => p.name === name)

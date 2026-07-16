@@ -7,6 +7,7 @@ import {
   detectActifClassesWithEvidence,
   type RoleAtDoseLookup,
 } from '../passes/actif-class-detection'
+import { fillerIngredients } from './helpers'
 
 describe('actif-class-detection', () => {
   test('empty/null/whitespace INCI returns []', () => {
@@ -81,7 +82,7 @@ describe('actif-class-detection', () => {
   })
 
   test('position gating: retinol within early INCI is detected', () => {
-    const filler = Array.from({ length: 9 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(9)
     const inci = `Aqua, ${filler}, Retinol`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS)
   })
@@ -92,7 +93,7 @@ describe('actif-class-detection', () => {
   })
 
   test('vitamin-E: full-scan (no positionCap) — antioxidant trace at tail still detected', () => {
-    const filler = Array.from({ length: 30 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(30)
     const inci = `Aqua, ${filler}, Tocopherol`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.VITAMIN_E)
   })
@@ -116,7 +117,7 @@ describe('actif-class-detection', () => {
   })
 
   test('HA: full-scan (no positionCap) — humectant at tail still detected', () => {
-    const filler = Array.from({ length: 25 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(25)
     const inci = `Aqua, ${filler}, Sodium Hyaluronate`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.HYALURONIC_ACID)
   })
@@ -134,7 +135,7 @@ describe('actif-class-detection', () => {
   })
 
   test('peptides: full-scan (no positionCap) — anti-aging blend at tail still detected', () => {
-    const filler = Array.from({ length: 25 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(25)
     const inci = `Aqua, ${filler}, Palmitoyl Tripeptide-1`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.PEPTIDES)
   })
@@ -143,31 +144,24 @@ describe('actif-class-detection', () => {
     expect(detectActifClasses('Aqua, Glycerin, Vitis Vinifera Seed Oil')).toContain(
       SKINCARE_PRODUCT_TAG_SLUGS.POLYPHENOLS
     )
-    const filler = Array.from({ length: 20 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(20)
     const inci = `Aqua, ${filler}, Camellia Sinensis Seed Oil`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.POLYPHENOLS)
   })
 
-  test('AHA: position cap 10 retained — lactic acid past pos 10 = pH adjuster, not exfoliant', () => {
-    const filler = Array.from({ length: 15 }, (_, i) => `Filler${i + 1}`).join(', ')
-    const inci = `Aqua, ${filler}, Lactic Acid`
-    expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
-  })
-
-  test('BHA: position cap 10 retained — salicylic acid past pos 10 = preservative trace', () => {
-    const filler = Array.from({ length: 15 }, (_, i) => `Filler${i + 1}`).join(', ')
-    const inci = `Aqua, ${filler}, Salicylic Acid`
-    expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.BHA)
-  })
-
-  test('PHA: position cap 10 retained — gluconolactone past pos 10 = preservative booster', () => {
-    const filler = Array.from({ length: 15 }, (_, i) => `Filler${i + 1}`).join(', ')
-    const inci = `Aqua, ${filler}, Gluconolactone`
-    expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.PHA)
+  // Acid position caps retained: past the leave-on cap the molecule is a pH
+  // adjuster / preservative trace, not an exfoliant actif.
+  test.each([
+    ['aha', 'Lactic Acid'],
+    ['bha', 'Salicylic Acid'],
+    ['pha', 'Gluconolactone'],
+  ] as const)('%s: position cap retained — %s past pos 10 not tagged', (slug, ingredient) => {
+    const inci = `Aqua, ${fillerIngredients(15)}, ${ingredient}`
+    expect(detectActifClasses(inci)).not.toContain(slug)
   })
 
   test('enzymes: full-scan (no positionCap) — papain at tail still detected', () => {
-    const filler = Array.from({ length: 20 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(20)
     const inci = `Aqua, ${filler}, Papain`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.ENZYMES_EXFOLIANTS)
   })
@@ -176,7 +170,7 @@ describe('actif-class-detection', () => {
     expect(detectActifClasses('Aqua, Glycerin, Lipase, Protease')).toContain(
       SKINCARE_PRODUCT_TAG_SLUGS.ENZYMES_EXFOLIANTS
     )
-    const filler = Array.from({ length: 14 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(14)
     const inci = `Aqua, ${filler}, Lipase`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.ENZYMES_EXFOLIANTS)
   })
@@ -191,7 +185,7 @@ describe('actif-class-detection', () => {
   })
 
   test('retinoids: full-scan (no positionCap) — encapsulated retinol at tail still detected', () => {
-    const filler = Array.from({ length: 30 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(30)
     const inci = `Aqua, ${filler}, Retinol`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS)
   })
@@ -200,7 +194,7 @@ describe('actif-class-detection', () => {
     expect(detectActifClasses('Aqua, Glycerin, Retinal (Retinaldehyde)')).toContain(
       SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS
     )
-    const filler = Array.from({ length: 30 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(30)
     const inci = `Aqua, ${filler}, Retinal (Retinaldehyde)`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.RETINOIDS)
   })
@@ -212,7 +206,7 @@ describe('actif-class-detection', () => {
   })
 
   test('vitamin-C: full-scan (no positionCap) — ascorbyl palmitate at tail still detected', () => {
-    const filler = Array.from({ length: 25 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(25)
     const inci = `Aqua, ${filler}, Ascorbyl Palmitate`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.VITAMIN_C)
   })
@@ -230,7 +224,7 @@ describe('actif-class-detection', () => {
   })
 
   test('ceramides: full-scan (no positionCap) — relipidant blend at tail still detected', () => {
-    const filler = Array.from({ length: 30 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(30)
     const inci = `Aqua, ${filler}, Ceramide NP`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.CERAMIDES)
   })
@@ -251,7 +245,7 @@ describe('actif-class-detection', () => {
   })
 
   test('tyrosinase: full-scan (no positionCap) — alpha-arbutin at tail still detected', () => {
-    const filler = Array.from({ length: 25 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(25)
     const inci = `Aqua, ${filler}, Alpha-Arbutin`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.TYROSINASE_INHIBITORS)
   })
@@ -327,13 +321,13 @@ describe('actif-class-detection', () => {
   })
 
   test('urea: position cap 12 — urea past pos 12 = trace humectant, not detected', () => {
-    const filler = Array.from({ length: 13 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(13)
     const inci = `Aqua, ${filler}, Urea`
     expect(detectActifClasses(inci)).not.toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
   })
 
   test('urea: within top 12 detected', () => {
-    const filler = Array.from({ length: 9 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(9)
     const inci = `Aqua, ${filler}, Urea`
     expect(detectActifClasses(inci)).toContain(SKINCARE_PRODUCT_TAG_SLUGS.UREA)
   })
@@ -354,7 +348,7 @@ describe('detectActifClassesWithEvidence', () => {
     // Lactic acid at pos 11 (0-based 10) clears the rinse-off cap (20) but fails the
     // leave-on cap (10). With no productName the obs-1 gate is off, so the hit stays.
     // Production passes the name, which gates this pH-adjuster out (see tests below).
-    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(10)
     const inci = `Aqua, ${filler}, Lactic Acid, Hydroxyacetophenone`
     const ev = detectActifClassesWithEvidence(inci, undefined, 'cleanser').get(
       SKINCARE_PRODUCT_TAG_SLUGS.AHA
@@ -367,7 +361,7 @@ describe('detectActifClassesWithEvidence', () => {
   })
 
   test('obs-1 gate: cap-marginal AHA dropped when the name is not exfoliation-positioned', () => {
-    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(10)
     const inci = `Aqua, ${filler}, Lactic Acid, Hydroxyacetophenone`
     expect(
       detectActifClassesWithEvidence(inci, undefined, 'cleanser', 'Gel Nettoyant Purifiant').has(
@@ -377,7 +371,7 @@ describe('detectActifClassesWithEvidence', () => {
   })
 
   test('obs-1 gate: cap-marginal AHA kept when the name positions it as an exfoliant', () => {
-    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(10)
     const inci = `Aqua, ${filler}, Lactic Acid`
     const ev = detectActifClassesWithEvidence(
       inci,
@@ -402,7 +396,7 @@ describe('detectActifClassesWithEvidence', () => {
   test('obs-1 gate: cap-marginal lactic dropped but mandelic rescues AHA (medik8 case)', () => {
     // Lactic past the leave-on cap is gated out, but mandelic (never a pH adjuster) fires
     // on its own ungated def, so AHA survives even with a non-exfoliation name.
-    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(10)
     const inci = `Aqua, ${filler}, Lactic Acid, Mandelic Acid`
     const ev = detectActifClassesWithEvidence(
       inci,
@@ -414,7 +408,7 @@ describe('detectActifClassesWithEvidence', () => {
   })
 
   test('same deep lactic acid in a leave-on is NOT AHA (leave-on cap 10)', () => {
-    const filler = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+    const filler = fillerIngredients(10)
     const inci = `Aqua, ${filler}, Lactic Acid`
     expect(
       detectActifClassesWithEvidence(inci, undefined, 'serum').has(SKINCARE_PRODUCT_TAG_SLUGS.AHA)
@@ -432,7 +426,7 @@ describe('detectActifClassesWithEvidence', () => {
 })
 
 describe('actif-class %-rescue (cap-marginal AHA, Mathieu directive: solver ≥ 2%)', () => {
-  const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+  const filler10 = fillerIngredients(10)
   const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
 
   const lookup = (pct: number) => (pattern: string) => (pattern === 'lactic acid' ? pct : undefined)
@@ -519,7 +513,7 @@ describe('actif-class %-rescue (cap-marginal AHA, Mathieu directive: solver ≥ 
 })
 
 describe('actif-class roleAtDose gate (cap-marginal AHA, ADR-0014)', () => {
-  const filler10 = Array.from({ length: 10 }, (_, i) => `Filler${i + 1}`).join(', ')
+  const filler10 = fillerIngredients(10)
   const capMarginalInci = `Aqua, ${filler10}, Lactic Acid`
 
   const role =

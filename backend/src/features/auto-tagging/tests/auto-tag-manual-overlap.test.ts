@@ -14,8 +14,8 @@ import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
 import { addTagToProduct, removeTagFromProduct } from '../../product-tags/service'
-import { createProduct } from '../../products/service'
 import { writeTagsForProduct } from '../write'
+import { createAutoTagProduct, getTagDefBySlug, getTagLinks } from './db-helpers'
 
 // SPF in the name makes formula/protection.ts emit `protection` (source
 // 'formula', relevance 'secondary'); niacinamide guarantees a second,
@@ -32,68 +32,27 @@ describe('writeTagsForProduct — manual row shadows a re-emitted auto slug', ()
   it('keeps the manual row and skips the competing auto insert on overlap', async () => {
     const user = await createTestUser()
 
-    const [protectionDef] = await testDb
-      .select()
-      .from(productTagTypes)
-      .where(eq(productTagTypes.slug, 'protection'))
-      .limit(1)
-    if (!protectionDef) throw new Error('seed productTagData missing "protection" slug')
+    const protectionDef = await getTagDefBySlug('protection')
 
     // Intake auto-tags from the SPF name. A landed non-manual protection row
     // proves the orchestrator emits the slug AND it clears the validTagTypes
     // filter — so the later overlap genuinely exercises the PK conflict.
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: SPF_NAME,
-        brand: 'Lab',
-        kind: 'serum',
-        unit: 'pump',
-        category: 'skincare',
-        inci: INCI,
-      },
-      testDb
-    )
-    const [autoProtection] = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, protectionDef.id)
-        )
-      )
+    const product = await createAutoTagProduct(user.id, { name: SPF_NAME, inci: INCI })
+    const [autoProtection] = await getTagLinks(product.id, protectionDef.id)
     expect(autoProtection).toBeDefined()
     expect(autoProtection.source).not.toBe('manual')
 
     // Swap the auto row for a manual one with a distinct relevance.
     await removeTagFromProduct(testDb, product.id, protectionDef.id)
     await addTagToProduct(testDb, product.id, protectionDef.id, 'primary')
-    const [manualBefore] = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, protectionDef.id)
-        )
-      )
+    const [manualBefore] = await getTagLinks(product.id, protectionDef.id)
     expect(manualBefore.source).toBe('manual')
 
     // Retag: orchestrator still wants protection (SPF name unchanged), but the
     // manual PK collision must leave the human row untouched.
     await writeTagsForProduct(product.id, testDb)
 
-    const protectionRows = await testDb
-      .select()
-      .from(productTagLinks)
-      .where(
-        and(
-          eq(productTagLinks.productId, product.id),
-          eq(productTagLinks.productTagId, protectionDef.id)
-        )
-      )
+    const protectionRows = await getTagLinks(product.id, protectionDef.id)
     expect(protectionRows).toHaveLength(1)
     expect(protectionRows[0].source).toBe('manual')
     expect(protectionRows[0].relevance).toBe('primary')

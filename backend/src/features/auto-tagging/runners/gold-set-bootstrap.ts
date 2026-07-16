@@ -31,8 +31,6 @@
 //   SEED                optional 42: PRNG seed
 //   GOLD_SET_PATH       optional: output JSON path
 
-import path from 'node:path'
-
 import type { ProductKind } from '@aurore/shared'
 
 import { inArray } from 'drizzle-orm'
@@ -40,6 +38,7 @@ import { inArray } from 'drizzle-orm'
 import { db } from '../../../db'
 import { productTagLinks, productTagTypes } from '../../../db/schema'
 import {
+  DEFAULT_GOLD_SET_PATH,
   GOLD_SET_FOCUS_TAGS,
   GOLD_SET_SCHEMA_VERSION,
   type GoldSetAnnotation,
@@ -49,14 +48,14 @@ import {
   serializeGoldSet,
 } from '../gold-set/fixtures'
 import { fetchEligibleProducts } from './audit/db'
+import { exitOnError } from './cli-args'
+import { mulberry32 } from './rng'
 
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE ?? 70)
 const POSITIVES_PER_TAG = Number(process.env.POSITIVES_PER_TAG ?? 4)
 const NEGATIVES_PER_TAG = Number(process.env.NEGATIVES_PER_TAG ?? 2)
 const SEED = Number(process.env.SEED ?? 42)
-const GOLD_SET_PATH =
-  process.env.GOLD_SET_PATH ??
-  path.resolve(import.meta.dir, '..', 'data', 'gold-set', 'annotations.json')
+const GOLD_SET_PATH = process.env.GOLD_SET_PATH ?? DEFAULT_GOLD_SET_PATH
 
 interface ProductRow {
   id: string
@@ -396,17 +395,6 @@ async function tryLoadExisting(p: string): Promise<GoldSetFile> {
   return loadGoldSet(p)
 }
 
-// Mulberry32: deterministic 32-bit PRNG. Not a cryptographic RNG.
-function mulberry32(a: number): () => number {
-  return () => {
-    a = (a + 0x6d2b79f5) | 0
-    let t = a
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
 function shuffleInPlace<T>(arr: T[], rng: () => number): void {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1))
@@ -414,10 +402,6 @@ function shuffleInPlace<T>(arr: T[], rng: () => number): void {
   }
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('gold-set-bootstrap.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

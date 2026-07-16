@@ -8,9 +8,9 @@ import type { DB } from '../../db/index'
 import { ingredients } from '../../db/schema/ingredients/ingredients'
 import { brandCertifications, normalizeBrand } from '../../db/schema/products/brand-certifications'
 import {
-  AUTO_TAG_ELIGIBLE_CATEGORIES,
   buildOrchestratorInput,
   detectAllAutoTags,
+  isAutoTagEligibleCategory,
 } from '../auto-tagging'
 
 // Built once on first call — `MERGED_EVIDENCE_DB` is immutable at runtime.
@@ -19,8 +19,6 @@ function getAliasIndex() {
   if (!aliasIndex) aliasIndex = buildAliasIndex(MERGED_EVIDENCE_DB)
   return aliasIndex
 }
-
-const AUTO_TAG_ELIGIBLE_SET: ReadonlySet<string> = new Set(AUTO_TAG_ELIGIBLE_CATEGORIES)
 
 type FormulaPreviewToken = {
   raw: string
@@ -115,7 +113,7 @@ export async function previewProductFormula(
     }
   })
 
-  const autoTagEligible = AUTO_TAG_ELIGIBLE_SET.has(input.category)
+  const autoTagEligible = isAutoTagEligibleCategory(input.category)
   const brand = input.brand?.trim() ? input.brand : null
 
   // The brand pass needs the certification row, else vegan/cruelty-free/

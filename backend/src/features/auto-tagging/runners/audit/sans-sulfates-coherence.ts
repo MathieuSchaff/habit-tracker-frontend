@@ -23,6 +23,7 @@ import { db } from '../../../../db'
 import { productTagLinks, productTagTypes } from '../../../../db/schema'
 import { resolveIngredients } from '../../lib/ingredient-resolver'
 import { IONIC_SURFACTANT_PATTERNS } from '../../passes/formula/step-nettoyage-1'
+import { exitOnError } from '../cli-args'
 
 const SANS_SULFATES_SLUG = 'sans-sulfates'
 
@@ -136,7 +137,4 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+  .catch(exitOnError)

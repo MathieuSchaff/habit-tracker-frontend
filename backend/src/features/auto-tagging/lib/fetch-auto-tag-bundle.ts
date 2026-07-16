@@ -10,10 +10,23 @@
 // (withAdminRls); intake uses the pool.
 
 import { type DB, db } from '../../../db'
-import { brandCertifications, productTagTypes } from '../../../db/schema'
+import { brandCertifications, products, productTagTypes } from '../../../db/schema'
 import { fetchKnownConcentrationsByProduct } from '../../../lib/fetch-known-concentrations'
 import { fetchPercentClaimsByProduct } from '../../../lib/fetch-percent-claims'
 import type { AutoTagFetchBundle } from './orchestrator-input'
+
+// Drizzle column set matching `OrchestratorProductFields` — the one select
+// shape every DB-backed caller spreads (`{ id: products.id, ...COLUMNS }`), so
+// adding an orchestrator input field is one edit, not one per call site.
+export const ORCHESTRATOR_PRODUCT_COLUMNS = {
+  name: products.name,
+  description: products.description,
+  brand: products.brand,
+  kind: products.kind,
+  inci: products.inci,
+  category: products.category,
+  texture: products.texture,
+}
 
 export async function loadAutoTagFetchBundle(
   productIds: readonly string[],

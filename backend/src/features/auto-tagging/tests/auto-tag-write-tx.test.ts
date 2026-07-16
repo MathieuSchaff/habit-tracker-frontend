@@ -16,8 +16,8 @@ import { productTagData } from '../../../db/seed/data/tags'
 import { testDb } from '../../../tests/db.test.config'
 import { cleanDatabase } from '../../../tests/helpers/db-cleaner'
 import { createTestUser } from '../../../tests/helpers/test-factories'
-import { createProduct } from '../../products/service'
 import { writeTagsForProduct } from '../write'
+import { createAutoTagProduct } from './db-helpers'
 
 const RICH_INCI =
   'Aqua, Niacinamide, Retinol, Glycerin, Tocopherol, Phenoxyethanol, Hyaluronic Acid'
@@ -30,19 +30,7 @@ describe('writeTagsForProduct — transaction safety', () => {
 
   it('writes auto rows when given a transaction, not only a pooled connection', async () => {
     const user = await createTestUser()
-    const product = await createProduct(
-      user.id,
-      'admin',
-      {
-        name: 'Test Serum',
-        brand: 'Lab',
-        kind: 'serum',
-        unit: 'pump',
-        category: 'skincare',
-        inci: RICH_INCI,
-      },
-      testDb
-    )
+    const product = await createAutoTagProduct(user.id, { name: 'Test Serum', inci: RICH_INCI })
 
     const autoCount = async () =>
       (

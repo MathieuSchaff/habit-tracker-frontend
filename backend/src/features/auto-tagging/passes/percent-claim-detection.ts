@@ -101,9 +101,7 @@ export function detectPercentClaimTags(
   if (!claims || claims.length === 0) return []
   if (!isFragileINCI(inci)) return []
 
-  const byTag = new Map<SkincareProductTagSlug, Set<string>>()
-  for (const rule of CLAIM_RULES) byTag.set(rule.tagSlug, new Set())
-
+  const matched = new Set<SkincareProductTagSlug>()
   for (const claim of claims) {
     if (claim.concentrationUnit !== '%') continue
     const value = Number(claim.concentrationValue)
@@ -112,14 +110,10 @@ export function detectPercentClaimTags(
     for (const rule of CLAIM_RULES) {
       if (!rule.ingredientSlugs.includes(slug)) continue
       if (value < rule.minPct || value > rule.maxPct) continue
-      byTag.get(rule.tagSlug)?.add(slug)
+      matched.add(rule.tagSlug)
     }
   }
 
-  const out: SkincareProductTagSlug[] = []
-  for (const rule of CLAIM_RULES) {
-    const matches = byTag.get(rule.tagSlug)
-    if (matches && matches.size > 0) out.push(rule.tagSlug)
-  }
-  return out
+  // CLAIM_RULES order is the output order (stable for the parity test).
+  return CLAIM_RULES.filter((rule) => matched.has(rule.tagSlug)).map((rule) => rule.tagSlug)
 }

@@ -2,7 +2,7 @@
 //
 // Read-only. The three acid clusters carry a positionCap of 10 by design
 // (pH-dependent acid past pos 10 = pH adjuster / preservative trace, not
-// a functional exfoliant. See AUTO-TAGS.md §"AHA / BHA / PHA, drift
+// a functional exfoliant. See AUTO-TAGS.md, "AHA / BHA / PHA, drift
 // conservée par design"). Manual annotations are concentration-agnostic
 // and tag any product that contains the molecule, so 254 manual pairs
 // survive past the cap. Decision is offline, case-by-case (some are
@@ -33,13 +33,15 @@
 import type { ProductKind } from '@aurore/shared'
 
 import { normalize, splitINCI } from 'algo-derm'
-import { eq, inArray, sql } from 'drizzle-orm'
+import { inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../../../db'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { freqTable } from '../../../../lib/report'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
-import { fetchEligibleProducts } from './db'
+import { exitOnError } from '../cli-args'
+import { fetchEligibleProducts, fetchProductTagSlugsByProduct } from './db'
+import { LIMIT } from './env'
 
 const TARGET_SLUGS = ['aha', 'bha', 'pha'] as const
 type TargetSlug = (typeof TARGET_SLUGS)[number]
@@ -57,7 +59,6 @@ const PATTERNS: Record<TargetSlug, readonly string[]> = {
 
 const CSV_OUT = process.env.CSV_OUT
 const CSV_DIR = process.env.CSV_DIR
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
 const APPLY = process.env.APPLY === '1'
 const APPLY_FROM_CSV = process.env.APPLY_FROM_CSV
 
@@ -205,21 +206,11 @@ async function main() {
 
   const subset = await fetchEligibleProducts({ limit: LIMIT ?? undefined })
 
-  const existingRows = await db
-    .select({ pId: productTagLinks.productId, slug: productTagTypes.slug })
-    .from(productTagLinks)
-    .innerJoin(productTagTypes, eq(productTagLinks.productTagId, productTagTypes.id))
-    .where(inArray(productTagTypes.slug, [...TARGET_SLUGS]))
-
-  const manualByProduct = new Map<string, Set<TargetSlug>>()
-  for (const r of existingRows) {
-    let set = manualByProduct.get(r.pId)
-    if (!set) {
-      set = new Set()
-      manualByProduct.set(r.pId, set)
-    }
-    set.add(r.slug as TargetSlug)
-  }
+  // SQL-filtered to TARGET_SLUGS, so the narrowing cast is sound.
+  const manualByProduct = (await fetchProductTagSlugsByProduct([...TARGET_SLUGS])) as Map<
+    string,
+    Set<TargetSlug>
+  >
 
   const overrides: OverrideRow[] = []
   let scanned = 0
@@ -503,10 +494,6 @@ function csvEscape(v: string): string {
   return v
 }
 
-if (import.meta.main || process.argv[1]?.endsWith('audit-aha-bha-pha-overrides.ts')) {
-  main().catch((err) => {
-    console.error('\n💥 Erreur :', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

@@ -26,6 +26,8 @@ import { and, eq, isNotNull } from 'drizzle-orm'
 import { withAdminRls } from '../../../../db/rls'
 import { ingredients, productIngredients, products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
+import { exitOnError } from '../cli-args'
+import { formatPct } from '../fmt'
 
 const JSON_OUT = process.env.JSON_OUT
 const SLUG_FILTER = process.env.SLUG
@@ -325,14 +327,8 @@ function rmse(xs: number[]): number {
 function fmt(x: number): string {
   return Number.isFinite(x) ? x.toFixed(3) : '—'
 }
-function pct(x: number): string {
-  return `${(x * 100).toFixed(1)}%`
-}
+const pct = formatPct
 
-if (import.meta.main || process.argv[1]?.endsWith('concentration-solver.ts')) {
-  main().catch((err) => {
-    console.error('\n💥', err instanceof Error ? err.message : err)
-    if (err instanceof Error && err.stack) console.error(err.stack)
-    process.exit(1)
-  })
+if (import.meta.main) {
+  main().catch(exitOnError)
 }

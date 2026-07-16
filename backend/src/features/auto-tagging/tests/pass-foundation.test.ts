@@ -78,7 +78,8 @@ describe('priorSlugSet', () => {
 describe('mergeProposal — precedence', () => {
   test('inserts first proposal', () => {
     const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.TYPE_SERUM, 'secondary', 'kind'))
+    // Return value = merge verdict (accepted), the signal the trace sink relays.
+    expect(mergeProposal(byTag, proposal(S.TYPE_SERUM, 'secondary', 'kind'))).toBe(true)
     expect(byTag.get(S.TYPE_SERUM)).toEqual({
       tagSlug: S.TYPE_SERUM,
       relevance: 'secondary',
@@ -86,51 +87,33 @@ describe('mergeProposal — precedence', () => {
     })
   })
 
-  test('avoid wins over secondary, replacing source', () => {
+  // Full relevance matrix (avoid > primary > secondary; ties keep first seen).
+  // accepted=true ⇒ the incoming proposal replaces the whole entry (source too).
+  const MATRIX: ReadonlyArray<
+    [AutoTagProposal['relevance'], AutoTagProposal['relevance'], boolean]
+  > = [
+    ['secondary', 'primary', true],
+    ['secondary', 'avoid', true],
+    ['primary', 'avoid', true],
+    ['primary', 'secondary', false],
+    ['avoid', 'secondary', false],
+    ['avoid', 'primary', false],
+    ['secondary', 'secondary', false],
+    ['primary', 'primary', false],
+    ['avoid', 'avoid', false],
+  ]
+  test.each(MATRIX)('existing=%s incoming=%s → accepted=%s', (existing, incoming, accepted) => {
     const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    // Return value = merge verdict (accepted), the signal the trace sink relays.
-    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))).toBe(true)
-    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))).toBe(true)
-    expect(byTag.get(S.RETINOIDS)).toEqual({
-      tagSlug: S.RETINOIDS,
-      relevance: 'avoid',
-      source: 'cross-signal',
-    })
+    expect(mergeProposal(byTag, proposal(S.RETINOIDS, existing, 'algo-derm'))).toBe(true)
+    expect(mergeProposal(byTag, proposal(S.RETINOIDS, incoming, 'cross-signal'))).toBe(accepted)
+    expect(byTag.get(S.RETINOIDS)).toEqual(
+      accepted
+        ? { tagSlug: S.RETINOIDS, relevance: incoming, source: 'cross-signal' }
+        : { tagSlug: S.RETINOIDS, relevance: existing, source: 'algo-derm' }
+    )
   })
 
-  test('avoid wins over primary', () => {
-    const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'primary', 'algo-derm'))
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'interaction'))
-    expect(byTag.get(S.RETINOIDS)?.relevance).toBe('avoid')
-  })
-
-  test('avoid stays when followed by secondary (no demotion)', () => {
-    const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))
-    expect(mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))).toBe(false)
-    expect(byTag.get(S.RETINOIDS)).toEqual({
-      tagSlug: S.RETINOIDS,
-      relevance: 'avoid',
-      source: 'cross-signal',
-    })
-  })
-
-  test('avoid stays when followed by primary (no demotion)', () => {
-    const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'avoid', 'cross-signal'))
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'primary', 'kind'))
-    expect(byTag.get(S.RETINOIDS)?.relevance).toBe('avoid')
-  })
-
-  test('equal relevance keeps first seen (source preserved)', () => {
-    const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'algo-derm'))
-    mergeProposal(byTag, proposal(S.RETINOIDS, 'secondary', 'actif-class'))
-    expect(byTag.get(S.RETINOIDS)?.source).toBe('algo-derm')
-  })
-
-  test('preserves confidence on overwrite when carried by the higher proposal', () => {
+  test('overwrite replaces the whole proposal — prior confidence is not carried over', () => {
     const byTag = new Map<SkincareProductTagSlug, AutoTagProposal>()
     mergeProposal(byTag, proposal(S.HYPERPIGMENTATION, 'secondary', 'algo-derm', 0.6))
     mergeProposal(byTag, proposal(S.HYPERPIGMENTATION, 'avoid', 'interaction'))
