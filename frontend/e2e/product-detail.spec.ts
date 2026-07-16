@@ -450,6 +450,67 @@ test.describe('Product detail — Lecture de la formule', () => {
     await expect(section.getByText(/reposent sur le nom des ingrédients/)).toBeVisible()
   })
 
+  test('shows only declared and defensible solver concentrations', async ({ page }) => {
+    const slug = await findSlugWithInci(page)
+    const prior = { meanPct: 10, ciLowPct: 8, ciHighPct: 12 }
+    const assessment = {
+      explanation: {
+        topDrivers: [],
+        topBenefitDrivers: [],
+        confidenceFactors: [],
+      },
+      regulatoryNotes: [],
+      interactions: [],
+      coverage: { matched: 4, total: 4 },
+      matchedEvidence: [
+        {
+          ingredient: 'Niacinamide',
+          inci: 'Niacinamide',
+          concentrationEstimate: { ...prior, claimPct: 15 },
+        },
+        {
+          ingredient: 'Glycerin',
+          inci: 'Glycerin',
+          concentrationEstimate: {
+            ...prior,
+            solverMeanPct: 10,
+            solverCiLowPct: 5,
+            solverCiHighPct: 15,
+          },
+        },
+        {
+          ingredient: 'Glycerin',
+          inci: 'Glycerin',
+          concentrationEstimate: {
+            ...prior,
+            solverMeanPct: 10,
+            solverCiLowPct: 8,
+            solverCiHighPct: 12,
+          },
+        },
+        {
+          ingredient: 'Panthenol',
+          inci: 'Panthenol',
+          concentrationEstimate: prior,
+        },
+      ],
+    }
+
+    await page.route('**/api/products/*/dermo-score', (route) =>
+      route.fulfill({ json: { data: assessment } })
+    )
+
+    await page.goto(`/products/${slug}`)
+
+    const section = page.locator('.formula-concentrations')
+    await expect(section).toBeVisible({ timeout: 15_000 })
+    await expect(section.getByText('15\u00a0% (déclaré)')).toBeVisible()
+    await expect(section.getByText('~8–12\u00a0%')).toBeVisible()
+    await expect(section.getByText('Glycerin')).toHaveCount(1)
+    await expect(section.getByText('présent · dose non estimable')).toBeVisible()
+    await expect(section.getByText(/Indicatif, non confirmé par la marque/)).toBeVisible()
+  })
+
   test('driver labels link to the ingredient page only when a slug is resolved', async ({
     page,
   }) => {

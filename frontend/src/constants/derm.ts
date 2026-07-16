@@ -43,12 +43,17 @@ export const BENEFIT_AXIS_PHRASE: Record<BenefitAxis, string> = {
 export const DOSE_SIGNAL_MIN_DOSE_FACTOR = 0.7
 export const DOSE_SIGNAL_MIN_CONFIDENCE = 0.6
 
-// Qualitative only, never a % figure (vision: no number, no verdict).
+// roleAtDose is a qualitative signal, not a concentration estimate.
 export const DOSE_SIGNAL_PHRASE = 'probablement dosé pour agir'
+
+// Numeric estimates need a visible method and must fall back when the solver is weak.
+export const CONC_METHOD_NOTE =
+  'Estimé par l’algorithme d’après l’ordre de la liste INCI. Indicatif, non confirmé par la marque.'
+export const CONC_UNESTIMABLE_PHRASE = 'présent · dose non estimable'
 
 // Neutral caveats mapped from assessment confidence factors; limitationNotes
 // carries the same facts but as dynamic English prose. unknown_ingredients is
-// deliberately unmapped — the coverage footnote already states it.
+// deliberately unmapped; the coverage footnote already states it.
 export const CONFIDENCE_FACTOR_PHRASE: Record<string, string> = {
   low_coverage:
     'Formule encore peu couverte par nos données — pas assez de contexte pour en dire plus.',

@@ -69,7 +69,7 @@
   color: var(--text-muted);
 }
 
-/* Qualitative dose signal; deliberately no % figure (vision: no number). */
+/* Keep roleAtDose qualitative; numeric estimates live in FormulaConcentrations. */
 .formula-reading__dose-tag {
   display: block;
   width: fit-content;

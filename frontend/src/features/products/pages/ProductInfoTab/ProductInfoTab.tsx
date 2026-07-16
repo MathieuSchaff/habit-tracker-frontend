@@ -17,6 +17,7 @@ import { SectionHeader } from '@/component/Typography/SectionHeader/SectionHeade
 import { SKIN_CONCERN_LABELS, SKIN_TYPE_LABELS } from '@/constants/skin'
 import { ReportContentButton } from '@/features/discussions/components/ReportContentButton'
 import { SuggestEditButton } from '@/features/discussions/components/SuggestEditButton'
+import { FormulaConcentrations } from '@/features/products/components/FormulaConcentrations/FormulaConcentrations'
 import { FormulaProfile } from '@/features/products/components/FormulaProfile/FormulaProfile'
 import { FormulaReading } from '@/features/products/components/FormulaReading/FormulaReading'
 import { ProductSummary } from '@/features/products/components/ProductSummary/ProductSummary'
@@ -282,6 +283,8 @@ export function ProductInfoTab() {
           <SuggestEditButton targetType="product" targetId={product.id} />
         </div>
       )}
+
+      {product.inci && <FormulaConcentrations slug={slug} userKey={user?.id ?? null} />}
     </>
   )
 }
