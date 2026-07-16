@@ -84,23 +84,26 @@ describe('reconcileImportedProductClassification', () => {
   })
 
   it.each([
-    'Lipid-Balance Cleansing Oil',
-    'Physiopure Huile Démaquillante',
-    'Huile Demaquillante Bio',
+    ['Lipid-Balance Cleansing Oil', 'oil'],
+    ['Physiopure Huile Démaquillante', 'oil'],
+    ['Huile Demaquillante Bio', 'oil'],
     // "yeux" would trip the sunscreen exclusion gate — the cleansing-oil branch
     // runs first.
-    'Huile Démaquillante Yeux Waterproof',
-    'Deep Cleansing Balm',
-  ])('reclassifies a cleansing oil imported as kind=oil: %s', (name) => {
+    ['Huile Démaquillante Yeux Waterproof', 'oil'],
+    ['Deep Cleansing Balm', 'balm'],
+    ['Le Double Nettoyage Huile & Émulsion', 'oil'],
+    ['Le Double Nettoyage Huile & Mousse - Recharge', 'oil'],
+    ['Le Double Nettoyage Baume & Gelée', 'balm'],
+  ])('reclassifies an imported cleansing oil or balm: %s (%s)', (name, kind) => {
     expect(
       reconcileImportedProductClassification({
         name,
         slug: 'some-cleansing-oil',
         inci: null,
         category: 'skincare',
-        kind: 'oil',
+        kind,
       })
-    ).toEqual({ category: 'skincare', kind: 'cleanser', reason: 'cleansing-oil-name' })
+    ).toEqual({ category: 'skincare', kind: 'cleanser', reason: 'cleansing-format-name' })
   })
 
   it.each([
@@ -121,7 +124,7 @@ describe('reconcileImportedProductClassification', () => {
     ).toBeNull()
   })
 
-  it('does not reclassify a cleansing-oil name outside kind=oil', () => {
+  it('does not reclassify a cleansing-format name outside kind=oil|balm', () => {
     expect(
       reconcileImportedProductClassification({
         name: 'Cleansing Oil Serum',
@@ -131,6 +134,40 @@ describe('reconcileImportedProductClassification', () => {
         kind: 'serum',
       })
     ).toBeNull()
+  })
+
+  it.each([
+    ['oil', 'huile'],
+    ['balm', 'baume'],
+  ])('preserves the imported cleansing format as texture: %s -> %s', (kind, texture) => {
+    const prepared = applyImportedProductClassification(
+      {
+        name: 'Le Double Nettoyage',
+        category: 'skincare',
+        kind,
+      },
+      'le-double-nettoyage'
+    )
+
+    expect(prepared.row).toMatchObject({
+      category: 'skincare',
+      kind: 'cleanser',
+      texture,
+    })
+  })
+
+  it('does not replace an explicit imported texture while repairing the kind', () => {
+    const prepared = applyImportedProductClassification(
+      {
+        name: 'Cleansing Oil',
+        category: 'skincare',
+        kind: 'oil',
+        texture: 'eau',
+      },
+      'cleansing-oil'
+    )
+
+    expect(prepared.row).toMatchObject({ kind: 'cleanser', texture: 'eau' })
   })
 
   it('keeps an explicit catalogue verdict authoritative over automatic repair', () => {

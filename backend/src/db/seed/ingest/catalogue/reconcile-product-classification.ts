@@ -8,11 +8,16 @@ const RECONCILABLE_SKINCARE_KINDS = new Set<ProductKind>([
   'oil',
 ])
 
-// A cleansing oil imported as kind='oil' is tagged as a leave-on treatment oil
-// (TYPE_SERUM/STEP_HYDRATATION) because the kind-tag map never reads the name.
-// The name is the only signal that it rinses off.
-const CLEANSING_OIL_NAME_RE =
-  /\bcleansing\s+oil\b|\bd[ée]maquill(?:ant|ante)?\b|\bcleansing\s+balm\b|baume\s+d[ée]maquil|\bmakeup\s+remov|micellaire\s+d[ée]maquil/i
+const CLEANSING_FORMAT_KINDS = new Set<ProductKind>(['oil', 'balm'])
+const CLEANSING_KIND_TO_TEXTURE = {
+  oil: 'huile',
+  balm: 'baume',
+} as const
+
+// Cleansing oils/balms imported under their texture-like kind are tagged as
+// leave-on skincare because the kind-tag map never reads the name. These terms
+// are high-confidence once the imported kind is already limited to oil/balm.
+const CLEANSING_FORMAT_NAME_RE = /nettoy|clean(?:sing|ser)|d[ée]maquill|makeup\s+remov/i
 
 // These names have no reliable UV index, but their INCI was manually checked
 // before the 2026-07 sunscreen backfill.
@@ -46,7 +51,7 @@ export interface ImportedProductClassificationInput {
 export interface ImportedProductClassificationOverride {
   category: ProductCategory
   kind: ProductKind
-  reason: 'sunscreen-name' | 'confirmed-sunscreen-slug' | 'cleansing-oil-name'
+  reason: 'sunscreen-name' | 'confirmed-sunscreen-slug' | 'cleansing-format-name'
 }
 
 export interface AppliedImportedProductClassification {
@@ -60,22 +65,22 @@ const stringOrNull = (value: unknown): string | null => (typeof value === 'strin
 export function reconcileImportedProductClassification(
   input: ImportedProductClassificationInput
 ): ImportedProductClassificationOverride | null {
+  if (input.category !== 'skincare') return null
+
+  // Before the sunscreen gates: a "démaquillant yeux" legitimately mentions
+  // "yeux". Keep this import-only repair limited to the two ambiguous kinds.
   if (
-    input.category !== 'skincare' ||
-    !RECONCILABLE_SKINCARE_KINDS.has(input.kind as ProductKind)
+    CLEANSING_FORMAT_KINDS.has(input.kind as ProductKind) &&
+    input.name &&
+    CLEANSING_FORMAT_NAME_RE.test(input.name)
   ) {
-    return null
+    return { category: 'skincare', kind: 'cleanser', reason: 'cleansing-format-name' }
   }
+
+  if (!RECONCILABLE_SKINCARE_KINDS.has(input.kind as ProductKind)) return null
 
   if (input.slug && CONFIRMED_SUNSCREEN_SLUGS.has(input.slug)) {
     return { category: 'solaire', kind: 'sunscreen', reason: 'confirmed-sunscreen-slug' }
-  }
-
-  // Before the sunscreen exclusion gate: a "démaquillant yeux" legitimately
-  // mentions "yeux". Only oil flips to cleanser; the other reconcilable kinds
-  // keep their leave-on classification.
-  if (input.kind === 'oil' && input.name && CLEANSING_OIL_NAME_RE.test(input.name)) {
-    return { category: 'skincare', kind: 'cleanser', reason: 'cleansing-oil-name' }
   }
 
   if (!input.name || SUNSCREEN_EXCLUSION_RE.test(input.name)) return null
@@ -100,7 +105,18 @@ export function applyImportedProductClassification(
     category: stringOrNull(row.category),
     kind: stringOrNull(row.kind),
   })
-  const inferred = override ? { ...row, category: override.category, kind: override.kind } : row
+  const cleansingTexture =
+    override?.reason === 'cleansing-format-name'
+      ? CLEANSING_KIND_TO_TEXTURE[row.kind as keyof typeof CLEANSING_KIND_TO_TEXTURE]
+      : undefined
+  const inferred = override
+    ? {
+        ...row,
+        category: override.category,
+        kind: override.kind,
+        ...(row.texture == null && cleansingTexture ? { texture: cleansingTexture } : {}),
+      }
+    : row
   const merged = verdict ? { ...inferred, ...verdict } : inferred
   const reconciliation =
     override && merged.category === override.category && merged.kind === override.kind
