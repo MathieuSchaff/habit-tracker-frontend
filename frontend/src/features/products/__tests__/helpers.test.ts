@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import type { FilterValues } from '@/component/Filter'
-import { FILTER_KEYS, type FilterKey } from '../filters'
 import {
   buildDomainSwitchSearch,
   buildProductsApiFilters,
@@ -10,10 +8,7 @@ import {
   isDiscoveryMode,
   PRODUCTS_PAGE_SIZE,
 } from '../helpers'
-
-function emptyTagFilters(): FilterValues<FilterKey> {
-  return Object.fromEntries(FILTER_KEYS.map((k) => [k, []])) as unknown as FilterValues<FilterKey>
-}
+import { emptyFilters } from './fixtures'
 
 describe('hasActivePriceRange', () => {
   it('returns false when both bounds are undefined', () => {
@@ -80,7 +75,7 @@ describe('buildProductsApiFilters', () => {
   it('returns discovery payload when in discovery mode', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'newest',
       page: 1,
@@ -98,7 +93,7 @@ describe('buildProductsApiFilters', () => {
   it('includes avoid_for in discovery mode when the profile has slugs', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: ['peau-sensible'],
       sort: 'newest',
       page: 1,
@@ -109,7 +104,7 @@ describe('buildProductsApiFilters', () => {
   })
 
   it('switches to paginated mode when filters are active', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.concern = ['acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -130,7 +125,7 @@ describe('buildProductsApiFilters', () => {
   })
 
   it('leaves empty tag arrays as undefined', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.concern = ['acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -145,7 +140,7 @@ describe('buildProductsApiFilters', () => {
   })
 
   it('forwards only domain-relevant keys — haircare does not include skin_type', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.hair_type = ['cheveux-boucles']
     filters.skin_type = ['peau-grasse'] // ignored for haircare
     const out = buildProductsApiFilters({
@@ -161,7 +156,7 @@ describe('buildProductsApiFilters', () => {
   })
 
   it('forwards brand when set (was silently dropped — bug 7)', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.brand = ['avene', 'bioderma']
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -175,7 +170,7 @@ describe('buildProductsApiFilters', () => {
   })
 
   it('forwards ingredient when set (was silently dropped — bug 7)', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.ingredient = ['niacinamide']
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -191,7 +186,7 @@ describe('buildProductsApiFilters', () => {
   it('omits brand and ingredient when arrays are empty', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'name',
       page: 1,
@@ -204,7 +199,7 @@ describe('buildProductsApiFilters', () => {
   it('switches out of discovery when only sort is changed', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'price_asc',
       page: 1,
@@ -217,7 +212,7 @@ describe('buildProductsApiFilters', () => {
   it('switches out of discovery when only a price range is set', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'newest',
       priceMin: 500,
@@ -231,7 +226,7 @@ describe('buildProductsApiFilters', () => {
   it('forwards q when set (D3 free-text fallback)', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'name',
       q: 'matifiant',
@@ -244,7 +239,7 @@ describe('buildProductsApiFilters', () => {
   it('switches out of discovery when only q is set', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'newest',
       q: 'matifiant',
@@ -279,7 +274,7 @@ describe('buildResetSearchParams', () => {
 
 describe('buildProductsApiFilters — domain isolation (dental + complement)', () => {
   it('dental: excludes skincare, haircare, and supplement tag keys', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.concern = ['gencives']
     filters.skin_type = ['peau-grasse'] // skincare, must be excluded
     filters.hair_type = ['cheveux-boucles'] // haircare, must be excluded
@@ -299,7 +294,7 @@ describe('buildProductsApiFilters — domain isolation (dental + complement)', (
   })
 
   it('complement: excludes skincare, haircare, and dental tag keys', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.goal = ['energie']
     filters.skin_type = ['peau-grasse'] // skincare, must be excluded
     filters.hair_type = ['cheveux-fins'] // haircare, must be excluded
@@ -324,7 +319,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('avoidFor with a single empty string is forwarded as-is', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [''],
       sort: 'name',
       page: 1,
@@ -335,7 +330,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
 
   // Mixed empty + value: length > 0, so the array passes through.
   it('tag filter with empty strings mixed in is forwarded as-is', () => {
-    const filters = emptyTagFilters()
+    const filters = emptyFilters()
     filters.concern = ['', 'acne']
     const out = buildProductsApiFilters({
       category: 'skincare',
@@ -353,7 +348,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
     expect(() =>
       buildProductsApiFilters({
         category: 'skincare',
-        filters: emptyTagFilters(),
+        filters: emptyFilters(),
         avoidFor: [],
         sort: 'name',
         priceMin: 5000,
@@ -367,7 +362,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('inverted price range exits discovery mode (price bound is set)', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'newest',
       priceMin: 5000,
@@ -384,7 +379,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes negative page through without throwing', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'name',
       page: -1,
@@ -396,7 +391,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes page=0 through without throwing', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: [],
       sort: 'name',
       page: 0,
@@ -409,7 +404,7 @@ describe('buildProductsApiFilters — edge cases / adversarial inputs', () => {
   it('passes duplicate avoidFor slugs through without deduplication', () => {
     const out = buildProductsApiFilters({
       category: 'skincare',
-      filters: emptyTagFilters(),
+      filters: emptyFilters(),
       avoidFor: ['peau-sensible', 'peau-sensible'],
       sort: 'name',
       page: 1,

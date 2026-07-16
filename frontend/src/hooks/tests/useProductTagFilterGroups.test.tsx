@@ -1,6 +1,9 @@
+import { getProductTagsByCategory } from '@aurore/shared'
+
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import { getFilterLabel } from '@/component/Filter/helpers'
 import { useProductTagFilterGroups } from '../useProductTagFilterGroups'
 
 describe('useProductTagFilterGroups', () => {
@@ -34,13 +37,12 @@ describe('useProductTagFilterGroups', () => {
     expect(empty?.disabled).toBe(true)
   })
 
-  it('applies labelOverrides on top of shared labels', () => {
-    const { result } = renderHook(() =>
-      useProductTagFilterGroups('skincare', {}, { 'barriere-cutanee': 'Peau sensibilisée' })
-    )
+  it('provides the canonical shared label to chips and the active filters bar', () => {
+    const { result } = renderHook(() => useProductTagFilterGroups('skincare', {}))
     const concern = result.current.find((g) => g.id === 'concern')
-    const overridden = concern?.subFilters[0]?.options.find((o) => o.value === 'barriere-cutanee')
-    expect(overridden?.label).toBe('Peau sensibilisée')
+    const barrier = concern?.subFilters[0]?.options.find((o) => o.value === 'barriere-cutanee')
+    expect(barrier?.label).toBe('Barrière cutanée')
+    expect(getFilterLabel(result.current, 'concern', 'barriere-cutanee')).toBe('Barrière cutanée')
   })
 
   it('sorts options alphabetically by label (FR locale)', () => {
@@ -49,6 +51,15 @@ describe('useProductTagFilterGroups', () => {
     const labels = concern?.subFilters[0]?.options.map((o) => o.label) ?? []
     const sorted = [...labels].sort((a, b) => a.localeCompare(b, 'fr'))
     expect(labels).toEqual(sorted)
+  })
+
+  it('preserves the shared defs order for opt-in categories instead of sorting alpha', () => {
+    const { result } = renderHook(() => useProductTagFilterGroups('skincare', {}, ['texture']))
+    const texture = result.current.find((g) => g.id === 'texture')
+    const values = texture?.subFilters[0]?.options.map((o) => o.value) ?? []
+    const sharedOrder = getProductTagsByCategory('skincare', 'texture').map(({ slug }) => slug)
+
+    expect(values).toEqual(sharedOrder)
   })
 
   it('builds groups for all four product domains', () => {

@@ -3,6 +3,8 @@ import { vi } from 'vitest'
 
 vi.unmock('@tanstack/react-router')
 
+import { HAIRCARE_PRODUCT_TAG_TAXONOMY } from '@aurore/shared'
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createMemoryHistory,
@@ -19,6 +21,8 @@ import { Route as ProductsIndexRouteImport } from '@/routes/products/index'
 import { useAuthStore } from '@/store/auth'
 import { PRODUCT_FILTER_OPTIONS } from '@/test/msw/fixtures/products'
 import { server } from '@/test/msw/server'
+
+const HAIRCARE_ZERO_COUNT_LABEL = HAIRCARE_PRODUCT_TAG_TAXONOMY.pellicules.label
 
 function makeClient() {
   return new QueryClient({
@@ -126,6 +130,45 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     expect(screen.getByText(/Niacinamide 10% \+ Zinc 1%/)).toBeInTheDocument()
   })
 
+  it('applies a composed skincare shortcut as canonical URL filters', async () => {
+    server.use(
+      http.get('*/api/products/filter-options', () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            ...PRODUCT_FILTER_OPTIONS,
+            tagCounts: {
+              ...PRODUCT_FILTER_OPTIONS.tagCounts,
+              'type-hydratant': 1,
+              'texture-creme': 1,
+            },
+          },
+        })
+      )
+    )
+
+    const user = userEvent.setup()
+    const { router } = renderProducts()
+    await screen.findByText(/Hydrating Cleanser/)
+
+    await openFilterDrawer(user)
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /Je sais ce que je cherche/i }))
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: /Crème hydratante.*Hydratant \+ Crème/i,
+      })
+    )
+    await user.click(within(dialog).getByRole('button', { name: /^Appliquer/i }))
+
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({
+        product_type_v2: ['type-hydratant'],
+        texture: ['texture-creme'],
+      })
+    })
+  })
+
   it('resolves ingredient slugs from the URL into chips inside the drawer', async () => {
     const user = userEvent.setup()
     renderProducts([buildUrl('/products/', { ingredient: ['retinol', 'niacinamide'] })])
@@ -214,25 +257,32 @@ describe('ProductsPage — integration (URL ↔ filtres ↔ liste)', () => {
     expect(new Set(searchTypes)).toEqual(new Set(['skincare']))
   })
 
-  it('renders chips with count=0 as disabled and ignores click', async () => {
+  it('hides skincare options with count=0', async () => {
     const user = userEvent.setup()
-    const { router } = renderProducts()
+    renderProducts()
     await screen.findByText(/Hydrating Cleanser/)
 
     await openFilterDrawer(user)
     const dialog = await screen.findByRole('dialog')
 
-    // No fixture product carries this slug, so tagCounts=0 disables the chip.
-    const chip = await within(dialog).findByRole('button', { name: /^Rougeurs/i })
-    expect(chip).toBeDisabled()
+    // No fixture product carries this slug, so the intent-first skincare drawer removes the noise.
+    expect(within(dialog).queryByRole('button', { name: /^Rougeurs/i })).not.toBeInTheDocument()
+  })
 
-    await user.click(chip)
-    expect(chip).toHaveAttribute('aria-pressed', 'false')
+  it('renders chips with count=0 as disabled for a non-skincare domain', async () => {
+    const user = userEvent.setup()
+    // Non-skincare domains keep the generic drawer, which disables (not hides) zero-count chips.
+    renderProducts([`/products/?category=${encodeURIComponent(JSON.stringify('haircare'))}`])
+    await screen.findByText(/Hydrating Cleanser/)
 
-    await user.click(within(dialog).getByRole('button', { name: /^Appliquer/i }))
-    await waitFor(() => {
-      expect(router.state.location.search).not.toHaveProperty('concern')
+    await openFilterDrawer(user)
+    const dialog = await screen.findByRole('dialog')
+
+    // No fixture product carries a haircare tag, so tagCounts=0 disables the chip.
+    const chip = await within(dialog).findByRole('button', {
+      name: new RegExp(`^${HAIRCARE_ZERO_COUNT_LABEL}`, 'i'),
     })
+    expect(chip).toBeDisabled()
   })
 
   it('defers filter options to drawer open, then requeries per category on tab switch', async () => {

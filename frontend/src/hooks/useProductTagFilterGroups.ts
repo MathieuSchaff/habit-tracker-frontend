@@ -33,7 +33,7 @@ const SKINCARE_CHARACTERISTIC_SUBGROUPS: FilterSubGroup[] = [
     slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.tolerance],
   },
   {
-    label: 'Éthique & durabilité',
+    label: 'Labels et engagements',
     slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.ethique],
   },
   {
@@ -61,26 +61,32 @@ const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>>
 export function useProductTagFilterGroups(
   domain: ProductDomainTab,
   tagCounts: Record<string, number> | undefined,
-  labelOverrides: Record<string, string> = {}
+  // Categories whose shared defs order is semantic (routine sequence, product
+  // journey): keep the defs order instead of the default alpha sort.
+  preserveOrderCategories: readonly string[] = []
 ): FilterGroupConfig<AllProductTagCategory>[] {
   return useMemo(() => {
     const categories = DOMAIN_PRODUCT_FILTER_CATEGORIES[domain]
     const meta = DOMAIN_TAG_META[domain]
     const counts = tagCounts ?? {}
+    const preserveOrder = new Set(preserveOrderCategories)
 
     return categories.map((cat) => {
       const catMeta = meta[cat]
-      const options: FilterOption[] = getProductTagsByCategory(domain, cat)
-        .map(({ slug, label }) => {
+      const options: FilterOption[] = getProductTagsByCategory(domain, cat).map(
+        ({ slug, label }) => {
           const count = counts[slug] ?? 0
           return {
             value: slug,
-            label: labelOverrides[slug] ?? label,
+            label,
             count,
             disabled: count === 0,
           }
-        })
-        .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
+        }
+      )
+      if (!preserveOrder.has(cat)) {
+        options.sort((a, b) => a.label.localeCompare(b.label, 'fr'))
+      }
 
       const subGroups =
         domain === 'skincare' && cat === 'concern'
@@ -105,5 +111,5 @@ export function useProductTagFilterGroups(
         ],
       }
     })
-  }, [domain, tagCounts, labelOverrides])
+  }, [domain, tagCounts, preserveOrderCategories])
 }

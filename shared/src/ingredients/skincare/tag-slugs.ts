@@ -45,8 +45,6 @@ export const SHARED_SKINCARE_ACTIF_CLASS_DEFS = [
   },
 ] as const satisfies readonly ProductTagDef<'actif_class'>[]
 
-export const SHARED_SKINCARE_ACTIF_CLASS_SLUGS = deriveTagSlugs(SHARED_SKINCARE_ACTIF_CLASS_DEFS)
-
 export const SKINCARE_INGREDIENT_TAG_CATEGORIES = [
   'concern',
   'skin_type',

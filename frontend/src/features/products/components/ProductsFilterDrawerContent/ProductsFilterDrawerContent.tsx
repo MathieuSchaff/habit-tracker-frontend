@@ -1,13 +1,18 @@
+import type { ProductDomainTab } from '@aurore/shared'
+
 import { memo } from 'react'
 
 import { FilterDrawer, type FilterGroupConfig, type FilterValues } from '@/component/Filter'
 import { Toggle } from '@/component/Input/Toggle/Toggle'
 import { PriceFilterAccordion } from '@/features/products/components/PriceFilterAccordion/PriceFilterAccordion'
 import type { FilterKey } from '@/features/products/filters'
+import { PRODUCTS_FILTER_DRAWER_COPY } from './ProductsFilterDrawerContent.copy'
+import { SkincareFilterDrawerBody } from './SkincareFilterDrawerBody'
 
 type Props = {
   open: boolean
   onClose: () => void
+  category: ProductDomainTab
   groups: FilterGroupConfig<FilterKey>[]
   currentFilters: FilterValues<FilterKey>
   initialFilters: FilterValues<FilterKey>
@@ -26,6 +31,7 @@ type Props = {
 function ProductsFilterDrawerContentImpl({
   open,
   onClose,
+  category,
   groups,
   currentFilters,
   initialFilters,
@@ -40,6 +46,11 @@ function ProductsFilterDrawerContentImpl({
   previewCount,
   onLocalFiltersChange,
 }: Props) {
+  const isSkincare = category === 'skincare'
+  const priceFilter = (
+    <PriceFilterAccordion min={priceMin} max={priceMax} onChange={onPriceChange} />
+  )
+
   return (
     <FilterDrawer
       open={open}
@@ -51,14 +62,27 @@ function ProductsFilterDrawerContentImpl({
       onReset={onReset}
       previewCount={previewCount}
       onLocalFiltersChange={onLocalFiltersChange}
-      advancedExtras={
-        <PriceFilterAccordion min={priceMin} max={priceMax} onChange={onPriceChange} />
+      renderBody={
+        isSkincare
+          ? ({ localFilters, onToggle, onFiltersChange }) => {
+              return (
+                <SkincareFilterDrawerBody
+                  groups={groups}
+                  localFilters={localFilters}
+                  onToggle={onToggle}
+                  onFiltersChange={onFiltersChange}
+                  priceFilter={priceFilter}
+                />
+              )
+            }
+          : undefined
       }
+      advancedExtras={isSkincare ? undefined : priceFilter}
     >
       {showProfileToggle && (
         <Toggle
-          label="Selon mon profil"
-          hint="Signale les produits déconseillés pour votre type de peau"
+          label={PRODUCTS_FILTER_DRAWER_COPY.profileToggleLabel}
+          hint={PRODUCTS_FILTER_DRAWER_COPY.profileToggleHint}
           checked={profileFilter}
           onChange={onProfileFilterChange}
           size="sm"

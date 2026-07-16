@@ -17,14 +17,18 @@ type FilterDrawerProps<T extends string> = {
   onReset: () => void
   initialFilters: FilterValues<T>
   children?: React.ReactNode
-  /** Rendered after essential accordions, before the "Avancé" separator. */
-  essentialExtras?: React.ReactNode
   /** Rendered at the end of the advanced section (e.g. price range). */
   advancedExtras?: React.ReactNode
   /** Live count for the Apply button label; parent owns the query. */
   previewCount?: number
   /** Emitted on user action so the parent can drive a preview query. */
   onLocalFiltersChange?: (filters: FilterValues<T>) => void
+  /** Replaces the standard group rendering while preserving drawer staging/apply behavior. */
+  renderBody?: (controls: {
+    localFilters: FilterValues<T>
+    onToggle: (key: T, value: string) => void
+    onFiltersChange: (filters: FilterValues<T>) => void
+  }) => React.ReactNode
 }
 
 // Arrow keys move focus between accordion triggers; ignored elsewhere so we don't hijack arrows in inputs.
@@ -53,10 +57,10 @@ export function FilterDrawer<T extends string>({
   onReset,
   initialFilters,
   children,
-  essentialExtras,
   advancedExtras,
   previewCount,
   onLocalFiltersChange,
+  renderBody,
 }: FilterDrawerProps<T>) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [localFilters, setLocalFilters] = useState<FilterValues<T>>(currentFilters)
@@ -187,23 +191,15 @@ export function FilterDrawer<T extends string>({
           onKeyDown={handleArrowNav}
         >
           {children}
-          {essentialGroups.map((group) => (
-            <FilterAccordion
-              key={group.id}
-              group={group}
-              localFilters={localFilters}
-              onToggle={handleToggle}
-            />
-          ))}
-          {essentialExtras}
-
-          {(advancedGroups.length > 0 || advancedExtras) && (
-            <fieldset aria-label="Filtres avancés">
-              <div className="filter-drawer__separator">
-                <span className="filter-drawer__separator-label">Avancé</span>
-              </div>
-
-              {advancedGroups.map((group) => (
+          {renderBody ? (
+            renderBody({
+              localFilters,
+              onToggle: handleToggle,
+              onFiltersChange: commitLocal,
+            })
+          ) : (
+            <>
+              {essentialGroups.map((group) => (
                 <FilterAccordion
                   key={group.id}
                   group={group}
@@ -211,8 +207,25 @@ export function FilterDrawer<T extends string>({
                   onToggle={handleToggle}
                 />
               ))}
-              {advancedExtras}
-            </fieldset>
+
+              {(advancedGroups.length > 0 || advancedExtras) && (
+                <fieldset aria-label="Filtres avancés">
+                  <div className="filter-drawer__separator">
+                    <span className="filter-drawer__separator-label">Avancé</span>
+                  </div>
+
+                  {advancedGroups.map((group) => (
+                    <FilterAccordion
+                      key={group.id}
+                      group={group}
+                      localFilters={localFilters}
+                      onToggle={handleToggle}
+                    />
+                  ))}
+                  {advancedExtras}
+                </fieldset>
+              )}
+            </>
           )}
         </form>
 

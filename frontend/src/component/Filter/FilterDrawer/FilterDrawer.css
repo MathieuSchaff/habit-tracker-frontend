@@ -153,7 +153,7 @@
   min-inline-size: 0;
 }
 
-/* Toggle "Selon mon profil" sits above accordions as a global super-filter;
+/* The profile toggle sits above accordions as a global super-filter;
    flattened to match accordion rows. The base .toggle card border/radius reads as an odd inset box here. */
 .filter-drawer__body > .toggle {
   background: var(--bg-card);

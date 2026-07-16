@@ -32,10 +32,9 @@ type FilterFieldConfig<T extends string> = {
 
 export type FilterValues<T extends string> = Record<T, string[]>
 
-export type FilterSubGroup = {
+type FilterSubGroup = {
   label: string
   slugs: string[]
-  maxVisible?: number
 }
 
 export type GroupedFilterField<T extends string> = FilterFieldConfig<T> & {

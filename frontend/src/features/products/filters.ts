@@ -60,13 +60,8 @@ export const GROUP_LABELS: Record<FilterKey, string> = {
   ...NON_TAG_FILTER_LABELS,
 }
 
-// Display tweaks not derivable from taxonomy.
-export const LABEL_OVERRIDES: Record<string, string> = {
-  'barriere-cutanee-alteree': 'Peau sensibilisée',
-}
-
 // Merged tag-slug to label map across the 4 domain taxonomies. Overlapping slugs share labels.
-const ALL_TAG_LABELS: Record<string, string> = {
+const ALL_TAG_LABELS = {
   ...Object.fromEntries(
     Object.entries(SKINCARE_PRODUCT_TAG_TAXONOMY).map(([slug, m]) => [slug, m.label])
   ),
@@ -82,7 +77,7 @@ const ALL_TAG_LABELS: Record<string, string> = {
 }
 
 export function tagLabel(slug: string): string {
-  return LABEL_OVERRIDES[slug] ?? ALL_TAG_LABELS[slug] ?? slug
+  return ALL_TAG_LABELS[slug] ?? slug
 }
 
 const { schema: baseSchema, defaultValues } = filterSearchSchema(FILTER_KEYS)

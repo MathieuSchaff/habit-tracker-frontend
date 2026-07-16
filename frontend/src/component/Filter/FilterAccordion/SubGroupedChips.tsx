@@ -56,7 +56,6 @@ export function SubGroupedChips<T extends string>({
               options={sgOptions}
               selected={selected}
               onChange={toggleChip}
-              maxVisible={sg.maxVisible}
               size="sm"
               onChipKeyDown={escapeHandler}
               aria-label={sg.label}

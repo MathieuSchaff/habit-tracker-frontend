@@ -1,0 +1,154 @@
+.skincare-filter-drawer__section {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.skincare-filter-drawer__section-heading {
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  background: var(--color-primary-light, oklch(from var(--color-primary) l c h / 0.06));
+  border-bottom: 1px solid oklch(from var(--color-primary) l c h / 0.16);
+}
+
+.skincare-filter-drawer__section-heading h3 {
+  margin: 0;
+  color: var(--color-primary-deeper, var(--color-primary));
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.skincare-filter-drawer__section-heading p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.skincare-filter-drawer__intents {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-card);
+  border-bottom: var(--rule-section);
+}
+
+/* Intent chips and path doors share the same "selectable card" base. */
+.button.skincare-filter-drawer__intent,
+.button.skincare-filter-drawer__path {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.button.skincare-filter-drawer__intent {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.3);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.skincare-filter-drawer__intent span {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+
+.skincare-filter-drawer__intent small {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.button.skincare-filter-drawer__intent:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+}
+
+.button.skincare-filter-drawer__intent:focus-visible,
+.button.skincare-filter-drawer__path:focus-visible {
+  outline: 2px solid var(--color-focus, var(--color-primary));
+  outline-offset: 2px;
+}
+
+.button.skincare-filter-drawer__intent.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  box-shadow: 0 4px 14px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.button.skincare-filter-drawer__intent.is-active small {
+  color: inherit;
+  opacity: 0.82;
+}
+
+.button.skincare-filter-drawer__intent:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skincare-filter-drawer__path-picker {
+  padding: 0 0 var(--space-4);
+  background: var(--bg-card);
+  border-bottom: var(--rule-section);
+}
+
+.skincare-filter-drawer__step {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+}
+
+.skincare-filter-drawer__path-options {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) 0;
+}
+
+.button.skincare-filter-drawer__path {
+  padding: var(--space-4);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.skincare-filter-drawer__path strong {
+  color: var(--color-primary-deeper, var(--color-primary));
+  font-size: var(--text-base);
+}
+
+.skincare-filter-drawer__path span {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.button.skincare-filter-drawer__path.is-active {
+  border-color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.08);
+  box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.12);
+}
+
+@media (--xs-only) {
+  .skincare-filter-drawer__intents {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button.skincare-filter-drawer__intent {
+    transition: none;
+  }
+}

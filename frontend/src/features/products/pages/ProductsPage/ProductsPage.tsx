@@ -280,6 +280,7 @@ export function ProductsPage() {
         <ProductsFilterDrawerContent
           open={isDrawerOpen}
           onClose={handleCloseDrawer}
+          category={category}
           groups={filterGroups}
           currentFilters={filters}
           initialFilters={EMPTY_FILTERS}
