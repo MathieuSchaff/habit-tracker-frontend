@@ -4,11 +4,7 @@
 // Tags applicable to skincare/haircare/dental ingredients.
 // Categories: concern, skin_type, ingredient_attribute, skin_effect, shared_label, actif_class.
 
-import {
-  deriveTagSlugs,
-  type LabeledTagDef,
-  type ProductTagDef,
-} from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type LabeledTagDef, type ProductTagDef } from '../../tag-taxonomy-builder'
 
 // Actif class (pharmacological clusters) — single source of truth for the
 // slugs shared with skincare PRODUCT tags. The product taxonomy spreads these
@@ -57,7 +53,6 @@ export const SKINCARE_INGREDIENT_TAG_CATEGORIES = [
 export type SkincareIngredientTagCategory = (typeof SKINCARE_INGREDIENT_TAG_CATEGORIES)[number]
 
 export const SKINCARE_INGREDIENT_TAG_DEFS = [
-  // Concerns
   { key: 'ANTI_ROUGEURS', slug: 'anti-rougeurs', label: 'Anti-rougeurs', category: 'concern' },
   { key: 'ROSACEE', slug: 'rosacee', label: 'Rosacée', category: 'concern' },
   { key: 'COUPEROSE', slug: 'couperose', label: 'Couperose', category: 'concern' },
@@ -115,14 +110,12 @@ export const SKINCARE_INGREDIENT_TAG_DEFS = [
     category: 'concern',
   },
 
-  // Skin types
   { key: 'PEAU_SECHE', slug: 'peau-seche', label: 'Peau sèche', category: 'skin_type' },
   { key: 'PEAU_MIXTE', slug: 'peau-mixte', label: 'Peau mixte', category: 'skin_type' },
   { key: 'PEAU_GRASSE', slug: 'peau-grasse', label: 'Peau grasse', category: 'skin_type' },
   { key: 'PEAU_SENSIBLE', slug: 'peau-sensible', label: 'Peau sensible', category: 'skin_type' },
   { key: 'PEAU_NORMALE', slug: 'peau-normale', label: 'Peau normale', category: 'skin_type' },
 
-  // Ingredient attributes
   // filtres-chimiques / filtres-mineraux are ingredient_attribute slugs (UV
   // filter subtype) shared with product tags; grouped here with the rest of the
   // attribute family.
@@ -213,7 +206,6 @@ export const SKINCARE_INGREDIENT_TAG_DEFS = [
     category: 'skin_effect',
   },
 
-  // Shared labels
   { key: 'COMEDOGENE', slug: 'comedogene', label: 'Comédogène', category: 'shared_label' },
   {
     key: 'NON_COMEDOGENE',

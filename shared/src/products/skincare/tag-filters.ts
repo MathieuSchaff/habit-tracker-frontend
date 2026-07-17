@@ -1,5 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
-import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
+import { sortFilterCategories } from '../../tag-taxonomy-builder'
 import { SKINCARE_PRODUCT_TAG_CATEGORIES, type SkincareProductTagCategory } from './tag-slugs'
 
 export const SKINCARE_PRODUCT_TAG_CATEGORY_META: Record<

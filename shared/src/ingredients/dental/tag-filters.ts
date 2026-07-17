@@ -1,5 +1,5 @@
 import type { TagCategoryMeta } from '../../core'
-import { sortFilterCategories } from '../../tag-api/tag-taxonomy-builder'
+import { sortFilterCategories } from '../../tag-taxonomy-builder'
 import { DENTAL_INGREDIENT_TAG_CATEGORIES, type DentalIngredientTagCategory } from './tag-slugs'
 
 export const DENTAL_INGREDIENT_TAG_CATEGORY_META: Record<

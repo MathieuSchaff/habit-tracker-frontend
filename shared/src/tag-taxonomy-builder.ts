@@ -1,15 +1,10 @@
 // Generic helpers shared by every tag domain.
 //
-// Each domain declares ONE source-of-truth array of tag definitions
-// (`*_TAG_DEFS`) carrying {key, slug, category[, label, subgroup]} per tag, then
-// derives the legacy public consts from it: `deriveTagSlugs` -> the `{KEY: slug}`
-// object, `buildTagLabels` -> the slug->label dict, `buildTagBuckets` ->
-// per-category slug arrays, `buildTagCategoryMap` -> the ingredient `{category}`
-// taxonomy, `buildTagSubgroups` -> the display sub-group arrays. One place to
-// read a tag's slug+label+category; the rest is generated, so they cannot drift.
+// Each domain declares one source-of-truth array of tag definitions
+// (`*_TAG_DEFS`) carrying {key, slug, category[, label, subgroup]} per tag. These
+// helpers derive the runtime views shared by products and ingredients so the
+// declared vocabulary cannot drift from its consumers.
 
-// The ingredient taxonomy itself stays `{category}`-only; labels are derived
-// separately via `buildTagLabels`. Subgroups are display overlays (skincare only).
 type TagDef<C extends string = string> = {
   readonly key: string
   readonly slug: string
@@ -43,27 +38,24 @@ export function buildTagLabels<S extends string>(
   return out
 }
 
-// Group slugs per category in category-list order (outer) × defs order (inner).
-// Feeds buildTagTaxonomy; its key order drives the product taxonomy key order.
-export function buildTagBuckets<S extends string, C extends string>(
-  defs: readonly { slug: S; category: C }[],
-  categories: readonly C[]
-): Record<C, readonly S[]> {
-  const out = {} as Record<C, S[]>
-  for (const category of categories) out[category] = []
-  for (const def of defs) {
-    const bucket = out[def.category]
-    if (bucket) bucket.push(def.slug)
-  }
-  return out
-}
-
 // Ingredient taxonomy is `{category}`-only (no label in shared).
 export function buildTagCategoryMap<S extends string, C extends string>(
   defs: readonly { slug: S; category: C }[]
 ): Record<S, { category: C }> {
   const out = {} as Record<S, { category: C }>
   for (const def of defs) out[def.slug] = { category: def.category }
+  return out
+}
+
+// Product taxonomy carries both category and display label. Its key order
+// follows defs order, which is the canonical order declared by each domain.
+export function buildProductTagTaxonomy<S extends string, C extends string>(
+  defs: readonly { slug: S; category: C; label: string }[]
+): Record<S, { category: C; label: string }> {
+  const out = {} as Record<S, { category: C; label: string }>
+  for (const def of defs) {
+    out[def.slug] = { category: def.category, label: def.label }
+  }
   return out
 }
 
@@ -79,19 +71,6 @@ export function buildTagSubgroups<S extends string, G extends string>(
     if (def.subgroup === undefined) continue
     const bucket = out[def.subgroup as G]
     if (bucket) bucket.push(def.slug)
-  }
-  return out
-}
-
-export function buildTagTaxonomy<S extends string, C extends string>(
-  labels: Record<S, string>,
-  buckets: Record<C, readonly S[]>
-): Record<S, { category: C; label: string }> {
-  const out = {} as Record<S, { category: C; label: string }>
-  for (const category of Object.keys(buckets) as C[]) {
-    for (const slug of buckets[category]) {
-      out[slug] = { category, label: labels[slug] }
-    }
   }
   return out
 }

@@ -7,7 +7,7 @@
 //             product_characteristic, actif_class.
 
 import { SHARED_SKINCARE_ACTIF_CLASS_DEFS } from '../../ingredients/skincare/tag-slugs'
-import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type ProductTagDef } from '../../tag-taxonomy-builder'
 
 export const SKINCARE_PRODUCT_TAG_CATEGORIES = [
   'concern',

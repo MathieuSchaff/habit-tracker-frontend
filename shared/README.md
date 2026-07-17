@@ -30,14 +30,14 @@ its `index.ts` (`products/`, `ingredients/`).
    `SHARED_SKINCARE_ACTIF_CLASS_DEFS` (owned by `ingredients/skincare/tag-slugs.ts`) is spread
    into the skincare product defs, which add product-only extras (`urea`). Drift fails to compile.
 
-4. **Generic tag helpers are neutral.** `tag-api/tag-taxonomy-builder.ts` holds the derive helpers
-   (`deriveTagSlugs`, `buildTagLabels`, `buildTagBuckets`, `buildTagCategoryMap`,
-   `buildTagSubgroups`) plus `buildTagTaxonomy` / `sortFilterCategories` — reachable by both
-   `products/` and `ingredients/` without a products↔ingredients import cycle. `deriveTagSlugs`
-   uses a `const` type param so `SLUGS.KEY` keeps its literal slug type. Per-domain
-   `tag-taxonomy.ts` only calls these on its `*_TAG_DEFS`; `tag-filters.ts` declares the
-   `*_TAG_CATEGORY_META` record and calls `sortFilterCategories`. The `*_TAG_CATEGORIES` array and
-   its `*TagCategory` type live in `tag-slugs.ts` (the defs need the category union).
+4. **Generic tag helpers are neutral.** `tag-taxonomy-builder.ts` holds the derive helpers
+   (`deriveTagSlugs`, `buildTagLabels`, `buildTagCategoryMap`, `buildProductTagTaxonomy`,
+   `buildTagSubgroups`, `sortFilterCategories`) — reachable by both `products/` and
+   `ingredients/` without a products↔ingredients import cycle. `deriveTagSlugs` uses a `const`
+   type param so `SLUGS.KEY` keeps its literal slug type. Per-domain `tag-taxonomy.ts` only calls
+   these on its `*_TAG_DEFS`; `tag-filters.ts` declares the `*_TAG_CATEGORY_META` record and calls
+   `sortFilterCategories`. The `*_TAG_CATEGORIES` array and its `*TagCategory` type live in
+   `tag-slugs.ts` (the defs need the category union).
 
 5. **`tag-api/` is the tag HTTP CRUD surface, not the vocabulary.** It holds the relevance/source
    enums, create/update/replace schemas, and error mapping. The tag *vocabulary* is the

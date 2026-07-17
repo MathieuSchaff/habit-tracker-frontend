@@ -10,7 +10,7 @@
 // Note `gencivite` / `taches`: spelling preserved to align with the
 // existing ingredient slugs (typo `gencivite` vs correct `gingivite`).
 
-import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type ProductTagDef } from '../../tag-taxonomy-builder'
 
 export const DENTAL_PRODUCT_TAG_CATEGORIES = [
   'concern',

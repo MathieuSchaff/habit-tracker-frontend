@@ -4,7 +4,7 @@
 // Tags applicable to supplement/nutraceutical ingredients.
 // Categories: goal, moment, restriction, ingredient_attribute.
 
-import { deriveTagSlugs, type LabeledTagDef } from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type LabeledTagDef } from '../../tag-taxonomy-builder'
 
 export const SUPPLEMENT_INGREDIENT_TAG_CATEGORIES = [
   'goal',

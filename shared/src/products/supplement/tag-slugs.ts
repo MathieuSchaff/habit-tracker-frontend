@@ -4,7 +4,7 @@
 //
 // goal / restriction: slugs aligned with SUPPLEMENT_INGREDIENT_TAG_SLUGS when
 // applicable (independent DB rows for ingredient vs product). A few new
-// product-only slugs (spec §4.5): `peau-cheveux-ongles`, `stress-anxiete`,
+// product-only slugs: `peau-cheveux-ongles`, `stress-anxiete`,
 // `recuperation-musculaire`, `autour-sport`, `interaction-thyroide`.
 //
 // `matin-supplement` / `soir-supplement`: suffixed to avoid a DB collision
@@ -15,7 +15,7 @@
 // SKINCARE_PRODUCT_TAG_SLUGS (gelule, capsule, poudre, sirop, gummy) and adds
 // 4 new ones (comprime, ampoule-buvable, huile-orale, spray-sublingual).
 
-import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type ProductTagDef } from '../../tag-taxonomy-builder'
 
 export const SUPPLEMENT_PRODUCT_TAG_CATEGORIES = [
   'goal',

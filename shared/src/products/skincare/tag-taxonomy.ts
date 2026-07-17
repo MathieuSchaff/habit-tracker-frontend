@@ -1,22 +1,7 @@
-import {
-  buildTagBuckets,
-  buildTagLabels,
-  buildTagSubgroups,
-  buildTagTaxonomy,
-} from '../../tag-api/tag-taxonomy-builder'
-import {
-  SKINCARE_PRODUCT_TAG_CATEGORIES,
-  SKINCARE_PRODUCT_TAG_DEFS,
-  type SkincareProductTagCategory,
-  type SkincareProductTagSlug,
-} from './tag-slugs'
+import { buildProductTagTaxonomy, buildTagSubgroups } from '../../tag-taxonomy-builder'
+import { SKINCARE_PRODUCT_TAG_DEFS, type SkincareProductTagSlug } from './tag-slugs'
 
-const BUCKETS = buildTagBuckets(SKINCARE_PRODUCT_TAG_DEFS, SKINCARE_PRODUCT_TAG_CATEGORIES)
-
-export const SKINCARE_PRODUCT_TAG_TAXONOMY = buildTagTaxonomy<
-  SkincareProductTagSlug,
-  SkincareProductTagCategory
->(buildTagLabels(SKINCARE_PRODUCT_TAG_DEFS), BUCKETS)
+export const SKINCARE_PRODUCT_TAG_TAXONOMY = buildProductTagTaxonomy(SKINCARE_PRODUCT_TAG_DEFS)
 
 // Concern groups are display-only — DB stores flat concern slugs.
 // filter-definition.ts consumes them to expose two named sub-sections.
@@ -30,7 +15,9 @@ export const SKINCARE_PRODUCT_CONCERN_GROUPS: Record<
 
 // Membership check for the auto-tag pipeline's primary-promotion pass. Derived
 // from the same defs as the taxonomy so adding a concern slug is a single edit.
-export const SKINCARE_CONCERN_SLUGS: ReadonlySet<SkincareProductTagSlug> = new Set(BUCKETS.concern)
+export const SKINCARE_CONCERN_SLUGS: ReadonlySet<SkincareProductTagSlug> = new Set(
+  SKINCARE_PRODUCT_TAG_DEFS.filter(({ category }) => category === 'concern').map(({ slug }) => slug)
+)
 
 // product_characteristic groups are display-only — DB stores flat slugs with
 // type='product_characteristic'. filter-definition.ts consumes them to expose

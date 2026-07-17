@@ -7,7 +7,7 @@
 // → cross-entity consistency, same as skincare).
 // product_type / routine_step / product_label: new slugs, product scope.
 
-import { deriveTagSlugs, type ProductTagDef } from '../../tag-api/tag-taxonomy-builder'
+import { deriveTagSlugs, type ProductTagDef } from '../../tag-taxonomy-builder'
 
 export const HAIRCARE_PRODUCT_TAG_CATEGORIES = [
   'concern',
