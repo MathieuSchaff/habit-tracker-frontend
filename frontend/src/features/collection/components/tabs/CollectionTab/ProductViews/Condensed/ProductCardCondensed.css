@@ -32,9 +32,6 @@
     touch-action: manipulation;
     width: 100%;
     border-top: 3px solid var(--pcc-accent);
-    /* corner-*-shape is a valid CSS Shapes property */
-    corner-top-right-shape: scoop;
-    /* Resting elevation: card sits on the surface, pressed flat on tap. */
     box-shadow: var(--shadow-card);
     transition:
       box-shadow var(--transition-fast) ease,
@@ -83,6 +80,8 @@
     flex-shrink: 0;
   }
 
+  /* Opaque backing disc so the floating badge reads cleanly over the rounded
+     corner on every engine (replaces the Chrome-only corner-shape scoop). */
   .prod-sentiment-toggle {
     position: absolute;
     top: -10px;
@@ -91,17 +90,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    border: none;
-    background: none;
+    padding: 3px;
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
     color: var(--text-primary);
     line-height: 0;
     transition: transform var(--transition-base) var(--ease-bounce);
   }
 
+  /* Empty = "add sentiment" affordance: keep the disc solid, just mute the
+     glyph. Dimming the whole element made it near-invisible on dark cards. */
   .prod-sentiment-toggle.empty {
-    opacity: 0.35;
+    color: var(--text-secondary);
   }
 
   .prod-sentiment-toggle:hover {
@@ -112,7 +115,6 @@
     animation: sentimentPop 0.35s var(--ease-bounce);
   }
 
-  /* Legacy round badge — kept for when we revisit the overlay styling. */
   .prod-sentiment-badge {
     position: absolute;
     top: -13px;
@@ -140,8 +142,6 @@
     opacity: 0.4;
   }
 
-  /* Halo tints the badge with the sentiment hue; the face inks itself.
-     Grail (6) flows through the same path with the gem's gold. */
   .prod-sentiment-badge.has-sentiment {
     background: oklch(from var(--sentiment-color) l c h / 0.14);
     border-color: oklch(from var(--sentiment-color) l c h / 0.4);
@@ -153,7 +153,6 @@
     z-index: 10;
   }
 
-  /* Select-mode checkbox overlay (top-left) */
   .pcc-check {
     position: absolute;
     top: 10px;
@@ -323,8 +322,6 @@
     transform: scale(0.96);
   }
 
-  /* Chevron = "is-expandable" affordance so users discover the picker.
-     Dimmed so it whispers rather than competes with the status icon + label. */
   .pcc-status-pill-chevron {
     opacity: 0.6;
     margin-left: 1px;
