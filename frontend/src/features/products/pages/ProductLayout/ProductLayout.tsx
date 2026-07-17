@@ -99,7 +99,9 @@ export function ProductLayout() {
   return (
     <DetailPageLayout banner={true}>
       <PageTopActions>
-        <BackButton onClick={handleBack}>Produits</BackButton>
+        <BackButton onClick={handleBack} prominence="strong">
+          Retour aux produits
+        </BackButton>
         <PageTopActionsRight>
           {/* Edit route is auth-gated; hide the affordance for anon instead of a login redirect. */}
           {user && (

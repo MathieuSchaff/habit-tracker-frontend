@@ -43,7 +43,9 @@ export function IngredientLayout() {
   return (
     <DetailPageLayout banner>
       <PageTopActions>
-        <BackButton to="/ingredients">Ingrédients</BackButton>
+        <BackButton to="/ingredients" prominence="strong">
+          Retour aux ingrédients
+        </BackButton>
         <PageTopActionsRight>
           <ButtonLink
             to="/ingredients/$slug/edit"
