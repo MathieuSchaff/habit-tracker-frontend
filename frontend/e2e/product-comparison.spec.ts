@@ -37,11 +37,12 @@ test('happy path: build a comparison and read its bands', async ({ page }) => {
     timeout: 10_000,
   })
 
-  // EmptyComparisonState returns null once two products are selected.
+  // EmptyComparisonState flips to its ready state once two products are selected.
   await expect(page.getByText('Sélectionne au moins 2 produits')).toHaveCount(0)
+  await expect(page.getByText('Prêt à comparer')).toBeVisible()
 
-  // --- 2. Save → redirect to the detail route ---
-  const saveBtn = page.getByRole('button', { name: 'Enregistrer' })
+  // --- 2. Save via the ready-state CTA → redirect to the detail route ---
+  const saveBtn = page.getByRole('button', { name: 'Enregistrer la comparaison' })
   await expect(saveBtn).toBeEnabled({ timeout: 5_000 })
   await saveBtn.click()
   await expect(page).toHaveURL(/\/products\/compare\/[^/]+$/, { timeout: 20_000 })

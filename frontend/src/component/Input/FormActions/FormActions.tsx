@@ -10,6 +10,8 @@ type FormActionsProps = {
   isPending?: boolean
   disabled?: boolean
   size?: 'sm' | 'md'
+  // Form-footer separator rule; turn off when the actions sit inline in a header row.
+  separator?: boolean
 }
 
 export function FormActions({
@@ -19,9 +21,10 @@ export function FormActions({
   isPending,
   disabled,
   size = 'md',
+  separator = true,
 }: FormActionsProps) {
   return (
-    <div className="form-actions-bar">
+    <div className={separator ? 'form-actions-bar' : 'form-actions-bar form-actions-bar--bare'}>
       {onCancel && (
         <Button type="button" variant="outline" size={size} onClick={onCancel} disabled={isPending}>
           <X size={size === 'sm' ? 14 : 16} />

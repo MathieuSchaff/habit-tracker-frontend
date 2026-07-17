@@ -5,3 +5,8 @@
   padding-top: var(--space-4);
   border-top: var(--rule-section);
 }
+
+.form-actions-bar--bare {
+  padding-top: 0;
+  border-top: none;
+}

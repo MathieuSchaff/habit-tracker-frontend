@@ -8,7 +8,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--space-4);
-  align-items: end;
   list-style: none;
   margin: 0;
   padding: 0 0 var(--space-5);
@@ -19,10 +18,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 640px) {
+@media (--sm-only) {
   .cmp-shelf__row {
     grid-auto-flow: column;
-    grid-auto-columns: 12rem;
+    /* 1fr lets 2-3 products fill the strip; the 12rem floor keeps the swipe rail when more overflow. */
+    grid-auto-columns: minmax(12rem, 1fr);
     grid-template-columns: none;
   }
 }
@@ -136,12 +136,14 @@
   font-weight: var(--font-normal);
 }
 
+/* Cards stretch to equal height; auto margin anchors badges + tags to the bottom edge. */
 .cmp-shelf__badges {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-1);
-  margin-top: var(--space-1);
+  margin-top: auto;
+  padding-top: var(--space-1);
 }
 
 .cmp-shelf__badge {

@@ -33,7 +33,14 @@ export function ComparisonHeader({ name, onNameChange, count, onSave, onCancel, 
           {count} produit{count > 1 ? 's' : ''}
         </span>
         {onSave && (
-          <FormActions submitLabel="Enregistrer" disabled={!canSave} onCancel={onCancel} />
+          <div className="comparison-header__actions">
+            <FormActions
+              submitLabel="Enregistrer"
+              disabled={!canSave}
+              onCancel={onCancel}
+              separator={false}
+            />
+          </div>
         )}
       </form>
     </header>

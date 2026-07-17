@@ -68,6 +68,11 @@
   margin: 0;
 }
 
+/* Global .button defaults to align-self: flex-start; recenter in this column. */
+.empty-comparison__cta {
+  align-self: center;
+}
+
 .empty-comparison__foot {
   font-family: var(--font-mono);
   font-size: var(--text-xs);

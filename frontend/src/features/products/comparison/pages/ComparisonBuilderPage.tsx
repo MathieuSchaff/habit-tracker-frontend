@@ -68,7 +68,11 @@ function NewComparisonBuilder({ seedProductId }: { seedProductId?: string }) {
         <div className="comparison-builder-page__picker">
           <ProductPicker selectedIds={productIds} onChange={setProductIds} />
         </div>
-        <EmptyComparisonState count={productIds.length} />
+        <EmptyComparisonState
+          count={productIds.length}
+          onSave={onSave}
+          isPending={create.isPending}
+        />
       </div>
     </section>
   )

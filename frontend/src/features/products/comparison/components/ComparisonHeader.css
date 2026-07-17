@@ -19,18 +19,16 @@
   min-width: 0;
 }
 
+/* Plain muted text: the count is a status readout, a pill reads as a button. */
 .comparison-header__count {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-primary-subtle);
-  color: var(--color-primary-dark);
-  border-radius: var(--radius-full);
   font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
+  color: var(--text-muted);
   white-space: nowrap;
-  line-height: 1.4;
+}
+
+.comparison-header__actions {
+  margin-left: auto;
 }
 
 @media (--sm) {
@@ -42,7 +40,8 @@
     flex-wrap: nowrap;
   }
 
+  /* Cap the optional name field so it stops dominating the row. */
   .comparison-header__name-wrap {
-    flex: 1 1 auto;
+    flex: 0 1 28rem;
   }
 }
