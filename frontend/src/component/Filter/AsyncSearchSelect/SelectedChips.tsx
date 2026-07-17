@@ -2,6 +2,10 @@ import { X } from 'lucide-react'
 
 import type { FilterOption } from '../types'
 
+// .chip styles live in ChipGroup.css; without this import they only load when a
+// ChipGroup happens to be in the route's module graph (visit-order dependent).
+import '@/component/Input/ChipGroup/ChipGroup.css'
+
 type Props = {
   options: FilterOption[]
   onRemove: (value: string) => void
