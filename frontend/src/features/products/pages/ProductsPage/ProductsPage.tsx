@@ -36,6 +36,7 @@ import {
 import { useProductsExtraChips } from '@/features/products/hooks/useProductsExtraChips'
 import { useProductsFilterGroups } from '@/features/products/hooks/useProductsFilterGroups'
 import { useListFilters } from '@/hooks/useListFilters'
+import { useProfileFilterToggle } from '@/hooks/useProfileFilterToggle'
 import { isRateLimitError } from '@/lib/helpers/apiError'
 import {
   applyShelfStatusOverlayToListCache,
@@ -211,12 +212,7 @@ export function ProductsPage() {
     [navigate]
   )
 
-  const handleProfileFilterChange = useCallback(
-    (checked: boolean) => {
-      navigate({ search: (prev) => ({ ...prev, profile_filter: checked, page: 1 }) })
-    },
-    [navigate]
-  )
+  const handleProfileFilterChange = useProfileFilterToggle('/products/')
 
   const handleDomainChange = useCallback(
     (next: ProductDomainTab) => {

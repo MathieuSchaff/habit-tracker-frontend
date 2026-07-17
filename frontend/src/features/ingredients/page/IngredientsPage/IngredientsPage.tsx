@@ -36,6 +36,7 @@ import {
 } from '@/features/ingredients/filters'
 import { useIngredientTagFilterGroups } from '@/hooks/useIngredientTagFilterGroups'
 import { useListFilters } from '@/hooks/useListFilters'
+import { useProfileFilterToggle } from '@/hooks/useProfileFilterToggle'
 import { isRateLimitError } from '@/lib/helpers/apiError'
 import { ingredientQueries, type ListIngredientsFilters } from '@/lib/queries/ingredients'
 import { profileQueries } from '@/lib/queries/profile'
@@ -127,12 +128,7 @@ export function IngredientsPage() {
     [navigate]
   )
 
-  const handleProfileFilterChange = useCallback(
-    (checked: boolean) => {
-      navigate({ search: (prev) => ({ ...prev, profile_filter: checked, page: 1 }) })
-    },
-    [navigate]
-  )
+  const handleProfileFilterChange = useProfileFilterToggle('/ingredients/')
 
   const showProfileToggle = !!user && type === 'skincare'
 
