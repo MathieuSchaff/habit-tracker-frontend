@@ -41,6 +41,18 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
   const { data: purchases } = useQuery(purchaseQueries.byUserProduct(p.id))
   const purchaseCount = purchases?.length ?? 0
 
+  // Watched products are still being evaluated — surface the formula first, open.
+  const isWatched = p.status === 'watched'
+  const formulaSection = (
+    <PdsAccordion
+      icon={<Droplets size={14} />}
+      title="Formule & ingrédients"
+      defaultOpen={isWatched}
+    >
+      <PdsFormulaSection p={p} />
+    </PdsAccordion>
+  )
+
   return (
     <>
       <Sheet
@@ -56,17 +68,17 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
         />
 
         <div className="pds-scroll">
+          {isWatched && formulaSection}
+
           {/* User experience leads the sheet in this variant. */}
           <PdsExperienceSection p={p} updateMutation={updateMutation} />
 
-          {/* Decision */}
           <PdsDecisionSection
             p={p}
             decision={decision}
             isUpdatePending={updateMutation.isPending}
           />
 
-          {/* Lifecycle */}
           <PdsAccordion
             icon={<FlaskConical size={14} />}
             title={pdsLabels.lifecycle}
@@ -79,10 +91,8 @@ export function ProductDetailSheet({ p, onClose }: ProductDetailSheetProps) {
             <LifecycleSection p={p} onAddPurchase={() => setShowAddPurchase(true)} />
           </PdsAccordion>
 
-          {/* Formula demoted — reference material, closed by default */}
-          <PdsAccordion icon={<Droplets size={14} />} title="Formule & ingrédients">
-            <PdsFormulaSection p={p} />
-          </PdsAccordion>
+          {/* Formula demoted — reference material, closed by default (except watched, rendered on top) */}
+          {!isWatched && formulaSection}
 
           <footer className="pds-footer">
             <button
