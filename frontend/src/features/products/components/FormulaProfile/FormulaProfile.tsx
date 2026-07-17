@@ -1,4 +1,4 @@
-import { SKINCARE_PRODUCT_TAG_CATEGORY_META } from '@aurore/shared'
+import { getProductFilterDefinition } from '@aurore/shared'
 
 import { Fragment } from 'react'
 
@@ -11,6 +11,9 @@ import './FormulaProfile.css'
 // used — never suitability, concerns, or a verdict. Array order = display
 // order: most formula-specific first, not META.order (filter-menu order).
 const PROFILE_CATEGORIES = ['actif_class', 'skin_effect', 'routine_step_v2', 'skin_zone'] as const
+const SKINCARE_FILTER_LABELS = new Map(
+  getProductFilterDefinition('skincare').map(({ key, label }) => [key, label])
+)
 
 interface FormulaProfileProps {
   tags: ProductDetail['tags']
@@ -19,7 +22,7 @@ interface FormulaProfileProps {
 export function FormulaProfile({ tags }: FormulaProfileProps) {
   const groups = PROFILE_CATEGORIES.map((category) => ({
     category,
-    label: SKINCARE_PRODUCT_TAG_CATEGORY_META[category].label,
+    label: SKINCARE_FILTER_LABELS.get(category) ?? category,
     tags: tags.filter((t) => t.tagCategory === category && t.relevance !== 'avoid'),
   })).filter((g) => g.tags.length > 0)
 

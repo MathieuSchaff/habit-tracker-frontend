@@ -29,18 +29,6 @@ export const TAB_INGREDIENT_TYPE: Record<ProductDomainTab, IngredientType> = {
   complement: 'supplement',
 }
 
-// Categories whose shared defs order is semantic (routine sequence, product
-// journey): the tag hook keeps the defs order for these instead of alpha.
-// Skincare-only category names, so passing them for every domain is a no-op
-// elsewhere (haircare uses product_type / routine_step, not the _v2 keys).
-const SEMANTIC_ORDER_CATEGORIES = [
-  'product_type_v2',
-  'texture',
-  'skin_zone',
-  'routine_step_v2',
-  'routine_moment',
-] as const
-
 const loadIngredientOptions = (type: IngredientType) => (q: string) => ({
   ...ingredientQueries.search(q, type),
   select: (data: IngredientLookupRow[]) => data.map(toIngredientOption),
@@ -55,11 +43,7 @@ export function useProductsFilterGroups(
   category: ProductDomainTab,
   filterOptions: FilterOptions | undefined
 ): FilterGroupConfig<FilterKey>[] {
-  const tagGroups = useProductTagFilterGroups(
-    category,
-    filterOptions?.tagCounts,
-    SEMANTIC_ORDER_CATEGORIES
-  )
+  const tagGroups = useProductTagFilterGroups(category, filterOptions?.tagCounts)
 
   return useMemo<FilterGroupConfig<FilterKey>[]>(() => {
     if (!filterOptions) return []

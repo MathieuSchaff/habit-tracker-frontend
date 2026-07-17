@@ -46,3 +46,10 @@ its `index.ts` (`products/`, `ingredients/`).
 
 6. **Tree-shaking is fine through the barrel.** Rolldown isolates the large taxonomy consts
    into a lazy chunk (auth routes ship 0 B of it). `sideEffects:false` is not required.
+
+7. **Product filter presentation crosses one interface.**
+   `getProductFilterDefinition(domain)` returns complete, ordered, React-independent group
+   definitions: metadata, final option order, and named sub-groups. Frontend adapters may add
+   runtime `count` / `disabled` state, but must not reconstruct category META, ordering policy,
+   or subgroup labels. The per-domain `tag-filters.ts` modules and skincare subgroup maps are
+   implementation details behind this interface and are not re-exported from `@aurore/shared`.

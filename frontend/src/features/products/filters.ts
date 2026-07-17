@@ -1,18 +1,14 @@
 import {
   type AllProductTagCategory,
-  DENTAL_PRODUCT_TAG_CATEGORY_META,
   DENTAL_PRODUCT_TAG_TAXONOMY,
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  HAIRCARE_PRODUCT_TAG_CATEGORY_META,
+  getProductFilterDefinition,
   HAIRCARE_PRODUCT_TAG_TAXONOMY,
   PRODUCT_DOMAIN_TABS,
   type ProductDomainTab,
+  type ProductFilterDefinition,
   productSortEnum,
-  SKINCARE_PRODUCT_TAG_CATEGORY_META,
   SKINCARE_PRODUCT_TAG_TAXONOMY,
-  SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
   SUPPLEMENT_PRODUCT_TAG_TAXONOMY,
-  type TagCategoryMeta,
 } from '@aurore/shared'
 
 import { z } from 'zod'
@@ -25,7 +21,15 @@ export type TagFilterKey = AllProductTagCategory
 
 export type FilterKey = TagFilterKey | 'brand' | 'ingredient'
 
-const _allTagKeys = Object.values(DOMAIN_PRODUCT_FILTER_CATEGORIES).flat()
+const _definitionsByDomain: Record<ProductDomainTab, ProductFilterDefinition[]> = {
+  skincare: getProductFilterDefinition('skincare'),
+  haircare: getProductFilterDefinition('haircare'),
+  dental: getProductFilterDefinition('dental'),
+  complement: getProductFilterDefinition('complement'),
+}
+const _allTagKeys = PRODUCT_DOMAIN_TABS.flatMap((domain) =>
+  _definitionsByDomain[domain].map(({ key }) => key)
+)
 export const TAG_FILTER_KEYS = [...new Set(_allTagKeys)] as TagFilterKey[]
 
 export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient'] as (
@@ -33,14 +37,6 @@ export const FILTER_KEYS = [...TAG_FILTER_KEYS, 'brand', 'ingredient'] as (
   | 'brand'
   | 'ingredient'
 )[]
-
-// Skincare meta wins for shared keys (concern, product_type, product_label, routine_step).
-const _allMeta: Record<string, TagCategoryMeta> = {
-  ...SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
-  ...DENTAL_PRODUCT_TAG_CATEGORY_META,
-  ...HAIRCARE_PRODUCT_TAG_CATEGORY_META,
-  ...SKINCARE_PRODUCT_TAG_CATEGORY_META,
-}
 
 export const NON_TAG_FILTER_LABELS = {
   brand: 'Marque',
@@ -53,10 +49,12 @@ export const NON_TAG_FILTER_PLACEHOLDERS = {
 } as const satisfies Record<'brand' | 'ingredient', string>
 
 export const GROUP_LABELS: Record<FilterKey, string> = {
-  ...(Object.fromEntries(TAG_FILTER_KEYS.map((k) => [k, _allMeta[k].label])) as Record<
-    TagFilterKey,
-    string
-  >),
+  ...(Object.fromEntries(
+    // Skincare wins for shared keys (concern, product_type, product_label, routine_step).
+    (['complement', 'dental', 'haircare', 'skincare'] as const).flatMap((domain) =>
+      _definitionsByDomain[domain].map(({ key, label }) => [key, label])
+    )
+  ) as Record<TagFilterKey, string>),
   ...NON_TAG_FILTER_LABELS,
 }
 

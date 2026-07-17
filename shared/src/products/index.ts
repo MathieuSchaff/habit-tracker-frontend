@@ -1,15 +1,21 @@
 export * from './comparison'
 export * from './comparison-schemas'
-export * from './dental/tag-filters'
 export * from './dental/tag-slugs'
 export * from './dental/tag-taxonomy'
 export * from './dermo-conflicts'
 export * from './dermo-signals'
 export * from './domain-tabs'
-export * from './haircare/tag-filters'
+export * from './filter-definition'
 export * from './haircare/tag-slugs'
 export * from './haircare/tag-taxonomy'
-export * from './helpers'
+export {
+  type AllProductTagCategory,
+  DOMAIN_NEUTRAL_PRODUCT_TAG_TYPES,
+  DOMAIN_PRODUCT_FILTER_CATEGORIES,
+  getProductTagCategory,
+  getProductTagLabel,
+  productErrorMapping,
+} from './helpers'
 export * from './ingredients'
 export * from './kind-to-tags'
 export * from './kinds'
@@ -29,10 +35,11 @@ export {
   skincareListProductsQuery,
 } from './list-products-query'
 export * from './schemas'
-export * from './skincare/tag-filters'
 export * from './skincare/tag-slugs'
-export * from './skincare/tag-taxonomy'
-export * from './supplement/tag-filters'
+export {
+  SKINCARE_CONCERN_SLUGS,
+  SKINCARE_PRODUCT_TAG_TAXONOMY,
+} from './skincare/tag-taxonomy'
 export * from './supplement/tag-slugs'
 export * from './supplement/tag-taxonomy'
 export * from './textures'

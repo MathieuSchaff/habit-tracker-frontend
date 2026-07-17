@@ -19,7 +19,7 @@ export const SKINCARE_PRODUCT_TAG_TAXONOMY = buildTagTaxonomy<
 >(buildTagLabels(SKINCARE_PRODUCT_TAG_DEFS), BUCKETS)
 
 // Concern groups are display-only — DB stores flat concern slugs.
-// Frontend reads SKINCARE_PRODUCT_CONCERN_GROUPS to render two sub-sections.
+// filter-definition.ts consumes them to expose two named sub-sections.
 const SKINCARE_PRODUCT_CONCERN_GROUP_KEYS = ['functional', 'aesthetic'] as const
 export type SkincareProductConcernGroup = (typeof SKINCARE_PRODUCT_CONCERN_GROUP_KEYS)[number]
 
@@ -33,8 +33,8 @@ export const SKINCARE_PRODUCT_CONCERN_GROUPS: Record<
 export const SKINCARE_CONCERN_SLUGS: ReadonlySet<SkincareProductTagSlug> = new Set(BUCKETS.concern)
 
 // product_characteristic groups are display-only — DB stores flat slugs with
-// type='product_characteristic'. Frontend reads SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS
-// to render four sub-sections (tolerance / ethique / technique / comedogenicite).
+// type='product_characteristic'. filter-definition.ts consumes them to expose
+// four named sub-sections (tolerance / ethique / technique / comedogenicite).
 const SKINCARE_PRODUCT_CHARACTERISTIC_GROUP_KEYS = [
   'tolerance',
   'ethique',

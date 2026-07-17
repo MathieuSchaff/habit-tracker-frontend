@@ -82,9 +82,8 @@ export function getProductTagCategory(
   return undefined
 }
 
-// Return the slugs + FR labels for a given domain × category pair, used by
-// the frontend filter drawer to drive chips from shared (instead of relying
-// on what happens to be seeded server-side).
+// Internal projection used by filter-definition.ts to assemble ordered options
+// from the taxonomy instead of relying on what happens to be seeded server-side.
 export function getProductTagsByCategory(
   domain: ProductDomainTab,
   category: AllProductTagCategory

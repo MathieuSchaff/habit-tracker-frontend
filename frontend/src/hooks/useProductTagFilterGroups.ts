@@ -1,57 +1,12 @@
 import {
   type AllProductTagCategory,
-  DENTAL_PRODUCT_TAG_CATEGORY_META,
-  DOMAIN_PRODUCT_FILTER_CATEGORIES,
-  getProductTagsByCategory,
-  HAIRCARE_PRODUCT_TAG_CATEGORY_META,
+  getProductFilterDefinition,
   type ProductDomainTab,
-  SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS,
-  SKINCARE_PRODUCT_CONCERN_GROUPS,
-  SKINCARE_PRODUCT_TAG_CATEGORY_META,
-  SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
-  type TagCategoryMeta,
 } from '@aurore/shared'
 
 import { useMemo } from 'react'
 
-import type { FilterGroupConfig, FilterOption, FilterSubGroup } from '@/component/Filter'
-
-const SKINCARE_CONCERN_SUBGROUPS: FilterSubGroup[] = [
-  {
-    label: 'Problèmes fonctionnels',
-    slugs: [...SKINCARE_PRODUCT_CONCERN_GROUPS.functional],
-  },
-  {
-    label: 'Objectifs esthétiques',
-    slugs: [...SKINCARE_PRODUCT_CONCERN_GROUPS.aesthetic],
-  },
-]
-
-const SKINCARE_CHARACTERISTIC_SUBGROUPS: FilterSubGroup[] = [
-  {
-    label: 'Tolérance & sécurité',
-    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.tolerance],
-  },
-  {
-    label: 'Labels et engagements',
-    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.ethique],
-  },
-  {
-    label: 'Technique',
-    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.technique],
-  },
-  {
-    label: 'Comédogénicité',
-    slugs: [...SKINCARE_PRODUCT_CHARACTERISTIC_GROUPS.comedogenicite],
-  },
-]
-
-const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>> = {
-  skincare: SKINCARE_PRODUCT_TAG_CATEGORY_META,
-  haircare: HAIRCARE_PRODUCT_TAG_CATEGORY_META,
-  dental: DENTAL_PRODUCT_TAG_CATEGORY_META,
-  complement: SUPPLEMENT_PRODUCT_TAG_CATEGORY_META,
-}
+import type { FilterGroupConfig, FilterOption } from '@/component/Filter'
 
 /**
  * Always render every category × slug defined in `shared/`, regardless of
@@ -60,56 +15,31 @@ const DOMAIN_TAG_META: Record<ProductDomainTab, Record<string, TagCategoryMeta>>
  */
 export function useProductTagFilterGroups(
   domain: ProductDomainTab,
-  tagCounts: Record<string, number> | undefined,
-  // Categories whose shared defs order is semantic (routine sequence, product
-  // journey): keep the defs order instead of the default alpha sort.
-  preserveOrderCategories: readonly string[] = []
+  tagCounts: Record<string, number> | undefined
 ): FilterGroupConfig<AllProductTagCategory>[] {
   return useMemo(() => {
-    const categories = DOMAIN_PRODUCT_FILTER_CATEGORIES[domain]
-    const meta = DOMAIN_TAG_META[domain]
     const counts = tagCounts ?? {}
-    const preserveOrder = new Set(preserveOrderCategories)
-
-    return categories.map((cat) => {
-      const catMeta = meta[cat]
-      const options: FilterOption[] = getProductTagsByCategory(domain, cat).map(
-        ({ slug, label }) => {
-          const count = counts[slug] ?? 0
-          return {
-            value: slug,
-            label,
-            count,
-            disabled: count === 0,
-          }
-        }
-      )
-      if (!preserveOrder.has(cat)) {
-        options.sort((a, b) => a.label.localeCompare(b.label, 'fr'))
-      }
-
-      const subGroups =
-        domain === 'skincare' && cat === 'concern'
-          ? SKINCARE_CONCERN_SUBGROUPS
-          : domain === 'skincare' && cat === 'product_characteristic'
-            ? SKINCARE_CHARACTERISTIC_SUBGROUPS
-            : undefined
+    return getProductFilterDefinition(domain).map((definition) => {
+      const options: FilterOption[] = definition.options.map((option) => {
+        const count = counts[option.value] ?? 0
+        return { ...option, count, disabled: count === 0 }
+      })
 
       return {
-        id: cat,
-        label: catMeta.label,
-        defaultOpen: catMeta.defaultOpen ?? catMeta.tier === 'essential',
-        tier: catMeta.tier,
+        id: definition.key,
+        label: definition.label,
+        defaultOpen: definition.defaultOpen,
+        tier: definition.tier,
         subFilters: [
           {
-            key: cat,
-            label: catMeta.label,
-            placeholder: catMeta.placeholder,
+            key: definition.key,
+            label: definition.label,
+            placeholder: definition.placeholder,
             options,
-            subGroups,
+            subGroups: definition.subGroups,
           },
         ],
       }
     })
-  }, [domain, tagCounts, preserveOrderCategories])
+  }, [domain, tagCounts])
 }
