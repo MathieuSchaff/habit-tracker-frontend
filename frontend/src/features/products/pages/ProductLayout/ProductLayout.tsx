@@ -10,8 +10,8 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router'
-import { MessageSquare, Pencil, Plus } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { MessageSquare, Pencil } from 'lucide-react'
+import { useCallback } from 'react'
 
 import { Badge, type BadgeVariant } from '@/component/DataDisplay/Badge/Badge'
 import { CatalogQualityBadge } from '@/component/DataDisplay/CatalogQualityBadge/CatalogQualityBadge'
@@ -19,7 +19,7 @@ import { DetailHero } from '@/component/Layout/DetailHero/DetailHero'
 import { DetailPageLayout } from '@/component/Layout/PageLayout/DetailPageLayout'
 import { PageTopActions, PageTopActionsRight } from '@/component/Layout/PageLayout/PageTopActions'
 import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
-import { AddToCollectionModal } from '@/features/products/components/AddToCollectionModal/AddToCollectionModal'
+import { ProductCollectionAction } from '@/features/products/components/ProductCollectionAction/ProductCollectionAction'
 import { productQueries } from '@/lib/queries/products'
 import { useAuthStore } from '@/store/auth'
 import '@/features/products/styles/kinds.css'
@@ -27,7 +27,7 @@ import '@/features/products/pages/ProductInfoTab/ProductInfoTab.css'
 import './ProductLayout.css'
 
 import { BackButton } from '@/component/Button/BackButton'
-import { Button, ButtonLink } from '@/component/Button/Button'
+import { ButtonLink } from '@/component/Button/Button'
 import { ProductImage } from '@/features/products/components/ProductImage/ProductImage'
 
 const route = getRouteApi('/products/$slug')
@@ -59,7 +59,6 @@ export function ProductLayout() {
   const { slug } = route.useParams()
   const { data: product } = useSuspenseQuery(productQueries.bySlug(slug))
   const user = useAuthStore((s) => s.user)
-  const [showAddModal, setShowAddModal] = useState(false)
   const navigate = useNavigate()
   const router = useRouter()
   const canGoBack = useCanGoBack()
@@ -115,10 +114,14 @@ export function ProductLayout() {
               <span className="action-edit__label">Modifier</span>
             </ButtonLink>
           )}
-          <Button onClick={() => setShowAddModal(true)} variant="accent">
-            <Plus size={16} />
-            Ajouter à la collection
-          </Button>
+          <ProductCollectionAction
+            product={{
+              id: product.id,
+              name: product.name,
+              brand: product.brand,
+              priceCents: product.priceCents,
+            }}
+          />
         </PageTopActionsRight>
       </PageTopActions>
 
@@ -175,19 +178,6 @@ export function ProductLayout() {
       <div style={{ viewTransitionName: 'tab-content' }}>
         <Outlet />
       </div>
-
-      {showAddModal && (
-        <AddToCollectionModal
-          product={{
-            id: product.id,
-            name: product.name,
-            brand: product.brand,
-            priceCents: product.priceCents,
-          }}
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => setShowAddModal(false)}
-        />
-      )}
     </DetailPageLayout>
   )
 }

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { loginAsSeed } from './helpers/auth'
+import { loginAsSeed, registerFreshUser } from './helpers/auth'
 
 function isApi(req: { url(): string }, path: string | RegExp): boolean {
   const u = req.url()
@@ -23,6 +23,12 @@ async function gotoFirstProductDetail(page: Page): Promise<string> {
   await page.goto(`/products/${slug}`)
   await expect(page).toHaveURL(new RegExp(`/products/${slug}$`), { timeout: 15_000 })
   return slug
+}
+
+function detailedCollectionAction(page: Page) {
+  return page.getByRole('button', {
+    name: /Ajouter avec un statut ou un achat|Modifier ce produit dans ma collection/,
+  })
 }
 
 test.beforeEach(async ({ page }) => {
@@ -220,7 +226,7 @@ test.describe('Product detail — Ajouter à la collection (top-right)', () => {
     const productName = await page.getByRole('heading', { level: 1 }).innerText()
     const brand = await page.locator('.detail-hero__eyebrow a').innerText()
 
-    await page.getByRole('button', { name: /Ajouter à la collection/ }).click()
+    await detailedCollectionAction(page).click()
 
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
@@ -230,7 +236,7 @@ test.describe('Product detail — Ajouter à la collection (top-right)', () => {
   test('"Liste de souhaits" POSTs /user-products with current productId', async ({ page }) => {
     await gotoFirstProductDetail(page)
 
-    await page.getByRole('button', { name: /Ajouter à la collection/ }).click()
+    await detailedCollectionAction(page).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
@@ -246,6 +252,37 @@ test.describe('Product detail — Ajouter à la collection (top-right)', () => {
     expect(body.productId).toMatch(/^[0-9a-f-]{36}$/)
 
     await expect(dialog).toBeHidden({ timeout: 5_000 })
+  })
+
+  test('quick save adds a fresh user product as watched without opening the modal', async ({
+    page,
+  }) => {
+    await registerFreshUser(page)
+    await gotoFirstProductDetail(page)
+
+    const postPromise = page.waitForRequest(
+      (req) => req.method() === 'POST' && isApi(req, '/user-products')
+    )
+    await page.getByRole('button', { name: 'Sauvegarder ce produit dans Garde un œil' }).click()
+
+    const req = await postPromise
+    expect(req.postDataJSON()).toMatchObject({ status: 'watched' })
+    expect(req.headers().authorization).toMatch(/^Bearer /)
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(
+      page.getByRole('button', { name: /Dans votre collection : Garde un œil/ })
+    ).toBeVisible()
+  })
+
+  test('anonymous save redirects to login and preserves the product URL', async ({ page }) => {
+    await page.context().clearCookies()
+    const slug = await gotoFirstProductDetail(page)
+
+    await page.getByRole('button', { name: 'Sauvegarder ce produit dans Garde un œil' }).click()
+
+    await expect(page).toHaveURL(
+      new RegExp(`/auth/login\\?redirect=%2Fproducts%2F${encodeURIComponent(slug)}$`)
+    )
   })
 })
 

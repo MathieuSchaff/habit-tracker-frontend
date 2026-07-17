@@ -1,0 +1,28 @@
+.product-collection-action {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.product-collection-action .button {
+  align-self: stretch;
+}
+
+.product-collection-action__save.button {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  padding-inline-end: var(--space-4);
+}
+
+.product-collection-action__details.button {
+  min-width: 2.5rem;
+  padding-inline: var(--space-3);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  box-shadow:
+    inset 1px 0 0 oklch(100% 0 0 / 0.25),
+    0 2px 12px oklch(from var(--color-accent) l c h / 0.35);
+}
+
+.product-collection-action__current.button {
+  gap: var(--space-2);
+}

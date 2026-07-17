@@ -23,6 +23,7 @@ interface ModalProduct {
 
 interface AddToCollectionModalProps {
   product: ModalProduct
+  currentStatus?: UserProductStatus | null
   onClose: () => void
   onSuccess?: () => void
 }
@@ -38,7 +39,12 @@ const STATUS_OPTIONS: { value: UserProductStatus; label: string }[] = [
 // Statuses where the user has owned the product - purchase log is meaningful.
 const OWNED_STATUSES: UserProductStatus[] = ['in_stock', 'archived', 'avoided']
 
-export function AddToCollectionModal({ product, onClose, onSuccess }: AddToCollectionModalProps) {
+export function AddToCollectionModal({
+  product,
+  currentStatus,
+  onClose,
+  onSuccess,
+}: AddToCollectionModalProps) {
   const defaultPrice = product.priceCents != null ? (product.priceCents / 100).toFixed(2) : ''
 
   const [step, setStep] = useState<'status' | 'purchase'>('status')
@@ -109,7 +115,12 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
     }
   }
 
-  const title = step === 'status' ? 'Ajouter à la collection' : 'Achat'
+  const title =
+    step === 'purchase'
+      ? 'Achat'
+      : currentStatus
+        ? 'Modifier dans la collection'
+        : 'Ajouter à la collection'
 
   return (
     <Modal onClose={onClose} className="inv-modal-dialog">
@@ -137,10 +148,15 @@ export function AddToCollectionModal({ product, onClose, onSuccess }: AddToColle
               <Button
                 key={value}
                 type="button"
-                variant={value === 'in_stock' ? 'primary' : 'outline'}
+                variant={
+                  value === currentStatus || (!currentStatus && value === 'in_stock')
+                    ? 'primary'
+                    : 'outline'
+                }
                 className={`inv-modal-status-btn${value === 'in_stock' ? ' inv-modal-status-btn--in-stock' : ''}`}
                 onClick={() => handleStatusSelect(value)}
                 disabled={isPending}
+                aria-pressed={currentStatus ? value === currentStatus : undefined}
               >
                 {label}
               </Button>
