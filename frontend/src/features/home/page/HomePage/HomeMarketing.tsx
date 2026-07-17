@@ -1,36 +1,40 @@
-import { ChevronDown } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 
-import { HeroBase } from '../../components/Hero/HeroBase'
-import { AppEntriesSection } from '../../components/sections/AppEntriesSection'
-import { FinalCTASection } from '../../components/sections/FinalCTASection'
-import { FlowSection } from '../../components/sections/FlowSection'
-import { PhilosophySection } from '../../components/sections/PhilosophySection'
-import { PillarsSection } from '../../components/sections/PillarsSection'
-import { ProblemSection } from '../../components/sections/ProblemSection'
+import { useDemo } from '../../../../lib/queries/auth'
+import { Entries } from '../../components/marketing/Entries'
+import { FounderNote } from '../../components/marketing/FounderNote'
+import { Opening } from '../../components/marketing/Opening'
+import { ProductJournal } from '../../components/marketing/ProductJournal'
+import { Refusals } from '../../components/marketing/Refusals'
 
-// Anonymous landing: the conversion narrative. Signed-in visitors get HomeHub
-// instead (same route, content adapts by auth — ADR 0011).
-//
-// The visible spine (hero → problem → app → CTA) stays short on purpose; the
-// deeper manifesto (pillars, flow, philosophy) collapses behind a native
-// <details> so a first-time visitor isn't met with an 8-screen wall. Content
-// stays in the DOM (crawlable, keyboard-accessible) — just not forced.
+// Anonymous landing (ADR 0011: same "/", auth only swaps content).
+// Shaped as a letter, not a funnel; the one-click demo is the only ask.
 export function HomeMarketing() {
+  const demo = useDemo()
+  const navigate = useNavigate()
+  // Keep spinning through the demo POST and protected-route navigation below.
+  const [redirecting, setRedirecting] = useState(false)
+
+  // Stay in the SPA so the access token returned by /auth/demo is still present
+  // for the first protected-route check.
+  const startDemo = () =>
+    demo.mutate(undefined, {
+      onSuccess: () => {
+        setRedirecting(true)
+        navigate({ to: '/collection' })
+      },
+    })
+
+  const demoPending = demo.isPending || redirecting
+
   return (
     <>
-      <HeroBase />
-      <ProblemSection />
-      <AppEntriesSection />
-      <details className="aur-marketing-more">
-        <summary className="aur-marketing-more__toggle">
-          <span>Voir la démarche complète</span>
-          <ChevronDown size={18} aria-hidden="true" className="aur-marketing-more__chevron" />
-        </summary>
-        <PillarsSection />
-        <FlowSection />
-        <PhilosophySection />
-      </details>
-      <FinalCTASection />
+      <Opening onStartDemo={startDemo} demoPending={demoPending} />
+      <ProductJournal />
+      <Refusals />
+      <Entries />
+      <FounderNote onStartDemo={startDemo} demoPending={demoPending} />
     </>
   )
 }

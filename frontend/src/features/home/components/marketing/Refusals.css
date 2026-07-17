@@ -1,0 +1,22 @@
+.aur-refusals {
+  padding-block: var(--space-10);
+}
+
+.aur-refusals__list {
+  margin-top: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.aur-refusals__item {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+
+.aur-refusals__item strong {
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+}

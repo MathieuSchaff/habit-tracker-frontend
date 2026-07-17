@@ -1,0 +1,70 @@
+.aur-opening {
+  padding-block: var(--space-16) var(--space-10);
+}
+@media (--sm) {
+  .aur-opening {
+    padding-block: var(--space-20) var(--space-12);
+  }
+}
+
+.aur-opening__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-10);
+}
+
+/* The mobile app-bar already carries the wordmark; only the sidebar-rail
+   desktop layout needs a brand line inside the letter. */
+@media (--mobile) {
+  .aur-opening__brand {
+    display: none;
+  }
+}
+
+.aur-opening__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.5vw + 1rem, 3.5rem);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  text-wrap: balance;
+  max-width: 18ch;
+}
+
+.aur-opening__lede {
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+
+.aur-opening__try {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.aur-opening__try-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.aur-opening__alt {
+  margin-top: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+.aur-opening__alt-link {
+  color: var(--color-primary);
+  text-underline-offset: 3px;
+}
