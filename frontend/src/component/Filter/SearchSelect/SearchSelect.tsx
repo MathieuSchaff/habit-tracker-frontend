@@ -1,16 +1,14 @@
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { foldText } from '@/component/Search/text-fold'
-import { useClickOutside } from '@/hooks/useClickOutside'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
-import { useScrollActiveOptionIntoView } from '@/hooks/useScrollActiveOptionIntoView'
 import { DismissButton } from '../AsyncSearchSelect/DismissButton'
 import { Listbox } from '../AsyncSearchSelect/Listbox'
 import { SelectedChips } from '../AsyncSearchSelect/SelectedChips'
 import { useComboboxKeyboard } from '../AsyncSearchSelect/useComboboxKeyboard'
 import { ComboboxTextInput } from '../ComboboxTextInput'
 import type { FilterOption } from '../types'
-import { useAnnouncement } from '../useAnnouncement'
+import { useSearchSelectController } from '../useSearchSelectController'
 
 import './SearchSelect.css'
 
@@ -31,14 +29,21 @@ export function SearchSelect({
   label,
   'aria-labelledby': ariaLabelledBy,
 }: SearchSelectProps) {
-  const [query, setQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [announcement, setAnnouncement] = useAnnouncement()
-  const clickOutsideContainer = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const listboxId = useId()
+  const {
+    query,
+    setQuery,
+    isOpen,
+    setIsOpen,
+    activeIndex,
+    setActiveIndex,
+    inputRef,
+    dropdownRef,
+    listboxId,
+    clickOutsideContainer,
+    announcement,
+    dismiss,
+    commitOption,
+  } = useSearchSelectController(onToggle)
 
   // Lazy load long lists to keep the DOM small on first render.
   const PAGE_SIZE = 50
@@ -68,23 +73,6 @@ export function SearchSelect({
     }
   }
 
-  const dismiss = useCallback(() => {
-    setIsOpen(false)
-    setQuery('')
-    setActiveIndex(-1)
-    inputRef.current?.focus()
-  }, [])
-
-  const commitOption = useCallback(
-    (opt: FilterOption) => {
-      setAnnouncement(`${opt.label} ajouté`)
-      onToggle(opt.value)
-      setQuery('')
-      setActiveIndex(-1)
-    },
-    [onToggle, setAnnouncement]
-  )
-
   const handleKeyDown = useComboboxKeyboard({
     isOpen,
     setIsOpen,
@@ -96,14 +84,6 @@ export function SearchSelect({
   })
 
   useFlipPlacement(clickOutsideContainer, dropdownRef, isOpen, [], '.filter-drawer__body')
-
-  useClickOutside(clickOutsideContainer, () => {
-    setIsOpen(false)
-    setQuery('')
-    setActiveIndex(-1)
-  })
-
-  useScrollActiveOptionIntoView(activeIndex, isOpen, listboxId)
 
   return (
     <div className="search-select">

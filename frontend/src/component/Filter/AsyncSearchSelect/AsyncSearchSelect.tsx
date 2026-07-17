@@ -1,14 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 
-import { useClickOutside } from '@/hooks/useClickOutside'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useFlipPlacement } from '@/hooks/useFlipPlacement'
-import { useScrollActiveOptionIntoView } from '@/hooks/useScrollActiveOptionIntoView'
 import { rateLimitMessage } from '@/lib/helpers/apiError'
 import { ComboboxTextInput } from '../ComboboxTextInput'
 import type { AsyncSearchQueryFactory, FilterOption } from '../types'
-import { useAnnouncement } from '../useAnnouncement'
+import { useSearchSelectController } from '../useSearchSelectController'
 import { DismissButton } from './DismissButton'
 import { DropdownStatus } from './DropdownStatus'
 import { Listbox } from './Listbox'
@@ -46,16 +44,23 @@ export function AsyncSearchSelect({
   debounce = 250,
   'aria-labelledby': ariaLabelledBy,
 }: AsyncSearchSelectProps) {
-  const [query, setQuery] = useState('')
-  const debouncedQuery = useDebounce(query, debounce)
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const [announcement, setAnnouncement] = useAnnouncement()
+  const {
+    query,
+    setQuery,
+    isOpen,
+    setIsOpen,
+    activeIndex,
+    setActiveIndex,
+    inputRef,
+    dropdownRef,
+    listboxId,
+    clickOutsideContainer,
+    announcement,
+    dismiss,
+    commitOption,
+  } = useSearchSelectController(onToggle)
 
-  const clickOutsideContainer = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const listboxId = useId()
+  const debouncedQuery = useDebounce(query, debounce)
 
   const optionsQuery = useQuery({
     ...loadOptionsQuery(debouncedQuery),
@@ -86,23 +91,6 @@ export function AsyncSearchSelect({
   const isError = optionsQuery.isError && debouncedQuery.length >= minChars
   const errorMessage = rateLimitMessage(optionsQuery.error) ?? undefined
 
-  const dismiss = useCallback(() => {
-    setIsOpen(false)
-    setQuery('')
-    setActiveIndex(-1)
-    inputRef.current?.focus()
-  }, [])
-
-  const commitOption = useCallback(
-    (opt: FilterOption) => {
-      setAnnouncement(`${opt.label} ajouté`)
-      onToggle(opt.value)
-      setQuery('')
-      setActiveIndex(-1)
-    },
-    [onToggle, setAnnouncement]
-  )
-
   const handleKeyDown = useComboboxKeyboard({
     isOpen,
     setIsOpen,
@@ -122,14 +110,6 @@ export function AsyncSearchSelect({
     [filtered.length],
     '.filter-drawer__body'
   )
-
-  useClickOutside(clickOutsideContainer, () => {
-    setIsOpen(false)
-    setQuery('')
-    setActiveIndex(-1)
-  })
-
-  useScrollActiveOptionIntoView(activeIndex, isOpen, listboxId)
 
   return (
     <div className="search-select">
