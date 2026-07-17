@@ -9,7 +9,7 @@ import { FormMessage } from '../../../../component/Feedback/ui/FormMessage/FormM
 import { useSignup } from '../../../../lib/queries/auth'
 import { AuthDivider } from '../../components/AuthDivider/AuthDivider'
 import { AuthField } from '../../components/AuthField/AuthField'
-import { DemoButton } from '../../components/DemoButton/DemoButton'
+import { DemoCallout } from '../../components/DemoCallout/DemoCallout'
 import { GoogleAuthButton } from '../../components/GoogleAuthButton/GoogleAuthButton'
 import { parseAuthForm } from '../../lib/parseAuthForm'
 
@@ -179,8 +179,8 @@ export const SignupPage = () => {
       </form>
 
       <AuthDivider />
-      <DemoButton />
       <GoogleAuthButton label="S'inscrire avec Google" />
+      <DemoCallout />
     </>
   )
 }

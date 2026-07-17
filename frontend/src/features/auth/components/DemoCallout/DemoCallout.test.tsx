@@ -23,9 +23,9 @@ vi.mock('../../../../lib/queries/auth', async (importOriginal) => {
   }
 })
 
-import { DemoButton } from './DemoButton'
+import { DemoCallout } from './DemoCallout'
 
-describe('DemoButton', () => {
+describe('DemoCallout', () => {
   beforeEach(() => {
     navigateMock.mockReset()
     demoMutate.mockReset()
@@ -34,7 +34,7 @@ describe('DemoButton', () => {
 
   it('navigates to /collection on success', async () => {
     demoMutate.mockImplementation((_input: undefined, opts: MutateOpts) => opts.onSuccess?.())
-    renderWithProviders(<DemoButton />)
+    renderWithProviders(<DemoCallout />)
 
     await userEvent.setup().click(screen.getByRole('button', { name: /Essayer la démo/ }))
 
@@ -46,7 +46,7 @@ describe('DemoButton', () => {
     demoMutate.mockImplementation((_input: undefined, opts: MutateOpts) =>
       opts.onError?.(new Error('server_error'))
     )
-    renderWithProviders(<DemoButton />)
+    renderWithProviders(<DemoCallout />)
 
     await userEvent.setup().click(screen.getByRole('button', { name: /Essayer la démo/ }))
 
@@ -56,7 +56,7 @@ describe('DemoButton', () => {
 
   it('disables the button while pending', () => {
     demoIsPending = true
-    renderWithProviders(<DemoButton />)
+    renderWithProviders(<DemoCallout />)
 
     // The Button swaps its label for a loading spinner, so query the sole button.
     expect(screen.getByRole('button')).toBeDisabled()

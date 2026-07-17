@@ -11,7 +11,7 @@ import { hasSessionHint } from '../../../../lib/auth/sessionHint'
 import { useLogin } from '../../../../lib/queries/auth'
 import { AuthDivider } from '../../components/AuthDivider/AuthDivider'
 import { AuthField } from '../../components/AuthField/AuthField'
-import { DemoButton } from '../../components/DemoButton/DemoButton'
+import { DemoCallout } from '../../components/DemoCallout/DemoCallout'
 import { GoogleAuthButton } from '../../components/GoogleAuthButton/GoogleAuthButton'
 import { parseAuthForm } from '../../lib/parseAuthForm'
 
@@ -73,7 +73,9 @@ export const LoginPage = () => {
       <div className="auth-page__header">
         <h1 className="auth-page__title">Connexion</h1>
         <p className="auth-page__subtitle">
-          {hasSessionHint() ? 'Content de vous revoir sur Aurore' : 'Connexion à Aurore'}
+          {hasSessionHint()
+            ? 'Content de vous revoir sur Aurore'
+            : 'Retrouvez votre collection et vos notes'}
         </p>
       </div>
 
@@ -128,8 +130,8 @@ export const LoginPage = () => {
       </form>
 
       <AuthDivider />
-      <DemoButton />
       <GoogleAuthButton label="Se connecter avec Google" />
+      <DemoCallout />
     </>
   )
 }
