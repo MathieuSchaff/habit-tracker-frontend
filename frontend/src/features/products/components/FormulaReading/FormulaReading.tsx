@@ -15,7 +15,7 @@ import {
   RISK_AXIS_PHRASE,
 } from '@/constants/derm'
 import { productQueries } from '@/lib/queries/products'
-import { formatRegulatoryNotes } from './regulatoryNotes'
+import { formatRegulatoryFindings } from './regulatoryFindings'
 import './FormulaReading.css'
 
 type RiskAxis = keyof typeof RISK_AXIS_PHRASE
@@ -42,8 +42,8 @@ interface FormulaReadingProps {
   profileSlugs: ReadonlySet<string>
 }
 
-// Reads the algo-derm assessment and surfaces it calmly: known signals and their
-// reason, never a score or low/medium/high verdict (excluded by the product vision).
+// Surfaces the algo-derm assessment: signals and their reason, never a score or
+// verdict (excluded by the product vision).
 export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingProps) {
   const { data: assessment, isError } = useQuery(productQueries.dermoScore(slug, userKey))
 
@@ -59,7 +59,8 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
   // surface must say so instead (a mute vanish reads the same as a failure).
   if (isError || !assessment) return null
 
-  const { explanation, regulatoryNotes, interactions, coverage, matchedEvidence } = assessment
+  const { explanation, regulatoryFindings, interactions, coverage, matchedEvidence } = assessment
+  const regulatoryLines = formatRegulatoryFindings(regulatoryFindings)
   // roleAtDose exists only for ingredients with an authored role curve (today:
   // exfoliants); absence means "no dose signal", not "not dosed to act".
   // Bundle INCI can repeat one inci at different doses while rendered drivers
@@ -83,7 +84,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
   const hasSignal =
     benefitDrivers.length > 0 ||
     drivers.length > 0 ||
-    regulatoryNotes.length > 0 ||
+    regulatoryLines.length > 0 ||
     interactions.length > 0
 
   const caveats = explanation.confidenceFactors
@@ -151,7 +152,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
         </div>
       )}
 
-      {regulatoryNotes.length > 0 && (
+      {regulatoryLines.length > 0 && (
         <div className="formula-reading__group">
           <h3 className="formula-reading__subhead">
             <Scale size={13} aria-hidden="true" />
@@ -161,7 +162,7 @@ export function FormulaReading({ slug, userKey, profileSlugs }: FormulaReadingPr
             Limites officielles de concentration ou d'usage — courant pour les actifs réglementés.
           </p>
           <ul role="list" className="formula-reading__list">
-            {formatRegulatoryNotes(regulatoryNotes).map((line) => (
+            {regulatoryLines.map((line) => (
               <li key={line.key} className="formula-reading__item">
                 {line.label && <span className="formula-reading__label">{line.label}</span>}
                 <span className="formula-reading__phrase">{line.text}</span>
