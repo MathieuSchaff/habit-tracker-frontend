@@ -135,7 +135,8 @@ vendor-algo-derm:
     mv vendor/algo-derm-*.tgz vendor/algo-derm.tgz
     # Refuse a build whose TAG_DEFS_VERSION differs from what Aurore is calibrated for.
     want="$(grep -oE 'CALIBRATED_FOR_TAG_DEFS_VERSION = [0-9]+' backend/src/features/auto-tagging/passes/algo-derm-detection.ts | grep -oE '[0-9]+$')"
-    got="$(tar -xzOf vendor/algo-derm.tgz package/dist/engine/tags/index.js | grep -oE 'TAG_DEFS_VERSION = [0-9]+' | grep -oE '[0-9]+$' | head -1)"
+    # -a: compiled index.js carries non-ASCII bytes, so plain grep treats it as binary and drops the match.
+    got="$(tar -xzOf vendor/algo-derm.tgz package/dist/engine/tags/index.js | grep -aoE 'TAG_DEFS_VERSION = [0-9]+' | grep -oE '[0-9]+$' | head -1)"
     if [ "$got" != "$want" ]; then
         printf "{{RED}}refusing: built TAG_DEFS_VERSION=%s but Aurore is calibrated for %s — re-run audits + bump CALIBRATED_FOR first.{{NC}}\n" "$got" "$want"
         exit 1
