@@ -7,7 +7,7 @@
   color: var(--text-inverse);
   flex-shrink: 0;
   user-select: none;
-  box-shadow: 0 2px 8px oklch(from var(--color-primary) l c h / 0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-avatar--sm {
@@ -31,7 +31,7 @@
 .profile-avatar--xl {
   width: 6rem;
   height: 6rem;
-  font-size: 1.625rem;
+  font-size: var(--text-2xl);
 }
 
 .profile-avatar__img {

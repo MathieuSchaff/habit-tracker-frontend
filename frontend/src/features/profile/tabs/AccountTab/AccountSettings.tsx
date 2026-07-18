@@ -88,7 +88,7 @@ export const AccountSettings = () => {
               className="account-action-btn"
               onClick={() => setShowPasswordForm(true)}
             >
-              <ShieldCheck size={18} />
+              <ShieldCheck size={18} aria-hidden="true" />
               Changer le mot de passe
             </Button>
           ) : (
@@ -216,7 +216,7 @@ export const AccountSettings = () => {
             onClick={() => downloadExport.mutate()}
             disabled={downloadExport.isPending}
           >
-            <Download size={18} />
+            <Download size={18} aria-hidden="true" />
             {downloadExport.isPending ? 'Préparation…' : 'Télécharger mes données'}
           </Button>
           {downloadExport.isError && (
@@ -239,7 +239,7 @@ export const AccountSettings = () => {
             className="account-action-btn"
             onClick={handleLogout}
           >
-            <LogOut size={18} />
+            <LogOut size={18} aria-hidden="true" />
             Se déconnecter
           </Button>
         </div>
@@ -264,7 +264,7 @@ export const AccountSettings = () => {
                 className="account-action-btn delete-btn"
                 onClick={() => setConfirmDelete(true)}
               >
-                <Trash2 size={18} />
+                <Trash2 size={18} aria-hidden="true" />
                 Supprimer mon compte
               </Button>
             ) : (
@@ -294,7 +294,7 @@ export const AccountSettings = () => {
                     }
                     disabled={deleteUser.isPending}
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={18} aria-hidden="true" />
                     {deleteUser.isPending ? 'Suppression…' : 'Confirmer la suppression'}
                   </Button>
                 </div>

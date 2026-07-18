@@ -60,3 +60,24 @@ describe('ChipGroup — count rendering', () => {
     expect(handleChange).toHaveBeenCalledWith(['a'])
   })
 })
+
+describe('ChipGroup — accessible group text', () => {
+  it('forwards external labels and descriptions to the fieldset', () => {
+    render(
+      <>
+        <h2 id="skin-type-title">Type de peau</h2>
+        <p id="skin-type-description">Sélectionnez jusqu'à 3 types.</p>
+        <ChipGroup
+          options={[{ value: 'a', label: 'Alpha' }]}
+          selected={[]}
+          onChange={vi.fn()}
+          aria-labelledby="skin-type-title"
+          aria-describedby="skin-type-description"
+        />
+      </>
+    )
+
+    const group = screen.getByRole('group', { name: 'Type de peau' })
+    expect(group).toHaveAccessibleDescription("Sélectionnez jusqu'à 3 types.")
+  })
+})

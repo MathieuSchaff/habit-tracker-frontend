@@ -14,6 +14,7 @@ export const Textarea = ({
   error,
   hint,
   id,
+  'aria-describedby': describedByProp,
   required,
   disabled,
   hideRequired = false,
@@ -24,7 +25,7 @@ export const Textarea = ({
   const textareaId = id ?? generatedId
   const errorId = error ? `${textareaId}-error` : undefined
   const hintId = hint ? `${textareaId}-hint` : undefined
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined
+  const describedBy = [describedByProp, hintId, errorId].filter(Boolean).join(' ') || undefined
 
   return (
     <div className="textarea-wrapper">
@@ -50,9 +51,9 @@ export const Textarea = ({
         required={required}
         disabled={disabled}
         aria-invalid={!!error}
-        aria-describedby={describedBy}
         data-error={!!error || undefined}
         {...props}
+        aria-describedby={describedBy}
       />
       {error && (
         <span id={errorId} className="textarea-error" role="alert">

@@ -47,7 +47,8 @@
 }
 
 .skin-read__chip--sm {
-  padding: 2px var(--space-2);
+  /* No exact --space token for this 2px vertical inset; literal lives only in the fallback. */
+  padding: var(--skin-read-chip-sm-pad-y, 2px) var(--space-2);
   font-size: var(--text-xs);
 }
 
@@ -105,6 +106,7 @@
   color: var(--text-secondary);
   line-height: var(--leading-normal);
   white-space: pre-line;
+  overflow-wrap: anywhere;
   margin: 0;
 }
 

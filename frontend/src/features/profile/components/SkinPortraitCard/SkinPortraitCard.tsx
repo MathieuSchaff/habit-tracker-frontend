@@ -1,13 +1,12 @@
 import type { UserDermoProfile } from '@aurore/shared'
 
 import clsx from 'clsx'
-import { Pencil } from 'lucide-react'
 import { Suspense } from 'react'
 
-import { Button } from '@/component/Button/Button'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
 import { FITZPATRICK_ITEMS } from '@/constants/skin'
 import { DermoProfileForm } from '../../tabs/SkinTab/DermoProfileForm'
+import { SectionCard, SectionCardEmpty } from '../SectionCard/SectionCard'
 import { SkinProfileRead } from '../SkinProfileRead/SkinProfileRead'
 import './SkinPortraitCard.css'
 
@@ -32,33 +31,15 @@ export function SkinPortraitCard({ dermo, isEditing, onEdit, onCloseEdit }: Skin
   )
 
   return (
-    <section
+    <SectionCard
+      overline="Portrait de peau"
+      title="Ma peau"
+      titleId="skin-portrait-card-title"
       className={clsx('skin-portrait-card', isEditing && 'skin-portrait-card--editing')}
-      aria-labelledby="skin-portrait-card-title"
+      isEditing={isEditing}
+      onEdit={onEdit}
+      editLabel="Modifier le portrait de peau"
     >
-      <header className="skin-portrait-card__header">
-        <div className="skin-portrait-card__heading">
-          <span className="skin-portrait-card__overline" aria-hidden="true">
-            Portrait de peau
-          </span>
-          <h2 id="skin-portrait-card-title" className="skin-portrait-card__title">
-            Ma peau
-          </h2>
-        </div>
-        {!isEditing && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            aria-label="Modifier le portrait de peau"
-            className="skin-portrait-card__edit"
-          >
-            <Pencil size={16} aria-hidden="true" />
-          </Button>
-        )}
-      </header>
-
       {isEditing ? (
         <Suspense fallback={<Spinner />}>
           <DermoProfileForm onSave={onCloseEdit} onCancel={onCloseEdit} />
@@ -93,16 +74,15 @@ export function SkinPortraitCard({ dermo, isEditing, onEdit, onCloseEdit }: Skin
           {hasContent ? (
             dermo && <SkinProfileRead dermo={dermo} hideFitzpatrick />
           ) : (
-            <div className="skin-portrait-card__empty">
-              <p className="skin-portrait-card__empty-title">Aucun portrait pour le moment.</p>
-              <p className="skin-portrait-card__empty-text">
-                Renseignez votre type de peau, votre phototype et ce que vous suivez, à votre
-                rythme.
-              </p>
-            </div>
+            <SectionCardEmpty
+              title="Aucun portrait pour le moment."
+              className="skin-portrait-card__empty"
+            >
+              Renseignez votre type de peau, votre phototype et ce que vous suivez, à votre rythme.
+            </SectionCardEmpty>
           )}
         </div>
       )}
-    </section>
+    </SectionCard>
   )
 }

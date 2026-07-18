@@ -1,14 +1,4 @@
 .skin-portrait-card {
-  position: relative;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl, 1.25rem);
-  padding: var(--space-5) var(--space-5) var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
   /* Card width is non-monotonic with viewport (full-width below --md, ~half above),
      so the body splits on the card's own width, not the viewport's. */
   container: skin-portrait / inline-size;
@@ -31,46 +21,6 @@
     );
   pointer-events: none;
   z-index: 0;
-}
-
-.skin-portrait-card > * {
-  position: relative;
-  z-index: 1;
-}
-
-.skin-portrait-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.skin-portrait-card__heading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.skin-portrait-card__overline {
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-widest);
-  color: var(--color-primary);
-}
-
-.skin-portrait-card__title {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
-  margin: 0;
-}
-
-.skin-portrait-card__edit {
-  flex-shrink: 0;
 }
 
 .skin-portrait-card__body {
@@ -209,41 +159,13 @@
 }
 
 .skin-portrait-card__empty {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
   text-align: center;
   max-width: 32ch;
   margin: 0 auto;
 }
 
-.skin-portrait-card__empty-title {
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.skin-portrait-card__empty-text {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  line-height: var(--leading-relaxed);
-  margin: 0;
-}
-
-.skin-portrait-card--editing {
-  padding: var(--space-5);
-}
-
 .skin-portrait-card--editing::before {
   opacity: 0.4;
-}
-
-@media (--sm) {
-  .skin-portrait-card {
-    padding: var(--space-6) var(--space-6) var(--space-7, var(--space-6));
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

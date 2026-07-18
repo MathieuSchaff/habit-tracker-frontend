@@ -1,6 +1,13 @@
 import clsx from 'clsx'
 import type React from 'react'
-import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import './Tabs.css'
 
 import { useDragScroll } from './useDragScroll'
@@ -189,3 +196,32 @@ export const Tabs = <T extends string>({
     </div>
   )
 }
+
+interface TabPanelProps<T extends string> {
+  id: T
+  activeTab: T
+  idPrefix?: string
+  label?: string
+  className?: string
+  children: ReactNode
+}
+
+export const TabPanel = <T extends string>({
+  id,
+  activeTab,
+  idPrefix = 'tab',
+  label,
+  className,
+  children,
+}: TabPanelProps<T>) => (
+  <div
+    role="tabpanel"
+    id={`${idPrefix}-panel-${id}`}
+    aria-labelledby={`${idPrefix}-${id}`}
+    hidden={activeTab !== id}
+    className={className}
+  >
+    {label && <h2 className="sr-only">{label}</h2>}
+    {children}
+  </div>
+)

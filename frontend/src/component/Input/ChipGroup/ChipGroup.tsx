@@ -23,6 +23,7 @@ type ChipGroupProps<T extends string> = {
   className?: string
   chipClassName?: string
   'aria-label'?: string
+  'aria-labelledby'?: string
   'aria-describedby'?: string
   maxVisible?: number
   onChipKeyDown?: (e: React.KeyboardEvent) => void
@@ -39,6 +40,7 @@ export function ChipGroup<T extends string>({
   className,
   chipClassName,
   'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   'aria-describedby': ariaDescribedBy,
   maxVisible,
   onChipKeyDown,
@@ -136,6 +138,7 @@ export function ChipGroup<T extends string>({
     <fieldset
       className={clsx('chip-group', className)}
       role={isRadio ? 'radiogroup' : 'group'}
+      aria-labelledby={ariaLabelledBy}
       aria-describedby={ariaDescribedBy}
     >
       {ariaLabel && <legend className="sr-only">{ariaLabel}</legend>}

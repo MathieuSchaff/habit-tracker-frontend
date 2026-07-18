@@ -30,17 +30,18 @@
 
 .delete-btn:hover:not(:disabled) {
   background-color: var(--color-error);
-  color: oklch(100% 0 0);
+  /* auto-contrast: --color-error is ~68-70% L in dark themes, white text fails WCAG AA there */
+  color: oklch(from var(--color-error) clamp(0, (l - 0.6) * -999, 1) 0 0);
 }
 
 .delete-confirm {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  background-color: color-mix(in oklch, var(--color-error) 5%, transparent);
+  background-color: oklch(from var(--color-error) l c h / 0.05);
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  border: 1px solid color-mix(in oklch, var(--color-error) 30%, transparent);
+  border: var(--border-width) solid oklch(from var(--color-error) l c h / 0.3);
 }
 
 .delete-confirm-text {
@@ -60,7 +61,7 @@
   background-color: var(--bg-muted);
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
+  border: var(--border-width) solid var(--border-default);
 }
 
 .form-header {
@@ -153,7 +154,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding-left: var(--space-4);
-  border-left: 2px solid var(--border-default);
+  border-left: calc(2 * var(--border-width)) solid var(--border-default);
 }
 
 .privacy-subgroup-title {
@@ -170,7 +171,7 @@
 
 .privacy-badge {
   display: inline-block;
-  padding: 1px var(--space-2);
+  padding: var(--privacy-badge-pad-y, 1px) var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   background: var(--color-primary-light);

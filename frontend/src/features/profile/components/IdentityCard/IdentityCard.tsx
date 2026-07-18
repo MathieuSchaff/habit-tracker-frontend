@@ -1,11 +1,10 @@
 import type { ProfilePublic, ProfileUpdateInput } from '@aurore/shared'
 
-import clsx from 'clsx'
-import { ExternalLink, Pencil } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
-import { Button } from '@/component/Button/Button'
 import { sanitizeUrl } from '@/lib/url'
 import { ProfileForm } from '../ProfileForm/ProfileForm'
+import { SectionCard, SectionCardEmpty } from '../SectionCard/SectionCard'
 import './IdentityCard.css'
 
 type IdentityCardProps = {
@@ -32,33 +31,15 @@ export function IdentityCard({
   const hasContent = hasBio || hasLinks
 
   return (
-    <section
-      className={clsx('identity-card', isEditing && 'identity-card--editing')}
-      aria-labelledby="identity-card-title"
+    <SectionCard
+      overline="Identité"
+      title="Mes informations"
+      titleId="identity-card-title"
+      className="identity-card"
+      isEditing={isEditing}
+      onEdit={onEdit}
+      editLabel="Modifier mes informations"
     >
-      <header className="identity-card__header">
-        <div className="identity-card__heading">
-          <span className="identity-card__overline" aria-hidden="true">
-            Identité
-          </span>
-          <h2 id="identity-card-title" className="identity-card__title">
-            Mes informations
-          </h2>
-        </div>
-        {!isEditing && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            aria-label="Modifier mes informations"
-            className="identity-card__edit"
-          >
-            <Pencil size={16} aria-hidden="true" />
-          </Button>
-        )}
-      </header>
-
       {isEditing ? (
         <ProfileForm
           profile={profile}
@@ -91,16 +72,16 @@ export function IdentityCard({
               )}
             </>
           ) : (
-            <div className="identity-card__empty">
-              <p className="identity-card__empty-title">Quelques mots ou liens, si vous voulez.</p>
-              <p className="identity-card__empty-text">
-                Une bio courte et vos pages publiques aident à retrouver votre étagère ailleurs.
-                Rien d'obligatoire.
-              </p>
-            </div>
+            <SectionCardEmpty
+              title="Quelques mots ou liens, si vous voulez."
+              className="identity-card__empty"
+            >
+              Une bio courte et vos pages publiques aident à retrouver votre étagère ailleurs. Rien
+              d'obligatoire.
+            </SectionCardEmpty>
           )}
         </div>
       )}
-    </section>
+    </SectionCard>
   )
 }

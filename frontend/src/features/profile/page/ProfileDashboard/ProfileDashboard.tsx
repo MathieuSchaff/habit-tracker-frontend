@@ -5,10 +5,8 @@ import { getRouteApi } from '@tanstack/react-router'
 import { Settings, Shield, Sparkles, Users } from 'lucide-react'
 import { Suspense, useState } from 'react'
 
-import { Time } from '@/component/DataDisplay/Time/Time'
 import { Spinner } from '@/component/Feedback/ui/Spinner/Spinner'
-import { type TabOption, Tabs } from '@/component/Tabs/Tabs'
-import { PageTitle } from '@/component/Typography/PageTitle/PageTitle'
+import { type TabOption, TabPanel, Tabs } from '@/component/Tabs/Tabs'
 import { useAnnounce } from '@/hooks/useAnnounce'
 import { profileQueries, useUpdateProfile } from '../../../../lib/queries/profile'
 import { SimilarPeople } from '../../../social/components/SimilarPeople/SimilarPeople'
@@ -17,7 +15,7 @@ import {
   CompletionStrip,
 } from '../../components/CompletionStrip/CompletionStrip'
 import { IdentityCard } from '../../components/IdentityCard/IdentityCard'
-import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar'
+import { ProfileHero } from '../../components/ProfileHero/ProfileHero'
 import { ShelfPulse } from '../../components/ShelfPulse/ShelfPulse'
 import { SkinPortraitCard } from '../../components/SkinPortraitCard/SkinPortraitCard'
 import { AccountSettings } from '../../tabs/AccountTab/AccountSettings'
@@ -93,33 +91,13 @@ export const ProfileDashboard = () => {
 
   return (
     <main className="profile-dashboard">
-      <div className="profile-hero" data-fitz={dermo?.fitzpatrickType ?? 0}>
-        <div className="profile-hero__banner" aria-hidden="true">
-          <div className="profile-hero__banner-glow" />
-        </div>
-        <div className="profile-hero__content">
-          <div className="profile-hero__avatar-wrapper">
-            <ProfileAvatar avatarUrl={profile.avatarUrl} username={profile.username} size="xl" />
-          </div>
-
-          <div className="profile-hero__main">
-            <div className="profile-hero__header">
-              <PageTitle title={displayName} className="profile-hero__info" />
-            </div>
-
-            {profile.createdAt && (
-              <p className="profile-hero__since">
-                <span aria-hidden="true">·</span>
-                <span>
-                  Membre depuis <Time iso={profile.createdAt} style="monthYear" />
-                </span>
-              </p>
-            )}
-
-            {profile.bio && <p className="profile-hero__bio">{profile.bio}</p>}
-          </div>
-        </div>
-      </div>
+      <ProfileHero
+        displayName={displayName}
+        avatarUrl={profile.avatarUrl}
+        username={profile.username}
+        createdAt={profile.createdAt}
+        fitzpatrickType={dermo?.fitzpatrickType}
+      />
 
       <Tabs
         options={tabOptions}
@@ -131,12 +109,11 @@ export const ProfileDashboard = () => {
       />
 
       <div className="profile-dashboard__body">
-        <div
+        <TabPanel
+          id="profile"
+          activeTab={activeTab}
+          idPrefix="profile-tab"
           className="profile-tab-content"
-          role="tabpanel"
-          id="profile-tab-panel-profile"
-          aria-labelledby="profile-tab-profile"
-          hidden={activeTab !== 'profile'}
         >
           <CompletionStrip profile={profile} dermo={dermo} onEditSection={handleEditSection} />
 
@@ -166,38 +143,38 @@ export const ProfileDashboard = () => {
           <Suspense fallback={<Spinner />}>
             <ShelfPulse />
           </Suspense>
-        </div>
+        </TabPanel>
 
-        <div
+        <TabPanel
+          id="preferences"
+          activeTab={activeTab}
+          idPrefix="profile-tab"
+          label="Réglages"
           className="profile-tab-content"
-          role="tabpanel"
-          id="profile-tab-panel-preferences"
-          aria-labelledby="profile-tab-preferences"
-          hidden={activeTab !== 'preferences'}
         >
           <PreferenceSettings />
-        </div>
+        </TabPanel>
 
-        <div
+        <TabPanel
+          id="account"
+          activeTab={activeTab}
+          idPrefix="profile-tab"
+          label="Compte"
           className="profile-tab-content"
-          role="tabpanel"
-          id="profile-tab-panel-account"
-          aria-labelledby="profile-tab-account"
-          hidden={activeTab !== 'account'}
         >
           <AccountSettings />
-        </div>
+        </TabPanel>
 
-        <div
+        <TabPanel
+          id="people"
+          activeTab={activeTab}
+          idPrefix="profile-tab"
+          label="Des gens comme vous"
           className="profile-tab-content"
-          role="tabpanel"
-          id="profile-tab-panel-people"
-          aria-labelledby="profile-tab-people"
-          hidden={activeTab !== 'people'}
         >
           {/* Lazy-mount: don't fetch the cohort until the tab is opened. */}
           {activeTab === 'people' && <SimilarPeople />}
-        </div>
+        </TabPanel>
       </div>
     </main>
   )

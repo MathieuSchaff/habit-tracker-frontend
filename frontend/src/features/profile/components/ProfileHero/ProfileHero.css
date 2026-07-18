@@ -1,0 +1,206 @@
+.profile-hero {
+  --hero-tint: var(--color-primary);
+  /* Negative content margin + matching main padding-top both derive from this,
+     so the avatar/text overlap the banner by a single source of truth. */
+  --hero-overlap: 2.75rem;
+  position: relative;
+  background-color: var(--bg-card);
+  border: var(--border-width) solid oklch(from var(--color-primary) l c h / 0.18);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  border-radius: var(--radius-xl, 1.25rem);
+}
+
+/* Match the banner tint to the saved phototype. Unknown keeps the brand color. */
+.profile-hero[data-fitz="1"] {
+  --hero-tint: var(--fitz-1);
+}
+.profile-hero[data-fitz="2"] {
+  --hero-tint: var(--fitz-2);
+}
+.profile-hero[data-fitz="3"] {
+  --hero-tint: var(--fitz-3);
+}
+.profile-hero[data-fitz="4"] {
+  --hero-tint: var(--fitz-4);
+}
+.profile-hero[data-fitz="5"] {
+  --hero-tint: var(--fitz-5);
+}
+.profile-hero[data-fitz="6"] {
+  --hero-tint: var(--fitz-6);
+}
+
+.profile-hero__banner {
+  position: relative;
+  height: 5.5rem;
+  width: 100%;
+  background:
+    linear-gradient(
+      180deg,
+      oklch(from var(--hero-tint) calc(l + 0.06) c h / 0.55) 0%,
+      transparent 100%
+    ),
+    linear-gradient(120deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  isolation: isolate;
+}
+
+.profile-hero__banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 20% 110%,
+      oklch(from var(--hero-tint) calc(l + 0.12) c h / 0.45) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 80% 0%,
+      oklch(from var(--color-accent) calc(l + 0.1) c h / 0.35) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.profile-hero__banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 32%, oklch(100% 0 0 / 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 78% 68%, oklch(0% 0 0 / 0.06) 0%, transparent 45%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.profile-hero__banner-glow {
+  position: absolute;
+  inset: auto 0 -40% 0;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(from var(--hero-tint) calc(l + 0.1) c h / 0.3) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  filter: blur(8px);
+}
+
+.profile-hero__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-5);
+  margin-top: -2.25rem;
+  text-align: center;
+}
+
+.profile-hero__avatar-wrapper {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  border-radius: var(--radius-full);
+  padding: var(--space-1);
+  background: var(--bg-card);
+  outline: var(--border-width) solid oklch(from var(--color-primary) l c h / 0.2);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-hero__avatar-wrapper .profile-avatar--xl {
+  border: calc(2 * var(--border-width)) solid transparent;
+  box-shadow: none;
+}
+
+.profile-hero__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+}
+
+.profile-hero__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.profile-hero__info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Long usernames (up to 32 chars) wrap instead of being clipped by the hero's
+   overflow:hidden. The nowrap rule lives two DOM levels down, so target it here. */
+.profile-hero__info .page-title__heading-wrapper {
+  min-width: 0;
+}
+
+.profile-hero__info .page-title__text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.profile-hero__since {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.profile-hero__since > [aria-hidden="true"] {
+  color: oklch(from var(--color-primary) l c h / 0.6);
+}
+
+@media (--sm) {
+  .profile-hero {
+    text-align: left;
+  }
+
+  .profile-hero__banner {
+    height: 8rem;
+  }
+
+  .profile-hero__content {
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 0 var(--space-7, var(--space-6)) var(--space-6);
+    margin-top: calc(-1 * var(--hero-overlap));
+    gap: var(--space-5);
+    text-align: left;
+  }
+
+  /* Padding-top matches the negative content margin so the text column lands
+     fully on the white card area instead of overlapping the gradient banner. */
+  .profile-hero__main {
+    align-items: flex-start;
+    padding-top: var(--hero-overlap);
+    padding-bottom: var(--space-1);
+    gap: 0;
+  }
+
+  .profile-hero__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .profile-hero__since {
+    margin-top: var(--space-2);
+  }
+}

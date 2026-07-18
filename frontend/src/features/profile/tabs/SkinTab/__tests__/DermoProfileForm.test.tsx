@@ -93,4 +93,15 @@ describe('DermoProfileForm', () => {
     render(<DermoProfileForm />)
     expect(screen.getByText('Une erreur est survenue lors de la sauvegarde.')).toBeInTheDocument()
   })
+
+  it('associates section descriptions and the character hint with their controls', () => {
+    render(<DermoProfileForm />)
+
+    expect(screen.getByRole('group', { name: 'Type de peau' })).toHaveAccessibleDescription(
+      "Sélectionnez jusqu'à 3 types."
+    )
+    expect(screen.getByRole('textbox', { name: 'Notes privées' })).toHaveAccessibleDescription(
+      /Ces notes sont privées.*0\/2000/
+    )
+  })
 })

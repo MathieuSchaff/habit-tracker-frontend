@@ -118,7 +118,7 @@ export const ProfileForm = ({
       />
 
       <div className="profile-form__avatar-group">
-        <span className="profile-form__avatar-label">Avatar</span>
+        <span className="profile-form__group-label">Avatar</span>
         <ImageUpload
           shape="round"
           outputSize={1024}
@@ -133,7 +133,7 @@ export const ProfileForm = ({
       </div>
 
       <div className="profile-form__links-group">
-        <span className="profile-form__links-label">Liens (max 5)</span>
+        <span className="profile-form__group-label">Liens (max 5)</span>
         <ProfileLinksEditor
           links={links}
           onChange={handleLinksChange}

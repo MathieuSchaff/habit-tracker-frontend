@@ -42,15 +42,18 @@ vi.mock('../../../../social/components/SimilarPeople/SimilarPeople', () => ({
 }))
 vi.mock('../../../components/IdentityCard/IdentityCard', () => ({
   IdentityCard: ({
+    profile,
     isEditing,
     onEdit,
     onSubmit,
   }: {
+    profile: { bio?: string | null }
     isEditing: boolean
     onEdit: () => void
     onSubmit: (data: { bio: string }) => void
   }) => (
     <div data-testid="identity-card">
+      {profile.bio && <p>{profile.bio}</p>}
       {isEditing ? (
         <button type="button" onClick={() => onSubmit({ bio: 'new bio' })}>
           submit-identity
@@ -134,12 +137,12 @@ describe('ProfileDashboard', () => {
     setUpdateProfile()
   })
 
-  it('renders the profile hero with username and bio', () => {
+  it('renders the bio once in IdentityCard, not in the profile hero', () => {
     setProfile({ username: 'mathieu', bio: 'Skincare nerd' })
     render(<ProfileDashboard />)
 
     expect(screen.getByRole('heading', { name: 'mathieu' })).toBeInTheDocument()
-    expect(screen.getByText('Skincare nerd')).toBeInTheDocument()
+    expect(screen.getAllByText('Skincare nerd')).toHaveLength(1)
   })
 
   it('shows the panel for the tab selected in the URL', () => {
@@ -149,6 +152,7 @@ describe('ProfileDashboard', () => {
     expect(screen.getByTestId('account-settings').closest('[role="tabpanel"]')).not.toHaveAttribute(
       'hidden'
     )
+    expect(screen.getByRole('heading', { level: 2, name: 'Compte' })).toHaveClass('sr-only')
   })
 
   it('navigates to the clicked tab instead of holding it in local state', () => {

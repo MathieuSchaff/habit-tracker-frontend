@@ -134,6 +134,7 @@
     align-items: center;
     gap: 6px;
     padding: var(--space-3) 14px;
+    min-height: 44px;
     border: 0;
     background: transparent;
     color: var(--text-muted);
@@ -211,7 +212,6 @@
     }
     .underline-tab {
       padding: 10px;
-      min-height: 44px;
       font-size: calc(var(--text-sm) + 1px);
     }
     .underline-tab > span:not(.tab-badge) {

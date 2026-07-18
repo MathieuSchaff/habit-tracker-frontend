@@ -5,6 +5,7 @@ import { Check, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/component/Button/Button'
+import { Overline } from '@/component/Typography/Overline/Overline'
 import './CompletionStrip.css'
 
 export type CompletionStep = 'hero' | 'skin'
@@ -68,9 +69,7 @@ export function CompletionStrip({ profile, dermo, onEditSection }: CompletionStr
     <aside className="completion-strip" aria-label="Compléter le profil">
       <div className="completion-strip__header">
         <div className="completion-strip__intro">
-          <span className="completion-strip__overline" aria-hidden="true">
-            À votre rythme
-          </span>
+          <Overline>À votre rythme</Overline>
           <p className="completion-strip__text">
             Quelques touches encore, si vous le souhaitez. Rien n'est urgent.
           </p>
