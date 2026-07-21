@@ -27,6 +27,13 @@ const SURFACTANT =
 const DRY_SHAMPOO_INCI = /butane|propane|isobutane/i
 const DRY_SHAMPOO_NAME = /\bshampo+ing?\s+sec\b|\bdry\s+shampoo\b/i
 
+// Cold-process soap saponifies raw fats with lye in-situ, so the INCI lists the oils +
+// "Sodium/Potassium Hydroxide" instead of the finished *-ate salt SURFACTANT catches.
+// In a wash kind, lye alongside fatty oils/butters is saponification — a real soap,
+// legitimately body-wash/shampoo — not a missing surfactant.
+const SAPONIFIED_LYE = /\b(?:sodium|potassium)\s+hydroxide\b/i
+const FATTY_MATTER = /\b(?:oil|butter|huile|beurre)\b/i
+
 const WASH_KINDS = new Set(['shampoo', 'body-wash'])
 const MIN_INCI_LEN = 60 // skip marketing one-liners / empty INCI — not enough signal
 
@@ -72,6 +79,7 @@ function isWashWithoutSurfactant(p: ProductRow): boolean {
   if (!p.inci || p.inci.length < MIN_INCI_LEN) return false
   if (SURFACTANT.test(p.inci)) return false
   if (DRY_SHAMPOO_INCI.test(p.inci) || DRY_SHAMPOO_NAME.test(p.name)) return false
+  if (SAPONIFIED_LYE.test(p.inci) && FATTY_MATTER.test(p.inci)) return false
   return true
 }
 
