@@ -1,8 +1,9 @@
 import path from 'node:path'
 
 import babel from '@rolldown/plugin-babel'
-import { tanstackRouter } from '@tanstack/router-plugin/vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import { nitro } from 'nitro/vite'
 import { defineConfig, loadEnv, type Plugin, type UserConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
 
@@ -17,7 +18,6 @@ const EMPTY_CSS_LINK_PATTERN = (href: string) =>
     'g'
   )
 
-// Escapes an emitted asset path before injecting it into a RegExp.
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -53,7 +53,7 @@ function preloadBodyFont(): Plugin {
         if (!ctx.bundle) return html
 
         // Fontsource hides the body font behind CSS; preload the real hashed file.
-        // Keep this aligned with the import in `src/main.tsx`.
+        // Keep this aligned with the font import in `src/routes/__root.tsx`.
         const font = Object.keys(ctx.bundle).find(
           (file) => file.includes('dm-sans-latin-400-normal') && file.endsWith('.woff2')
         )
@@ -143,14 +143,31 @@ export default defineConfig(async ({ command, mode, isPreview }): Promise<UserCo
     plugins: [
       devServer && Inspect(),
 
-      // TanStack Router must run before React so route splitting sees source files.
-      tanstackRouter({
-        target: 'react',
-        autoCodeSplitting: true,
-        routesDirectory: './src/routes',
-        generatedRouteTree: './src/routeTree.gen.ts',
-        quoteStyle: 'single',
-        routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
+      // TanStack Start must run before React so route splitting sees source files.
+      tanstackStart({
+        // Paths resolve relative to srcDirectory ('src'), unlike the old tanstackRouter
+        // plugin which resolved from root: hence no './src/' prefix here.
+        router: {
+          routesDirectory: 'routes',
+          generatedRouteTree: 'routeTree.gen.ts',
+          quoteStyle: 'single',
+          routeFileIgnorePattern: '\\.(test|spec)\\.[tj]sx?$',
+        },
+        // Runtime SSR (nitro server), no static prerender: public pages SSR live
+        // per request so their inline scripts carry the per-request CSP nonce. A
+        // baked prerender would freeze a build-time nonce and get blocked by the
+        // per-request CSP.
+      }),
+      // Wraps the build into a deployable server so the app runs as a process
+      // (not static files), required for a per-request CSP nonce. Bun preset:
+      // we deploy on Bun (React 19).
+      nitro({
+        preset: 'bun',
+        // Nitro owns the dev request path, so Vite's `server.proxy` never sees /api.
+        // Proxy here instead. Serve-only: prod routes /api through nginx.
+        ...(command === 'serve' && {
+          routeRules: { '/api/**': { proxy: `${apiUrl}/api/**` } },
+        }),
       }),
       react(),
 
@@ -185,14 +202,8 @@ export default defineConfig(async ({ command, mode, isPreview }): Promise<UserCo
       host: true,
       port: 5173,
       strictPort: true,
-
-      // Do not use `allowedHosts: true`; it opens the dev server to DNS rebinding.
-      proxy: {
-        '/api': {
-          target: apiUrl,
-          changeOrigin: true,
-        },
-      },
+      // No /api proxy here: Nitro owns the dev request path and bypasses
+      // `server.proxy`. It lives in the nitro plugin above.
     },
 
     preview: {

@@ -9,67 +9,66 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProductsIndexRouteImport } from './routes/products/index'
-import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
-import { Route as BlogIndexRouteImport } from './routes/blog/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as UUsernameRouteImport } from './routes/u/$username'
-import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
-import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
-import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
-import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
-import { Route as AuthSignupRouteImport } from './routes/auth/signup'
-import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
-import { Route as AuthBannedRouteImport } from './routes/auth/banned'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
-import { Route as AdminSecurityEventsRouteImport } from './routes/admin/security-events'
-import { Route as AdminRoleRequestsRouteImport } from './routes/admin/role-requests'
-import { Route as AdminReportsRouteImport } from './routes/admin/reports'
-import { Route as AdminCatalogRouteImport } from './routes/admin/catalog'
-import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedCollectionRouteImport } from './routes/_authenticated/collection'
-import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
-import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
-import { Route as BlogCategoryIndexRouteImport } from './routes/blog/$category/index'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminCatalogRouteImport } from './routes/admin/catalog'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminRoleRequestsRouteImport } from './routes/admin/role-requests'
+import { Route as AdminSecurityEventsRouteImport } from './routes/admin/security-events'
+import { Route as AdminSuggestedEditsRouteImport } from './routes/admin/suggested-edits'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AuthBannedRouteImport } from './routes/auth/banned'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
+import { Route as AuthSignupRouteImport } from './routes/auth/signup'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
+import { Route as AuthVerifyPendingRouteImport } from './routes/auth/verify-pending'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as IngredientsIndexRouteImport } from './routes/ingredients/index'
+import { Route as IngredientsSlugRouteImport } from './routes/ingredients/$slug'
+import { Route as ProductsIndexRouteImport } from './routes/products/index'
+import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
+import { Route as UUsernameRouteImport } from './routes/u/$username'
 import { Route as AuthenticatedCollectionIndexRouteImport } from './routes/_authenticated/collection.index'
-import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug_/edit'
-import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug_/edit'
-import { Route as BlogAdminNewRouteImport } from './routes/blog/admin/new'
-import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$slug'
-import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
-import { Route as AdminUsersUserIdRouteImport } from './routes/admin/users_.$userId'
-import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
-import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
-import { Route as AuthenticatedCollectionMotifsRouteImport } from './routes/_authenticated/collection.motifs'
 import { Route as AuthenticatedCollectionAchatsRouteImport } from './routes/_authenticated/collection.achats'
-import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
-import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
+import { Route as AuthenticatedCollectionMotifsRouteImport } from './routes/_authenticated/collection.motifs'
+import { Route as AuthenticatedIngredientsNewRouteImport } from './routes/_authenticated/ingredients/new'
+import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products/new'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin/users_.$userId'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
+import { Route as BlogCategoryIndexRouteImport } from './routes/blog/$category/index'
+import { Route as BlogCategorySlugRouteImport } from './routes/blog/$category/$slug'
+import { Route as BlogAdminNewRouteImport } from './routes/blog/admin/new'
+import { Route as IngredientsSlugIndexRouteImport } from './routes/ingredients/$slug/index'
+import { Route as IngredientsSlugEditRouteImport } from './routes/ingredients/$slug_/edit'
+import { Route as ProductsSlugIndexRouteImport } from './routes/products/$slug/index'
+import { Route as ProductsSlugEditRouteImport } from './routes/products/$slug_/edit'
 import { Route as AuthenticatedProductsCompareIndexRouteImport } from './routes/_authenticated/products/compare/index'
-import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
-import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug/discussions/$threadId'
-import { Route as BlogAdminEditSlugRouteImport } from './routes/blog/admin/edit/$slug'
-import { Route as AuthenticatedProductsCompareNewRouteImport } from './routes/_authenticated/products/compare/new'
 import { Route as AuthenticatedProductsCompareIdRouteImport } from './routes/_authenticated/products/compare/$id'
+import { Route as AuthenticatedProductsCompareNewRouteImport } from './routes/_authenticated/products/compare/new'
+import { Route as BlogAdminEditSlugRouteImport } from './routes/blog/admin/edit/$slug'
+import { Route as IngredientsSlugDiscussionsIndexRouteImport } from './routes/ingredients/$slug/discussions/index'
+import { Route as IngredientsSlugDiscussionsThreadIdRouteImport } from './routes/ingredients/$slug/discussions/$threadId'
+import { Route as ProductsSlugDiscussionsIndexRouteImport } from './routes/products/$slug/discussions/index'
+import { Route as ProductsSlugDiscussionsThreadIdRouteImport } from './routes/products/$slug/discussions/$threadId'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -82,124 +81,19 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductsIndexRoute = ProductsIndexRouteImport.update({
-  id: '/products/',
-  path: '/products/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngredientsIndexRoute = IngredientsIndexRouteImport.update({
-  id: '/ingredients/',
-  path: '/ingredients/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const UUsernameRoute = UUsernameRouteImport.update({
-  id: '/u/$username',
-  path: '/u/$username',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsSlugRoute = ProductsSlugRouteImport.update({
-  id: '/products/$slug',
-  path: '/products/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
-  id: '/ingredients/$slug',
-  path: '/ingredients/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthVerifyPendingRoute = AuthVerifyPendingRouteImport.update({
-  id: '/auth/verify-pending',
-  path: '/auth/verify-pending',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
-  id: '/auth/verify-email',
-  path: '/auth/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/auth/reset-password',
-  path: '/auth/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
-  id: '/auth/forgot-password',
-  path: '/auth/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthBannedRoute = AuthBannedRouteImport.update({
-  id: '/auth/banned',
-  path: '/auth/banned',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminSuggestedEditsRoute = AdminSuggestedEditsRouteImport.update({
-  id: '/suggested-edits',
-  path: '/suggested-edits',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminSecurityEventsRoute = AdminSecurityEventsRouteImport.update({
-  id: '/security-events',
-  path: '/security-events',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminRoleRequestsRoute = AdminRoleRequestsRouteImport.update({
-  id: '/role-requests',
-  path: '/role-requests',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminCatalogRoute = AdminCatalogRouteImport.update({
-  id: '/catalog',
-  path: '/catalog',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AuthenticatedSubmissionsRoute =
-  AuthenticatedSubmissionsRouteImport.update({
-    id: '/submissions',
-    path: '/submissions',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
+  id: '/collection',
+  path: '/collection',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
@@ -207,24 +101,115 @@ const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCollectionRoute = AuthenticatedCollectionRouteImport.update({
-  id: '/collection',
-  path: '/collection',
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProductsSlugIndexRoute = ProductsSlugIndexRouteImport.update({
+const AuthenticatedSubmissionsRoute =
+  AuthenticatedSubmissionsRouteImport.update({
+    id: '/submissions',
+    path: '/submissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProductsSlugRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
-const IngredientsSlugIndexRoute = IngredientsSlugIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => IngredientsSlugRoute,
+const AdminCatalogRoute = AdminCatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
-const BlogCategoryIndexRoute = BlogCategoryIndexRouteImport.update({
-  id: '/blog/$category/',
-  path: '/blog/$category/',
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRoleRequestsRoute = AdminRoleRequestsRouteImport.update({
+  id: '/role-requests',
+  path: '/role-requests',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSecurityEventsRoute = AdminSecurityEventsRouteImport.update({
+  id: '/security-events',
+  path: '/security-events',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSuggestedEditsRoute = AdminSuggestedEditsRouteImport.update({
+  id: '/suggested-edits',
+  path: '/suggested-edits',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AuthBannedRoute = AuthBannedRouteImport.update({
+  id: '/auth/banned',
+  path: '/auth/banned',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/auth/verify-email',
+  path: '/auth/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthVerifyPendingRoute = AuthVerifyPendingRouteImport.update({
+  id: '/auth/verify-pending',
+  path: '/auth/verify-pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsIndexRoute = IngredientsIndexRouteImport.update({
+  id: '/ingredients/',
+  path: '/ingredients/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsSlugRoute = IngredientsSlugRouteImport.update({
+  id: '/ingredients/$slug',
+  path: '/ingredients/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCollectionIndexRoute =
@@ -233,47 +218,11 @@ const AuthenticatedCollectionIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCollectionRoute,
   } as any)
-const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
-  id: '/products/$slug_/edit',
-  path: '/products/$slug/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
-  id: '/ingredients/$slug_/edit',
-  path: '/ingredients/$slug/edit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogAdminNewRoute = BlogAdminNewRouteImport.update({
-  id: '/blog/admin/new',
-  path: '/blog/admin/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
-  id: '/blog/$category/$slug',
-  path: '/blog/$category/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
-  id: '/auth/google/callback',
-  path: '/auth/google/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
-  id: '/users_/$userId',
-  path: '/users/$userId',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AuthenticatedProductsNewRoute =
-  AuthenticatedProductsNewRouteImport.update({
-    id: '/products/new',
-    path: '/products/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedIngredientsNewRoute =
-  AuthenticatedIngredientsNewRouteImport.update({
-    id: '/ingredients/new',
-    path: '/ingredients/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedCollectionAchatsRoute =
+  AuthenticatedCollectionAchatsRouteImport.update({
+    id: '/achats',
+    path: '/achats',
+    getParentRoute: () => AuthenticatedCollectionRoute,
   } as any)
 const AuthenticatedCollectionMotifsRoute =
   AuthenticatedCollectionMotifsRouteImport.update({
@@ -281,51 +230,67 @@ const AuthenticatedCollectionMotifsRoute =
     path: '/motifs',
     getParentRoute: () => AuthenticatedCollectionRoute,
   } as any)
-const AuthenticatedCollectionAchatsRoute =
-  AuthenticatedCollectionAchatsRouteImport.update({
-    id: '/achats',
-    path: '/achats',
-    getParentRoute: () => AuthenticatedCollectionRoute,
+const AuthenticatedIngredientsNewRoute =
+  AuthenticatedIngredientsNewRouteImport.update({
+    id: '/ingredients/new',
+    path: '/ingredients/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ProductsSlugDiscussionsIndexRoute =
-  ProductsSlugDiscussionsIndexRouteImport.update({
-    id: '/discussions/',
-    path: '/discussions/',
-    getParentRoute: () => ProductsSlugRoute,
+const AuthenticatedProductsNewRoute =
+  AuthenticatedProductsNewRouteImport.update({
+    id: '/products/new',
+    path: '/products/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const IngredientsSlugDiscussionsIndexRoute =
-  IngredientsSlugDiscussionsIndexRouteImport.update({
-    id: '/discussions/',
-    path: '/discussions/',
-    getParentRoute: () => IngredientsSlugRoute,
-  } as any)
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: '/users_/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogCategoryIndexRoute = BlogCategoryIndexRouteImport.update({
+  id: '/blog/$category/',
+  path: '/blog/$category/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
+  id: '/blog/$category/$slug',
+  path: '/blog/$category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogAdminNewRoute = BlogAdminNewRouteImport.update({
+  id: '/blog/admin/new',
+  path: '/blog/admin/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsSlugIndexRoute = IngredientsSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => IngredientsSlugRoute,
+} as any)
+const IngredientsSlugEditRoute = IngredientsSlugEditRouteImport.update({
+  id: '/ingredients/$slug_/edit',
+  path: '/ingredients/$slug/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSlugIndexRoute = ProductsSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsSlugRoute,
+} as any)
+const ProductsSlugEditRoute = ProductsSlugEditRouteImport.update({
+  id: '/products/$slug_/edit',
+  path: '/products/$slug/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedProductsCompareIndexRoute =
   AuthenticatedProductsCompareIndexRouteImport.update({
     id: '/products/compare/',
     path: '/products/compare/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const ProductsSlugDiscussionsThreadIdRoute =
-  ProductsSlugDiscussionsThreadIdRouteImport.update({
-    id: '/discussions/$threadId',
-    path: '/discussions/$threadId',
-    getParentRoute: () => ProductsSlugRoute,
-  } as any)
-const IngredientsSlugDiscussionsThreadIdRoute =
-  IngredientsSlugDiscussionsThreadIdRouteImport.update({
-    id: '/discussions/$threadId',
-    path: '/discussions/$threadId',
-    getParentRoute: () => IngredientsSlugRoute,
-  } as any)
-const BlogAdminEditSlugRoute = BlogAdminEditSlugRouteImport.update({
-  id: '/blog/admin/edit/$slug',
-  path: '/blog/admin/edit/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedProductsCompareNewRoute =
-  AuthenticatedProductsCompareNewRouteImport.update({
-    id: '/products/compare/new',
-    path: '/products/compare/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProductsCompareIdRoute =
@@ -333,6 +298,41 @@ const AuthenticatedProductsCompareIdRoute =
     id: '/products/compare/$id',
     path: '/products/compare/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductsCompareNewRoute =
+  AuthenticatedProductsCompareNewRouteImport.update({
+    id: '/products/compare/new',
+    path: '/products/compare/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const BlogAdminEditSlugRoute = BlogAdminEditSlugRouteImport.update({
+  id: '/blog/admin/edit/$slug',
+  path: '/blog/admin/edit/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngredientsSlugDiscussionsIndexRoute =
+  IngredientsSlugDiscussionsIndexRouteImport.update({
+    id: '/discussions/',
+    path: '/discussions/',
+    getParentRoute: () => IngredientsSlugRoute,
+  } as any)
+const IngredientsSlugDiscussionsThreadIdRoute =
+  IngredientsSlugDiscussionsThreadIdRouteImport.update({
+    id: '/discussions/$threadId',
+    path: '/discussions/$threadId',
+    getParentRoute: () => IngredientsSlugRoute,
+  } as any)
+const ProductsSlugDiscussionsIndexRoute =
+  ProductsSlugDiscussionsIndexRouteImport.update({
+    id: '/discussions/',
+    path: '/discussions/',
+    getParentRoute: () => ProductsSlugRoute,
+  } as any)
+const ProductsSlugDiscussionsThreadIdRoute =
+  ProductsSlugDiscussionsThreadIdRouteImport.update({
+    id: '/discussions/$threadId',
+    path: '/discussions/$threadId',
+    getParentRoute: () => ProductsSlugRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -682,18 +682,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -710,172 +710,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/products/': {
-      id: '/products/'
-      path: '/products'
-      fullPath: '/products/'
-      preLoaderRoute: typeof ProductsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ingredients/': {
-      id: '/ingredients/'
-      path: '/ingredients'
-      fullPath: '/ingredients/'
-      preLoaderRoute: typeof IngredientsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/u/$username': {
-      id: '/u/$username'
-      path: '/u/$username'
-      fullPath: '/u/$username'
-      preLoaderRoute: typeof UUsernameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products/$slug': {
-      id: '/products/$slug'
-      path: '/products/$slug'
-      fullPath: '/products/$slug'
-      preLoaderRoute: typeof ProductsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ingredients/$slug': {
-      id: '/ingredients/$slug'
-      path: '/ingredients/$slug'
-      fullPath: '/ingredients/$slug'
-      preLoaderRoute: typeof IngredientsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/verify-pending': {
-      id: '/auth/verify-pending'
-      path: '/auth/verify-pending'
-      fullPath: '/auth/verify-pending'
-      preLoaderRoute: typeof AuthVerifyPendingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/verify-email': {
-      id: '/auth/verify-email'
-      path: '/auth/verify-email'
-      fullPath: '/auth/verify-email'
-      preLoaderRoute: typeof AuthVerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/reset-password': {
-      id: '/auth/reset-password'
-      path: '/auth/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/forgot-password': {
-      id: '/auth/forgot-password'
-      path: '/auth/forgot-password'
-      fullPath: '/auth/forgot-password'
-      preLoaderRoute: typeof AuthForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/banned': {
-      id: '/auth/banned'
-      path: '/auth/banned'
-      fullPath: '/auth/banned'
-      preLoaderRoute: typeof AuthBannedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/suggested-edits': {
-      id: '/admin/suggested-edits'
-      path: '/suggested-edits'
-      fullPath: '/admin/suggested-edits'
-      preLoaderRoute: typeof AdminSuggestedEditsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/security-events': {
-      id: '/admin/security-events'
-      path: '/security-events'
-      fullPath: '/admin/security-events'
-      preLoaderRoute: typeof AdminSecurityEventsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/role-requests': {
-      id: '/admin/role-requests'
-      path: '/role-requests'
-      fullPath: '/admin/role-requests'
-      preLoaderRoute: typeof AdminRoleRequestsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/catalog': {
-      id: '/admin/catalog'
-      path: '/catalog'
-      fullPath: '/admin/catalog'
-      preLoaderRoute: typeof AdminCatalogRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/_authenticated/submissions': {
-      id: '/_authenticated/submissions'
-      path: '/submissions'
-      fullPath: '/submissions'
-      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+    '/_authenticated/collection': {
+      id: '/_authenticated/collection'
+      path: '/collection'
+      fullPath: '/collection'
+      preLoaderRoute: typeof AuthenticatedCollectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feed': {
@@ -885,32 +738,158 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/collection': {
-      id: '/_authenticated/collection'
-      path: '/collection'
-      fullPath: '/collection'
-      preLoaderRoute: typeof AuthenticatedCollectionRouteImport
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/products/$slug/': {
-      id: '/products/$slug/'
-      path: '/'
-      fullPath: '/products/$slug/'
-      preLoaderRoute: typeof ProductsSlugIndexRouteImport
-      parentRoute: typeof ProductsSlugRoute
+    '/_authenticated/submissions': {
+      id: '/_authenticated/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/ingredients/$slug/': {
-      id: '/ingredients/$slug/'
+    '/admin/': {
+      id: '/admin/'
       path: '/'
-      fullPath: '/ingredients/$slug/'
-      preLoaderRoute: typeof IngredientsSlugIndexRouteImport
-      parentRoute: typeof IngredientsSlugRoute
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
-    '/blog/$category/': {
-      id: '/blog/$category/'
-      path: '/blog/$category'
-      fullPath: '/blog/$category/'
-      preLoaderRoute: typeof BlogCategoryIndexRouteImport
+    '/admin/catalog': {
+      id: '/admin/catalog'
+      path: '/catalog'
+      fullPath: '/admin/catalog'
+      preLoaderRoute: typeof AdminCatalogRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/role-requests': {
+      id: '/admin/role-requests'
+      path: '/role-requests'
+      fullPath: '/admin/role-requests'
+      preLoaderRoute: typeof AdminRoleRequestsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/security-events': {
+      id: '/admin/security-events'
+      path: '/security-events'
+      fullPath: '/admin/security-events'
+      preLoaderRoute: typeof AdminSecurityEventsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/suggested-edits': {
+      id: '/admin/suggested-edits'
+      path: '/suggested-edits'
+      fullPath: '/admin/suggested-edits'
+      preLoaderRoute: typeof AdminSuggestedEditsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/auth/banned': {
+      id: '/auth/banned'
+      path: '/auth/banned'
+      fullPath: '/auth/banned'
+      preLoaderRoute: typeof AuthBannedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/verify-email': {
+      id: '/auth/verify-email'
+      path: '/auth/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/verify-pending': {
+      id: '/auth/verify-pending'
+      path: '/auth/verify-pending'
+      fullPath: '/auth/verify-pending'
+      preLoaderRoute: typeof AuthVerifyPendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/': {
+      id: '/ingredients/'
+      path: '/ingredients'
+      fullPath: '/ingredients/'
+      preLoaderRoute: typeof IngredientsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/$slug': {
+      id: '/ingredients/$slug'
+      path: '/ingredients/$slug'
+      fullPath: '/ingredients/$slug'
+      preLoaderRoute: typeof IngredientsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/collection/': {
@@ -920,25 +899,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCollectionIndexRouteImport
       parentRoute: typeof AuthenticatedCollectionRoute
     }
-    '/products/$slug_/edit': {
-      id: '/products/$slug_/edit'
-      path: '/products/$slug/edit'
-      fullPath: '/products/$slug/edit'
-      preLoaderRoute: typeof ProductsSlugEditRouteImport
+    '/_authenticated/collection/achats': {
+      id: '/_authenticated/collection/achats'
+      path: '/achats'
+      fullPath: '/collection/achats'
+      preLoaderRoute: typeof AuthenticatedCollectionAchatsRouteImport
+      parentRoute: typeof AuthenticatedCollectionRoute
+    }
+    '/_authenticated/collection/motifs': {
+      id: '/_authenticated/collection/motifs'
+      path: '/motifs'
+      fullPath: '/collection/motifs'
+      preLoaderRoute: typeof AuthenticatedCollectionMotifsRouteImport
+      parentRoute: typeof AuthenticatedCollectionRoute
+    }
+    '/_authenticated/ingredients/new': {
+      id: '/_authenticated/ingredients/new'
+      path: '/ingredients/new'
+      fullPath: '/ingredients/new'
+      preLoaderRoute: typeof AuthenticatedIngredientsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/products/new': {
+      id: '/_authenticated/products/new'
+      path: '/products/new'
+      fullPath: '/products/new'
+      preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/admin/users_/$userId': {
+      id: '/admin/users_/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ingredients/$slug_/edit': {
-      id: '/ingredients/$slug_/edit'
-      path: '/ingredients/$slug/edit'
-      fullPath: '/ingredients/$slug/edit'
-      preLoaderRoute: typeof IngredientsSlugEditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/admin/new': {
-      id: '/blog/admin/new'
-      path: '/blog/admin/new'
-      fullPath: '/blog/admin/new'
-      preLoaderRoute: typeof BlogAdminNewRouteImport
+    '/blog/$category/': {
+      id: '/blog/$category/'
+      path: '/blog/$category'
+      fullPath: '/blog/$category/'
+      preLoaderRoute: typeof BlogCategoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/$category/$slug': {
@@ -948,61 +955,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/google/callback': {
-      id: '/auth/google/callback'
-      path: '/auth/google/callback'
-      fullPath: '/auth/google/callback'
-      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+    '/blog/admin/new': {
+      id: '/blog/admin/new'
+      path: '/blog/admin/new'
+      fullPath: '/blog/admin/new'
+      preLoaderRoute: typeof BlogAdminNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/users_/$userId': {
-      id: '/admin/users_/$userId'
-      path: '/users/$userId'
-      fullPath: '/admin/users/$userId'
-      preLoaderRoute: typeof AdminUsersUserIdRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/ingredients/$slug/': {
+      id: '/ingredients/$slug/'
+      path: '/'
+      fullPath: '/ingredients/$slug/'
+      preLoaderRoute: typeof IngredientsSlugIndexRouteImport
+      parentRoute: typeof IngredientsSlugRoute
     }
-    '/_authenticated/products/new': {
-      id: '/_authenticated/products/new'
-      path: '/products/new'
-      fullPath: '/products/new'
-      preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/ingredients/$slug_/edit': {
+      id: '/ingredients/$slug_/edit'
+      path: '/ingredients/$slug/edit'
+      fullPath: '/ingredients/$slug/edit'
+      preLoaderRoute: typeof IngredientsSlugEditRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/ingredients/new': {
-      id: '/_authenticated/ingredients/new'
-      path: '/ingredients/new'
-      fullPath: '/ingredients/new'
-      preLoaderRoute: typeof AuthenticatedIngredientsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/collection/motifs': {
-      id: '/_authenticated/collection/motifs'
-      path: '/motifs'
-      fullPath: '/collection/motifs'
-      preLoaderRoute: typeof AuthenticatedCollectionMotifsRouteImport
-      parentRoute: typeof AuthenticatedCollectionRoute
-    }
-    '/_authenticated/collection/achats': {
-      id: '/_authenticated/collection/achats'
-      path: '/achats'
-      fullPath: '/collection/achats'
-      preLoaderRoute: typeof AuthenticatedCollectionAchatsRouteImport
-      parentRoute: typeof AuthenticatedCollectionRoute
-    }
-    '/products/$slug/discussions/': {
-      id: '/products/$slug/discussions/'
-      path: '/discussions'
-      fullPath: '/products/$slug/discussions/'
-      preLoaderRoute: typeof ProductsSlugDiscussionsIndexRouteImport
+    '/products/$slug/': {
+      id: '/products/$slug/'
+      path: '/'
+      fullPath: '/products/$slug/'
+      preLoaderRoute: typeof ProductsSlugIndexRouteImport
       parentRoute: typeof ProductsSlugRoute
     }
-    '/ingredients/$slug/discussions/': {
-      id: '/ingredients/$slug/discussions/'
-      path: '/discussions'
-      fullPath: '/ingredients/$slug/discussions/'
-      preLoaderRoute: typeof IngredientsSlugDiscussionsIndexRouteImport
-      parentRoute: typeof IngredientsSlugRoute
+    '/products/$slug_/edit': {
+      id: '/products/$slug_/edit'
+      path: '/products/$slug/edit'
+      fullPath: '/products/$slug/edit'
+      preLoaderRoute: typeof ProductsSlugEditRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/products/compare/': {
       id: '/_authenticated/products/compare/'
@@ -1011,26 +997,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsCompareIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/products/$slug/discussions/$threadId': {
-      id: '/products/$slug/discussions/$threadId'
-      path: '/discussions/$threadId'
-      fullPath: '/products/$slug/discussions/$threadId'
-      preLoaderRoute: typeof ProductsSlugDiscussionsThreadIdRouteImport
-      parentRoute: typeof ProductsSlugRoute
-    }
-    '/ingredients/$slug/discussions/$threadId': {
-      id: '/ingredients/$slug/discussions/$threadId'
-      path: '/discussions/$threadId'
-      fullPath: '/ingredients/$slug/discussions/$threadId'
-      preLoaderRoute: typeof IngredientsSlugDiscussionsThreadIdRouteImport
-      parentRoute: typeof IngredientsSlugRoute
-    }
-    '/blog/admin/edit/$slug': {
-      id: '/blog/admin/edit/$slug'
-      path: '/blog/admin/edit/$slug'
-      fullPath: '/blog/admin/edit/$slug'
-      preLoaderRoute: typeof BlogAdminEditSlugRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/products/compare/$id': {
+      id: '/_authenticated/products/compare/$id'
+      path: '/products/compare/$id'
+      fullPath: '/products/compare/$id'
+      preLoaderRoute: typeof AuthenticatedProductsCompareIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products/compare/new': {
       id: '/_authenticated/products/compare/new'
@@ -1039,12 +1011,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsCompareNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/products/compare/$id': {
-      id: '/_authenticated/products/compare/$id'
-      path: '/products/compare/$id'
-      fullPath: '/products/compare/$id'
-      preLoaderRoute: typeof AuthenticatedProductsCompareIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/blog/admin/edit/$slug': {
+      id: '/blog/admin/edit/$slug'
+      path: '/blog/admin/edit/$slug'
+      fullPath: '/blog/admin/edit/$slug'
+      preLoaderRoute: typeof BlogAdminEditSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingredients/$slug/discussions/': {
+      id: '/ingredients/$slug/discussions/'
+      path: '/discussions'
+      fullPath: '/ingredients/$slug/discussions/'
+      preLoaderRoute: typeof IngredientsSlugDiscussionsIndexRouteImport
+      parentRoute: typeof IngredientsSlugRoute
+    }
+    '/ingredients/$slug/discussions/$threadId': {
+      id: '/ingredients/$slug/discussions/$threadId'
+      path: '/discussions/$threadId'
+      fullPath: '/ingredients/$slug/discussions/$threadId'
+      preLoaderRoute: typeof IngredientsSlugDiscussionsThreadIdRouteImport
+      parentRoute: typeof IngredientsSlugRoute
+    }
+    '/products/$slug/discussions/': {
+      id: '/products/$slug/discussions/'
+      path: '/discussions'
+      fullPath: '/products/$slug/discussions/'
+      preLoaderRoute: typeof ProductsSlugDiscussionsIndexRouteImport
+      parentRoute: typeof ProductsSlugRoute
+    }
+    '/products/$slug/discussions/$threadId': {
+      id: '/products/$slug/discussions/$threadId'
+      path: '/discussions/$threadId'
+      fullPath: '/products/$slug/discussions/$threadId'
+      preLoaderRoute: typeof ProductsSlugDiscussionsThreadIdRouteImport
+      parentRoute: typeof ProductsSlugRoute
     }
   }
 }

@@ -29,6 +29,8 @@ services:
       # Writable scratch (ingest scrapers cache here). /app/backend is image-owned (root),
       # so without a host-backed mount the runtime user (1000) can't mkdir tmp → EACCES.
       - ../../../backend/tmp:/app/backend/tmp
+      # Resolve the ignored src/output dir (often an absolute host symlink) at mount time.
+      - ../../../backend/src/output:/app/backend/image-output
 
       - ../../../shared/package.json:/app/shared/package.json:ro
       - ../../../shared/src:/app/shared/src:ro
@@ -38,6 +40,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       LOG_LEVEL: debug
+      IMAGE_OUTPUT_DIR: /app/backend/image-output
 
     ports:
       - "3000:3000"
@@ -58,7 +61,7 @@ services:
       - ../../../bun.lock:/app/bun.lock:ro
 
       - ../../../frontend/package.json:/app/frontend/package.json:ro
-      - ../../../frontend/index.html:/app/frontend/index.html:ro
+      # No index.html under TanStack Start — the __root route owns the document.
       - ../../../frontend/public:/app/frontend/public:ro
       - ../../../frontend/src:/app/frontend/src
       - ../../../frontend/postcss.config.js:/app/frontend/postcss.config.js:ro

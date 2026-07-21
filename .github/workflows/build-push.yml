@@ -47,6 +47,7 @@ jobs:
           build-args: |
             VITE_FARO_URL=${{ secrets.VITE_FARO_URL }}
             VITE_APP_VERSION=${{ github.sha }}
+            VITE_API_URL=http://api:3000
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.OWNER }}/aurore-${{ matrix.name }}:${{ github.sha }}

@@ -1,3 +1,4 @@
+import { useHydrated } from '@tanstack/react-router'
 import { Moon, Sun } from 'lucide-react'
 import { useId, useRef } from 'react'
 
@@ -16,7 +17,11 @@ export const ThemeToggle = () => {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverId = useId()
-  const isDark = theme === 'dark'
+  const hydrated = useHydrated()
+  // The store reads localStorage/matchMedia, which the server can't see: SSR
+  // always renders light. Mirror that on the first client render (hydration
+  // must match), then show the real theme once hydrated.
+  const isDark = hydrated && theme === 'dark'
   const currentVariant = VARIANTS.find((v) => v.value === variant)
 
   // The button's popovertarget owns open/close. A manual onClick toggle races

@@ -5,8 +5,12 @@
     "react-doctor/no-redundant-roles": "off"
   },
   "ignore": {
-    "files": ["**/*.test.tsx"],
+    "files": ["**/*.test.tsx", ".output/**"],
     "overrides": [
+      {
+        "files": ["src/router.tsx", "src/client.tsx", "src/start.ts"],
+        "rules": ["deslop/unused-file"]
+      },
       {
         "files": ["src/routes/**"],
         "rules": ["react-doctor/only-export-components"]
@@ -29,7 +33,10 @@
         "rules": ["react-doctor/design-no-em-dash-in-jsx-text"]
       },
       {
-        "files": ["src/features/legal/components/PrivacyPage/PrivacyPage.tsx"],
+        "files": [
+          "src/features/legal/components/PrivacyPage/PrivacyPage.tsx",
+          "src/features/legal/components/PrivacyList/PrivacyList.tsx"
+        ],
         "rules": ["react-doctor/no-array-index-as-key", "react-doctor/no-array-index-key"]
       },
       {

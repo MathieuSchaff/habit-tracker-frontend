@@ -1,9 +1,13 @@
 import { create } from 'zustand'
 
-type Theme = 'light' | 'dark'
-export type Variant = 'terracota' | 'foret' | 'ardoise'
+import { isServer } from '../lib/helpers/isServer'
 
-const VALID_VARIANTS: Variant[] = ['terracota', 'foret', 'ardoise']
+type Theme = 'light' | 'dark'
+
+const VALID_VARIANTS = ['terracota', 'foret', 'ardoise'] as const
+
+export type Variant = (typeof VALID_VARIANTS)[number]
+
 const DEFAULT_VARIANT: Variant = 'terracota'
 
 const STORAGE_KEY = 'theme-preference'
@@ -22,14 +26,14 @@ const getSystemTheme = (): Theme =>
   window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 
 const getInitialTheme = (): { theme: Theme; isUserChoice: boolean } => {
-  if (typeof window === 'undefined') return { theme: 'light', isUserChoice: false }
+  if (isServer) return { theme: 'light', isUserChoice: false }
   const saved = localStorage.getItem(STORAGE_KEY) as Theme | null
   if (saved === 'light' || saved === 'dark') return { theme: saved, isUserChoice: true }
   return { theme: getSystemTheme(), isUserChoice: false }
 }
 
 const getInitialVariant = (): Variant => {
-  if (typeof window === 'undefined') return DEFAULT_VARIANT
+  if (isServer) return DEFAULT_VARIANT
   const saved = localStorage.getItem(VARIANT_KEY)
   return VALID_VARIANTS.includes(saved as Variant) ? (saved as Variant) : DEFAULT_VARIANT
 }
@@ -63,6 +67,12 @@ const loadVariant = async (variant: Variant): Promise<void> => {
         import('../styles/tokens/colors-dark-ardoise.css'),
       ])
       break
+    case 'terracota':
+      break
+    default: {
+      const _exhaustive: never = variant
+      throw new Error(`Unhandled variant: ${_exhaustive}`)
+    }
   }
   loadedVariants.add(variant)
 }
@@ -70,9 +80,13 @@ const loadVariant = async (variant: Variant): Promise<void> => {
 const initial = getInitialTheme()
 const initialVariant = getInitialVariant()
 
-applyTheme(initial.theme)
-applyVariant(initialVariant)
-void loadVariant(initialVariant)
+// Client-only: RootDocument ships data-theme="light" for SSR/prerender; the
+// client re-applies from storage after hydration.
+if (!isServer) {
+  applyTheme(initial.theme)
+  applyVariant(initialVariant)
+  void loadVariant(initialVariant)
+}
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
   theme: initial.theme,
@@ -102,7 +116,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
 }))
 
 // Follow system theme changes only when the user hasn't picked manually.
-if (typeof window !== 'undefined') {
+if (!isServer) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!useThemeStore.getState().isUserChoice) {
       const next = e.matches ? 'dark' : 'light'

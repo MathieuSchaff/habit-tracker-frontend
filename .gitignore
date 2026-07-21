@@ -9,6 +9,9 @@ node_modules/
 # =========================
 dist/
 build/
+# TanStack Start / nitro runtime SSR build output
+.output/
+.nitro/
 # rollup-plugin-visualizer output (ANALYZE=1 vite build)
 frontend/stats.html
 *.tsbuildinfo

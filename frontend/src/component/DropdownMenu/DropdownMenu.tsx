@@ -176,7 +176,10 @@ function DropdownMenuContent({
   const [coords, setCoords] = useState<MenuCoords | null>(null)
   // Captured in state (not inline at render): concurrent-mode safe, locks to the container
   // it opened in so a dialog closing mid-open doesn't teleport the menu.
-  const [portalTarget, setPortalTarget] = useState<Element>(() => document.body)
+  // null during SSR (no document); the menu only portals once opened on the client.
+  const [portalTarget, setPortalTarget] = useState<Element | null>(() =>
+    typeof document === 'undefined' ? null : document.body
+  )
 
   useLayoutEffect(() => {
     if (!isOpen) return
@@ -265,7 +268,7 @@ function DropdownMenuContent({
     }
   }, [isOpen])
 
-  if (!isOpen) return null
+  if (!isOpen || !portalTarget) return null
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const items = Array.from(

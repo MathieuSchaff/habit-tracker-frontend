@@ -46,8 +46,9 @@
     },
     "frontend": {
       "entry": [
-        "index.html",
-        "src/main.tsx",
+        "src/router.tsx",
+        "src/client.tsx",
+        "src/start.ts",
         "src/routeTree.gen.ts",
         "vite.config.ts",
         "vitest.config.ts",

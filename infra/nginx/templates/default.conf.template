@@ -17,7 +17,7 @@ upstream api {
 
 upstream frontend {
     zone frontend 64k;
-    server frontend:80 resolve;
+    server frontend:3000 resolve;
 }
 # link to check the directives of the core module
 # https://nginx.org/en/docs/http/ngx_http_core_module.html
@@ -89,12 +89,27 @@ server {
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
     # Sources: self bundle/API, self-hosted fonts, inline styles (React), Bunny CDN + Google account avatars.
     # connect-src also allows the Faro RUM collector (browser POSTs telemetry to Grafana Cloud EU).
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.b-cdn.net https://*.googleusercontent.com; connect-src 'self' https://faro-collector-prod-eu-west-2.grafana.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;
+    # script-src carries a per-request nonce ($request_id, 128-bit random): the SSR app stamps it on
+    # its inline hydration scripts (forwarded below as X-CSP-Nonce), so no 'unsafe-inline' is needed.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-$request_id'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.b-cdn.net https://*.googleusercontent.com; connect-src 'self' https://faro-collector-prod-eu-west-2.grafana.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;
 
     location /nginx-health {
         access_log off;
         return 200 "ok";
         add_header Content-Type text/plain;
+    }
+
+    # Dynamic sitemap lives on the backend (data = Hono); map the root path crawlers
+    # expect to the API route. Exact match so it never falls through to the SPA.
+    location = /sitemap.xml {
+        limit_req zone=api_limit burst=20 nodelay;
+        proxy_pass http://api/api/sitemap.xml;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
     }
 
     location /api/ {
@@ -120,6 +135,9 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        # Same $request_id used in the CSP script-src nonce above; the SSR app reads
+        # it and stamps every inline hydration script so the strict CSP admits them.
+        proxy_set_header X-CSP-Nonce $request_id;
     }
 }
 

@@ -62,7 +62,8 @@ services:
     # CI-built image (build-push.yml). `build:` inherited from base compose as fallback.
     image: ghcr.io/mathieuschaff/aurore-frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
-    mem_limit: 128m
+    # Runtime SSR (Bun process) needs more headroom than the old static nginx image.
+    mem_limit: 256m
     cpus: "0.5"
     logging:
       driver: json-file
@@ -70,9 +71,16 @@ services:
         max-size: "10m"
         max-file: "3"
     expose:
-      - "80"
+      - "3000"
+    # Probe a static asset (no SSR cost) with bun itself — the image ships neither wget nor curl.
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://127.0.0.1:3000/favicon.svg').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

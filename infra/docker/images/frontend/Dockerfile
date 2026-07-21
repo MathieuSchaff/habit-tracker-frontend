@@ -26,13 +26,18 @@ ENV NODE_ENV=production
 # initFaro() returns null → no telemetry. For Grafana Cloud: Frontend Observability app URL.
 ARG VITE_FARO_URL=""
 ARG VITE_APP_VERSION="prod"
+ARG VITE_API_URL="http://api:3000"
 ENV VITE_FARO_URL=${VITE_FARO_URL}
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
+ENV VITE_API_URL=${VITE_API_URL}
 RUN bun run build
 
-# 1.30.2-alpine, digest-pinned (CVE-2026-42945 fixed in >=1.30.1). Bump digest to update.
-FROM nginx:1.30.2-alpine@sha256:5f979dcfed4ce6461873f087e8c980d6e29b084b9e8776d9704a7e989b5f4898
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Runtime SSR server (nitro bun preset). .output is a self-contained bundle —
+# server entry + public assets, no node_modules — so the final image is just Bun.
+FROM oven/bun:1.3.12-alpine
+WORKDIR /app
+COPY --from=builder /app/frontend/.output ./.output
+ENV NODE_ENV=production
+ENV PORT=3000
+EXPOSE 3000
+CMD ["bun", "run", ".output/server/index.mjs"]

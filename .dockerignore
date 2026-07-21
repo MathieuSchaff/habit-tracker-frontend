@@ -8,6 +8,8 @@ node_modules
 # Fichiers de build et caches
 # ==========================================
 **/dist
+**/.output
+**/.nitro
 **/build
 **/.turbo
 **/.cache

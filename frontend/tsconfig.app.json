@@ -21,7 +21,8 @@
     /* 3. Rigueur */
     "strict": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true,
+    // Off for TanStack Start: verbatimModuleSyntax leaks server-only modules into client bundles.
+    "verbatimModuleSyntax": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true

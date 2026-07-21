@@ -24,19 +24,21 @@ export function handleMutationError(error: unknown, mutation: Pick<Mutation, 'me
   // `id` dedupes identical toasts from parallel failures (e.g. unreachable backend).
   if (message) toast.error(message, { id: message })
 }
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60,
-      // 4xx won't recover on retry; only retry transient failures once.
-      retry: (failureCount, err) => {
-        if (isApiError(err) && err.status >= 400 && err.status < 500) return false
-        return failureCount < 1
+export function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60,
+        // 4xx won't recover on retry; only retry transient failures once.
+        retry: (failureCount, err) => {
+          if (isApiError(err) && err.status >= 400 && err.status < 500) return false
+          return failureCount < 1
+        },
       },
     },
-  },
-  mutationCache: new MutationCache({
-    onError: (error, _vars, _ctx, mutation) => handleMutationError(error, mutation),
-  }),
-})
+    mutationCache: new MutationCache({
+      onError: (error, _vars, _ctx, mutation) => handleMutationError(error, mutation),
+    }),
+  })
+}
+export const queryClient = makeQueryClient()

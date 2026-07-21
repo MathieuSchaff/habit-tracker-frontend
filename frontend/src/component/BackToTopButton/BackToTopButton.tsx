@@ -1,6 +1,7 @@
 import { ArrowUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { isServer } from '../../lib/helpers/isServer'
 import { Button } from '../Button/Button'
 import './BackToTopButton.css'
 
@@ -12,7 +13,9 @@ function scrollToTop() {
 }
 
 export function BackToTopButton() {
-  const [visible, setVisible] = useState(() => window.scrollY > SCROLL_THRESHOLD)
+  const [visible, setVisible] = useState(() =>
+    isServer ? false : window.scrollY > SCROLL_THRESHOLD
+  )
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > SCROLL_THRESHOLD)
