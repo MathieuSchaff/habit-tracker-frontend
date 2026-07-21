@@ -1,9 +1,9 @@
 /**
- * inci-index.ts — INCI-token → slug index for auto-filling candidate keyIngredients.
+ * inci-index.ts: INCI-token → slug index for auto-filling candidate keyIngredients.
  *
  * Two parsing sources, first-write wins on collisions:
- *   1. ingredientData[].content markdown — `## INCI\n**Token**` block
- *   2. data/ingredients/*&#47;ingredient-slugs.ts — inline `// [INCI:] Token | desc` comments
+ *   1. ingredientData[].content markdown: `## INCI\n**Token**` block
+ *   2. data/ingredients/*&#47;ingredient-slugs.ts: inline `// [INCI:] Token | desc` comments
  *
  * Excipient blocklist filters out tokens that are too common to be informative
  * (water, glycerin, denat. alcohol, EDTA…). buildInciIndex drops them at construction;
@@ -114,7 +114,7 @@ const EXCIPIENT_BLOCKLIST_SOURCE: string[] = [
   'Polyquaternium-4',
   'Polyquaternium-22',
   'Guar Hydroxypropyltrimonium Chloride',
-  // Vitamin E / derivatives — almost always trace-level stabilisers
+  // Vitamin E derivatives are almost always trace-level stabilisers.
   'Tocopherol',
   'Tocopheryl Acetate',
   'Tocopheryl Glucoside',
@@ -143,7 +143,7 @@ const SLUG_FILES: Array<{ rel: string; domain: IngredientDomain }> = [
 
 /**
  * For a given product category, which ingredient domains should be considered when
- * inferring keyIngredients. Skincare is a generic base — included for non-skincare
+ * inferring keyIngredients. Skincare is a generic base included for non-skincare
  * categories so shared actives (vitamins, soothing extracts) still match. Bodycare and
  * solaire ride the skincare ingredient taxonomy; their candidates only match skincare slugs.
  */
@@ -154,6 +154,49 @@ const CATEGORY_DOMAIN_ALLOWLIST: Record<string, IngredientDomain[]> = {
   haircare: ['haircare', 'skincare'],
   dental: ['dental', 'skincare'],
   complement: ['supplements', 'skincare'],
+}
+
+// Repair scraper-mangled delimiters before splitINCI (which only splits on commas).
+// Entities decode first: the `;` inside `&lt;` must not become a comma.
+// `&amp;` decodes last so `&amp;lt;` cannot cascade into a real `<`.
+const HTML_ENTITY_DECODES: Array<[RegExp, string]> = [
+  [/&lt;/gi, '<'],
+  [/&gt;/gi, '>'],
+  [/&nbsp;/gi, ' '],
+  [/&trade;/gi, '™'],
+  [/&reg;/gi, '®'],
+  [/&Eacute;/g, 'É'],
+  [/&eacute;/g, 'é'],
+  [/&Egrave;/g, 'È'],
+  [/&egrave;/g, 'è'],
+  [/&Agrave;/g, 'À'],
+  [/&agrave;/g, 'à'],
+  [/&rsquo;/gi, '’'],
+  [/&amp;/gi, '&'],
+]
+
+const HTML_ENTITY_OR_SEMICOLON = /&(?:#[0-9]+|#x[0-9a-f]+|[a-z][a-z0-9]+);|\s*;\s*/gi
+
+// The dash fold requires two letters on each side (trademark/asterisk markers may
+// trail the left side): a digit neighbour is a mangled hyphen (`2-BROMO-2 -NITRO`,
+// `C12 - 16`), a single letter a chemical prefix (`P - fenilendiammina`), `[+/-` a
+// may-contain marker. Real INCI names never carry a space before a hyphen (`PEG-60`,
+// `C10-30`). `repair-and-fold-inci-delimiters-v2.sql` mirrors this for the stored
+// column. Keep both in sync.
+export interface FoldScraperDelimiterOptions {
+  foldListSeparators?: boolean
+}
+
+export function foldScraperDelimiters(
+  inci: string,
+  { foldListSeparators = true }: FoldScraperDelimiterOptions = {}
+): string {
+  const decoded = HTML_ENTITY_DECODES.reduce((acc, [rx, sub]) => acc.replace(rx, sub), inci)
+  if (!foldListSeparators) return decoded
+
+  return decoded
+    .replace(HTML_ENTITY_OR_SEMICOLON, (match) => (match.startsWith('&') ? match : ', '))
+    .replace(/([A-Za-zÀ-ÿ]{2}[™®*]{0,2})\s+-\s*(?=[A-Za-zÀ-ÿ]{2})/g, '$1, ')
 }
 
 export function normalizeInciToken(s: string): string {
@@ -251,7 +294,7 @@ export function buildInciIndex(options: { includeExcipients?: boolean } = {}): I
     if (!index.has(norm)) index.set(norm, { slug })
   }
 
-  // Source 1: slug-file inline comments first — explicit `INCI:` prefix is the most
+  // Source 1: slug-file inline comments first. The explicit `INCI:` prefix is the most
   // predictable signal, and the file order (skincare → haircare → dental → supplements)
   // resolves shared tokens like NIACINAMIDE to the canonical skincare slug rather than
   // a domain-suffixed variant (niacinamide-hair, etc.).

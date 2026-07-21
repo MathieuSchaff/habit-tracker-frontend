@@ -5,7 +5,7 @@
 // (`runners/audit/stats.ts`, `runners/audit/gold-set.ts`).
 //
 // `tagProduct` from algo-derm emits its candidate tags; `TAG_CONFIG` below
-// decides which are kept (the version guard pins the calibration — count the
+// decides which are kept (the version guard pins the calibration, count the
 // `allow: true` entries there, not here). Dropped candidates: fire on too much
 // of the corpus (`sans-savon`), are re-emitted with chemistry-aware or
 // positioning gating by a formula pass (`matifiant`, `repulpant`,
@@ -62,6 +62,10 @@ export type TagRule = {
   // algo-derm ignores context.leaveOn on the comedogenicity axis; 29 % of
   // comedogene hits fire on rinse-off in the dry-run; filter here instead.
   excludeRinseOff?: boolean
+  // Inverse of excludeRinseOff: keep only on rinse-off kinds. For claims that
+  // only discriminate where the excluded class is used (sans-sulfates: washing
+  // sulfates occur in wash products, so the absence is non-informative on leave-on).
+  rinseOffOnly?: boolean
   coverageFloor?: number
   confidenceFloor?: number
   // Post-floor predicate for assessment-derived disqualifiers that don't fit
@@ -104,7 +108,7 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   apaisant: { auroreSlug: S.APAISANT, confidenceFloor: 0.5, allow: false },
   // Sebum-control actives (Triethyl Citrate, Silica, niacinamide) fire regardless of
   // positioning, so this stuck to sunscreens/oils/anti-aging. Re-emitted by the formula
-  // name pass (formula:sebo-regulateur-name), which requires sebum/mattifying wording —
+  // name pass (formula:sebo-regulateur-name), which requires sebum/mattifying wording,
   // same doctrine as pores-sebum / apaisant / the other effect tags.
   'sebo-regulateur': { auroreSlug: S.SEBO_REGULATEUR, confidenceFloor: 0.5, allow: false },
   // Antioxidant actives are common stabilizers; user-facing antioxidant claims
@@ -129,7 +133,15 @@ export const TAG_CONFIG: Readonly<Record<string, TagRule>> = {
   // Absence tags (detected_absence): algo-derm sets confidence = min(coverage, 0.95).
   // Gate on coverageFloor only; confidenceFloor is redundant for absence tags.
   'sans-parfum': { auroreSlug: S.SANS_PARFUM, coverageFloor: 0.7, allow: true },
-  'sans-sulfates': { auroreSlug: S.SANS_SULFATES, coverageFloor: 0.7, allow: true },
+  // Rinse-off only: "sans-sulfates" guards against harsh washing sulfates (SLS/SLES),
+  // which only occur in products you lather. On leave-on kinds the absence is trivially
+  // true (lip-care, patches, serums never carry them). Non-informative filter noise.
+  'sans-sulfates': {
+    auroreSlug: S.SANS_SULFATES,
+    coverageFloor: 0.7,
+    allow: true,
+    rinseOffOnly: true,
+  },
   'sans-silicones': { auroreSlug: S.SANS_SILICONES, coverageFloor: 0.7, allow: true },
   'sans-huiles-essentielles': {
     auroreSlug: S.SANS_HUILES_ESSENTIELLES,
@@ -240,6 +252,7 @@ export type DropReason =
   | 'coverage_floor'
   | 'low_confidence'
   | 'rinse_off_excluded'
+  | 'leave_on_excluded'
   | 'skip_if'
 
 export interface DetectAutoTagsOptions {
@@ -326,6 +339,11 @@ export function detectAutoTags(
 
     if (rule.excludeRinseOff && isRinseOff) {
       bumpDrop(drops, 'rinse_off_excluded', candidate.id)
+      continue
+    }
+
+    if (rule.rinseOffOnly && !isRinseOff) {
+      bumpDrop(drops, 'leave_on_excluded', candidate.id)
       continue
     }
 

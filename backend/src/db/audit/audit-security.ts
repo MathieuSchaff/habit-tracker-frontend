@@ -562,6 +562,8 @@ async function main() {
         }
       }
       console.log(`\n🔧 ${fixed} fixed, ${failed} failed`)
+      // A failed fix leaves the finding in place. The run must not pass.
+      if (failed > 0) process.exitCode = 1
     }
     const manualHigh = allFindings.filter((f) => f.severity === 'high' && !f.fixable)
     if (manualHigh.length > 0) {

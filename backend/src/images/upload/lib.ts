@@ -1,5 +1,5 @@
 /**
- * upload-product-image.ts — Unified pipeline to publish a product image
+ * upload-product-image.ts: Unified pipeline to publish a product image
  * to Bunny CDN and link it in the DB.
  *
  * Replaces ad-hoc fetch-images-<brand>.ts one-shot scripts. Accepts an image
@@ -16,7 +16,7 @@
  *   BUNNY_STORAGE_HOSTNAME    default: storage.bunnycdn.com
  *   BUNNY_STORAGE_PREFIX      default: products/
  *
- * The function does NOT regenerate snapshot/data.sql — run `just db-snapshot`
+ * The function does NOT regenerate snapshot/data.sql. Run `just db-snapshot`
  * after a batch to persist DB changes to the committable snapshot.
  */
 
@@ -27,13 +27,14 @@ import { join } from 'node:path'
 import { randomUUIDv7, SQL } from 'bun'
 
 import { type BunnyConfig, putBunny, resolveBunnyConfig } from '../lib/bunny'
+import { resolveImageOutputDir } from '../lib/paths'
 
 const UA =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36'
 
-const SEED_ROOT = join(import.meta.dir, '..', '..')
-const SOURCE_DIR = join(SEED_ROOT, 'output', 'images-source')
-const NORMALIZED_DIR = join(SEED_ROOT, 'output', 'images-normalized')
+const OUTPUT_DIR = resolveImageOutputDir()
+const SOURCE_DIR = join(OUTPUT_DIR, 'images-source')
+const NORMALIZED_DIR = join(OUTPUT_DIR, 'images-normalized')
 
 export type ImageSource =
   | { type: 'url'; url: string }
@@ -85,21 +86,25 @@ async function readSource(source: ImageSource): Promise<{ bytes: Uint8Array; ext
     const ext = source.path.split('.').pop()?.toLowerCase() ?? 'jpg'
     return { bytes, ext }
   }
-  const res = await fetch(source.url, { headers: { 'User-Agent': UA } })
-  if (!res.ok) throw new Error(`GET ${source.url}: HTTP ${res.status}`)
-  const ct = res.headers.get('content-type') ?? ''
-  const urlExt = source.url.split('?')[0].split('.').pop()?.toLowerCase() ?? ''
-  const ext = ct.includes('png')
-    ? 'png'
-    : ct.includes('webp')
-      ? 'webp'
-      : ct.includes('jpeg') || ct.includes('jpg')
-        ? 'jpg'
-        : ['jpg', 'jpeg', 'png', 'webp'].includes(urlExt)
-          ? urlExt
-          : 'jpg'
-  const bytes = new Uint8Array(await res.arrayBuffer())
-  return { bytes, ext }
+  if (source.type === 'url') {
+    const res = await fetch(source.url, { headers: { 'User-Agent': UA } })
+    if (!res.ok) throw new Error(`GET ${source.url}: HTTP ${res.status}`)
+    const ct = res.headers.get('content-type') ?? ''
+    const urlExt = source.url.split('?')[0].split('.').pop()?.toLowerCase() ?? ''
+    const ext = ct.includes('png')
+      ? 'png'
+      : ct.includes('webp')
+        ? 'webp'
+        : ct.includes('jpeg') || ct.includes('jpg')
+          ? 'jpg'
+          : ['jpg', 'jpeg', 'png', 'webp'].includes(urlExt)
+            ? urlExt
+            : 'jpg'
+    const bytes = new Uint8Array(await res.arrayBuffer())
+    return { bytes, ext }
+  }
+  const _never: never = source
+  throw new Error(`unhandled ImageSource: ${JSON.stringify(_never)}`)
 }
 
 function normaliseToWebp(

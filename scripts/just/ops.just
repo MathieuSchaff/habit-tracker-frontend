@@ -1,15 +1,15 @@
 import '_vars.just'
 import 'dev.just'
 
-# Launch production environment
+# Launch prod stack here: VPS, or locally to smoke-test the prod build.
 prod: env-prod-check
     {{COMPOSE_PROD}} up -d --build
 
-# Show production logs
+# [VPS] Follow all prod service logs, raw. From the laptop: prod-tail.
 prod-logs:
     {{COMPOSE_PROD}} logs -f
 
-# Apply prod migrations (in-container) + realign app_runtime role password (mig 0013 sets a placeholder via IF NOT EXISTS → pool can't auth until ALTER ROLE matches APP_RUNTIME_PASSWORD). Idempotent, safe to re-run.
+# [VPS] Apply prod migrations (in-container) + realign app_runtime role password (mig 0013 sets a placeholder via IF NOT EXISTS → pool can't auth until ALTER ROLE matches APP_RUNTIME_PASSWORD). Idempotent, safe to re-run.
 prod-migrate:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -22,15 +22,15 @@ prod-migrate:
     {{COMPOSE_PROD}} exec -T db psql -U app -d appdb -c "ALTER ROLE app_runtime PASSWORD '$APP_PW';"
     printf "{{GREEN}}✓ app_runtime password aligné{{NC}}\n"
 
-# Reload Nginx config without downtime
+# [VPS] Reload Nginx config without downtime
 nginx-reload:
     {{COMPOSE_PROD}} exec nginx nginx -s reload
 
-# Prod container health snapshot (mirrors `health`, prod stack).
+# [VPS] Prod container health snapshot (mirrors `health`; deploy's last step). From the laptop: prod-ps.
 prod-health:
     {{COMPOSE_PROD}} ps --format "table {{{{.Name}}\t{{{{.Status}}\t{{{{.Health}}"
 
-# One-shot prod deploy (run ON the VPS): sync config → pull images → up → migrate → health.
+# [VPS] One-shot prod deploy: sync config → pull images → up → migrate → health.
 deploy: env-prod-check
     #!/usr/bin/env bash
     set -euo pipefail
@@ -63,6 +63,8 @@ deploy: env-prod-check
     just prod-health
     printf "{{GREEN}}✓ Deploy done{{NC}}\n"
 
+# ─── Prod from the laptop (ssh → VPS; no local prod stack needed) ───
+
 # Run any cmd on the VPS in the repo (bash -lc loads login PATH). Usage: just prod-ssh 'docker ps'
 prod-ssh +CMD:
     ssh -t aurore "bash -lc 'cd ~/aurore && {{CMD}}'"
@@ -70,8 +72,6 @@ prod-ssh +CMD:
 # Trigger a full prod deploy on the VPS from the laptop.
 prod-deploy:
     ssh -t aurore "bash -lc 'cd ~/aurore && just deploy'"
-
-# ─── Prod observability (laptop → VPS over ssh; raw docker, no local stack) ───
 
 # Prod container status + health at a glance.
 prod-ps:
@@ -126,7 +126,7 @@ sweep-demos:
     printf "{{CYAN}}Sweeping expired demo accounts ($TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/features/auth/sweep-expired-demos.cli.ts
 
-# [PROD] Install daily cron (4am) to purge expired demo accounts. Shares backup-cron's PATH assumption (just on root PATH).
+# [VPS] Install daily cron (4am) to purge expired demo accounts. Shares backup-cron's PATH assumption (just on root PATH).
 demo-sweep-cron-install:
     #!/usr/bin/env bash
     printf "{{YELLOW}}Installing demo-sweep cron at /etc/cron.d/aurore-demo-sweep{{NC}}\n"
@@ -150,7 +150,7 @@ shell-api:
 shell-db:
     {{COMPOSE_DEV}} exec db psql -U app -d appdb
 
-# Generate SSL certificates for the apex + www hostnames. Usage: just ssl-init <domain> <email>
+# [VPS] Generate SSL certificates for the apex + www hostnames. Usage: just ssl-init <domain> <email>
 ssl-init domain email:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -169,16 +169,16 @@ ssl-init domain email:
         --agree-tos \
         --no-eff-email
 
-# Configure ufw: allow SSH/HTTP/HTTPS, block everything else
+# [VPS] Configure ufw: allow SSH/HTTP/HTTPS, block everything else
 firewall-setup:
     #!/usr/bin/env bash
     printf '\033[0;33m⚠ SSH (port 22) will be allowed first — do not interrupt\033[0m\n'
     read -p "Continue? [y/N] " confirm && [ "$confirm" = "y" ] || exit 1
-    ufw allow OpenSSH
-    ufw allow 80/tcp
-    ufw allow 443/tcp
-    ufw --force enable
-    ufw status verbose
+    sudo ufw allow OpenSSH
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+    sudo ufw --force enable
+    sudo ufw status verbose
 
 # Remove containers, volumes and images
 clean:
@@ -188,6 +188,7 @@ clean:
     {{COMPOSE_DEV}} down -v 2>/dev/null || true
     {{COMPOSE_PROD}} down -v 2>/dev/null || true
     {{COMPOSE_TEST}} down -v 2>/dev/null || true
+    {{COMPOSE_E2E}} down -v 2>/dev/null || true
     docker system prune -af --volumes
 
 # Remove containers (keep volumes)

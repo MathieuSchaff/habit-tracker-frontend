@@ -1,5 +1,5 @@
 // Backfill `product_ingredients` from `products.inci` for products that carry an
-// INCI string but have zero ingredient links today. Reads the `inci` column only —
+// INCI string but have zero ingredient links today. Reads the `inci` column only;
 // no network, no scraping, never creates ingredient rows. Idempotent: the eligible
 // query re-selects whatever is unlinked, so it is safe to re-run after a db reset.
 //
@@ -18,7 +18,7 @@ import { normalize, splitINCI } from 'algo-derm'
 import { buildAliasIndex, MERGED_EVIDENCE_DB, stripBotanicalParts } from 'algo-derm/engine'
 import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 
-import { parseWriteSlugArgs } from '../../../../features/auto-tagging/runners/cli-args'
+import { parseIntEnv, parseWriteSlugArgs } from '../../../../features/auto-tagging/runners/cli-args'
 import { addManyIngredientsToProduct } from '../../../../features/products/product-ingredients/product-ingredients.service'
 import { freqTable } from '../../../../lib/report'
 import type { Transaction } from '../../../index'
@@ -32,13 +32,15 @@ import {
   buildInciIndex,
   buildSlugDomainMap,
   EXCIPIENT_BLOCKLIST,
+  foldScraperDelimiters,
   getDomainAllowlist,
   normalizeInciToken,
 } from '../index'
 import { bridgeEvidenceToSlug, buildSlugByHumanized } from './bridge'
 
 const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
-const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : null
+const LIMIT = parseIntEnv('LIMIT')
+if (LIMIT !== null && LIMIT < 0) throw new Error(`LIMIT must be at least 0, got "${LIMIT}"`)
 
 const MAX_KEY_INGREDIENTS = 8
 
@@ -51,10 +53,10 @@ interface EligibleProduct {
 
 interface ComputeResult {
   slugs: string[]
-  /** Tokens that resolved to algo-derm evidence but bridged to no aurore slug. */
   unbridged: string[]
-  /** Resolved slugs dropped because they are filler/excipient (F2 slug-level block). */
   blocked: string[]
+  uppercaseMegaTokens: string[]
+  nonUppercaseMegaTokens: string[]
 }
 
 const aliasIndex = buildAliasIndex(MERGED_EVIDENCE_DB)
@@ -67,7 +69,7 @@ const slugToDomain = buildSlugDomainMap()
 // Drop resolved slugs that are fillers/excipients, whichever raw token produced them.
 // Union of the is_filler taxonomy (FILLER_SLUGS) and slugs reachable from EXCIPIENT_BLOCKLIST
 // tokens. Checked on the RESOLVED slug so a non-blocklisted synonym that bridges to an excipient
-// (e.g. `Gomme Xanthane` → xanthan-gum) is caught — resolveToken's raw-token check only sees
+// (e.g. `Gomme Xanthane` → xanthan-gum) is caught. resolveToken's raw-token check only sees
 // literal blocklist strings.
 const blockedSlugs = new Set<string>([...FILLER_SLUGS, ...buildExcipientSlugs()])
 
@@ -96,25 +98,49 @@ function resolveToken(raw: string): Resolved | null {
   return { kind: 'slug', slug: bridged }
 }
 
+// A single "token" carrying this many words is far past the longest real INCI name
+// (~6 words). The string most likely lost its separators upstream. Uppercase share
+// splits glued INCI (`AQUA CYCLOPENTASILOXANE …`) from French prose/nutrition text
+// (descriptions, supplement composition), which is expected non-INCI content.
+const SUSPECT_TOKEN_WORDS = 8
+
+function isUppercaseDominant(s: string): boolean {
+  const letters = s.replace(/[^A-Za-zÀ-ÿ]/g, '')
+  if (letters.length === 0) return false
+  const upper = letters.replace(/[^A-ZÀ-Þ]/g, '')
+  return upper.length / letters.length >= 0.6
+}
+
 function computeLinks(inci: string, category: string): ComputeResult {
   const allowed = getDomainAllowlist(category)
-  // `;` folded to `,` first — splitINCI only splits on commas and protects decimals.
-  const tokens = splitINCI(inci.replace(/;/g, ','))
+  // splitINCI only splits on commas (+ protects decimals). Fold scraper artifacts first.
+  // Supplement text keeps list separators because its dashes and semicolons separate doses.
+  const tokens = splitINCI(
+    foldScraperDelimiters(inci, { foldListSeparators: category !== 'complement' })
+  )
 
   const seen = new Set<string>()
   const slugs: string[] = []
   const unbridged: string[] = []
   const blocked: string[] = []
+  const uppercaseMegaTokens: string[] = []
+  const nonUppercaseMegaTokens: string[] = []
 
   for (const raw of tokens) {
     const resolved = resolveToken(raw)
-    if (!resolved) continue
+    if (!resolved) {
+      const trimmed = raw.trim()
+      if (trimmed.split(/\s+/).length >= SUSPECT_TOKEN_WORDS) {
+        ;(isUppercaseDominant(trimmed) ? uppercaseMegaTokens : nonUppercaseMegaTokens).push(trimmed)
+      }
+      continue
+    }
     if (resolved.kind === 'unbridged') {
       unbridged.push(raw.trim())
       continue
     }
     const { slug } = resolved
-    // F2: drop filler/excipient by resolved slug BEFORE the cap so it never eats a slot.
+    // F2: drop filler/excipient by resolved slug before the cap so it never eats a slot.
     if (blockedSlugs.has(slug)) {
       blocked.push(slug)
       continue
@@ -128,7 +154,7 @@ function computeLinks(inci: string, category: string): ComputeResult {
     if (slugs.length >= MAX_KEY_INGREDIENTS) break
   }
 
-  return { slugs, unbridged, blocked }
+  return { slugs, unbridged, blocked, uppercaseMegaTokens, nonUppercaseMegaTokens }
 }
 
 async function readEligible(tx: Transaction): Promise<EligibleProduct[]> {
@@ -162,11 +188,28 @@ async function readEligible(tx: Transaction): Promise<EligibleProduct[]> {
       )
     )
 
-  return LIMIT ? rows.slice(0, LIMIT) : rows
+  return LIMIT === null ? rows : rows.slice(0, LIMIT)
 }
 
 // Thrown to roll back the read-only dry-run transaction so nothing persists.
 class DryRunRollback extends Error {}
+
+// Bucket observed signals, not assumed causes. Every bucket keeps samples for review.
+type ZeroBucket =
+  | 'uppercase-mega-token'
+  | 'non-uppercase-mega-token'
+  | 'resolved-but-unbridged'
+  | 'blocked-only'
+  | 'nothing-recognized'
+  | 'no-inci'
+
+function classifyZeroLink(r: ComputeResult): ZeroBucket {
+  if (r.uppercaseMegaTokens.length > 0) return 'uppercase-mega-token'
+  if (r.nonUppercaseMegaTokens.length > 0) return 'non-uppercase-mega-token'
+  if (r.unbridged.length > 0) return 'resolved-but-unbridged'
+  if (r.blocked.length > 0) return 'blocked-only'
+  return 'nothing-recognized'
+}
 
 interface RunStats {
   withLinks: number
@@ -176,7 +219,16 @@ interface RunStats {
   slugFreq: Map<string, number>
   unbridgedFreq: Map<string, number>
   blockedFreq: Map<string, number>
-  zeroSamples: string[]
+  zeroBuckets: Map<ZeroBucket, string[]>
+}
+
+const ZERO_BUCKET_LABELS: Record<ZeroBucket, string> = {
+  'uppercase-mega-token': 'uppercase mega-token (possible missing separators, review)',
+  'non-uppercase-mega-token': 'non-uppercase mega-token (possible prose or malformed INCI, review)',
+  'resolved-but-unbridged': 'resolved by algo-derm but missing an aurore bridge (review)',
+  'blocked-only': 'all resolved slugs are known fillers/excipients',
+  'nothing-recognized': 'nothing recognized (obscure botanicals or index gap, review)',
+  'no-inci': 'no INCI on the requested product',
 }
 
 function printReport(s: RunStats): void {
@@ -202,13 +254,17 @@ function printReport(s: RunStats): void {
   const topBlocked = freqTable(s.blockedFreq, 15, 'slug')
   if (topBlocked.length > 0) console.table(topBlocked)
 
-  console.log(`sample 0-link products: ${s.zeroSamples.join(', ')}`)
+  console.log('0-link products by cause')
+  for (const [bucket, slugs] of s.zeroBuckets) {
+    console.log(`  ${slugs.length}\t${ZERO_BUCKET_LABELS[bucket]}`)
+    if (slugs.length > 0) console.log(`  \tsample: ${slugs.slice(0, 8).join(', ')}`)
+  }
 }
 
 async function main() {
   console.log(
     `\n🔗 INCI → product_ingredients linking (${WRITE ? 'WRITE' : 'DRY-RUN'})` +
-      (SLUG_ARG ? ` · slug=${SLUG_ARG}` : LIMIT ? ` · limit=${LIMIT}` : '')
+      (SLUG_ARG ? ` · slug=${SLUG_ARG}` : LIMIT !== null ? ` · limit=${LIMIT}` : '')
   )
   console.log(`   alias index: ${aliasIndex.size} keys · inci index: ${inciIndex.size} tokens\n`)
 
@@ -223,12 +279,28 @@ async function main() {
     const slugFreq = new Map<string, number>()
     const unbridgedFreq = new Map<string, number>()
     const blockedFreq = new Map<string, number>()
-    const zeroSamples: string[] = []
+    const zeroBuckets = new Map<ZeroBucket, string[]>([
+      ['uppercase-mega-token', []],
+      ['non-uppercase-mega-token', []],
+      ['resolved-but-unbridged', []],
+      ['blocked-only', []],
+      ['nothing-recognized', []],
+      ['no-inci', []],
+    ])
     let missingId = 0
 
     for (const product of eligible) {
-      if (!product.inci) continue
-      const { slugs, unbridged, blocked } = computeLinks(product.inci, product.category)
+      // A slug-scoped run is a replacement, including replacement with no links.
+      if (WRITE && SLUG_ARG) {
+        await tx.delete(productIngredients).where(eq(productIngredients.productId, product.id))
+      }
+      if (!product.inci) {
+        zeroLinks++
+        zeroBuckets.get('no-inci')?.push(product.slug)
+        continue
+      }
+      const computed = computeLinks(product.inci, product.category)
+      const { slugs, unbridged, blocked } = computed
       for (const u of unbridged) {
         unbridgedFreq.set(u, (unbridgedFreq.get(u) ?? 0) + 1)
       }
@@ -250,17 +322,15 @@ async function main() {
 
       if (pairs.length === 0) {
         zeroLinks++
-        if (zeroSamples.length < 20) zeroSamples.push(product.slug)
+        // Resolved slugs without an id row are seed↔DB drift: counted by missingId,
+        // not a linking-cause bucket.
+        if (slugs.length === 0) zeroBuckets.get(classifyZeroLink(computed))?.push(product.slug)
         continue
       }
       withLinks++
       totalPairs += pairs.length
 
       if (WRITE) {
-        // --slug re-links: clear existing rows first so the run is a clean replace.
-        if (SLUG_ARG) {
-          await tx.delete(productIngredients).where(eq(productIngredients.productId, product.id))
-        }
         await addManyIngredientsToProduct(tx, pairs)
       }
     }
@@ -273,7 +343,7 @@ async function main() {
       slugFreq,
       unbridgedFreq,
       blockedFreq,
-      zeroSamples,
+      zeroBuckets,
     })
 
     if (!WRITE) {

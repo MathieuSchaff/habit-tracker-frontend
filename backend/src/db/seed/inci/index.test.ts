@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 
-import { buildInciIndex, normalizeInciToken, parseInciFromContent, parseInciFromSlugLine } from '.'
+import {
+  buildInciIndex,
+  foldScraperDelimiters,
+  normalizeInciToken,
+  parseInciFromContent,
+  parseInciFromSlugLine,
+} from '.'
 
 describe('normalizeInciToken', () => {
   it('uppercases, strips accents, collapses whitespace', () => {
@@ -13,6 +19,63 @@ describe('normalizeInciToken', () => {
     expect(normalizeInciToken('Citrus Limon (Lemon) Fruit Water')).toBe(
       'CITRUS LIMON  FRUIT WATER'.replace(/\s+/g, ' ')
     )
+  })
+})
+
+describe('foldScraperDelimiters', () => {
+  it('folds spaced-dash bullet separators to commas', () => {
+    expect(foldScraperDelimiters('AQUA/WATER -SODIUM METHYL COCOYL TAURATE -GLYCERIN')).toBe(
+      'AQUA/WATER, SODIUM METHYL COCOYL TAURATE, GLYCERIN'
+    )
+    expect(foldScraperDelimiters('TITANIUM DIOXIDE - CI 77491')).toBe('TITANIUM DIOXIDE, CI 77491')
+  })
+
+  it('folds semicolons to commas', () => {
+    expect(foldScraperDelimiters('MALTODEXTRIN ; MAGNESIUM HYDROXIDE')).toBe(
+      'MALTODEXTRIN, MAGNESIUM HYDROXIDE'
+    )
+  })
+
+  it('keeps real hyphens and digit-adjacent mangled hyphens intact', () => {
+    expect(foldScraperDelimiters('PEG-60 HYDROGENATED CASTOR OIL')).toBe(
+      'PEG-60 HYDROGENATED CASTOR OIL'
+    )
+    expect(foldScraperDelimiters('2-BROMO-2 -NITROPROPANE-1,3-DIOL')).toBe(
+      '2-BROMO-2 -NITROPROPANE-1,3-DIOL'
+    )
+    expect(foldScraperDelimiters('C12 - 16 ALCOHOLS')).toBe('C12 - 16 ALCOHOLS')
+    expect(foldScraperDelimiters('Sh-Polypeptide -9')).toBe('Sh-Polypeptide -9')
+  })
+
+  it('keeps chemical single-letter prefixes and may-contain markers', () => {
+    expect(foldScraperDelimiters('P - fenilendiammina')).toBe('P - fenilendiammina')
+    expect(foldScraperDelimiters('PARFUM [+/- CI 77891]')).toBe('PARFUM [+/- CI 77891]')
+  })
+
+  it('folds after asterisked organic markers', () => {
+    expect(foldScraperDelimiters('LAVANDULA OIL** - CYAMOPSIS GUM')).toBe(
+      'LAVANDULA OIL**, CYAMOPSIS GUM'
+    )
+  })
+
+  it('decodes html entities before folding (entity semicolon is not a separator)', () => {
+    expect(foldScraperDelimiters('XYLISHINE&trade; - XYLITOL')).toBe('XYLISHINE™, XYLITOL')
+    expect(foldScraperDelimiters('&lt;h2&gt;')).toBe('<h2>')
+    expect(foldScraperDelimiters('AQUA&nbsp;PARFUM &amp; MENTHA')).toBe('AQUA PARFUM & MENTHA')
+    expect(foldScraperDelimiters('CAF&Eacute; &egrave; L’AGRUME')).toBe('CAFÉ è L’AGRUME')
+  })
+
+  it('keeps a nested or unknown entity intact instead of folding its semicolon', () => {
+    expect(foldScraperDelimiters('&amp;lt;h2&amp;gt;')).toBe('&lt;h2&gt;')
+    expect(foldScraperDelimiters('AQUA &copy;; GLYCERIN')).toBe('AQUA &copy;, GLYCERIN')
+  })
+
+  it('can decode entities without folding list separators', () => {
+    expect(
+      foldScraperDelimiters('AQUA; Extrait de Camomille - Acide ascorbique', {
+        foldListSeparators: false,
+      })
+    ).toBe('AQUA; Extrait de Camomille - Acide ascorbique')
   })
 })
 

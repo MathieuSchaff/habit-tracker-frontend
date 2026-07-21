@@ -35,7 +35,7 @@ import type { ProductKind } from '@aurore/shared'
 import { normalize, splitINCI } from 'algo-derm'
 import { inArray, sql } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products, productTagLinks, productTagTypes } from '../../../../db/schema'
 import { freqTable } from '../../../../lib/report'
 import { ACTIF_CLASS_DEFS, detectActifClasses } from '../../passes/actif-class-detection'
@@ -47,7 +47,7 @@ const TARGET_SLUGS = ['aha', 'bha', 'pha'] as const
 type TargetSlug = (typeof TARGET_SLUGS)[number]
 
 // Derived from the detector's own ACTIF_CLASS_DEFS so the audit can never drift
-// from what the pass actually matches (BHA has 2 defs — flatMap merges them).
+// from what the pass actually matches (BHA has 2 defs, flatMap merges them).
 const collectPatterns = (slug: TargetSlug): string[] =>
   ACTIF_CLASS_DEFS.filter((d) => d.slug === slug).flatMap((d) => d.patterns)
 
@@ -441,9 +441,7 @@ async function applyDeletions(): Promise<void> {
   let deleted = 0
   let missing = 0
   let notFound = 0
-  await db.transaction(async (tx) => {
-    await tx.execute(sql`SET LOCAL app.role = 'admin'`)
-
+  await withAdminRls(async (tx) => {
     const slugSet = new Set(pairs.map((p) => p.productSlug))
     const productRows = await tx
       .select({ id: products.id, slug: products.slug })

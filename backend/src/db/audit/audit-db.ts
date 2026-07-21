@@ -17,8 +17,8 @@ import {
   productTagTypes,
 } from '../schema'
 
-// 'error' fails the run (exit 1) — genuine corruption the DB does not enforce.
-// 'info' is reported but never fails — accepted coverage gaps (missing data ≠ broken data).
+// 'error' fails the run (exit 1): genuine corruption the DB does not enforce.
+// 'info' is reported but never fails: accepted coverage gaps (missing data ≠ broken data).
 type Severity = 'error' | 'info'
 type Finding = { description: string }
 type CheckResult = { name: string; severity: Severity; findings: Finding[] }
@@ -59,7 +59,7 @@ async function checkTagProductDomainConsistency(db: DB): Promise<CheckResult> {
 }
 
 // Visible products with no image. Accepted gap (image acquisition is a separate
-// domain), so info-only — surfaced by brand to spot which brands need a fetch pass.
+// domain), so info-only. Surfaced by brand to spot which brands need a fetch pass.
 async function checkImageCoverage(db: DB): Promise<CheckResult> {
   const rows = await db
     .select({ brand: products.brand, n: count() })
@@ -83,15 +83,37 @@ async function checkImageCoverage(db: DB): Promise<CheckResult> {
   return { name: 'image-coverage', severity: 'info', findings }
 }
 
-// Visible products with zero linked ingredients (no parsed INCI → no dermo scoring).
+// Visible products with zero linked ingredients, bucketed so the actionable signal
+// (a real INCI list that still resolved to nothing) is not drowned by the legitimate
+// long tail: supplements/accessories carry no INCI, and a comma-less blob is a
+// nutrition table, a material blurb, or scraper-lost separators (P3), never a linking gap.
 async function checkProductsWithoutIngredients(db: DB): Promise<CheckResult> {
   const rows = await db
-    .select({ slug: products.slug, brand: products.brand })
+    .select({ slug: products.slug, brand: products.brand, inci: products.inci })
     .from(products)
     .leftJoin(productIngredients, eq(productIngredients.productId, products.id))
     .where(and(eq(products.moderationStatus, 'visible'), isNull(productIngredients.productId)))
 
-  const findings: Finding[] = rows.map((r) => ({ description: `${r.slug} (${r.brand})` }))
+  let noInci = 0
+  let commaless = 0
+  const parseableUnlinked: Finding[] = []
+  for (const r of rows) {
+    const inci = r.inci?.trim() ?? ''
+    if (!inci) noInci++
+    else if (!inci.includes(',')) commaless++
+    else parseableUnlinked.push({ description: `${r.slug} (${r.brand})` })
+  }
+
+  const findings: Finding[] = parseableUnlinked
+  findings.unshift(
+    { description: `${noInci} without INCI (supplements/accessories — expected)` },
+    {
+      description: `${commaless} INCI without comma delimiter (nutrition/material/mangled — see P3)`,
+    },
+    {
+      description: `${parseableUnlinked.length} with a real INCI list but 0 links (review: obscure botanicals or excipient-only formulas)`,
+    }
+  )
   return { name: 'products-without-ingredients', severity: 'info', findings }
 }
 
@@ -107,8 +129,10 @@ async function checkProductsWithoutTags(db: DB): Promise<CheckResult> {
   return { name: 'products-without-tags', severity: 'info', findings }
 }
 
-// Ingredients used by ≥1 product but lacking a dermo profile — algo-derm scores
-// them as unknown, so these are the blind spots worth profiling first.
+// Ingredients used by ≥1 product but lacking a dermo profile row. The dermo SCORE
+// comes from algo-derm at runtime, not this table. The only consumer reads `is_filler`
+// (user-products/dermo-signal), and a missing row defaults to non-filler. So this is a
+// filler-classification coverage gap, not a scoring blind spot.
 async function checkIngredientsWithoutDermoProfile(db: DB): Promise<CheckResult> {
   const rows = await db
     .select({ slug: ingredients.slug })

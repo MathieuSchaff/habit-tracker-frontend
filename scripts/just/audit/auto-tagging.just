@@ -58,7 +58,7 @@ audit-sans-sulfates:
     $COMPOSE exec -w /app/backend api bun run src/features/auto-tagging/runners/audit/sans-sulfates-coherence.ts \
         | tee "$(audit_out audit-sans-sulfates)"
 
-# Audit products.kind mistags via name patterns. Env: SLUG (single product), WRITE (apply fixes).
+# Audit products.kind mistags via name patterns. Read-only. Apply reviewed fixes via `just db-fix`. Env: SLUG (single product).
 [group('audit')]
 audit-product-kinds:
     #!/usr/bin/env bash
@@ -66,11 +66,8 @@ audit-product-kinds:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     TARGET="${TARGET:-dev}"
     target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (audit-product-kinds)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Audit product kinds ($MODE, $TARGET) → .audit-out/db/audit-product-kinds.$TARGET.md{{NC}}\n"
+    printf "{{CYAN}}Audit product kinds (read-only, $TARGET) → .audit-out/db/audit-product-kinds.$TARGET.md{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/features/auto-tagging/runners/audit/product-kinds.ts \
-        ${WRITE:+--write} \
         ${SLUG:+--slug "$SLUG"} \
         | tee "$(audit_out audit-product-kinds)"
 

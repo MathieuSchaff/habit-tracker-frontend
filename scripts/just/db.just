@@ -1,11 +1,11 @@
 import '_vars.just'
 
 # Database recipes.
-# TARGET=dev (default) | prod. Confirmation interactive sur prod :
-#   - write : tape 'PROD'
-#   - destructive (TRUNCATE) : tape 'I DESTROY PROD'
+# TARGET=dev (default) | prod. Interactive confirmation on prod:
+#   - write: type 'PROD'
+#   - destructive (TRUNCATE): type 'I DESTROY PROD'
 #
-# Dev-only par design (schémas locaux, snapshot dev) :
+# Dev-only by design (local schemas, dev snapshot):
 #   db-push, db-generate, db-snapshot, db-snapshot-load, db-snapshot-reset
 
 # ─── Schema (dev-only, host-running) ────────────────────────────────────────
@@ -96,7 +96,7 @@ catalog-fix-tag-domain-safe: catalog-fix-tag-domain db-snapshot
 
 # ─── Destructive (DOUBLE confirmation on prod) ──────────────────────────────
 
-# ⚠️ Destructive seed (TRUNCATE + reseed). Triple confirmation on prod.
+# ⚠️ Destructive seed (TRUNCATE + reseed). Typed 'I DESTROY PROD' confirmation on prod.
 [group('db')]
 db-seed-reset:
     #!/usr/bin/env bash
@@ -139,7 +139,7 @@ db-reset: db-clean db-migrate db-seed
 
 # ─── Backup / restore ───────────────────────────────────────────────────────
 
-# Create SQL backup. Prod = gzip + GPG (recipient backup@aurore.local). Dev = .sql brut.
+# Create SQL backup. Prod = gzip + GPG (recipient backup@aurore.local). Dev = plain .sql.
 [group('db')]
 db-backup:
     #!/usr/bin/env bash
@@ -173,7 +173,6 @@ db-restore file:
     target_compose
     if [ "$TARGET" = prod ]; then confirm_prod "RESTORE from {{file}}" "I DESTROY PROD"; fi
     printf "{{CYAN}}Restoring {{file}} ($TARGET)...{{NC}}\n"
-    # Détecter chiffrement + gzip automatiquement
     case "{{file}}" in
         *.sql.gz.gpg) gpg --batch --decrypt "{{file}}" | gunzip | $COMPOSE exec -T db psql -U app appdb ;;
         *.gz)         gunzip -c "{{file}}" | $COMPOSE exec -T db psql -U app appdb ;;
@@ -181,23 +180,24 @@ db-restore file:
     esac
     printf "{{GREEN}}✓ Restore done ($TARGET){{NC}}\n"
 
-# [PROD] Alias de `TARGET=prod just db-backup` (gardé pour rétrocompatibilité scripts cron).
+# [VPS] Alias of `TARGET=prod just db-backup` — the installed backup cron calls it by name.
 [group('db')]
 db-backup-prod:
     @TARGET=prod just db-backup
 
-# [PROD] Delete backups older than 7 days (.sql.gz.gpg + .sql.gz pour la fenêtre de transition).
+# [VPS] Delete backups older than 7 days (.sql.gz.gpg + legacy .sql.gz from the transition window).
 [group('db')]
 db-backup-clean:
     find ./backups \( -name "*.sql.gz.gpg" -o -name "*.sql.gz" \) -mtime +7 -delete
     @printf "{{GREEN}}✓ Old backups deleted{{NC}}\n"
 
-# [PROD] Install daily cron (3am) for backups
+# [VPS] Install daily cron (3am) for backups
 [group('db')]
 backup-cron-install:
     #!/usr/bin/env bash
     printf "{{YELLOW}}Installing backup cron at /etc/cron.d/aurore-backup{{NC}}\n"
-    echo "0 3 * * * root cd $(pwd) && just db-backup-prod && just db-backup-clean >> /var/log/aurore-backup.log 2>&1" \
+    # Parens so the redirect covers both steps, not just the last one.
+    echo "0 3 * * * root cd $(pwd) && (just db-backup-prod && just db-backup-clean) >> /var/log/aurore-backup.log 2>&1" \
         | sudo tee /etc/cron.d/aurore-backup > /dev/null
     sudo chmod 644 /etc/cron.d/aurore-backup
     printf "{{GREEN}}✓ Cron installed — daily backup at 3am{{NC}}\n"

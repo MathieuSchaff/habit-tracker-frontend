@@ -1,14 +1,14 @@
 #!/usr/bin/env bun
 
 /**
- * build-image-mapping.ts — Generate output/image-mapping.json from the
+ * build-image-mapping.ts: Generate output/image-mapping.json from the
  * authoritative CDN inventory (Bunny Storage), cross-checked against DB
  * product slugs and the local images-normalized/ staging dir.
  *
  * Replaces the Python one-shot used during the initial Pharmashop import
  * (bidirectional prefix match across 3 local stores). The mapping today
  * answers a single question: "for which slugs does products/<slug>.webp
- * exist on Bunny CDN?" — patch-image-urls.ts then writes the CDN URL.
+ * exist on Bunny CDN?" patch-image-urls.ts then writes the CDN URL.
  *
  * The local images-normalized/ dir is a transient staging area cleaned
  * after upload, so it cannot be the source of truth. Bunny list is.
@@ -29,16 +29,17 @@
  *   bun run backend/src/images/maintenance/build-mapping.ts [--dry]
  */
 
-import { existsSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SQL } from 'bun'
 
 import { listBunny, resolveBunnyConfig } from '../lib/bunny'
+import { resolveImageOutputDir } from '../lib/paths'
 
 const DRY = process.argv.includes('--dry')
-const SEED_ROOT = join(import.meta.dir, '..')
-const NORMALIZED_DIR = join(SEED_ROOT, 'output', 'images-normalized')
-const MAPPING_PATH = join(SEED_ROOT, 'output', 'image-mapping.json')
+const OUTPUT_DIR = resolveImageOutputDir()
+const NORMALIZED_DIR = join(OUTPUT_DIR, 'images-normalized')
+const MAPPING_PATH = join(OUTPUT_DIR, 'image-mapping.json')
 
 const cfg = resolveBunnyConfig()
 const DB_URL = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL
@@ -131,6 +132,7 @@ const payload = { mapping, summary, gaps }
 if (DRY) {
   console.log(`\n(dry run — would write ${MAPPING_PATH})`)
 } else {
+  mkdirSync(OUTPUT_DIR, { recursive: true })
   writeFileSync(MAPPING_PATH, `${JSON.stringify(payload, null, 2)}\n`)
   console.log(`\nwrote ${MAPPING_PATH}`)
 }

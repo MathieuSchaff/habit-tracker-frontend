@@ -16,6 +16,15 @@ const FR_MARKERS =
 const PREAMBLE_RX = /^(ingredients?|ingrédients?|composition|inci)\s*[:-]/i
 const HAS_MOJIBAKE = /Ã©|Ã¨|Ã |Ã´|Ã®/
 const ENDS_TRUNCATED = /\.\.\.\s*$|…\s*$/
+// Scraper junk that carries commas, so the no-comma pathology never sees it:
+// undecoded HTML entities, captured page JavaScript/markup.
+const HAS_HTML_ENTITY = /&(?:#[0-9]+|#x[0-9a-f]+|[a-z][a-z0-9]+)(?:;|,\s*)/i
+const HAS_SCRAPED_CODE = /addEventListener|querySelector|function\s*\(|<\/?(h[1-6]|div|span|p)>/i
+// Mangled list separators splitINCI cannot split on (`;`, spaced dash between
+// letter pairs). Cosmetic categories only: in supplement nutrition text a dash
+// separates a dose (`Vitamine B12 - 2,5µg`), not ingredients. Same shape as
+// foldScraperDelimiters (seed/inci/index.ts).
+const HAS_STRAY_DELIMITER = /;|[A-Za-zÀ-ÿ]{2}[™®*]{0,2}\s+-\s*[A-Za-zÀ-ÿ]{2}/
 
 const sql = new SQL(process.env.DATABASE_URL ?? 'postgres://app:devpassword@app_db:5432/appdb')
 const rows = await sql<
@@ -28,7 +37,16 @@ const rows = await sql<
 
 console.log(`Loaded ${rows.length} products with INCI.\n`)
 
-type Pathology = 'preamble' | 'mojibake' | 'truncated' | 'very-short' | 'single-token' | 'no-comma'
+type Pathology =
+  | 'preamble'
+  | 'mojibake'
+  | 'truncated'
+  | 'very-short'
+  | 'single-token'
+  | 'no-comma'
+  | 'html-entity'
+  | 'scraped-code'
+  | 'stray-delimiter'
 
 const pathologyLists: Record<Pathology, Array<{ slug: string; sample: string }>> = {
   preamble: [],
@@ -37,6 +55,9 @@ const pathologyLists: Record<Pathology, Array<{ slug: string; sample: string }>>
   'very-short': [],
   'single-token': [],
   'no-comma': [],
+  'html-entity': [],
+  'scraped-code': [],
+  'stray-delimiter': [],
 }
 
 // Per-product match-rate
@@ -62,6 +83,12 @@ for (const { slug, inci, category, brand } of rows) {
   if (ENDS_TRUNCATED.test(inci)) pathologyLists.truncated.push({ slug, sample: inci.slice(-80) })
   if (inci.length < 40) pathologyLists['very-short'].push({ slug, sample: inci })
   if (!inci.includes(',')) pathologyLists['no-comma'].push({ slug, sample: inci.slice(0, 80) })
+  if (HAS_HTML_ENTITY.test(inci))
+    pathologyLists['html-entity'].push({ slug, sample: inci.slice(0, 80) })
+  if (HAS_SCRAPED_CODE.test(inci))
+    pathologyLists['scraped-code'].push({ slug, sample: inci.slice(0, 80) })
+  if (category !== 'complement' && HAS_STRAY_DELIMITER.test(inci))
+    pathologyLists['stray-delimiter'].push({ slug, sample: inci.slice(0, 80) })
 
   const ings = splitINCI(inci)
   if (ings.length === 1) pathologyLists['single-token'].push({ slug, sample: inci.slice(0, 80) })
@@ -72,7 +99,7 @@ for (const { slug, inci, category, brand } of rows) {
   for (const ing of ings) {
     const norm = normalize(ing)
     // Use lookupIngredient (not aliasIndex.has) so botanical-part strip
-    // ("centella asiatica leaf extract" → "centella asiatica extract") fires —
+    // ("centella asiatica leaf extract" → "centella asiatica extract") fires;
     // matches real engine path. Otherwise we overcount unmatched on N-word
     // botanicals.
     if (lookupIngredient(ing, aliasIndex)) {

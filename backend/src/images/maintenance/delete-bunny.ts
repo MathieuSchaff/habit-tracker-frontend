@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * delete-bunny-images.ts — Delete product images from Bunny Storage.
+ * delete-bunny-images.ts: Delete product images from Bunny Storage.
  *
  * Reads slugs from the CDN-delete list (or path passed via $SLUGS_FILE)
  * and DELETEs https://${BUNNY_STORAGE_HOSTNAME}/${BUNNY_STORAGE_ZONE}/${PREFIX}<slug>.webp.
@@ -14,8 +14,11 @@
  *   BUNNY_STORAGE_HOSTNAME    default: storage.bunnycdn.com
  *   BUNNY_STORAGE_PREFIX      default: products/
  *   SLUGS_FILE                default: ../db/seed/output/dedup-dropped-slugs.json
- *   DRY_RUN                   "1" → preview only
  *   CONCURRENCY               default: 8
+ *
+ * Usage:
+ *   bun run backend/src/images/maintenance/delete-bunny.ts          # preview
+ *   bun run backend/src/images/maintenance/delete-bunny.ts --apply  # delete
  */
 
 import { readFileSync } from 'node:fs'
@@ -27,13 +30,13 @@ const cfg = resolveBunnyConfig()
 const SLUGS_FILE =
   process.env.SLUGS_FILE ??
   join(import.meta.dir, '..', '..', 'db', 'seed', 'output', 'dedup-dropped-slugs.json')
-const DRY_RUN = process.env.DRY_RUN === '1'
+const APPLY = process.argv.includes('--apply')
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 8)
 
-if (!DRY_RUN) {
+if (APPLY) {
   const missing = ['BUNNY_STORAGE_ZONE', 'BUNNY_STORAGE_PASSWORD'].filter((k) => !process.env[k])
   if (missing.length > 0) {
-    console.error(`missing env: ${missing.join(', ')}\nuse DRY_RUN=1 to preview`)
+    console.error(`missing env: ${missing.join(', ')}`)
     process.exit(1)
   }
 }
@@ -41,7 +44,7 @@ if (!DRY_RUN) {
 const slugs: string[] = JSON.parse(readFileSync(SLUGS_FILE, 'utf8'))
 console.log(`${slugs.length} slugs to delete from ${SLUGS_FILE}`)
 
-if (DRY_RUN) {
+if (!APPLY) {
   console.log('--- DRY RUN ---')
   for (const s of slugs.slice(0, 5)) {
     console.log(`  DELETE https://${cfg.hostname}/${cfg.zone ?? '<zone>'}/${cfg.prefix}${s}.webp`)

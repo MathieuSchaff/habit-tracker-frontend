@@ -21,9 +21,9 @@
 import type { ProductKind } from '@aurore/shared'
 
 import { analyzeINCI, splitINCI } from 'algo-derm'
-import { inArray, sql } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 
-import { db } from '../../../../db'
+import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
 import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import {
@@ -90,19 +90,18 @@ async function main() {
   }
 
   const annotated = gold.annotations.map((a) => a.productSlug)
-  // SET LOCAL is tx-scoped — elevation + select must share a transaction, else the
+  // SET LOCAL is tx-scoped. Elevation + select must share a transaction, else the
   // admin role is a no-op and products_select_visible hides non-`visible` annotated rows.
-  const dbProducts = await db.transaction(async (tx) => {
-    await tx.execute(sql`SET LOCAL app.role = 'admin'`)
-    return tx
+  const dbProducts = await withAdminRls((tx) =>
+    tx
       .select({ id: products.id, slug: products.slug, ...ORCHESTRATOR_PRODUCT_COLUMNS })
       .from(products)
       .where(inArray(products.slug, annotated))
-  })
+  )
 
   // Same fetch bundle as the writers: the bench measures the inputs intake
   // actually feeds the orchestrator (brand certs and texture used to be
-  // omitted here — no focus-tag impact, but the gap was silent).
+  // omitted here, no focus-tag impact, but the gap was silent).
   const bundle = await loadAutoTagFetchBundle(dbProducts.map((p) => p.id))
 
   // Every annotated slug must exist in DB; missing = stale gold set (renamed/deleted product).
@@ -140,7 +139,7 @@ async function main() {
 
     // algo-derm confidence needs INCI; the orchestrator runs regardless so that
     // name/claim passes (rougeurs-vasculaires, eczema-atopie, protection) are still
-    // measured on no-INCI products — they fire from name/description, not INCI.
+    // measured on no-INCI products. They fire from name/description, not INCI.
     const algoConfBySlug = new Map<string, number>()
     if (inci) {
       // Strip preamble before split/analyze to match runtime (build-pass-context);

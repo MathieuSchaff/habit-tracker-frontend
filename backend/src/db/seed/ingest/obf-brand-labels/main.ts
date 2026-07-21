@@ -1,4 +1,4 @@
-// T4.D — Open Beauty Facts brand-level label ingestion. Streams the OBF
+// T4.D: Open Beauty Facts brand-level label ingestion. Streams the OBF
 // CSV dump (≈ 17 MB gz, ≈ 120 MB raw, ~64 k cosmetics rows), aggregates
 // per-brand vegan / cruelty-free / natural claims, and merges them into
 // `brand_certifications` with source `obf`. The manual seed (T4.B) is
@@ -30,6 +30,7 @@ import { gunzipSync } from 'node:zlib'
 import { sql } from 'drizzle-orm'
 
 import { db } from '../../..'
+import { withAdminRls } from '../../../rls'
 import { brandCertifications, products } from '../../../schema'
 import type {
   BrandCertification,
@@ -109,13 +110,13 @@ async function main() {
     }\n`
   )
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
   // Whitelist : OBF slugs of brands actually in our corpus
   let whitelist: Set<string> | undefined
   let corpusSlugToDisplay: Map<string, string> | undefined
   if (!NO_WHITELIST) {
-    const corpusBrands = await db.selectDistinct({ brand: products.brand }).from(products)
+    const corpusBrands = await withAdminRls((tx) =>
+      tx.selectDistinct({ brand: products.brand }).from(products)
+    )
     corpusSlugToDisplay = new Map()
     for (const r of corpusBrands) {
       if (r.brand) corpusSlugToDisplay.set(brandToObfSlug(r.brand), r.brand)
@@ -159,7 +160,7 @@ async function main() {
   // Unmatched corpus brands
   // Corpus brands that produced zero OBF rows are usually a slug mismatch
   // between brandToObfSlug and OBF's canonical id (apostrophes, ampersands,
-  // numbers) — a silent miss the ratio rule can never surface. List them so
+  // numbers), a silent miss the ratio rule can never surface. List them so
   // the gap is auditable instead of invisible.
   if (whitelist && corpusSlugToDisplay) {
     const unmatched = [...whitelist].filter((slug) => !rollups.has(slug))
@@ -223,7 +224,7 @@ async function main() {
 
     const ex = existingByObfSlug.get(rollup.obfSlug)
     if (!ex) {
-      // New brand discovered by OBF — store with display = obfSlug as fallback
+      // New brand discovered by OBF. Store with display = obfSlug as fallback
       // (unknown true display name; admin can rename later via DB).
       newRows++
       inserts.push({

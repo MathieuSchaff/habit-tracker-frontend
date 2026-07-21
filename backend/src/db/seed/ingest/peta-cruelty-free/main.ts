@@ -1,4 +1,4 @@
-// T4.E — PETA Ultimate Cruelty-Free List ingestion. Targeted scraper :
+// T4.E: PETA Ultimate Cruelty-Free List ingestion. Targeted scraper :
 // for each brand in our corpus + manual seed, probe
 // `https://crueltyfree.peta.org/company/<slug>/` and treat 200 as a CF
 // claim. Bounded request count (~ 220 brands) ; polite 250 ms delay
@@ -11,7 +11,7 @@
 // Audit : the runner cross-checks our manual seed (T4.B). If a brand is
 // seeded with `peta` in `sources.cruelty_free` but PETA's site says
 // not-listed, the runner emits a warning and (with --strict-prune) drops
-// `peta` from sources jsonb. Default behaviour is warn-only — manual
+// `peta` from sources jsonb. Default behaviour is warn-only. Manual
 // seed claims may still be valid via Vegan Society / Leaping Bunny so
 // we don't strip them by default.
 //
@@ -27,9 +27,9 @@ import { join } from 'node:path'
 import { sql } from 'drizzle-orm'
 
 import { db } from '../../..'
+import { withAdminRls } from '../../../rls'
 import { brandCertifications, products } from '../../../schema'
 import {
-  // type BrandCertification,
   type BrandCertificationSource,
   type BrandCertificationSources,
   normalizeBrand,
@@ -98,11 +98,11 @@ async function main() {
     }\n`
   )
 
-  await db.execute(sql`SET LOCAL app.role = 'admin'`)
-
   // Build the brand list to probe : corpus ∪ manual seed
-  const corpusBrands = await db.selectDistinct({ brand: products.brand }).from(products)
-  const seedRows = await db.select().from(brandCertifications)
+  const { corpusBrands, seedRows } = await withAdminRls(async (tx) => ({
+    corpusBrands: await tx.selectDistinct({ brand: products.brand }).from(products),
+    seedRows: await tx.select().from(brandCertifications),
+  }))
   const brandSet = new Map<string, string>() // normalized → display
   for (const r of corpusBrands) {
     brandSet.set(normalizeBrand(r.brand), r.brand)
@@ -132,7 +132,7 @@ async function main() {
       const cacheUsable = entry && (entry.httpCode === 404 || entry.pageStatus !== null)
       if (REFRESH || !cacheUsable) {
         const r = await probeOne(slug)
-        // Don't cache transient errors — only definitive 200/404.
+        // Don't cache transient errors, only definitive 200/404.
         if (r.httpCode === 200 || r.httpCode === 404) {
           entry = {
             httpCode: r.httpCode,
@@ -151,7 +151,7 @@ async function main() {
       if (entry) {
         statuses.set(slug, { httpCode: entry.httpCode, pageStatus: entry.pageStatus })
       }
-      // Short-circuit on confirmed cruelty-free — no need to probe alternates.
+      // Short-circuit on confirmed cruelty-free. No need to probe alternates.
       if (entry?.pageStatus === 'cruelty-free') break
     }
 

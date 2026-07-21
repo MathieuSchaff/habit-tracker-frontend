@@ -1,25 +1,27 @@
 // Detect products where kind doesn't match name signal (e.g., "Baume Yeux" kind=moisturizer).
 // Upstream kind bugs propagate as FPs to texture, kind-tag, and formula detectors.
 //
-// Confidence tiers:
-//   certain: --write applies the fix
-//   likely: reported only, not auto-applied
+// Read-only. Confidence tiers (certain/likely) rank signal strength for human review;
+// the former --write mode was removed after ~31 confirmed FPs in the "certain" tier.
+// Apply reviewed fixes via `.db-fixes/` SQL (`just db-fix`).
 //
 // Usage:
-//   bun run .../audit-product-kinds.ts            # dry-run
-//   bun run .../audit-product-kinds.ts --write    # apply certain
-//   bun run .../audit-product-kinds.ts --slug s   # single product
+//   bun run .../product-kinds.ts            # full corpus
+//   bun run .../product-kinds.ts --slug s   # single product
 
 import { PRODUCT_KINDS, type ProductCategory, type ProductKind } from '@aurore/shared'
 
-import { eq } from 'drizzle-orm'
-
-import type { Transaction } from '../../../../db/index'
 import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
 import { exitOnError, parseWriteSlugArgs } from '../cli-args'
 
 const { write: WRITE, slug: SLUG_ARG } = parseWriteSlugArgs()
+if (WRITE) {
+  console.error(
+    '--write removed: "certain" tier had ~31 confirmed FPs. Apply fixes via .db-fixes/ SQL.'
+  )
+  process.exit(1)
+}
 
 type Confidence = 'certain' | 'likely'
 
@@ -51,7 +53,7 @@ const RULES: KindRule[] = [
   {
     name: 'demaquillant',
     match: /\bd[eé]maquillant|\bmicellair|\bmicellar/i,
-    // "shampoing micellaire" is a hair shampoo — let it fall through to the shampoo rule.
+    // "shampoing micellaire" is a hair shampoo. Let it fall through to the shampoo rule.
     forbidden: /\bshampo+ing?\b|\bshampoo\b/i,
     expected: 'cleanser',
     okIfKindIn: new Set<ProductKind>(['cleanser']),
@@ -85,7 +87,7 @@ const RULES: KindRule[] = [
   {
     name: 'deodorant',
     match: /\bd[eé]odorant|\bantiperspirant/i,
-    // Products with both "déodorant" + "douche/shower" in the name are not deodorants —
+    // Products with both "déodorant" + "douche/shower" in the name are not deodorants,
     // they fall to the body-wash rule (which matches on "douche"). "Déo-douche" brand names
     // are excluded there too (body-wash forbidden) and keep their existing DB kind.
     forbidden: /\bdouche|\bshower/i,
@@ -281,8 +283,8 @@ type ProductRow = {
 }
 
 async function loadProducts(): Promise<ProductRow[]> {
-  // Elevated read: the WRITE path elevates too — an audit reading a
-  // products_select_visible-filtered subset would fix only visible rows.
+  // Elevated read: an audit over the products_select_visible-filtered
+  // subset would miss hidden rows.
   const rows = await withAdminRls((tx) =>
     tx
       .select({
@@ -363,25 +365,6 @@ function printTier(tier: string, items: Mismatch[]) {
   console.log()
 }
 
-async function applyCertainFixes(certain: Mismatch[]): Promise<void> {
-  if (certain.length === 0) {
-    console.log('ℹ️  No certain fixes to apply.')
-    return
-  }
-  console.log(`✏️  Applying ${certain.length} certain fixes...`)
-  await withAdminRls(async (tx: Transaction) => {
-    for (const m of certain) {
-      await tx
-        .update(products)
-        .set({ kind: m.expectedKind, category: m.expectedCategory })
-        .where(eq(products.id, m.productId))
-    }
-  })
-  console.log(
-    `✅ ${certain.length} products updated. Re-run \`make backfill-auto-tags WRITE=1\` to refresh tags.`
-  )
-}
-
 function pickSubset(all: ProductRow[], slug: string | null): ProductRow[] {
   if (!slug) return all
   const subset = all.filter((p) => p.slug === slug)
@@ -390,10 +373,8 @@ function pickSubset(all: ProductRow[], slug: string | null): ProductRow[] {
 }
 
 function printSummary(certain: Mismatch[], likely: Mismatch[], scanned: number) {
-  console.log('🔎 Audit product kinds')
-  console.log(
-    `   mode=${WRITE ? 'WRITE (certain only)' : 'DRY-RUN'} · ${scanned} produits scannés\n`
-  )
+  console.log('🔎 Audit product kinds (read-only)')
+  console.log(`   ${scanned} produits scannés\n`)
   console.log(`   certain : ${certain.length}`)
   console.log(`   likely  : ${likely.length}\n`)
   if (certain.length > 0) printTier('certain', certain)
@@ -406,7 +387,6 @@ async function main() {
   const certain = mismatches.filter((m) => m.confidence === 'certain')
   const likely = mismatches.filter((m) => m.confidence === 'likely')
   printSummary(certain, likely, subset.length)
-  if (WRITE) await applyCertainFixes(certain)
 }
 
 main()

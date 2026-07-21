@@ -41,7 +41,7 @@ audit-security:
         -w /app/backend api bun run src/db/audit/audit-security.ts \
         | tee "$(audit_out audit-security)"
 
-# Audit autoritatif CDN⇄DB : orphelins Bunny, refs DB cassées, échantillon de reachability. Read-only.
+# Authoritative CDN⇄DB audit: Bunny orphans, broken DB refs, reachability sample. Read-only.
 [group('audit')]
 audit-cdn:
     #!/usr/bin/env bash

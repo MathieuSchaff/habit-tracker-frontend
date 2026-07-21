@@ -6,15 +6,15 @@ import 'autotag-ops.just'
 import 'code.just'
 
 # Audit DB + auto-tagging pipeline (audits + backfill + gold-set).
-# TARGET: env var (dev par défaut | prod). Confirmation interactive si TARGET=prod + write/apply.
-# Tous les autres paramètres passent par env vars (pas de positional bugué).
+# TARGET: env var (dev default | prod). Interactive confirmation when TARGET=prod + write/apply.
+# All other parameters go through env vars (no buggy positionals).
 #
-# Exemples:
+# Examples:
 #   LIMIT=50 just audit-actif-class
-#   SLUG=la-roche-posay WRITE=1 just audit-product-kinds
+#   SLUG=<product-slug> just audit-product-kinds
 #   CSV_OUT=/tmp/orch.csv just audit-orchestrator-diff
-#   TARGET=prod WRITE=1 just backfill-auto-tags     # prod, confirmation requise
-#   just audit-db-full                               # tous les audits read-only d'un coup
+#   TARGET=prod WRITE=1 just backfill-auto-tags     # prod, confirmation required
+#   just audit-db-full                               # all read-only audits in one go
 
 # Run all read-only DB audits in sequence; never aborts mid-run, exits 1 if any failed. TARGET: dev|prod.
 [group('audit')]

@@ -1,6 +1,6 @@
 # Static code-quality audit (no Docker / no DB): knip + biome + tsc + cycles + fallow + react-doctor.
 
-# Audit code complet (knip + biome + tsc + cycles + fallow health/dupes + react-doctor). Rapports → .audit-out/
+# Full code audit (knip + biome + tsc + cycles + fallow health/dupes + react-doctor). Reports → .audit-out/
 audit-code:
     #!/usr/bin/env bash
     set +e

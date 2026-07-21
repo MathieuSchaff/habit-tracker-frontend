@@ -1,17 +1,16 @@
 import '_vars.just'
 
-# Pipeline images CDN — upload Bunny + audits + maintenance URLs DB.
-# Tous les paramètres via env vars (préfixées avant `just`).
-# TARGET=dev (default) | prod. Confirmation interactive si TARGET=prod + écriture.
+# CDN images pipeline: Bunny upload + audits + DB URL maintenance.
+# All parameters via env vars (prefixed before `just`).
+# TARGET=dev (default) | prod. Interactive confirmation when TARGET=prod + write.
 #
-# Exemples:
+# Examples:
 #   SLUG=brand-product URL=https://… just image-upload
 #   BATCH=/path/to/jobs.json just image-upload
-#   TARGET=prod WRITE=1 just image-patch-urls         # prod confirmation
 
-# Upload une image vers Bunny CDN + update DB. Env: SLUG, URL, FILE, BATCH,
-# WRITE (sans = dry-run), NO_DB, NO_STAGED, CONCURRENCY.
-[doc("Upload une image vers Bunny CDN + update DB. Env: SLUG|BATCH, URL, FILE, WRITE (sans = dry-run), NO_DB, NO_STAGED, CONCURRENCY")]
+# Upload an image to Bunny CDN + update DB. Env: SLUG, URL, FILE, BATCH,
+# WRITE (omit = dry-run), NO_DB, NO_STAGED, CONCURRENCY.
+[doc("Upload an image to Bunny CDN + update DB. Env: SLUG|BATCH, URL, FILE, WRITE (omit = dry-run), NO_DB, NO_STAGED, CONCURRENCY")]
 [group('images')]
 image-upload:
     #!/usr/bin/env bash
@@ -35,46 +34,9 @@ image-upload:
         ${NO_STAGED:+--no-staged} \
         ${CONCURRENCY:+--concurrency "$CONCURRENCY"}
 
-# Batch upload depuis output/images-source/ (workflow legacy).
-[group('images')]
-image-upload-batch:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ]; then confirm_prod "WRITE (image-upload-batch)"; fi
-    printf "{{CYAN}}Batch upload from output/images-source/ ($TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/images/upload/batch.ts
-
-# Patch imageUrl dans les *.seed.ts vers convention CDN (pas la DB — re-seed pour appliquer). Env: WRITE (sans = dry-run).
-[group('images')]
-image-patch-urls:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (patch image_url)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}Patch image URLs ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/images/maintenance/patch-urls.ts \
-        $([ -z "${WRITE:-}" ] && echo "--dry" || true)
-
-# Dump JSON des orphelins (consommable par delete-bunny.ts manuel). Read-only.
-[group('images')]
-image-dump-orphans:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    printf "{{CYAN}}Dump orphan images to output/ ($TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/images/audit/dump-orphans.ts
-
-# Génère output/image-mapping.json depuis l'inventaire Bunny ∩ DB (prérequis de
-# image-fix-refs). Écrit un artefact local seulement (ni DB ni CDN) — pas de mode.
-[doc("Génère output/image-mapping.json depuis l'inventaire Bunny ∩ DB (prérequis de image-fix-refs). Artefact local, pas de mode")]
+# Build output/image-mapping.json from the Bunny ∩ DB inventory (prerequisite of
+# image-fix-refs). Writes a local artifact only (no DB, no CDN), so no mode flag.
+[doc("Build output/image-mapping.json from the Bunny ∩ DB inventory (prerequisite of image-fix-refs). Local artifact, no mode")]
 [group('images')]
 image-build-mapping:
     #!/usr/bin/env bash
@@ -85,7 +47,7 @@ image-build-mapping:
     printf "{{CYAN}}Build image mapping ($TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/images/maintenance/build-mapping.ts
 
-# Réconcilie image_url DB ⇄ Bunny depuis image-mapping.json (rename/nullify/cleanup). Écrit DB+CDN. Env: WRITE (sans = dry-run). TARGET: dev|prod (prod+WRITE → confirm).
+# Reconcile DB image_url ⇄ Bunny from image-mapping.json (rename/nullify/cleanup). Writes DB+CDN. Env: WRITE (omit = dry-run). TARGET: dev|prod (prod+WRITE → confirm).
 [group('images')]
 image-fix-refs:
     #!/usr/bin/env bash

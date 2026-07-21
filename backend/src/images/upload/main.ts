@@ -1,13 +1,13 @@
 #!/usr/bin/env bun
 /**
- * upload-product-image.ts — CLI wrapper around lib/upload-product-image.
+ * main.ts: CLI wrapper around ./lib (uploadProductImage). Via `just image-upload`.
  *
  * Single:
- *   bun run scripts/upload-product-image.ts <slug> --url <URL>
- *   bun run scripts/upload-product-image.ts <slug> --file <PATH>
+ *   bun run src/images/upload/main.ts <slug> --url <URL>
+ *   bun run src/images/upload/main.ts <slug> --file <PATH>
  *
  * Batch (JSON array of { slug, url? | file? }):
- *   bun run scripts/upload-product-image.ts --batch <jobs.json>
+ *   bun run src/images/upload/main.ts --batch <jobs.json>
  *
  * Flags:
  *   --dry            preview, no Bunny PUT or DB UPDATE
@@ -15,7 +15,7 @@
  *   --no-staged      skip writing to output/images-{source,normalized}/
  *   --concurrency N  batch only (default 4)
  *
- * Required env (apply mode): see lib/upload-product-image.ts.
+ * Required env (apply mode): see ./lib.ts.
  *
  * After a batch, run `just db-snapshot` to persist DB changes to snapshot/data.sql.
  */
@@ -117,7 +117,7 @@ if (args.batch) {
   await runJobs([{ slug: args.slug, url: args.url ?? undefined, file: args.file ?? undefined }], 1)
 } else {
   console.error(
-    'usage:\n  bun run scripts/upload-product-image.ts <slug> --url <URL>\n  bun run scripts/upload-product-image.ts <slug> --file <PATH>\n  bun run scripts/upload-product-image.ts --batch <jobs.json>\n\nflags: --dry --no-db --no-staged --concurrency N'
+    'usage:\n  bun run src/images/upload/main.ts <slug> --url <URL>\n  bun run src/images/upload/main.ts <slug> --file <PATH>\n  bun run src/images/upload/main.ts --batch <jobs.json>\n\nflags: --dry --no-db --no-staged --concurrency N'
   )
   process.exit(1)
 }

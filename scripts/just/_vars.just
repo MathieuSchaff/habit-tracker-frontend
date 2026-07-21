@@ -1,5 +1,5 @@
-# Shared variables — importé par justfile racine et chaque sous-just/*.just.
-# Just dédoublonne les imports, donc OK de l'importer plusieurs fois.
+# Shared variables — imported by the root justfile and every scripts/just/*.just.
+# Just dedupes imports, so importing it multiple times is fine.
 
 GREEN  := '\033[0;32m'
 YELLOW := '\033[0;33m'

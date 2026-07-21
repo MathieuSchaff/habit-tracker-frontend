@@ -1,28 +1,28 @@
-# Auto-tagging write-ops — propagent un changement de détecteur vers la DB.
-# (Pas des audits read-only : backfill/reconcile écrivent, goldset échantillonne,
-#  explain trace, catalog-fix-tag-domain corrige.)
+# Auto-tagging write-ops: propagate a detector change to the DB.
+# (Not read-only audits: backfill/reconcile write, goldset samples,
+#  explain traces, catalog-fix-tag-domain fixes.)
 #
-# ── backfill vs reconcile — deux façons de propager un changement de détecteur ──
-# Options via env AVANT just :  WRITE=1 just autotag-backfill   (sinon dry-run)
+# ── backfill vs reconcile: two ways to propagate a detector change ──
+# Options via env BEFORE just:  WRITE=1 just autotag-backfill   (else dry-run)
 #
 #   ┌──────────────────────────────────────────────────────┬──────────┬───────────────────┐
 #   │                                                      │ backfill │     reconcile     │
 #   ├──────────────────────────────────────────────────────┼──────────┼───────────────────┤
-#   │ pose liens neufs (détecteur émet, DB ne l'a pas)     │ ✅       │ ✅                │
+#   │ inserts new links (detector emits, DB lacks them)    │ ✅       │ ✅                │
 #   ├──────────────────────────────────────────────────────┼──────────┼───────────────────┤
-#   │ monte relevance (secondary→primary)                  │ ✅       │ ✅                │
+#   │ raises relevance (secondary→primary)                 │ ✅       │ ✅                │
 #   ├──────────────────────────────────────────────────────┼──────────┼───────────────────┤
-#   │ supprime liens stale (DB l'a, détecteur n'émet plus) │ ❌       │ ✅                │
+#   │ drops stale links (DB has them, detector stopped)    │ ❌       │ ✅                │
 #   ├──────────────────────────────────────────────────────┼──────────┼───────────────────┤
-#   │ baisse relevance (primary→secondary)                 │ ❌       │ ✅                │
+#   │ lowers relevance (primary→secondary)                 │ ❌       │ ✅                │
 #   ├──────────────────────────────────────────────────────┼──────────┼───────────────────┤
-#   │ touche les tags manuels (admin/user)                 │ non      │ non (manual-safe) │
+#   │ touches manual tags (admin/user)                     │ no       │ no (manual-safe)  │
 #   └──────────────────────────────────────────────────────┴──────────┴───────────────────┘
 #
-# reconcile = DELETE non-manual + ré-INSERT la sortie détecteur (writeTagsForProduct) =
-# sync EXACT : add + drop + relevance ↕. backfill = additif/upgrade-only, ne supprime ni
-# ne downgrade JAMAIS (sûr — ex. prod prudent). reconcile ⊇ backfill → après un reconcile,
-# backfill trouve 0 à insérer (ce qu'on vient de voir).
+# reconcile = DELETE non-manual + re-INSERT detector output (writeTagsForProduct) =
+# EXACT sync: add + drop + relevance ↕. backfill = additive/upgrade-only, NEVER deletes
+# nor downgrades (safe, e.g. cautious prod). reconcile ⊇ backfill → after a reconcile,
+# backfill finds 0 to insert.
 
 # Fix tag_products rows violating domain constraints (skincare tagTypes on haircare products). Env: WRITE=1 (apply). TARGET: dev|prod (prod+WRITE → confirm).
 [group('catalog')]
@@ -30,13 +30,7 @@ catalog-fix-tag-domain:
     #!/usr/bin/env bash
     set -euo pipefail
     source {{justfile_directory()}}/scripts/just/_lib.sh
-    TARGET="${TARGET:-dev}"
-    target_compose
-    if [ "$TARGET" = prod ] && [ -n "${WRITE:-}" ]; then confirm_prod "WRITE (catalog-fix-tag-domain)"; fi
-    MODE=$([ -n "${WRITE:-}" ] && echo "WRITE" || echo "dry-run")
-    printf "{{CYAN}}catalog-fix-tag-domain ($MODE, $TARGET)...{{NC}}\n"
-    $COMPOSE exec -w /app/backend api bun run src/db/seed/maintenance/fix-tag-domain-consistency.ts \
-        ${WRITE:+--write}
+    data_run "catalog-fix-tag-domain" "src/db/seed/maintenance/fix-tag-domain-consistency.ts"
 
 # Backfill auto-tags. Env: SLUG, WRITE (apply), LIMIT, CONF_OVERRIDE, INCLUDE_DROPPED.
 [group('autotag')]
@@ -107,7 +101,7 @@ autotag-explain:
             --kind "${KIND:-serum}" --category "${CATEGORY:-skincare}" "$INCI"
     fi
 
-# Sample 60-80 produits stratifié → data/gold-set/annotations.json (idempotent). Env: SAMPLE_SIZE, POSITIVES_PER_TAG, NEGATIVES_PER_TAG, SEED, GOLD_SET_PATH.
+# Stratified sample of 60-80 products → data/gold-set/annotations.json (idempotent). Env: SAMPLE_SIZE, POSITIVES_PER_TAG, NEGATIVES_PER_TAG, SEED, GOLD_SET_PATH.
 [group('autotag')]
 autotag-goldset:
     #!/usr/bin/env bash

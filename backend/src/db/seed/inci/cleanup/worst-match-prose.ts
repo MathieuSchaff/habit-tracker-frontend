@@ -2,38 +2,42 @@
 // instead of real INCI content.
 //
 // Covers cases that slipped through existing cleanup scripts:
-//   1. LED device (Medicube) — no INCI, only product description → NULL.
-//   2. Marketing preamble with unlisted claims (Eucerin Aquaphor) — strip
+//   1. LED device (Medicube): no INCI, only product description → NULL.
+//   2. Marketing preamble with unlisted claims (Eucerin Aquaphor): strip
 //      "SANS CONSERVATEUR, SANS COLORANT, NON COMÉDOGÈNE, CLINIQUEMENT PROUVÉ"
 //      prefix; the INCI body starts at CERA MICROCRISTALLINA.
-//   3–4. Korean-beauty usage-instruction prefix (Mixsoon × 2) — "Ingrédients :"
+//   3–4. Korean-beauty usage-instruction prefix (Mixsoon × 2): "Ingrédients :"
 //      marker exists but post-strip INCI has <5 commas, so prose.ts quality
 //      gate excluded them. Strip prefix and keep the short collagen-film INCI.
 //
 // Mary&May (mary-may-blackberry) was dropped: it once carried pure marketing
-// prose, but the row now holds a valid INCI — NULLing it would destroy data.
+// prose, but the row now holds a valid INCI. NULLing it would destroy data.
 //
-// Dry-run by default. Pass --apply to UPDATE.
+// Destructive fixes fail closed when the source no longer matches the known
+// bad payload. Dry-run by default. Pass --apply to UPDATE transactionally.
 import { SQL } from 'bun'
+
+import { planWorstMatchFix, type WorstMatchFix } from './worst-match-prose-plan'
 
 const apply = process.argv.includes('--apply')
 
 const sql = new SQL(process.env.DATABASE_URL ?? 'postgres://app:devpassword@app_db:5432/appdb')
 
-type Fix =
-  | { slug: string; action: 'null' }
-  | { slug: string; action: 'set'; value: string }
-  | { slug: string; action: 'strip-after'; marker: RegExp }
-
-const FIXES: Fix[] = [
-  // LED device — no cosmetic INCI exists.
-  { slug: 'medicube-age-r-booster-pro-mini', action: 'null' },
+const FIXES: WorstMatchFix[] = [
+  // LED device with no cosmetic INCI.
+  {
+    slug: 'medicube-age-r-booster-pro-mini',
+    action: 'null',
+    expected: /(?:Age-R Booster Pro Mini|appareil|électroporation|LED)/i,
+  },
 
   // Marketing preamble uses "SANS CONSERVATEUR / SANS COLORANT" which are not
   // in separators.ts MARKETING_PREFIX_RX. Real INCI starts at CERA MICROCRISTALLINA.
   {
     slug: 'eucerin-aquaphor-baume-reparateur',
     action: 'set',
+    expected:
+      /^SANS CONSERVATEUR,\s*SANS COLORANT,\s*NON COM[ÉE]DOG[ÈE]NE,\s*CLINIQUEMENT PROUV[ÉE][\s\S]*CERA MICROCRISTALLINA/i,
     value: 'CERA MICROCRISTALLINA, CERESIN, LANOLIN ALCOHOL, PANTHENOL, GLYCERIN, BISABOLOL',
   },
 
@@ -49,6 +53,25 @@ const FIXES: Fix[] = [
     action: 'strip-after',
     marker: /Ingr[ée]dients?\s*:\s*/i,
   },
+
+  // Eve Lom: SharePoint span soup captured whole. The real formula sits after
+  // the "Full Ingredient List:" label inside the markup; strip tags, cut there.
+  {
+    slug: 'eve-lom-time-retreat-smoothing-eye-complex',
+    action: 'strip-html',
+    marker: /Full Ingredient List:\s*/i,
+  },
+  {
+    slug: 'eve-lom-time-retreat-smoothing-eye-complex-peptide-infusion',
+    action: 'strip-html',
+    marker: /Full Ingredient List:\s*/i,
+  },
+  // Same span soup but usage instructions only. There is no formula to extract.
+  {
+    slug: 'eve-lom-cleansing-oil',
+    action: 'null',
+    expected: /^(?![\s\S]*Full Ingredient List)[\s\S]*How to Use[\s\S]*Apply 1,\s*2 pumps/i,
+  },
 ]
 
 const slugs = FIXES.map((f) => f.slug)
@@ -63,8 +86,12 @@ for (const slug of slugs) {
 
 const bySlug = new Map(rows.map((r) => [r.slug, r]))
 
-let applied = 0
 let skipped = 0
+
+const planned: Array<{
+  row: { id: string; slug: string; inci: string | null }
+  next: string | null
+}> = []
 
 for (const fix of FIXES) {
   const row = bySlug.get(fix.slug)
@@ -74,47 +101,43 @@ for (const fix of FIXES) {
     continue
   }
 
-  let next: string | null
-
-  if (fix.action === 'null') {
-    next = null
-  } else if (fix.action === 'set') {
-    next = fix.value
-  } else {
-    // strip-after: find last marker, keep everything after it
-    if (row.inci === null) {
-      console.log(`  SKIP (already null)  ${fix.slug}`)
-      skipped++
-      continue
-    }
-    const m = [...row.inci.matchAll(new RegExp(fix.marker.source, `${fix.marker.flags}g`))]
-    if (m.length === 0) {
-      console.log(`  SKIP (no marker)  ${fix.slug}`)
-      skipped++
-      continue
-    }
-    const last = m[m.length - 1]
-    const lastIndex = last.index ?? 0
-    next = row.inci.slice(lastIndex + last[0].length).trimStart()
+  const plan = planWorstMatchFix(fix, row.inci)
+  if (plan.kind === 'reject') {
+    throw new Error(`REFUSE ${fix.slug}: ${plan.reason}`)
+  }
+  if (plan.kind === 'noop') {
+    console.log(`  SKIP (${plan.reason})  ${fix.slug}`)
+    skipped++
+    continue
   }
 
   const before = row.inci?.slice(0, 120) ?? 'NULL'
-  const after = next?.slice(0, 120) ?? 'NULL'
+  const after = plan.next?.slice(0, 120) ?? 'NULL'
   console.log(`\n  ${fix.slug}`)
   console.log(`    before: ${before}`)
   console.log(`    after:  ${after}`)
 
-  if (apply) {
-    if (next === null) {
-      await sql`UPDATE products SET inci = NULL WHERE id = ${row.id}`
-    } else {
-      await sql`UPDATE products SET inci = ${next} WHERE id = ${row.id}`
-    }
-  }
-  applied++
+  planned.push({ row, next: plan.next })
 }
 
-console.log(`\n${apply ? 'Applied' : 'Would apply'} ${applied} fix(es), skipped ${skipped}.`)
+if (apply && planned.length > 0) {
+  await sql.begin(async (tx) => {
+    for (const { row, next } of planned) {
+      const updated = await tx<Array<{ id: string }>>`
+        UPDATE products
+        SET inci = ${next}
+        WHERE id = ${row.id}
+          AND inci IS NOT DISTINCT FROM ${row.inci}
+        RETURNING id
+      `
+      if (updated.length !== 1) {
+        throw new Error(`REFUSE ${row.slug}: row changed after validation`)
+      }
+    }
+  })
+}
+
+console.log(`\n${apply ? 'Applied' : 'Would apply'} ${planned.length} fix(es), skipped ${skipped}.`)
 if (!apply) console.log('Re-run with --apply to commit.')
 
 await sql.end()

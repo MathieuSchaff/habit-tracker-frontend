@@ -1,18 +1,18 @@
 #!/usr/bin/env bun
 /**
- * fix-broken-image-refs.ts — Reconcile image_url drift between Bunny CDN
+ * fix-broken-image-refs.ts: Reconcile image_url drift between Bunny CDN
  * inventory and DB products, driven by output/image-mapping.json gaps.
  *
  * Three operations, all idempotent, dry-run by default:
  *
- *   1. RENAME — product.image_url points at <old>.webp that exists on Bunny
+ *   1. RENAME: product.image_url points at <old>.webp that exists on Bunny
  *      but the DB slug has been canonicalised. Copy <old>.webp → <slug>.webp,
  *      UPDATE products.image_url to the new URL, DELETE <old>.webp.
  *
- *   2. NULLIFY — product.image_url points at <old>.webp that is NOT on Bunny
+ *   2. NULLIFY: product.image_url points at <old>.webp that is NOT on Bunny
  *      (image lost). Set image_url = NULL so the gap is explicit.
  *
- *   3. ORPHAN_CLEANUP — webp on Bunny with no matching DB slug AND not used
+ *   3. ORPHAN_CLEANUP: webp on Bunny with no matching DB slug AND not used
  *      as a rename source. DELETE the file.
  *
  * Required env:
@@ -35,10 +35,10 @@ import { join } from 'node:path'
 import { SQL } from 'bun'
 
 import { deleteBunny, getBunny, putBunny, resolveBunnyConfig } from '../lib/bunny'
+import { resolveImageOutputDir } from '../lib/paths'
 
 const APPLY = process.argv.includes('--apply')
-const SEED_ROOT = join(import.meta.dir, '..')
-const MAPPING_PATH = join(SEED_ROOT, 'output', 'image-mapping.json')
+const MAPPING_PATH = join(resolveImageOutputDir(), 'image-mapping.json')
 
 const cfg = resolveBunnyConfig()
 const DB_URL = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL
@@ -116,10 +116,16 @@ for (const r of renames) {
 }
 
 let nullifyDone = 0
+let nullifyFailed = 0
 for (const n of nullifies) {
-  await sql`UPDATE products SET image_url = NULL WHERE slug = ${n.slug}`
-  nullifyDone++
-  console.log(`  ok nullify ${n.slug}`)
+  try {
+    await sql`UPDATE products SET image_url = NULL WHERE slug = ${n.slug}`
+    nullifyDone++
+    console.log(`  ok nullify ${n.slug}`)
+  } catch (err) {
+    nullifyFailed++
+    console.error(`  fail nullify ${n.slug}: ${(err as Error).message}`)
+  }
 }
 
 let cleanupDone = 0
@@ -139,6 +145,6 @@ for (const s of cleanupOrphans) {
 await sql.close()
 
 console.log(
-  `\ndone: rename=${renameDone}/${renames.length} (failed=${renameFailed}), nullify=${nullifyDone}/${nullifies.length}, cleanup=${cleanupDone}+${cleanupNotFound}gone/${cleanupOrphans.length} (failed=${cleanupFailed})`
+  `\ndone: rename=${renameDone}/${renames.length} (failed=${renameFailed}), nullify=${nullifyDone}/${nullifies.length} (failed=${nullifyFailed}), cleanup=${cleanupDone}+${cleanupNotFound}gone/${cleanupOrphans.length} (failed=${cleanupFailed})`
 )
-process.exit(renameFailed + cleanupFailed === 0 ? 0 : 1)
+process.exit(renameFailed + nullifyFailed + cleanupFailed === 0 ? 0 : 1)

@@ -16,7 +16,7 @@ dev-d: ts-build _db-guard
 
 # Fail-safe: bring db up first and offer a snapshot restore if the dev DB is
 # empty. A volume wipe (just clean / down -v / prune) otherwise leaves the stack
-# silently 500ing — `just dev` boots fine but every query hits a schemaless DB.
+# silently 500ing. `just dev` boots fine but every query hits a schemaless DB.
 _db-guard:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -43,7 +43,7 @@ _db-guard:
     printf "{{GREEN}}✓ DB restaurée depuis snapshot{{NC}}\n"
 
 # Prod-like LCP/transport profiling: the REAL edge nginx (HTTP/2 + TLS + prod
-# template) in front of the prod frontend nginx.conf (gzip + immutable assets),
+# template) in front of the prod frontend Bun SSR server (host-built .output),
 # /api → the running dev backend. Faithful browser-facing transport, unlike
 # `vite preview` (HTTP/1.1, no compression, no cache headers). Prereq: `just dev-d`.
 # Open https://localhost and accept the self-signed cert. Teardown: `just profile-prod-down`.
@@ -54,7 +54,7 @@ profile-prod: ts-build
         printf "{{RED}}app_api absent — run 'just dev-d' first (profiling reuses the dev backend).{{NC}}\n"
         exit 1
     fi
-    cd frontend && bunx vite build && cd ..
+    cd frontend && VITE_API_URL=http://api:3000 bunx vite build && cd ..
     # Self-signed cert at the path reload-certs.sh probes; without it the edge
     # renders an HTTP-only fallback (no HTTP/2 → LCP numbers are meaningless).
     if [ ! -f .profile-certs/live/localhost/fullchain.pem ]; then
