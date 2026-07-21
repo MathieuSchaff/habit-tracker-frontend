@@ -43,6 +43,7 @@ export const HUMECTANTS = {
   IMPERATA_CYLINDRICA_ROOT: 'imperata-cylindrica-root', // INCI: Imperata Cylindrica Root Extract | herbaceous extract, hydrating osmolyte
   DISODIUM_ACETYL_GLUCOSAMINE_PHOSPHATE: 'disodium-acetyl-glucosamine-phosphate', // INCI: Disodium Acetyl Glucosamine Phosphate | glucosamine derivative, hydrating, brightening
   ACETAMIDOETHOXYETHANOL: 'acetamidoethoxyethanol', // INCI: Acetamidoethoxyethanol (Hydromanil) | long-lasting biomimetic humectant
+  SACCHARIDE_ISOMERATE: 'saccharide-isomerate', // INCI: Saccharide Isomerate | long-lasting plant humectant (Pentavitin)
 } as const
 
 export const BARRIERE_EMOLLIENTS_OCCLUSIFS = {
@@ -101,6 +102,7 @@ export const BARRIERE_EMOLLIENTS_OCCLUSIFS = {
   HYDROXYSTEARIC_ACID_10: '10-hydroxystearic-acid', // INCI: 10-Hydroxystearic Acid | hydroxylated fatty acid, PPAR-α agonist
   PASSIFLORA_EDULIS: 'passiflora-edulis', // INCI: Passiflora Edulis Seed Oil (Passioline) | linoleic-rich oil, antioxidant
   MYROTHAMNUS_FLABELLIFOLIA: 'myrothamnus-flabellifolia', // INCI: Myrothamnus Flabellifolia Leaf/Stem Extract (Myramaze) | resurrection plant
+  SQUALENE: 'squalene', // INCI: Squalene | unsaturated emollient lipid, non-hydrogenated form of squalane
 } as const
 
 export const EXFOLIANTS = {
@@ -361,6 +363,7 @@ export const FILTRES_UV = {
     'methylene-bis-benzotriazolyl-tetramethylbutylphenol', // Tinosorb M – UVA/UVB, mineral-like
   TRIS_BIPHENYL_TRIAZINE: 'tris-biphenyl-triazine', // Tinosorb A2B nano – broad spectrum
   DIETHYLHEXYL_BUTAMIDO_TRIAZONE: 'diethylhexyl-butamido-triazone', // INCI: Diethylhexyl Butamido Triazone | Uvasorb HEB – broad-spectrum UVB/UVA filter, very photostable
+  ENSULIZOLE: 'ensulizole', // INCI: Phenylbenzimidazole Sulfonic Acid | water-soluble UVB filter (Ensulizole / PBSA)
 } as const
 
 export const PROBIOTIQUES_PREBIOTIQUES_POSTBIOTIQUES = {
@@ -379,6 +382,9 @@ export const PROBIOTIQUES_PREBIOTIQUES_POSTBIOTIQUES = {
   MELABIOME_XP: 'melabiome-xp', // Pre/postbiotic complex | microbiome rebalancing and protection
   GALACTOMYCES_FERMENT_FILTRATE: 'galactomyces-ferment-filtrate', // INCI: Galactomyces Ferment Filtrate | Pitera (SK-II), nutrient-rich ferment
   RAHNELLA_SOY_PROTEIN_FERMENT: 'rahnella-soy-protein-ferment', // INCI: Rahnella/Soy Protein Ferment | soy protein ferment postbiotic (Bio-Bustyl), skin support
+  LACTOBACILLUS_FERMENT: 'lactobacillus-ferment', // INCI: Lactobacillus Ferment | probiotic ferment, soothing and barrier support
+  LEUCONOSTOC_FERMENT_FILTRATE: 'leuconostoc-ferment-filtrate', // INCI: Leuconostoc Ferment Filtrate | radish-root ferment, hydrating and mild preservative
+  SACCHAROMYCES_FERMENT_FILTRATE: 'saccharomyces-ferment-filtrate', // INCI: Saccharomyces Ferment Filtrate | yeast ferment, radiance and hydration
 } as const
 
 export const ACTIFS_ANTI_AGE_REPARATEURS = {
@@ -478,6 +484,11 @@ export const DIVERS_NON_CLASSES = {
   GLYCERYL_CAPRYLATE_CAPRATE: 'glyceryl-caprylate-caprate', // INCI: Glyceryl Caprylate/Caprate | multifunctional natural preservative, emollient
   MELANIN: 'melanin', // INCI: Melanin | biomimetic tinting and photoprotective pigment (UV/HEV)
   HYDROLYZED_YEAST_PROTEIN: 'hydrolyzed-yeast-protein', // INCI: Hydrolyzed Yeast Protein | beta-glucan-rich yeast hydrolysate, fortifying
+  MELIA_AZADIRACHTA: 'melia-azadirachta', // INCI: Melia Azadirachta Leaf Extract | neem leaf, purifying
+  HOLY_BASIL: 'holy-basil', // INCI: Ocimum Sanctum Leaf Extract | holy basil (tulsi), antioxidant and soothing
+  CORALLINA_OFFICINALIS: 'corallina-officinalis', // INCI: Corallina Officinalis Extract | red algae, mineral source
+  LAVENDER_OIL: 'lavender-oil', // INCI: Lavandula Angustifolia Oil | lavender essential oil (contains fragrance allergens)
+  GERANIUM_OIL: 'geranium-oil', // INCI: Pelargonium Graveolens Oil | rose geranium essential oil (contains fragrance allergens)
 } as const
 
 export const FILLERS = {

@@ -23,7 +23,7 @@ import { addManyIngredientsToProduct } from '../../../../features/products/produ
 import { freqTable } from '../../../../lib/report'
 import type { Transaction } from '../../../index'
 import { withAdminRls } from '../../../rls'
-import { productIngredients, products } from '../../../schema'
+import { ingredients, productIngredients, products } from '../../../schema'
 import { INGREDIENT_SLUGS } from '../../data/ingredients/ingredient-slugs'
 import { FILLER_SLUGS } from '../../data/ingredients/skincare/seed-dermo-profiles-fillers'
 import { fetchIdMaps } from '../../utils/id-maps'
@@ -78,7 +78,12 @@ const blockedSlugs = new Set<string>([...FILLER_SLUGS, ...buildExcipientSlugs()]
 // never masquerade as an empty-string slug.
 type Resolved = { kind: 'slug'; slug: string } | { kind: 'unbridged' }
 
-function resolveToken(raw: string): Resolved | null {
+// DB-backed fallback: algo-derm's `evidence.inci` is exactly what backfill-canonical-key.ts
+// stores in `ingredients.canonical_key`, so a bridge miss can still land on an aurore slug
+// whose only link to this substance is that shared identity (the humanised bridge misses
+// `-hair` shadows and FR slugs — `zinc oxyde` ≠ `zinc oxide`). The category domain guard in
+// computeLinks still filters the resolved slug, so a mismatch drops instead of mis-linking.
+function resolveToken(raw: string, canonicalKeyToSlug: Map<string, string>): Resolved | null {
   const normAurore = normalizeInciToken(raw)
   if (!normAurore || EXCIPIENT_BLOCKLIST.has(normAurore)) return null
 
@@ -94,8 +99,12 @@ function resolveToken(raw: string): Resolved | null {
   if (!evidence) return null
 
   const bridged = bridgeEvidenceToSlug(evidence, inciIndex, slugByHumanized)
-  if (!bridged) return { kind: 'unbridged' }
-  return { kind: 'slug', slug: bridged }
+  if (bridged) return { kind: 'slug', slug: bridged }
+
+  const byCanonical = canonicalKeyToSlug.get(evidence.inci)
+  if (byCanonical) return { kind: 'slug', slug: byCanonical }
+
+  return { kind: 'unbridged' }
 }
 
 // A single "token" carrying this many words is far past the longest real INCI name
@@ -111,7 +120,11 @@ function isUppercaseDominant(s: string): boolean {
   return upper.length / letters.length >= 0.6
 }
 
-function computeLinks(inci: string, category: string): ComputeResult {
+function computeLinks(
+  inci: string,
+  category: string,
+  canonicalKeyToSlug: Map<string, string>
+): ComputeResult {
   const allowed = getDomainAllowlist(category)
   // splitINCI only splits on commas (+ protects decimals). Fold scraper artifacts first.
   // Supplement text keeps list separators because its dashes and semicolons separate doses.
@@ -127,7 +140,7 @@ function computeLinks(inci: string, category: string): ComputeResult {
   const nonUppercaseMegaTokens: string[] = []
 
   for (const raw of tokens) {
-    const resolved = resolveToken(raw)
+    const resolved = resolveToken(raw, canonicalKeyToSlug)
     if (!resolved) {
       const trimmed = raw.trim()
       if (trimmed.split(/\s+/).length >= SUSPECT_TOKEN_WORDS) {
@@ -270,6 +283,23 @@ async function main() {
 
   await withAdminRls(async (tx) => {
     const { ingredientSlugToId } = await fetchIdMaps(tx)
+
+    // canonical_key → slug fallback map. Prefer a non `-hair` slug so a skincare product
+    // lands on the bare slug instead of its haircare shadow (both share the key).
+    const keyRows = await tx
+      .select({ slug: ingredients.slug, key: ingredients.canonicalKey })
+      .from(ingredients)
+      .where(isNotNull(ingredients.canonicalKey))
+    const canonicalKeyToSlug = new Map<string, string>()
+    for (const { slug, key } of keyRows) {
+      if (!key) continue
+      const cur = canonicalKeyToSlug.get(key)
+      if (!cur || (cur.endsWith('-hair') && !slug.endsWith('-hair'))) {
+        canonicalKeyToSlug.set(key, slug)
+      }
+    }
+    console.log(`   canonical_key fallback map: ${canonicalKeyToSlug.size} keys`)
+
     const eligible = await readEligible(tx)
     console.log(`   eligible products: ${eligible.length}\n`)
 
@@ -299,7 +329,7 @@ async function main() {
         zeroBuckets.get('no-inci')?.push(product.slug)
         continue
       }
-      const computed = computeLinks(product.inci, product.category)
+      const computed = computeLinks(product.inci, product.category, canonicalKeyToSlug)
       const { slugs, unbridged, blocked } = computed
       for (const u of unbridged) {
         unbridgedFreq.set(u, (unbridgedFreq.get(u) ?? 0) + 1)
