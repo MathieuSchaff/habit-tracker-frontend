@@ -29,6 +29,7 @@ import { productsFeature } from './features/products'
 import { profileRoute, publicProfileRoutes } from './features/profile'
 import { reportsRoutes } from './features/reports/routes'
 import { roleRequestsRoutes } from './features/role-requests/routes'
+import { sitemapRoutes } from './features/sitemap'
 import { socialPostsRoutes } from './features/social/posts.routes'
 import { socialReactionsRoutes } from './features/social/reactions.routes'
 import { socialRoutes } from './features/social/routes'
@@ -102,6 +103,7 @@ const routes = app
   .route('/api/me', meRoutes)
   .route('/api/uploads', uploadsRoutes)
   .route('/api/articles', articleRoutes)
+  .route('/api/sitemap.xml', sitemapRoutes)
   .route('/api/admin', adminBansRoutes)
   .route('/api/admin/moderation', adminModerationRoutes)
   .route('/api/admin/reports', adminReportsRoutes)

@@ -109,8 +109,17 @@ export async function getCategoryCounts(db: DB): Promise<Record<BlogCategory, nu
   return counts
 }
 
-export async function getArticleBySlug(db: DB, slug: string) {
-  const [article] = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1)
+// Drafts are an admin-only surface: without includeDrafts, an unpublished slug
+// must be indistinguishable from a missing one (same article_not_found).
+export async function getArticleBySlug(
+  db: DB,
+  slug: string,
+  opts: { includeDrafts?: boolean } = {}
+) {
+  const where = opts.includeDrafts
+    ? eq(articles.slug, slug)
+    : and(eq(articles.slug, slug), isNotNull(articles.publishedAt))
+  const [article] = await db.select().from(articles).where(where).limit(1)
   if (!article) throw new BlogError('article_not_found')
   return toApiArticle(article)
 }
@@ -137,7 +146,7 @@ export async function createArticle(db: DB, userId: string, input: CreateArticle
 }
 
 export async function updateArticle(db: DB, slug: string, input: UpdateArticleInput) {
-  const existing = await getArticleBySlug(db, slug)
+  const existing = await getArticleBySlug(db, slug, { includeDrafts: true })
   try {
     const newSlug = input.slug ? slugify(input.slug) : undefined
     const [updated] = await db
@@ -155,7 +164,7 @@ export async function updateArticle(db: DB, slug: string, input: UpdateArticleIn
 }
 
 export async function deleteArticle(db: DB, slug: string) {
-  const existing = await getArticleBySlug(db, slug)
+  const existing = await getArticleBySlug(db, slug, { includeDrafts: true })
   try {
     await db.delete(articles).where(eq(articles.id, existing.id))
   } catch (e) {

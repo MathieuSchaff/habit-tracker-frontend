@@ -12,7 +12,12 @@ import { z } from 'zod'
 
 import type { AppEnv } from '../../app-env'
 import { zValidator } from '../../utils/validator'
-import { getAuthedUserId, requireJwtAuth, requireNotBanned } from '../auth/middleware'
+import {
+  getAuthedUserId,
+  optionalJwtAuth,
+  requireJwtAuth,
+  requireNotBanned,
+} from '../auth/middleware'
 import {
   createArticle,
   deleteArticle,
@@ -28,7 +33,7 @@ const articlesApp = new Hono<AppEnv>()
 
 // One guard per use(): nesting swallows the short-circuit 403 → "Context not finalized" 500.
 articlesApp.use('*', async (c, next) => {
-  return c.req.method === 'GET' ? next() : requireJwtAuth(c, next)
+  return c.req.method === 'GET' ? optionalJwtAuth(c, next) : requireJwtAuth(c, next)
 })
 articlesApp.use('*', async (c, next) => {
   return c.req.method === 'GET' ? next() : requireNotBanned(c, next)
@@ -52,7 +57,9 @@ export const articleRoutes = articlesApp
   .get('/:slug', zValidator('param', slugParam), async (c) => {
     const db = c.get('db')
     const { slug } = c.req.valid('param')
-    const article = await getArticleBySlug(db, slug)
+    const article = await getArticleBySlug(db, slug, {
+      includeDrafts: c.get('userRole') === 'admin',
+    })
     return c.json(ok(article), HTTP_STATUS.OK)
   })
 

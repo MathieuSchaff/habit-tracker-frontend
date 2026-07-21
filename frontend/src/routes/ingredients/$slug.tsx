@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/helpers/apiError'
 import { ingredientQueries } from '@/lib/queries/ingredients'
 
 export const Route = createFileRoute('/ingredients/$slug')({
+  ssr: true,
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(ingredientQueries.bySlug(params.slug)).catch((err) => {
       // A missing ingredient is a 404, not a render error: route it to notFoundComponent

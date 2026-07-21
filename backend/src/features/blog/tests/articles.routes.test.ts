@@ -66,6 +66,34 @@ describe('Article Routes — GET', () => {
       const res = await app.request('/api/articles/unknown-slug')
       expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
     })
+
+    it('hides drafts from anonymous readers but keeps them available to admins', async () => {
+      await setupAndLogin(app, TEST_CREDENTIALS.alice)
+      await testDb
+        .update(users)
+        .set({ role: 'admin' })
+        .where(eq(users.email, TEST_CREDENTIALS.alice.email))
+      const token = await loginAndGetToken(
+        app,
+        TEST_CREDENTIALS.alice.rawEmail,
+        TEST_CREDENTIALS.alice.rawPassword
+      )
+      const draft = {
+        ...VALID_ARTICLE,
+        title: 'Brouillon privé',
+        slug: 'brouillon-prive',
+        publishedAt: null,
+      }
+
+      const created = await client.articles.$post({ json: draft }, withAuth(token))
+      expect(created.status).toBe(HTTP_STATUS.CREATED)
+
+      const anonymous = await app.request('/api/articles/brouillon-prive')
+      expect(anonymous.status).toBe(HTTP_STATUS.NOT_FOUND)
+
+      const admin = await app.request('/api/articles/brouillon-prive', withAuth(token))
+      expect(admin.status).toBe(HTTP_STATUS.OK)
+    })
   })
 
   describe('GET /articles/categories', () => {
@@ -138,11 +166,57 @@ describe('Article Routes — Write (admin only)', () => {
     })
   })
 
+  describe('Draft lifecycle', () => {
+    it('lets an admin update and delete a draft', async () => {
+      await setupAndLogin(app, TEST_CREDENTIALS.alice)
+      await testDb
+        .update(users)
+        .set({ role: 'admin' })
+        .where(eq(users.email, TEST_CREDENTIALS.alice.email))
+      const token = await loginAndGetToken(
+        app,
+        TEST_CREDENTIALS.alice.rawEmail,
+        TEST_CREDENTIALS.alice.rawPassword
+      )
+      const slug = 'brouillon-admin'
+
+      const created = await client.articles.$post(
+        {
+          json: {
+            ...VALID_ARTICLE,
+            title: 'Brouillon admin',
+            slug,
+            publishedAt: null,
+          },
+        },
+        withAuth(token)
+      )
+      expect(created.status).toBe(HTTP_STATUS.CREATED)
+
+      const patched = await authPatch(app, `/api/articles/${slug}`, token, {
+        title: 'Brouillon mis à jour',
+      })
+      expect(patched.status).toBe(HTTP_STATUS.OK)
+
+      const updated = await client.articles[':slug'].$get({ param: { slug } }, withAuth(token))
+      expect(updated.status).toBe(HTTP_STATUS.OK)
+      const updatedJson = await updated.json()
+      if (!updatedJson.success) throw new Error('expected ok')
+      expect(updatedJson.data.title).toBe('Brouillon mis à jour')
+
+      const deleted = await authDelete(app, `/api/articles/${slug}`, token)
+      expect(deleted.status).toBe(HTTP_STATUS.NO_CONTENT)
+
+      const missing = await app.request(`/api/articles/${slug}`, withAuth(token))
+      expect(missing.status).toBe(HTTP_STATUS.NOT_FOUND)
+    })
+  })
+
   describe('PATCH /articles/:slug', () => {
     it('returns 403 for non-admin', async () => {
       const token = await setupAndLogin(app, TEST_CREDENTIALS.toto)
       // Authorized middleware passes; handler returns 403 (typed) but TS infers
-      // 200/403 union — use authPatch to dodge the discriminant gymnastics.
+      // 200/403 union: use authPatch to dodge the discriminant gymnastics.
       const res = await authPatch(app, '/api/articles/some-slug', token, { title: 'Nouveau titre' })
       expect(res.status).toBe(HTTP_STATUS.FORBIDDEN)
     })

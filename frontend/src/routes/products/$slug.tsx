@@ -8,6 +8,7 @@ import { productQueries } from '@/lib/queries/products'
 import { profileQueries } from '@/lib/queries/profile'
 
 export const Route = createFileRoute('/products/$slug')({
+  ssr: true,
   loader: ({ context, params }) =>
     Promise.all([
       context.queryClient.ensureQueryData(productQueries.bySlug(params.slug)).catch((err) => {

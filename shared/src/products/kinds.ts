@@ -1,5 +1,3 @@
-// Product Categories
-
 const PRODUCT_CATEGORIES = {
   SKINCARE: 'skincare',
   SOLAIRE: 'solaire',
@@ -17,6 +15,20 @@ export const PRODUCT_CATEGORY_VALUES = Object.values(PRODUCT_CATEGORIES) as [
   ...ProductCategory[],
 ]
 
+// Categories eligible for search indexing: topical face/body/sun care carrying an
+// INCI formula, the surface Aurore is built to read. complement (supplements, no
+// formula), haircare and dental render in-app but stay noindex + out of the sitemap.
+// Shared so the product head (frontend) and the sitemap query (backend) can't drift.
+export const INDEXABLE_PRODUCT_CATEGORIES = [
+  PRODUCT_CATEGORIES.SKINCARE,
+  PRODUCT_CATEGORIES.SOLAIRE,
+  PRODUCT_CATEGORIES.BODYCARE,
+] as const
+
+export const INDEXABLE_PRODUCT_CATEGORY_SET: ReadonlySet<ProductCategory> = new Set(
+  INDEXABLE_PRODUCT_CATEGORIES
+)
+
 export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
   skincare: 'Soin visage',
   haircare: 'Cheveux',
@@ -25,8 +37,6 @@ export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
   complement: 'Compléments',
   bodycare: 'Corps',
 }
-
-// Product Kinds per Category
 
 export const PRODUCT_KINDS = {
   skincare: {

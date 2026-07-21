@@ -31,6 +31,7 @@ export async function createTestApp() {
     '../../features/discussions/ingredient-discussion-routes'
   )
   const { articleRoutes } = await import('../../features/blog/routes')
+  const { sitemapRoutes } = await import('../../features/sitemap/routes')
   const { uploadsRoutes } = await import('../../features/uploads/routes')
   const { adminBansRoutes } = await import('../../features/admin/bans.routes')
   const { adminModerationRoutes } = await import('../../features/admin/moderation.routes')
@@ -75,6 +76,7 @@ export async function createTestApp() {
     .route('/api/me', meRoutes)
     .route('/api/uploads', uploadsRoutes)
     .route('/api/articles', articleRoutes)
+    .route('/api/sitemap.xml', sitemapRoutes)
     .route('/api/admin', adminBansRoutes)
     .route('/api/admin/moderation', adminModerationRoutes)
     .route('/api/admin/reports', adminReportsRoutes)

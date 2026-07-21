@@ -4,7 +4,7 @@ import type {
   UserDermoProfileUpdateInput,
 } from '@aurore/shared'
 
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '../../store/auth'
 import { api } from '../api'
@@ -87,6 +87,25 @@ export const profileQueries = {
       staleTime: 1000 * 60,
       enabled: !!username,
     }),
+}
+
+// Seeds from cache (may be undefined), then for an authenticated visitor either blocks on a
+// fresh dermo fetch (personalization filter on) or warms the cache in the background. A failed
+// fetch under an active filter must not blank the whole catalogue: fall back to the cached
+// profile (or none) and let the list render — deriveAvoidFor tolerates null/undefined → no exclusions.
+export async function resolveDermoForList(
+  qc: QueryClient,
+  userId: string | null,
+  profileFilter?: boolean
+) {
+  let dermo = qc.getQueryData(profileQueries.dermo().queryKey)
+  if (!userId) return dermo
+  if (profileFilter) {
+    dermo = await qc.ensureQueryData(profileQueries.dermo()).catch(() => dermo)
+  } else {
+    void qc.prefetchQuery(profileQueries.dermo())
+  }
+  return dermo
 }
 
 export const useUpdateProfile = () => {

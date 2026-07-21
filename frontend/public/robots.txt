@@ -1,2 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+
+# Keep this origin in sync with SITE_URL (shared/src/core/site.ts).
+Sitemap: https://aurore-app.fr/sitemap.xml
