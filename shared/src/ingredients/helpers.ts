@@ -13,7 +13,18 @@ import { SKINCARE_INGREDIENT_TAG_TAXONOMY } from './skincare/tag-taxonomy'
 import { supplementIngredientFilterCategories } from './supplement/tag-filters'
 import type { SupplementIngredientTagCategory } from './supplement/tag-slugs'
 import { SUPPLEMENT_INGREDIENT_TAG_TAXONOMY } from './supplement/tag-taxonomy'
-import type { IngredientErrorCode } from './types'
+
+export type IngredientErrorCode =
+  | 'ingredient_not_found'
+  | 'ingredient_creation_failed'
+  | 'ingredient_update_failed'
+  | 'ingredient_delete_failed'
+  | 'ingredient_already_exists'
+  | 'ingredient_rate_limited'
+  | 'unauthorized_access'
+  | 'database_error'
+  | 'slug_already_exists'
+  | 'ingredient_update_conflict'
 
 export const ingredientErrorMapping = {
   ingredient_not_found: HTTP_STATUS.NOT_FOUND,
