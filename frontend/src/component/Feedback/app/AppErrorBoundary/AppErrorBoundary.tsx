@@ -3,7 +3,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { captureFrontendError } from '../../../../lib/observability/faro'
 import { GlobalError } from '../GlobalError/GlobalError'
 
-// Defense-in-depth boundary for non-route descendants (Header, Toaster, BottomNav);
+// Defense-in-depth boundary for non-route descendants (Header, Toaster);
 // TanStack root errorComponent handles loader/route throws but not these.
 interface Props {
   children: ReactNode

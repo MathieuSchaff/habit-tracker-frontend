@@ -1,19 +1,13 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Toaster, toast, useToasterStore } from 'react-hot-toast'
 
-import { useIsStandalone } from '../../../hooks/useIsStandalone'
 import { setLiveRegion } from '../../../lib/announce'
 import { useResendVerification } from '../../../lib/queries/auth'
 import { useAuthStore } from '../../../store/auth'
 import { BackToTopButton } from '../../BackToTopButton/BackToTopButton'
 import { Button } from '../../Button/Button'
 import { Header } from '../../Header/Header'
-
-// PWA-only bottom nav: lazy so its code + CSS stay out of the main bundle for browser tabs.
-const BottomNav = lazy(() =>
-  import('../../Header/BottomNav/BottomNav').then((m) => ({ default: m.BottomNav }))
-)
 
 export const AppLayout = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -22,7 +16,6 @@ export const AppLayout = () => {
   const user = useAuthStore((s) => s.user)
   const emailVerified = useAuthStore((s) => s.emailVerified)
   const resend = useResendVerification()
-  const isStandalone = useIsStandalone()
 
   const liveRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -64,11 +57,6 @@ export const AppLayout = () => {
       <main className="content">
         <Outlet />
       </main>
-      {isStandalone && (
-        <Suspense fallback={null}>
-          <BottomNav />
-        </Suspense>
-      )}
       <BackToTopButton />
       <div ref={liveRef} aria-live="polite" aria-atomic="true" className="sr-only" />
       <AppToaster />

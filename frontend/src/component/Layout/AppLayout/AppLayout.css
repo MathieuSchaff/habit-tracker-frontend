@@ -27,18 +27,6 @@
   }
 }
 
-/* Standalone PWA hands mobile nav to the BottomNav: no top bar (Header is hidden), so drop the
-   top offset and instead clear the bottom bar. */
-@media (--mobile) and (display-mode: standalone) {
-  .app-layout {
-    padding-top: 0;
-  }
-
-  .content {
-    padding-bottom: calc(var(--bottom-nav-height, 4.5rem) + env(safe-area-inset-bottom, 0));
-  }
-}
-
 /* Toaster promoted into the top layer (see AppToaster) so toasts clear native <dialog> modals.
    Stay a transparent, click-through passthrough: react-hot-toast renders its own fixed container. */
 .app-toaster {

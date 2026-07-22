@@ -1,9 +1,3 @@
-.main-header {
-  @media (--mobile) and (display-mode: standalone) {
-    display: none;
-  }
-}
-
 .main-nav {
   position: relative;
   display: flex;

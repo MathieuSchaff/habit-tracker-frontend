@@ -266,12 +266,9 @@ const EDGE_BUFFER = 8
 function computeFloatingFilterBounds() {
   if (typeof window === 'undefined') return { minY: 0, maxY: 0 }
   const halfV = window.innerHeight / 2
-  // Mobile-only: desktop has no bottom-nav rendered.
-  const nav = document.querySelector<HTMLElement>('.bottom-nav')
-  const navH = nav?.getBoundingClientRect().height ?? 0
   return {
     minY: -(halfV - PILL_HALF_HEIGHT - EDGE_BUFFER),
-    maxY: halfV - PILL_HALF_HEIGHT - EDGE_BUFFER - navH,
+    maxY: halfV - PILL_HALF_HEIGHT - EDGE_BUFFER,
   }
 }
 
