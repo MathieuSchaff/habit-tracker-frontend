@@ -1,5 +1,5 @@
-// Parity contract for the auto-tag orchestrator. Both `runners/seed-core`
-// (initial seed) and `runners/backfill-auto-tags` (rehydrate) consume
+// Parity contract for the auto-tag orchestrator. Both `db/seed/seeders/seed-core`
+// (initial seed) and `runners/backfill` (rehydrate) consume
 // `detectAllAutoTags` as their single tag-emission path — so the test of
 // runner parity reduces to verifying the orchestrator behaves consistently:
 //   - same input twice → identical output

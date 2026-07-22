@@ -10,8 +10,8 @@
 //      stored counts per tag / cluster (product_tags.type) / level (relevance).
 //      Not the audit runner (that aggregates dry-run predictions, not stored rows).
 //
-// Invoked inside the api container via `just explain-auto-tags` (env: INCI, KIND,
-// CATEGORY, COUNTS); see scripts/just/audit.just.
+// Invoked inside the api container via `just autotag-explain` (env: INCI, KIND,
+// CATEGORY, COUNTS); see scripts/just/audit/autotag-ops.just.
 
 import { PRODUCT_KIND_LABELS, type ProductKind } from '@aurore/shared'
 
