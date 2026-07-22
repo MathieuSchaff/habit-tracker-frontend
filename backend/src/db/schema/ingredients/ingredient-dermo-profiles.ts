@@ -12,9 +12,10 @@ export const ingredientDermoProfiles = pgTable(
       .primaryKey()
       .references(() => ingredients.id, { onDelete: 'cascade' }),
     irritationPotential: irritationEnum('irritation_potential').notNull().default('low'),
-    // nullable: computed from user reviews, unknown until enough data
+    // nullable: no algo-derm evidence or curation yet. Unknown, not "non-comedogenic".
     comedogenicity: integer('comedogenicity'),
     isFiller: boolean('is_filler').notNull().default(false),
+    // CosIng functional labels slugified as-is; no curated taxonomy yet
     functions: text('functions').array().notNull().default([]),
     skinTargets: text('skin_targets').array().notNull().default([]),
   },

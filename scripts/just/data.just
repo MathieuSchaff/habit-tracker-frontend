@@ -116,6 +116,17 @@ catalog-backfill-canonical-key:
     source {{justfile_directory()}}/scripts/just/_lib.sh
     data_run "Backfill canonical_key" src/db/seed/maintenance/backfill-canonical-key.ts
 
+# Backfill ingredient_dermo_profiles (comedogenicity, functions) from algo-derm
+# evidence, joined via canonical_key. Run catalog-backfill-canonical-key first.
+# Re-run after an algo-derm bump. Env: WRITE (omit = dry-run). Persist with `db-snapshot`.
+[doc("Backfill ingredient_dermo_profiles (comedogenicity, functions) from algo-derm evidence. Env: WRITE (omit = dry-run)")]
+[group('catalog')]
+catalog-backfill-dermo-profiles:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source {{justfile_directory()}}/scripts/just/_lib.sh
+    data_run "Backfill dermo profiles" src/db/seed/maintenance/backfill-dermo-profiles.ts
+
 # Rewrite products.inci to governed canonical form (algo-derm cleanInci → canonical).
 # Shares normalizeInci with the create/update write path. Env: WRITE (omit = dry-run).
 # Persist with `db-snapshot` after a WRITE.
