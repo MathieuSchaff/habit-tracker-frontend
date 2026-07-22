@@ -1,5 +1,5 @@
 // Alloy agent: scrape docker.sock logs, map pino level, ship to Grafana Cloud Loki.
-// No Loki/Grafana run on the VPS — logs are stored + viewed in Grafana Cloud.
+// No Loki/Grafana run on the VPS. Logs are stored + viewed in Grafana Cloud.
 // Credentials come from the container env (set in docker-compose.monitoring.yml
 // from .env.prod).
 
@@ -23,37 +23,76 @@ discovery.relabel "app" {
 		target_label  = "container"
 	}
 }
-// read the logs and send it to loki.process.pino
+// read the logs and send it to loki.process.route
 loki.source.docker "app" {
 	host       = "unix:///var/run/docker.sock"
 	targets    = discovery.relabel.app.output
 	labels     = {job = "docker"}
-	forward_to = [loki.process.pino.receiver]
+	forward_to = [loki.process.route.receiver]
 }
 
-// This will transform the logs. It's the pipeline.
-// pino logs JSON with a numeric `level` (30 info / 40 warn / 50 error / 60 fatal);
-// promote it to a low-cardinality `level` label so LogQL can filter `level="error"`.
-// Non-JSON lines (nginx, postgres) fall through to level="unknown".
-loki.process "pino" {
+// Two shipping policies (doctrine: audit-logs.mdx, errors first, never traffic):
+// nginx error_log >= warn so nginx-only failures (502 upstream down, 429 limit_req)
+// are visible even when the API process is dead and pino is silent.
+loki.process "route" {
 	forward_to = [loki.write.cloud.receiver]
 
-	stage.json {
-		expressions = {level_num = "level"}
+	stage.match {
+		selector = "{container=\"app_nginx\"}"
+
+		// error_log format: `2026/07/22 10:00:01 [error] 29#29: *1 connect() failed ...`.
+		// Access-log lines never match -> severity empty -> "access" -> dropped:
+		// they carry IP + query string (leaks L2/L3) and must not leave the VPS.
+		stage.regex {
+			expression = "^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2} \\[(?P<severity>\\w+)\\] "
+		}
+
+		stage.template {
+			source   = "level"
+			template = "{{ if .severity }}{{ .severity }}{{ else }}access{{ end }}"
+		}
+
+		stage.drop {
+			source              = "level"
+			expression          = "access|debug|info|notice"
+			drop_counter_reason = "nginx_access_or_below_warn"
+		}
+
+		// The request/upstream fields of an error line echo the full URL; query
+		// strings can hold reset/verify tokens (leak L3), strip before shipping.
+		stage.replace {
+			expression = "(\\?[^\\s\"]*)"
+			replace    = "?REDACTED"
+		}
+
+		stage.labels {
+			values = {level = "level"}
+		}
 	}
 
-	stage.template {
-		source   = "level"
-		template = "{{ if eq .level_num \"50\" }}error{{ else if eq .level_num \"60\" }}fatal{{ else if eq .level_num \"40\" }}warn{{ else if eq .level_num \"30\" }}info{{ else if eq .level_num \"20\" }}debug{{ else }}unknown{{ end }}"
-	}
+	stage.match {
+		selector = "{container!=\"app_nginx\"}"
 
-	stage.labels {
-		values = {level = "level"}
-	}
-	stage.drop {
-	    source = "level"
-	    expression = "info|debug|unknown"
-		drop_counter_reason = "below_warn"
+		// pino logs JSON with a numeric `level` (30 info / 40 warn / 50 error / 60 fatal);
+		// promote it to a low-cardinality `level` label so LogQL can filter `level="error"`.
+		// Non-JSON lines (postgres, certbot) fall through to level="unknown".
+		stage.json {
+			expressions = {level_num = "level"}
+		}
+
+		stage.template {
+			source   = "level"
+			template = "{{ if eq .level_num \"50\" }}error{{ else if eq .level_num \"60\" }}fatal{{ else if eq .level_num \"40\" }}warn{{ else if eq .level_num \"30\" }}info{{ else if eq .level_num \"20\" }}debug{{ else }}unknown{{ end }}"
+		}
+
+		stage.labels {
+			values = {level = "level"}
+		}
+		stage.drop {
+			source              = "level"
+			expression          = "info|debug|unknown"
+			drop_counter_reason = "below_warn"
+		}
 	}
 }
 
