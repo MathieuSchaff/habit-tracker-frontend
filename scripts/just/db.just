@@ -209,9 +209,11 @@ backup-cron-install:
 db-snapshot:
     #!/usr/bin/env bash
     mkdir -p backend/src/db/snapshot
+    # pin pg_dump's random \restrict token so unchanged data dumps byte-identical (ADR 0015)
     {{COMPOSE_DEV}} exec -T db pg_dump -U app -d appdb \
         --data-only --inserts --no-owner --no-privileges \
         --exclude-schema=drizzle \
+        | sed -E 's/^(\\(un)?restrict) .*/\1 AuroreSnapshotToken/' \
         > {{SNAPSHOT_FILE}}
     printf "{{GREEN}}✓ Snapshot written: {{SNAPSHOT_FILE}} ($(wc -l < {{SNAPSHOT_FILE}}) lines, $(du -h {{SNAPSHOT_FILE}} | cut -f1)){{NC}}\n"
 
@@ -254,7 +256,9 @@ db-catalogue-snapshot:
         -t public.product_tag_types -t public.ingredient_tag_types \
         -t public.ingredient_dermo_profiles -t public.articles \
         -t public.brand_certifications \
-        | sed "s/$OWNER/__OWNER_ID__/g" > {{CATALOGUE_FILE}}
+        | sed "s/$OWNER/__OWNER_ID__/g" \
+        | sed -E 's/^(\\(un)?restrict) .*/\1 AuroreSnapshotToken/' \
+        > {{CATALOGUE_FILE}}
     LEAK=$(grep -c "@seed.local\|@seed.com" {{CATALOGUE_FILE}} || true)
     printf "{{GREEN}}✓ Catalogue snapshot: {{CATALOGUE_FILE}} ($(wc -l < {{CATALOGUE_FILE}}) lines, $(du -h {{CATALOGUE_FILE}} | cut -f1)); seed-email lines: $LEAK{{NC}}\n"
 
