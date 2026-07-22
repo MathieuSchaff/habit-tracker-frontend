@@ -41,9 +41,10 @@ const ReactQueryDevtools = import.meta.env.DEV
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    // suppressHydrationWarning: the inline head script re-themes data-theme from
-    // storage before hydration, so the attribute legitimately differs from SSR.
-    <html lang="fr" data-theme="light" suppressHydrationWarning>
+    // suppressHydrationWarning: client code re-themes data-theme/data-variant from
+    // storage before hydration, so these attributes legitimately differ from SSR.
+    // The SSR defaults (light/terracota) keep colors painted before that JS runs.
+    <html lang="fr" data-theme="light" data-variant="terracota" suppressHydrationWarning>
       <head>
         {/* @layer order must be declared before any CSS loads. Rolldown strips the
             bare @layer statement from bundled CSS, so without this the cascade
