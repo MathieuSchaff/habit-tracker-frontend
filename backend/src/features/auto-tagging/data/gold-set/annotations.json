@@ -2857,16 +2857,6 @@
       "notes": "soin hydratant, hydratation (lead, rate par l'algo)"
     },
     {
-      "productSlug": "clinique-even-better-anti-cernes-correcteur-global",
-      "kind": "spot-treatment",
-      "category": "skincare",
-      "present": [],
-      "absent": ["cernes-poches", "eclat-teint-uniforme"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["cernes-poches", "eclat-teint-uniforme"],
-      "notes": "eclat-teint: absent — correcteur/anti-cernes maquillage (couleur au choix) | cernes-poches: absent — correcteur teinté (couvrance/Blurring Blender/CN shades): masquage pigment ≠ traitement (règle color-correction)"
-    },
-    {
       "productSlug": "clinique-even-better-creme-hydratante-illuminatrice",
       "kind": "moisturizer",
       "category": "skincare",
@@ -3353,15 +3343,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — fini éclatant glaze = fini cosmétique/texture, lead hydratation"
-    },
-    {
-      "productSlug": "cosrx-peptide-132-ultra-perfect-hair-bonding-oil-serum",
-      "kind": "serum",
-      "category": "skincare",
-      "present": [],
-      "absent": [],
-      "annotatedAt": "",
-      "sampledFor": ["peptides"]
     },
     {
       "productSlug": "cosrx-propolis-light-ampoule",
@@ -5066,16 +5047,6 @@
       "notes": "cap-marginal AHA hit, human-judged 2026-06-19"
     },
     {
-      "productSlug": "embryolisse-mascara-soin-courbe-et-definition-noir-8ml-233886",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["protection"],
-      "notes": "protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)"
-    },
-    {
       "productSlug": "embryolisse-poudre-de-soleil-bonne-mine-302384",
       "kind": "moisturizer",
       "category": "skincare",
@@ -5084,15 +5055,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["eclat-teint-uniforme"],
       "notes": "eclat-teint: absent — poudre soleil bonne mine = maquillage"
-    },
-    {
-      "productSlug": "embryolisse-secret-de-maquilleurs-soin-correcteur-anti-cernes-rose-8ml-271352",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["pores-sebum"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "embryolisse-serum-anti-imperfections-30ml-233885",
@@ -6530,16 +6492,6 @@
       "notes": "soin calmant/apaisant (lead) | reparation-cutanee: absent — soothing/neighbor lead despite damage vocab"
     },
     {
-      "productSlug": "haruharu-wonder-rose-pdrn-soothing-serum-sca_clone_freegift",
-      "kind": "serum",
-      "category": "skincare",
-      "present": ["apaisant"],
-      "absent": [],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant"],
-      "notes": "soin calmant/apaisant (lead)"
-    },
-    {
       "productSlug": "hyaluronic-acid-watery-sun-gel-spf50-pa",
       "kind": "moisturizer",
       "category": "skincare",
@@ -7873,16 +7825,6 @@
       "notes": "soin calmant/apaisant (lead)"
     },
     {
-      "productSlug": "jumiso-d-panthenol-barrier-soothing-cream-sca_clone_freegift",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": ["apaisant", "barriere-cutanee"],
-      "absent": [],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["apaisant", "barriere-cutanee"],
-      "notes": "D-Panthenol barrier cream (lead) | apaisant: soin calmant/apaisant (lead)"
-    },
-    {
       "productSlug": "jumiso-d-panthenol-barrier-soothing-serum",
       "kind": "serum",
       "category": "skincare",
@@ -9094,26 +9036,6 @@
       "notes": "KAOLIN visible (fini-mat). TOCOPHEROL visible. vitamin-c (ASCORBYL PALMITATE) likely past pos-10, unrated."
     },
     {
-      "productSlug": "les-secrets-de-loly-kurl-fusion-gel-creme",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["rougeurs-vasculaires"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["rougeurs-vasculaires"],
-      "notes": "rougeurs-vasculaires: absent — soin capillaire"
-    },
-    {
-      "productSlug": "les-secrets-de-loly-serum-de-finition-multi-protection",
-      "kind": "sunscreen",
-      "category": "solaire",
-      "present": [],
-      "absent": ["barriere-cutanee", "protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "protection"],
-      "notes": "sérum finition multi-protection, pas lead barrière | protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)"
-    },
-    {
       "productSlug": "lierac-acide-salicyclique-pur-le-peeling",
       "kind": "exfoliant",
       "category": "skincare",
@@ -10104,29 +10026,6 @@
       "notes": "rougeurs-vasculaires: absent — hydratant sensibles/atopiques"
     },
     {
-      "productSlug": "missha-3d-mascara",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": ["texture-riche", "vitamin-e"],
-      "absent": [
-        "aha",
-        "bha",
-        "ceramides",
-        "enzymes-exfoliants",
-        "fini-mat",
-        "hyaluronic-acid",
-        "peptides",
-        "pha",
-        "polyphenols",
-        "retinoids",
-        "texture-legere",
-        "tyrosinase-inhibitors",
-        "vitamin-c"
-      ],
-      "annotatedAt": "2026-05-10",
-      "sampledFor": ["texture-riche"]
-    },
-    {
       "productSlug": "missha-airy-fit-sheet-mask-tea-tree",
       "kind": "mask",
       "category": "skincare",
@@ -10185,16 +10084,6 @@
       "notes": "nettoyant/demaquillant/savon (support)"
     },
     {
-      "productSlug": "missha-damaged-hair-therapy-treatment",
-      "kind": "moisturizer",
-      "category": "skincare",
-      "present": [],
-      "absent": ["barriere-cutanee", "eczema-atopie"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["barriere-cutanee", "eczema-atopie"],
-      "notes": "soin capillaire (hors barrière cutanée) | eczema-atopie: absent — ne nomme pas atopie/eczéma (Option-A STRICT); détecteur a tiré sur signature oat/céramide, positionné exfoliant/acide"
-    },
-    {
       "productSlug": "missha-m-perfect-covering-bb-cream-spf42-pa",
       "kind": "moisturizer",
       "category": "skincare",
@@ -10213,16 +10102,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["apaisant"],
       "notes": "Soothing Gel cica/aloes, calme la peau (lead apaisant)"
-    },
-    {
-      "productSlug": "missha-procure-silky-coating-hair-essence",
-      "kind": "essence",
-      "category": "skincare",
-      "present": [],
-      "absent": ["protection"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["protection"],
-      "notes": "protection: absent — out of scope / mis-kinded (hair / empty-desc / wrong category)"
     },
     {
       "productSlug": "missha-pure-source-cell-sheet-mask-red-ginseng",
@@ -15223,15 +15102,6 @@
       "annotatedAt": "2026-05-25",
       "sampledFor": ["pores-sebum"],
       "notes": "pores-sebum: pore/sébum/matifiant lead (recall FN — algo a raté)"
-    },
-    {
-      "productSlug": "uriage-ds-hair-lotion-antipelliculaire-regulatrice-purifiante-apaisante-100ml-300516",
-      "kind": "toner",
-      "category": "skincare",
-      "present": [],
-      "absent": ["pores-sebum"],
-      "annotatedAt": "2026-05-25",
-      "sampledFor": ["pores-sebum"]
     },
     {
       "productSlug": "uriage-hyseac-serum-peau-neuve-booster-anti-imperfections",
