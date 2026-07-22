@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * backfill-canonical-key.ts — populate ingredients.canonical_key from algo-derm's
+ * backfill-canonical-key.ts: populate ingredients.canonical_key from algo-derm's
  * curated evidence DB.
  *
  * The catalogue mixes slug schemes (English / French `huile-*` / INCI) and holds
@@ -13,10 +13,13 @@
  *
  * Best-effort: leaves canonical_key NULL when algo-derm has no match (FR / exotic
  * botanicals). `product_ingredients` is a curated optional subset, not a
- * completeness contract — an unkeyed ingredient is a coverage nit, not a defect.
+ * completeness contract. An unkeyed ingredient is a coverage nit, not a defect.
  *
  * Resolution order per ingredient: name, then slug, then de-hyphenated slug with
- * the `-hair` suffix stripped (so `coconut-oil-hair` retries as `coconut oil`).
+ * the `-hair` suffix stripped (so `coconut-oil-hair` retries as `coconut oil`),
+ * then the trailing parenthetical of the name. Catalogue names embed the INCI
+ * there ("Huile de Macadamia (Macadamia Ternifolia Seed Oil)"), which resolves
+ * when neither the full name nor the slug is a known alias.
  *
  * Usage:
  *   bun run src/db/seed/maintenance/backfill-canonical-key.ts          # dry-run
@@ -35,11 +38,12 @@ const aliasIndex = buildAliasIndex(MERGED_EVIDENCE_DB)
 
 const resolve = (name: string, slug: string): string | null => {
   const bare = slug.replace(/-hair$/, '').replace(/-/g, ' ')
+  const paren = name.match(/\(([^)]+)\)\s*$/)?.[1]
   return (
     lookupIngredient(name, aliasIndex)?.inci ??
     lookupIngredient(slug, aliasIndex)?.inci ??
     lookupIngredient(bare, aliasIndex)?.inci ??
-    null
+    (paren ? (lookupIngredient(paren, aliasIndex)?.inci ?? null) : null)
   )
 }
 
