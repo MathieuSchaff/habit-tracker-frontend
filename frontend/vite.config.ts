@@ -221,6 +221,19 @@ export default defineConfig(async ({ command, mode, isPreview }): Promise<UserCo
           codeSplitting: {
             groups: [
               {
+                // The route tree and every route-definition module must live in ONE
+                // chunk. Left to rolldown's auto-splitting they land in mutually-
+                // importing shared chunks whose init order is non-deterministic, so
+                // under the wrong order the tree reads a route export before its chunk
+                // assigns it (Route$N.update of undefined) and every SSR request 500s.
+                // Match only definition modules: the negative lookahead excludes the
+                // `tsr-split`/`tsr-shared` virtuals Start emits for components and
+                // loaders, so heavy route code stays lazily split on the client.
+                name: 'routes',
+                test: /^(?!.*tsr-(?:split|shared)).*[\\/]src[\\/](?:routes[\\/]|routeTree\.gen)/,
+                priority: 50,
+              },
+              {
                 name: 'react',
                 test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
                 priority: 40,
