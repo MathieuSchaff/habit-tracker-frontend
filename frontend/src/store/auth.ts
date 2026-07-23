@@ -14,7 +14,7 @@ interface AuthStore {
   emailVerified: boolean
   role: 'user' | 'admin' | 'contributor'
   isDemo: boolean
-  // Latched after the first boot-time silent-refresh probe so unauthenticated nav doesn't re-fire /auth/refresh.
+  // Latched after client boot decides whether a refresh is needed.
   bootRefreshAttempted: boolean
   // True only while the boot probe is in flight (hint user, cold load); drives the neutral nav
   // skeleton and defers loader convergence (router.invalidate) until the probe settles.

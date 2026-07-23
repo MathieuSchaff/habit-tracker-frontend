@@ -26,6 +26,12 @@ cycles:
 test-csp:
     cd frontend && VITE_API_URL=http://localhost:3000 bunx vite build && bun e2e/csp/check.ts
 
+# Test auth boot convergence against the production SSR build, locally, no Docker.
+# VITE_API_URL points at the check's mock proxy so server-side fetches cannot
+# silently reach a live dev backend on 3000.
+test-auth-ssr:
+    cd frontend && VITE_API_URL=http://127.0.0.1:4190 bunx vite build && bun e2e/auth-ssr/check.ts
+
 # Regenerate the OpenAPI spec from the backend AppType (static ts-morph analysis, no runtime). Serve it via the dev API at /api/docs.
 docs:
     cd backend && bunx @rcmade/hono-docs generate --config ./hono-docs.ts

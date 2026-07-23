@@ -14,6 +14,7 @@ This page is the quick map for local test commands. Detailed backend test author
 | E2E Playwright suite | `just e2e` |
 | Recreate E2E stack and reseed DB | `just e2e-up` or `just e2e-reset` |
 | Prod CSP regression guard | `just test-csp` |
+| Auth SSR production-build guard | `just test-auth-ssr` |
 | Full code audit before PR | `just audit-code` |
 
 ## Before Push Or PR
@@ -25,7 +26,7 @@ just audit-code
 just test
 ```
 
-Add `just e2e` when the browser flow changed. Add `just test-csp` when CSP, frontend deps, or `frontend/src/main.tsx` changed.
+Add `just e2e` when the browser flow changed. Add `just test-csp` when CSP, frontend deps, or `frontend/src/client.tsx` changed. Add `just test-auth-ssr` when auth boot, hydration, or the root SSR shell changed.
 
 ## Generated Results
 
@@ -106,7 +107,15 @@ E2E stack when package dependencies, Docker config, migrations, or the DB snapsh
 
 `just test-csp` builds the production bundle, serves it with the Content-Security-Policy taken from the
 nginx template, and drives headless chromium to fail on any CSP violation. Run it after editing the CSP,
-adding a frontend dependency, or touching `frontend/src/main.tsx`. Local-only (not part of CI).
+adding a frontend dependency, or touching `frontend/src/client.tsx`. Local-only (not part of CI).
+
+## Auth SSR Guard
+
+`just test-auth-ssr` builds the production bundle, starts the generated Bun server, and hydrates it in
+headless Chromium. It verifies the hinted server shell (on `/` and `/products`) and the four client
+outcomes: failed refresh, hint gone before hydration, restored session, and anonymous visitor without
+a hint. Every page also fails on hydration-mismatch console errors. Run it after editing auth boot,
+the root loader, or the server-hint context. Local-only (not part of CI).
 
 ## Common Traps
 

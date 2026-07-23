@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 
 import { Button } from '@/component/Button/Button'
 import { statusLabels } from '@/features/collection/constants'
+import { useBootPending } from '@/lib/hooks/useBootPending'
 import { captureFrontendError } from '@/lib/observability/faro'
 import { productQueries } from '@/lib/queries/products'
 import { useCreateUserProduct } from '@/lib/queries/user-products'
@@ -26,7 +27,7 @@ interface ProductCollectionActionProps {
 
 export function ProductCollectionAction({ product }: ProductCollectionActionProps) {
   const user = useAuthStore((state) => state.user)
-  const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
+  const bootRefreshPending = useBootPending()
   const [showDetails, setShowDetails] = useState(false)
   const navigate = useNavigate()
   const currentHref = useRouterState({ select: (state) => state.location.href })

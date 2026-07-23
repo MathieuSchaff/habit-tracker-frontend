@@ -1,4 +1,4 @@
-import { type BrowserContext, expect, test } from '@playwright/test'
+import { type BrowserContext, expect, type Page, test } from '@playwright/test'
 
 import { loginAsSeed, registerFreshUser } from './helpers/auth'
 
@@ -16,6 +16,24 @@ function uniqueEmail(): string {
 async function sessionHint(context: BrowserContext) {
   const cookies = await context.cookies()
   return cookies.find((c) => c.name === 'aurore_session')
+}
+
+// Parallel chunk loading under 10 workers can exceed the implicit 5s timeout.
+async function expectBannedHeading(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Compte suspendu' })).toBeVisible({
+    timeout: 15_000,
+  })
+}
+
+// The catalogue can arrive in the SSR HTML without a client GET. Opening the
+// menu proves hydration and the boot effect have completed.
+async function gotoProductsSettled(page: Page) {
+  await page.goto('/products')
+  await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible({
+    timeout: 15_000,
+  })
+  await page.getByRole('button', { name: 'Menu utilisateur' }).click()
+  await expect(page.getByRole('menu', { name: 'Menu utilisateur' })).toBeVisible()
 }
 
 test.describe('Auth — login', () => {
@@ -170,6 +188,7 @@ test.describe('Auth — banned user', () => {
   test('banned page shows fallback message when no query params', async ({ page }) => {
     await page.goto('/auth/banned')
 
+    await expectBannedHeading(page)
     await expect(page.getByText('Votre compte est suspendu.')).toBeVisible()
     await expect(page.getByText(/contactez le support/i)).toBeVisible()
   })
@@ -177,6 +196,7 @@ test.describe('Auth — banned user', () => {
   test('banned page shows reason from query params', async ({ page }) => {
     await page.goto('/auth/banned?reason=Comportement+abusif&expires=2026-06-01T00%3A00%3A00.000Z')
 
+    await expectBannedHeading(page)
     await expect(page.getByText(/suspendu jusqu'au/i)).toBeVisible()
     await expect(page.getByText('Comportement abusif')).toBeVisible()
   })
@@ -209,7 +229,7 @@ test.describe('Auth — demo', () => {
 })
 
 // Cold-load boot optimization (feature B1): an anonymous visitor must not pay for the
-// blocking /auth/refresh probe. The non-httpOnly aurore_session cookie gates it: present
+// /auth/refresh probe. The non-httpOnly aurore_session cookie gates it: present
 // after login, gone after logout. These tests pin the observable contract end-to-end.
 test.describe('Auth — session hint (cold-load probe gate)', () => {
   test('anonymous boot skips the refresh probe and sets no hint cookie', async ({
@@ -221,15 +241,7 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
       if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
     })
 
-    // Arm the wait before navigating: on firefox/webkit the GET resolves during goto(), so a
-    // waitForResponse set up afterwards misses it. /api/products only fires after the root
-    // beforeLoad ran. Catching it is a clean signal that boot finished.
-    const productsLoaded = page.waitForResponse(
-      (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
-      { timeout: 15_000 }
-    )
-    await page.goto('/products')
-    await productsLoaded
+    await gotoProductsSettled(page)
 
     expect(await sessionHint(context)).toBeUndefined()
     expect(refreshCalls).toEqual([])
@@ -281,20 +293,12 @@ test.describe('Auth — session hint (cold-load probe gate)', () => {
     page.on('request', (r) => {
       if (r.url().includes('/api/auth/refresh')) refreshCalls.push(r.url())
     })
-    // Arm the wait before goto (see the anonymous-boot case): firefox/webkit resolve the GET
-    // during navigation, so a post-goto waitForResponse misses it.
-    const productsLoaded = page.waitForResponse(
-      (r) => r.url().includes('/api/products') && r.request().method() === 'GET',
-      { timeout: 15_000 }
-    )
-    await page.goto('/products')
-    await productsLoaded
+    await gotoProductsSettled(page)
     expect(refreshCalls).toEqual([])
   })
 })
 
-// Optimistic boot: the root /auth/refresh probe is fire-and-forget so the shell
-// renders without waiting for the network. These cases pin protected-route
+// The root /auth/refresh probe does not gate the public shell. These cases pin protected-route
 // self-heal and the synchronous role guards.
 test.describe('Auth — optimistic boot (cold load, logged in)', () => {
   test('cold load on a protected route self-heals without redirect to login', async ({ page }) => {

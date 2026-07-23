@@ -38,6 +38,7 @@ import { useProductsFilterGroups } from '@/features/products/hooks/useProductsFi
 import { useListFilters } from '@/hooks/useListFilters'
 import { useProfileFilterToggle } from '@/hooks/useProfileFilterToggle'
 import { isRateLimitError } from '@/lib/helpers/apiError'
+import { useBootPending } from '@/lib/hooks/useBootPending'
 import {
   applyShelfStatusOverlayToListCache,
   type ListProductsFilters,
@@ -128,7 +129,7 @@ export function ProductsPage() {
   const staleTime = sort === 'random' || hasFilters ? 5 * 60 * 1000 : 30 * 1000
   // While the root boot refresh is in flight, keep the anonymous key. The /products
   // loader joins that refresh before starting authenticated product work.
-  const bootRefreshPending = useAuthStore((s) => s.bootRefreshPending)
+  const bootRefreshPending = useBootPending()
   const userKey = bootRefreshPending ? null : (user?.id ?? null)
   const { data, isLoading, isPlaceholderData, error } = useQuery({
     ...productQueries.list(apiFilters, userKey),

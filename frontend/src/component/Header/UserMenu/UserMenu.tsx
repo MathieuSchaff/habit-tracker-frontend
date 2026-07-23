@@ -5,6 +5,7 @@ import { FileText, LogIn, LogOut, Shield, User, UserPlus } from 'lucide-react'
 import { DropdownMenu } from '@/component/DropdownMenu/DropdownMenu'
 import { Skeleton } from '@/component/Feedback/ui/Skeleton/Skeleton'
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar/ProfileAvatar'
+import { useBootPending } from '@/lib/hooks/useBootPending'
 import { useLogout } from '@/lib/queries/auth'
 import { profileQueries } from '@/lib/queries/profile'
 import { useAuthStore } from '@/store/auth'
@@ -20,7 +21,7 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
   // During the optimistic boot probe, render a neutral skeleton instead of the logged-out branch
   // so a hint user doesn't flash « Se connecter » / login items before the token lands.
-  const bootRefreshPending = useAuthStore((state) => state.bootRefreshPending)
+  const bootRefreshPending = useBootPending()
   // UserMenu mounts on every page (Header in AppLayout); skip the /profile probe until a session exists.
   const { data: profile } = useQuery({ ...profileQueries.me(), enabled: isAuthenticated })
   // « Modération » reaches admin AND contributor (« modérateur »); both land on the

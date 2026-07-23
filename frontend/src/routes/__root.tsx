@@ -21,10 +21,9 @@ import { AppErrorBoundary } from '../component/Feedback/app/AppErrorBoundary/App
 import { GlobalError } from '../component/Feedback/app/GlobalError/GlobalError'
 import { NavigationProgress } from '../component/Feedback/app/NavigationProgress/NavigationProgress'
 import { AppLayout } from '../component/Layout/AppLayout/AppLayout'
-import { ensureFresh } from '../lib/auth/freshness'
-import { hasSessionHint } from '../lib/auth/sessionHint'
+import { readServerSessionHint, ServerHintProvider } from '../lib/auth/serverHint'
 import { getCspNonce } from '../lib/csp/nonce'
-import { isServer } from '../lib/helpers/isServer'
+import { useBootRefresh } from '../lib/hooks/useBootRefresh'
 import { useTokenRefresh } from '../lib/hooks/useTokenRefresh'
 import { NOINDEX_ROBOTS } from '../lib/seo'
 import type { RouterContext } from '../routerContext'
@@ -61,18 +60,22 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 function RootComponent() {
+  const { serverHint } = Route.useLoaderData()
+  useBootRefresh()
   useTokenRefresh()
   useSessionExpiredRedirect()
   useBannedRedirect()
   return (
     <RootDocument>
-      <AppErrorBoundary>
-        <NavigationProgress />
-        <AppLayout />
-        <Suspense>
-          <ReactQueryDevtools />
-        </Suspense>
-      </AppErrorBoundary>
+      <ServerHintProvider value={serverHint}>
+        <AppErrorBoundary>
+          <NavigationProgress />
+          <AppLayout />
+          <Suspense>
+            <ReactQueryDevtools />
+          </Suspense>
+        </AppErrorBoundary>
+      </ServerHintProvider>
     </RootDocument>
   )
 }
@@ -122,6 +125,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   // The root must allow SSR because a child cannot override a disabled ancestor.
   // Public routes opt into runtime SSR individually.
   ssr: true,
+  // Dehydrated loader data keeps the server and first client render on the same shell.
+  // Keep this request-scoped; never write the hint into the shared auth store.
+  loader: () => ({ serverHint: readServerSessionHint() }),
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -164,25 +170,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
     ],
   }),
-  beforeLoad: ({ context, preload }) => {
-    // Boot probe is client-only: reads cookies and the auth store.
-    if (isServer) return
-    // Skip link hover prefetch; real navigation re-runs this with preload=false.
-    if (preload) return
-    if (context.auth.accessToken) return
-    // One-shot probe at boot: hydrate session from refresh cookie, then stop
-    // so subsequent navigations don't re-fire /auth/refresh on every click.
-    const store = useAuthStore.getState()
-    if (store.bootRefreshAttempted) return
-    // Anonymous visitor (no session-hint cookie): skip the probe and its loader gate.
-    if (!hasSessionHint()) return
-    store.markBootRefreshAttempted()
-    // Render the shell now instead of gating the whole tree on the boot probe.
-    store.setBootRefreshPending(true)
-    void ensureFresh(context.queryClient).finally(() => {
-      useAuthStore.getState().setBootRefreshPending(false)
-    })
-  },
   component: RootComponent,
   errorComponent: ({ error, reset }) => <GlobalError error={error} reset={reset} />,
   notFoundComponent: () => (

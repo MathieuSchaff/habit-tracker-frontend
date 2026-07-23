@@ -70,11 +70,11 @@ export function ComboboxPrimitive<T>({
 
   // showModal() top-layer renders above document.body portals regardless of z-index.
   // Portal into the dialog element to stay in the same top-layer.
-  // Init to document.body; effect upgrades to dialog if present.
-  const [portalTarget, setPortalTarget] = useState<Element>(() => document.body)
+  // Resolved in an effect: document does not exist during SSR, and the dropdown
+  // cannot open before hydration anyway.
+  const [portalTarget, setPortalTarget] = useState<Element | null>(null)
   useEffect(() => {
-    const dialog = containerRef.current?.closest('dialog')
-    if (dialog) setPortalTarget(dialog)
+    setPortalTarget(containerRef.current?.closest('dialog') ?? document.body)
   }, [])
 
   // totalEntries in deps so flip recalculates as async results stream in.
@@ -125,6 +125,7 @@ export function ComboboxPrimitive<T>({
       {children({ listboxId, activeDescendant })}
 
       {isOpen &&
+        portalTarget &&
         createPortal(
           <div ref={dropdownRef} className="combobox-primitive__dropdown">
             {isError ? (
