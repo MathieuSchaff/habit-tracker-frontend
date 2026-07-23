@@ -45,14 +45,6 @@
   --color-primary-subtle: oklch(22% 0.04 var(--h-green));
 
   /* Sidebar: dark clay band (warm orange hue), mango accents. */
-  --color-sidebar-bg: oklch(20% 0.05 var(--h-orange));
-  --color-sidebar-item-hover: oklch(28% 0.07 var(--h-orange));
-  --color-sidebar-item-active: oklch(from var(--mango) l c h / 0.22);
-  --color-sidebar-icon: oklch(82% 0.06 var(--h-mango));
-  --color-sidebar-icon-active: var(--mango-strong);
-  --color-sidebar-text: oklch(85% 0.04 60);
-  --color-sidebar-text-active: oklch(92% 0.05 var(--h-mango));
-  --color-sidebar-accent: var(--mango);
 
   --color-secondary: var(--mango);
   --color-tertiary: var(--green-bright);

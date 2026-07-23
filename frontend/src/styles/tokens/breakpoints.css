@@ -9,6 +9,8 @@
 @custom-media --mobile (max-width: 767px);
 @custom-media --sm-only (max-width: 639px);
 @custom-media --xs-only (max-width: 479px);
+/* Below the inline-navbar threshold: the top bar shows the hamburger + drawer. Mirror of --lg. */
+@custom-media --below-lg (max-width: 1023.98px);
 
 @custom-media --reduced-motion (prefers-reduced-motion: reduce);
 @custom-media --dark (prefers-color-scheme: dark);

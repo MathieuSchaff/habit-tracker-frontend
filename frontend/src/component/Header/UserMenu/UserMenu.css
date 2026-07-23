@@ -1,37 +1,41 @@
 .user-menu {
   position: relative;
-  width: 100%;
   display: flex;
-  justify-content: center;
 }
 
 .user-menu__trigger {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 0.5rem;
+  /* 44px touch target, height-matched to the sibling theme-toggle trigger. */
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: var(--space-1);
   background: transparent;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  color: var(--color-sidebar-text);
+  color: var(--text-secondary);
   transition: background var(--transition-fast) ease;
   gap: var(--space-2);
 }
 
-.user-menu--sidebar-open {
+/* Drawer footer: the trigger expands to a full-width row with the username label. */
+.user-menu--drawer {
+  width: 100%;
   flex-basis: 0;
   justify-content: flex-start;
 }
 
-.user-menu--sidebar-open .user-menu__trigger {
+.user-menu--drawer .user-menu__trigger {
+  width: 100%;
   justify-content: flex-start;
   padding-left: var(--space-3);
+  border-radius: var(--radius-md);
 }
 
 .user-menu__trigger:hover {
-  background: var(--color-sidebar-item-hover);
+  background: var(--bg-hover);
 }
 
 .user-menu__trigger:focus-visible {
@@ -40,8 +44,9 @@
 }
 
 .user-menu__username {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -50,19 +55,19 @@
 
 /* DropdownMenu handles positioning (portal + fixed). Only visual overrides here. */
 .user-menu__dropdown {
-  background: var(--color-sidebar-bg);
-  min-width: 10rem;
+  background: var(--bg-elevated);
+  min-width: 12rem;
 }
 
 .user-menu__dropdown .dropdown-menu__item {
-  color: var(--color-sidebar-text);
+  color: var(--text-primary);
 }
 
 .user-menu__dropdown .dropdown-menu__item:hover {
-  background: var(--color-sidebar-item-hover);
+  background: var(--bg-hover);
 }
 
 .user-menu__dropdown .dropdown-menu__item.active {
-  background: var(--color-sidebar-item-active);
-  color: var(--color-sidebar-text);
+  background: var(--color-accent-subtle);
+  color: var(--color-primary);
 }

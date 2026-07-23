@@ -36,14 +36,6 @@
   --color-primary-subtle: oklch(97% 0.008 var(--h-slate));
 
   /* Sidebar: midnight slate, gold accents. */
-  --color-sidebar-bg: var(--slate-deep);
-  --color-sidebar-item-hover: oklch(36% 0.1 var(--h-slate));
-  --color-sidebar-item-active: oklch(from var(--gold-warm) l c h / 0.22);
-  --color-sidebar-icon: oklch(92% 0.04 var(--h-gold));
-  --color-sidebar-icon-active: var(--gold-warm);
-  --color-sidebar-text: oklch(88% 0.03 var(--h-gold));
-  --color-sidebar-text-active: var(--gold-warm);
-  --color-sidebar-accent: var(--gold-warm);
 
   --color-secondary: var(--gold-warm);
   --color-tertiary: var(--rose-dust);

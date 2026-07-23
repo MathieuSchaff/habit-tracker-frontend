@@ -139,14 +139,14 @@ describe('UserMenu', () => {
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
 
-  it('renders the username next to the avatar only when the sidebar is open', () => {
+  it('renders the username next to the avatar only in the drawer variant', () => {
     setAuthState(true)
     setProfile({ username: 'mathieu', avatarUrl: null })
 
-    const { rerender } = render(<UserMenu isSidebarOpen={false} />)
+    const { rerender } = render(<UserMenu variant="bar" />)
     expect(screen.queryByText('mathieu')).not.toBeInTheDocument()
 
-    rerender(<UserMenu isSidebarOpen={true} />)
+    rerender(<UserMenu variant="drawer" />)
     expect(screen.getByText('mathieu')).toBeInTheDocument()
   })
 })

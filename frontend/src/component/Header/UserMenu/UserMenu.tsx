@@ -13,10 +13,20 @@ import './UserMenu.css'
 
 interface UserMenuProps {
   onItemClick?: () => void
-  isSidebarOpen?: boolean
+  // 'drawer' expands the trigger to a full-width row with the username label.
+  variant?: 'bar' | 'drawer'
+  // Defaults suit the drawer footer (menu opens upward from the bottom). The top bar passes
+  // side="bottom" align="end" so the dropdown drops below the avatar.
+  side?: 'top' | 'bottom'
+  align?: 'start' | 'end'
 }
 
-export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) => {
+export const UserMenu = ({
+  onItemClick,
+  variant = 'bar',
+  side = 'top',
+  align = 'start',
+}: UserMenuProps) => {
   const navigate = useNavigate()
   const isAuthenticated = useAuthStore((state) => !!state.accessToken)
   // During the optimistic boot probe, render a neutral skeleton instead of the logged-out branch
@@ -41,11 +51,11 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
   }
 
   return (
-    <DropdownMenu className={`user-menu${isSidebarOpen ? ' user-menu--sidebar-open' : ''}`}>
+    <DropdownMenu className={`user-menu${variant === 'drawer' ? ' user-menu--drawer' : ''}`}>
       <DropdownMenu.Trigger>
         <button type="button" className="user-menu__trigger" aria-label="Menu utilisateur">
           <ProfileAvatar avatarUrl={profile?.avatarUrl} username={profile?.username} size="sm" />
-          {isSidebarOpen && (
+          {variant === 'drawer' && (
             <span className="user-menu__username">
               {bootRefreshPending ? (
                 <Skeleton width="5rem" height="0.85rem" />
@@ -60,10 +70,10 @@ export const UserMenu = ({ onItemClick, isSidebarOpen = false }: UserMenuProps) 
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content
-        side="top"
-        align="start"
+        side={side}
+        align={align}
         ariaLabel="Menu utilisateur"
-        className={`user-menu__dropdown${isSidebarOpen ? ' user-menu__dropdown--sidebar-open' : ''}`}
+        className="user-menu__dropdown"
       >
         {bootRefreshPending ? null : isAuthenticated ? (
           <>

@@ -12,11 +12,12 @@
   border-radius: var(--radius-md);
   background: none;
   cursor: pointer;
-  color: var(--color-sidebar-text, currentColor);
+  color: var(--text-secondary);
   transition: background var(--transition-base);
 
   &:hover {
-    background: var(--color-sidebar-item-hover);
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 
   &:focus-visible {

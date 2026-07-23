@@ -5,26 +5,15 @@
   background: var(--bg-page);
   /* Prevents body width jumping when the scrollbar appears. */
   scrollbar-gutter: stable;
+  /* The nav is a fixed top bar at every width (Header.css), out of flow, so offset the
+     content by its height. Sticky in-page headers offset the same way (--nav-height). */
+  padding-top: var(--nav-height);
 }
 
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-@media (--md) {
-  .app-layout {
-    padding-left: var(--nav-width-collapsed);
-  }
-}
-
-/* Mobile web: the fixed top app-bar (Header.css) is out of flow, so offset the content by its
-   height. Banner + content sit below the bar; the fixed bar overlays the top gap. */
-@media (--mobile) {
-  .app-layout {
-    padding-top: var(--nav-height);
-  }
 }
 
 /* Toaster promoted into the top layer (see AppToaster) so toasts clear native <dialog> modals.

@@ -35,7 +35,14 @@ export const ThemeToggle = () => {
     // Viewport-relative so overflow parents don't clip the popover.
     const rect = btn.getBoundingClientRect()
     el.style.left = `${rect.left}px`
-    el.style.bottom = `${window.innerHeight - rect.top + 8}px`
+    // Open toward the larger gap: downward from the top bar, upward from the drawer footer.
+    if (rect.top < window.innerHeight / 2) {
+      el.style.top = `${rect.bottom + 8}px`
+      el.style.bottom = 'auto'
+    } else {
+      el.style.bottom = `${window.innerHeight - rect.top + 8}px`
+      el.style.top = 'auto'
+    }
   }
 
   // Clamp into the viewport once the popover is measurable (after it opens).

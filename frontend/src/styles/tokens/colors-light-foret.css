@@ -36,14 +36,6 @@
   --color-primary-subtle: oklch(97% 0.012 var(--h-pine));
 
   /* Sidebar: dark pine, amber accent. */
-  --color-sidebar-bg: oklch(26% 0.1 var(--h-pine));
-  --color-sidebar-item-hover: oklch(34% 0.12 var(--h-pine));
-  --color-sidebar-item-active: oklch(from var(--amber-honey) l c h / 0.22);
-  --color-sidebar-icon: oklch(92% 0.04 var(--h-amber));
-  --color-sidebar-icon-active: var(--amber-honey);
-  --color-sidebar-text: oklch(90% 0.03 var(--h-amber));
-  --color-sidebar-text-active: var(--amber-honey);
-  --color-sidebar-accent: var(--amber-honey);
 
   --color-secondary: var(--terracotta-warm);
   --color-tertiary: var(--amber-honey);

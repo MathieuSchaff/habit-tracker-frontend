@@ -178,7 +178,8 @@
 
   .blog-category-nav {
     position: sticky;
-    top: var(--space-4);
+    /* Stack below the fixed top navbar, not under it. */
+    top: calc(var(--nav-height) + var(--space-4));
     align-self: start;
   }
 

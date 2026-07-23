@@ -1,6 +1,7 @@
 .pds-hero {
   position: sticky;
-  top: 0;
+  /* Clear the fixed top navbar (Header.css) instead of sliding under it. */
+  top: var(--nav-height);
   z-index: var(--z-elevated);
   background: var(--bg-page);
   padding: var(--space-2) var(--space-5) var(--space-4);
