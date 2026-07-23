@@ -2,10 +2,11 @@
 // runtime server, front it with a proxy that mocks the whole /api boundary (browser
 // AND server-side fetches hit it — the build pins VITE_API_URL to the proxy), then
 // drive headless chromium through the four boot outcomes: failed refresh, hint gone
-// before hydration, restored session, anonymous visitor. Every page also fails on
-// hydration-mismatch console errors. Shell markers are asserted via aur-* classes on
-// purpose: the same vocabulary works for the raw SSR HTML string and the hydrated
-// DOM. Not shipped to prod (lives under e2e/). Run via `just test-auth-ssr`.
+// before hydration, restored session, anonymous visitor, plus the products count
+// hydration regression. Every page also fails on hydration-mismatch console errors.
+// Shell markers are asserted via aur-* classes on purpose: the same vocabulary works
+// for the raw SSR HTML string and the hydrated DOM. Not shipped to prod (lives under
+// e2e/). Run via `just test-auth-ssr`.
 import { resolve } from 'node:path'
 
 import { type Browser, chromium, expect, type Page } from '@playwright/test'
@@ -14,6 +15,7 @@ const SERVER = resolve(import.meta.dir, '../../.output/server/index.mjs')
 const PROXY_PORT = 4190
 const SSR_PORT = 4191
 const BASE_URL = `http://127.0.0.1:${PROXY_PORT}`
+const PRODUCTS_TOTAL = 7
 
 // A stale process from a crashed run would make waitForPort succeed against an old
 // build and silently validate the wrong bundle — fail fast instead.
@@ -115,6 +117,12 @@ try {
           headers,
         })
       }
+      if (url.pathname === '/api/products') {
+        return Response.json({
+          success: true,
+          data: { items: [], total: PRODUCTS_TOTAL, page: 1, limit: 24 },
+        })
+      }
       if (url.pathname.startsWith('/api/')) {
         return Response.json({ success: false, error: 'not_found' }, { status: 404 })
       }
@@ -132,25 +140,38 @@ try {
 
   browser = await chromium.launch({ args: ['--no-sandbox'] })
 
-  // Raw SSR HTML, hinted: neutral shell, marketing never in the payload. On /products
-  // the neutral marker is the filtered nav (no « Accueil » item text; the logo only
-  // carries it as an aria-label attribute).
+  // Raw SSR HTML, hinted: neutral shell, marketing never in the payload.
   const serverHtml = await fetch(BASE_URL, {
     headers: { cookie: 'aurore_session=1' },
   }).then((response) => response.text())
   expect(serverHtml).toContain('aur-hub-boot')
   expect(serverHtml).not.toContain('aur-opening')
 
-  const serverProductsHtml = await fetch(`${BASE_URL}/products`, {
-    headers: { cookie: 'aurore_session=1' },
-  }).then((response) => response.text())
+  const serverProductsHtml = await fetch(`${BASE_URL}/products`).then((response) => response.text())
   expect(serverProductsHtml).toContain('Produits')
-  expect(serverProductsHtml).not.toContain('>Accueil<')
+  expect(serverProductsHtml).toContain(`<strong>${PRODUCTS_TOTAL}</strong>`)
 
   // Raw SSR HTML, anonymous: marketing served directly, never the skeleton.
   const serverAnonymousHtml = await fetch(BASE_URL).then((response) => response.text())
   expect(serverAnonymousHtml).toContain('aur-opening')
   expect(serverAnonymousHtml).not.toContain('aur-hub-boot')
+
+  // The list query must settle before SSR renders its total. Otherwise dehydration
+  // ships this mocked count after the server rendered 0 and React rejects hydration.
+  const productsContext = await browser.newContext()
+  const productsPage = await productsContext.newPage()
+  const assertProductsHydration = watchHydration(productsPage)
+
+  await productsPage.goto(`${BASE_URL}/products`, { waitUntil: 'domcontentloaded' })
+  // TanStack drops this stream global only after the client has hydrated.
+  await productsPage.waitForFunction(() => !Reflect.has(window, '$_TSR'))
+
+  await expect(productsPage.locator('.list-page-layout__meta')).toContainText(
+    `${PRODUCTS_TOTAL} en catalogue`
+  )
+  assertProductsHydration()
+
+  await productsContext.close()
 
   // Scenario 1 — hinted boot, refresh 401: skeleton resolves to the anonymous home.
   const context = await browser.newContext()

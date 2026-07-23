@@ -42,7 +42,11 @@ export const Route = createFileRoute('/products/')({
       return
     }
 
-    void context.queryClient.prefetchQuery(productQueries.list(filters, null))
+    // Wait on the server so the rendered total matches the dehydrated cache.
+    // Keep client navigation non-blocking so its first render is not delayed.
+    const listQuery = productQueries.list(filters, null)
+    if (isServer) await context.queryClient.prefetchQuery(listQuery)
+    else void context.queryClient.prefetchQuery(listQuery)
   },
   component: ProductsPage,
 })
