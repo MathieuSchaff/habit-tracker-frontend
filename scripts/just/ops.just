@@ -126,11 +126,13 @@ sweep-demos:
     printf "{{CYAN}}Sweeping expired demo accounts ($TARGET)...{{NC}}\n"
     $COMPOSE exec -w /app/backend api bun run src/features/auth/sweep-expired-demos.cli.ts
 
-# [VPS] Install daily cron (4am) to purge expired demo accounts. Shares backup-cron's PATH assumption (just on root PATH).
+# [VPS] Install daily cron (4am) to purge expired demo accounts. Runs as the invoking user with an absolute just path (cron PATH excludes ~/.local/bin).
 demo-sweep-cron-install:
     #!/usr/bin/env bash
+    set -euo pipefail
     printf "{{YELLOW}}Installing demo-sweep cron at /etc/cron.d/aurore-demo-sweep{{NC}}\n"
-    echo "0 4 * * * root cd $(pwd) && TARGET=prod just sweep-demos >> /var/log/aurore-demo-sweep.log 2>&1" \
+    JUST_BIN="$(command -v just)"
+    echo "0 4 * * * $(id -un) cd $(pwd) && TARGET=prod $JUST_BIN sweep-demos >> $HOME/aurore-demo-sweep.log 2>&1" \
         | sudo tee /etc/cron.d/aurore-demo-sweep > /dev/null
     sudo chmod 644 /etc/cron.d/aurore-demo-sweep
     printf "{{GREEN}}✓ Cron installed — daily demo sweep at 4am{{NC}}\n"
