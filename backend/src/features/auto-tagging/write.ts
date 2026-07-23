@@ -15,7 +15,7 @@ import type { DB } from '../../db/index'
 import { products, productTagLinks } from '../../db/schema'
 import { logger } from '../../lib/logger'
 import { loadAutoTagFetchBundle, ORCHESTRATOR_PRODUCT_COLUMNS } from './lib/fetch-auto-tag-bundle'
-import { computeTagRowsForProduct } from './lib/orchestrator-input'
+import { type AutoTagFetchBundle, computeTagRowsForProduct } from './lib/orchestrator-input'
 
 interface WriteTagsResult {
   inserted: number
@@ -24,7 +24,8 @@ interface WriteTagsResult {
 
 export async function writeTagsForProduct(
   productId: string,
-  database: DB = db
+  database: DB = db,
+  bundle?: AutoTagFetchBundle
 ): Promise<WriteTagsResult> {
   const [product] = await database
     .select({ id: products.id, ...ORCHESTRATOR_PRODUCT_COLUMNS })
@@ -34,10 +35,12 @@ export async function writeTagsForProduct(
 
   if (!product) return { inserted: 0, detected: 0 }
 
-  // Loader reads run serially so a tx `database` stays safe (Bun single-conn
-  // pipelining) — see fetch-auto-tag-bundle.ts.
-  const bundle = await loadAutoTagFetchBundle([productId], database)
-  const { pairs, rows: resolved } = computeTagRowsForProduct(product, bundle)
+  // Loader reads run serially so a tx `database` stays safe; see
+  // fetch-auto-tag-bundle.ts. Full-corpus callers (reconcile) inject a bundle
+  // loaded once, skipping the per-product re-read of the corpus-global certs
+  // and tag-defs.
+  const resolvedBundle = bundle ?? (await loadAutoTagFetchBundle([productId], database))
+  const { pairs, rows: resolved } = computeTagRowsForProduct(product, resolvedBundle)
   const rows = resolved.map((r) => ({
     productId: product.id,
     productTagId: r.tagId,

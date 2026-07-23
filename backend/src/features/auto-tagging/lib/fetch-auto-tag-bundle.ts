@@ -3,11 +3,12 @@
 // batch runners so the fetch set cannot drift per caller — brand certs used to
 // be fetched four times over, with two callers silently missing inputs.
 //
-// Reads are sequential, not Promise.all: when `database` is a transaction they
-// share one connection, and Bun's SQL pipelines concurrent statements then
-// misroutes their result sets — an empty tag-defs read silently drops every
-// tag while the intake DELETE still wipes existing rows. Reconcile passes a tx
-// (withAdminRls); intake uses the pool.
+// Reads stay sequential as belt-and-suspenders. The bun-sql driver now
+// serializes statements on a single tx connection (verified: 0/300 misroute,
+// no overlap), so Promise.all would be safe today. But a Bun/driver downgrade
+// could reintroduce the concurrent-tx misroute, where a misrouted empty
+// tag-defs read drops every tag while the intake DELETE still wipes existing
+// rows. Reconcile passes a tx (withAdminRls); intake uses the pool.
 
 import { type DB, db } from '../../../db'
 import { brandCertifications, products, productTagTypes } from '../../../db/schema'
@@ -28,13 +29,11 @@ export const ORCHESTRATOR_PRODUCT_COLUMNS = {
   texture: products.texture,
 }
 
-export async function loadAutoTagFetchBundle(
-  productIds: readonly string[],
+// Shared with the formula preview so its resolveTagRows input cannot drift
+// from the tag-def shape the writers persist with.
+export async function loadTagSlugToInfo(
   database: DB = db
-): Promise<AutoTagFetchBundle> {
-  const certRows = await database.select().from(brandCertifications)
-  const percentClaimsByProduct = await fetchPercentClaimsByProduct(productIds, database)
-  const knownConcentrationsByProduct = await fetchKnownConcentrationsByProduct(productIds, database)
+): Promise<AutoTagFetchBundle['tagSlugToInfo']> {
   const tagDefs = await database
     .select({
       id: productTagTypes.id,
@@ -42,10 +41,21 @@ export async function loadAutoTagFetchBundle(
       tagType: productTagTypes.tagType,
     })
     .from(productTagTypes)
+  return new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }]))
+}
+
+export async function loadAutoTagFetchBundle(
+  productIds: readonly string[],
+  database: DB = db
+): Promise<AutoTagFetchBundle> {
+  const certRows = await database.select().from(brandCertifications)
+  const percentClaimsByProduct = await fetchPercentClaimsByProduct(productIds, database)
+  const knownConcentrationsByProduct = await fetchKnownConcentrationsByProduct(productIds, database)
+  const tagSlugToInfo = await loadTagSlugToInfo(database)
 
   return {
     brandCertifications: new Map(certRows.map((r) => [r.brandNormalized, r])),
-    tagSlugToInfo: new Map(tagDefs.map((t) => [t.slug, { id: t.id, tagType: t.tagType }])),
+    tagSlugToInfo,
     percentClaimsByProduct,
     knownConcentrationsByProduct,
   }

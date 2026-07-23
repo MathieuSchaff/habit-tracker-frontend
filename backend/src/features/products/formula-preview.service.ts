@@ -11,6 +11,8 @@ import {
   buildOrchestratorInput,
   detectAllAutoTags,
   isAutoTagEligibleCategory,
+  loadTagSlugToInfo,
+  resolveTagRows,
 } from '../auto-tagging'
 
 // Built once on first call — `MERGED_EVIDENCE_DB` is immutable at runtime.
@@ -128,20 +130,33 @@ export async function previewProductFormula(
           .where(eq(brandCertifications.brandNormalized, normalizeBrand(brand)))
       : []
 
-  const suggestedTags = autoTagEligible
-    ? detectAllAutoTags(
-        buildOrchestratorInput({
-          inci: input.inci,
-          kind: input.kind as ProductKind,
-          category: input.category,
-          brand,
-          texture: input.texture ?? null,
-          name: input.name ?? null,
-          description: input.description ?? null,
-        }),
-        { brandCertifications: new Map(certRows.map((r) => [r.brandNormalized, r])) }
-      )
-    : []
+  const suggestedTags: FormulaPreviewResult['suggestedTags'] = []
+  if (autoTagEligible) {
+    const pairs = detectAllAutoTags(
+      buildOrchestratorInput({
+        inci: input.inci,
+        kind: input.kind as ProductKind,
+        category: input.category,
+        brand,
+        texture: input.texture ?? null,
+        name: input.name ?? null,
+        description: input.description ?? null,
+      }),
+      { brandCertifications: new Map(certRows.map((r) => [r.brandNormalized, r])) }
+    )
+    // Same persist-filter as the writers (resolveTagRows): the preview must not
+    // suggest a tag the save would withhold (eczema contraindication) or drop
+    // (domain filter). Parity pinned by formula-preview.test.ts.
+    const tagSlugToInfo = await loadTagSlugToInfo(db)
+    const { rows } = resolveTagRows(
+      pairs,
+      { category: input.category, description: input.description ?? null },
+      tagSlugToInfo
+    )
+    for (const { tagSlug, relevance, source } of rows) {
+      suggestedTags.push({ tagSlug, relevance, source })
+    }
+  }
 
   return { tokens, suggestedTags, autoTagEligible }
 }

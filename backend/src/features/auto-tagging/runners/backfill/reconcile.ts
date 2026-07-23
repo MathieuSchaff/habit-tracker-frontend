@@ -43,11 +43,14 @@ async function main() {
   if (WRITE) {
     let reconciled = 0
     let written = 0
+    // Load the fetch set once for the whole corpus; the per-product writer would
+    // otherwise re-scan the corpus-global brand-certs and tag-defs N times.
+    const bundle = await loadAutoTagFetchBundle(prods.map((p) => p.id))
     // Passing tx nests writeTagsForProduct as a savepoint inheriting app.role='admin'.
     // Bare invocation has no role set, so RLS denies catalog writes.
     await withAdminRls(async (tx) => {
       for (const p of prods) {
-        const r = await writeTagsForProduct(p.id, tx)
+        const r = await writeTagsForProduct(p.id, tx, bundle)
         written += r.inserted
         reconciled++
         if (reconciled % 500 === 0) console.log(`  …${reconciled}/${prods.length}`)

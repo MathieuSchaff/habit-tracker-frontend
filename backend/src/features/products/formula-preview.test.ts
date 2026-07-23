@@ -7,6 +7,8 @@ import { buildAliasIndex, lookupIngredient, MERGED_EVIDENCE_DB } from 'algo-derm
 import { eq } from 'drizzle-orm'
 
 import { ingredients } from '../../db/schema/ingredients/ingredients'
+import { productTagTypes } from '../../db/schema/tags/tags'
+import { productTagData } from '../../db/seed/data/tags'
 import { testDb } from '../../tests/db.test.config'
 import { createTestEnv, withAuth } from '../../tests/helpers/createTestClient'
 import { cleanDatabase } from '../../tests/helpers/db-cleaner'
@@ -31,6 +33,10 @@ describe('POST /products/formula-preview', () => {
 
   beforeEach(async () => {
     await cleanDatabase()
+    // Tag taxonomy is required since the preview runs resolveTagRows: without
+    // product_tag_types rows every suggestion is dropped and the shape test
+    // below would pass on an always-empty array.
+    await testDb.insert(productTagTypes).values(productTagData)
     const env = await createTestEnv()
     token = await setupAndLoginContributor(env.app, TEST_CREDENTIALS.contributor)
   })
@@ -139,6 +145,9 @@ describe('POST /products/formula-preview', () => {
 
       expect(data.data.autoTagEligible).toBe(true)
       expect(Array.isArray(data.data.suggestedTags)).toBe(true)
+      // Non-empty guard: a serum with this INCI always emits at least the
+      // kind-derived tags; an empty array would make the loop below vacuous.
+      expect(data.data.suggestedTags.length).toBeGreaterThan(0)
 
       // Each tag pair must carry the three required fields.
       for (const tag of data.data.suggestedTags) {
@@ -147,6 +156,35 @@ describe('POST /products/formula-preview', () => {
         expect(tag).toHaveProperty('source')
         expect(['primary', 'secondary', 'avoid']).toContain(tag.relevance)
       }
+    })
+
+    // Parity with the save path: the preview runs the same persist-filter
+    // (resolveTagRows) as writeTagsForProduct, so a suggestion shown here is a
+    // suggestion the save would actually persist. Fixtures mirror
+    // auto-tagging/tests/auto-tag-eczema-withholding.test.ts.
+    it('withholds eczema-atopie from suggestions when the description contraindicates atopy', async () => {
+      const env = await createTestEnv()
+      const base = {
+        inci: 'Aqua, Glycerin, Phenoxyethanol',
+        category: 'skincare' as const,
+        kind: 'moisturizer',
+        name: 'Soin peau atopique',
+      }
+      const contraindicated = await env.client.products['formula-preview'].$post(
+        { json: { ...base, description: 'Déconseillé aux peaux atopiques sévères.' } },
+        withAuth(token)
+      )
+      const positive = await env.client.products['formula-preview'].$post(
+        { json: { ...base, description: 'Apaise les sensations de démangeaison.' } },
+        withAuth(token)
+      )
+      const cData = await contraindicated.json()
+      const pData = await positive.json()
+      if (!cData.success || !pData.success) throw new Error('preview failed')
+
+      // Positive control first: same product, plain positioning → suggested.
+      expect(pData.data.suggestedTags.map((t) => t.tagSlug)).toContain('eczema-atopie')
+      expect(cData.data.suggestedTags.map((t) => t.tagSlug)).not.toContain('eczema-atopie')
     })
 
     it('returns autoTagEligible=false and suggestedTags=[] for dental category', async () => {

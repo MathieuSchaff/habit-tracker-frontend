@@ -41,6 +41,7 @@ import { type ProductTagGroups, seedBatch, toNumeric, toText } from '../utils/ba
 import { cleanDatabase, fetchIdMaps, flattenTagGroups } from '../utils/id-maps'
 import { printValidationReport, validateAllIngredients } from '../utils/markdown-validator'
 import { getOrCreateSeedUser } from './create-user'
+import { mergeProductTagPairs } from './merge-product-tag-pairs'
 import { seedBlog } from './seed-blog'
 import { seedTestUsers } from './seed-test-users'
 import { seedUserCollection } from './seed-user-collection'
@@ -421,14 +422,30 @@ export async function seedCore(shouldClean = false, shouldUpdate = false) {
       }
     }
 
-    // Avoid pairs sit first in the dedup chain so they win on collision with
-    // a manual `secondary` for the same (product, tag) pair — the safety
-    // signal must override an editor's stale "compatible" call when the INCI
-    // says otherwise (mirrors backfill-auto-tags upsert behaviour).
-    const productTagPairs = dedupPairs(
-      [...avoidPairs, ...manualProductTagPairs, ...autoSecondaryPairs],
-      'productTags'
-    )
+    // Manual wins every collision, same invariant as write.ts (DELETE scoped
+    // to non-manual) and backfill classify.ts (!isManual). A diverging auto
+    // `avoid` is dropped and reported below: the seed TS is the only home of
+    // curation, so a pair silently replaced here is unrecoverable by retags.
+    const {
+      pairs: productTagPairs,
+      conflicts: avoidManualConflicts,
+      dupes: productTagDupes,
+    } = mergeProductTagPairs({
+      manual: manualProductTagPairs,
+      avoid: avoidPairs,
+      auto: autoSecondaryPairs,
+    })
+    if (productTagDupes > 0) console.log(`ℹ️  ${productTagDupes} doublon(s) productTags fusionné(s)`)
+    if (avoidManualConflicts.length > 0) {
+      console.warn(
+        `⚠  ${avoidManualConflicts.length} 'avoid' auto en conflit avec une curation manuelle — ignorés, à arbitrer :`
+      )
+      for (const c of avoidManualConflicts) {
+        console.warn(
+          `    • ${c.slug} · ${c.tagSlug} (manual ${c.manualRelevance} vs avoid ${c.avoidSource})`
+        )
+      }
+    }
 
     const validProductIngredients = allIngredientProductTags.filter((i) => !!i.ingredientSlug)
 

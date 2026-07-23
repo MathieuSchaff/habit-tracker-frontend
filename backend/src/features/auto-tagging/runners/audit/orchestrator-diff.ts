@@ -12,14 +12,11 @@
 //   BASELINE    optional : prior snapshot CSV; switches to diff mode
 //   LIMIT       optional : cap product count (debug)
 
-import { type ProductKind, relevanceValues, tagSourceValues } from '@aurore/shared'
+import { relevanceValues, tagSourceValues } from '@aurore/shared'
 
-import {
-  type AutoTagPair,
-  type AutoTagRelevance,
-  type AutoTagSource,
-  detectAllAutoTags,
-} from '../../orchestrator'
+import { loadAutoTagFetchBundle } from '../../lib/fetch-auto-tag-bundle'
+import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
+import type { AutoTagRelevance, AutoTagSource } from '../../orchestrator'
 import { exitOnError } from '../cli-args'
 import { rpad } from '../fmt'
 import { fetchEligibleProducts } from './db'
@@ -66,18 +63,13 @@ async function main() {
   )
 
   const subset = await fetchEligibleProducts({ limit: LIMIT ?? undefined })
+  // Full input via the shared kernel: a hand-built literal here once left the
+  // snapshot blind to brand/texture (and any future field) without a compile error.
+  const bundle = await loadAutoTagFetchBundle(subset.map((p) => p.id))
 
   const currentRows: Row[] = []
   for (const p of subset) {
-    // name/description feed the concern positioning-gates so they show in snapshots;
-    // dose-gating inputs (percentClaims/knownConcentrations) stay omitted (marginal).
-    const pairs: AutoTagPair[] = detectAllAutoTags({
-      inci: p.inci,
-      kind: p.kind as ProductKind,
-      category: p.category,
-      name: p.name,
-      description: p.description,
-    })
+    const { pairs } = computeTagRowsForProduct(p, bundle)
     for (const pair of pairs) {
       currentRows.push({
         productSlug: p.slug,

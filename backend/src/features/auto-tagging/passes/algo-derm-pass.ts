@@ -8,12 +8,9 @@ export const algoDermPass: Pass = {
   name: 'algo-derm',
   run: (ctx) => {
     if (!ctx.hasInci) return []
-    // Cast: `detectAutoTags` signature is mutable but does not mutate.
     const tags = detectAutoTags(ctx.inci, ctx.kind, {
       ...ctx.detectAutoTagsOptions,
-      ...(ctx.assessment
-        ? { assessment: ctx.assessment, ingredients: ctx.ingredients as string[] }
-        : {}),
+      ...(ctx.assessment ? { assessment: ctx.assessment, ingredients: ctx.ingredients } : {}),
     })
     const out: AutoTagProposal[] = []
     for (const tag of tags) {

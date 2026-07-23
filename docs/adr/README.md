@@ -20,8 +20,9 @@ Canonical ADRs for Aurore. This directory is tracked in git.
 | [0013](./0013-reactions-signed-counterless.md) | Reactions are signed and counter-less — a list of who, never a tally | accepted | 2026-06-25 |
 | [0014](./0014-role-at-dose-narrow-name-gate-override.md) | roleAtDose is a narrow name-gate override for cap-marginal AHA | accepted | 2026-07-02 |
 | [0015](./0015-db-snapshots-plain-git-no-lfs.md) | DB snapshots are plain-text git blobs, not LFS | accepted | 2026-07-22 |
+| [0016](./0016-tag-reconciliation-stays-per-kernel.md) | Tag reconciliation stays per-kernel; no shared policy module | accepted | 2026-07-23 |
 
-Next available: **0016**. Name: `NNNN-short-imperative-verb-phrase.md`.
+Next available: **0017**. Name: `NNNN-short-imperative-verb-phrase.md`.
 
 ## Template
 

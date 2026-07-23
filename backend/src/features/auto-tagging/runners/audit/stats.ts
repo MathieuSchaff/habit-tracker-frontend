@@ -2,11 +2,10 @@
 // detectAutoTags per product, and build the AuditState the reporters consume.
 // Read-only on DB. Reporting + env dispatch live in main.ts; CHECK in check.ts.
 
-import { analyzeINCI, splitINCI } from 'algo-derm'
-
-import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import { fetchKnownConcentrationsByProduct } from '../../../../lib/fetch-known-concentrations'
-import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
+import { buildPassContext } from '../../lib/build-pass-context'
+import { buildOrchestratorInput } from '../../lib/orchestrator-input'
+import type { PassContext } from '../../lib/pass-types'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
 import { fetchEligibleProducts, fetchProductTagSlugsByProduct } from './db'
 import {
@@ -39,18 +38,10 @@ export interface InteractionStat {
   evidenceLevel: string
 }
 
-type Assessment = ReturnType<typeof analyzeINCI>
+type Assessment = NonNullable<PassContext['assessment']>
 type DetectedTag = ReturnType<typeof detectAutoTags>[number]
 
-interface ProductRow {
-  id: string
-  slug: string
-  name: string
-  brand: string
-  kind: Parameters<typeof mapKindToContext>[0]
-  category: string
-  inci: string | null
-}
+type ProductRow = Awaited<ReturnType<typeof fetchEligibleProducts>>[number]
 
 export interface AuditState {
   withInci: number
@@ -225,27 +216,32 @@ function processProduct(
 ): void {
   state.subsetSizeByCategory.set(p.category, (state.subsetSizeByCategory.get(p.category) ?? 0) + 1)
   if (!p.inci?.trim()) return
+
+  // Hoist via buildPassContext so the audit measures the same cleaned INCI +
+  // solver context the runtime does (a hand-copied strip/split/analyze here
+  // drifted from it once already; the assessment is reused by the regulatory
+  // and interaction surfacing below).
+  const ctx = buildPassContext(
+    buildOrchestratorInput(p, {
+      knownConcentrations: concentrationsByProduct.get(p.id),
+    }),
+    {
+      ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
+      includeDropped: INCLUDE_DROPPED,
+      disableFloors: DISABLE_FLOORS,
+    }
+  )
+  const assessment = ctx.assessment
+  // Always defined when INCI is non-empty (TS narrowing only); guarded before
+  // the counters so a broken invariant cannot count a product it then skips.
+  if (!assessment) return
   state.withInci++
   state.withInciByCategory.set(p.category, (state.withInciByCategory.get(p.category) ?? 0) + 1)
 
-  // Strip marketing preamble before split/analyze so the audit measures the same INCI
-  // the runtime does (build-pass-context strips first; raw prose skews coverage/confidence).
-  const cleanedInci = stripMarketingPreamble(p.inci)
-  // Hoist analyzeINCI: reused by detectAutoTags and regulatory surfacing (avoids a second pass).
-  const ingredients = splitINCI(cleanedInci)
-  const assessment = analyzeINCI(cleanedInci, {
-    context: {
-      ...mapKindToContext(p.kind),
-      knownConcentrations: concentrationsByProduct.get(p.id),
-    },
-  })
-
   const detected = detectAutoTags(p.inci, p.kind, {
-    ...(CONF_OVERRIDE !== null ? { confOverride: CONF_OVERRIDE } : {}),
-    includeDropped: INCLUDE_DROPPED,
-    disableFloors: DISABLE_FLOORS,
+    ...ctx.detectAutoTagsOptions,
     assessment,
-    ingredients,
+    ingredients: ctx.ingredients,
     dropCounts: state.dropCounts,
   })
 

@@ -270,7 +270,7 @@ export interface DetectAutoTagsOptions {
   // (inci, kind): caller responsibility.
   assessment?: ProductAssessment
   // Pre-split ingredient list; same hoisting rationale as assessment.
-  ingredients?: string[]
+  ingredients?: readonly string[]
   // Audit hook: bumps ${reason}:${candidate.id} for every dropped candidate.
   // Caller owns the Map. No-op in prod runners.
   dropCounts?: Map<string, number>
@@ -297,7 +297,8 @@ export function detectAutoTags(
   if (ingredients.length === 0) return []
 
   const assessment = options.assessment ?? analyzeINCI(inci, { context: mapKindToContext(kind) })
-  const candidates = tagProduct(assessment, ingredients)
+  // Cast: tagProduct's parameter type is mutable but it does not mutate.
+  const candidates = tagProduct(assessment, ingredients as string[])
   const isRinseOff = RINSE_OFF_KINDS.has(kind)
   const coverageRatio = assessment.coverage.ratio
 

@@ -9,18 +9,22 @@
 // ceramides use Infinity because the gold-set tags them regardless of INCI position.
 //
 // Do not gate all clusters on the EU <1% zone: vitamin-e/HA/ceramides can be
-// functional below 1%.
-// The narrow version survives: a solver `%` tiebreaker scoped to cap-marginal AHA hits
-// only (lactic/glycolic et al. are pH adjusters below ~1%, exfoliants above) — see
-// `concentrationLookup` below. AHA dosing matches the breakpoint, unlike HA/vit-E.
+// functional below 1%. Cap-marginal AHA hits get a narrower dose/name
+// tiebreaker; see `aha-cap-marginal-gate`.
 
 import type { ProductKind } from '@aurore/shared'
 import { SKINCARE_PRODUCT_TAG_SLUGS, type SkincareProductTagSlug } from '@aurore/shared'
 
-import type { RoleAtDose } from 'algo-derm'
-
 import { isAlphabeticalINCI, resolveIngredients } from '../lib/ingredient-resolver'
 import type { TagEvidence } from '../lib/pass-types'
+import {
+  type ConcentrationLookup,
+  type RoleAtDoseLookup,
+  resolveAhaCapMarginalVerdict,
+} from './aha-cap-marginal-gate'
+
+// Re-exported for actif-class-pass, which builds these lookups from the assessment.
+export type { ConcentrationLookup, RoleAtDoseLookup } from './aha-cap-marginal-gate'
 
 const DEFAULT_POSITION_CAP = 12
 
@@ -56,37 +60,6 @@ export interface ActifClassDef {
   // as an exfoliant. Requires the caller to pass `productName`; absent name = legacy keep.
   rinseOffNameGate?: boolean
 }
-
-// Names that legitimately position a deep rinse-off acid as an exfoliant actif
-// (rescues the cap-marginal gate). Matches exfoliant/exfoliation, (super)foliant,
-// peel/peeling, gommage, resurfacing.
-const EXFOLIATION_NAME_RE = /exfolia|foliant|peel|gommage|resurfa/
-
-// Resolves the algo-derm solver-estimated concentration (% w/w) for a matched acid
-// pattern, or undefined when the solver has no estimate. Built once per product from
-// the shared assessment (see actif-class-pass). Only consulted for cap-marginal AHA.
-export type ConcentrationLookup = (matchedPattern: string) => number | undefined
-
-// The name-gate keyword list (exfolia|peel|...) misses acid-named products (e.g. "Chestnut
-// AHA Essence"), wrongly dropping real exfoliant actives sitting deep in rinse-off INCI.
-// The solver % rescues them: a cap-marginal AHA the name doesn't vouch for is kept when the
-// solver puts it at a confidently functional dose. Threshold 2% (not 1%) so solver noise
-// (MAE 4pts) near the pH-adjuster boundary can't rescue a true pH adjuster — only the
-// unambiguous actives, not 1% cleansers.
-const AHA_RESCUE_PCT_MIN = 2
-
-// roleAtDose (algo-derm v21+): a dose-conditioned exfoliant-vs-pH-adjuster signal on
-// each matched AHA. When confident it is authoritative over the name-gate — a sub-c50
-// dose is a pH adjuster even under an exfoliant-positioned name (e.g. a 40% urea peel
-// whose lactic acid sits sub-1%), and an active dose is kept even when the name keyword
-// list misses it. Near the curve knee confidence collapses → fall back to the name-gate
-// + %-rescue. c50 is the curve midpoint; τ (confidence floor) calibrated on the gold set.
-const AHA_ROLE_DOSE_C50 = 0.5
-const AHA_ROLE_CONFIDENCE_MIN = 0.5
-
-// Resolves the algo-derm roleAtDose signal for a matched acid pattern, built once per
-// product from the shared assessment. Only consulted for cap-marginal AHA hits.
-export type RoleAtDoseLookup = (matchedPattern: string) => RoleAtDose | undefined
 
 export const ACTIF_CLASS_DEFS: ActifClassDef[] = [
   {
@@ -361,36 +334,24 @@ export function detectActifClassesWithEvidence(
         : def.patterns.find((p) => ing.includes(p))
       if (matchedPattern !== undefined) {
         // obs 1: a pH-active acid admitted only by the looser rinse-off cap (position
-        // past the leave-on cap) is a pH adjuster, not an exfoliant — unless the name
-        // positions the product as one. Skip lets a later def (e.g. mandelic) still fire.
+        // past the leave-on cap) may be a pH adjuster, not an exfoliant. Defer the verdict
+        // to the dose gate; a drop lets a later def (e.g. mandelic) still fire.
         const capMarginal =
           !isAlpha &&
           isRinseOffLike &&
           def.positionCapRinseOff !== undefined &&
           i >= (def.positionCap ?? DEFAULT_POSITION_CAP)
-        if (def.rinseOffNameGate && capMarginal) {
-          const role = roleAtDoseLookup?.(matchedPattern)
-          if (role && role.confidence >= AHA_ROLE_CONFIDENCE_MIN) {
-            // Confident dose verdict overrides the name-gate: sub-c50 = pH adjuster (drop),
-            // active dose = keep (fall through). This is the precision lever — it drops a
-            // pH-adjuster AHA the exfoliant-named-product gate would otherwise keep.
-            if (role.doseFactor < AHA_ROLE_DOSE_C50) {
-              continue
-            }
-          } else {
-            // No confident dose signal (near the knee, no curve, or INCI-only caller) ⇒
-            // legacy name-gate + %-rescue. A positive name keeps the hit; otherwise drop a
-            // present-but-neutral name unless the solver puts it at a functional dose (the
-            // keyword list misses acid-named actives). No lookups ⇒ byte-identical name-gate.
-            const nameExfoliant = !!gateName && EXFOLIATION_NAME_RE.test(gateName)
-            if (!nameExfoliant) {
-              const pct = concentrationLookup?.(matchedPattern)
-              const rescued = pct !== undefined && pct >= AHA_RESCUE_PCT_MIN
-              if (!rescued && gateName) {
-                continue
-              }
-            }
-          }
+        if (
+          def.rinseOffNameGate &&
+          capMarginal &&
+          resolveAhaCapMarginalVerdict(
+            matchedPattern,
+            gateName,
+            concentrationLookup,
+            roleAtDoseLookup
+          ) === 'drop'
+        ) {
+          continue
         }
         evidence.set(def.slug, {
           matchedToken: ing,

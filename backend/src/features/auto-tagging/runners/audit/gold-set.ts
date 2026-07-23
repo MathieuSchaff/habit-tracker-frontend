@@ -18,14 +18,10 @@
 //   CSV_OUT          optional   : per (product, tag) prediction CSV
 //   STRICT           optional 1 : fail if any annotation has empty present AND absent
 
-import type { ProductKind } from '@aurore/shared'
-
-import { analyzeINCI, splitINCI } from 'algo-derm'
 import { inArray } from 'drizzle-orm'
 
 import { withAdminRls } from '../../../../db/rls'
 import { products } from '../../../../db/schema'
-import { mapKindToContext } from '../../../../lib/algo-derm-product-context'
 import {
   DEFAULT_GOLD_SET_PATH,
   GOLD_SET_FOCUS_TAGS,
@@ -39,12 +35,12 @@ import {
   microAverage,
   type PerTagMetrics,
 } from '../../gold-set/metrics'
+import { buildPassContext } from '../../lib/build-pass-context'
 import {
   loadAutoTagFetchBundle,
   ORCHESTRATOR_PRODUCT_COLUMNS,
 } from '../../lib/fetch-auto-tag-bundle'
-import { stripMarketingPreamble } from '../../lib/ingredient-resolver'
-import { computeTagRowsForProduct } from '../../lib/orchestrator-input'
+import { buildOrchestratorInput, computeTagRowsForProduct } from '../../lib/orchestrator-input'
 import type { TagEvidence } from '../../lib/pass-types'
 import { isAutoTagEligibleCategory } from '../../orchestrator'
 import { detectAutoTags } from '../../passes/algo-derm-detection'
@@ -142,15 +138,22 @@ async function main() {
     // measured on no-INCI products. They fire from name/description, not INCI.
     const algoConfBySlug = new Map<string, number>()
     if (inci) {
-      // Strip preamble before split/analyze to match runtime (build-pass-context);
-      // raw prose skews the Pass-1 confidence feeding Brier/ECE.
-      const cleanedInci = stripMarketingPreamble(inci)
-      const ingredients = splitINCI(cleanedInci)
-      const assessment = analyzeINCI(cleanedInci, {
-        context: mapKindToContext(p.kind as ProductKind),
-      })
-      const algoTags = detectAutoTags(inci, p.kind as ProductKind, { assessment, ingredients })
-      for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
+      // Hoist via buildPassContext so the Pass-1 confidence feeding Brier/ECE is
+      // computed on the same cleaned INCI + knownConcentrations the runtime uses
+      // (a hand-copied strip/split/analyze here drifted from it once already).
+      const ctx = buildPassContext(
+        buildOrchestratorInput(p, {
+          knownConcentrations: bundle.knownConcentrationsByProduct.get(p.id),
+        }),
+        {}
+      )
+      if (ctx.assessment) {
+        const algoTags = detectAutoTags(inci, p.kind, {
+          assessment: ctx.assessment,
+          ingredients: ctx.ingredients,
+        })
+        for (const t of algoTags) algoConfBySlug.set(t.slug, t.confidence)
+      }
     }
 
     // Raw emission (`pairs`), not the persist-filtered `rows`: the bench measures
